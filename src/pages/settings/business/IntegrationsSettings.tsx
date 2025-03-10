@@ -30,7 +30,7 @@ const IntegrationsSettings = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Integrations</h2>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-2 h-3.5 w-3.5" />
           Add Integration
         </Button>
       </div>
@@ -45,14 +45,14 @@ const IntegrationsSettings = () => {
           <Card>
             <CardHeader className="px-6">
               <CardTitle className="flex items-center gap-2">
-                <Link2 size={20} />
+                <Link2 size={16} />
                 <span>Connected Integrations</span>
               </CardTitle>
               <CardDescription>Manage your existing integrations</CardDescription>
             </CardHeader>
             <div className="px-6 py-3 border-t border-b">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input placeholder="Search integrations..." className="pl-8 max-w-md" />
               </div>
             </div>
@@ -108,7 +108,7 @@ const IntegrationsSettings = () => {
                 </CardContent>
                 <div className="px-6 pb-6 pt-2 flex justify-between">
                   <Button variant="outline" size="sm" className="gap-1">
-                    <ExternalLink size={14} />
+                    <ExternalLink size={14} className="h-3 w-3" />
                     Learn More
                   </Button>
                   <Button size="sm">Connect</Button>
