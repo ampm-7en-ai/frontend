@@ -314,7 +314,7 @@ const SupportTicket = () => {
                 <div className="p-4 border rounded-md">
                   <h4 className="font-medium">How do I connect a third-party service?</h4>
                   <p className="text-sm text-gray-500 mt-1">
-                    Go to Settings > Integrations to connect external services and APIs.
+                    Go to Settings {'>'}  Integrations to connect external services and APIs.
                   </p>
                 </div>
               </div>
