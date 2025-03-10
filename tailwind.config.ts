@@ -26,66 +26,66 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#1877F2', // Facebook blue
+					DEFAULT: '#2563EB', // Primary Blue
 					foreground: '#FFFFFF',
-					hover: '#166FE5', // Facebook blue hover
+					hover: '#1E40AF', // Secondary Blue
 				},
 				secondary: {
-					DEFAULT: '#42B72A', // Facebook green
+					DEFAULT: '#1E40AF', // Secondary Blue
 					foreground: '#FFFFFF',
 				},
 				accent: {
-					DEFAULT: '#E7F3FF', // Light blue accent
-					foreground: '#1877F2',
+					DEFAULT: '#3B82F6', // Accent Blue
+					foreground: '#FFFFFF',
 				},
 				destructive: {
-					DEFAULT: '#FA383E', // Facebook red
+					DEFAULT: '#EF4444', // Error Red
 					foreground: '#FFFFFF',
 				},
 				muted: {
-					DEFAULT: '#F0F2F5', // Facebook light gray
-					foreground: '#65676B', // Facebook text gray
+					DEFAULT: '#F3F4F6', // Light Gray
+					foreground: '#4B5563', // Dark Gray
 				},
 				success: {
-					DEFAULT: '#42B72A', // Facebook green
+					DEFAULT: '#10B981', // Success Green
 					foreground: '#FFFFFF',
 				},
 				warning: {
-					DEFAULT: '#F7B928', // Facebook yellow
+					DEFAULT: '#F59E0B', // Warning Yellow
 					foreground: '#FFFFFF',
 				},
 				info: {
-					DEFAULT: '#1877F2', // Facebook blue
+					DEFAULT: '#3B82F6', // Info Blue
 					foreground: '#FFFFFF',
 				},
 				popover: {
 					DEFAULT: '#FFFFFF',
-					foreground: '#050505',
+					foreground: '#1F2937',
 				},
 				card: {
 					DEFAULT: '#FFFFFF',
-					foreground: '#050505',
+					foreground: '#1F2937',
 				},
 				// Neutrals
 				white: '#FFFFFF',
-				'light-gray': '#F0F2F5', // Facebook background gray
-				'medium-gray': '#65676B', // Facebook secondary text
-				'dark-gray': '#1C1E21', // Facebook primary text
-				black: '#050505',
+				'light-gray': '#F3F4F6',
+				'medium-gray': '#9CA3AF',
+				'dark-gray': '#4B5563',
+				black: '#1F2937',
 			},
 			borderRadius: {
-				lg: '8px',
-				md: '6px',
-				sm: '4px',
+				lg: '0.5rem',
+				md: '0.375rem',
+				sm: '0.25rem',
 			},
 			fontSize: {
-				'heading-1': '1.5rem',    // 24px - Facebook uses smaller headings
-				'heading-2': '1.25rem',   // 20px
-				'heading-3': '1.125rem',  // 18px
-				'heading-4': '1rem',      // 16px
-				'body': '0.9375rem',      // 15px - Facebook's main text size
-				'small': '0.8125rem',     // 13px - Facebook's secondary text size
-				'micro': '0.75rem',       // 12px
+				'heading-1': '1.75rem', // 28px
+				'heading-2': '1.5rem',   // 24px
+				'heading-3': '1.25rem',  // 20px
+				'heading-4': '1.125rem', // 18px
+				'body': '1rem',          // 16px
+				'small': '0.875rem',     // 14px
+				'micro': '0.75rem',      // 12px
 			},
 			fontWeight: {
 				normal: '400',
@@ -94,9 +94,9 @@ export default {
 				bold: '700',
 			},
 			fontFamily: {
-				'inter': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'], // Facebook-like system font stack
-				'poppins': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'], // Using same system font stack
-				'mono': ['SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', 'monospace'],
+				'inter': ['Inter', 'sans-serif'],
+				'poppins': ['Poppins', 'sans-serif'],
+				'mono': ['IBM Plex Mono', 'monospace'],
 			},
 			spacing: {
 				'1': '8px',
@@ -107,7 +107,7 @@ export default {
 				'8': '64px',
 			},
 			boxShadow: {
-				'card': '0 1px 2px rgba(0, 0, 0, 0.1)', // Facebook's subtle card shadow
+				'card': '0 4px 6px rgba(0, 0, 0, 0.05)',
 			},
 			keyframes: {
 				'accordion-down': {

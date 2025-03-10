@@ -6,13 +6,13 @@ import {
   ChevronLeft, 
   Home, 
   Users, 
-  MessagesSquare, 
+  Bot, 
   Database, 
-  GitBranch, 
+  Workflow, 
   Settings, 
-  MessageCircle, 
+  MessageSquare, 
   BarChart, 
-  Link2, 
+  Link as LinkIcon, 
   HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -44,7 +44,7 @@ const SidebarItem = ({
         to={href}
         className={cn(
           "flex items-center p-2 rounded-md text-dark-gray hover:bg-light-gray transition-colors duration-200",
-          isActive && "bg-accent text-primary font-medium",
+          isActive && "bg-primary/10 text-primary border-l-4 border-primary pl-1",
           isCollapsed ? "justify-center" : "justify-between"
         )}
         onClick={hasSubMenu ? (e) => {
@@ -55,15 +55,15 @@ const SidebarItem = ({
         <div className="flex items-center">
           <div className={cn(
             "flex items-center justify-center",
-            isCollapsed ? "w-full" : "w-8 mr-3"
+            isCollapsed ? "w-full" : "w-6 mr-3"
           )}>
             {icon}
           </div>
-          {!isCollapsed && <span className="text-body">{title}</span>}
+          {!isCollapsed && <span className="text-sm">{title}</span>}
         </div>
         {!isCollapsed && hasSubMenu && (
           <ChevronRight className={cn(
-            "h-4 w-4 transition-transform duration-200",
+            "h-3.5 w-3.5 transition-transform duration-200",
             isOpen && "transform rotate-90"
           )} />
         )}
@@ -86,91 +86,91 @@ export function Sidebar({ className }: SidebarProps) {
 
   return (
     <div className={cn(
-      "flex flex-col h-screen bg-white border-r border-[#E4E6EB] transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64",
+      "flex flex-col h-screen bg-white border-r border-medium-gray/20 transition-all duration-300",
+      isCollapsed ? "w-16" : "w-60",
       className
     )}>
-      <div className="p-3 flex items-center justify-between border-b border-[#E4E6EB]">
+      <div className="p-3 flex items-center justify-between border-b border-medium-gray/20">
         {!isCollapsed && (
           <div className="flex items-center">
-            <span className="text-primary font-inter font-bold text-2xl">facebook</span>
+            <span className="text-primary font-poppins font-bold text-lg">7en.ai</span>
           </div>
         )}
         {isCollapsed && (
           <div className="w-full flex justify-center">
-            <span className="text-primary font-inter font-bold text-2xl">f</span>
+            <span className="text-primary font-poppins font-bold text-lg">7</span>
           </div>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 rounded-full text-dark-gray hover:bg-light-gray transition-colors duration-200"
+          className="p-2 rounded-md text-dark-gray hover:bg-light-gray transition-colors duration-200"
         >
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </div>
 
       <div className="flex-1 py-4 overflow-y-auto">
-        <div className="px-2 space-y-1">
+        <div className="px-3 space-y-1">
           <SidebarItem 
-            icon={<Home size={24} />} 
-            title="Home" 
+            icon={<Home size={14} />} 
+            title="Dashboard" 
             href="/" 
             isCollapsed={isCollapsed} 
             isActive={true} 
           />
           
           <SidebarItem 
-            icon={<MessagesSquare size={24} />} 
+            icon={<Bot size={14} />} 
             title="Agent Management" 
             href="/agents" 
             isCollapsed={isCollapsed} 
             hasSubMenu={!isCollapsed}
           >
-            <Link to="/agents" className="text-body p-2 block text-dark-gray hover:text-primary">
+            <Link to="/agents" className="text-sm p-2 block text-dark-gray hover:text-primary">
               All Agents
             </Link>
-            <Link to="/agents/create" className="text-body p-2 block text-dark-gray hover:text-primary">
+            <Link to="/agents/create" className="text-sm p-2 block text-dark-gray hover:text-primary">
               Create Agent
             </Link>
           </SidebarItem>
           
           <SidebarItem 
-            icon={<Database size={24} />} 
+            icon={<Database size={14} />} 
             title="Knowledge Base" 
             href="/knowledge" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<GitBranch size={24} />} 
+            icon={<Workflow size={14} />} 
             title="Workflows" 
             href="/workflows" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<MessageCircle size={24} />} 
+            icon={<MessageSquare size={14} />} 
             title="Conversations" 
             href="/conversations" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<BarChart size={24} />} 
+            icon={<BarChart size={14} />} 
             title="Analytics" 
             href="/analytics" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<Link2 size={24} />} 
+            icon={<LinkIcon size={14} />} 
             title="Integrations" 
             href="/integrations" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<Users size={24} />} 
+            icon={<Users size={14} />} 
             title="User Management" 
             href="/users" 
             isCollapsed={isCollapsed} 
@@ -178,16 +178,16 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </div>
 
-      <div className="p-2 border-t border-[#E4E6EB]">
+      <div className="p-3 border-t border-medium-gray/20">
         <SidebarItem 
-          icon={<Settings size={24} />} 
+          icon={<Settings size={14} />} 
           title="Settings" 
           href="/settings" 
           isCollapsed={isCollapsed} 
         />
         
         <SidebarItem 
-          icon={<HelpCircle size={24} />} 
+          icon={<HelpCircle size={14} />} 
           title="Help & Support" 
           href="/help" 
           isCollapsed={isCollapsed} 

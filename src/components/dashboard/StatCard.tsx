@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 type StatCardProps = {
   title: string;
@@ -17,26 +17,26 @@ type StatCardProps = {
 export function StatCard({ title, value, icon, change, className }: StatCardProps) {
   return (
     <div className={cn(
-      "card rounded-xl hover:shadow-md transition-shadow duration-200",
+      "card flex flex-col h-full",
       className
     )}>
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="text-medium-gray font-medium text-sm">{title}</h3>
-        <div className="p-2 rounded-full bg-accent text-primary">
+      <div className="flex items-start justify-between mb-2">
+        <h3 className="text-dark-gray font-medium text-sm">{title}</h3>
+        <div className="p-2 rounded-md bg-light-gray text-primary">
           {icon}
         </div>
       </div>
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline space-x-2">
         <span className="text-heading-2 font-semibold">{value}</span>
         {change && (
           <div className={cn(
-            "flex items-center text-xs",
+            "flex items-center text-sm",
             change.isPositive ? "text-success" : "text-destructive"
           )}>
             {change.isPositive ? (
-              <ArrowUp size={12} />
+              <ArrowUpRight size={14} />
             ) : (
-              <ArrowDown size={12} />
+              <ArrowDownRight size={14} />
             )}
             <span>{Math.abs(change.value)}%</span>
           </div>
