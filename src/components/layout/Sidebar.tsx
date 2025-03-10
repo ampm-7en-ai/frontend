@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -12,8 +12,8 @@ import {
   Settings, 
   MessageSquare, 
   BarChart, 
-  Link as LinkIcon, 
-  HelpCircle
+  HelpCircle, 
+  Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,8 +23,8 @@ type SidebarItemProps = {
   href: string;
   isCollapsed: boolean;
   isActive?: boolean;
-  hasSubMenu?: boolean;
-  children?: React.ReactNode;
+  adminOnly?: boolean;
+  superAdminOnly?: boolean;
 };
 
 const SidebarItem = ({
@@ -33,10 +33,16 @@ const SidebarItem = ({
   href,
   isCollapsed,
   isActive = false,
-  hasSubMenu = false,
-  children,
+  adminOnly = false,
+  superAdminOnly = false,
 }: SidebarItemProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  // This would normally check actual user permissions - for demo, we're showing everything
+  const userRole = "superadmin"; // Simulated role: 'user', 'admin', or 'superadmin'
+  
+  // Hide items based on role
+  if ((adminOnly && userRole === 'user') || (superAdminOnly && userRole !== 'superadmin')) {
+    return null;
+  }
 
   return (
     <div className="mb-1">
@@ -47,32 +53,44 @@ const SidebarItem = ({
           isActive && "bg-primary/10 text-primary border-l-4 border-primary pl-1",
           isCollapsed ? "justify-center" : "justify-between"
         )}
-        onClick={hasSubMenu ? (e) => {
-          e.preventDefault();
-          setIsOpen(!isOpen);
-        } : undefined}
       >
         <div className="flex items-center">
           <div className={cn(
             "flex items-center justify-center",
-            isCollapsed ? "w-full" : "w-6 mr-3"
+            isCollapsed ? "w-full" : "w-5 mr-3"
           )}>
             {icon}
           </div>
           {!isCollapsed && <span className="text-sm">{title}</span>}
         </div>
-        {!isCollapsed && hasSubMenu && (
-          <ChevronRight className={cn(
-            "h-3.5 w-3.5 transition-transform duration-200",
-            isOpen && "transform rotate-90"
-          )} />
+        
+        {superAdminOnly && !isCollapsed && (
+          <Shield className="h-3 w-3 text-primary" />
         )}
       </Link>
-      {hasSubMenu && isOpen && !isCollapsed && (
-        <div className="ml-8 mt-1 space-y-1">
-          {children}
+    </div>
+  );
+};
+
+type SidebarSectionProps = {
+  title: string;
+  isCollapsed: boolean;
+  children: React.ReactNode;
+};
+
+const SidebarSection = ({ title, isCollapsed, children }: SidebarSectionProps) => {
+  return (
+    <div className="mb-4">
+      {!isCollapsed && (
+        <div className="px-3 mb-1">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            {title}
+          </h3>
         </div>
       )}
+      <div className="px-3 space-y-1">
+        {children}
+      </div>
     </div>
   );
 };
@@ -83,6 +101,8 @@ type SidebarProps = {
 
 export function Sidebar({ className }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   return (
     <div className={cn(
@@ -105,92 +125,100 @@ export function Sidebar({ className }: SidebarProps) {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-2 rounded-md text-dark-gray hover:bg-light-gray transition-colors duration-200"
         >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
 
       <div className="flex-1 py-4 overflow-y-auto">
-        <div className="px-3 space-y-1">
+        <SidebarSection title="Main" isCollapsed={isCollapsed}>
           <SidebarItem 
-            icon={<Home size={14} />} 
+            icon={<Home size={16} />} 
             title="Dashboard" 
             href="/" 
             isCollapsed={isCollapsed} 
-            isActive={true} 
+            isActive={currentPath === '/'} 
           />
           
           <SidebarItem 
-            icon={<Bot size={14} />} 
-            title="Agent Management" 
+            icon={<Bot size={16} />} 
+            title="Agents" 
             href="/agents" 
             isCollapsed={isCollapsed} 
-            hasSubMenu={!isCollapsed}
-          >
-            <Link to="/agents" className="text-sm p-2 block text-dark-gray hover:text-primary">
-              All Agents
-            </Link>
-            <Link to="/agents/create" className="text-sm p-2 block text-dark-gray hover:text-primary">
-              Create Agent
-            </Link>
-          </SidebarItem>
+            isActive={currentPath.startsWith('/agents')} 
+          />
           
           <SidebarItem 
-            icon={<Database size={14} />} 
+            icon={<Database size={16} />} 
             title="Knowledge Base" 
             href="/knowledge" 
             isCollapsed={isCollapsed} 
+            isActive={currentPath.startsWith('/knowledge')} 
           />
           
           <SidebarItem 
-            icon={<Workflow size={14} />} 
-            title="Workflows" 
-            href="/workflows" 
-            isCollapsed={isCollapsed} 
-          />
-          
-          <SidebarItem 
-            icon={<MessageSquare size={14} />} 
+            icon={<MessageSquare size={16} />} 
             title="Conversations" 
             href="/conversations" 
             isCollapsed={isCollapsed} 
+            isActive={currentPath.startsWith('/conversations')} 
           />
           
           <SidebarItem 
-            icon={<BarChart size={14} />} 
+            icon={<BarChart size={16} />} 
             title="Analytics" 
             href="/analytics" 
             isCollapsed={isCollapsed} 
+            isActive={currentPath.startsWith('/analytics')} 
+            adminOnly
           />
-          
+        </SidebarSection>
+        
+        <SidebarSection title="Administration" isCollapsed={isCollapsed}>
           <SidebarItem 
-            icon={<LinkIcon size={14} />} 
-            title="Integrations" 
-            href="/integrations" 
-            isCollapsed={isCollapsed} 
-          />
-          
-          <SidebarItem 
-            icon={<Users size={14} />} 
-            title="User Management" 
+            icon={<Users size={16} />} 
+            title="Users" 
             href="/users" 
             isCollapsed={isCollapsed} 
+            isActive={currentPath.startsWith('/users')} 
+            adminOnly
           />
-        </div>
+          
+          <SidebarItem 
+            icon={<Workflow size={16} />} 
+            title="Workflows" 
+            href="/workflows" 
+            isCollapsed={isCollapsed} 
+            isActive={currentPath.startsWith('/workflows')} 
+            adminOnly
+          />
+          
+          <SidebarItem 
+            icon={<Settings size={16} />} 
+            title="Business Settings" 
+            href="/settings/business/profile" 
+            isCollapsed={isCollapsed} 
+            isActive={currentPath.includes('/settings/business')} 
+            adminOnly
+          />
+          
+          <SidebarItem 
+            icon={<Shield size={16} />} 
+            title="Platform Settings" 
+            href="/settings/platform/general" 
+            isCollapsed={isCollapsed} 
+            isActive={currentPath.includes('/settings/platform')} 
+            superAdminOnly
+          />
+        </SidebarSection>
       </div>
 
       <div className="p-3 border-t border-medium-gray/20">
         <SidebarItem 
-          icon={<Settings size={14} />} 
-          title="Settings" 
-          href="/settings" 
-          isCollapsed={isCollapsed} 
-        />
-        
-        <SidebarItem 
-          icon={<HelpCircle size={14} />} 
+          icon={<HelpCircle size={16} />} 
           title="Help & Support" 
-          href="/help" 
+          href="/help/documentation" 
           isCollapsed={isCollapsed} 
+          isActive={currentPath.startsWith('/help')} 
         />
       </div>
     </div>

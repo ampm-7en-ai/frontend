@@ -8,6 +8,7 @@ import {
   BarChart2 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 type QuickActionsProps = {
   className?: string;
@@ -16,27 +17,27 @@ type QuickActionsProps = {
 export function QuickActions({ className }: QuickActionsProps) {
   const actions = [
     {
-      icon: <PlusCircle size={14} />,
+      icon: <PlusCircle size={16} />,
       label: 'Create Agent',
       href: '/agents/create',
     },
     {
-      icon: <Database size={14} />,
+      icon: <Database size={16} />,
       label: 'Add Knowledge',
       href: '/knowledge/upload',
     },
     {
-      icon: <Upload size={14} />,
+      icon: <Upload size={16} />,
       label: 'Import Data',
-      href: '/import',
+      href: '/knowledge/upload',
     },
     {
-      icon: <Bot size={14} />,
+      icon: <Bot size={16} />,
       label: 'Test Agent',
       href: '/agents/test',
     },
     {
-      icon: <BarChart2 size={14} />,
+      icon: <BarChart2 size={16} />,
       label: 'View Reports',
       href: '/analytics',
     },
@@ -54,10 +55,10 @@ export function QuickActions({ className }: QuickActionsProps) {
             className="flex items-center gap-2 px-3 py-2 text-sm"
             asChild
           >
-            <a href={action.href}>
+            <Link to={action.href}>
               {action.icon}
               {action.label}
-            </a>
+            </Link>
           </Button>
         ))}
       </div>
