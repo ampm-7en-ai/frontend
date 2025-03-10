@@ -74,8 +74,9 @@
     @apply text-small;
   }
 
+  /* Fix for circular dependency - directly apply the font size instead of using @apply */
   .text-micro {
-    @apply text-micro;
+    font-size: 0.75rem; /* 12px */
   }
 
   code, pre {
