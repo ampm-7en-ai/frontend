@@ -120,13 +120,15 @@ const Documentation = () => {
           <Card>
             <CardContent className="p-4">
               <div className="mb-4">
-                <Input 
-                  placeholder="Search documentation..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                  icon={<Search className="h-4 w-4" />}
-                />
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search documentation..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-8"
+                  />
+                </div>
               </div>
               
               <nav className="space-y-1">

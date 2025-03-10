@@ -271,7 +271,7 @@ const CustomizationSettings = () => {
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Use {{variables}} for dynamic content
+                    Use {'{{'} variables {'}}'}  for dynamic content
                   </p>
                 </div>
                 

@@ -68,7 +68,7 @@ const IntegrationsSettings = () => {
                         <h3 className="font-medium">{integration.name}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline">{integration.category}</Badge>
-                          <Badge variant="success" className="text-xs">
+                          <Badge variant="secondary" className="text-xs">
                             {integration.status}
                           </Badge>
                         </div>

@@ -84,8 +84,8 @@ const TeamSettings = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant={
-                      member.status === 'Active' ? 'success' : 
-                      member.status === 'Inactive' ? 'secondary' : 'warning'
+                      member.status === 'Active' ? 'default' : 
+                      member.status === 'Inactive' ? 'secondary' : 'outline'
                     }>
                       {member.status}
                     </Badge>

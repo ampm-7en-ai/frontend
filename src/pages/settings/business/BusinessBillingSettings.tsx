@@ -163,7 +163,7 @@ const BusinessBillingSettings = () => {
                       <TableCell>{invoice.date}</TableCell>
                       <TableCell>{invoice.amount}</TableCell>
                       <TableCell>
-                        <Badge variant={invoice.status === 'Paid' ? 'success' : 'warning'}>
+                        <Badge variant={invoice.status === 'Paid' ? 'secondary' : 'outline'}>
                           {invoice.status}
                         </Badge>
                       </TableCell>
@@ -195,19 +195,19 @@ const BusinessBillingSettings = () => {
                 <div className="text-3xl font-bold">€299<span className="text-base font-normal text-muted-foreground">/mo</span></div>
                 <ul className="mt-4 space-y-2 text-sm">
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Up to 5 agents</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>3,000 conversations/mo</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>1GB knowledge base storage</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Email support</span>
                   </li>
                 </ul>
@@ -229,23 +229,23 @@ const BusinessBillingSettings = () => {
                 <div className="text-3xl font-bold">€599<span className="text-base font-normal text-muted-foreground">/mo</span></div>
                 <ul className="mt-4 space-y-2 text-sm">
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Up to 25 agents</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>10,000 conversations/mo</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>5GB knowledge base storage</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Priority support</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Advanced analytics</span>
                   </li>
                 </ul>
@@ -267,27 +267,27 @@ const BusinessBillingSettings = () => {
                 <div className="text-3xl font-bold">€1,499<span className="text-base font-normal text-muted-foreground">/mo</span></div>
                 <ul className="mt-4 space-y-2 text-sm">
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Unlimited agents</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Unlimited conversations</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>25GB knowledge base storage</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>24/7 dedicated support</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>Custom integrations</span>
                   </li>
                   <li className="flex items-center">
-                    <CheckCircle className="text-success mr-2 h-4 w-4" />
+                    <CheckCircle className="text-primary mr-2 h-4 w-4" />
                     <span>SLA guarantees</span>
                   </li>
                 </ul>

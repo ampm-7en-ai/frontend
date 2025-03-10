@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, CurrencyEuro, Receipt, Download, AlertCircle } from 'lucide-react';
+import { CreditCard, Currency, Receipt, Download, AlertCircle } from 'lucide-react';
 
 const BillingSettings = () => {
   return (
@@ -317,7 +316,7 @@ const BillingSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CurrencyEuro className="h-5 w-5" />
+                <Currency className="h-5 w-5" />
                 <span>Platform Usage Summary</span>
               </CardTitle>
               <CardDescription>Current billing period: Jan 1, 2024 - Jan 31, 2024</CardDescription>
@@ -453,6 +452,11 @@ const BillingSettings = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <div className="flex justify-end">
+        <Button variant="outline" className="mr-2">Reset Customizations</Button>
+        <Button>Save Changes</Button>
+      </div>
     </div>
   );
 };
