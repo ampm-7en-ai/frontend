@@ -33,12 +33,16 @@ import UserDetail from "./pages/users/UserDetail";
 import Documentation from "./pages/help/Documentation";
 import SupportTicket from "./pages/help/SupportTicket";
 
-// New pages for Knowledge Base and Agents
+// Knowledge Base and Agents
 import KnowledgeBase from "./pages/knowledge/KnowledgeBase";
 import KnowledgeUpload from "./pages/knowledge/KnowledgeUpload";
 import AgentList from "./pages/agents/AgentList";
 import AgentCreate from "./pages/agents/AgentCreate";
 import AgentTest from "./pages/agents/AgentTest";
+
+// Conversations
+import ConversationList from "./pages/conversations/ConversationList";
+import ConversationDetail from "./pages/conversations/ConversationDetail";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +64,10 @@ const App = () => (
           <Route path="/agents" element={<AgentList />} />
           <Route path="/agents/create" element={<AgentCreate />} />
           <Route path="/agents/test" element={<AgentTest />} />
+          
+          {/* Conversations */}
+          <Route path="/conversations" element={<ConversationList />} />
+          <Route path="/conversations/:id" element={<ConversationDetail />} />
           
           {/* Settings Pages */}
           <Route path="/settings" element={<SettingsLayout />}>
