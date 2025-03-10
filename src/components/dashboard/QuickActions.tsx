@@ -16,27 +16,27 @@ type QuickActionsProps = {
 export function QuickActions({ className }: QuickActionsProps) {
   const actions = [
     {
-      icon: <PlusCircle size={18} />,
+      icon: <PlusCircle size={14} />,
       label: 'Create Agent',
       href: '/agents/create',
     },
     {
-      icon: <Database size={18} />,
+      icon: <Database size={14} />,
       label: 'Add Knowledge',
       href: '/knowledge/upload',
     },
     {
-      icon: <Upload size={18} />,
+      icon: <Upload size={14} />,
       label: 'Import Data',
       href: '/import',
     },
     {
-      icon: <Bot size={18} />,
+      icon: <Bot size={14} />,
       label: 'Test Agent',
       href: '/agents/test',
     },
     {
-      icon: <BarChart2 size={18} />,
+      icon: <BarChart2 size={14} />,
       label: 'View Reports',
       href: '/analytics',
     },

@@ -142,7 +142,7 @@ const UserList = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex flex-1 items-center gap-2">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-500" />
               <Input
                 type="search"
                 placeholder="Search users..."
@@ -167,7 +167,7 @@ const UserList = () => {
             </Select>
           </div>
           <Button className="w-full md:w-auto">
-            <UserPlus className="mr-2 h-4 w-4" />
+            <UserPlus className="mr-2 h-3.5 w-3.5" />
             Add User
           </Button>
         </div>
@@ -212,7 +212,7 @@ const UserList = () => {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
+                          <MoreHorizontal className="h-3.5 w-3.5" />
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </DropdownMenuTrigger>

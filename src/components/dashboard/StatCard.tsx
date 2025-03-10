@@ -34,9 +34,9 @@ export function StatCard({ title, value, icon, change, className }: StatCardProp
             change.isPositive ? "text-success" : "text-destructive"
           )}>
             {change.isPositive ? (
-              <ArrowUpRight size={16} />
+              <ArrowUpRight size={14} />
             ) : (
-              <ArrowDownRight size={16} />
+              <ArrowDownRight size={14} />
             )}
             <span>{Math.abs(change.value)}%</span>
           </div>

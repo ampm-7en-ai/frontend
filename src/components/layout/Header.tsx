@@ -53,7 +53,7 @@ export function Header({ pageTitle, breadcrumbs }: HeaderProps) {
       
       <div className="flex items-center space-x-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-3.5 w-3.5" />
           <input 
             type="text" 
             placeholder="Search..." 
@@ -68,7 +68,7 @@ export function Header({ pageTitle, breadcrumbs }: HeaderProps) {
               size="icon" 
               className="relative"
             >
-              <Bell size={18} />
+              <Bell size={16} />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-0 h-4 w-4 bg-destructive text-white text-micro rounded-full flex items-center justify-center">
                   {unreadCount}
@@ -114,7 +114,7 @@ export function Header({ pageTitle, breadcrumbs }: HeaderProps) {
           size="icon"
           className="text-dark-gray hover:text-primary"
         >
-          <HelpCircle size={18} />
+          <HelpCircle size={16} />
         </Button>
         
         <DropdownMenu>
@@ -124,13 +124,13 @@ export function Header({ pageTitle, breadcrumbs }: HeaderProps) {
               className="flex items-center space-x-2 text-dark-gray hover:text-black"
             >
               <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center text-white">
-                <User size={16} />
+                <User size={14} />
               </div>
               <div className="text-left hidden md:block">
                 <p className="text-sm font-medium">Admin User</p>
                 <p className="text-xs text-medium-gray">Admin</p>
               </div>
-              <ChevronDown size={16} className="text-medium-gray" />
+              <ChevronDown size={14} className="text-medium-gray" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

@@ -63,7 +63,7 @@ const SidebarItem = ({
         </div>
         {!isCollapsed && hasSubMenu && (
           <ChevronRight className={cn(
-            "h-4 w-4 transition-transform duration-200",
+            "h-3.5 w-3.5 transition-transform duration-200",
             isOpen && "transform rotate-90"
           )} />
         )}
@@ -105,14 +105,14 @@ export function Sidebar({ className }: SidebarProps) {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-2 rounded-md text-dark-gray hover:bg-light-gray transition-colors duration-200"
         >
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </div>
 
       <div className="flex-1 py-4 overflow-y-auto">
         <div className="px-3 space-y-1">
           <SidebarItem 
-            icon={<Home size={16} />} 
+            icon={<Home size={14} />} 
             title="Dashboard" 
             href="/" 
             isCollapsed={isCollapsed} 
@@ -120,7 +120,7 @@ export function Sidebar({ className }: SidebarProps) {
           />
           
           <SidebarItem 
-            icon={<Bot size={16} />} 
+            icon={<Bot size={14} />} 
             title="Agent Management" 
             href="/agents" 
             isCollapsed={isCollapsed} 
@@ -135,42 +135,42 @@ export function Sidebar({ className }: SidebarProps) {
           </SidebarItem>
           
           <SidebarItem 
-            icon={<Database size={16} />} 
+            icon={<Database size={14} />} 
             title="Knowledge Base" 
             href="/knowledge" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<Workflow size={16} />} 
+            icon={<Workflow size={14} />} 
             title="Workflows" 
             href="/workflows" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<MessageSquare size={16} />} 
+            icon={<MessageSquare size={14} />} 
             title="Conversations" 
             href="/conversations" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<BarChart size={16} />} 
+            icon={<BarChart size={14} />} 
             title="Analytics" 
             href="/analytics" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<LinkIcon size={16} />} 
+            icon={<LinkIcon size={14} />} 
             title="Integrations" 
             href="/integrations" 
             isCollapsed={isCollapsed} 
           />
           
           <SidebarItem 
-            icon={<Users size={16} />} 
+            icon={<Users size={14} />} 
             title="User Management" 
             href="/users" 
             isCollapsed={isCollapsed} 
@@ -180,14 +180,14 @@ export function Sidebar({ className }: SidebarProps) {
 
       <div className="p-3 border-t border-medium-gray/20">
         <SidebarItem 
-          icon={<Settings size={16} />} 
+          icon={<Settings size={14} />} 
           title="Settings" 
           href="/settings" 
           isCollapsed={isCollapsed} 
         />
         
         <SidebarItem 
-          icon={<HelpCircle size={16} />} 
+          icon={<HelpCircle size={14} />} 
           title="Help & Support" 
           href="/help" 
           isCollapsed={isCollapsed} 

@@ -19,7 +19,7 @@ const NotFound = () => {
       <div className="text-center bg-white p-8 rounded-lg shadow-card max-w-md">
         <div className="flex justify-center mb-4">
           <div className="h-20 w-20 bg-destructive/10 rounded-full flex items-center justify-center text-destructive">
-            <AlertTriangle size={40} />
+            <AlertTriangle size={32} />
           </div>
         </div>
         <h1 className="text-heading-1 font-bold text-black mb-2">404</h1>
@@ -33,6 +33,6 @@ const NotFound = () => {
       </div>
     </div>
   );
-};
+}
 
 export default NotFound;
