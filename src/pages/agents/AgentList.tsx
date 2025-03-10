@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Bot, BotConfused, Plus, Search, Star, Zap } from 'lucide-react';
+import { Bot, AlertCircle, Plus, Search, Star, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AgentList = () => {
@@ -97,7 +97,7 @@ const AgentList = () => {
                       {agent.status === 'Active' ? (
                         <Bot className="h-5 w-5 text-primary" />
                       ) : (
-                        <BotConfused className="h-5 w-5 text-muted-foreground" />
+                        <AlertCircle className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                     <CardTitle className="text-lg">{agent.name}</CardTitle>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -27,6 +26,8 @@ type SidebarItemProps = {
   superAdminOnly?: boolean;
 };
 
+type UserRole = 'user' | 'admin' | 'superadmin';
+
 const SidebarItem = ({
   icon,
   title,
@@ -37,7 +38,7 @@ const SidebarItem = ({
   superAdminOnly = false,
 }: SidebarItemProps) => {
   // This would normally check actual user permissions - for demo, we're showing everything
-  const userRole = "superadmin"; // Simulated role: 'user', 'admin', or 'superadmin'
+  const userRole: UserRole = "superadmin"; // Simulated role: 'user', 'admin', or 'superadmin'
   
   // Hide items based on role
   if ((adminOnly && userRole === 'user') || (superAdminOnly && userRole !== 'superadmin')) {
