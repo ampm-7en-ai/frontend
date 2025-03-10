@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { 
-  PlusCircle, 
+  MessagesSquare, 
   Database, 
   Upload, 
-  Bot, 
+  Users, 
   BarChart2 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,42 +16,42 @@ type QuickActionsProps = {
 export function QuickActions({ className }: QuickActionsProps) {
   const actions = [
     {
-      icon: <PlusCircle size={14} />,
+      icon: <MessagesSquare size={16} />,
       label: 'Create Agent',
       href: '/agents/create',
     },
     {
-      icon: <Database size={14} />,
+      icon: <Database size={16} />,
       label: 'Add Knowledge',
       href: '/knowledge/upload',
     },
     {
-      icon: <Upload size={14} />,
+      icon: <Upload size={16} />,
       label: 'Import Data',
       href: '/import',
     },
     {
-      icon: <Bot size={14} />,
+      icon: <Users size={16} />,
       label: 'Test Agent',
       href: '/agents/test',
     },
     {
-      icon: <BarChart2 size={14} />,
+      icon: <BarChart2 size={16} />,
       label: 'View Reports',
       href: '/analytics',
     },
   ];
 
   return (
-    <div className={`card ${className}`}>
+    <div className={`card rounded-xl hover:shadow-md transition-shadow duration-200 ${className}`}>
       <h3 className="font-semibold mb-4">Quick Actions</h3>
       <div className="flex flex-wrap gap-2">
         {actions.map((action, index) => (
           <Button
             key={index}
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="flex items-center gap-2 px-3 py-2 text-sm"
+            className="flex items-center gap-2 bg-light-gray hover:bg-[#E4E6EB] text-dark-gray"
             asChild
           >
             <a href={action.href}>

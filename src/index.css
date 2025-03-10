@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -16,26 +16,26 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 222 47% 11%;
+    --primary: 214 100% 52%; /* Facebook blue */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 142 63% 44%; /* Facebook green */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 9% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 214 100% 97%;
+    --accent-foreground: 214 100% 52%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 214 100% 52%;
 
-    --radius: 0.5rem;
+    --radius: 8px;
   }
 
   * {
@@ -43,11 +43,11 @@
   }
 
   body {
-    @apply bg-light-gray text-black font-inter antialiased;
+    @apply bg-light-gray text-dark-gray font-inter antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-poppins;
+    @apply font-inter font-semibold;
   }
 
   h1 {
@@ -86,11 +86,11 @@
 
 @layer components {
   .card {
-    @apply bg-white rounded-lg border border-medium-gray/20 shadow-card p-3;
+    @apply bg-white rounded-lg border border-[#E4E6EB] shadow-card p-3;
   }
 
   .btn {
-    @apply px-4 py-2 rounded-lg transition-colors duration-200 font-medium;
+    @apply px-4 py-2 rounded-md transition-colors duration-200 font-medium;
   }
 
   .btn-primary {
@@ -98,11 +98,11 @@
   }
 
   .btn-secondary {
-    @apply bg-white text-primary border border-primary hover:bg-light-gray;
+    @apply bg-secondary text-white hover:bg-secondary/90;
   }
 
   .btn-tertiary {
-    @apply bg-transparent text-primary hover:bg-light-gray;
+    @apply bg-light-gray text-dark-gray hover:bg-[#E4E6EB];
   }
 
   .btn-danger {
