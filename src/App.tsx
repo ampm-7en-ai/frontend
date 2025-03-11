@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -49,57 +50,59 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          
-          {/* Knowledge Base */}
-          <Route path="/knowledge" element={<KnowledgeBase />} />
-          <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
-          
-          {/* Agent Management */}
-          <Route path="/agents" element={<AgentList />} />
-          <Route path="/agents/create" element={<AgentCreate />} />
-          <Route path="/agents/test" element={<AgentTest />} />
-          
-          {/* Conversations */}
-          <Route path="/conversations" element={<ConversationList />} />
-          <Route path="/conversations/:id" element={<ConversationDetail />} />
-          
-          {/* Settings Pages */}
-          <Route path="/settings" element={<SettingsLayout />}>
-            {/* Platform Settings (Super Admin) */}
-            <Route path="platform/general" element={<GeneralSettings />} />
-            <Route path="platform/security" element={<SecuritySettings />} />
-            <Route path="platform/llm-providers" element={<LLMProvidersSettings />} />
-            <Route path="platform/compliance" element={<ComplianceSettings />} />
-            <Route path="platform/billing" element={<BillingSettings />} />
-            <Route path="platform/customization" element={<CustomizationSettings />} />
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
             
-            {/* Business Settings (Admin) */}
-            <Route path="business/profile" element={<BusinessProfile />} />
-            <Route path="business/team" element={<TeamSettings />} />
-            <Route path="business/agents" element={<AgentSettings />} />
-            <Route path="business/integrations" element={<IntegrationsSettings />} />
-            <Route path="business/billing" element={<BusinessBillingSettings />} />
-            <Route path="business/preferences" element={<PreferencesSettings />} />
-          </Route>
-          
-          {/* User Management */}
-          <Route path="/users" element={<UserList />} />
-          <Route path="/users/:id" element={<UserDetail />} />
-          
-          {/* Help & Support */}
-          <Route path="/help/documentation" element={<Documentation />} />
-          <Route path="/help/support" element={<SupportTicket />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Knowledge Base */}
+            <Route path="/knowledge" element={<KnowledgeBase />} />
+            <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
+            
+            {/* Agent Management */}
+            <Route path="/agents" element={<AgentList />} />
+            <Route path="/agents/create" element={<AgentCreate />} />
+            <Route path="/agents/test" element={<AgentTest />} />
+            
+            {/* Conversations */}
+            <Route path="/conversations" element={<ConversationList />} />
+            <Route path="/conversations/:id" element={<ConversationDetail />} />
+            
+            {/* Settings Pages */}
+            <Route path="/settings" element={<SettingsLayout />}>
+              {/* Platform Settings (Super Admin) */}
+              <Route path="platform/general" element={<GeneralSettings />} />
+              <Route path="platform/security" element={<SecuritySettings />} />
+              <Route path="platform/llm-providers" element={<LLMProvidersSettings />} />
+              <Route path="platform/compliance" element={<ComplianceSettings />} />
+              <Route path="platform/billing" element={<BillingSettings />} />
+              <Route path="platform/customization" element={<CustomizationSettings />} />
+              
+              {/* Business Settings (Admin) */}
+              <Route path="business/profile" element={<BusinessProfile />} />
+              <Route path="business/team" element={<TeamSettings />} />
+              <Route path="business/agents" element={<AgentSettings />} />
+              <Route path="business/integrations" element={<IntegrationsSettings />} />
+              <Route path="business/billing" element={<BusinessBillingSettings />} />
+              <Route path="business/preferences" element={<PreferencesSettings />} />
+            </Route>
+            
+            {/* User Management */}
+            <Route path="/users" element={<UserList />} />
+            <Route path="/users/:id" element={<UserDetail />} />
+            
+            {/* Help & Support */}
+            <Route path="/help/documentation" element={<Documentation />} />
+            <Route path="/help/support" element={<SupportTicket />} />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

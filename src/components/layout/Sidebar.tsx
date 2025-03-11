@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Home,
@@ -12,7 +13,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, UserRole } from '@/context/AuthContext';
 
 interface SidebarProps {
   isCollapsed: boolean;
