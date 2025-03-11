@@ -1,5 +1,6 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Define user role types
 export type UserRole = 'user' | 'admin' | 'superadmin';
@@ -11,36 +12,40 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  businessId?: string;
 }
 
 // Define auth context interface
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
 }
 
 // Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user for development
-const mockUser: User = {
-  id: '1',
-  name: 'Admin User',
-  email: 'admin@example.com',
-  role: 'admin',
-  avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff',
-};
-
 // Auth provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(mockUser); // Using mockUser for development
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const navigate = useNavigate();
 
-  const login = async (email: string, password: string) => {
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const login = async (username: string, password: string) => {
     setIsLoading(true);
     setError(null);
     
@@ -48,19 +53,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock login logic
-      if (email === 'admin@example.com' && password === 'password') {
-        setUser(mockUser);
-      } else if (email === 'superadmin@example.com' && password === 'password') {
-        setUser({
-          id: '2',
+      // Simplified auth logic based on username/password
+      if (username === 'superadmin' && password === '123456') {
+        const superAdminUser = {
+          id: '1',
           name: 'Super Admin',
           email: 'superadmin@example.com',
-          role: 'superadmin',
+          role: 'superadmin' as UserRole,
           avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=0D8ABC&color=fff',
-        });
+        };
+        setUser(superAdminUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(superAdminUser));
+        navigate('/');
+      } else if (username === 'admin' && password === '123456') {
+        const adminUser = {
+          id: '2',
+          name: 'Business Admin',
+          email: 'admin@example.com',
+          role: 'admin' as UserRole,
+          businessId: 'b1',
+          avatar: 'https://ui-avatars.com/api/?name=Business+Admin&background=0D8ABC&color=fff',
+        };
+        setUser(adminUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(adminUser));
+        navigate('/');
       } else {
-        throw new Error('Invalid credentials');
+        throw new Error('Invalid username or password');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -71,6 +91,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('user');
+    navigate('/login');
   };
 
   const value = {
@@ -79,6 +102,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     logout,
     isLoading,
     error,
+    isAuthenticated,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

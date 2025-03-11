@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { Header } from './Header';
+import { useAuth } from '@/context/AuthContext';
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ type MainLayoutProps = {
 
 export function MainLayout({ children, pageTitle, breadcrumbs }: MainLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { user } = useAuth();
   
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
