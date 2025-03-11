@@ -9,21 +9,19 @@ import {
   Bot,
   Book,
   HelpCircle,
-  LogOut,
   ChevronRight,
   ChevronDown,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
   isCollapsed: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -92,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         )}
       </div>
       
-      <div className="px-2 py-2 border-b border-medium-gray/10">
+      <div className="px-3 py-3 border-b border-medium-gray/10">
         {!isCollapsed ? (
           <div className="flex items-center px-2">
             <Avatar className="h-6 w-6 bg-primary/90 text-white">
@@ -112,58 +110,56 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         )}
       </div>
       
-      <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
-        <div className="space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+        <div className="space-y-2">
           {commonItems.map((item) => (
             <NavLink
               key={item.id}
               to={item.href}
               className={({ isActive }) =>
-                `flex items-center px-2 py-1.5 text-xs rounded-md
+                `flex items-center px-3 py-2.5 text-sm rounded-md
                 ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
               }
             >
-              <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-2'} flex-shrink-0`} />
+              <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
               {!isCollapsed && <span>{item.label}</span>}
             </NavLink>
           ))}
         </div>
         
         {navigationItems.length > 0 && (
-          <div className="pt-2">
+          <div className="pt-4">
             {!isCollapsed && (
-              <div className="text-[10px] font-semibold text-dark-gray uppercase px-2 mb-1">Administration</div>
+              <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-2">Administration</div>
             )}
-            <div className="space-y-0.5">
+            <div className="space-y-2">
               {navigationItems.map((item) => (
                 <div key={item.id}>
                   {item.children ? (
                     <>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start px-2 py-1.5 text-xs rounded-md h-auto ${expandedItems.includes(item.id) ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`}
+                      <button
+                        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-md h-auto 
+                        ${expandedItems.includes(item.id) ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`}
                         onClick={() => !isCollapsed && toggleExpand(item.id)}
                       >
-                        <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-2'} flex-shrink-0`} />
+                        <div className="flex items-center">
+                          <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                          {!isCollapsed && <span>{item.label}</span>}
+                        </div>
                         {!isCollapsed && (
-                          <>
-                            <span className="flex-1">{item.label}</span>
-                            {expandedItems.includes(item.id) ? (
-                              <ChevronDown className="w-3 h-3" />
-                            ) : (
-                              <ChevronRight className="w-3 h-3" />
-                            )}
-                          </>
+                          expandedItems.includes(item.id) ? 
+                            <ChevronDown className="w-4 h-4" /> :
+                            <ChevronRight className="w-4 h-4" />
                         )}
-                      </Button>
+                      </button>
                       {!isCollapsed && expandedItems.includes(item.id) && item.children && (
-                        <div className="mt-0.5 space-y-0.5">
+                        <div className="mt-1 space-y-1 pl-8">
                           {item.children.map((child) => (
                             <NavLink
                               key={child.label}
                               to={child.href}
                               className={({ isActive }) =>
-                                `flex items-center pl-8 pr-2 py-1 text-[10px] rounded-md
+                                `flex items-center px-3 py-2 text-sm rounded-md
                                 ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
                               }
                             >
@@ -177,11 +173,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                     <NavLink
                       to={item.href}
                       className={({ isActive }) =>
-                        `flex items-center px-2 py-1.5 text-xs rounded-md
+                        `flex items-center px-3 py-2.5 text-sm rounded-md
                         ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
                       }
                     >
-                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-2'} flex-shrink-0`} />
+                      <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </NavLink>
                   )}
@@ -191,16 +187,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           </div>
         )}
       </nav>
-      
-      <div className="p-2 border-t border-medium-gray/10">
-        <button
-          onClick={logout}
-          className={`flex items-center w-full px-2 py-1.5 text-xs rounded-md text-black hover:bg-secondary ${isCollapsed ? 'justify-center' : ''}`}
-        >
-          <LogOut className={`w-4 h-4 ${isCollapsed ? '' : 'mr-2'} text-dark-gray`} />
-          {!isCollapsed && <span>Logout</span>}
-        </button>
-      </div>
     </div>
   );
 };
