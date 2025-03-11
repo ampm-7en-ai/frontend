@@ -26,13 +26,15 @@ import IntegrationsSettings from "./pages/settings/business/IntegrationsSettings
 import BusinessBillingSettings from "./pages/settings/business/BusinessBillingSettings";
 import PreferencesSettings from "./pages/settings/business/PreferencesSettings";
 
-// User Management
-import UserList from "./pages/users/UserList";
-import UserDetail from "./pages/users/UserDetail";
+// Business Management (Super Admin)
+import BusinessList from "./pages/businesses/BusinessList";
+import BusinessDetail from "./pages/businesses/BusinessDetail";
 
-// Help & Support
-import Documentation from "./pages/help/Documentation";
-import SupportTicket from "./pages/help/SupportTicket";
+// Platform Analytics (Super Admin)
+import PlatformAnalytics from "./pages/analytics/PlatformAnalytics";
+
+// Global Templates (Super Admin)
+import GlobalTemplates from "./pages/templates/GlobalTemplates";
 
 // Knowledge Base and Agents
 import KnowledgeBase from "./pages/knowledge/KnowledgeBase";
@@ -44,6 +46,10 @@ import AgentTest from "./pages/agents/AgentTest";
 // Conversations
 import ConversationList from "./pages/conversations/ConversationList";
 import ConversationDetail from "./pages/conversations/ConversationDetail";
+
+// Help & Support
+import Documentation from "./pages/help/Documentation";
+import SupportTicket from "./pages/help/SupportTicket";
 
 const queryClient = new QueryClient();
 
@@ -104,9 +110,15 @@ const AppRoutes = () => {
         <Route path="business/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
       </Route>
       
-      {/* User Management - Super Admin only */}
-      <Route path="/users" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserList /></ProtectedRoute>} />
-      <Route path="/users/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserDetail /></ProtectedRoute>} />
+      {/* Business Management - Super Admin only */}
+      <Route path="/businesses" element={<ProtectedRoute allowedRoles={["superadmin"]}><BusinessList /></ProtectedRoute>} />
+      <Route path="/businesses/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><BusinessDetail /></ProtectedRoute>} />
+      
+      {/* Platform Analytics - Super Admin only */}
+      <Route path="/analytics" element={<ProtectedRoute allowedRoles={["superadmin"]}><PlatformAnalytics /></ProtectedRoute>} />
+      
+      {/* Global Templates - Super Admin only */}
+      <Route path="/templates" element={<ProtectedRoute allowedRoles={["superadmin"]}><GlobalTemplates /></ProtectedRoute>} />
       
       {/* Help & Support - Both roles */}
       <Route path="/help/documentation" element={<ProtectedRoute><Documentation /></ProtectedRoute>} />

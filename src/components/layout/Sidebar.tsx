@@ -4,19 +4,15 @@ import {
   Home,
   LayoutDashboard,
   Settings,
-  Users,
+  Building,
   MessageSquare,
   Bot,
   Book,
   HelpCircle,
   ChevronRight,
   ChevronDown,
-  Building,
   BarChart2,
-  ShieldCheck,
   FileText,
-  Briefcase,
-  CreditCard,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -71,10 +67,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     { 
       id: 'business-management',
       label: 'Businesses', 
-      href: '/users', 
+      href: '/businesses', 
       icon: Building
     },
-    { id: 'users', label: 'User Management', href: '/users', icon: Users },
     { 
       id: 'platform-analytics',
       label: 'Platform Analytics', 
@@ -109,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     : adminItems;
 
   return (
-    <div className={`flex flex-col h-full ${isCollapsed ? 'w-20' : 'w-64'} bg-white border-r border-medium-gray/10 transition-all duration-300 ease-in-out shadow-sm overflow-hidden`}>
+    <div className={`flex flex-col h-full ${isCollapsed ? 'w-20' : 'w-72'} bg-white border-r border-medium-gray/10 transition-all duration-300 ease-in-out shadow-sm overflow-hidden`}>
       <div className="flex items-center h-16 px-4 border-b border-medium-gray/10">
         {!isCollapsed ? (
           <span className="text-lg font-bold text-primary">7en.ai</span>
@@ -118,28 +113,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         )}
       </div>
       
-      <div className="px-3 py-3 border-b border-medium-gray/10">
+      <div className="px-3 py-4 border-b border-medium-gray/10">
         {!isCollapsed ? (
           <div className="flex items-center px-2">
-            <Avatar className="h-9 w-9 bg-primary/90 text-white">
-              <AvatarFallback className="text-xs">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+            <Avatar className="h-10 w-10 bg-primary/90 text-white">
+              <AvatarFallback className="text-sm">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
-            <div className="ml-2">
+            <div className="ml-3">
               <p className="text-sm font-medium text-black leading-tight">{user?.name || 'User'}</p>
               <p className="text-xs text-dark-gray">{user?.email || 'user@example.com'}</p>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
-            <Avatar className="h-9 w-9 bg-primary/90 text-white">
-              <AvatarFallback className="text-xs">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+            <Avatar className="h-10 w-10 bg-primary/90 text-white">
+              <AvatarFallback className="text-sm">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
           </div>
         )}
       </div>
       
-      <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
-        <div className="space-y-2">
+      <nav className="flex-1 px-3 py-6 space-y-4 overflow-y-auto">
+        <div className="space-y-1.5">
           {commonItems.map((item) => (
             <NavLink
               key={item.id}
@@ -156,13 +151,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         </div>
         
         {roleBasedItems.length > 0 && (
-          <div className="pt-4">
+          <div className="pt-6">
             {!isCollapsed && (
               <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-3">
                 {userRole === "superadmin" ? "ADMINISTRATION" : "BUSINESS"}
               </div>
             )}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {roleBasedItems.map((item) => (
                 <div key={item.id}>
                   {item.children ? (
