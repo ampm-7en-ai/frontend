@@ -18,9 +18,10 @@ type HeaderProps = {
   pageTitle: string;
   breadcrumbs?: { label: string; href: string }[];
   toggleSidebar: () => void;
+  onLogout?: () => void;
 };
 
-export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
+export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: HeaderProps) {
   const { logout } = useAuth();
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'New agent deployed', time: '5 min ago', read: false },
@@ -33,6 +34,9 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
   };
+
+  // Use the passed onLogout function if provided, otherwise use the one from context
+  const handleLogout = onLogout || logout;
 
   return (
     <header className="h-16 bg-white border-b border-medium-gray/10 px-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
@@ -157,7 +161,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
             <DropdownMenuSeparator className="my-0.5" />
             <DropdownMenuItem 
               className="py-1.5 text-xs text-destructive focus:text-destructive focus:bg-destructive/5" 
-              onClick={logout}
+              onClick={handleLogout}
             >
               Log out
             </DropdownMenuItem>
