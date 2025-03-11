@@ -13,7 +13,7 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: '1rem',
 			screens: {
 				'2xl': '1400px'
 			}
@@ -26,69 +26,69 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#2563EB', // Primary Blue
+					DEFAULT: '#0066FF',
 					foreground: '#FFFFFF',
-					hover: '#1E40AF', // Secondary Blue
+					hover: '#004ECC',
 				},
 				secondary: {
-					DEFAULT: '#1E40AF', // Secondary Blue
-					foreground: '#FFFFFF',
+					DEFAULT: '#F5F6F7',
+					foreground: '#1A1A1A',
 				},
 				accent: {
-					DEFAULT: '#3B82F6', // Accent Blue
-					foreground: '#FFFFFF',
+					DEFAULT: '#F0F7FF',
+					foreground: '#0066FF',
 				},
 				destructive: {
-					DEFAULT: '#EF4444', // Error Red
+					DEFAULT: '#FF3B30',
 					foreground: '#FFFFFF',
 				},
 				muted: {
-					DEFAULT: '#F3F4F6', // Light Gray
-					foreground: '#4B5563', // Dark Gray
+					DEFAULT: '#F5F6F7',
+					foreground: '#71767C',
 				},
 				success: {
-					DEFAULT: '#10B981', // Success Green
+					DEFAULT: '#34C759',
 					foreground: '#FFFFFF',
 				},
 				warning: {
-					DEFAULT: '#F59E0B', // Warning Yellow
+					DEFAULT: '#FF9500',
 					foreground: '#FFFFFF',
 				},
 				info: {
-					DEFAULT: '#3B82F6', // Info Blue
+					DEFAULT: '#0066FF',
 					foreground: '#FFFFFF',
 				},
 				popover: {
 					DEFAULT: '#FFFFFF',
-					foreground: '#1F2937',
+					foreground: '#1A1A1A',
 				},
 				card: {
 					DEFAULT: '#FFFFFF',
-					foreground: '#1F2937',
+					foreground: '#1A1A1A',
 				},
 				// Neutrals
 				white: '#FFFFFF',
-				'light-gray': '#F3F4F6',
-				'medium-gray': '#9CA3AF',
-				'dark-gray': '#4B5563',
-				black: '#1F2937',
+				'light-gray': '#F5F6F7',
+				'medium-gray': '#E1E4E8',
+				'dark-gray': '#71767C',
+				black: '#1A1A1A',
 				// Blues
 				blue: {
-					50: '#EFF6FF',
-					100: '#DBEAFE',
-					200: '#BFDBFE',
-					300: '#93C5FD',
-					400: '#60A5FA',
-					500: '#3B82F6',
-					600: '#2563EB',
-					700: '#1D4ED8',
-					800: '#1E40AF',
-					900: '#1E3A8A',
+					50: '#F0F7FF',
+					100: '#DEEAFF',
+					200: '#B8D5FF',
+					300: '#91BFFF',
+					400: '#5C9AFF',
+					500: '#0066FF',
+					600: '#004ECC',
+					700: '#003A99',
+					800: '#002666',
+					900: '#001333',
 				},
 			},
 			borderRadius: {
-				lg: '0.5rem',
-				md: '0.375rem',
+				lg: '0.75rem',
+				md: '0.5rem',
 				sm: '0.25rem',
 			},
 			fontSize: {
@@ -108,7 +108,7 @@ export default {
 			},
 			fontFamily: {
 				'inter': ['Inter', 'sans-serif'],
-				'poppins': ['Poppins', 'sans-serif'],
+				'poppins': ['Inter', 'sans-serif'],
 				'mono': ['IBM Plex Mono', 'monospace'],
 			},
 			spacing: {
@@ -120,7 +120,9 @@ export default {
 				'8': '64px',
 			},
 			boxShadow: {
-				'card': '0 4px 6px rgba(0, 0, 0, 0.05)',
+				'card': '0 1px 3px rgba(0, 0, 0, 0.1)',
+				'dropdown': '0 4px 12px rgba(0, 0, 0, 0.08)',
+				'sidebar': '0 0 10px rgba(0, 0, 0, 0.05)',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -150,10 +152,7 @@ export default {
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 			},
 			backgroundImage: {
-				'blue-gradient': 'linear-gradient(90deg, hsla(221, 45%, 73%, 1) 0%, hsla(220, 78%, 29%, 1) 100%)',
-				'blue-light-gradient': 'linear-gradient(90deg, hsla(186, 33%, 94%, 1) 0%, hsla(216, 41%, 79%, 1) 100%)',
-				'blue-to-teal-gradient': 'linear-gradient(46, 73%, 75%, 1) 0%, hsla(176, 73%, 88%, 1) 100%)',
-				'card-gradient': 'linear-gradient(to top, #accbee 0%, #e7f0fd 100%)',
+				'blue-gradient': 'linear-gradient(90deg, #0066FF 0%, #0052CC 100%)',
 			}
 		}
 	},
