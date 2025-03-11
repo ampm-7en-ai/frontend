@@ -33,37 +33,40 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shadow-sm">
-      <div className="flex items-center gap-4">
+    <header className="h-16 bg-white border-b border-slate-100 px-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div className="flex items-center space-x-4">
         <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5 text-slate-600" />
         </Button>
-        <h1 className="text-xl font-semibold text-slate-800">{pageTitle}</h1>
         
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <div className="hidden md:flex items-center text-sm text-slate-500">
-            {breadcrumbs.map((crumb, index) => (
-              <React.Fragment key={index}>
-                {index > 0 && <span className="mx-2 text-slate-400">/</span>}
-                <a 
-                  href={crumb.href} 
-                  className="hover:text-primary transition-colors duration-200"
-                >
-                  {crumb.label}
-                </a>
-              </React.Fragment>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          <h1 className="text-xl font-semibold text-slate-800 tracking-tight">{pageTitle}</h1>
+          
+          {breadcrumbs && breadcrumbs.length > 0 && (
+            <div className="hidden md:flex items-center text-sm text-slate-400">
+              {breadcrumbs.map((crumb, index) => (
+                <React.Fragment key={index}>
+                  {index > 0 && <span className="mx-1">/</span>}
+                  <a 
+                    href={crumb.href} 
+                    className="hover:text-slate-600 transition-colors duration-200"
+                  >
+                    {crumb.label}
+                  </a>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2">
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
           <input 
             type="text" 
             placeholder="Search..." 
-            className="h-9 pl-9 pr-4 rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm w-64"
+            className="h-9 pl-9 pr-4 rounded-full border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-all text-sm w-64 bg-slate-50"
           />
         </div>
         
@@ -72,45 +75,46 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="relative"
+              className="relative h-9 w-9 rounded-full"
             >
               <Bell size={18} className="text-slate-600" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 h-4 w-4 bg-primary text-white text-micro rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-blue-500 text-white text-[10px] rounded-full flex items-center justify-center">
                   {unreadCount}
                 </span>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <div className="flex items-center justify-between p-2">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-80 mt-1">
+            <div className="flex items-center justify-between p-3 border-b">
+              <DropdownMenuLabel className="text-sm font-medium">Notifications</DropdownMenuLabel>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={markAllAsRead}
-                className="text-xs text-primary hover:text-primary-hover"
+                className="text-xs h-7 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
               >
                 Mark all as read
               </Button>
             </div>
+            <div className="max-h-[300px] overflow-y-auto py-1">
+              {notifications.map((notification) => (
+                <DropdownMenuItem key={notification.id} className="py-2 px-3 flex flex-col items-start focus:bg-slate-50">
+                  <div className="flex items-start justify-between w-full">
+                    <span className={`font-medium text-sm ${notification.read ? 'text-slate-500' : 'text-slate-700'}`}>
+                      {notification.title}
+                    </span>
+                    {!notification.read && (
+                      <span className="h-2 w-2 bg-blue-500 rounded-full mt-1"></span>
+                    )}
+                  </div>
+                  <span className="text-xs text-slate-400 mt-0.5">{notification.time}</span>
+                </DropdownMenuItem>
+              ))}
+            </div>
             <DropdownMenuSeparator />
-            {notifications.map((notification) => (
-              <DropdownMenuItem key={notification.id} className="py-3 flex flex-col items-start">
-                <div className="flex items-start justify-between w-full">
-                  <span className={`font-medium ${notification.read ? 'text-slate-600' : 'text-slate-800'}`}>
-                    {notification.title}
-                  </span>
-                  {!notification.read && (
-                    <span className="h-2 w-2 bg-primary rounded-full ml-2 mt-1.5"></span>
-                  )}
-                </div>
-                <span className="text-xs text-slate-400 mt-1">{notification.time}</span>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="py-2 flex justify-center">
-              <span className="text-sm text-primary hover:underline">View all notifications</span>
+            <DropdownMenuItem className="py-2 text-center justify-center text-sm text-blue-500 hover:text-blue-600 hover:bg-blue-50">
+              View all notifications
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -118,7 +122,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
         <Button 
           variant="ghost" 
           size="icon"
-          className="text-slate-600 hover:text-primary"
+          className="h-9 w-9 rounded-full text-slate-600 hover:bg-slate-100"
         >
           <HelpCircle size={18} />
         </Button>
@@ -127,26 +131,34 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
-              className="flex items-center space-x-2 text-slate-600 hover:text-slate-800"
+              className="flex items-center space-x-2 h-9 px-2 rounded-full hover:bg-slate-100"
             >
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <User size={16} />
+              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                A
               </div>
-              <div className="text-left hidden md:block">
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-slate-500">Admin</p>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium text-slate-700 leading-none">Admin User</p>
+                <p className="text-xs text-slate-500 mt-0.5">Admin</p>
               </div>
-              <ChevronDown size={16} className="text-slate-400" />
+              <ChevronDown size={14} className="hidden md:block text-slate-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56 mt-1">
+            <div className="px-3 pt-2 pb-1">
+              <p className="text-sm font-medium text-slate-900">Admin User</p>
+              <p className="text-xs text-slate-500">admin@example.com</p>
+            </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
+            <DropdownMenuItem className="py-1.5 text-sm">Profile</DropdownMenuItem>
+            <DropdownMenuItem className="py-1.5 text-sm">Settings</DropdownMenuItem>
+            <DropdownMenuItem className="py-1.5 text-sm">Billing</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-500" onClick={logout}>Log out</DropdownMenuItem>
+            <DropdownMenuItem 
+              className="py-1.5 text-sm text-red-500 focus:text-red-500 focus:bg-red-50" 
+              onClick={logout}
+            >
+              Log out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
