@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Bell, ChevronDown, HelpCircle, Menu, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +65,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
       <div className="flex items-center space-x-2">
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-          <input 
+          <Input 
             type="text" 
             placeholder="Search..." 
             className="h-9 pl-9 pr-4 rounded-full border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-all text-sm w-64 bg-slate-50"
@@ -133,9 +135,9 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
               variant="ghost" 
               className="flex items-center space-x-2 h-9 px-2 rounded-full hover:bg-slate-100"
             >
-              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-medium shadow-sm">
-                A
-              </div>
+              <Avatar className="h-8 w-8 bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                <AvatarFallback>A</AvatarFallback>
+              </Avatar>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-slate-700 leading-none">Admin User</p>
                 <p className="text-xs text-slate-500 mt-0.5">Admin</p>
