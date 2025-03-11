@@ -17,7 +17,7 @@ export function MainLayout({ children, pageTitle, breadcrumbs }: MainLayoutProps
   };
 
   return (
-    <div className="flex h-screen bg-light-gray">
+    <div className="flex h-screen bg-light-gray/50">
       <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 

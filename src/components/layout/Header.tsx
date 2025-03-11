@@ -35,10 +35,10 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
   };
 
   return (
-    <header className="h-14 bg-white border-b border-medium-gray/20 px-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+    <header className="h-16 bg-white border-b border-medium-gray/10 px-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
-          <Menu className="h-5 w-5 text-dark-gray" />
+        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden h-8 w-8">
+          <Menu className="h-4 w-4 text-dark-gray" />
         </Button>
         
         <div className="flex items-center space-x-2">
@@ -62,13 +62,13 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
         </div>
       </div>
       
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-4">
         <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-dark-gray h-3.5 w-3.5" />
           <Input 
             type="text" 
             placeholder="Search..." 
-            className="h-9 pl-9 pr-4 rounded-full border border-medium-gray focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm w-64 bg-secondary"
+            className="h-8 pl-8 pr-4 rounded-md border border-medium-gray/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm w-60 bg-light-gray/50"
           />
         </div>
         
@@ -77,45 +77,45 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="relative h-9 w-9 rounded-full"
+              className="relative h-8 w-8 rounded-full hover:bg-light-gray/50"
             >
-              <Bell size={18} className="text-dark-gray" />
+              <Bell size={16} className="text-dark-gray" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-primary text-white text-[10px] rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 bg-primary text-white text-[8px] font-medium rounded-full flex items-center justify-center">
                   {unreadCount}
                 </span>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 mt-1">
-            <div className="flex items-center justify-between p-3 border-b border-medium-gray/20">
+          <DropdownMenuContent align="end" className="w-72 mt-1">
+            <div className="flex items-center justify-between p-2 border-b border-medium-gray/10">
               <DropdownMenuLabel className="text-sm font-medium">Notifications</DropdownMenuLabel>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={markAllAsRead}
-                className="text-xs h-7 text-primary hover:text-primary-hover hover:bg-accent"
+                className="text-xs h-6 text-primary hover:text-primary-hover hover:bg-accent"
               >
                 Mark all as read
               </Button>
             </div>
-            <div className="max-h-[300px] overflow-y-auto py-1">
+            <div className="max-h-[280px] overflow-y-auto py-1">
               {notifications.map((notification) => (
-                <DropdownMenuItem key={notification.id} className="py-2 px-3 flex flex-col items-start focus:bg-accent">
+                <DropdownMenuItem key={notification.id} className="py-1.5 px-3 flex flex-col items-start focus:bg-accent">
                   <div className="flex items-start justify-between w-full">
-                    <span className={`font-medium text-sm ${notification.read ? 'text-dark-gray' : 'text-black'}`}>
+                    <span className={`font-medium text-xs ${notification.read ? 'text-dark-gray' : 'text-black'}`}>
                       {notification.title}
                     </span>
                     {!notification.read && (
-                      <span className="h-2 w-2 bg-primary rounded-full mt-1"></span>
+                      <span className="h-1.5 w-1.5 bg-primary rounded-full mt-1"></span>
                     )}
                   </div>
-                  <span className="text-xs text-dark-gray mt-0.5">{notification.time}</span>
+                  <span className="text-[10px] text-dark-gray mt-0.5">{notification.time}</span>
                 </DropdownMenuItem>
               ))}
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="py-2 text-center justify-center text-sm text-primary hover:text-primary-hover hover:bg-accent">
+            <DropdownMenuSeparator className="my-0.5" />
+            <DropdownMenuItem className="py-1.5 text-center justify-center text-xs text-primary hover:text-primary-hover hover:bg-accent">
               View all notifications
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -124,39 +124,39 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar }: HeaderProps) {
         <Button 
           variant="ghost" 
           size="icon"
-          className="h-9 w-9 rounded-full text-dark-gray hover:bg-secondary"
+          className="h-8 w-8 rounded-full text-dark-gray hover:bg-light-gray/50"
         >
-          <HelpCircle size={18} />
+          <HelpCircle size={16} />
         </Button>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
-              className="flex items-center space-x-2 h-9 px-2 rounded-full hover:bg-secondary"
+              className="flex items-center space-x-1.5 h-8 px-1.5 py-1 rounded-md hover:bg-light-gray/50"
             >
-              <Avatar className="h-8 w-8 bg-primary flex items-center justify-center text-white text-sm font-medium shadow-sm">
+              <Avatar className="h-6 w-6 bg-primary/90 flex items-center justify-center text-white text-xs font-medium">
                 <AvatarFallback>A</AvatarFallback>
               </Avatar>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-black leading-none">Admin User</p>
-                <p className="text-xs text-dark-gray mt-0.5">Admin</p>
+                <p className="text-xs font-medium text-black leading-none">Admin User</p>
+                <p className="text-[10px] text-dark-gray mt-0.5">Admin</p>
               </div>
-              <ChevronDown size={14} className="hidden md:block text-dark-gray" />
+              <ChevronDown size={12} className="hidden md:block text-dark-gray" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 mt-1">
+          <DropdownMenuContent align="end" className="w-48 mt-1">
             <div className="px-3 pt-2 pb-1">
-              <p className="text-sm font-medium text-black">Admin User</p>
-              <p className="text-xs text-dark-gray">admin@example.com</p>
+              <p className="text-xs font-medium text-black">Admin User</p>
+              <p className="text-[10px] text-dark-gray">admin@example.com</p>
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="py-1.5 text-sm">Profile</DropdownMenuItem>
-            <DropdownMenuItem className="py-1.5 text-sm">Settings</DropdownMenuItem>
-            <DropdownMenuItem className="py-1.5 text-sm">Billing</DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="my-0.5" />
+            <DropdownMenuItem className="py-1.5 text-xs">Profile</DropdownMenuItem>
+            <DropdownMenuItem className="py-1.5 text-xs">Settings</DropdownMenuItem>
+            <DropdownMenuItem className="py-1.5 text-xs">Billing</DropdownMenuItem>
+            <DropdownMenuSeparator className="my-0.5" />
             <DropdownMenuItem 
-              className="py-1.5 text-sm text-destructive focus:text-destructive focus:bg-destructive/5" 
+              className="py-1.5 text-xs text-destructive focus:text-destructive focus:bg-destructive/5" 
               onClick={logout}
             >
               Log out

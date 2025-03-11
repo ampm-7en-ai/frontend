@@ -13,7 +13,7 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '1rem',
+			padding: '0.75rem',
 			screens: {
 				'2xl': '1400px'
 			}
@@ -87,18 +87,18 @@ export default {
 				},
 			},
 			borderRadius: {
-				lg: '0.75rem',
-				md: '0.5rem',
+				lg: '0.5rem',
+				md: '0.375rem',
 				sm: '0.25rem',
 			},
 			fontSize: {
-				'heading-1': '1.75rem', // 28px
-				'heading-2': '1.5rem',   // 24px
-				'heading-3': '1.25rem',  // 20px
-				'heading-4': '1.125rem', // 18px
-				'body': '1rem',          // 16px
-				'small': '0.875rem',     // 14px
-				'micro': '0.75rem',      // 12px
+				'heading-1': '1.5rem',    // 24px
+				'heading-2': '1.25rem',   // 20px
+				'heading-3': '1.125rem',  // 18px
+				'heading-4': '1rem',      // 16px
+				'body': '0.875rem',       // 14px
+				'small': '0.75rem',       // 12px
+				'micro': '0.625rem',      // 10px
 			},
 			fontWeight: {
 				normal: '400',
@@ -108,21 +108,28 @@ export default {
 			},
 			fontFamily: {
 				'inter': ['Inter', 'sans-serif'],
-				'poppins': ['Inter', 'sans-serif'],
 				'mono': ['IBM Plex Mono', 'monospace'],
 			},
 			spacing: {
-				'1': '8px',
-				'2': '16px',
-				'3': '24px',
-				'4': '32px',
-				'6': '48px',
-				'8': '64px',
+				'1': '4px',
+				'1.5': '6px',
+				'2': '8px',
+				'2.5': '10px',
+				'3': '12px',
+				'3.5': '14px',
+				'4': '16px',
+				'5': '20px',
+				'6': '24px',
+				'8': '32px',
+				'10': '40px',
+				'12': '48px',
+				'16': '64px',
 			},
 			boxShadow: {
-				'card': '0 1px 3px rgba(0, 0, 0, 0.1)',
-				'dropdown': '0 4px 12px rgba(0, 0, 0, 0.08)',
-				'sidebar': '0 0 10px rgba(0, 0, 0, 0.05)',
+				'card': '0 1px 2px rgba(0, 0, 0, 0.05)',
+				'dropdown': '0 2px 8px rgba(0, 0, 0, 0.05)',
+				'sidebar': '0 0 5px rgba(0, 0, 0, 0.03)',
+				'sm': '0 1px 2px rgba(0, 0, 0, 0.05)',
 			},
 			keyframes: {
 				'accordion-down': {
