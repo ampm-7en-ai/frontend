@@ -1,227 +1,120 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  ChevronRight, 
-  ChevronLeft, 
-  Home, 
-  Users, 
-  Bot, 
-  Database, 
-  Workflow, 
-  Settings, 
-  MessageSquare, 
-  BarChart, 
-  HelpCircle, 
-  Shield
+import React from 'react';
+import {
+  Home,
+  LayoutDashboard,
+  Settings,
+  Users,
+  MessageSquare,
+  Bot,
+  Book,
+  HelpCircle,
+  PlusCircle,
+  LogOut,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
-type SidebarItemProps = {
-  icon: React.ReactNode;
-  title: string;
-  href: string;
+interface SidebarProps {
   isCollapsed: boolean;
-  isActive?: boolean;
-  adminOnly?: boolean;
-  superAdminOnly?: boolean;
-};
+}
 
-type UserRole = 'user' | 'admin' | 'superadmin';
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
+  const { logout, user } = useAuth();
+  const userRole = user?.role;
 
-const SidebarItem = ({
-  icon,
-  title,
-  href,
-  isCollapsed,
-  isActive = false,
-  adminOnly = false,
-  superAdminOnly = false,
-}: SidebarItemProps) => {
-  // This would normally check actual user permissions - for demo, we're showing everything
-  const userRole: UserRole = "superadmin"; // Simulated role: 'user', 'admin', or 'superadmin'
-  
-  // Hide items based on role
-  if ((adminOnly && userRole === 'user') || (superAdminOnly && userRole !== 'superadmin')) {
-    return null;
-  }
+  // Common navigation items
+  const commonItems = [
+    { label: 'Dashboard', href: '/', icon: Home },
+    { label: 'Conversations', href: '/conversations', icon: MessageSquare },
+    { label: 'Agents', href: '/agents', icon: Bot },
+    { label: 'Knowledge Base', href: '/knowledge', icon: Book },
+  ];
+
+  // Role-based navigation items
+  const adminItems = [
+    { label: 'Settings', href: '/settings', icon: Settings, children: [
+      { label: 'Business Profile', href: '/settings/business/profile' },
+      { label: 'Team Settings', href: '/settings/business/team' },
+      { label: 'Agent Settings', href: '/settings/business/agents' },
+      { label: 'Integrations', href: '/settings/business/integrations' },
+      { label: 'Billing', href: '/settings/business/billing' },
+      { label: 'Preferences', href: '/settings/business/preferences' },
+    ]},
+    { label: 'Users', href: '/users', icon: Users },
+    { label: 'Help & Support', href: '/help/support', icon: HelpCircle },
+  ];
+
+  const superAdminItems = [
+    { label: 'Platform Settings', href: '/settings', icon: LayoutDashboard, children: [
+      { label: 'General', href: '/settings/platform/general' },
+      { label: 'Security', href: '/settings/platform/security' },
+      { label: 'LLM Providers', href: '/settings/platform/llm-providers' },
+      { label: 'Compliance', href: '/settings/platform/compliance' },
+      { label: 'Billing', href: '/settings/platform/billing' },
+      { label: 'Customization', href: '/settings/platform/customization' },
+    ]},
+  ];
+
+  // Fix the type comparison by using proper type checking
+  const navigationItems = userRole === "superadmin" ? [...adminItems, ...superAdminItems] : adminItems;
 
   return (
-    <div className="mb-1">
-      <Link
-        to={href}
-        className={cn(
-          "flex items-center p-2 rounded-md text-dark-gray hover:bg-light-gray transition-colors duration-200",
-          isActive && "bg-primary/10 text-primary border-l-4 border-primary pl-1",
-          isCollapsed ? "justify-center" : "justify-between"
-        )}
-      >
-        <div className="flex items-center">
-          <div className={cn(
-            "flex items-center justify-center",
-            isCollapsed ? "w-full" : "w-5 mr-3"
-          )}>
-            {icon}
-          </div>
-          {!isCollapsed && <span className="text-sm">{title}</span>}
-        </div>
-        
-        {superAdminOnly && !isCollapsed && (
-          <Shield className="h-3 w-3 text-primary" />
-        )}
-      </Link>
-    </div>
-  );
-};
-
-type SidebarSectionProps = {
-  title: string;
-  isCollapsed: boolean;
-  children: React.ReactNode;
-};
-
-const SidebarSection = ({ title, isCollapsed, children }: SidebarSectionProps) => {
-  return (
-    <div className="mb-4">
-      {!isCollapsed && (
-        <div className="px-3 mb-1">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {title}
-          </h3>
-        </div>
-      )}
-      <div className="px-3 space-y-1">
-        {children}
+    <div className={`flex flex-col h-full ${isCollapsed ? 'w-20' : 'w-60'} border-r border-r-medium-gray/10 transition-width duration-300`}>
+      <div className="flex items-center h-20 px-4">
+        <span className={`text-2xl font-bold ${isCollapsed ? 'hidden' : ''}`}>7en.ai</span>
       </div>
-    </div>
-  );
-};
-
-type SidebarProps = {
-  className?: string;
-};
-
-export function Sidebar({ className }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const location = useLocation();
-  const currentPath = location.pathname;
-
-  return (
-    <div className={cn(
-      "flex flex-col h-screen bg-white border-r border-medium-gray/20 transition-all duration-300",
-      isCollapsed ? "w-16" : "w-60",
-      className
-    )}>
-      <div className="p-3 flex items-center justify-between border-b border-medium-gray/20">
-        {!isCollapsed && (
-          <div className="flex items-center">
-            <span className="text-primary font-poppins font-bold text-lg">7en.ai</span>
+      <nav className="flex-1 px-2 py-4 space-y-1">
+        {commonItems.map((item) => (
+          <NavLink
+            key={item.label}
+            to={item.href}
+            className={({ isActive }) =>
+              `flex items-center px-3 py-2 text-sm font-medium rounded-md
+              ${isActive ? 'bg-light-gray text-primary' : 'text-dark-gray hover:bg-light-gray'}`
+            }
+          >
+            <item.icon className="w-4 h-4 mr-2" />
+            <span className={`${isCollapsed ? 'hidden' : ''}`}>{item.label}</span>
+          </NavLink>
+        ))}
+        {navigationItems.map((item) => (
+          <div key={item.label}>
+            <NavLink
+              to={item.href}
+              className={({ isActive }) =>
+                `flex items-center px-3 py-2 text-sm font-medium rounded-md
+                ${isActive ? 'bg-light-gray text-primary' : 'text-dark-gray hover:bg-light-gray'}`
+              }
+            >
+              <item.icon className="w-4 h-4 mr-2" />
+              <span className={`${isCollapsed ? 'hidden' : ''}`}>{item.label}</span>
+            </NavLink>
+            {item.children && item.children.map((child) => (
+              <NavLink
+                key={child.label}
+                to={child.href}
+                className={({ isActive }) =>
+                  `flex items-center px-5 py-2 text-sm font-medium rounded-md
+                  ${isActive ? 'bg-light-gray text-primary' : 'text-dark-gray hover:bg-light-gray'} ${isCollapsed ? 'hidden' : ''}`
+                }
+              >
+                <span className="ml-6">{child.label}</span>
+              </NavLink>
+            ))}
           </div>
-        )}
-        {isCollapsed && (
-          <div className="w-full flex justify-center">
-            <span className="text-primary font-poppins font-bold text-lg">7</span>
-          </div>
-        )}
+        ))}
+      </nav>
+      <div className="p-4">
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 rounded-md text-dark-gray hover:bg-light-gray transition-colors duration-200"
+          onClick={logout}
+          className="flex items-center px-3 py-2 text-sm font-medium text-dark-gray hover:bg-light-gray rounded-md w-full"
         >
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          <LogOut className="w-4 h-4 mr-2" />
+          <span className={`${isCollapsed ? 'hidden' : ''}`}>Logout</span>
         </button>
       </div>
-
-      <div className="flex-1 py-4 overflow-y-auto">
-        <SidebarSection title="Main" isCollapsed={isCollapsed}>
-          <SidebarItem 
-            icon={<Home size={16} />} 
-            title="Dashboard" 
-            href="/" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath === '/'} 
-          />
-          
-          <SidebarItem 
-            icon={<Bot size={16} />} 
-            title="Agents" 
-            href="/agents" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.startsWith('/agents')} 
-          />
-          
-          <SidebarItem 
-            icon={<Database size={16} />} 
-            title="Knowledge Base" 
-            href="/knowledge" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.startsWith('/knowledge')} 
-          />
-          
-          <SidebarItem 
-            icon={<MessageSquare size={16} />} 
-            title="Conversations" 
-            href="/conversations" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.startsWith('/conversations')} 
-          />
-          
-          <SidebarItem 
-            icon={<BarChart size={16} />} 
-            title="Analytics" 
-            href="/analytics" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.startsWith('/analytics')} 
-            adminOnly
-          />
-        </SidebarSection>
-        
-        <SidebarSection title="Administration" isCollapsed={isCollapsed}>
-          <SidebarItem 
-            icon={<Users size={16} />} 
-            title="Users" 
-            href="/users" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.startsWith('/users')} 
-            adminOnly
-          />
-          
-          <SidebarItem 
-            icon={<Workflow size={16} />} 
-            title="Workflows" 
-            href="/workflows" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.startsWith('/workflows')} 
-            adminOnly
-          />
-          
-          <SidebarItem 
-            icon={<Settings size={16} />} 
-            title="Business Settings" 
-            href="/settings/business/profile" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.includes('/settings/business')} 
-            adminOnly
-          />
-          
-          <SidebarItem 
-            icon={<Shield size={16} />} 
-            title="Platform Settings" 
-            href="/settings/platform/general" 
-            isCollapsed={isCollapsed} 
-            isActive={currentPath.includes('/settings/platform')} 
-            superAdminOnly
-          />
-        </SidebarSection>
-      </div>
-
-      <div className="p-3 border-t border-medium-gray/20">
-        <SidebarItem 
-          icon={<HelpCircle size={16} />} 
-          title="Help & Support" 
-          href="/help/documentation" 
-          isCollapsed={isCollapsed} 
-          isActive={currentPath.startsWith('/help')} 
-        />
-      </div>
     </div>
   );
-}
+};
+
+export default Sidebar;

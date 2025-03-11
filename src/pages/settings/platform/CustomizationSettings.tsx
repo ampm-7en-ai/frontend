@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,34 +28,34 @@ const ColorPicker = ({ label, color }: { label: string; color: string }) => (
 const CustomizationSettings = () => {
   return (
     <div className="space-y-6">
-      <h2 className="text-heading-3">Customization Settings</h2>
+      <h2 className="text-heading-3 bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Customization Settings</h2>
       <p className="text-dark-gray mb-6">Customize the appearance and branding of the platform.</p>
       
       <Tabs defaultValue="branding">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="branding">Branding</TabsTrigger>
-          <TabsTrigger value="theme">Theme</TabsTrigger>
-          <TabsTrigger value="email">Email Templates</TabsTrigger>
-          <TabsTrigger value="layout">Layout & Views</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 mb-6 bg-blue-50/50">
+          <TabsTrigger value="branding" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">Branding</TabsTrigger>
+          <TabsTrigger value="theme" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">Theme</TabsTrigger>
+          <TabsTrigger value="email" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">Email Templates</TabsTrigger>
+          <TabsTrigger value="layout" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">Layout & Views</TabsTrigger>
         </TabsList>
         
         <TabsContent value="branding" className="space-y-6">
-          <Card>
+          <Card className="bg-gradient-to-br from-white to-blue-50/50 border-blue-100">
             <CardHeader>
-              <CardTitle>Logo & Brand Assets</CardTitle>
+              <CardTitle className="text-blue-800">Logo & Brand Assets</CardTitle>
               <CardDescription>Upload your company's logos and branding assets</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label>Primary Logo</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                  <div className="mx-auto w-32 h-32 mb-4 bg-light-gray rounded-lg flex items-center justify-center">
+                <div className="border-2 border-dashed border-blue-100 rounded-lg p-6 text-center">
+                  <div className="mx-auto w-32 h-32 mb-4 bg-blue-50 rounded-lg flex items-center justify-center">
                     <img src="/placeholder.svg" alt="Logo preview" className="max-w-full max-h-full" />
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
                     Upload a PNG or SVG file (recommended size: 200x200px)
                   </p>
-                  <Button variant="outline" className="gap-1">
+                  <Button variant="outline" className="gap-1 border-blue-200 text-blue-700 hover:bg-blue-50">
                     <Upload className="h-4 w-4" />
                     Upload Logo
                   </Button>
@@ -65,14 +64,14 @@ const CustomizationSettings = () => {
               
               <div className="space-y-2">
                 <Label>Favicon</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                  <div className="mx-auto w-16 h-16 mb-4 bg-light-gray rounded-lg flex items-center justify-center">
+                <div className="border-2 border-dashed border-blue-100 rounded-lg p-6 text-center">
+                  <div className="mx-auto w-16 h-16 mb-4 bg-blue-50 rounded-lg flex items-center justify-center">
                     <img src="/favicon.ico" alt="Favicon preview" className="max-w-full max-h-full" />
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
                     Upload a square ICO, PNG or SVG file (recommended size: 32x32px)
                   </p>
-                  <Button variant="outline" className="gap-1">
+                  <Button variant="outline" className="gap-1 border-blue-200 text-blue-700 hover:bg-blue-50">
                     <Upload className="h-4 w-4" />
                     Upload Favicon
                   </Button>
@@ -81,15 +80,15 @@ const CustomizationSettings = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-white to-blue-50/50 border-blue-100">
             <CardHeader>
-              <CardTitle>Brand Information</CardTitle>
+              <CardTitle className="text-blue-800">Brand Information</CardTitle>
               <CardDescription>Configure your brand identity details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="brand-name">Brand Name</Label>
-                <Input id="brand-name" placeholder="7en.ai" defaultValue="7en.ai" />
+                <Input id="brand-name" placeholder="7en.ai" defaultValue="7en.ai" className="border-blue-100 focus:border-blue-300" />
               </div>
               
               <div className="space-y-2">
@@ -98,6 +97,7 @@ const CustomizationSettings = () => {
                   id="brand-slogan" 
                   placeholder="European-compliant AI platform" 
                   defaultValue="European-compliant multi-agent AI platform" 
+                  className="border-blue-100 focus:border-blue-300"
                 />
               </div>
               
@@ -107,6 +107,7 @@ const CustomizationSettings = () => {
                   id="copyright" 
                   placeholder="© 2024 7en.ai. All rights reserved." 
                   defaultValue="© 2024 7en Technologies GmbH. All rights reserved." 
+                  className="border-blue-100 focus:border-blue-300"
                 />
               </div>
             </CardContent>
@@ -114,10 +115,10 @@ const CustomizationSettings = () => {
         </TabsContent>
         
         <TabsContent value="theme" className="space-y-6">
-          <Card>
+          <Card className="bg-gradient-to-br from-white to-blue-50/50 border-blue-100">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-blue-800">
+                <Palette className="h-5 w-5 text-blue-600" />
                 <span>Color Scheme</span>
               </CardTitle>
               <CardDescription>Customize the platform's color palette</CardDescription>
@@ -135,7 +136,7 @@ const CustomizationSettings = () => {
                   <ColorPicker label="Info" color="#3B82F6" />
                 </div>
                 
-                <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex justify-between items-center pt-4 border-t border-blue-100">
                   <div>
                     <Label htmlFor="dark-mode">Enable Dark Mode Option</Label>
                     <p className="text-sm text-muted-foreground">
@@ -146,23 +147,23 @@ const CustomizationSettings = () => {
                 </div>
                 
                 <div className="pt-4">
-                  <Button variant="outline" className="mr-2">Reset to Default</Button>
-                  <Button>Preview Theme</Button>
+                  <Button variant="outline" className="mr-2 border-blue-200 text-blue-700 hover:bg-blue-50">Reset to Default</Button>
+                  <Button className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary-hover hover:to-blue-500">Preview Theme</Button>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-white to-blue-50/50 border-blue-100">
             <CardHeader>
-              <CardTitle>Typography</CardTitle>
+              <CardTitle className="text-blue-800">Typography</CardTitle>
               <CardDescription>Customize the platform's fonts and text styles</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="primary-font">Primary Font</Label>
                 <Select defaultValue="inter">
-                  <SelectTrigger id="primary-font">
+                  <SelectTrigger id="primary-font" className="border-blue-100 focus:border-blue-300">
                     <SelectValue placeholder="Select font" />
                   </SelectTrigger>
                   <SelectContent>
@@ -178,7 +179,7 @@ const CustomizationSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="heading-font">Heading Font</Label>
                 <Select defaultValue="poppins">
-                  <SelectTrigger id="heading-font">
+                  <SelectTrigger id="heading-font" className="border-blue-100 focus:border-blue-300">
                     <SelectValue placeholder="Select font" />
                   </SelectTrigger>
                   <SelectContent>
@@ -194,7 +195,7 @@ const CustomizationSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="monospace-font">Monospace Font</Label>
                 <Select defaultValue="ibm-plex-mono">
-                  <SelectTrigger id="monospace-font">
+                  <SelectTrigger id="monospace-font" className="border-blue-100 focus:border-blue-300">
                     <SelectValue placeholder="Select font" />
                   </SelectTrigger>
                   <SelectContent>
@@ -210,7 +211,7 @@ const CustomizationSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="base-font-size">Base Font Size</Label>
                 <Select defaultValue="16">
-                  <SelectTrigger id="base-font-size">
+                  <SelectTrigger id="base-font-size" className="border-blue-100 focus:border-blue-300">
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
@@ -228,10 +229,10 @@ const CustomizationSettings = () => {
         </TabsContent>
         
         <TabsContent value="email" className="space-y-6">
-          <Card>
+          <Card className="bg-gradient-to-br from-white to-blue-50/50 border-blue-100">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-blue-800">
+                <Mail className="h-5 w-5 text-blue-600" />
                 <span>Email Templates</span>
               </CardTitle>
               <CardDescription>Customize the email templates sent from the platform</CardDescription>
@@ -241,7 +242,7 @@ const CustomizationSettings = () => {
                 <div className="space-y-2">
                   <Label htmlFor="email-template">Select Template</Label>
                   <Select defaultValue="welcome">
-                    <SelectTrigger id="email-template">
+                    <SelectTrigger id="email-template" className="border-blue-100 focus:border-blue-300">
                       <SelectValue placeholder="Select template to edit" />
                     </SelectTrigger>
                     <SelectContent>
@@ -260,12 +261,13 @@ const CustomizationSettings = () => {
                     id="email-subject" 
                     placeholder="Email subject" 
                     defaultValue="Welcome to 7en.ai platform!" 
+                    className="border-blue-100 focus:border-blue-300"
                   />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="email-content">Email Content</Label>
-                  <div className="min-h-[300px] border rounded-md p-2">
+                  <div className="min-h-[300px] border border-blue-100 rounded-md p-2 bg-blue-50/30">
                     <p className="text-muted-foreground italic">
                       [Email editor will load here]
                     </p>
@@ -288,9 +290,9 @@ const CustomizationSettings = () => {
                 </div>
                 
                 <div className="pt-4 flex space-x-2">
-                  <Button variant="outline">Preview</Button>
-                  <Button variant="outline">Send Test Email</Button>
-                  <Button>Save Template</Button>
+                  <Button variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">Preview</Button>
+                  <Button variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">Send Test Email</Button>
+                  <Button className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary-hover hover:to-blue-500">Save Template</Button>
                 </div>
               </div>
             </CardContent>
@@ -298,10 +300,10 @@ const CustomizationSettings = () => {
         </TabsContent>
         
         <TabsContent value="layout" className="space-y-6">
-          <Card>
+          <Card className="bg-gradient-to-br from-white to-blue-50/50 border-blue-100">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Layers className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-blue-800">
+                <Layers className="h-5 w-5 text-blue-600" />
                 <span>Default View Settings</span>
               </CardTitle>
               <CardDescription>Configure default layouts and views for users</CardDescription>
@@ -310,7 +312,7 @@ const CustomizationSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="default-dashboard">Default Dashboard View</Label>
                 <Select defaultValue="summary">
-                  <SelectTrigger id="default-dashboard">
+                  <SelectTrigger id="default-dashboard" className="border-blue-100 focus:border-blue-300">
                     <SelectValue placeholder="Select default view" />
                   </SelectTrigger>
                   <SelectContent>
@@ -325,7 +327,7 @@ const CustomizationSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="default-sidebar">Default Sidebar State</Label>
                 <Select defaultValue="expanded">
-                  <SelectTrigger id="default-sidebar">
+                  <SelectTrigger id="default-sidebar" className="border-blue-100 focus:border-blue-300">
                     <SelectValue placeholder="Select default state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -338,7 +340,7 @@ const CustomizationSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="items-per-page">Default Items Per Page</Label>
                 <Select defaultValue="25">
-                  <SelectTrigger id="items-per-page">
+                  <SelectTrigger id="items-per-page" className="border-blue-100 focus:border-blue-300">
                     <SelectValue placeholder="Select number" />
                   </SelectTrigger>
                   <SelectContent>
@@ -379,58 +381,58 @@ const CustomizationSettings = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-white to-blue-50/50 border-blue-100">
             <CardHeader>
-              <CardTitle>Navigation Customization</CardTitle>
+              <CardTitle className="text-blue-800">Navigation Customization</CardTitle>
               <CardDescription>Configure navigation and menu items visibility</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="border rounded-md p-4">
-                  <h4 className="font-medium mb-3">Main Navigation Items</h4>
+                <div className="border border-blue-100 rounded-md p-4 bg-blue-50/30">
+                  <h4 className="font-medium mb-3 text-blue-800">Main Navigation Items</h4>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-dashboard">Dashboard</Label>
                       <Switch id="nav-dashboard" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-agents">Agent Management</Label>
                       <Switch id="nav-agents" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-knowledge">Knowledge Base</Label>
                       <Switch id="nav-knowledge" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-workflows">Workflows</Label>
                       <Switch id="nav-workflows" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-conversations">Conversations</Label>
                       <Switch id="nav-conversations" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-analytics">Analytics</Label>
                       <Switch id="nav-analytics" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-integrations">Integrations</Label>
                       <Switch id="nav-integrations" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-light-gray rounded-md">
+                    <div className="flex items-center justify-between p-2 hover:bg-blue-50 rounded-md">
                       <Label htmlFor="nav-users">User Management</Label>
                       <Switch id="nav-users" defaultChecked />
                     </div>
                   </div>
                 </div>
                 
-                <div className="border rounded-md p-4">
-                  <h4 className="font-medium mb-3">Quick Access Items</h4>
+                <div className="border border-blue-100 rounded-md p-4 bg-blue-50/30">
+                  <h4 className="font-medium mb-3 text-blue-800">Quick Access Items</h4>
                   <div className="space-y-2">
                     <div className="space-y-2">
                       <Label htmlFor="quick-access-items">Items to Show</Label>
                       <Select defaultValue="5">
-                        <SelectTrigger id="quick-access-items">
+                        <SelectTrigger id="quick-access-items" className="border-blue-100 focus:border-blue-300">
                           <SelectValue placeholder="Select number" />
                         </SelectTrigger>
                         <SelectContent>
@@ -450,8 +452,8 @@ const CustomizationSettings = () => {
       </Tabs>
       
       <div className="flex justify-end">
-        <Button variant="outline" className="mr-2">Reset Customizations</Button>
-        <Button>Save Changes</Button>
+        <Button variant="outline" className="mr-2 border-blue-200 text-blue-700 hover:bg-blue-50">Reset Customizations</Button>
+        <Button className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary-hover hover:to-blue-500">Save Changes</Button>
       </div>
     </div>
   );

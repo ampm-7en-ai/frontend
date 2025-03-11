@@ -72,6 +72,19 @@ export default {
 				'medium-gray': '#9CA3AF',
 				'dark-gray': '#4B5563',
 				black: '#1F2937',
+				// Blues
+				blue: {
+					50: '#EFF6FF',
+					100: '#DBEAFE',
+					200: '#BFDBFE',
+					300: '#93C5FD',
+					400: '#60A5FA',
+					500: '#3B82F6',
+					600: '#2563EB',
+					700: '#1D4ED8',
+					800: '#1E40AF',
+					900: '#1E3A8A',
+				},
 			},
 			borderRadius: {
 				lg: '0.5rem',
@@ -135,6 +148,12 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+			},
+			backgroundImage: {
+				'blue-gradient': 'linear-gradient(90deg, hsla(221, 45%, 73%, 1) 0%, hsla(220, 78%, 29%, 1) 100%)',
+				'blue-light-gradient': 'linear-gradient(90deg, hsla(186, 33%, 94%, 1) 0%, hsla(216, 41%, 79%, 1) 100%)',
+				'blue-to-teal-gradient': 'linear-gradient(46, 73%, 75%, 1) 0%, hsla(176, 73%, 88%, 1) 100%)',
+				'card-gradient': 'linear-gradient(to top, #accbee 0%, #e7f0fd 100%)',
 			}
 		}
 	},
