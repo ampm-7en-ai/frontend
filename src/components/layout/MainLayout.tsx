@@ -12,7 +12,7 @@ type MainLayoutProps = {
 
 export function MainLayout({ children, pageTitle, breadcrumbs }: MainLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -26,6 +26,7 @@ export function MainLayout({ children, pageTitle, breadcrumbs }: MainLayoutProps
           pageTitle={pageTitle} 
           breadcrumbs={breadcrumbs} 
           toggleSidebar={toggleSidebar}
+          logout={logout}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4">
           <div className="max-w-7xl mx-auto">

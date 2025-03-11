@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +40,13 @@ const Login = () => {
         </div>
         
         <h1 className="text-2xl font-semibold text-center mb-6">Log in to your account</h1>
+        
+        <Tabs defaultValue="admin" className="w-full mb-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="admin" onClick={() => setUsername('admin')}>Business Admin</TabsTrigger>
+            <TabsTrigger value="superadmin" onClick={() => setUsername('superadmin')}>Platform Admin</TabsTrigger>
+          </TabsList>
+        </Tabs>
         
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-3">
@@ -84,6 +92,13 @@ const Login = () => {
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
+            </div>
+            <div className="text-xs text-dark-gray">
+              Demo credentials: 
+              <ul className="mt-1 ml-4 list-disc">
+                <li>Admin: username "admin" / password "123456"</li>
+                <li>Platform Admin: username "superadmin" / password "123456"</li>
+              </ul>
             </div>
           </div>
           

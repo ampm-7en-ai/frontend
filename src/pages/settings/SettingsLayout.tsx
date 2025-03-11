@@ -30,19 +30,21 @@ const SettingsLayout = () => {
     defaultValue = 'business';
   }
 
+  // Platform settings links - Only for superadmin
   const platformLinks = [
     { name: 'General', path: '/settings/platform/general' },
     { name: 'Security', path: '/settings/platform/security' },
     { name: 'LLM Providers', path: '/settings/platform/llm-providers' },
     { name: 'Compliance', path: '/settings/platform/compliance' },
-    { name: 'Billing', path: '/settings/platform/billing' },
+    { name: 'Billing & Subscriptions', path: '/settings/platform/billing' },
     { name: 'Customization', path: '/settings/platform/customization' },
   ];
 
+  // Business settings links - For both admin and superadmin
   const businessLinks = [
-    { name: 'Profile', path: '/settings/business/profile' },
-    { name: 'Team', path: '/settings/business/team' },
-    { name: 'Agents', path: '/settings/business/agents' },
+    { name: 'Business Profile', path: '/settings/business/profile' },
+    { name: 'Team Management', path: '/settings/business/team' },
+    { name: 'Agent Settings', path: '/settings/business/agents' },
     { name: 'Integrations', path: '/settings/business/integrations' },
     { name: 'Billing', path: '/settings/business/billing' },
     { name: 'Preferences', path: '/settings/business/preferences' },
@@ -76,10 +78,12 @@ const SettingsLayout = () => {
         <div className="container mx-auto flex">
           <div className="w-64 pr-8">
             <h3 className="text-lg font-semibold mb-4">
-              {isPlatformSettings && user?.role === 'superadmin' ? 'Platform Settings' : 'Business Settings'}
+              {isPlatformSettings && user?.role === 'superadmin' 
+                ? 'Platform Settings' 
+                : 'Business Settings'}
             </h3>
             <Separator className="mb-4" />
-            <nav className="flex flex-col space-y-1">
+            <nav className="flex flex-col space-y-1.5">
               {isPlatformSettings && user?.role === 'superadmin' &&
                 platformLinks.map((link) => (
                   <Link

@@ -11,19 +11,23 @@ import {
   HelpCircle,
   ChevronRight,
   ChevronDown,
-  LogOut,
+  Building,
+  BarChart2,
+  ShieldCheck,
+  FileText,
+  Briefcase,
+  CreditCard,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
   isCollapsed: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -39,20 +43,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const commonItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home },
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
-    { id: 'agents', label: 'Agents', href: '/agents', icon: Bot },
-    { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
   ];
 
   // Business Admin specific navigation items
   const adminItems = [
+    { id: 'agents', label: 'Agents', href: '/agents', icon: Bot },
+    { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
     { 
-      id: 'settings',
+      id: 'business-settings',
       label: 'Business Settings', 
       href: '/settings', 
       icon: Settings, 
       children: [
         { label: 'Business Profile', href: '/settings/business/profile' },
-        { label: 'Team Settings', href: '/settings/business/team' },
+        { label: 'Team Management', href: '/settings/business/team' },
         { label: 'Agent Settings', href: '/settings/business/agents' },
         { label: 'Integrations', href: '/settings/business/integrations' },
         { label: 'Billing', href: '/settings/business/billing' },
@@ -64,7 +68,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
   // Super Admin specific navigation items
   const superAdminItems = [
+    { 
+      id: 'business-management',
+      label: 'Businesses', 
+      href: '/users', 
+      icon: Building
+    },
     { id: 'users', label: 'User Management', href: '/users', icon: Users },
+    { 
+      id: 'platform-analytics',
+      label: 'Platform Analytics', 
+      href: '/analytics', 
+      icon: BarChart2 
+    },
+    { 
+      id: 'templates',
+      label: 'Global Templates', 
+      href: '/templates', 
+      icon: FileText 
+    },
     { 
       id: 'platform',
       label: 'Platform Settings', 
@@ -75,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         { label: 'Security', href: '/settings/platform/security' },
         { label: 'LLM Providers', href: '/settings/platform/llm-providers' },
         { label: 'Compliance', href: '/settings/platform/compliance' },
-        { label: 'Billing', href: '/settings/platform/billing' },
+        { label: 'Billing & Subscriptions', href: '/settings/platform/billing' },
         { label: 'Customization', href: '/settings/platform/customization' },
       ]
     },
@@ -83,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
   // Determine navigation items based on role
   const roleBasedItems = userRole === "superadmin" 
-    ? [...superAdminItems, ...adminItems] 
+    ? [...superAdminItems] 
     : adminItems;
 
   return (
@@ -99,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       <div className="px-3 py-3 border-b border-medium-gray/10">
         {!isCollapsed ? (
           <div className="flex items-center px-2">
-            <Avatar className="h-8 w-8 bg-primary/90 text-white">
+            <Avatar className="h-9 w-9 bg-primary/90 text-white">
               <AvatarFallback className="text-xs">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div className="ml-2">
@@ -109,25 +131,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           </div>
         ) : (
           <div className="flex justify-center">
-            <Avatar className="h-8 w-8 bg-primary/90 text-white">
+            <Avatar className="h-9 w-9 bg-primary/90 text-white">
               <AvatarFallback className="text-xs">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
           </div>
         )}
       </div>
       
-      <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
-        <div className="space-y-1.5">
+      <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+        <div className="space-y-2">
           {commonItems.map((item) => (
             <NavLink
               key={item.id}
               to={item.href}
               className={({ isActive }) =>
-                `flex items-center px-3 py-3 text-sm rounded-md
+                `flex items-center px-4 py-3.5 text-sm rounded-md
                 ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
               }
             >
-              <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+              <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
               {!isCollapsed && <span className="text-sm">{item.label}</span>}
             </NavLink>
           ))}
@@ -136,22 +158,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         {roleBasedItems.length > 0 && (
           <div className="pt-4">
             {!isCollapsed && (
-              <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-2">
-                {userRole === "superadmin" ? "Administration" : "Settings"}
+              <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-3">
+                {userRole === "superadmin" ? "ADMINISTRATION" : "BUSINESS"}
               </div>
             )}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {roleBasedItems.map((item) => (
                 <div key={item.id}>
                   {item.children ? (
                     <>
                       <button
-                        className={`w-full flex items-center justify-between px-3 py-3 text-sm rounded-md h-auto 
+                        className={`w-full flex items-center justify-between px-4 py-3.5 text-sm rounded-md h-auto 
                         ${expandedItems.includes(item.id) ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`}
                         onClick={() => !isCollapsed && toggleExpand(item.id)}
                       >
                         <div className="flex items-center">
-                          <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                          <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
                           {!isCollapsed && <span className="text-sm">{item.label}</span>}
                         </div>
                         {!isCollapsed && (
@@ -161,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                         )}
                       </button>
                       {!isCollapsed && expandedItems.includes(item.id) && item.children && (
-                        <div className="mt-1 space-y-1 pl-8">
+                        <div className="mt-1 space-y-1 pl-10">
                           {item.children.map((child) => (
                             <NavLink
                               key={child.label}
@@ -181,11 +203,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                     <NavLink
                       to={item.href}
                       className={({ isActive }) =>
-                        `flex items-center px-3 py-3 text-sm rounded-md
+                        `flex items-center px-4 py-3.5 text-sm rounded-md
                         ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
                       }
                     >
-                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                      <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
                       {!isCollapsed && <span className="text-sm">{item.label}</span>}
                     </NavLink>
                   )}
@@ -195,17 +217,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           </div>
         )}
       </nav>
-
-      <div className="mt-auto border-t border-medium-gray/10 p-3">
-        <Button 
-          variant="ghost" 
-          className="w-full flex items-center justify-center py-2.5 text-sm"
-          onClick={logout}
-        >
-          <LogOut className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-2'} text-dark-gray`} />
-          {!isCollapsed && <span>Logout</span>}
-        </Button>
-      </div>
     </div>
   );
 };

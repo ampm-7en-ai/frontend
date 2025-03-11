@@ -12,7 +12,7 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
-  businessId?: string;
+  businessId?: string;  // Only for admin users
 }
 
 // Define auth context interface
