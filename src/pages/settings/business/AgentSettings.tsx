@@ -1,4 +1,6 @@
+
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,8 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Bot, ExternalLink, BarChart2, Settings as SettingsIcon, Clock, MessageSquare, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { AlertTriangle, Bot, BarChart2, Settings as SettingsIcon, Clock, MessageSquare, Sparkles, Shield } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const agentsData = [
   { 
@@ -20,7 +22,8 @@ const agentsData = [
     name: 'Customer Support Agent', 
     description: 'Handles customer inquiries and support tickets', 
     model: 'GPT-4',
-    status: 'active', 
+    status: 'active',
+    role: 'support',
     conversations: 1203,
     averageResponseTime: '1.2s',
     satisfaction: 92,
@@ -30,7 +33,8 @@ const agentsData = [
     name: 'Sales Assistant', 
     description: 'Helps with product recommendations and sales inquiries', 
     model: 'GPT-4',
-    status: 'active', 
+    status: 'active',
+    role: 'sales',
     conversations: 845,
     averageResponseTime: '1.5s',
     satisfaction: 88,
@@ -40,7 +44,8 @@ const agentsData = [
     name: 'Technical Support', 
     description: 'Provides technical troubleshooting assistance', 
     model: 'Claude-2',
-    status: 'inactive', 
+    status: 'inactive',
+    role: 'technical',
     conversations: 532,
     averageResponseTime: '2.1s',
     satisfaction: 85,
@@ -48,6 +53,7 @@ const agentsData = [
 ];
 
 const AgentSettings = () => {
+  const navigate = useNavigate();
   const [agents, setAgents] = useState(agentsData);
   const [selectedAgent, setSelectedAgent] = useState<null | typeof agentsData[0]>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -63,6 +69,23 @@ const AgentSettings = () => {
   const openAgentSettings = (agent: typeof agentsData[0]) => {
     setSelectedAgent(agent);
     setIsDialogOpen(true);
+  };
+  
+  const handleTestChat = (agentId: number) => {
+    navigate(`/agents/${agentId}/test`);
+  };
+  
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'support':
+        return 'bg-green-100 text-green-800';
+      case 'sales':
+        return 'bg-blue-100 text-blue-800';
+      case 'technical':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -99,7 +122,7 @@ const AgentSettings = () => {
                     <TableRow>
                       <TableHead>Agent</TableHead>
                       <TableHead>Model</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Role</TableHead>
                       <TableHead>Conversations</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -109,20 +132,18 @@ const AgentSettings = () => {
                       <TableRow key={agent.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{agent.name}</div>
+                            <div className="font-medium flex items-center">
+                              <Bot className={`mr-2 h-4 w-4 ${agent.status === 'active' ? 'text-green-500' : 'text-gray-400'}`} />
+                              {agent.name}
+                            </div>
                             <div className="text-xs text-muted-foreground">{agent.description}</div>
                           </div>
                         </TableCell>
                         <TableCell>{agent.model}</TableCell>
                         <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Switch 
-                              checked={agent.status === 'active'} 
-                              onCheckedChange={() => toggleAgentStatus(agent.id)}
-                            />
-                            <span className={agent.status === 'active' ? 'text-green-600' : 'text-gray-500'}>
-                              {agent.status === 'active' ? 'Active' : 'Inactive'}
-                            </span>
+                          <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(agent.role)}`}>
+                            <Shield className="h-3 w-3 mr-1" />
+                            {agent.role.charAt(0).toUpperCase() + agent.role.slice(1)}
                           </div>
                         </TableCell>
                         <TableCell>{agent.conversations.toLocaleString()}</TableCell>
@@ -136,6 +157,15 @@ const AgentSettings = () => {
                             >
                               <SettingsIcon className="h-3.5 w-3.5 mr-1" />
                               Configure
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8"
+                              onClick={() => handleTestChat(agent.id)}
+                            >
+                              <MessageSquare className="h-3.5 w-3.5 mr-1" />
+                              Test Chat
                             </Button>
                           </div>
                         </TableCell>
@@ -377,10 +407,11 @@ const AgentSettings = () => {
                 Cancel
               </Button>
               <div className="space-x-2">
-                <Button variant="outline" asChild>
-                  <Link to={`/agents/${selectedAgent.id}/edit`}>
-                    Advanced Settings
-                  </Link>
+                <Button variant="outline" onClick={() => {
+                  setIsDialogOpen(false);
+                  navigate(`/agents/${selectedAgent.id}/edit`);
+                }}>
+                  Advanced Settings
                 </Button>
                 <Button onClick={() => setIsDialogOpen(false)}>Save Changes</Button>
               </div>

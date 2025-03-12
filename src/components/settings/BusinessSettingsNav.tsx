@@ -30,7 +30,7 @@ const BusinessSettingsNav = () => {
             className={({ isActive }) =>
               `flex items-center py-2 px-3 text-sm rounded-md transition-colors
               ${isActive 
-                ? 'bg-primary/10 text-primary font-medium' 
+                ? 'bg-primary text-white font-medium' 
                 : 'text-muted-foreground hover:bg-muted/50'
               }`
             }

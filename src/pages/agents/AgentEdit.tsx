@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+
+// Sample knowledge sources data
+const knowledgeSources = [
+  { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
+  { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20' },
+  { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10' },
+  { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25' },
+];
 
 const AgentEdit = () => {
   const { agentId } = useParams();
@@ -21,12 +31,12 @@ const AgentEdit = () => {
   const { toast } = useToast();
   
   // Mock data for agent (in a real app, you would fetch this from an API)
-  const [agent, setAgent] = React.useState({
+  const [agent, setAgent] = useState({
     id: agentId,
     name: "Customer Support Agent",
     description: "This agent helps customers with their inquiries and provides support.",
     status: "active",
-    primaryColor: '#3b82f6',
+    primaryColor: '#9b87f5', // Updated to use brand purple
     secondaryColor: '#ffffff',
     fontFamily: 'Inter',
     chatbotName: 'Business Assistant',
@@ -35,14 +45,46 @@ const AgentEdit = () => {
     position: 'bottom-right',
     showOnMobile: true,
     collectVisitorData: true,
-    autoShowAfter: 30
+    autoShowAfter: 30,
+    // New fields for behavior depth
+    creativity: 0.7,
+    conciseness: 0.5,
+    politeness: 0.8,
+    formality: 0.6,
+    maxResponseLength: 'medium',
+    // Knowledge sources
+    knowledgeSources: [1, 3] // IDs of selected knowledge sources
   });
+  
+  const [isRetraining, setIsRetraining] = useState(false);
   
   const handleChange = (name: string, value: any) => {
     setAgent({
       ...agent,
       [name]: value
     });
+  };
+
+  const toggleKnowledgeSource = (id: number) => {
+    const currentSources = [...agent.knowledgeSources];
+    if (currentSources.includes(id)) {
+      handleChange('knowledgeSources', currentSources.filter(sourceId => sourceId !== id));
+    } else {
+      handleChange('knowledgeSources', [...currentSources, id]);
+    }
+  };
+  
+  const handleRetrainAI = () => {
+    setIsRetraining(true);
+    
+    // Simulate retraining process
+    setTimeout(() => {
+      setIsRetraining(false);
+      toast({
+        title: "AI retrained successfully",
+        description: "Your agent has been updated with the selected knowledge sources.",
+      });
+    }, 2000);
   };
 
   const handleSaveChanges = () => {
@@ -86,7 +128,7 @@ const AgentEdit = () => {
             Appearance
           </TabsTrigger>
           <TabsTrigger value="behavior">
-            <MessageSquare className="h-4 w-4 mr-2" />
+            <BrainCircuit className="h-4 w-4 mr-2" />
             Behavior
           </TabsTrigger>
           <TabsTrigger value="knowledge">
@@ -289,6 +331,110 @@ const AgentEdit = () => {
         <TabsContent value="behavior" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
+              <CardTitle>Agent Personality</CardTitle>
+              <CardDescription>Configure how your agent should behave and respond</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="creativity" className="mb-1">Creativity</Label>
+                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.creativity.toFixed(1)}</span>
+                  </div>
+                  <Slider 
+                    id="creativity"
+                    value={[agent.creativity]} 
+                    max={1} 
+                    step={0.1} 
+                    className="w-full" 
+                    onValueChange={(value) => handleChange('creativity', value[0])}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Higher values produce more creative, varied responses. Lower values make responses more predictable.
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="conciseness" className="mb-1">Conciseness</Label>
+                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.conciseness.toFixed(1)}</span>
+                  </div>
+                  <Slider 
+                    id="conciseness"
+                    value={[agent.conciseness]} 
+                    max={1} 
+                    step={0.1} 
+                    className="w-full" 
+                    onValueChange={(value) => handleChange('conciseness', value[0])}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Higher values produce shorter, more direct responses. Lower values allow for more detailed explanations.
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="politeness" className="mb-1">Politeness</Label>
+                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.politeness.toFixed(1)}</span>
+                  </div>
+                  <Slider 
+                    id="politeness"
+                    value={[agent.politeness]} 
+                    max={1} 
+                    step={0.1} 
+                    className="w-full" 
+                    onValueChange={(value) => handleChange('politeness', value[0])}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Controls how formal and polite the agent should be in its responses.
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="formality" className="mb-1">Formality</Label>
+                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.formality.toFixed(1)}</span>
+                  </div>
+                  <Slider 
+                    id="formality"
+                    value={[agent.formality]} 
+                    max={1} 
+                    step={0.1} 
+                    className="w-full" 
+                    onValueChange={(value) => handleChange('formality', value[0])}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Higher values use more formal language. Lower values are more casual and conversational.
+                  </p>
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="max-response-length">Maximum Response Length</Label>
+                  <Select 
+                    value={agent.maxResponseLength} 
+                    onValueChange={(value) => handleChange('maxResponseLength', value)}
+                  >
+                    <SelectTrigger id="max-response-length">
+                      <SelectValue placeholder="Select length" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="short">Short (1-2 sentences)</SelectItem>
+                      <SelectItem value="medium">Medium (3-5 sentences)</SelectItem>
+                      <SelectItem value="long">Long (6+ sentences)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Controls the typical length of responses from your agent.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
               <CardTitle>Chatbox Behavior</CardTitle>
               <CardDescription>Configure how the chatbox interacts with visitors</CardDescription>
             </CardHeader>
@@ -342,23 +488,62 @@ const AgentEdit = () => {
         <TabsContent value="knowledge" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Knowledge Base</CardTitle>
-              <CardDescription>Configure what knowledge your agent can access</CardDescription>
+              <CardTitle>Knowledge Sources</CardTitle>
+              <CardDescription>Select which knowledge your agent can access to improve its responses</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Connect your agent to knowledge sources to improve its responses. 
-                Knowledge sources can include documents, FAQs, and product information.
-              </p>
-              
-              <div className="bg-muted p-6 rounded-md flex flex-col items-center justify-center text-center">
-                <FileText className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="font-medium mb-2">No knowledge sources connected</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Your agent doesn't have any knowledge sources yet. Add sources to help it answer questions accurately.
-                </p>
-                <Button>Connect Knowledge Sources</Button>
+              <div className="border rounded-md divide-y">
+                {knowledgeSources.map((source) => (
+                  <div key={source.id} className="flex items-center p-4">
+                    <Checkbox 
+                      id={`source-${source.id}`} 
+                      checked={agent.knowledgeSources.includes(source.id)}
+                      onCheckedChange={() => toggleKnowledgeSource(source.id)}
+                      className="mr-4"
+                    />
+                    <div className="flex-1">
+                      <label 
+                        htmlFor={`source-${source.id}`} 
+                        className="flex items-center text-sm font-medium cursor-pointer"
+                      >
+                        <Book className="h-4 w-4 mr-2 text-muted-foreground" />
+                        {source.name}
+                      </label>
+                      <div className="flex items-center mt-1 text-xs text-muted-foreground">
+                        <span className="mr-3">Type: {source.type}</span>
+                        <span className="mr-3">Size: {source.size}</span>
+                        <span>Last updated: {source.lastUpdated}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+              
+              {agent.knowledgeSources.length > 0 ? (
+                <div className="flex justify-between items-center pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    {agent.knowledgeSources.length} knowledge sources selected
+                  </p>
+                  <Button 
+                    onClick={handleRetrainAI} 
+                    disabled={isRetraining}
+                    className="relative"
+                  >
+                    {isRetraining && (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    {!isRetraining && (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    {isRetraining ? 'Retraining...' : 'Retrain AI'}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-amber-600 flex items-center">
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  No knowledge sources selected. Your agent will use only its general knowledge.
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
