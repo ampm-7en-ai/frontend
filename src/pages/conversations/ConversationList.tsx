@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,241 +67,231 @@ const ConversationList = () => {
   ];
 
   return (
-    <MainLayout 
-      pageTitle="Conversations" 
-      breadcrumbs={[
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Conversations', href: '/conversations' }
-      ]}
-    >
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-          <div className="relative w-full md:w-96">
-            <Input 
-              placeholder="Search conversations..." 
-              className="pl-10" 
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <Select defaultValue="all">
-              <SelectTrigger className="w-full md:w-36">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              Last 7 days
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+        <div className="relative w-full md:w-96">
+          <Input 
+            placeholder="Search conversations..." 
+            className="pl-10" 
+          />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         </div>
-
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-4 w-full md:w-auto">
-            <TabsTrigger value="all">All Conversations</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="closed">Closed</TabsTrigger>
-          </TabsList>
-          <TabsContent value="all" className="space-y-4">
-            {conversations.map((conversation) => (
-              <Card key={conversation.id} className="hover:bg-accent/5 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary text-primary-foreground p-2 rounded-full">
-                        <MessageSquare className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
-                          {conversation.customer}
-                        </Link>
-                        <div className="text-sm text-muted-foreground">{conversation.email}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="hidden md:block">
-                        <div className="text-sm">{conversation.agent}</div>
-                        <div className={`text-xs ${
-                          conversation.satisfaction === 'high' ? 'text-green-600' : 
-                          conversation.satisfaction === 'medium' ? 'text-amber-600' : 
-                          'text-red-600'
-                        }`}>
-                          {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm">{conversation.time}</div>
-                        <div className="text-xs">
-                          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                            conversation.status === 'active' ? 'bg-green-100 text-green-800' : 
-                            conversation.status === 'pending' ? 'bg-amber-100 text-amber-800' : 
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
-                          </span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-          <TabsContent value="active" className="space-y-4">
-            {conversations.filter(c => c.status === 'active').map((conversation) => (
-              // Similar card component as above
-              <Card key={conversation.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary text-primary-foreground p-2 rounded-full">
-                        <MessageSquare className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
-                          {conversation.customer}
-                        </Link>
-                        <div className="text-sm text-muted-foreground">{conversation.email}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="hidden md:block">
-                        <div className="text-sm">{conversation.agent}</div>
-                        <div className={`text-xs ${
-                          conversation.satisfaction === 'high' ? 'text-green-600' : 
-                          conversation.satisfaction === 'medium' ? 'text-amber-600' : 
-                          'text-red-600'
-                        }`}>
-                          {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm">{conversation.time}</div>
-                        <div className="text-xs">
-                          <span className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">
-                            Active
-                          </span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-          <TabsContent value="pending" className="space-y-4">
-            {conversations.filter(c => c.status === 'pending').map((conversation) => (
-              // Similar card component for pending conversations
-              <Card key={conversation.id}>
-                <CardContent className="p-4">
-                  {/* Similar content structure */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary text-primary-foreground p-2 rounded-full">
-                        <MessageSquare className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
-                          {conversation.customer}
-                        </Link>
-                        <div className="text-sm text-muted-foreground">{conversation.email}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="hidden md:block">
-                        <div className="text-sm">{conversation.agent}</div>
-                        <div className={`text-xs ${
-                          conversation.satisfaction === 'high' ? 'text-green-600' : 
-                          conversation.satisfaction === 'medium' ? 'text-amber-600' : 
-                          'text-red-600'
-                        }`}>
-                          {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm">{conversation.time}</div>
-                        <div className="text-xs">
-                          <span className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
-                            Pending
-                          </span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-          <TabsContent value="closed" className="space-y-4">
-            {conversations.filter(c => c.status === 'closed').map((conversation) => (
-              // Similar card component for closed conversations
-              <Card key={conversation.id}>
-                <CardContent className="p-4">
-                  {/* Similar content structure */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary text-primary-foreground p-2 rounded-full">
-                        <MessageSquare className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
-                          {conversation.customer}
-                        </Link>
-                        <div className="text-sm text-muted-foreground">{conversation.email}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="hidden md:block">
-                        <div className="text-sm">{conversation.agent}</div>
-                        <div className={`text-xs ${
-                          conversation.satisfaction === 'high' ? 'text-green-600' : 
-                          conversation.satisfaction === 'medium' ? 'text-amber-600' : 
-                          'text-red-600'
-                        }`}>
-                          {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm">{conversation.time}</div>
-                        <div className="text-xs">
-                          <span className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">
-                            Closed
-                          </span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-        </Tabs>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Select defaultValue="all">
+            <SelectTrigger className="w-full md:w-36">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            Last 7 days
+          </Button>
+        </div>
       </div>
-    </MainLayout>
+
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="mb-4 w-full md:w-auto">
+          <TabsTrigger value="all">All Conversations</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="closed">Closed</TabsTrigger>
+        </TabsList>
+        <TabsContent value="all" className="space-y-4">
+          {conversations.map((conversation) => (
+            <Card key={conversation.id} className="hover:bg-accent/5 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary text-primary-foreground p-2 rounded-full">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
+                        {conversation.customer}
+                      </Link>
+                      <div className="text-sm text-muted-foreground">{conversation.email}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="hidden md:block">
+                      <div className="text-sm">{conversation.agent}</div>
+                      <div className={`text-xs ${
+                        conversation.satisfaction === 'high' ? 'text-green-600' : 
+                        conversation.satisfaction === 'medium' ? 'text-amber-600' : 
+                        'text-red-600'
+                      }`}>
+                        {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm">{conversation.time}</div>
+                      <div className="text-xs">
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                          conversation.status === 'active' ? 'bg-green-100 text-green-800' : 
+                          conversation.status === 'pending' ? 'bg-amber-100 text-amber-800' : 
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+        <TabsContent value="active" className="space-y-4">
+          {/* Similar card components for active conversations */}
+          {conversations.filter(c => c.status === 'active').map((conversation) => (
+            <Card key={conversation.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary text-primary-foreground p-2 rounded-full">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
+                        {conversation.customer}
+                      </Link>
+                      <div className="text-sm text-muted-foreground">{conversation.email}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="hidden md:block">
+                      <div className="text-sm">{conversation.agent}</div>
+                      <div className={`text-xs ${
+                        conversation.satisfaction === 'high' ? 'text-green-600' : 
+                        conversation.satisfaction === 'medium' ? 'text-amber-600' : 
+                        'text-red-600'
+                      }`}>
+                        {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm">{conversation.time}</div>
+                      <div className="text-xs">
+                        <span className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">
+                          Active
+                        </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+        <TabsContent value="pending" className="space-y-4">
+          {/* Similar card components for pending conversations */}
+          {conversations.filter(c => c.status === 'pending').map((conversation) => (
+            <Card key={conversation.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary text-primary-foreground p-2 rounded-full">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
+                        {conversation.customer}
+                      </Link>
+                      <div className="text-sm text-muted-foreground">{conversation.email}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="hidden md:block">
+                      <div className="text-sm">{conversation.agent}</div>
+                      <div className={`text-xs ${
+                        conversation.satisfaction === 'high' ? 'text-green-600' : 
+                        conversation.satisfaction === 'medium' ? 'text-amber-600' : 
+                        'text-red-600'
+                      }`}>
+                        {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm">{conversation.time}</div>
+                      <div className="text-xs">
+                        <span className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
+                          Pending
+                        </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+        <TabsContent value="closed" className="space-y-4">
+          {/* Similar card components for closed conversations */}
+          {conversations.filter(c => c.status === 'closed').map((conversation) => (
+            <Card key={conversation.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary text-primary-foreground p-2 rounded-full">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <Link to={`/conversations/${conversation.id}`} className="font-medium text-primary hover:underline">
+                        {conversation.customer}
+                      </Link>
+                      <div className="text-sm text-muted-foreground">{conversation.email}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="hidden md:block">
+                      <div className="text-sm">{conversation.agent}</div>
+                      <div className={`text-xs ${
+                        conversation.satisfaction === 'high' ? 'text-green-600' : 
+                        conversation.satisfaction === 'medium' ? 'text-amber-600' : 
+                        'text-red-600'
+                      }`}>
+                        {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm">{conversation.time}</div>
+                      <div className="text-xs">
+                        <span className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">
+                          Closed
+                        </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-3 pl-12 text-sm">{conversation.lastMessage}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

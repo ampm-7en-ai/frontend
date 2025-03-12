@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,33 +101,26 @@ const ConversationDetail = () => {
   };
 
   return (
-    <MainLayout 
-      pageTitle={`Conversation with ${conversation.customer}`}
-      breadcrumbs={[
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Conversations', href: '/conversations' },
-        { label: conversation.customer, href: `/conversations/${conversationId}` },
-      ]}
-    >
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/conversations" className="flex items-center gap-1">
+            <ChevronLeft className="h-4 w-4" />
+            Back to Conversations
+          </Link>
+        </Button>
+        <div className="flex gap-2">
+          <Badge variant={getBadgeVariant(conversation.status)}>
+            {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
+          </Badge>
+          <Button variant="outline" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
-          <div className="flex items-center justify-between mb-4">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/conversations" className="flex items-center gap-1">
-                <ChevronLeft className="h-4 w-4" />
-                Back to Conversations
-              </Link>
-            </Button>
-            <div className="flex gap-2">
-              <Badge variant={getBadgeVariant(conversation.status)}>
-                {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
-              </Badge>
-              <Button variant="outline" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
           <Card className="mb-4">
             <CardContent className="p-0">
               <div className="h-[500px] overflow-y-auto p-4 space-y-4">
@@ -280,7 +272,7 @@ const ConversationDetail = () => {
           </Card>
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 
