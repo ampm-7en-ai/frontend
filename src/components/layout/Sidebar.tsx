@@ -35,7 +35,6 @@ interface SidebarProps {
   isCollapsed: boolean;
 }
 
-// Define an interface for the sidebar items
 interface SidebarItem {
   id: string;
   label: string;
@@ -69,7 +68,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     }
     
     setAgentNameError(false);
-    // Logic to create the agent would go here
     toast({
       title: "Agent Created",
       description: `${newAgentName} has been successfully created.`,
@@ -92,48 +90,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       href: '/agents', 
       icon: Bot,
       action: (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 ml-auto rounded-full hover:bg-accent hover:text-primary"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-60 p-3">
-            <div className="space-y-3">
-              <div>
-                <h4 className="font-medium text-sm">Create New Agent</h4>
-                <p className="text-xs text-muted-foreground mt-1">Enter a name for your new agent</p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="agent-name" className="text-xs">Agent Name</Label>
-                <Input 
-                  id="agent-name" 
-                  value={newAgentName} 
-                  onChange={(e) => {
-                    setNewAgentName(e.target.value);
-                    if (e.target.value.trim()) setAgentNameError(false);
-                  }}
-                  placeholder="e.g., Customer Support Bot" 
-                  className={agentNameError ? "border-destructive" : ""}
-                />
-                {agentNameError && (
-                  <p className="text-destructive text-xs">Agent name is required</p>
-                )}
-              </div>
-              <Button 
-                className="w-full" 
-                onClick={handleCreateAgent}
-                disabled={!newAgentName.trim()}
-              >
-                Create Agent
-              </Button>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button 
+          variant="default" 
+          size="sm" 
+          className="h-8 ml-2 bg-primary/10 text-primary hover:bg-primary/20"
+        >
+          <Plus className="h-4 w-4" />
+          {!isCollapsed && <span>New Agent</span>}
+        </Button>
       )
     },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
@@ -285,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                         className={({ isActive }) =>
                           `flex items-center h-[45px] px-4 py-3.5 text-sm rounded-md
                           ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}
-                          ${item.action ? 'flex-grow pr-2' : 'w-full'}`
+                          ${item.action ? 'flex-grow' : 'w-full'}`
                         }
                       >
                         <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
