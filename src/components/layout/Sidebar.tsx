@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Home,
@@ -71,34 +70,74 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     navigate('/agents');
   };
 
-  // Common navigation items for all roles
   const commonItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home },
   ];
 
-  // Business Admin specific navigation items
   const adminItems = [
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
-    { id: 'agents', label: 'Agents', href: '/agents', icon: Bot },
-    { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
     { 
-      id: 'business-settings',
-      label: 'Business Settings', 
-      href: '/settings', 
-      icon: Settings, 
-      children: [
-        { label: 'Business Profile', href: '/settings/business/profile' },
-        { label: 'Team Management', href: '/settings/business/team' },
-        { label: 'Agent Settings', href: '/settings/business/agents' },
-        { label: 'Integrations', href: '/settings/business/integrations' },
-        { label: 'Billing', href: '/settings/business/billing' },
-        { label: 'Preferences', href: '/settings/business/preferences' },
-      ]
+      id: 'agents', 
+      label: 'Agents', 
+      href: '/agents', 
+      icon: Bot,
+      action: (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-full hover:bg-accent hover:text-primary"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60 p-3">
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium text-sm">Create New Agent</h4>
+                <p className="text-xs text-muted-foreground mt-1">Enter a name for your new agent</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="agent-name" className="text-xs">Agent Name</Label>
+                <Input 
+                  id="agent-name" 
+                  value={newAgentName} 
+                  onChange={(e) => {
+                    setNewAgentName(e.target.value);
+                    if (e.target.value.trim()) setAgentNameError(false);
+                  }}
+                  placeholder="e.g., Customer Support Bot" 
+                  className={agentNameError ? "border-destructive" : ""}
+                />
+                {agentNameError && (
+                  <p className="text-destructive text-xs">Agent name is required</p>
+                )}
+              </div>
+              <Button 
+                className="w-full" 
+                onClick={handleCreateAgent}
+                disabled={!newAgentName.trim()}
+              >
+                Create Agent
+              </Button>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
     },
+    { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
+    { id: 'business-settings', label: 'Business Settings', href: '/settings', icon: Settings, children: [
+      { label: 'Business Profile', href: '/settings/business/profile' },
+      { label: 'Team Management', href: '/settings/business/team' },
+      { label: 'Agent Settings', href: '/settings/business/agents' },
+      { label: 'Integrations', href: '/settings/business/integrations' },
+      { label: 'Billing', href: '/settings/business/billing' },
+      { label: 'Preferences', href: '/settings/business/preferences' },
+    ] },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
   ];
 
-  // Super Admin specific navigation items
   const superAdminItems = [
     { 
       id: 'business-management',
@@ -134,7 +173,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     },
   ];
 
-  // Determine navigation items based on role
   const roleBasedItems = userRole === "superadmin" 
     ? [...superAdminItems] 
     : adminItems;
@@ -240,53 +278,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                         }
                       >
                         <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
-                        {!isCollapsed && <span className="text-sm">{item.label}</span>}
+                        {!isCollapsed && (
+                          <div className="flex items-center justify-between flex-grow">
+                            <span className="text-sm">{item.label}</span>
+                            {item.action}
+                          </div>
+                        )}
                       </NavLink>
-                      
-                      {!isCollapsed && item.id === 'agents' && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 rounded-full hover:bg-accent hover:text-primary ml-2"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-60 p-3">
-                            <div className="space-y-3">
-                              <div>
-                                <h4 className="font-medium text-sm">Create New Agent</h4>
-                                <p className="text-xs text-muted-foreground mt-1">Enter a name for your new agent</p>
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="agent-name" className="text-xs">Agent Name</Label>
-                                <Input 
-                                  id="agent-name" 
-                                  value={newAgentName} 
-                                  onChange={(e) => {
-                                    setNewAgentName(e.target.value);
-                                    if (e.target.value.trim()) setAgentNameError(false);
-                                  }}
-                                  placeholder="e.g., Customer Support Bot" 
-                                  className={agentNameError ? "border-destructive" : ""}
-                                />
-                                {agentNameError && (
-                                  <p className="text-destructive text-xs">Agent name is required</p>
-                                )}
-                              </div>
-                              <Button 
-                                className="w-full" 
-                                onClick={handleCreateAgent}
-                                disabled={!newAgentName.trim()}
-                              >
-                                Create Agent
-                              </Button>
-                            </div>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
                     </div>
                   )}
                 </div>
