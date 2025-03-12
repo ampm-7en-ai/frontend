@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Home,
@@ -98,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 rounded-full hover:bg-accent hover:text-primary"
+              className="h-8 w-8 ml-auto rounded-full hover:bg-accent hover:text-primary"
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -280,22 +279,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                       )}
                     </>
                   ) : (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <NavLink
                         to={item.href}
                         className={({ isActive }) =>
-                          `flex items-center px-4 py-3.5 text-sm rounded-md flex-grow
-                          ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
+                          `flex items-center h-[45px] px-4 py-3.5 text-sm rounded-md
+                          ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}
+                          ${item.action ? 'flex-grow pr-2' : 'w-full'}`
                         }
                       >
                         <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
-                        {!isCollapsed && (
-                          <div className="flex items-center justify-between flex-grow">
-                            <span className="text-sm">{item.label}</span>
-                            {item.action}
-                          </div>
-                        )}
+                        {!isCollapsed && <span className="text-sm">{item.label}</span>}
                       </NavLink>
+                      {!isCollapsed && item.action && item.action}
                     </div>
                   )}
                 </div>
