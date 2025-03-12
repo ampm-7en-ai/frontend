@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -12,7 +12,8 @@ import {
   MoreVertical, 
   Edit, 
   Copy, 
-  Trash2 
+  Trash2,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -31,6 +32,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
+import DeploymentDialog from './DeploymentDialog';
 
 interface AgentCardProps {
   agent: {
@@ -54,6 +56,8 @@ interface AgentCardProps {
 }
 
 const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
+  const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
+
   return (
     <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border group">
       <CardHeader className="pb-2">
@@ -144,11 +148,31 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             Test
           </Link>
         </Button>
-        <Button variant={agent.isDeployed ? "secondary" : "default"} size="sm" className="w-1/2">
-          <Rocket className="h-4 w-4 mr-1" />
-          {agent.isDeployed ? 'Deployed' : 'Deploy'}
+        <Button 
+          variant={agent.isDeployed ? "secondary" : "default"} 
+          size="sm" 
+          className="w-1/2"
+          onClick={() => setDeploymentDialogOpen(true)}
+        >
+          {agent.isDeployed ? (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Deployed
+            </>
+          ) : (
+            <>
+              <Rocket className="h-4 w-4 mr-1" />
+              Deploy
+            </>
+          )}
         </Button>
       </CardFooter>
+
+      <DeploymentDialog 
+        open={deploymentDialogOpen} 
+        onOpenChange={setDeploymentDialogOpen} 
+        agent={agent} 
+      />
     </Card>
   );
 };

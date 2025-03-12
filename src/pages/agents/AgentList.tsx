@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, MessageSquare, Search, Bookmark, Brain, Rocket, Edit } from 'lucide-react';
+import { Bot, Search, Rocket } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
@@ -133,12 +133,6 @@ const AgentList = () => {
           <TabsTrigger value="deployed" className="flex items-center gap-1">
             <Rocket size={14} /> Deployed
           </TabsTrigger>
-          <TabsTrigger value="draft" className="flex items-center gap-1">
-            <Edit size={14} /> Draft
-          </TabsTrigger>
-          <TabsTrigger value="favorites" className="flex items-center gap-1">
-            <Bookmark size={14} /> Favorites
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -161,21 +155,22 @@ const AgentList = () => {
         </TabsContent>
 
         <TabsContent value="deployed">
-          <div className="text-center text-muted-foreground py-8">
-            Switch to the "All" tab and use the filter to view deployed agents
-          </div>
-        </TabsContent>
-
-        <TabsContent value="draft">
-          <div className="text-center text-muted-foreground py-8">
-            Switch to the "All" tab and use the filter to view draft agents
-          </div>
-        </TabsContent>
-
-        <TabsContent value="favorites">
-          <div className="text-center text-muted-foreground py-8">
-            You haven't marked any agents as favorites yet
-          </div>
+          {viewMode === 'grid' ? (
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAgents.filter(agent => agent.isDeployed).map((agent) => (
+                <AgentCard 
+                  key={agent.id} 
+                  agent={agent}
+                  getModelBadgeColor={getModelBadgeColor}
+                />
+              ))}
+            </div>
+          ) : (
+            <AgentTable 
+              agents={filteredAgents.filter(agent => agent.isDeployed)}
+              getModelBadgeColor={getModelBadgeColor}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>
