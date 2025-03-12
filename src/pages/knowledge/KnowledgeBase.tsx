@@ -11,11 +11,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingDocument, setEditingDocument] = useState(null);
+  const [newUrl, setNewUrl] = useState('');
+  const [newFile, setNewFile] = useState(null);
 
   const documents = [
     {
@@ -149,6 +154,86 @@ const KnowledgeBase = () => {
       default:
         return doc.size;
     }
+  };
+
+  const handleEdit = (doc) => {
+    setEditingDocument(doc);
+    setNewUrl(doc.sourceType === 'website' ? doc.title : '');
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    console.log('Saving edit:', {
+      documentId: editingDocument?.id,
+      newUrl,
+      newFile,
+      sourceType: editingDocument?.sourceType
+    });
+    setIsEditDialogOpen(false);
+    setEditingDocument(null);
+    setNewUrl('');
+    setNewFile(null);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setNewFile(e.target.files[0]);
+    }
+  };
+
+  const renderEditDialog = () => {
+    if (!editingDocument) return null;
+
+    return (
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit {editingDocument.title}</DialogTitle>
+          </DialogHeader>
+          
+          {editingDocument.sourceType === 'website' ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="url">URL</Label>
+                <Input
+                  id="url"
+                  type="url"
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  placeholder="Enter new URL"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="file">Upload New File</Label>
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={handleFileChange}
+                  accept={editingDocument.type === 'csv' ? '.csv,.xlsx,.xls' : '.pdf,.docx,.txt'}
+                />
+                {newFile && (
+                  <p className="text-sm text-muted-foreground">
+                    Selected: {newFile.name} ({(newFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   return (
@@ -315,7 +400,10 @@ const KnowledgeBase = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() => handleEdit(doc)}
+                        >
                           <Edit className="h-4 w-4" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
@@ -330,6 +418,8 @@ const KnowledgeBase = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {renderEditDialog()}
     </div>
   );
 };
