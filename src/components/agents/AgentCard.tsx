@@ -59,7 +59,7 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
 
   return (
-    <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border group relative">
+    <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
@@ -105,7 +105,7 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pb-2">
+      <CardContent className="pb-2 flex-1">
         <div className="space-y-4">
           <div>
             <Badge variant="outline" className={getModelBadgeColor(agent.model)}>
@@ -142,7 +142,7 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
       </CardContent>
       
       <CardFooter className="flex flex-col gap-2 p-4 pt-2 mt-2 border-t bg-muted/30">
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-2 w-full">
           <Button variant="outline" size="sm" className="w-full" asChild>
             <Link to={`/agents/${agent.id}/test`}>
               <Play className="h-3.5 w-3.5 mr-1" />
