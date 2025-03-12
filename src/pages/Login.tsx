@@ -22,6 +22,7 @@ const Login = () => {
     
     try {
       await login(username, password);
+      // Navigate is not needed here as it's handled in the login function
     } catch (err) {
       toast({
         title: "Login Failed",
