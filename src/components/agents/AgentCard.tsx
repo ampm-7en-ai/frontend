@@ -6,14 +6,14 @@ import {
   Bot, 
   Play, 
   Rocket, 
-  MessageSquare, 
   Brain, 
   AlertTriangle, 
   MoreVertical, 
   Edit, 
   Copy, 
   Trash2,
-  Check
+  Check,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -31,6 +31,12 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
 
@@ -57,6 +63,13 @@ interface AgentCardProps {
 
 const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
+  const [showAllSources, setShowAllSources] = useState(false);
+
+  const displayedSources = showAllSources 
+    ? agent.knowledgeSources 
+    : agent.knowledgeSources.slice(0, 3);
+  
+  const hasMoreSources = agent.knowledgeSources.length > 3;
 
   return (
     <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border flex flex-col">
@@ -71,38 +84,30 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             </CardTitle>
             <CardDescription className="line-clamp-2">{agent.description}</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            {agent.isDeployed && (
-              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
-                <Rocket className="h-3 w-3 mr-1" />
-                Live
-              </Badge>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link to={`/agents/${agent.id}/edit`}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Duplicate
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-500">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to={`/agents/${agent.id}/edit`}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-500">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent className="pb-2 flex-1">
@@ -117,9 +122,29 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
           <div>
             <div className="text-sm font-medium mb-2 text-muted-foreground">Knowledge Sources</div>
             <div className="flex flex-wrap">
-              {agent.knowledgeSources.map(source => (
+              {displayedSources.map(source => (
                 <KnowledgeSourceBadge key={source.id} source={source} />
               ))}
+              {hasMoreSources && !showAllSources && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => setShowAllSources(true)}
+                      >
+                        +{agent.knowledgeSources.length - 3} more
+                        <ChevronRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Click to show all sources</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
             
             {agent.knowledgeSources.some(source => source.hasError) && (
