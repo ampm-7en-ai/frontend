@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,9 +46,11 @@ const AgentList = () => {
           <h1 className="text-2xl font-bold tracking-tight">AI Agents</h1>
           <p className="text-muted-foreground">Manage and create your AI agents</p>
         </div>
-        <Button as={Link} to="/agents/create">
-          <Plus className="mr-2 h-4 w-4" /> Create Agent
-        </Button>
+        <Link to="/agents/create">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Create Agent
+          </Button>
+        </Link>
       </div>
 
       <div className="flex items-center justify-between">
@@ -120,7 +121,7 @@ const AgentList = () => {
               <div className="grid grid-cols-2 gap-4 text-sm mb-2">
                 <div>
                   <p className="text-muted-foreground">Status</p>
-                  <Badge variant={agent.status === 'active' ? "success" : "secondary"} className="mt-1">
+                  <Badge variant={agent.status === 'active' ? "default" : "secondary"} className="mt-1">
                     {agent.status === 'active' ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
