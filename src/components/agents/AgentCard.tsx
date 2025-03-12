@@ -59,7 +59,7 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
 
   return (
-    <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border group">
+    <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border group relative">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
@@ -141,31 +141,33 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
         </div>
       </CardContent>
       
-      <CardFooter className="flex justify-between gap-2 p-4 pt-2 mt-2 border-t bg-muted/30">
-        <Button variant="outline" size="sm" className="w-1/2" asChild>
-          <Link to={`/agents/${agent.id}/test`}>
-            <Play className="h-4 w-4 mr-1" />
-            Test
-          </Link>
-        </Button>
-        <Button 
-          variant={agent.isDeployed ? "secondary" : "default"} 
-          size="sm" 
-          className="w-1/2"
-          onClick={() => setDeploymentDialogOpen(true)}
-        >
-          {agent.isDeployed ? (
-            <>
-              <Check className="h-4 w-4 mr-1" />
-              Deployed
-            </>
-          ) : (
-            <>
-              <Rocket className="h-4 w-4 mr-1" />
-              Deploy
-            </>
-          )}
-        </Button>
+      <CardFooter className="flex flex-col gap-2 p-4 pt-2 mt-2 border-t bg-muted/30">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-2 w-full">
+          <Button variant="outline" size="sm" className="w-full" asChild>
+            <Link to={`/agents/${agent.id}/test`}>
+              <Play className="h-3.5 w-3.5 mr-1" />
+              Test
+            </Link>
+          </Button>
+          <Button 
+            variant={agent.isDeployed ? "secondary" : "default"} 
+            size="sm" 
+            className="w-full"
+            onClick={() => setDeploymentDialogOpen(true)}
+          >
+            {agent.isDeployed ? (
+              <>
+                <Check className="h-3.5 w-3.5 mr-1" />
+                Deployed
+              </>
+            ) : (
+              <>
+                <Rocket className="h-3.5 w-3.5 mr-1" />
+                Deploy
+              </>
+            )}
+          </Button>
+        </div>
       </CardFooter>
 
       <DeploymentDialog 
