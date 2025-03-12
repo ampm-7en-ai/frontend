@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +60,11 @@ const KnowledgeUpload = () => {
       placeholder: "Enter your text here..."
     }
   };
+
+  // Reset files when source type changes
+  useEffect(() => {
+    setFiles([]);
+  }, [sourceType]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -280,7 +284,7 @@ const KnowledgeUpload = () => {
               <RadioGroup 
                 value={sourceType} 
                 onValueChange={(value) => setSourceType(value as SourceType)}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"
+                className="grid grid-cols-4 gap-4 pt-2"
               >
                 {Object.entries(sourceConfigs).map(([type, config]) => (
                   <div 
