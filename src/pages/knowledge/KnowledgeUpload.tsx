@@ -13,7 +13,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -45,7 +44,6 @@ const KnowledgeUpload = () => {
   const [url, setUrl] = useState('');
   const [plainText, setPlainText] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   
@@ -187,13 +185,17 @@ const KnowledgeUpload = () => {
         break;
         
       case 'thirdParty':
+        // If provider selected but no files, prompt selection
+        if (selectedProvider && selectedFiles.length === 0) {
+          handleQuickConnect(selectedProvider);
+          return;
+        }
+        
         canUpload = selectedFiles.length > 0;
-        if (!canUpload) {
-          toast({
-            title: "Validation Error",
-            description: "Please select at least one file from the third-party service",
-            variant: "destructive"
-          });
+        if (!canUpload && !selectedProvider) {
+          // Quick connect to first provider if none selected
+          handleQuickConnect('googleDrive');
+          return;
         }
         break;
     }
@@ -216,27 +218,26 @@ const KnowledgeUpload = () => {
     simulateProgress();
   };
 
-  const handleConnectThirdParty = (provider: ThirdPartyProvider) => {
+  // Quick connect function - 2-click process
+  const handleQuickConnect = (provider: ThirdPartyProvider) => {
     setSelectedProvider(provider);
     setIsConnecting(true);
     
-    // Simulate connection process
+    // Simulate quick connection process
     setTimeout(() => {
       setIsConnecting(false);
-      setShowAuthDialog(false);
       
-      // Simulate successful connection
       toast({
         title: "Connected Successfully",
-        description: `Connected to ${thirdPartyProviders[provider].name}. You can now select files.`,
+        description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
       });
       
-      // Mock data for selected files
+      // Auto-select default files based on provider
       if (provider === 'googleDrive') {
         setSelectedFiles([
-          'Quarterly Report Q1 2023.pdf',
-          'Product Roadmap.docx',
-          'Customer Feedback.xlsx'
+          'Recent Documents/Quarterly Report Q1 2023.pdf',
+          'My Drive/Product Roadmap.docx',
+          'Shared with me/Customer Feedback.xlsx'
         ]);
       } else if (provider === 'slack') {
         setSelectedFiles([
@@ -263,7 +264,7 @@ const KnowledgeUpload = () => {
           'Documentation/CONTRIBUTING.md'
         ]);
       }
-    }, 2000);
+    }, 1500);
   };
 
   const handleRemoveSelectedFile = (index: number) => {
@@ -366,26 +367,22 @@ const KnowledgeUpload = () => {
             {!selectedProvider ? (
               <>
                 <div className="space-y-2">
-                  <Label>Select a Third-Party Service</Label>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Connect to a third-party service to import knowledge content
+                  <p className="text-sm mb-2">
+                    Select a service to import content from (one-click import):
                   </p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {Object.entries(thirdPartyProviders).map(([id, provider]) => (
                       <Button
                         key={id}
                         variant="outline"
-                        className={`h-auto py-6 flex-col items-center justify-center gap-3 ${provider.color} hover:bg-opacity-80 border-2`}
-                        onClick={() => setShowAuthDialog(true)}
+                        className={`flex items-center gap-2 h-12 px-3 ${provider.color} hover:bg-opacity-80 border`}
+                        onClick={() => handleQuickConnect(id as ThirdPartyProvider)}
                       >
-                        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-white/90 p-2">
+                        <div className="w-6 h-6 flex items-center justify-center rounded-full bg-white/90">
                           {provider.icon}
                         </div>
-                        <div className="text-center">
-                          <p className="font-medium">{provider.name}</p>
-                          <p className="text-xs mt-1 opacity-80">{provider.description}</p>
-                        </div>
+                        <span className="font-medium text-sm">{provider.name}</span>
                       </Button>
                     ))}
                   </div>
@@ -411,45 +408,66 @@ const KnowledgeUpload = () => {
                       setSelectedFiles([]);
                     }}
                   >
-                    Disconnect
+                    Change Service
                   </Button>
                 </div>
                 
                 <Separator />
                 
-                <div className="space-y-4">
-                  <Label>Selected Content ({selectedFiles.length})</Label>
-                  
-                  {selectedFiles.length > 0 ? (
-                    <div className="border rounded-md divide-y">
-                      {selectedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-3">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                            <p className="text-sm font-medium">{file}</p>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleRemoveSelectedFile(index)}
-                            className="h-8 w-8"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-300 rounded-md">
-                      <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-sm font-medium">No files selected</p>
-                      <p className="text-xs text-muted-foreground mt-1 mb-4">Select files to import from {thirdPartyProviders[selectedProvider].name}</p>
-                      <Button variant="outline" size="sm" onClick={() => setShowAuthDialog(true)}>
-                        Browse Files
+                {isConnecting ? (
+                  <div className="py-8 flex flex-col items-center justify-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
+                    <p className="text-center font-medium">Importing files from {thirdPartyProviders[selectedProvider].name}...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Selected Content ({selectedFiles.length})</Label>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs"
+                        onClick={() => handleQuickConnect(selectedProvider)}
+                      >
+                        Refresh Files
                       </Button>
                     </div>
-                  )}
-                </div>
+                    
+                    {selectedFiles.length > 0 ? (
+                      <div className="border rounded-md divide-y max-h-[320px] overflow-y-auto">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-3">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <p className="text-sm font-medium">{file}</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleRemoveSelectedFile(index)}
+                              className="h-8 w-8"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-gray-300 rounded-md">
+                        <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm font-medium">No files selected</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-4"
+                          onClick={() => handleQuickConnect(selectedProvider)}
+                        >
+                          Import Files
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -490,17 +508,17 @@ const KnowledgeUpload = () => {
               </p>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="source-type">Source Type</Label>
               <RadioGroup 
                 value={sourceType} 
                 onValueChange={(value) => setSourceType(value as SourceType)}
-                className="grid grid-cols-3 md:grid-cols-5 gap-3 pt-2"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2"
               >
                 {Object.entries(sourceConfigs).map(([type, config]) => (
                   <div 
                     key={type} 
-                    className={`border rounded-lg p-4 transition-all hover:border-primary hover:shadow-sm ${sourceType === type ? 'border-primary bg-primary/5' : ''}`}
+                    className={`border rounded-lg transition-all hover:border-primary hover:shadow-sm cursor-pointer ${sourceType === type ? 'border-primary bg-primary/5' : ''}`}
                   >
                     <RadioGroupItem 
                       value={type} 
@@ -509,14 +527,14 @@ const KnowledgeUpload = () => {
                     />
                     <label 
                       htmlFor={`source-type-${type}`}
-                      className="flex cursor-pointer"
+                      className="flex cursor-pointer h-full"
                     >
-                      <div className="flex flex-col items-center text-center gap-2 w-full">
+                      <div className="flex flex-col items-center text-center gap-2 w-full p-3">
                         <div className={`rounded-full p-2 ${sourceType === type ? 'bg-primary/10 text-primary' : 'bg-muted'}`}>
                           {config.icon}
                         </div>
                         <p className="font-medium text-sm">{config.title}</p>
-                        <p className="text-xs text-muted-foreground">{config.description}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{config.description}</p>
                       </div>
                     </label>
                   </div>
@@ -547,7 +565,7 @@ const KnowledgeUpload = () => {
                 disabled={isUploading}
                 className="flex items-center gap-1"
               >
-                {isUploading ? 'Processing...' : 'Add to Knowledge Base'}
+                {isUploading ? 'Processing...' : sourceType === 'thirdParty' && !selectedFiles.length ? 'Connect & Import' : 'Add to Knowledge Base'}
               </Button>
             </div>
           </form>
@@ -565,112 +583,6 @@ const KnowledgeUpload = () => {
           </div>
         </CardFooter>
       </Card>
-      
-      {/* Third-Party Authentication Dialog */}
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedProvider 
-                ? `Connect to ${thirdPartyProviders[selectedProvider].name}` 
-                : "Connect to Third-Party Service"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedProvider 
-                ? `Authorize access to your ${thirdPartyProviders[selectedProvider].name} account to import content.`
-                : "Select a service to connect and import content."}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {!selectedProvider ? (
-            <div className="grid grid-cols-2 gap-4 py-4">
-              {Object.entries(thirdPartyProviders).map(([id, provider]) => (
-                <Button
-                  key={id}
-                  variant="outline"
-                  className={`h-auto py-4 flex items-center justify-start gap-3 ${provider.color} hover:bg-opacity-80`}
-                  onClick={() => handleConnectThirdParty(id as ThirdPartyProvider)}
-                >
-                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 p-1.5">
-                    {provider.icon}
-                  </div>
-                  <span>{provider.name}</span>
-                </Button>
-              ))}
-            </div>
-          ) : selectedProvider && !isConnecting ? (
-            <div className="py-4 space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${thirdPartyProviders[selectedProvider].color} p-2`}>
-                    {thirdPartyProviders[selectedProvider].icon}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{thirdPartyProviders[selectedProvider].name}</h3>
-                    <p className="text-xs text-muted-foreground">You'll be redirected to authorize access</p>
-                  </div>
-                </div>
-                
-                <div className="bg-muted/30 rounded-md p-4">
-                  <p className="text-sm font-medium mb-2">This will allow the application to:</p>
-                  <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
-                    <li>Access and read your files and documents</li>
-                    <li>Import content into your knowledge base</li>
-                    <li>We will never modify or delete your content</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <Tabs defaultValue="recent" className="w-full">
-                <TabsList className="w-full grid grid-cols-3">
-                  <TabsTrigger value="recent">Recent</TabsTrigger>
-                  <TabsTrigger value="shared">Shared</TabsTrigger>
-                  <TabsTrigger value="all">All Files</TabsTrigger>
-                </TabsList>
-                <TabsContent value="recent" className="border rounded-md mt-4 p-4 min-h-[200px] flex items-center justify-center">
-                  <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
-                    Connect to {thirdPartyProviders[selectedProvider].name}
-                  </Button>
-                </TabsContent>
-                <TabsContent value="shared" className="border rounded-md mt-4 p-4 min-h-[200px] flex items-center justify-center">
-                  <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
-                    Connect to {thirdPartyProviders[selectedProvider].name}
-                  </Button>
-                </TabsContent>
-                <TabsContent value="all" className="border rounded-md mt-4 p-4 min-h-[200px] flex items-center justify-center">
-                  <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
-                    Connect to {thirdPartyProviders[selectedProvider].name}
-                  </Button>
-                </TabsContent>
-              </Tabs>
-            </div>
-          ) : (
-            <div className="py-10 flex flex-col items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-              <p className="text-center font-medium">Connecting to {thirdPartyProviders[selectedProvider!].name}...</p>
-              <p className="text-center text-sm text-muted-foreground mt-2">Please wait while we establish a connection.</p>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowAuthDialog(false);
-                setIsConnecting(false);
-              }}
-              disabled={isConnecting}
-            >
-              Cancel
-            </Button>
-            {selectedProvider && !isConnecting && (
-              <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
-                Connect
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
