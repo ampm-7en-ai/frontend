@@ -35,6 +35,7 @@ import SecuritySettings from './pages/settings/platform/SecuritySettings';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
 import BillingSettings from './pages/settings/platform/BillingSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+import ChatbotSettings from './pages/settings/business/ChatboxSettings';
 
 const DashboardRouter = () => {
   const { user } = useAuth();
