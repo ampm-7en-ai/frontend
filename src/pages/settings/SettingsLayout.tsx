@@ -2,9 +2,10 @@
 import React from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
+import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
+import PlatformSettingsNav from '@/components/settings/PlatformSettingsNav';
 
 const SettingsLayout = () => {
   const location = useLocation();
@@ -26,27 +27,6 @@ const SettingsLayout = () => {
     return <Navigate to="/settings/business/profile" replace />;
   }
 
-  // Platform settings links - Only for superadmin
-  const platformLinks = [
-    { name: 'General', path: '/settings/platform/general' },
-    { name: 'Security', path: '/settings/platform/security' },
-    { name: 'LLM Providers', path: '/settings/platform/llm-providers' },
-    { name: 'Compliance', path: '/settings/platform/compliance' },
-    { name: 'Billing & Subscriptions', path: '/settings/platform/billing' },
-    { name: 'Customization', path: '/settings/platform/customization' },
-  ];
-
-  // Business settings links - For admin
-  const businessLinks = [
-    { name: 'Business Profile', path: '/settings/business/profile' },
-    { name: 'Team Management', path: '/settings/business/team' },
-    { name: 'Agent Settings', path: '/settings/business/agents' },
-    { name: 'Integrations', path: '/settings/business/integrations' },
-    { name: 'Billing', path: '/settings/business/billing' },
-    { name: 'Preferences', path: '/settings/business/preferences' },
-    { name: 'Chatbox Appearance', path: '/settings/business/chatbox' },
-  ];
-
   return (
     <MainLayout pageTitle="Settings" breadcrumbs={[
       { label: 'Dashboard', href: '/' },
@@ -61,36 +41,13 @@ const SettingsLayout = () => {
                 : 'Business Settings'}
             </h3>
             <Separator className="mb-4" />
-            <nav className="flex flex-col space-y-1.5">
-              {isPlatformSettings && user?.role === 'superadmin' &&
-                platformLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={`px-4 py-2.5 rounded-md text-sm ${
-                      currentPath === link.path
-                        ? 'bg-primary text-white'
-                        : 'hover:bg-secondary'
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-              {(!isPlatformSettings || user?.role !== 'superadmin') &&
-                businessLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={`px-4 py-2.5 rounded-md text-sm ${
-                      currentPath === link.path
-                        ? 'bg-primary text-white'
-                        : 'hover:bg-secondary'
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-            </nav>
+            
+            {/* Conditionally render the appropriate navigation component */}
+            {isPlatformSettings && user?.role === 'superadmin' ? (
+              <PlatformSettingsNav />
+            ) : (
+              <BusinessSettingsNav />
+            )}
           </div>
           <div className="flex-1 pl-8 border-l">
             <Outlet />
