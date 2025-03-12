@@ -5,13 +5,20 @@ import Sidebar from './Sidebar';
 import { Header } from './Header';
 import { useAuth } from '@/context/AuthContext';
 
-export function MainLayout() {
+type MainLayoutProps = {
+  pageTitle?: string;
+  breadcrumbs?: { label: string; href: string }[];
+};
+
+export function MainLayout({ pageTitle, breadcrumbs }: MainLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
   
-  // Extract page title from path
+  // Extract page title from path if not provided as prop
   const getPageTitle = (path: string) => {
+    if (pageTitle) return pageTitle;
+    
     const segments = path.split('/').filter(Boolean);
     if (segments.length === 0) return 'Dashboard';
     return segments[segments.length - 1]
@@ -30,6 +37,7 @@ export function MainLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           pageTitle={getPageTitle(location.pathname)}
+          breadcrumbs={breadcrumbs}
           toggleSidebar={toggleSidebar}
           onLogout={logout}
         />

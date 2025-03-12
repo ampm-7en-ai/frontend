@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
-import Index from './pages/Index';
 import Login from './pages/Login';
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
 import NotFound from './pages/NotFound';
@@ -21,8 +20,8 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Index />} />
-          <Route element={<MainLayout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<MainLayout />}>
             <Route path="/dashboard" element={<SuperAdminDashboard />} />
             <Route path="/agents" element={<AgentList />} />
             <Route path="/agents/create" element={<AgentCreate />} />

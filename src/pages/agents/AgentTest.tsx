@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -71,141 +69,132 @@ const AgentTest = () => {
   };
 
   return (
-    <MainLayout 
-      pageTitle="Test Agent" 
-      breadcrumbs={[
-        { label: 'Dashboard', href: '/' },
-        { label: 'Agents', href: '/agents' },
-        { label: 'Test', href: '/agents/test' }
-      ]}
-    >
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center mb-4">
-          <Button variant="ghost" size="icon" asChild className="mr-2">
-            <Link to="/agents">
-              <ChevronLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold">Test Agent</h1>
-        </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center mb-4">
+        <Button variant="ghost" size="icon" asChild className="mr-2">
+          <Link to="/agents">
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+        <h1 className="text-2xl font-bold">Test Agent</h1>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Agent Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center">
-                  <div className="mr-3 p-2 rounded-full bg-primary/10">
-                    <Bot className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Customer Support Agent</h3>
-                    <Badge className="bg-green-100 text-green-800 mt-1">Active</Badge>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>Agent Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center">
+                <div className="mr-3 p-2 rounded-full bg-primary/10">
+                  <Bot className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Customer Support Agent</h3>
+                  <Badge className="bg-green-100 text-green-800 mt-1">Active</Badge>
+                </div>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Response Time:</p>
+                  <p className="font-medium">1.2 seconds</p>
+                </div>
+                
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Knowledge Sources:</p>
+                  <div className="flex flex-wrap gap-1">
+                    <Badge variant="outline">Product Docs</Badge>
+                    <Badge variant="outline">FAQ</Badge>
                   </div>
                 </div>
                 
-                <div className="space-y-2 text-sm">
-                  <div className="space-y-1">
-                    <p className="text-muted-foreground">Response Time:</p>
-                    <p className="font-medium">1.2 seconds</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-muted-foreground">Knowledge Sources:</p>
-                    <div className="flex flex-wrap gap-1">
-                      <Badge variant="outline">Product Docs</Badge>
-                      <Badge variant="outline">FAQ</Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-muted-foreground">Test Scenarios:</p>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <span className="mr-2">🛒</span> Product Question
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <span className="mr-2">💰</span> Pricing Question
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <span className="mr-2">🔙</span> Return Policy
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="md:col-span-2">
-            <Card className="flex flex-col h-[600px]">
-              <CardHeader className="border-b">
-                <div className="flex items-center">
-                  <div className="flex items-center mr-2">
-                    <Circle className="h-2 w-2 fill-green-500 text-green-500 mr-1" />
-                    <span className="text-sm text-muted-foreground">Online</span>
-                  </div>
-                  <Badge variant="outline" className="ml-auto flex items-center">
-                    <Zap className="h-3 w-3 mr-1 text-primary" />
-                    Test Mode
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
-                  <div 
-                    key={message.id}
-                    className={cn(
-                      "flex",
-                      message.sender === 'user' ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    <div 
-                      className={cn(
-                        "max-w-[80%] rounded-lg p-3",
-                        message.sender === 'user' 
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      )}
-                    >
-                      {message.sender === 'agent' && (
-                        <div className="flex items-center mb-1">
-                          <Avatar className="h-5 w-5 mr-2">
-                            <AvatarFallback>AI</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs font-semibold">Support Agent</span>
-                        </div>
-                      )}
-                      <p>{message.content}</p>
-                      <div className={cn(
-                        "text-xs mt-1",
-                        message.sender === 'user' ? "text-primary-foreground/70" : "text-muted-foreground"
-                      )}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-              <div className="p-4 border-t">
-                <div className="flex items-center space-x-2">
-                  <Input
-                    placeholder="Type your message..."
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleSendMessage} size="icon">
-                    <SendHorizontal className="h-4 w-4" />
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Test Scenarios:</p>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <span className="mr-2">🛒</span> Product Question
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <span className="mr-2">💰</span> Pricing Question
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <span className="mr-2">🔙</span> Return Policy
                   </Button>
                 </div>
               </div>
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div className="md:col-span-2">
+          <Card className="flex flex-col h-[600px]">
+            <CardHeader className="border-b">
+              <div className="flex items-center">
+                <div className="flex items-center mr-2">
+                  <Circle className="h-2 w-2 fill-green-500 text-green-500 mr-1" />
+                  <span className="text-sm text-muted-foreground">Online</span>
+                </div>
+                <Badge variant="outline" className="ml-auto flex items-center">
+                  <Zap className="h-3 w-3 mr-1 text-primary" />
+                  Test Mode
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map((message) => (
+                <div 
+                  key={message.id}
+                  className={cn(
+                    "flex",
+                    message.sender === 'user' ? "justify-end" : "justify-start"
+                  )}
+                >
+                  <div 
+                    className={cn(
+                      "max-w-[80%] rounded-lg p-3",
+                      message.sender === 'user' 
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    )}
+                  >
+                    {message.sender === 'agent' && (
+                      <div className="flex items-center mb-1">
+                        <Avatar className="h-5 w-5 mr-2">
+                          <AvatarFallback>AI</AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-semibold">Support Agent</span>
+                      </div>
+                    )}
+                    <p>{message.content}</p>
+                    <div className={cn(
+                      "text-xs mt-1",
+                      message.sender === 'user' ? "text-primary-foreground/70" : "text-muted-foreground"
+                    )}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+            <div className="p-4 border-t">
+              <div className="flex items-center space-x-2">
+                <Input
+                  placeholder="Type your message..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1"
+                />
+                <Button onClick={handleSendMessage} size="icon">
+                  <SendHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 
