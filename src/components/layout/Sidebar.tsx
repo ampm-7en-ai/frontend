@@ -17,7 +17,6 @@ import {
   Palette,
   Plus,
   ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';

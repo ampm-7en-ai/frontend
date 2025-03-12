@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -18,11 +17,9 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
   const { user, logout } = useAuth();
   const location = useLocation();
   
-  // Extract page title from path if not provided as prop
   const getPageTitle = (path: string) => {
     if (pageTitle) return pageTitle;
     
-    // For analytics page
     if (path.includes('/analytics')) {
       return 'Platform Analytics';
     }
@@ -40,12 +37,10 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
-  // Force settings pages to have the correct title
   const derivedTitle = location.pathname.includes('/settings') 
     ? 'Settings'
     : getPageTitle(location.pathname);
 
-  // Default breadcrumbs for analytics page
   const defaultBreadcrumbs = location.pathname.includes('/analytics')
     ? [
         { label: 'Dashboard', href: '/dashboard' },
@@ -60,7 +55,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
         variant="ghost"
         size="icon"
         className="fixed left-[276px] top-1/2 -translate-y-1/2 z-50 hidden md:flex"
-        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onClick={toggleSidebar}
         style={{ left: isSidebarCollapsed ? '76px' : '276px' }}
       >
         {isSidebarCollapsed ? (
@@ -74,6 +69,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
           pageTitle={derivedTitle}
           breadcrumbs={defaultBreadcrumbs}
           onLogout={logout}
+          toggleSidebar={toggleSidebar}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4">
           <div className="max-w-7xl mx-auto">
