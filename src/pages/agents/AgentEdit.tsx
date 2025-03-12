@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -46,14 +46,12 @@ const AgentEdit = () => {
     showOnMobile: true,
     collectVisitorData: true,
     autoShowAfter: 30,
-    // New fields for behavior depth
-    creativity: 0.7,
-    conciseness: 0.5,
-    politeness: 0.8,
-    formality: 0.6,
-    maxResponseLength: 'medium',
     // Knowledge sources
-    knowledgeSources: [1, 3] // IDs of selected knowledge sources
+    knowledgeSources: [1, 3], // IDs of selected knowledge sources
+    // Model settings
+    selectedModel: 'gpt4',
+    temperature: 0.7,
+    maxResponseLength: 'medium',
   });
   
   const [isRetraining, setIsRetraining] = useState(false);
@@ -127,9 +125,9 @@ const AgentEdit = () => {
             <Palette className="h-4 w-4 mr-2" />
             Appearance
           </TabsTrigger>
-          <TabsTrigger value="behavior">
-            <BrainCircuit className="h-4 w-4 mr-2" />
-            Behavior
+          <TabsTrigger value="advanced">
+            <Sliders className="h-4 w-4 mr-2" />
+            Advanced Settings
           </TabsTrigger>
           <TabsTrigger value="knowledge">
             <FileText className="h-4 w-4 mr-2" />
@@ -328,106 +326,118 @@ const AgentEdit = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="behavior" className="space-y-6 mt-6">
+        <TabsContent value="advanced" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Agent Personality</CardTitle>
-              <CardDescription>Configure how your agent should behave and respond</CardDescription>
+              <CardTitle className="flex items-center">
+                <CpuIcon className="mr-2 h-5 w-5" />
+                AI Model Configuration
+              </CardTitle>
+              <CardDescription>Configure the underlying AI model</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="model">Language Model</Label>
+                <Select 
+                  value={agent.selectedModel} 
+                  onValueChange={(value) => handleChange('selectedModel', value)}
+                >
+                  <SelectTrigger id="model">
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gpt4">GPT-4</SelectItem>
+                    <SelectItem value="gpt35">GPT-3.5 Turbo</SelectItem>
+                    <SelectItem value="anthropic">Claude 3</SelectItem>
+                    <SelectItem value="mistral">Mistral 7B</SelectItem>
+                    <SelectItem value="llama">Llama 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="temperature">Temperature</Label>
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    id="temperature" 
+                    type="number" 
+                    value={agent.temperature}
+                    onChange={(e) => handleChange('temperature', parseFloat(e.target.value))}
+                    min="0" 
+                    max="1" 
+                    step="0.1"
+                    className="w-24"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    Higher values make responses more creative but less predictable
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="max-response-length">Maximum Response Length</Label>
+                <Select 
+                  value={agent.maxResponseLength} 
+                  onValueChange={(value) => handleChange('maxResponseLength', value)}
+                >
+                  <SelectTrigger id="max-response-length">
+                    <SelectValue placeholder="Select length" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="short">Short (1-2 sentences)</SelectItem>
+                    <SelectItem value="medium">Medium (3-5 sentences)</SelectItem>
+                    <SelectItem value="long">Long (6+ sentences)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Controls the typical length of responses from your agent.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BrainCircuit className="mr-2 h-5 w-5" />
+                Agent Type & Personality
+              </CardTitle>
+              <CardDescription>Define the agent's role and behavior</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="creativity" className="mb-1">Creativity</Label>
-                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.creativity.toFixed(1)}</span>
-                  </div>
-                  <Slider 
-                    id="creativity"
-                    value={[agent.creativity]} 
-                    max={1} 
-                    step={0.1} 
-                    className="w-full" 
-                    onValueChange={(value) => handleChange('creativity', value[0])}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Higher values produce more creative, varied responses. Lower values make responses more predictable.
-                  </p>
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="conciseness" className="mb-1">Conciseness</Label>
-                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.conciseness.toFixed(1)}</span>
-                  </div>
-                  <Slider 
-                    id="conciseness"
-                    value={[agent.conciseness]} 
-                    max={1} 
-                    step={0.1} 
-                    className="w-full" 
-                    onValueChange={(value) => handleChange('conciseness', value[0])}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Higher values produce shorter, more direct responses. Lower values allow for more detailed explanations.
-                  </p>
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="politeness" className="mb-1">Politeness</Label>
-                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.politeness.toFixed(1)}</span>
-                  </div>
-                  <Slider 
-                    id="politeness"
-                    value={[agent.politeness]} 
-                    max={1} 
-                    step={0.1} 
-                    className="w-full" 
-                    onValueChange={(value) => handleChange('politeness', value[0])}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Controls how formal and polite the agent should be in its responses.
-                  </p>
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="formality" className="mb-1">Formality</Label>
-                    <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">{agent.formality.toFixed(1)}</span>
-                  </div>
-                  <Slider 
-                    id="formality"
-                    value={[agent.formality]} 
-                    max={1} 
-                    step={0.1} 
-                    className="w-full" 
-                    onValueChange={(value) => handleChange('formality', value[0])}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Higher values use more formal language. Lower values are more casual and conversational.
-                  </p>
-                </div>
-                
-                <Separator />
-                
                 <div className="space-y-2">
-                  <Label htmlFor="max-response-length">Maximum Response Length</Label>
-                  <Select 
-                    value={agent.maxResponseLength} 
-                    onValueChange={(value) => handleChange('maxResponseLength', value)}
-                  >
-                    <SelectTrigger id="max-response-length">
-                      <SelectValue placeholder="Select length" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="short">Short (1-2 sentences)</SelectItem>
-                      <SelectItem value="medium">Medium (3-5 sentences)</SelectItem>
-                      <SelectItem value="long">Long (6+ sentences)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Controls the typical length of responses from your agent.
-                  </p>
+                  <Label>Agent Type</Label>
+                  <RadioGroup defaultValue="support" className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                      <RadioGroupItem value="support" id="support" />
+                      <Label htmlFor="support" className="flex flex-col cursor-pointer">
+                        <span className="font-medium">Customer Support</span>
+                        <span className="text-xs text-muted-foreground">Assists with user questions and problems</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                      <RadioGroupItem value="sales" id="sales" />
+                      <Label htmlFor="sales" className="flex flex-col cursor-pointer">
+                        <span className="font-medium">Sales Assistant</span>
+                        <span className="text-xs text-muted-foreground">Helps convert leads and answer product questions</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                      <RadioGroupItem value="technical" id="technical" />
+                      <Label htmlFor="technical" className="flex flex-col cursor-pointer">
+                        <span className="font-medium">Technical Support</span>
+                        <span className="text-xs text-muted-foreground">Helps with technical problems and troubleshooting</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                      <RadioGroupItem value="custom" id="custom" />
+                      <Label htmlFor="custom" className="flex flex-col cursor-pointer">
+                        <span className="font-medium">Custom</span>
+                        <span className="text-xs text-muted-foreground">Create a custom agent type</span>
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
             </CardContent>
@@ -435,56 +445,56 @@ const AgentEdit = () => {
           
           <Card>
             <CardHeader>
-              <CardTitle>Chatbox Behavior</CardTitle>
-              <CardDescription>Configure how the chatbox interacts with visitors</CardDescription>
+              <CardTitle className="flex items-center">
+                <Sliders className="mr-2 h-5 w-5" />
+                Behavior Settings
+              </CardTitle>
+              <CardDescription>Configure how the agent works and learns</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="show-on-mobile">Show on Mobile Devices</Label>
-                    <p className="text-sm text-muted-foreground">Display the chatbox on smartphones and tablets</p>
-                  </div>
-                  <Switch 
-                    id="show-on-mobile" 
-                    checked={agent.showOnMobile} 
-                    onCheckedChange={(checked) => handleChange('showOnMobile', checked)} 
-                  />
+                  <Label htmlFor="memory">Conversation Memory</Label>
+                  <Switch id="memory" defaultChecked />
                 </div>
-                
-                <Separator />
-                
+                <p className="text-xs text-muted-foreground">
+                  Enable conversation history so the agent remembers previous interactions
+                </p>
+              </div>
+              
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="collect-visitor-data">Collect Visitor Data</Label>
-                    <p className="text-sm text-muted-foreground">Store visitor information for better insights</p>
-                  </div>
-                  <Switch 
-                    id="collect-visitor-data" 
-                    checked={agent.collectVisitorData} 
-                    onCheckedChange={(checked) => handleChange('collectVisitorData', checked)} 
-                  />
+                  <Label htmlFor="learning">Continuous Learning</Label>
+                  <Switch id="learning" />
                 </div>
-                
-                <Separator />
-                
-                <div className="space-y-2">
-                  <Label htmlFor="auto-show-after">Auto-show After (seconds)</Label>
-                  <p className="text-sm text-muted-foreground">Automatically display the chat window after X seconds (0 to disable)</p>
-                  <Input 
-                    id="auto-show-after" 
-                    type="number" 
-                    min="0" 
-                    max="300"
-                    value={agent.autoShowAfter} 
-                    onChange={(e) => handleChange('autoShowAfter', parseInt(e.target.value))}
-                  />
+                <p className="text-xs text-muted-foreground">
+                  Allow the agent to improve from interactions over time
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="handoff">Expert Handoff</Label>
+                  <Switch id="handoff" />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Allow the agent to escalate to human domain experts when needed
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="multilingual">Multilingual Support</Label>
+                  <Switch id="multilingual" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Enable automatic translation for non-primary languages
+                </p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
+        
         <TabsContent value="knowledge" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
