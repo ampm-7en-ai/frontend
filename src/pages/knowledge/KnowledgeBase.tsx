@@ -3,22 +3,22 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, ChevronRight, Clock, File, FileSpreadsheet, FileText, Filter, Globe, MoreHorizontal, Plus, Search, Upload, Users } from 'lucide-react';
+import { Book, Edit, FileSpreadsheet, FileText, Filter, Globe, MoreHorizontal, Plus, Search, Trash, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
 
-  // Sample document data with multiple agents per document
+  // Sample document data with multiple agents per document and additional metrics
   const documents = [
     {
       id: 'd1',
@@ -26,6 +26,7 @@ const KnowledgeBase = () => {
       type: 'pdf',
       sourceType: 'document',
       size: '2.4 MB',
+      pages: 24,
       agents: ['Sales Bot', 'Support Bot', 'Marketing Bot'],
       uploadedAt: '2023-06-01T10:15:00',
     },
@@ -35,6 +36,7 @@ const KnowledgeBase = () => {
       type: 'docx',
       sourceType: 'document',
       size: '1.1 MB',
+      pages: 12,
       agents: ['Sales Bot', 'Support Bot'],
       uploadedAt: '2023-06-02T14:30:00',
     },
@@ -44,6 +46,7 @@ const KnowledgeBase = () => {
       type: 'pdf',
       sourceType: 'document',
       size: '3.7 MB',
+      pages: 48,
       agents: ['Support Bot', 'Technical Bot'],
       uploadedAt: '2023-06-05T09:45:00',
     },
@@ -53,6 +56,7 @@ const KnowledgeBase = () => {
       type: 'url',
       sourceType: 'website',
       size: 'N/A',
+      pageCount: 16,
       agents: ['Sales Bot', 'Marketing Bot'],
       uploadedAt: '2023-05-28T16:20:00',
     },
@@ -62,6 +66,7 @@ const KnowledgeBase = () => {
       type: 'csv',
       sourceType: 'spreadsheet',
       size: '0.8 MB',
+      rowCount: 1250,
       agents: ['Analytics Bot', 'Sales Bot'],
       uploadedAt: '2023-05-15T11:30:00',
     },
@@ -71,6 +76,7 @@ const KnowledgeBase = () => {
       type: 'txt',
       sourceType: 'text',
       size: '0.3 MB',
+      pages: 8,
       agents: ['Support Bot', 'Onboarding Bot'],
       uploadedAt: '2023-06-10T09:20:00',
     }
@@ -99,7 +105,7 @@ const KnowledgeBase = () => {
       case 'document':
         return doc.type === 'pdf' ? 
           <FileText className="h-4 w-4 text-blue-600" /> : 
-          <File className="h-4 w-4 text-blue-600" />;
+          <FileText className="h-4 w-4 text-blue-600" />;
       case 'website':
         return <Globe className="h-4 w-4 text-green-600" />;
       case 'spreadsheet':
@@ -137,6 +143,21 @@ const KnowledgeBase = () => {
   // Get agent initials for avatar fallback
   const getAgentInitials = (agentName) => {
     return agentName.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  // Helper function to display the appropriate metric based on document type
+  const renderMetric = (doc) => {
+    switch (doc.sourceType) {
+      case 'document':
+      case 'text':
+        return `${doc.pages} pages`;
+      case 'website':
+        return `${doc.pageCount} pages`;
+      case 'spreadsheet':
+        return `${doc.rowCount} rows`;
+      default:
+        return doc.size;
+    }
   };
 
   return (
@@ -236,11 +257,11 @@ const KnowledgeBase = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Document Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Size</TableHead>
+                <TableHead>Format</TableHead>
+                <TableHead>Details</TableHead>
                 <TableHead>Agents</TableHead>
                 <TableHead>Uploaded</TableHead>
-                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-16 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -254,19 +275,21 @@ const KnowledgeBase = () => {
                       <span className="font-medium">{doc.title}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="uppercase">
-                    {doc.sourceType}
+                  <TableCell>
+                    <Badge variant="outline" className="font-medium">
+                      {doc.type.toUpperCase()}
+                    </Badge>
                   </TableCell>
-                  <TableCell>{doc.size}</TableCell>
+                  <TableCell>{renderMetric(doc)}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      <div className="flex -space-x-2 mr-2">
+                      <div className="flex -space-x-2">
                         {doc.agents.slice(0, 3).map((agent, index) => (
                           <TooltipProvider key={`${doc.id}-agent-${index}`}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Avatar className="h-6 w-6 border-2 border-background">
-                                  <AvatarFallback className={getAgentColor(agent)}>
+                                <Avatar className="h-8 w-8 border-2 border-background">
+                                  <AvatarFallback className={`${getAgentColor(agent)} text-white text-xs`}>
                                     {getAgentInitials(agent)}
                                   </AvatarFallback>
                                 </Avatar>
@@ -279,7 +302,7 @@ const KnowledgeBase = () => {
                         ))}
                       </div>
                       {doc.agents.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="secondary" className="ml-1 text-xs font-semibold">
                           +{doc.agents.length - 3} more
                         </Badge>
                       )}
@@ -288,10 +311,22 @@ const KnowledgeBase = () => {
                   <TableCell>
                     {new Date(doc.uploadedAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                          <Edit className="h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
+                          <Trash className="h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
