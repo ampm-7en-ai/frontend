@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
 
-  // Sample document data with multiple agents per document and additional metrics
   const documents = [
     {
       id: 'd1',
@@ -82,7 +80,6 @@ const KnowledgeBase = () => {
     }
   ];
 
-  // Filter documents based on search query and source type
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       doc.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -93,13 +90,11 @@ const KnowledgeBase = () => {
     return matchesSearch && matchesType;
   });
 
-  // Get count of each source type
   const documentCount = documents.filter(d => d.sourceType === 'document').length;
   const websiteCount = documents.filter(d => d.sourceType === 'website').length;
   const spreadsheetCount = documents.filter(d => d.sourceType === 'spreadsheet').length;
   const textCount = documents.filter(d => d.sourceType === 'text').length;
 
-  // Helper function to render the appropriate icon based on document type
   const renderSourceIcon = (doc) => {
     switch (doc.sourceType) {
       case 'document':
@@ -117,7 +112,6 @@ const KnowledgeBase = () => {
     }
   };
 
-  // Helper function to get background color based on document type
   const getIconBackground = (doc) => {
     switch (doc.sourceType) {
       case 'document':
@@ -133,19 +127,16 @@ const KnowledgeBase = () => {
     }
   };
 
-  // Generate a random color for agent avatar fallbacks
   const getAgentColor = (agentName) => {
     const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-teal-500'];
     const index = agentName.charCodeAt(0) % colors.length;
     return colors[index];
   };
 
-  // Get agent initials for avatar fallback
   const getAgentInitials = (agentName) => {
     return agentName.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  // Helper function to display the appropriate metric based on document type
   const renderMetric = (doc) => {
     switch (doc.sourceType) {
       case 'document':
@@ -274,8 +265,10 @@ const KnowledgeBase = () => {
                         </div>
                         <span className="font-medium">{doc.title}</span>
                       </div>
-                      <div className="ml-10 text-xs text-muted-foreground mt-1">
-                        {renderMetric(doc)} • {doc.size}
+                      <div className="flex items-center mt-0.5">
+                        <div className="ml-10 text-xs text-muted-foreground">
+                          {renderMetric(doc)} • {doc.size}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
