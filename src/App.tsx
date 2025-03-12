@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import Index from './pages/Index';
@@ -21,7 +20,11 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<MainLayout />}>
+          <Route path="/" element={
+            <MainLayout pageTitle="Dashboard">
+              <Outlet />
+            </MainLayout>
+          }>
             <Route index element={<Index />} />
             <Route path="dashboard" element={<SuperAdminDashboard />} />
             <Route path="agents" element={<AgentList />} />
@@ -40,4 +43,3 @@ function App() {
 }
 
 export default App;
-
