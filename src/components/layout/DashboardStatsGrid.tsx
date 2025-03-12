@@ -9,7 +9,7 @@ export type StatCardProps = {
   icon: React.ReactNode;
   title: string;
   value: string | number;
-  change?: string;
+  change?: string | React.ReactNode;
   route?: string;
   linkText?: string;
 };
