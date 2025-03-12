@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Home,
@@ -88,17 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       id: 'agents', 
       label: 'Agents', 
       href: '/agents', 
-      icon: Bot,
-      action: (
-        <Button 
-          variant="default" 
-          size="sm" 
-          className="h-8 ml-2 bg-primary/10 text-primary hover:bg-primary/20"
-        >
-          <Plus className="h-4 w-4" />
-          {!isCollapsed && <span>New Agent</span>}
-        </Button>
-      )
+      icon: Bot
     },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
     { id: 'business-settings', label: 'Business Settings', href: '/settings', icon: Settings, children: [
@@ -249,13 +240,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                         className={({ isActive }) =>
                           `flex items-center h-[45px] px-4 py-3.5 text-sm rounded-md
                           ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}
-                          ${item.action ? 'flex-grow' : 'w-full'}`
+                          w-full`
                         }
                       >
                         <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
                         {!isCollapsed && <span className="text-sm">{item.label}</span>}
                       </NavLink>
-                      {!isCollapsed && item.action && item.action}
                     </div>
                   )}
                 </div>

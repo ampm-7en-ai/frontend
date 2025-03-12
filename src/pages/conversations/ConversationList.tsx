@@ -1,16 +1,50 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MessageSquare, Search, Filter, MoreHorizontal } from 'lucide-react';
+import { Calendar, MessageSquare, Search, Filter, MoreHorizontal, Plus, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from 'react-router-dom';
 
 const ConversationList = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isCreateAgentOpen, setIsCreateAgentOpen] = useState(false);
+  const [newAgentName, setNewAgentName] = useState('');
+  const [agentNameError, setAgentNameError] = useState(false);
+
+  const handleCreateAgent = () => {
+    if (!newAgentName.trim()) {
+      setAgentNameError(true);
+      return;
+    }
+    
+    setAgentNameError(false);
+    toast({
+      title: "Agent Created",
+      description: `${newAgentName} has been successfully created.`,
+      variant: "default"
+    });
+    
+    setNewAgentName('');
+    setIsCreateAgentOpen(false);
+    navigate('/agents');
+  };
 
   // Mock conversation data
   const conversations = [
@@ -92,6 +126,14 @@ const ConversationList = () => {
           <Button variant="outline" className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
             Last 7 days
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={() => setIsCreateAgentOpen(true)}
+            className="flex items-center gap-1 ml-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Agent
           </Button>
         </div>
       </div>
@@ -291,6 +333,49 @@ const ConversationList = () => {
           ))}
         </TabsContent>
       </Tabs>
+      
+      {/* Create Agent Dialog */}
+      <Dialog open={isCreateAgentOpen} onOpenChange={setIsCreateAgentOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              Create New Agent
+            </DialogTitle>
+            <DialogDescription>
+              Give your agent a name to get started. You can configure additional settings later.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="agentName">Agent Name</Label>
+                <Input
+                  id="agentName"
+                  placeholder="Enter agent name"
+                  value={newAgentName}
+                  onChange={(e) => {
+                    setNewAgentName(e.target.value);
+                    setAgentNameError(false);
+                  }}
+                  className={agentNameError ? "border-red-500" : ""}
+                />
+                {agentNameError && (
+                  <p className="text-sm text-red-500">Please enter an agent name</p>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateAgentOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateAgent}>
+              Create Agent
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
