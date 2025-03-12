@@ -23,7 +23,10 @@ const AgentList = () => {
       averageRating: 4.8,
       knowledgeSources: [
         { id: 1, name: 'Product Documentation', type: 'document', icon: 'BookOpen', hasError: false },
-        { id: 3, name: 'Customer Support Guidelines', type: 'document', icon: 'BookOpen', hasError: true }
+        { id: 2, name: 'Customer Support Guidelines', type: 'document', icon: 'BookOpen', hasError: true },
+        { id: 3, name: 'FAQ Database', type: 'database', icon: 'Database', hasError: false },
+        { id: 4, name: 'User Manuals', type: 'document', icon: 'BookOpen', hasError: false },
+        { id: 5, name: 'Troubleshooting Guide', type: 'document', icon: 'BookOpen', hasError: true }
       ],
       model: 'gpt-4',
       isDeployed: false
