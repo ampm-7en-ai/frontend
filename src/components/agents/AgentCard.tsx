@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -72,7 +71,7 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const hasMoreSources = agent.knowledgeSources.length > 3;
 
   return (
-    <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border flex flex-col">
+    <Card key={agent.id} className="overflow-hidden border flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
