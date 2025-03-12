@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, FileText, Upload, X, Link, Globe, File, Table, AlignLeft } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ChevronLeft, FileText, Upload, X, Globe, Table, AlignLeft } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -65,7 +65,7 @@ const KnowledgeUpload = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
-      setFiles(prev => [...prev, ...fileList]);
+      setFiles(fileList); // Replace previous files instead of appending
     }
   };
 
@@ -277,23 +277,36 @@ const KnowledgeUpload = () => {
             
             <div className="space-y-2">
               <Label htmlFor="source-type">Source Type</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              <RadioGroup 
+                value={sourceType} 
+                onValueChange={(value) => setSourceType(value as SourceType)}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"
+              >
                 {Object.entries(sourceConfigs).map(([type, config]) => (
                   <div 
-                    key={type}
-                    className={`border rounded-lg p-4 cursor-pointer transition-all hover:border-primary hover:shadow-sm ${sourceType === type ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setSourceType(type as SourceType)}
+                    key={type} 
+                    className={`border rounded-lg p-4 transition-all hover:border-primary hover:shadow-sm ${sourceType === type ? 'border-primary bg-primary/5' : ''}`}
                   >
-                    <div className="flex flex-col items-center text-center gap-2">
-                      <div className={`rounded-full p-2 ${sourceType === type ? 'bg-primary/10 text-primary' : 'bg-muted'}`}>
-                        {config.icon}
+                    <RadioGroupItem 
+                      value={type} 
+                      id={`source-type-${type}`} 
+                      className="sr-only" 
+                    />
+                    <label 
+                      htmlFor={`source-type-${type}`}
+                      className="flex cursor-pointer"
+                    >
+                      <div className="flex flex-col items-center text-center gap-2 w-full">
+                        <div className={`rounded-full p-2 ${sourceType === type ? 'bg-primary/10 text-primary' : 'bg-muted'}`}>
+                          {config.icon}
+                        </div>
+                        <p className="font-medium text-sm">{config.title}</p>
+                        <p className="text-xs text-muted-foreground">{config.description}</p>
                       </div>
-                      <p className="font-medium text-sm">{config.title}</p>
-                      <p className="text-xs text-muted-foreground">{config.description}</p>
-                    </div>
+                    </label>
                   </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
             
             <Separator />
