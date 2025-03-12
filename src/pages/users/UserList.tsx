@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 // Sample domain expert data
 const domainExperts = [
@@ -333,4 +335,21 @@ const UserList = () => {
                                   <Edit2 className="mr-2 h-4 w-4" />
                                   View Details
                                 </Link>
-                             
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      </Tabs>
+    </div>
+  );
+};
+
+export default UserList;
