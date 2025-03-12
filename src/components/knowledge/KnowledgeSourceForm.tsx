@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Globe, FileText, FilePdf, Link as LinkIcon } from 'lucide-react';
+import { Globe, FileText, File, Link as LinkIcon } from 'lucide-react';
 
 type KnowledgeType = 'pdf' | 'website' | 'text';
 
@@ -98,7 +98,7 @@ export const KnowledgeSourceForm = () => {
               <div key={source.id} className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center space-x-3">
                   {source.type === 'website' && <Globe className="h-5 w-5 text-muted-foreground" />}
-                  {source.type === 'pdf' && <FilePdf className="h-5 w-5 text-muted-foreground" />}
+                  {source.type === 'pdf' && <File className="h-5 w-5 text-muted-foreground" />}
                   {source.type === 'text' && <FileText className="h-5 w-5 text-muted-foreground" />}
                   <div>
                     <p className="font-medium">{source.name}</p>
