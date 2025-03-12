@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 export type MainLayoutProps = {
   pageTitle?: string;
   breadcrumbs?: { label: string; href: string }[];
-  children?: React.ReactNode; // Add children prop to type definition
+  children?: React.ReactNode;
 };
 
 export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps) {
@@ -32,12 +32,17 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  // Force settings pages to have the correct title
+  const derivedTitle = location.pathname.includes('/settings') 
+    ? 'Settings'
+    : getPageTitle(location.pathname);
+
   return (
     <div className="flex h-screen bg-light-gray/50">
       <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
-          pageTitle={getPageTitle(location.pathname)}
+          pageTitle={derivedTitle}
           breadcrumbs={breadcrumbs}
           toggleSidebar={toggleSidebar}
           onLogout={logout}
