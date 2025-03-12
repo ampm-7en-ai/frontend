@@ -9,7 +9,6 @@ import {
   CreditCard, 
   Settings 
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 
 const BusinessSettingsNav = () => {
   const navItems = [
@@ -22,14 +21,14 @@ const BusinessSettingsNav = () => {
   ];
 
   return (
-    <Card className="w-56 h-full border-border/40 shadow-sm">
-      <div className="flex flex-col py-4 space-y-1">
+    <div className="w-48 py-4 border-r border-border/40">
+      <div className="flex flex-col space-y-1">
         {navItems.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
             className={({ isActive }) =>
-              `flex items-center py-2 px-4 text-sm rounded-md hover:bg-muted/50 transition-colors
+              `flex items-center py-2 px-3 text-sm rounded-md hover:bg-muted/50 transition-colors
               ${isActive 
                 ? 'bg-muted font-medium text-primary border-l-2 border-primary' 
                 : 'text-muted-foreground'
@@ -41,7 +40,7 @@ const BusinessSettingsNav = () => {
           </NavLink>
         ))}
       </div>
-    </Card>
+    </div>
   );
 };
 

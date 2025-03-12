@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -14,7 +13,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, Bot, ExternalLink, BarChart2, Settings as SettingsIcon, Clock, MessageSquare, Sparkles } from 'lucide-react';
 
-// Sample agents data
 const agentsData = [
   { 
     id: 1, 
@@ -67,10 +65,9 @@ const AgentSettings = () => {
   };
 
   return (
-    <div className="flex gap-6">
+    <div className="flex">
       <BusinessSettingsNav />
-      
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 p-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Agent Settings</h2>
           <Button asChild>

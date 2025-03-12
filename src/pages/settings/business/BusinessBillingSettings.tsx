@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -16,7 +15,6 @@ const BusinessBillingSettings = () => {
   const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('business');
 
-  // Sample invoice data
   const invoices = [
     { id: 'INV-2023-001', date: 'Oct 1, 2023', amount: '$99.00', status: 'paid' },
     { id: 'INV-2023-002', date: 'Nov 1, 2023', amount: '$99.00', status: 'paid' },
@@ -75,10 +73,9 @@ const BusinessBillingSettings = () => {
   const currentPlan = plans.find(plan => plan.id === selectedPlan);
 
   return (
-    <div className="flex gap-6">
+    <div className="flex">
       <BusinessSettingsNav />
-      
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 p-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Billing</h2>
           <Button variant="outline">
@@ -366,3 +363,4 @@ const BusinessBillingSettings = () => {
 };
 
 export default BusinessBillingSettings;
+
