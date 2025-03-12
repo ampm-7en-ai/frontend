@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
 import { 
   Building, 
   Users, 
@@ -10,6 +9,7 @@ import {
   CreditCard, 
   Settings 
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 const BusinessSettingsNav = () => {
   const navItems = [
@@ -22,17 +22,17 @@ const BusinessSettingsNav = () => {
   ];
 
   return (
-    <Card className="mb-6 border-border/40">
-      <div className="flex overflow-x-auto py-1 px-1 gap-1">
+    <Card className="w-56 h-full border-border/40 shadow-sm">
+      <div className="flex flex-col py-4 space-y-1">
         {navItems.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
             className={({ isActive }) =>
-              `flex items-center px-4 py-2 text-sm rounded-md whitespace-nowrap
+              `flex items-center py-2 px-4 text-sm rounded-md hover:bg-muted/50 transition-colors
               ${isActive 
-                ? 'bg-primary text-primary-foreground' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground transition-colors'
+                ? 'bg-muted font-medium text-primary border-l-2 border-primary' 
+                : 'text-muted-foreground'
               }`
             }
           >

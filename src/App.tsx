@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -35,7 +36,6 @@ import SecuritySettings from './pages/settings/platform/SecuritySettings';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
 import BillingSettings from './pages/settings/platform/BillingSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
-import ChatbotSettings from './pages/settings/business/ChatboxSettings';
 
 const DashboardRouter = () => {
   const { user } = useAuth();
@@ -123,7 +123,6 @@ function App() {
           <Route path="/settings/business/integrations" element={<IntegrationsSettings />} />
           <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
           <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
-          <Route path="/settings/business/chatbox" element={<ChatbotSettings />} />
           
           <Route path="/settings/platform/general" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
