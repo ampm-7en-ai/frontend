@@ -1,172 +1,55 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { MainLayout } from './components/layout/MainLayout';
-import Login from './pages/Login';
-import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
-import AdminDashboard from './pages/dashboard/AdminDashboard';
-import NotFound from './pages/NotFound';
-import AgentList from './pages/agents/AgentList';
-import AgentCreate from './pages/agents/AgentCreate';
-import AgentTest from './pages/agents/AgentTest';
-import AgentEdit from './pages/agents/AgentEdit';
-import AgentSettings from './pages/settings/business/AgentSettings';
-import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
-import { ProtectedRoute, getDashboardPath } from './utils/routeUtils';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { MainLayout } from '@/components/layout/MainLayout';
 
-import BusinessList from './pages/businesses/BusinessList';
-import BusinessDetail from './pages/businesses/BusinessDetail';
-import UserList from './pages/users/UserList';
-import UserDetail from './pages/users/UserDetail';
-import PlatformAnalytics from './pages/analytics/PlatformAnalytics';
-import ConversationList from './pages/conversations/ConversationList';
-import ConversationDetail from './pages/conversations/ConversationDetail';
-import KnowledgeBase from './pages/knowledge/KnowledgeBase';
-import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
-import Documentation from './pages/help/Documentation';
-import SupportTicket from './pages/help/SupportTicket';
-import BusinessProfile from './pages/settings/business/BusinessProfile';
-import TeamSettings from './pages/settings/business/TeamSettings';
-import IntegrationsSettings from './pages/settings/business/IntegrationsSettings';
-import BusinessBillingSettings from './pages/settings/business/BusinessBillingSettings';
-import PreferencesSettings from './pages/settings/business/PreferencesSettings';
-import GeneralSettings from './pages/settings/platform/GeneralSettings';
-import SecuritySettings from './pages/settings/platform/SecuritySettings';
-import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
-import BillingSettings from './pages/settings/platform/BillingSettings';
-import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+// Pages
+import Index from '@/pages/Index';
+import SuperAdminDashboard from '@/pages/dashboard/SuperAdminDashboard';
+import AdminDashboard from '@/pages/dashboard/AdminDashboard';
+import BusinessList from '@/pages/businesses/BusinessList';
+import BusinessDetail from '@/pages/businesses/BusinessDetail';
+import UserList from '@/pages/users/UserList';
+import UserDetail from '@/pages/users/UserDetail';
+import PlatformAnalytics from '@/pages/analytics/PlatformAnalytics';
+import Login from '@/pages/Login';
+import NotFound from '@/pages/NotFound';
 
-const DashboardRouter = () => {
-  const { user } = useAuth();
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (user.role === 'superadmin') {
-    return <SuperAdminDashboard />;
-  } else if (user.role === 'admin') {
-    return <AdminDashboard />;
-  } else {
-    return <Navigate to="/login" replace />;
-  }
-};
+// Auth Provider
+import { AuthProvider } from '@/context/AuthContext';
 
 function App() {
-  const RouteWithAuth = () => {
-    const { user } = useAuth();
-    
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        <Route path="/" element={<MainLayout />}>
-          <Route path="/dashboard" element={<DashboardRouter />} />
-          <Route path="/dashboard/superadmin" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <SuperAdminDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/admin" element={
-            <ProtectedRoute allowedRoles={['admin']} userRole={user?.role} fallbackPath="/dashboard">
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
           
-          <Route path="/agents" element={<AgentList />} />
-          <Route path="/agents/create" element={<AgentCreate />} />
-          <Route path="/agents/:agentId/test" element={<AgentTest />} />
-          <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
-          
-          <Route path="/businesses" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <BusinessList />
-            </ProtectedRoute>
-          } />
-          <Route path="/businesses/:businessId" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <BusinessDetail />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/users" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <UserList />
-            </ProtectedRoute>
-          } />
-          <Route path="/users/:userId" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <UserDetail />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/analytics" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <PlatformAnalytics />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/conversations" element={<ConversationList />} />
-          <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
-          
-          <Route path="/knowledge" element={<KnowledgeBase />} />
-          <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
-          
-          <Route path="/help/documentation" element={<Documentation />} />
-          <Route path="/help/support" element={<SupportTicket />} />
-          
-          <Route path="/settings/business/profile" element={<BusinessProfile />} />
-          <Route path="/settings/business/team" element={<TeamSettings />} />
-          <Route path="/settings/business/agents" element={<AgentSettings />} />
-          <Route path="/settings/business/integrations" element={<IntegrationsSettings />} />
-          <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
-          <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
-          
-          <Route path="/settings/platform/general" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <GeneralSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/security" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <SecuritySettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/llm-providers" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <LLMProvidersSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/compliance" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <ComplianceSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/billing" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <BillingSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/customization" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <CustomizationSettings />
-            </ProtectedRoute>
-          } />
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Index />} />
+            
+            {/* Dashboard routes */}
+            <Route path="/dashboard" element={<SuperAdminDashboard />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            
+            {/* Business routes */}
+            <Route path="/businesses" element={<BusinessList />} />
+            <Route path="/businesses/:id" element={<BusinessDetail />} />
+            
+            {/* User routes */}
+            <Route path="/users" element={<UserList />} />
+            <Route path="/users/:id" element={<UserDetail />} />
+            
+            {/* Analytics routes */}
+            <Route path="/analytics" element={<PlatformAnalytics />} />
+            
+            {/* Add other routes as needed */}
+          </Route>
           
           <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    );
-  }
-
-  return (
-    <Router>
-      <AuthProvider>
-        <RouteWithAuth />
-      </AuthProvider>
-    </Router>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
