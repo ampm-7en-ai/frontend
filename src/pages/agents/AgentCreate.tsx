@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +22,10 @@ import { Link } from 'react-router-dom';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
+// Add new imports for the checkbox
+import { Checkbox } from "@/components/ui/checkbox";
+import { File, Globe } from "lucide-react";
+
 const AgentCreate = () => {
   const [selectedAgentType, setSelectedAgentType] = useState('support');
   const [showCustomTypeDialog, setShowCustomTypeDialog] = useState(false);
@@ -41,6 +44,50 @@ const AgentCreate = () => {
     // For now, we'll just close the dialog
     setShowCustomTypeDialog(false);
   };
+  
+  interface KnowledgeSource {
+    id: string;
+    name: string;
+    type: 'document' | 'webpage';
+    size: string;
+    lastUpdated: string;
+    icon: typeof File | typeof Globe;
+  }
+  
+  const knowledgeSources: KnowledgeSource[] = [
+    {
+      id: "product-docs",
+      name: "Product Documentation",
+      type: "document",
+      size: "2.4 MB",
+      lastUpdated: "2023-12-15",
+      icon: File
+    },
+    {
+      id: "faqs",
+      name: "FAQs",
+      type: "webpage",
+      size: "0.8 MB",
+      lastUpdated: "2023-12-20",
+      icon: Globe
+    },
+    {
+      id: "support-guidelines",
+      name: "Customer Support Guidelines",
+      type: "document",
+      size: "1.5 MB",
+      lastUpdated: "2023-12-10",
+      icon: File
+    },
+    {
+      id: "pricing",
+      name: "Pricing Information",
+      type: "document",
+      size: "0.3 MB",
+      lastUpdated: "2023-12-25",
+      icon: File
+    }
+  ];
   
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -160,53 +207,39 @@ const AgentCreate = () => {
           <Card>
             <CardHeader>
               <CardTitle>Knowledge Sources</CardTitle>
-              <CardDescription>Select what information your agent can access</CardDescription>
+              <CardDescription>
+                Select which knowledge your agent can access to improve its responses
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Switch id="kb1" />
-                  <Label htmlFor="kb1" className="flex items-center">
-                    <Database className="mr-2 h-4 w-4 text-primary" />
-                    Product Documentation
-                  </Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="kb2" />
-                  <Label htmlFor="kb2" className="flex items-center">
-                    <Database className="mr-2 h-4 w-4 text-primary" />
-                    FAQ Database
-                  </Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="kb3" />
-                  <Label htmlFor="kb3" className="flex items-center">
-                    <Database className="mr-2 h-4 w-4 text-primary" />
-                    Customer Support Tickets
-                  </Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="kb4" />
-                  <Label htmlFor="kb4" className="flex items-center">
-                    <Database className="mr-2 h-4 w-4 text-primary" />
-                    Training Materials
-                  </Label>
-                </div>
-              </div>
-              
-              <div className="pt-4">
-                <Button variant="outline" asChild>
-                  <Link to="/knowledge">
-                    Manage Knowledge Sources
-                  </Link>
-                </Button>
-                <Button className="ml-2" variant="outline">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Files
-                </Button>
+              <div className="space-y-1">
+                {knowledgeSources.map((source) => {
+                  const Icon = source.icon;
+                  return (
+                    <div
+                      key={source.id}
+                      className="flex items-start space-x-4 border rounded-lg p-4 hover:bg-accent/5 transition-colors"
+                    >
+                      <Checkbox id={source.id} className="mt-1" />
+                      <div className="flex-1 space-y-1">
+                        <Label
+                          htmlFor={source.id}
+                          className="text-sm font-medium leading-none flex items-center gap-2 cursor-pointer"
+                        >
+                          <Icon className="h-4 w-4" />
+                          {source.name}
+                        </Label>
+                        <div className="text-xs text-muted-foreground">
+                          Type: {source.type}
+                          <span className="mx-2">•</span>
+                          Size: {source.size}
+                          <span className="mx-2">•</span>
+                          Last updated: {source.lastUpdated}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
