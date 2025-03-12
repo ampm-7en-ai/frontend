@@ -16,10 +16,12 @@ import {
   Upload,
   ExternalLink,
   Palette,
+  Plus,
 } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -46,7 +48,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   // Business Admin specific navigation items
   const adminItems = [
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
-    { id: 'agents', label: 'Agents', href: '/agents', icon: Bot },
+    { 
+      id: 'agents', 
+      label: 'Agents', 
+      href: '/agents', 
+      icon: Bot,
+      action: {
+        icon: Plus,
+        href: '/agents/create',
+        label: 'Create new agent'
+      }
+    },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
     { 
       id: 'business-settings',
@@ -198,16 +210,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                       )}
                     </>
                   ) : (
-                    <NavLink
-                      to={item.href}
-                      className={({ isActive }) =>
-                        `flex items-center px-4 py-3.5 text-sm rounded-md
-                        ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
-                      }
-                    >
-                      <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
-                      {!isCollapsed && <span className="text-sm">{item.label}</span>}
-                    </NavLink>
+                    <div className="flex items-center justify-between">
+                      <NavLink
+                        to={item.href}
+                        className={({ isActive }) =>
+                          `flex items-center px-4 py-3.5 text-sm rounded-md flex-grow
+                          ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
+                        }
+                      >
+                        <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                        {!isCollapsed && <span className="text-sm">{item.label}</span>}
+                      </NavLink>
+                      
+                      {!isCollapsed && item.action && (
+                        <Link 
+                          to={item.action.href}
+                          title={item.action.label}
+                          className="hover:bg-accent hover:text-primary rounded-full p-1 ml-2"
+                        >
+                          <item.action.icon className="h-4 w-4" />
+                        </Link>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
