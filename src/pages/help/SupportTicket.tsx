@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -172,232 +171,223 @@ const SupportTicket = () => {
   };
 
   return (
-    <MainLayout 
-      pageTitle="Support Tickets"
-      breadcrumbs={[
-        { label: 'Dashboard', href: '/' },
-        { label: 'Help', href: '/help' },
-        { label: 'Support', href: '/help/support' }
-      ]}
-    >
-      <Tabs defaultValue="new">
-        <TabsList className="mb-6">
-          <TabsTrigger value="new">New Ticket</TabsTrigger>
-          <TabsTrigger value="existing">My Tickets</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="new" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PlusCircle className="h-5 w-5" />
-                Create Support Ticket
-              </CardTitle>
-              <CardDescription>
-                Describe your issue and our support team will help you resolve it
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmitTicket} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input 
-                    id="subject" 
-                    placeholder="Briefly describe your issue" 
-                    value={ticketSubject}
-                    onChange={handleSubjectChange}
-                    required
-                  />
-                  
-                  {/* Knowledge base suggestions */}
-                  {showSuggestions && (
-                    <div className="mt-2 p-3 bg-muted rounded-md">
-                      <h4 className="text-sm font-medium mb-2">These articles might help:</h4>
-                      <ul className="space-y-2">
-                        {suggestedArticles.map((article) => (
-                          <li key={article.id}>
-                            <a 
-                              href={article.url} 
-                              className="text-sm text-blue-600 hover:underline flex items-center"
-                            >
-                              <HelpCircle className="h-3 w-3 mr-1" />
-                              {article.title}
-                              <span className="ml-2 text-xs bg-muted-foreground/20 px-1 rounded">
-                                {article.relevance} match
-                              </span>
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+    <Tabs defaultValue="new">
+      <TabsList className="mb-6">
+        <TabsTrigger value="new">New Ticket</TabsTrigger>
+        <TabsTrigger value="existing">My Tickets</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="new" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PlusCircle className="h-5 w-5" />
+              Create Support Ticket
+            </CardTitle>
+            <CardDescription>
+              Describe your issue and our support team will help you resolve it
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmitTicket} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="subject">Subject</Label>
+                <Input 
+                  id="subject" 
+                  placeholder="Briefly describe your issue" 
+                  value={ticketSubject}
+                  onChange={handleSubjectChange}
+                  required
+                />
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select value={ticketCategory} onValueChange={setTicketCategory} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="agent-management">Agent Management</SelectItem>
-                        <SelectItem value="workflows">Workflows</SelectItem>
-                        <SelectItem value="integrations">Integrations</SelectItem>
-                        <SelectItem value="billing">Billing</SelectItem>
-                        <SelectItem value="api">API</SelectItem>
-                        <SelectItem value="security">Security</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select value={ticketPriority} onValueChange={setTicketPriority} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
-                    placeholder="Please provide as much detail as possible about your issue" 
-                    className="h-32"
-                    value={ticketDescription}
-                    onChange={(e) => setTicketDescription(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Button type="button" variant="outline" className="mr-2">
-                    <Paperclip className="h-4 w-4 mr-1" />
-                    Attach Files
-                  </Button>
-                  <Button type="submit">Submit Ticket</Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Common Solutions</CardTitle>
-              <CardDescription>
-                Quick answers to frequently asked questions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-md">
-                  <h4 className="font-medium">How do I reset my password?</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Visit the login page and click "Forgot Password" to receive password reset instructions.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-md">
-                  <h4 className="font-medium">Why can't I create a new agent?</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Check your subscription limits and permissions. You may have reached your agent limit.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-md">
-                  <h4 className="font-medium">How do I connect a third-party service?</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Go to Settings {'>'}  Integrations to connect external services and APIs.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="existing">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5" />
-                  My Support Tickets
-                </span>
-                <div className="flex items-center">
-                  <div className="relative w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                    <Input
-                      type="search"
-                      placeholder="Search tickets..."
-                      className="pl-8"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Ticket ID</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Last Updated</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredTickets.map((ticket) => (
-                      <TableRow key={ticket.id}>
-                        <TableCell className="font-medium">{ticket.id}</TableCell>
-                        <TableCell className="max-w-md truncate">
-                          <a href="#" className="hover:underline text-blue-600">
-                            {ticket.subject}
+                {/* Knowledge base suggestions */}
+                {showSuggestions && (
+                  <div className="mt-2 p-3 bg-muted rounded-md">
+                    <h4 className="text-sm font-medium mb-2">These articles might help:</h4>
+                    <ul className="space-y-2">
+                      {suggestedArticles.map((article) => (
+                        <li key={article.id}>
+                          <a 
+                            href={article.url} 
+                            className="text-sm text-blue-600 hover:underline flex items-center"
+                          >
+                            <HelpCircle className="h-3 w-3 mr-1" />
+                            {article.title}
+                            <span className="ml-2 text-xs bg-muted-foreground/20 px-1 rounded">
+                              {article.relevance} match
+                            </span>
                           </a>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                        <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
-                        <TableCell>{ticket.category}</TableCell>
-                        <TableCell>{ticket.lastUpdated}</TableCell>
-                      </TableRow>
-                    ))}
-                    {filteredTickets.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
-                          No tickets found
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               
-              <div className="mt-6">
-                <Button variant="outline" className="mr-2">
-                  <CheckCircle2 className="h-4 w-4 mr-1" />
-                  View Resolved
-                </Button>
-                <Button variant="outline">
-                  <Clock className="h-4 w-4 mr-1" />
-                  View All
-                </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={ticketCategory} onValueChange={setTicketCategory} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="agent-management">Agent Management</SelectItem>
+                      <SelectItem value="workflows">Workflows</SelectItem>
+                      <SelectItem value="integrations">Integrations</SelectItem>
+                      <SelectItem value="billing">Billing</SelectItem>
+                      <SelectItem value="api">API</SelectItem>
+                      <SelectItem value="security">Security</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={ticketPriority} onValueChange={setTicketPriority} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </MainLayout>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea 
+                  id="description" 
+                  placeholder="Please provide as much detail as possible about your issue" 
+                  className="h-32"
+                  value={ticketDescription}
+                  onChange={(e) => setTicketDescription(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Button type="button" variant="outline" className="mr-2">
+                  <Paperclip className="h-4 w-4 mr-1" />
+                  Attach Files
+                </Button>
+                <Button type="submit">Submit Ticket</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Common Solutions</CardTitle>
+            <CardDescription>
+              Quick answers to frequently asked questions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 border rounded-md">
+                <h4 className="font-medium">How do I reset my password?</h4>
+                <p className="text-sm text-gray-500 mt-1">
+                  Visit the login page and click "Forgot Password" to receive password reset instructions.
+                </p>
+              </div>
+              <div className="p-4 border rounded-md">
+                <h4 className="font-medium">Why can't I create a new agent?</h4>
+                <p className="text-sm text-gray-500 mt-1">
+                  Check your subscription limits and permissions. You may have reached your agent limit.
+                </p>
+              </div>
+              <div className="p-4 border rounded-md">
+                <h4 className="font-medium">How do I connect a third-party service?</h4>
+                <p className="text-sm text-gray-500 mt-1">
+                  Go to Settings {'>'}  Integrations to connect external services and APIs.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+      
+      <TabsContent value="existing">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <HelpCircle className="h-5 w-5" />
+                My Support Tickets
+              </span>
+              <div className="flex items-center">
+                <div className="relative w-64">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input
+                    type="search"
+                    placeholder="Search tickets..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ticket ID</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Last Updated</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTickets.map((ticket) => (
+                    <TableRow key={ticket.id}>
+                      <TableCell className="font-medium">{ticket.id}</TableCell>
+                      <TableCell className="max-w-md truncate">
+                        <a href="#" className="hover:underline text-blue-600">
+                          {ticket.subject}
+                        </a>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                      <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                      <TableCell>{ticket.category}</TableCell>
+                      <TableCell>{ticket.lastUpdated}</TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredTickets.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        No tickets found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            
+            <div className="mt-6">
+              <Button variant="outline" className="mr-2">
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                View Resolved
+              </Button>
+              <Button variant="outline">
+                <Clock className="h-4 w-4 mr-1" />
+                View All
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 };
 

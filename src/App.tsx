@@ -28,6 +28,16 @@ import KnowledgeBase from './pages/knowledge/KnowledgeBase';
 import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
+import BusinessProfile from './pages/settings/business/BusinessProfile';
+import TeamSettings from './pages/settings/business/TeamSettings';
+import IntegrationsSettings from './pages/settings/business/IntegrationsSettings';
+import BusinessBillingSettings from './pages/settings/business/BusinessBillingSettings';
+import PreferencesSettings from './pages/settings/business/PreferencesSettings';
+import GeneralSettings from './pages/settings/platform/GeneralSettings';
+import SecuritySettings from './pages/settings/platform/SecuritySettings';
+import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
+import BillingSettings from './pages/settings/platform/BillingSettings';
+import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
 
 // Dashboard router component to manage conditional dashboard rendering
 const DashboardRouter = () => {
@@ -119,14 +129,46 @@ function App() {
           <Route path="/help/documentation" element={<Documentation />} />
           <Route path="/help/support" element={<SupportTicket />} />
           
-          {/* Settings routes */}
+          {/* Business Settings routes */}
+          <Route path="/settings/business/profile" element={<BusinessProfile />} />
+          <Route path="/settings/business/team" element={<TeamSettings />} />
           <Route path="/settings/business/agents" element={<AgentSettings />} />
+          <Route path="/settings/business/integrations" element={<IntegrationsSettings />} />
+          <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
+          <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
+          <Route path="/settings/business/chatbox" element={<ChatbotSettings />} />
+          
+          {/* Platform Settings routes (for superadmin) */}
+          <Route path="/settings/platform/general" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <GeneralSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/security" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <SecuritySettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/llm-providers" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <LLMProvidersSettings />
+            </ProtectedRoute>
+          } />
           <Route path="/settings/platform/compliance" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
               <ComplianceSettings />
             </ProtectedRoute>
           } />
-          <Route path="/settings/business/chatbox" element={<ChatbotSettings />} />
+          <Route path="/settings/platform/billing" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <BillingSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/customization" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <CustomizationSettings />
+            </ProtectedRoute>
+          } />
           
           {/* Fallback route */}
           <Route path="*" element={<NotFound />} />

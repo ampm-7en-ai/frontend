@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -106,102 +105,93 @@ const Documentation = () => {
   `;
 
   return (
-    <MainLayout 
-      pageTitle="Documentation"
-      breadcrumbs={[
-        { label: 'Dashboard', href: '/' },
-        { label: 'Help', href: '/help' },
-        { label: 'Documentation', href: '/help/documentation' }
-      ]}
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Sidebar - Navigation */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="p-4">
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search documentation..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-8"
-                  />
-                </div>
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Left Sidebar - Navigation */}
+      <div className="lg:col-span-1">
+        <Card>
+          <CardContent className="p-4">
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search documentation..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8"
+                />
               </div>
-              
-              <nav className="space-y-1">
-                {categories.map((category) => (
-                  <div key={category.id} className="mb-3">
-                    <Button
-                      variant="ghost"
-                      className={`w-full justify-start font-medium text-sm py-1 ${activeCategory === category.id ? 'bg-secondary' : ''}`}
-                      onClick={() => setActiveCategory(category.id)}
-                    >
-                      {category.name}
-                    </Button>
-                    
-                    {activeCategory === category.id && (
-                      <div className="ml-4 mt-1 space-y-1">
-                        {category.topics.map((topic) => (
-                          <Button
-                            key={topic.id}
-                            variant="ghost"
-                            size="sm"
-                            className={`w-full justify-start text-sm py-1 ${expandedTopics.includes(topic.id) ? 'font-medium' : 'font-normal text-gray-600'}`}
-                            onClick={() => toggleTopic(topic.id)}
-                          >
-                            <ChevronRight className="h-3 w-3 mr-1" />
-                            {topic.title}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </nav>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Main Content */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex justify-end mb-4 space-x-2">
-                <Button variant="outline" size="sm">
-                  <Bookmark className="h-4 w-4 mr-1" />
-                  Bookmark
-                </Button>
-                <Button variant="outline" size="sm">
-                  <ChevronDown className="h-4 w-4 mr-1" />
-                  Export
-                </Button>
-              </div>
-              
-              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: introductionContent }}></div>
-              
-              <Separator className="my-6" />
-              
-              <div className="flex flex-col space-y-4">
-                <p className="text-sm">Was this article helpful?</p>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <ThumbsUp className="h-4 w-4 mr-1" />
-                    Yes
+            </div>
+            
+            <nav className="space-y-1">
+              {categories.map((category) => (
+                <div key={category.id} className="mb-3">
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start font-medium text-sm py-1 ${activeCategory === category.id ? 'bg-secondary' : ''}`}
+                    onClick={() => setActiveCategory(category.id)}
+                  >
+                    {category.name}
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <ThumbsDown className="h-4 w-4 mr-1" />
-                    No
-                  </Button>
+                  
+                  {activeCategory === category.id && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {category.topics.map((topic) => (
+                        <Button
+                          key={topic.id}
+                          variant="ghost"
+                          size="sm"
+                          className={`w-full justify-start text-sm py-1 ${expandedTopics.includes(topic.id) ? 'font-medium' : 'font-normal text-gray-600'}`}
+                          onClick={() => toggleTopic(topic.id)}
+                        >
+                          <ChevronRight className="h-3 w-3 mr-1" />
+                          {topic.title}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              ))}
+            </nav>
+          </CardContent>
+        </Card>
       </div>
-    </MainLayout>
+      
+      {/* Main Content */}
+      <div className="lg:col-span-3">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex justify-end mb-4 space-x-2">
+              <Button variant="outline" size="sm">
+                <Bookmark className="h-4 w-4 mr-1" />
+                Bookmark
+              </Button>
+              <Button variant="outline" size="sm">
+                <ChevronDown className="h-4 w-4 mr-1" />
+                Export
+              </Button>
+            </div>
+            
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: introductionContent }}></div>
+            
+            <Separator className="my-6" />
+            
+            <div className="flex flex-col space-y-4">
+              <p className="text-sm">Was this article helpful?</p>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm">
+                  <ThumbsUp className="h-4 w-4 mr-1" />
+                  Yes
+                </Button>
+                <Button variant="outline" size="sm">
+                  <ThumbsDown className="h-4 w-4 mr-1" />
+                  No
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
