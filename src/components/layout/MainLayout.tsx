@@ -20,8 +20,14 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
   const getPageTitle = (path: string) => {
     if (pageTitle) return pageTitle;
     
+    // For analytics page
+    if (path.includes('/analytics')) {
+      return 'Platform Analytics';
+    }
+    
     const segments = path.split('/').filter(Boolean);
     if (segments.length === 0) return 'Dashboard';
+    
     return segments[segments.length - 1]
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -37,13 +43,21 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
     ? 'Settings'
     : getPageTitle(location.pathname);
 
+  // Default breadcrumbs for analytics page
+  const defaultBreadcrumbs = location.pathname.includes('/analytics')
+    ? [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Analytics', href: '/analytics' }
+      ]
+    : breadcrumbs;
+
   return (
     <div className="flex h-screen bg-light-gray/50">
       <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           pageTitle={derivedTitle}
-          breadcrumbs={breadcrumbs}
+          breadcrumbs={defaultBreadcrumbs}
           toggleSidebar={toggleSidebar}
           onLogout={logout}
         />
