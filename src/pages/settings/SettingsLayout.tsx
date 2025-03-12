@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
 import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
@@ -16,45 +15,33 @@ const SettingsLayout = () => {
   const isBusinessSettings = currentPath.includes('/settings/business');
   const isPlatformSettings = currentPath.includes('/settings/platform');
   
-  // For Super Admin: Only show platform settings
-  // For Admin: Only show business settings
-  
   if (user?.role === 'superadmin' && isBusinessSettings) {
-    // Redirect Super Admin away from business settings
     return <Navigate to="/settings/platform/general" replace />;
   } else if (user?.role === 'admin' && isPlatformSettings) {
-    // Redirect Admin away from platform settings
     return <Navigate to="/settings/business/profile" replace />;
   }
 
   return (
-    <MainLayout pageTitle="Settings" breadcrumbs={[
-      { label: 'Dashboard', href: '/' },
-      { label: 'Settings', href: '/settings' }
-    ]}>
-      <div className="flex flex-col space-y-6">
-        <div className="container mx-auto flex">
-          <div className="w-64 pr-8">
-            <h3 className="text-lg font-semibold mb-4">
-              {isPlatformSettings && user?.role === 'superadmin' 
-                ? 'Platform Settings' 
-                : 'Business Settings'}
-            </h3>
-            <Separator className="mb-4" />
-            
-            {/* Conditionally render the appropriate navigation component */}
-            {isPlatformSettings && user?.role === 'superadmin' ? (
-              <PlatformSettingsNav />
-            ) : (
-              <BusinessSettingsNav />
-            )}
-          </div>
-          <div className="flex-1 pl-8 border-l">
-            <Outlet />
-          </div>
+    <div className="flex-1 flex">
+      <div className="w-64 flex-shrink-0 border-r border-medium-gray/10">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold">
+            {isPlatformSettings && user?.role === 'superadmin' 
+              ? 'Platform Settings' 
+              : 'Business Settings'}
+          </h3>
+          <Separator className="my-4" />
+          {isPlatformSettings && user?.role === 'superadmin' ? (
+            <PlatformSettingsNav />
+          ) : (
+            <BusinessSettingsNav />
+          )}
         </div>
       </div>
-    </MainLayout>
+      <div className="flex-1 p-6">
+        <Outlet />
+      </div>
+    </div>
   );
 };
 
