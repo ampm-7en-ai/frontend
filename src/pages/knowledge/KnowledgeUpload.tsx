@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,14 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ChevronLeft, FileText, Upload, X, Globe, Table, AlignLeft } from 'lucide-react';
+import { ChevronLeft, FileText, Upload, X, Globe, Table, AlignLeft, ExternalLink } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-type SourceType = 'url' | 'document' | 'csv' | 'plainText';
+type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
+
+type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
 
 interface SourceConfig {
   icon: React.ReactNode;
@@ -20,6 +25,13 @@ interface SourceConfig {
   description: string;
   acceptedTypes?: string;
   placeholder?: string;
+}
+
+interface ThirdPartyConfig {
+  icon: React.ReactNode;
+  name: string;
+  description: string;
+  color: string;
 }
 
 const KnowledgeUpload = () => {
@@ -32,6 +44,43 @@ const KnowledgeUpload = () => {
   const [progress, setProgress] = useState(0);
   const [url, setUrl] = useState('');
   const [plainText, setPlainText] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  
+  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
+    googleDrive: {
+      icon: <svg className="h-5 w-5" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>,
+      name: "Google Drive",
+      description: "Import documents from your Google Drive",
+      color: "bg-blue-50 text-blue-600"
+    },
+    slack: {
+      icon: <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>,
+      name: "Slack",
+      description: "Import conversations and files from Slack",
+      color: "bg-pink-50 text-pink-600"
+    },
+    notion: {
+      icon: <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28.047-.14 0-.326-.099-.56-.42-.606L17.86 2.652c-.746-.466-1.866-.932-3.732-.792L3.108 2.56c-.373.047-.56.327-.56.607 0 .28.187.465.652.326l1.26-.28zM4.52 6.307c.093-.98.326-1.4.652-1.4l15.31-.933c.234 0 .466.093.466.42v13.964c0 .932-.606 1.026-1.073 1.026H4.847c-.746 0-.98-.373-.98-1.12V6.308zm15.683.84c0-.326-.14-.606-.513-.606-.374 0-.56.28-.56.606v10.356c0 .373.186.606.56.606.373 0 .513-.233.513-.606V7.147zm-14.89 2.333c.47.466.56.373 1.12.373l9.566-.14c.51-.046.699-.14.699-.793 0-.606-.326-.933-.979-.836l-10.405.56v.836z"/></svg>,
+      name: "Notion",
+      description: "Import pages and databases from Notion",
+      color: "bg-gray-50 text-gray-800"
+    },
+    dropbox: {
+      icon: <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0061FF"><path d="M12 0L5.999 6 0 0l5.999 6L0 12l6.001 6L12 12l6.001 6L24 12l-5.999-6 5.999-6-6.001 6z"/></svg>,
+      name: "Dropbox",
+      description: "Import files from your Dropbox",
+      color: "bg-blue-50 text-blue-600"
+    },
+    github: {
+      icon: <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.2-.7 0-.7 0-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.1-.4-.6-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.6.2 2.9.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.9 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 0z"/></svg>,
+      name: "GitHub",
+      description: "Import repositories and documentation from GitHub",
+      color: "bg-gray-50 text-gray-800"
+    }
+  };
 
   const sourceConfigs: Record<SourceType, SourceConfig> = {
     url: {
@@ -57,6 +106,11 @@ const KnowledgeUpload = () => {
       title: "Plain Text",
       description: "Enter text directly",
       placeholder: "Enter your text here..."
+    },
+    thirdParty: {
+      icon: <ExternalLink className="h-5 w-5" />,
+      title: "Third-Party Import",
+      description: "Import from Google Drive, Slack, Notion, etc.",
     }
   };
 
@@ -131,6 +185,17 @@ const KnowledgeUpload = () => {
           });
         }
         break;
+        
+      case 'thirdParty':
+        canUpload = selectedFiles.length > 0;
+        if (!canUpload) {
+          toast({
+            title: "Validation Error",
+            description: "Please select at least one file from the third-party service",
+            variant: "destructive"
+          });
+        }
+        break;
     }
     
     if (!canUpload) return;
@@ -143,10 +208,66 @@ const KnowledgeUpload = () => {
       documentName,
       files,
       url,
-      plainText
+      plainText,
+      selectedProvider,
+      selectedFiles
     });
     
     simulateProgress();
+  };
+
+  const handleConnectThirdParty = (provider: ThirdPartyProvider) => {
+    setSelectedProvider(provider);
+    setIsConnecting(true);
+    
+    // Simulate connection process
+    setTimeout(() => {
+      setIsConnecting(false);
+      setShowAuthDialog(false);
+      
+      // Simulate successful connection
+      toast({
+        title: "Connected Successfully",
+        description: `Connected to ${thirdPartyProviders[provider].name}. You can now select files.`,
+      });
+      
+      // Mock data for selected files
+      if (provider === 'googleDrive') {
+        setSelectedFiles([
+          'Quarterly Report Q1 2023.pdf',
+          'Product Roadmap.docx',
+          'Customer Feedback.xlsx'
+        ]);
+      } else if (provider === 'slack') {
+        setSelectedFiles([
+          'sales-team channel history',
+          'product-updates channel history',
+          'customer-support channel history'
+        ]);
+      } else if (provider === 'notion') {
+        setSelectedFiles([
+          'Company Wiki',
+          'Product Documentation',
+          'Meeting Notes'
+        ]);
+      } else if (provider === 'dropbox') {
+        setSelectedFiles([
+          'Marketing Assets/Brand Guidelines.pdf',
+          'Research/Market Analysis 2023.docx',
+          'Presentations/Investor Deck.pptx'
+        ]);
+      } else if (provider === 'github') {
+        setSelectedFiles([
+          'Documentation/README.md',
+          'Documentation/API_REFERENCE.md',
+          'Documentation/CONTRIBUTING.md'
+        ]);
+      }
+    }, 2000);
+  };
+
+  const handleRemoveSelectedFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const renderSourceTypeContent = () => {
@@ -238,6 +359,101 @@ const KnowledgeUpload = () => {
             </div>
           </div>
         );
+        
+      case 'thirdParty':
+        return (
+          <div className="space-y-6">
+            {!selectedProvider ? (
+              <>
+                <div className="space-y-2">
+                  <Label>Select a Third-Party Service</Label>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Connect to a third-party service to import knowledge content
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {Object.entries(thirdPartyProviders).map(([id, provider]) => (
+                      <Button
+                        key={id}
+                        variant="outline"
+                        className={`h-auto py-6 flex-col items-center justify-center gap-3 ${provider.color} hover:bg-opacity-80 border-2`}
+                        onClick={() => setShowAuthDialog(true)}
+                      >
+                        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-white/90 p-2">
+                          {provider.icon}
+                        </div>
+                        <div className="text-center">
+                          <p className="font-medium">{provider.name}</p>
+                          <p className="text-xs mt-1 opacity-80">{provider.description}</p>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${thirdPartyProviders[selectedProvider].color} p-2`}>
+                      {thirdPartyProviders[selectedProvider].icon}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{thirdPartyProviders[selectedProvider].name}</h3>
+                      <p className="text-xs text-muted-foreground">Connected</p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedProvider(null);
+                      setSelectedFiles([]);
+                    }}
+                  >
+                    Disconnect
+                  </Button>
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-4">
+                  <Label>Selected Content ({selectedFiles.length})</Label>
+                  
+                  {selectedFiles.length > 0 ? (
+                    <div className="border rounded-md divide-y">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-3">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <p className="text-sm font-medium">{file}</p>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleRemoveSelectedFile(index)}
+                            className="h-8 w-8"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-300 rounded-md">
+                      <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm font-medium">No files selected</p>
+                      <p className="text-xs text-muted-foreground mt-1 mb-4">Select files to import from {thirdPartyProviders[selectedProvider].name}</p>
+                      <Button variant="outline" size="sm" onClick={() => setShowAuthDialog(true)}>
+                        Browse Files
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        );
     }
   };
 
@@ -279,7 +495,7 @@ const KnowledgeUpload = () => {
               <RadioGroup 
                 value={sourceType} 
                 onValueChange={(value) => setSourceType(value as SourceType)}
-                className="grid grid-cols-4 gap-4 pt-2"
+                className="grid grid-cols-3 md:grid-cols-5 gap-3 pt-2"
               >
                 {Object.entries(sourceConfigs).map(([type, config]) => (
                   <div 
@@ -349,6 +565,112 @@ const KnowledgeUpload = () => {
           </div>
         </CardFooter>
       </Card>
+      
+      {/* Third-Party Authentication Dialog */}
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedProvider 
+                ? `Connect to ${thirdPartyProviders[selectedProvider].name}` 
+                : "Connect to Third-Party Service"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedProvider 
+                ? `Authorize access to your ${thirdPartyProviders[selectedProvider].name} account to import content.`
+                : "Select a service to connect and import content."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {!selectedProvider ? (
+            <div className="grid grid-cols-2 gap-4 py-4">
+              {Object.entries(thirdPartyProviders).map(([id, provider]) => (
+                <Button
+                  key={id}
+                  variant="outline"
+                  className={`h-auto py-4 flex items-center justify-start gap-3 ${provider.color} hover:bg-opacity-80`}
+                  onClick={() => handleConnectThirdParty(id as ThirdPartyProvider)}
+                >
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 p-1.5">
+                    {provider.icon}
+                  </div>
+                  <span>{provider.name}</span>
+                </Button>
+              ))}
+            </div>
+          ) : selectedProvider && !isConnecting ? (
+            <div className="py-4 space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${thirdPartyProviders[selectedProvider].color} p-2`}>
+                    {thirdPartyProviders[selectedProvider].icon}
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{thirdPartyProviders[selectedProvider].name}</h3>
+                    <p className="text-xs text-muted-foreground">You'll be redirected to authorize access</p>
+                  </div>
+                </div>
+                
+                <div className="bg-muted/30 rounded-md p-4">
+                  <p className="text-sm font-medium mb-2">This will allow the application to:</p>
+                  <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
+                    <li>Access and read your files and documents</li>
+                    <li>Import content into your knowledge base</li>
+                    <li>We will never modify or delete your content</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <Tabs defaultValue="recent" className="w-full">
+                <TabsList className="w-full grid grid-cols-3">
+                  <TabsTrigger value="recent">Recent</TabsTrigger>
+                  <TabsTrigger value="shared">Shared</TabsTrigger>
+                  <TabsTrigger value="all">All Files</TabsTrigger>
+                </TabsList>
+                <TabsContent value="recent" className="border rounded-md mt-4 p-4 min-h-[200px] flex items-center justify-center">
+                  <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
+                    Connect to {thirdPartyProviders[selectedProvider].name}
+                  </Button>
+                </TabsContent>
+                <TabsContent value="shared" className="border rounded-md mt-4 p-4 min-h-[200px] flex items-center justify-center">
+                  <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
+                    Connect to {thirdPartyProviders[selectedProvider].name}
+                  </Button>
+                </TabsContent>
+                <TabsContent value="all" className="border rounded-md mt-4 p-4 min-h-[200px] flex items-center justify-center">
+                  <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
+                    Connect to {thirdPartyProviders[selectedProvider].name}
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            </div>
+          ) : (
+            <div className="py-10 flex flex-col items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+              <p className="text-center font-medium">Connecting to {thirdPartyProviders[selectedProvider!].name}...</p>
+              <p className="text-center text-sm text-muted-foreground mt-2">Please wait while we establish a connection.</p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowAuthDialog(false);
+                setIsConnecting(false);
+              }}
+              disabled={isConnecting}
+            >
+              Cancel
+            </Button>
+            {selectedProvider && !isConnecting && (
+              <Button onClick={() => handleConnectThirdParty(selectedProvider)}>
+                Connect
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
