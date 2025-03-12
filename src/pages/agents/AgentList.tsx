@@ -1,151 +1,151 @@
 
 import React from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Bot, Plus, Settings, MessageSquare, MoreVertical, Edit, Trash2, Copy, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Bot, AlertCircle, Plus, Search, Star, Zap } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
 
 const AgentList = () => {
-  // Sample agents data
   const agents = [
     { 
-      id: 1, 
-      name: 'Customer Support Agent', 
-      description: 'Handles customer inquiries and troubleshooting',
-      status: 'Active',
-      type: 'Standard',
-      performance: { accuracy: '92%', response: '1.2s' },
-      lastUpdated: '2 hours ago'
+      id: '1', 
+      name: 'Customer Support', 
+      description: 'General customer support agent', 
+      status: 'active',
+      conversations: 1254,
+      lastModified: '2023-12-10T14:30:00Z',
+      averageRating: 4.8,
     },
     { 
-      id: 2, 
+      id: '2', 
+      name: 'Product Specialist', 
+      description: 'Technical product information and troubleshooting', 
+      status: 'active',
+      conversations: 856,
+      lastModified: '2023-12-05T09:15:00Z',
+      averageRating: 4.6,
+    },
+    { 
+      id: '3', 
       name: 'Sales Assistant', 
-      description: 'Provides product recommendations and answers sales questions',
-      status: 'Active',
-      type: 'Premium',
-      performance: { accuracy: '89%', response: '0.9s' },
-      lastUpdated: '1 day ago'
-    },
-    { 
-      id: 3, 
-      name: 'Technical Support', 
-      description: 'Resolves technical issues and provides guidance',
-      status: 'Inactive',
-      type: 'Standard',
-      performance: { accuracy: '87%', response: '1.5s' },
-      lastUpdated: '3 days ago'
-    },
-    { 
-      id: 4, 
-      name: 'Onboarding Guide', 
-      description: 'Helps new users navigate the platform',
-      status: 'Draft',
-      type: 'Basic',
-      performance: { accuracy: 'N/A', response: 'N/A' },
-      lastUpdated: '5 hours ago'
+      description: 'Helps with product recommendations and sales inquiries', 
+      status: 'inactive',
+      conversations: 532,
+      lastModified: '2023-11-28T16:45:00Z',
+      averageRating: 4.4,
     }
   ];
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
-    <MainLayout 
-      pageTitle="Agent Management" 
-      breadcrumbs={[
-        { label: 'Dashboard', href: '/' },
-        { label: 'Agents', href: '/agents' }
-      ]}
-    >
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">Agent Management</h1>
-            <p className="text-muted-foreground">Create and manage your AI agents</p>
-          </div>
-          <Button asChild>
-            <Link to="/agents/create">
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Agent
-            </Link>
-          </Button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">AI Agents</h1>
+          <p className="text-muted-foreground">Manage and create your AI agents</p>
         </div>
+        <Button as={Link} to="/agents/create">
+          <Plus className="mr-2 h-4 w-4" /> Create Agent
+        </Button>
+      </div>
 
-        <div className="flex items-center space-x-2 w-full max-w-md">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search agents..." className="pl-8" />
-          </div>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2 items-center">
+          <Input
+            placeholder="Search agents..."
+            className="w-[250px]"
+          />
+          <Select defaultValue="all">
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {agents.map((agent) => (
-            <Card key={agent.id} className="flex flex-col">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center">
-                    <div className="mr-2 p-2 rounded-full bg-primary/10">
-                      {agent.status === 'Active' ? (
-                        <Bot className="h-5 w-5 text-primary" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <CardTitle className="text-lg">{agent.name}</CardTitle>
-                  </div>
-                  <Badge className={getStatusColor(agent.status)}>
-                    {agent.status}
-                  </Badge>
-                </div>
-                <CardDescription>{agent.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <div className="text-sm mb-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-muted-foreground">Type:</span>
-                    <span className="font-medium flex items-center">
-                      {agent.type}
-                      {agent.type === 'Premium' && <Star className="ml-1 h-3.5 w-3.5 text-amber-500" />}
-                    </span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-muted-foreground">Accuracy:</span>
-                    <span className="font-medium">{agent.performance.accuracy}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Response Time:</span>
-                    <span className="font-medium">{agent.performance.response}</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center border-t pt-3 mt-3">
-                  <span className="text-xs text-muted-foreground">Updated {agent.lastUpdated}</span>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">Edit</Button>
-                    {agent.status === 'Active' && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to="/agents/test">
-                          <Zap className="mr-1 h-3.5 w-3.5" />
-                          Test
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center text-sm text-muted-foreground">
+          <span>Showing {agents.length} agents</span>
         </div>
       </div>
-    </MainLayout>
+
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {agents.map((agent) => (
+          <Card key={agent.id} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot size={16} className={agent.status === 'active' ? 'text-green-500' : 'text-gray-400'} />
+                    {agent.name}
+                  </CardTitle>
+                  <CardDescription>{agent.description}</CardDescription>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to={`/agents/${agent.id}/edit`}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Play className="h-4 w-4 mr-2" />
+                      Test
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Duplicate
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-red-500">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 text-sm mb-2">
+                <div>
+                  <p className="text-muted-foreground">Status</p>
+                  <Badge variant={agent.status === 'active' ? "success" : "secondary"} className="mt-1">
+                    {agent.status === 'active' ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Conversations</p>
+                  <p className="font-medium mt-1">{agent.conversations.toLocaleString()}</p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="border-t bg-muted/50 flex justify-between">
+              <Button variant="ghost" size="sm" asChild>
+                <Link to={`/agents/${agent.id}/edit`}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Test Chat
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 };
 
