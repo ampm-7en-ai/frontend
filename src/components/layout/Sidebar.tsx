@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Home,
@@ -17,6 +16,8 @@ import {
   ExternalLink,
   Palette,
   Plus,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 
 interface SidebarProps {
@@ -254,6 +256,60 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           </div>
         )}
       </nav>
+
+      <div className="mt-auto p-4 border-t border-medium-gray/10">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button 
+              variant="default"
+              className={`w-full ${isCollapsed ? 'p-2' : ''} flex items-center justify-center gap-2`}
+            >
+              {isCollapsed ? (
+                <Plus className="h-5 w-5" />
+              ) : (
+                <>
+                  <Plus className="h-5 w-5" />
+                  New Agent
+                </>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                Create New Agent
+              </SheetTitle>
+              <SheetDescription>
+                Give your agent a name to get started. You can configure additional settings later.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="py-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="agentName">Agent Name</Label>
+                  <Input
+                    id="agentName"
+                    placeholder="Enter agent name"
+                    value={newAgentName}
+                    onChange={(e) => {
+                      setNewAgentName(e.target.value);
+                      setAgentNameError(false);
+                    }}
+                    className={agentNameError ? "border-red-500" : ""}
+                  />
+                  {agentNameError && (
+                    <p className="text-sm text-red-500">Please enter an agent name</p>
+                  )}
+                </div>
+                <Button onClick={handleCreateAgent} className="w-full">
+                  Create Agent
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
     </div>
   );
 };
