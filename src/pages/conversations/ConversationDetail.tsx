@@ -89,6 +89,18 @@ const ConversationDetail = () => {
     setNewMessage('');
   };
 
+  // Helper function to determine badge variant based on status
+  const getBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'default'; // Use default instead of success
+      case 'pending':
+        return 'secondary'; // Use secondary instead of warning
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <MainLayout 
       pageTitle={`Conversation with ${conversation.customer}`}
@@ -108,7 +120,7 @@ const ConversationDetail = () => {
               </Link>
             </Button>
             <div className="flex gap-2">
-              <Badge variant={conversation.status === 'active' ? 'success' : conversation.status === 'pending' ? 'warning' : 'secondary'}>
+              <Badge variant={getBadgeVariant(conversation.status)}>
                 {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
               </Badge>
               <Button variant="outline" size="sm">
