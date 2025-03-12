@@ -1,23 +1,19 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, MessageSquare, MoreVertical, Edit, Trash2, Copy, Play, BookOpen, Search, Bookmark, Brain, AlertTriangle, Rocket } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from 'react-router-dom';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Bot, MessageSquare, Search, Bookmark, Brain, Rocket, Edit } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
+import AgentCard from '@/components/agents/AgentCard';
+import AgentTable from '@/components/agents/AgentTable';
 
 const AgentList = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [modelFilter, setModelFilter] = useState('all');
-
-  const agents = [
+  
+  // Mock data - in a real app, this would come from an API
+  const agents: Agent[] = [
     { 
       id: '1', 
       name: 'Customer Support', 
@@ -62,47 +58,14 @@ const AgentList = () => {
     }
   ];
 
-  const filteredAgents = agents
-    .filter(agent => agent.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                     agent.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter(agent => modelFilter === 'all' || agent.model === modelFilter);
-
-  const renderKnowledgeSourceBadge = (source: any) => {
-    return (
-      <TooltipProvider key={source.id}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className={`inline-flex items-center gap-1 px-2 py-1 mr-2 mb-2 rounded-md text-xs ${
-              source.hasError 
-                ? 'bg-red-50 text-red-700 border border-red-200' 
-                : 'bg-blue-50 text-blue-700 border border-blue-200'
-            }`}>
-              {source.hasError ? (
-                <AlertTriangle className="h-3 w-3 text-red-500" />
-              ) : (
-                <BookOpen className="h-3 w-3" />
-              )}
-              {source.name}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            {source.hasError 
-              ? 'Knowledge source needs retraining' 
-              : `Type: ${source.type}`}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  };
-
-  const getModelBadgeColor = (model: string) => {
-    switch(model) {
-      case 'gpt-4': return "bg-purple-100 text-purple-800 hover:bg-purple-200";
-      case 'gpt-3.5': return "bg-green-100 text-green-800 hover:bg-green-200";
-      case 'claude-3': return "bg-orange-100 text-orange-800 hover:bg-orange-200";
-      default: return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-    }
-  };
+  const { 
+    searchQuery, 
+    setSearchQuery, 
+    modelFilter, 
+    setModelFilter, 
+    filteredAgents, 
+    getModelBadgeColor 
+  } = useAgentFiltering(agents);
 
   return (
     <div className="space-y-6">
@@ -182,200 +145,18 @@ const AgentList = () => {
           {viewMode === 'grid' ? (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAgents.map((agent) => (
-                <Card key={agent.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border group">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                          <div className="p-2 rounded-full bg-primary/10">
-                            <Bot size={18} className="text-primary" />
-                          </div>
-                          {agent.name}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-2">{agent.description}</CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {agent.isDeployed && (
-                          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
-                            <Rocket className="h-3 w-3 mr-1" />
-                            Live
-                          </Badge>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to={`/agents/${agent.id}/edit`}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Copy className="h-4 w-4 mr-2" />
-                              Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-500">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pb-2">
-                    <div className="space-y-4">
-                      <div>
-                        <Badge variant="outline" className={getModelBadgeColor(agent.model)}>
-                          <Brain className="h-3 w-3 mr-1" />
-                          {agent.model}
-                        </Badge>
-                      </div>
-                      
-                      <div>
-                        <div className="text-sm font-medium mb-2 text-muted-foreground">Knowledge Sources</div>
-                        <div className="flex flex-wrap">
-                          {agent.knowledgeSources.map(renderKnowledgeSourceBadge)}
-                        </div>
-                        
-                        {agent.knowledgeSources.some(source => source.hasError) && (
-                          <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" />
-                            Some knowledge sources need retraining
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="text-sm flex items-center justify-between text-muted-foreground">
-                        <div>
-                          <span className="font-medium">{agent.conversations.toLocaleString()}</span> conversations
-                        </div>
-                        <div>
-                          Last updated: {new Date(agent.lastModified).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                  
-                  <CardFooter className="flex justify-between gap-2 p-4 pt-2 mt-2 border-t bg-muted/30">
-                    <Button variant="outline" size="sm" className="w-1/2" asChild>
-                      <Link to={`/agents/${agent.id}/test`}>
-                        <Play className="h-4 w-4 mr-1" />
-                        Test
-                      </Link>
-                    </Button>
-                    <Button variant={agent.isDeployed ? "secondary" : "default"} size="sm" className="w-1/2">
-                      <Rocket className="h-4 w-4 mr-1" />
-                      {agent.isDeployed ? 'Deployed' : 'Deploy'}
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <AgentCard 
+                  key={agent.id} 
+                  agent={agent}
+                  getModelBadgeColor={getModelBadgeColor}
+                />
               ))}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead>Knowledge Sources</TableHead>
-                  <TableHead>Conversations</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAgents.map((agent) => (
-                  <TableRow key={agent.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Bot size={16} className="text-primary" />
-                        <div>
-                          <div className="font-medium">{agent.name}</div>
-                          <div className="text-sm text-muted-foreground">{agent.description}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getModelBadgeColor(agent.model)}>
-                        <Brain className="h-3 w-3 mr-1" />
-                        {agent.model}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap">
-                        {agent.knowledgeSources.map(renderKnowledgeSourceBadge)}
-                        {agent.knowledgeSources.some(source => source.hasError) && (
-                          <div className="w-full mt-1 text-xs text-red-600 flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" />
-                            Needs retraining
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{agent.conversations.toLocaleString()}</TableCell>
-                    <TableCell>
-                      {agent.isDeployed ? (
-                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
-                          <Rocket className="h-3 w-3 mr-1" />
-                          Live
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200">
-                          Draft
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/agents/${agent.id}/test`}>
-                            <Play className="h-4 w-4 mr-1" />
-                            Test
-                          </Link>
-                        </Button>
-                        <Button 
-                          variant={agent.isDeployed ? "secondary" : "default"} 
-                          size="sm"
-                        >
-                          <Rocket className="h-4 w-4 mr-1" />
-                          {agent.isDeployed ? 'Deployed' : 'Deploy'}
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to={`/agents/${agent.id}/edit`}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Copy className="h-4 w-4 mr-2" />
-                              Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-500">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <AgentTable 
+              agents={filteredAgents}
+              getModelBadgeColor={getModelBadgeColor}
+            />
           )}
         </TabsContent>
 
