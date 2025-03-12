@@ -33,6 +33,7 @@ const KnowledgeBase = () => {
       pages: 24,
       agents: ['Sales Bot', 'Support Bot', 'Marketing Bot'],
       uploadedAt: '2023-06-01T10:15:00',
+      provider: null
     },
     {
       id: 'd2',
@@ -43,6 +44,7 @@ const KnowledgeBase = () => {
       pages: 12,
       agents: ['Sales Bot', 'Support Bot'],
       uploadedAt: '2023-06-02T14:30:00',
+      provider: null
     },
     {
       id: 'd3',
@@ -53,6 +55,7 @@ const KnowledgeBase = () => {
       pages: 48,
       agents: ['Support Bot', 'Technical Bot'],
       uploadedAt: '2023-06-05T09:45:00',
+      provider: null
     },
     {
       id: 'd4',
@@ -63,6 +66,7 @@ const KnowledgeBase = () => {
       pageCount: 16,
       agents: ['Sales Bot', 'Marketing Bot'],
       uploadedAt: '2023-05-28T16:20:00',
+      provider: null
     },
     {
       id: 'd5',
@@ -73,6 +77,7 @@ const KnowledgeBase = () => {
       rowCount: 1250,
       agents: ['Analytics Bot', 'Sales Bot'],
       uploadedAt: '2023-05-15T11:30:00',
+      provider: null
     },
     {
       id: 'd6',
@@ -83,6 +88,29 @@ const KnowledgeBase = () => {
       pages: 8,
       agents: ['Support Bot', 'Onboarding Bot'],
       uploadedAt: '2023-06-10T09:20:00',
+      provider: null
+    },
+    {
+      id: 'd7',
+      title: 'Sales Training Documents',
+      type: 'gdrive',
+      sourceType: 'thirdParty',
+      size: '5.2 MB',
+      pages: 45,
+      agents: ['Sales Bot', 'Training Bot'],
+      uploadedAt: '2023-06-15T14:20:00',
+      provider: 'googleDrive'
+    },
+    {
+      id: 'd8',
+      title: 'Customer Support Channels',
+      type: 'slack',
+      sourceType: 'thirdParty',
+      size: 'N/A',
+      messages: 2500,
+      agents: ['Support Bot'],
+      uploadedAt: '2023-06-16T11:30:00',
+      provider: 'slack'
     }
   ];
 
@@ -113,6 +141,26 @@ const KnowledgeBase = () => {
         return <FileSpreadsheet className="h-4 w-4 text-emerald-600" />;
       case 'plainText':
         return <Book className="h-4 w-4 text-purple-600" />;
+      case 'thirdParty':
+        if (doc.provider === 'googleDrive') {
+          return (
+            <svg className="h-4 w-4" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+              <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+              <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+              <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+              <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+              <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+              <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+            </svg>
+          );
+        } else if (doc.provider === 'slack') {
+          return (
+            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A">
+              <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+            </svg>
+          );
+        }
+        return <FileText className="h-4 w-4 text-gray-600" />;
       default:
         return <FileText className="h-4 w-4 text-gray-600" />;
     }
@@ -128,6 +176,15 @@ const KnowledgeBase = () => {
         return 'bg-emerald-100';
       case 'plainText':
         return 'bg-purple-100';
+      case 'thirdParty':
+        switch (doc.provider) {
+          case 'googleDrive':
+            return 'bg-blue-50';
+          case 'slack':
+            return 'bg-pink-50';
+          default:
+            return 'bg-gray-100';
+        }
       default:
         return 'bg-gray-100';
     }
@@ -152,6 +209,9 @@ const KnowledgeBase = () => {
         return `${doc.pageCount} pages`;
       case 'spreadsheet':
         return `${doc.rowCount} rows`;
+      case 'thirdParty':
+        if (doc.messages) return `${doc.messages} messages`;
+        return `${doc.pages} pages`;
       default:
         return doc.size;
     }
@@ -298,6 +358,7 @@ const KnowledgeBase = () => {
               <SelectItem value="website">Websites</SelectItem>
               <SelectItem value="spreadsheet">Spreadsheets</SelectItem>
               <SelectItem value="plainText">Plain Text</SelectItem>
+              <SelectItem value="thirdParty">Third Party</SelectItem>
             </SelectContent>
           </Select>
           <Button asChild className="flex items-center gap-1">
@@ -309,7 +370,7 @@ const KnowledgeBase = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-1">
@@ -359,6 +420,23 @@ const KnowledgeBase = () => {
           <CardContent>
             <div className="text-3xl font-bold">{plainTextCount}</div>
             <div className="text-sm text-muted-foreground">Plain text files</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-1">
+              <svg className="h-4 w-4 text-blue-600" viewBox="0 0 87.3 78">
+                <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="currentColor"/>
+                <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="currentColor"/>
+                <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="currentColor"/>
+              </svg>
+              Third Party
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{documents.filter(d => d.sourceType === 'thirdParty').length}</div>
+            <div className="text-sm text-muted-foreground">Google Drive, Slack, etc.</div>
           </CardContent>
         </Card>
       </div>
