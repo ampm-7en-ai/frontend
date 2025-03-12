@@ -5,47 +5,91 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Building, Users, Bot, MessageSquare, ChevronRight, BarChart2, Zap, Shield, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import DashboardStatsGrid, { StatCardProps } from '@/components/layout/DashboardStatsGrid';
 
 const SuperAdminDashboard = () => {
-  const dashboardStats: StatCardProps[] = [
-    {
-      icon: <Building className="mr-2 h-4 w-4 text-primary" />,
-      title: "Total Businesses",
-      value: 24,
-      change: "+3 from last month",
-      route: "/businesses",
-      linkText: "View all"
-    },
-    {
-      icon: <Users className="mr-2 h-4 w-4 text-primary" />,
-      title: "Domain Experts",
-      value: 48,
-      change: "+7 from last month",
-      route: "/users",
-      linkText: "View all"
-    },
-    {
-      icon: <Bot className="mr-2 h-4 w-4 text-primary" />,
-      title: "Active Agents",
-      value: 187,
-      change: "+15 from last month",
-      route: "/analytics",
-      linkText: "View stats"
-    },
-    {
-      icon: <Zap className="mr-2 h-4 w-4 text-primary" />,
-      title: "Monthly Revenue",
-      value: "$47,500",
-      change: "+12% from last month",
-      route: "/settings/platform/billing",
-      linkText: "View billing"
-    }
-  ];
-
   return (
     <div className="space-y-6">
-      <DashboardStatsGrid stats={dashboardStats} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Building className="mr-2 h-4 w-4 text-primary" />
+              Total Businesses
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">24</div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-muted-foreground">+3 from last month</p>
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                <Link to="/businesses" className="flex items-center">
+                  View all <ChevronRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="mr-2 h-4 w-4 text-primary" />
+              Domain Experts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">48</div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-muted-foreground">+7 from last month</p>
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                <Link to="/users" className="flex items-center">
+                  View all <ChevronRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Bot className="mr-2 h-4 w-4 text-primary" />
+              Active Agents
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">187</div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-muted-foreground">+15 from last month</p>
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                <Link to="/analytics" className="flex items-center">
+                  View stats <ChevronRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Zap className="mr-2 h-4 w-4 text-primary" />
+              Monthly Revenue
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">$47,500</div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-muted-foreground">+12% from last month</p>
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                <Link to="/settings/platform/billing" className="flex items-center">
+                  View billing <ChevronRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
