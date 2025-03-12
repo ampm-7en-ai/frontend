@@ -33,7 +33,6 @@ const KnowledgeUpload = () => {
   const [url, setUrl] = useState('');
   const [plainText, setPlainText] = useState('');
 
-  // Source type configurations
   const sourceConfigs: Record<SourceType, SourceConfig> = {
     url: {
       icon: <Globe className="h-5 w-5" />,
@@ -61,7 +60,6 @@ const KnowledgeUpload = () => {
     }
   };
 
-  // Reset files when source type changes
   useEffect(() => {
     setFiles([]);
   }, [sourceType]);
@@ -69,7 +67,7 @@ const KnowledgeUpload = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
-      setFiles(fileList); // Replace previous files instead of appending
+      setFiles(fileList);
     }
   };
 
@@ -99,7 +97,6 @@ const KnowledgeUpload = () => {
     
     let canUpload = false;
     
-    // Validate based on source type
     switch(sourceType) {
       case 'url':
         canUpload = !!url;
@@ -141,7 +138,6 @@ const KnowledgeUpload = () => {
     setIsUploading(true);
     setProgress(0);
     
-    // In a real application, you would upload to your backend
     console.log('Uploading:', {
       sourceType,
       documentName,
@@ -150,7 +146,6 @@ const KnowledgeUpload = () => {
       plainText
     });
     
-    // Simulate upload progress
     simulateProgress();
   };
 

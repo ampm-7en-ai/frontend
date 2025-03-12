@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
 const KnowledgeBase = () => {
@@ -78,7 +79,7 @@ const KnowledgeBase = () => {
       id: 'd6',
       title: 'Help Documentation',
       type: 'txt',
-      sourceType: 'text',
+      sourceType: 'plainText',
       size: '0.3 MB',
       pages: 8,
       agents: ['Support Bot', 'Onboarding Bot'],
@@ -99,7 +100,7 @@ const KnowledgeBase = () => {
   const documentCount = documents.filter(d => d.sourceType === 'document').length;
   const websiteCount = documents.filter(d => d.sourceType === 'website').length;
   const spreadsheetCount = documents.filter(d => d.sourceType === 'spreadsheet').length;
-  const textCount = documents.filter(d => d.sourceType === 'text').length;
+  const plainTextCount = documents.filter(d => d.sourceType === 'plainText').length;
 
   const renderSourceIcon = (doc) => {
     switch (doc.sourceType) {
@@ -111,7 +112,7 @@ const KnowledgeBase = () => {
         return <Globe className="h-4 w-4 text-green-600" />;
       case 'spreadsheet':
         return <FileSpreadsheet className="h-4 w-4 text-emerald-600" />;
-      case 'text':
+      case 'plainText':
         return <Book className="h-4 w-4 text-purple-600" />;
       default:
         return <FileText className="h-4 w-4 text-gray-600" />;
@@ -126,7 +127,7 @@ const KnowledgeBase = () => {
         return 'bg-green-100';
       case 'spreadsheet':
         return 'bg-emerald-100';
-      case 'text':
+      case 'plainText':
         return 'bg-purple-100';
       default:
         return 'bg-gray-100';
@@ -146,7 +147,7 @@ const KnowledgeBase = () => {
   const renderMetric = (doc) => {
     switch (doc.sourceType) {
       case 'document':
-      case 'text':
+      case 'plainText':
         return `${doc.pages} pages`;
       case 'website':
         return `${doc.pageCount} pages`;
@@ -170,10 +171,15 @@ const KnowledgeBase = () => {
       newFile,
       sourceType: editingDocument?.sourceType
     });
+    
+    // Reset states after closing
     setIsEditDialogOpen(false);
-    setEditingDocument(null);
-    setNewUrl('');
-    setNewFile(null);
+    // Use setTimeout to allow the dialog to fully close before resetting states
+    setTimeout(() => {
+      setEditingDocument(null);
+      setNewUrl('');
+      setNewFile(null);
+    }, 300);
   };
 
   const handleFileChange = (e) => {
@@ -186,10 +192,21 @@ const KnowledgeBase = () => {
     if (!editingDocument) return null;
 
     return (
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open) {
+          // Reset states after dialog is closed
+          setTimeout(() => {
+            setEditingDocument(null);
+            setNewUrl('');
+            setNewFile(null);
+          }, 300);
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit {editingDocument.title}</DialogTitle>
+            <DialogDescription>Update your knowledge source</DialogDescription>
           </DialogHeader>
           
           {editingDocument.sourceType === 'website' ? (
@@ -262,7 +279,7 @@ const KnowledgeBase = () => {
               <SelectItem value="document">Documents</SelectItem>
               <SelectItem value="website">Websites</SelectItem>
               <SelectItem value="spreadsheet">Spreadsheets</SelectItem>
-              <SelectItem value="text">Text</SelectItem>
+              <SelectItem value="plainText">Plain Text</SelectItem>
             </SelectContent>
           </Select>
           <Button asChild className="flex items-center gap-1">
@@ -318,11 +335,11 @@ const KnowledgeBase = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-1">
               <Book className="h-4 w-4 text-purple-600" />
-              Text
+              Plain Text
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{textCount}</div>
+            <div className="text-3xl font-bold">{plainTextCount}</div>
             <div className="text-sm text-muted-foreground">Plain text files</div>
           </CardContent>
         </Card>
