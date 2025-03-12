@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Home,
@@ -35,6 +36,16 @@ interface SidebarProps {
   isCollapsed: boolean;
 }
 
+// Define an interface for the sidebar items
+interface SidebarItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  children?: { label: string; href: string }[];
+  action?: React.ReactNode;
+}
+
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -70,11 +81,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     navigate('/agents');
   };
 
-  const commonItems = [
+  const commonItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home },
   ];
 
-  const adminItems = [
+  const adminItems: SidebarItem[] = [
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
     { 
       id: 'agents', 
@@ -138,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
   ];
 
-  const superAdminItems = [
+  const superAdminItems: SidebarItem[] = [
     { 
       id: 'business-management',
       label: 'Businesses', 
