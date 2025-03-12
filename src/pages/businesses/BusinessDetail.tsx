@@ -2,309 +2,294 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import {
-  Building,
-  Users,
-  Bot,
-  Book,
-  Settings,
-  CreditCard,
-  LineChart,
-  AlertTriangle,
-  Calendar,
-  Mail,
-  Phone,
-  Globe,
-  MapPin,
-  Edit,
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { 
+  Building, 
+  ChevronLeft, 
+  Clock, 
+  CreditCard, 
+  Edit, 
+  Globe, 
+  Mail, 
+  MoreHorizontal, 
+  Phone, 
+  Shield, 
+  Tag, 
+  Trash, 
+  User, 
+  Users 
 } from 'lucide-react';
 
-// Mock business data
-const businessData = {
-  b1: {
-    id: 'b1',
-    name: 'TechNova Solutions',
-    description: 'Enterprise software solutions focusing on AI and machine learning applications.',
-    industry: 'Technology',
-    subscription: 'Enterprise',
-    status: 'Active',
-    logo: '',
-    website: 'technova.example.com',
-    email: 'contact@technova.example.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Innovation Way, San Francisco, CA 94107',
-    createdAt: '2023-01-15',
-    agents: 12,
-    users: 24,
-    storage: '84%',
-    apiCalls: '12,456 / month',
-    lastPayment: '$1,499 on May 1, 2023',
-    nextBilling: 'June 1, 2023',
-  },
-  b2: {
-    id: 'b2',
-    name: 'MediaWorks Agency',
-    description: 'Digital marketing and content creation agency specializing in brand development.',
-    industry: 'Marketing',
-    subscription: 'Professional',
-    status: 'Active',
-    logo: '',
-    website: 'mediaworks.example.com',
-    email: 'hello@mediaworks.example.com',
-    phone: '+1 (555) 987-6543',
-    address: '456 Creative Blvd, New York, NY 10001',
-    createdAt: '2023-03-10',
-    agents: 8,
-    users: 15,
-    storage: '56%',
-    apiCalls: '8,765 / month',
-    lastPayment: '$699 on May 5, 2023',
-    nextBilling: 'June 5, 2023',
-  },
-};
-
 const BusinessDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const business = businessData[id as keyof typeof businessData] || businessData.b1;
+  const { businessId } = useParams<{ businessId: string }>();
+
+  // Sample business data
+  const business = {
+    id: businessId,
+    name: 'Acme Corporation',
+    domain: 'acmecorp.com',
+    email: 'admin@acmecorp.com',
+    phone: '+1 (555) 123-4567',
+    plan: 'enterprise',
+    status: 'active',
+    billingCycle: 'annual',
+    nextBillingDate: '2024-01-15',
+    createdAt: '2023-01-15T10:30:00',
+    logoUrl: '', // Empty for now, would be a URL to logo image
+    admins: [
+      { id: 'a1', name: 'John Smith', email: 'john@acmecorp.com', role: 'Admin', lastActive: '2023-06-10T08:45:00' },
+      { id: 'a2', name: 'Sarah Johnson', email: 'sarah@acmecorp.com', role: 'Admin', lastActive: '2023-06-09T16:20:00' },
+      { id: 'a3', name: 'Michael Brown', email: 'michael@acmecorp.com', role: 'Admin', lastActive: '2023-06-08T12:15:00' },
+    ],
+    agents: [
+      { id: 'ag1', name: 'Sales Assistant', type: 'sales', status: 'active', conversations: 128 },
+      { id: 'ag2', name: 'Support Helper', type: 'support', status: 'active', conversations: 256 },
+      { id: 'ag3', name: 'Product Specialist', type: 'product', status: 'inactive', conversations: 64 },
+    ]
+  };
 
   return (
     <MainLayout 
-      pageTitle={business.name} 
+      pageTitle={business.name}
       breadcrumbs={[
-        { label: 'Dashboard', href: '/' },
+        { label: 'Dashboard', href: '/dashboard' },
         { label: 'Businesses', href: '/businesses' },
-        { label: business.name, href: `/businesses/${business.id}` }
+        { label: business.name, href: `/businesses/${businessId}` },
       ]}
     >
       <div className="space-y-6">
-        {/* Business Header */}
-        <div className="flex flex-col md:flex-row justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Building className="h-8 w-8 text-primary" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold">{business.name}</h1>
-                <Badge variant={business.status === 'Active' ? 'default' : 'secondary'}>
-                  {business.status}
-                </Badge>
-              </div>
-              <p className="text-muted-foreground mt-1">{business.description}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline">{business.industry}</Badge>
-                <Badge variant="outline" className="font-semibold">{business.subscription} Plan</Badge>
-                <span className="text-sm text-muted-foreground">Since {business.createdAt}</span>
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center justify-between">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/businesses" className="flex items-center gap-1">
+              <ChevronLeft className="h-4 w-4" />
+              Back to Businesses
+            </Link>
+          </Button>
           <div className="flex gap-2">
-            <Button variant="outline">Manage Users</Button>
-            <Button>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Business
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
+            <Button variant="outline" size="sm" className="text-destructive flex items-center gap-1">
+              <Trash className="h-4 w-4" />
+              Delete
             </Button>
           </div>
         </div>
-
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="agents">Agents</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Business Information</CardTitle>
+              <CardDescription>Detailed information about this business account.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Business Name</h3>
+                    <p className="text-lg font-medium">{business.name}</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-medium">Email</h3>
+                      <p>{business.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-medium">Phone</h3>
+                      <p>{business.phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-medium">Domain</h3>
+                      <p>{business.domain}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Status</h3>
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                      Active
+                    </Badge>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Tag className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-medium">Subscription Plan</h3>
+                      <p className="capitalize">{business.plan}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CreditCard className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-medium">Billing Cycle</h3>
+                      <p className="capitalize">{business.billingCycle}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-medium">Next Billing Date</h3>
+                      <p>{new Date(business.nextBillingDate).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Separator className="my-6" />
+              <div>
+                <h3 className="text-sm font-medium mb-2">Account Created</h3>
+                <p>{new Date(business.createdAt).toLocaleString()}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Statistics</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-center">
+                <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <Building className="h-12 w-12 text-primary" />
+                </div>
+                <h2 className="text-xl font-bold">{business.name}</h2>
+                <p className="text-sm text-muted-foreground">{business.domain}</p>
+              </div>
+              
+              <Separator />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{business.admins.length}</div>
+                  <div className="text-sm text-muted-foreground">Admins</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{business.agents.length}</div>
+                  <div className="text-sm text-muted-foreground">Agents</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">384</div>
+                  <div className="text-sm text-muted-foreground">Conversations</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">12</div>
+                  <div className="text-sm text-muted-foreground">Documents</div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex-col space-y-2">
+              <Button variant="outline" className="w-full">View Usage Analytics</Button>
+              <Button variant="outline" className="w-full">Manage Subscription</Button>
+            </CardFooter>
+          </Card>
+        </div>
+        
+        <Tabs defaultValue="admins" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="admins" className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              Admins
+            </TabsTrigger>
+            <TabsTrigger value="agents" className="flex items-center gap-1">
+              <Shield className="h-4 w-4" />
+              Agents
+            </TabsTrigger>
           </TabsList>
-          
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-medium flex items-center">
-                    <Users className="h-4 w-4 mr-2" />
-                    Users
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{business.users}</div>
-                  <p className="text-xs text-muted-foreground">Total account users</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-medium flex items-center">
-                    <Bot className="h-4 w-4 mr-2" />
-                    Agents
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{business.agents}</div>
-                  <p className="text-xs text-muted-foreground">Active AI agents</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-medium flex items-center">
-                    <Book className="h-4 w-4 mr-2" />
-                    Storage
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{business.storage}</div>
-                  <p className="text-xs text-muted-foreground">Storage usage</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="md:col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-lg">API Usage</CardTitle>
-                  <CardDescription>Monthly API calls</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-semibold mb-2">{business.apiCalls}</div>
-                  <div className="h-[200px] flex items-center justify-center bg-muted/20 rounded-md">
-                    [API Usage Chart]
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="md:col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-lg">Contact Information</CardTitle>
-                  <CardDescription>Business details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Globe className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Website</p>
-                      <a href={`https://${business.website}`} className="text-sm text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                        {business.website}
-                      </a>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Email</p>
-                      <a href={`mailto:${business.email}`} className="text-sm text-blue-600 hover:underline">
-                        {business.email}
-                      </a>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Phone</p>
-                      <p className="text-sm">{business.phone}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Address</p>
-                      <p className="text-sm">{business.address}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
+          <TabsContent value="admins">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Subscription Details</CardTitle>
-                <CardDescription>Plan and billing information</CardDescription>
+              <CardHeader className="flex-row justify-between items-center">
+                <CardTitle>Business Administrators</CardTitle>
+                <Button size="sm">Add Admin</Button>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Plan</h3>
-                    <p className="font-semibold">{business.subscription}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Last Payment</h3>
-                    <p className="font-semibold">{business.lastPayment}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Next Billing Date</h3>
-                    <p className="font-semibold">{business.nextBilling}</p>
-                  </div>
-                </div>
-                <Separator className="my-6" />
-                <div className="flex justify-between">
-                  <Button variant="outline" size="sm">View Invoices</Button>
-                  <Button variant="default" size="sm">Manage Subscription</Button>
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Last Active</TableHead>
+                      <TableHead className="w-20"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {business.admins.map((admin) => (
+                      <TableRow key={admin.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {admin.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{admin.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{admin.email}</TableCell>
+                        <TableCell>{admin.role}</TableCell>
+                        <TableCell>{new Date(admin.lastActive).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
-          
-          {/* Placeholder content for other tabs */}
-          <TabsContent value="users" className="space-y-6">
+          <TabsContent value="agents">
             <Card>
-              <CardHeader>
-                <CardTitle>Business Users</CardTitle>
-                <CardDescription>Users associated with this business</CardDescription>
+              <CardHeader className="flex-row justify-between items-center">
+                <CardTitle>Business AI Agents</CardTitle>
+                <Button size="sm">Add Agent</Button>
               </CardHeader>
               <CardContent>
-                <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-md">
-                  [Business Users Table]
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="agents" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Business Agents</CardTitle>
-                <CardDescription>AI agents deployed for this business</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-md">
-                  [Business Agents List]
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="billing" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing History</CardTitle>
-                <CardDescription>Subscription and payment information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-md">
-                  [Billing History Table]
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Business Settings</CardTitle>
-                <CardDescription>Configuration and permissions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-md">
-                  [Business Settings Form]
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Agent Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Conversations</TableHead>
+                      <TableHead className="w-20"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {business.agents.map((agent) => (
+                      <TableRow key={agent.id}>
+                        <TableCell className="font-medium">{agent.name}</TableCell>
+                        <TableCell className="capitalize">{agent.type}</TableCell>
+                        <TableCell>
+                          <Badge variant={agent.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                            {agent.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{agent.conversations}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
