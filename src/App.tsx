@@ -16,6 +16,19 @@ import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import ChatbotSettings from './pages/settings/business/ChatboxSettings';
 import { ProtectedRoute, getDashboardPath } from './utils/routeUtils';
 
+// Import the new pages
+import BusinessList from './pages/businesses/BusinessList';
+import BusinessDetail from './pages/businesses/BusinessDetail';
+import UserList from './pages/users/UserList';
+import UserDetail from './pages/users/UserDetail';
+import PlatformAnalytics from './pages/analytics/PlatformAnalytics';
+import ConversationList from './pages/conversations/ConversationList';
+import ConversationDetail from './pages/conversations/ConversationDetail';
+import KnowledgeBase from './pages/knowledge/KnowledgeBase';
+import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
+import Documentation from './pages/help/Documentation';
+import SupportTicket from './pages/help/SupportTicket';
+
 // Dashboard router component to manage conditional dashboard rendering
 const DashboardRouter = () => {
   const { user } = useAuth();
@@ -62,6 +75,49 @@ function App() {
           <Route path="/agents/create" element={<AgentCreate />} />
           <Route path="/agents/:agentId/test" element={<AgentTest />} />
           <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
+          
+          {/* Business routes */}
+          <Route path="/businesses" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <BusinessList />
+            </ProtectedRoute>
+          } />
+          <Route path="/businesses/:businessId" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <BusinessDetail />
+            </ProtectedRoute>
+          } />
+          
+          {/* User routes */}
+          <Route path="/users" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <UserList />
+            </ProtectedRoute>
+          } />
+          <Route path="/users/:userId" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <UserDetail />
+            </ProtectedRoute>
+          } />
+          
+          {/* Analytics route */}
+          <Route path="/analytics" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <PlatformAnalytics />
+            </ProtectedRoute>
+          } />
+          
+          {/* Conversation routes */}
+          <Route path="/conversations" element={<ConversationList />} />
+          <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
+          
+          {/* Knowledge base routes */}
+          <Route path="/knowledge" element={<KnowledgeBase />} />
+          <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
+          
+          {/* Help routes */}
+          <Route path="/help/documentation" element={<Documentation />} />
+          <Route path="/help/support" element={<SupportTicket />} />
           
           {/* Settings routes */}
           <Route path="/settings/business/agents" element={<AgentSettings />} />
