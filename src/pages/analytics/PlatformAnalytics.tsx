@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,9 +6,53 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart2, Building, Calendar, CreditCard, Download, MessageSquare, TrendingUp, Users } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import DashboardStatsGrid, { StatCardProps } from '@/components/layout/DashboardStatsGrid';
 
 const PlatformAnalytics = () => {
   const { user } = useAuth();
+
+  const analyticsStats: StatCardProps[] = [
+    {
+      icon: <Building className="h-4 w-4 text-primary mr-1" />,
+      title: "Businesses",
+      value: 156,
+      change: <div className="flex items-center mt-1 text-xs">
+        <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
+        <span className="text-green-600 font-medium">+12%</span>
+        <span className="text-muted-foreground ml-1">vs last period</span>
+      </div>
+    },
+    {
+      icon: <Users className="h-4 w-4 text-primary mr-1" />,
+      title: "Users",
+      value: 2843,
+      change: <div className="flex items-center mt-1 text-xs">
+        <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
+        <span className="text-green-600 font-medium">+5.2%</span>
+        <span className="text-muted-foreground ml-1">vs last period</span>
+      </div>
+    },
+    {
+      icon: <MessageSquare className="h-4 w-4 text-primary mr-1" />,
+      title: "Conversations",
+      value: 24328,
+      change: <div className="flex items-center mt-1 text-xs">
+        <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
+        <span className="text-green-600 font-medium">+18.3%</span>
+        <span className="text-muted-foreground ml-1">vs last period</span>
+      </div>
+    },
+    {
+      icon: <CreditCard className="h-4 w-4 text-primary mr-1" />,
+      title: "Revenue",
+      value: "$126,580",
+      change: <div className="flex items-center mt-1 text-xs">
+        <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
+        <span className="text-green-600 font-medium">+7.4%</span>
+        <span className="text-muted-foreground ml-1">vs last period</span>
+      </div>
+    }
+  ];
 
   return (
     <MainLayout 
@@ -45,75 +88,7 @@ const PlatformAnalytics = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-1">
-                <Building className="h-4 w-4 text-primary" />
-                Businesses
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">156</div>
-              <div className="flex items-center mt-1 text-xs">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-green-600 font-medium">+12%</span>
-                <span className="text-muted-foreground ml-1">vs last period</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-1">
-                <Users className="h-4 w-4 text-primary" />
-                Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">2,843</div>
-              <div className="flex items-center mt-1 text-xs">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-green-600 font-medium">+5.2%</span>
-                <span className="text-muted-foreground ml-1">vs last period</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-1">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                Conversations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">24,328</div>
-              <div className="flex items-center mt-1 text-xs">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-green-600 font-medium">+18.3%</span>
-                <span className="text-muted-foreground ml-1">vs last period</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-1">
-                <CreditCard className="h-4 w-4 text-primary" />
-                Revenue
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">$126,580</div>
-              <div className="flex items-center mt-1 text-xs">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-green-600 font-medium">+7.4%</span>
-                <span className="text-muted-foreground ml-1">vs last period</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <DashboardStatsGrid stats={analyticsStats} />
         
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="mb-4">
