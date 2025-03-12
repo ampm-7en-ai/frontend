@@ -18,10 +18,19 @@ import {
   Palette,
   Plus,
 } from 'lucide-react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useToast } from "@/hooks/use-toast";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -29,8 +38,12 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [newAgentName, setNewAgentName] = useState('');
+  const [agentNameError, setAgentNameError] = useState(false);
 
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
@@ -38,6 +51,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     } else {
       setExpandedItems([...expandedItems, itemId]);
     }
+  };
+
+  const handleCreateAgent = () => {
+    if (!newAgentName.trim()) {
+      setAgentNameError(true);
+      return;
+    }
+    
+    setAgentNameError(false);
+    // Logic to create the agent would go here
+    toast({
+      title: "Agent Created",
+      description: `${newAgentName} has been successfully created.`,
+      variant: "default"
+    });
+    
+    setNewAgentName('');
+    navigate('/agents');
   };
 
   // Common navigation items for all roles
@@ -48,17 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   // Business Admin specific navigation items
   const adminItems = [
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
-    { 
-      id: 'agents', 
-      label: 'Agents', 
-      href: '/agents', 
-      icon: Bot,
-      action: {
-        icon: Plus,
-        href: '/agents/create',
-        label: 'Create new agent'
-      }
-    },
+    { id: 'agents', label: 'Agents', href: '/agents', icon: Bot },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
     { 
       id: 'business-settings',
@@ -222,14 +243,49 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                         {!isCollapsed && <span className="text-sm">{item.label}</span>}
                       </NavLink>
                       
-                      {!isCollapsed && item.action && (
-                        <Link 
-                          to={item.action.href}
-                          title={item.action.label}
-                          className="hover:bg-accent hover:text-primary rounded-full p-1 ml-2"
-                        >
-                          <item.action.icon className="h-4 w-4" />
-                        </Link>
+                      {!isCollapsed && item.id === 'agents' && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 rounded-full hover:bg-accent hover:text-primary ml-2"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-60 p-3">
+                            <div className="space-y-3">
+                              <div>
+                                <h4 className="font-medium text-sm">Create New Agent</h4>
+                                <p className="text-xs text-muted-foreground mt-1">Enter a name for your new agent</p>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="agent-name" className="text-xs">Agent Name</Label>
+                                <Input 
+                                  id="agent-name" 
+                                  value={newAgentName} 
+                                  onChange={(e) => {
+                                    setNewAgentName(e.target.value);
+                                    if (e.target.value.trim()) setAgentNameError(false);
+                                  }}
+                                  placeholder="e.g., Customer Support Bot" 
+                                  className={agentNameError ? "border-destructive" : ""}
+                                />
+                                {agentNameError && (
+                                  <p className="text-destructive text-xs">Agent name is required</p>
+                                )}
+                              </div>
+                              <Button 
+                                className="w-full" 
+                                onClick={handleCreateAgent}
+                                disabled={!newAgentName.trim()}
+                              >
+                                Create Agent
+                              </Button>
+                            </div>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
                   )}

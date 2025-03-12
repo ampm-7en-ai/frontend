@@ -8,7 +8,6 @@ import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import NotFound from './pages/NotFound';
 import AgentList from './pages/agents/AgentList';
-import AgentCreate from './pages/agents/AgentCreate';
 import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
 import SettingsLayout from './pages/settings/SettingsLayout';
@@ -77,7 +76,6 @@ function App() {
           } />
           
           <Route path="/agents" element={<AgentList />} />
-          <Route path="/agents/create" element={<AgentCreate />} />
           <Route path="/agents/:agentId/test" element={<AgentTest />} />
           <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
           
