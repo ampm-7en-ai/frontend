@@ -15,19 +15,15 @@ const SettingsLayout = () => {
   const isBusinessSettings = currentPath.includes('/settings/business');
   const isPlatformSettings = currentPath.includes('/settings/platform');
   
-  // Set default tab based on user role and current path
-  let defaultValue = 'business';
+  // For Super Admin: Only show platform settings
+  // For Admin: Only show business settings
   
-  if (user?.role === 'superadmin') {
-    // Super admin can access both, determine based on path
-    defaultValue = isPlatformSettings ? 'platform' : 'business';
-  } else {
-    // Regular admin can only access business settings
-    if (isPlatformSettings) {
-      // If admin tries to access platform settings, redirect to business
-      return <Navigate to="/settings/business/profile" replace />;
-    }
-    defaultValue = 'business';
+  if (user?.role === 'superadmin' && isBusinessSettings) {
+    // Redirect Super Admin away from business settings
+    return <Navigate to="/settings/platform/general" replace />;
+  } else if (user?.role === 'admin' && isPlatformSettings) {
+    // Redirect Admin away from platform settings
+    return <Navigate to="/settings/business/profile" replace />;
   }
 
   // Platform settings links - Only for superadmin
@@ -40,7 +36,7 @@ const SettingsLayout = () => {
     { name: 'Customization', path: '/settings/platform/customization' },
   ];
 
-  // Business settings links - For both admin and superadmin
+  // Business settings links - For admin
   const businessLinks = [
     { name: 'Business Profile', path: '/settings/business/profile' },
     { name: 'Team Management', path: '/settings/business/team' },
@@ -48,6 +44,7 @@ const SettingsLayout = () => {
     { name: 'Integrations', path: '/settings/business/integrations' },
     { name: 'Billing', path: '/settings/business/billing' },
     { name: 'Preferences', path: '/settings/business/preferences' },
+    { name: 'Chatbox Appearance', path: '/settings/business/chatbox' },
   ];
 
   return (
@@ -56,25 +53,6 @@ const SettingsLayout = () => {
       { label: 'Settings', href: '/settings' }
     ]}>
       <div className="flex flex-col space-y-6">
-        <div className="container mx-auto">
-          {user?.role === 'superadmin' && (
-            <Tabs defaultValue={defaultValue} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger value="platform" asChild>
-                  <Link to="/settings/platform/general" className={`${isPlatformSettings ? 'font-semibold' : ''}`}>
-                    Platform Settings
-                  </Link>
-                </TabsTrigger>
-                <TabsTrigger value="business" asChild>
-                  <Link to="/settings/business/profile" className={`${isBusinessSettings ? 'font-semibold' : ''}`}>
-                    Business Settings
-                  </Link>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
-        </div>
-
         <div className="container mx-auto flex">
           <div className="w-64 pr-8">
             <h3 className="text-lg font-semibold mb-4">

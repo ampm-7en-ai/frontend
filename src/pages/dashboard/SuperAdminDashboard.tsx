@@ -4,7 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building, Users, Bot, MessageSquare, ChevronRight, BarChart2, Zap } from 'lucide-react';
+import { Building, Users, Bot, MessageSquare, ChevronRight, BarChart2, Zap, Shield, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SuperAdminDashboard = () => {
@@ -96,7 +96,7 @@ const SuperAdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Recent Businesses</CardTitle>
+              <CardTitle>Business Management</CardTitle>
               <CardDescription>Latest businesses added to the platform</CardDescription>
             </CardHeader>
             <CardContent>
@@ -177,7 +177,7 @@ const SuperAdminDashboard = () => {
           </Card>
         </div>
         
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -193,19 +193,61 @@ const SuperAdminDashboard = () => {
                   <TabsTrigger value="growth">Growth</TabsTrigger>
                   <TabsTrigger value="revenue">Revenue</TabsTrigger>
                 </TabsList>
-                <TabsContent value="usage" className="h-[300px] flex items-center justify-center bg-muted/20 rounded-md">
+                <TabsContent value="usage" className="h-[250px] flex items-center justify-center bg-muted/20 rounded-md">
                   [API Usage & Resources Chart]
                 </TabsContent>
-                <TabsContent value="growth" className="h-[300px] flex items-center justify-center bg-muted/20 rounded-md">
+                <TabsContent value="growth" className="h-[250px] flex items-center justify-center bg-muted/20 rounded-md">
                   [Business & User Growth Chart]
                 </TabsContent>
-                <TabsContent value="revenue" className="h-[300px] flex items-center justify-center bg-muted/20 rounded-md">
+                <TabsContent value="revenue" className="h-[250px] flex items-center justify-center bg-muted/20 rounded-md">
                   [Revenue & Subscription Chart]
                 </TabsContent>
               </Tabs>
               <div className="mt-4 text-center">
                 <Button variant="outline" asChild>
                   <Link to="/analytics">View Detailed Analytics</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Shield className="mr-2 h-5 w-5" />
+                User Management
+              </CardTitle>
+              <CardDescription>Domain experts by specialty</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { specialty: 'Marketing', count: 12, icon: User },
+                  { specialty: 'Technical Support', count: 9, icon: User },
+                  { specialty: 'HR', count: 6, icon: User },
+                  { specialty: 'Finance', count: 7, icon: User },
+                  { specialty: 'Sales', count: 14, icon: User },
+                ].map((category, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <category.icon className="h-4 w-4 mr-2 text-primary" />
+                      <span className="text-sm">{category.specialty}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">{category.count} experts</span>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" asChild>
+                        <Link to={`/users?specialty=${category.specialty.toLowerCase()}`}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Separator className="my-4" />
+              <div className="mt-4 text-center">
+                <Button variant="outline" asChild>
+                  <Link to="/users">Manage Domain Experts</Link>
                 </Button>
               </div>
             </CardContent>

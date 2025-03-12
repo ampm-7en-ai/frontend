@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Home,
@@ -68,7 +67,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
   // Super Admin specific navigation items
   const superAdminItems = [
-    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
     { 
       id: 'business-management',
       label: 'Businesses', 
