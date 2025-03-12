@@ -344,15 +344,13 @@ const KnowledgeBase = () => {
               {filteredDocuments.map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-2 rounded ${getIconBackground(doc)}`}>
-                          {renderSourceIcon(doc)}
-                        </div>
-                        <span className="font-medium">{doc.title}</span>
+                    <div className="flex items-center">
+                      <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
+                        {renderSourceIcon(doc)}
                       </div>
-                      <div className="flex items-center mt-0.5">
-                        <div className="ml-10 text-xs text-muted-foreground">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{doc.title}</span>
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           {renderMetric(doc)} • {doc.size}
                         </div>
                       </div>
