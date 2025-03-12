@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -62,14 +62,10 @@ interface AgentCardProps {
 
 const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
-  const [showAllSources, setShowAllSources] = useState(false);
 
-  const displayedSources = showAllSources 
-    ? agent.knowledgeSources 
-    : agent.knowledgeSources.slice(0, 3);
+  const displayedSources = agent.knowledgeSources.slice(0, 2);
+  const remainingSources = agent.knowledgeSources.length - 2;
   
-  const hasMoreSources = agent.knowledgeSources.length > 3;
-
   return (
     <Card key={agent.id} className="overflow-hidden border flex flex-col">
       <CardHeader className="pb-2">
@@ -124,22 +120,20 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
               {displayedSources.map(source => (
                 <KnowledgeSourceBadge key={source.id} source={source} />
               ))}
-              {hasMoreSources && !showAllSources && (
+              {remainingSources > 0 && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowAllSources(true)}
+                      <Link 
+                        to={`/agents/${agent.id}/edit?tab=knowledge`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 mr-2 mb-2 rounded-full bg-muted/50 hover:bg-muted text-sm text-muted-foreground transition-colors"
                       >
-                        +{agent.knowledgeSources.length - 3} more
-                        <ChevronRight className="h-3 w-3 ml-1" />
-                      </Button>
+                        +{remainingSources} more
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </Link>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Click to show all sources</p>
+                      <p>View all knowledge sources</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
