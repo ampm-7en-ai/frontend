@@ -42,6 +42,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Main layout with nested routes */}
         <Route path="/" element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardRouter />} />
           <Route path="/dashboard/superadmin" element={

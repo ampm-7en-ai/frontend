@@ -5,12 +5,13 @@ import Sidebar from './Sidebar';
 import { Header } from './Header';
 import { useAuth } from '@/context/AuthContext';
 
-type MainLayoutProps = {
+export type MainLayoutProps = {
   pageTitle?: string;
   breadcrumbs?: { label: string; href: string }[];
+  children?: React.ReactNode; // Add children prop to type definition
 };
 
-export function MainLayout({ pageTitle, breadcrumbs }: MainLayoutProps) {
+export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -43,7 +44,7 @@ export function MainLayout({ pageTitle, breadcrumbs }: MainLayoutProps) {
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4">
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            {children || <Outlet />}
           </div>
         </main>
       </div>
