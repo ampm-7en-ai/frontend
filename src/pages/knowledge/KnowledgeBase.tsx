@@ -5,19 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Book, 
-  ChevronRight, 
-  Clock, 
-  File, 
-  FileText, 
-  Filter, 
-  MoreHorizontal, 
-  Plus, 
-  Search, 
-  Upload 
-} from 'lucide-react';
+import { Book, ChevronRight, Clock, File, FileText, Filter, MoreHorizontal, Plus, Search, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
@@ -32,7 +20,6 @@ const KnowledgeBase = () => {
       title: 'Product Features Overview',
       type: 'pdf',
       size: '2.4 MB',
-      status: 'processed',
       agent: 'Sales Bot',
       uploadedAt: '2023-06-01T10:15:00',
     },
@@ -41,8 +28,7 @@ const KnowledgeBase = () => {
       title: 'Pricing Structure',
       type: 'docx',
       size: '1.1 MB',
-      status: 'processed',
-      agent: 'Sales Bot',
+      agent: 'Support Bot',
       uploadedAt: '2023-06-02T14:30:00',
     },
     {
@@ -50,7 +36,6 @@ const KnowledgeBase = () => {
       title: 'Technical Specifications',
       type: 'pdf',
       size: '3.7 MB',
-      status: 'processing',
       agent: 'Support Bot',
       uploadedAt: '2023-06-05T09:45:00',
     },
@@ -59,37 +44,9 @@ const KnowledgeBase = () => {
       title: 'User Manual',
       type: 'pdf',
       size: '5.2 MB',
-      status: 'processed',
       agent: 'Support Bot',
       uploadedAt: '2023-05-28T16:20:00',
-    },
-    {
-      id: 'd5',
-      title: 'Implementation Guide',
-      type: 'docx',
-      size: '1.8 MB',
-      status: 'failed',
-      agent: 'Support Bot',
-      uploadedAt: '2023-06-06T11:10:00',
-    },
-    {
-      id: 'd6',
-      title: 'Integration Documentation',
-      type: 'pdf',
-      size: '2.9 MB',
-      status: 'processed',
-      agent: 'Sales Bot',
-      uploadedAt: '2023-05-25T13:40:00',
-    },
-    {
-      id: 'd7',
-      title: 'FAQ Database',
-      type: 'xlsx',
-      size: '0.9 MB',
-      status: 'processed',
-      agent: 'Support Bot',
-      uploadedAt: '2023-06-03T15:55:00',
-    },
+    }
   ];
 
   const filteredDocuments = documents.filter(doc => 
@@ -118,7 +75,7 @@ const KnowledgeBase = () => {
           <Button asChild className="flex items-center gap-1">
             <Link to="/knowledge/upload">
               <Upload className="h-4 w-4" />
-              Upload
+              Add Source
             </Link>
           </Button>
         </div>
@@ -180,252 +137,55 @@ const KnowledgeBase = () => {
         </Card>
       </div>
       
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="all">All Documents</TabsTrigger>
-          <TabsTrigger value="processed">Processed</TabsTrigger>
-          <TabsTrigger value="processing">Processing</TabsTrigger>
-          <TabsTrigger value="failed">Failed</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className={`p-2 rounded ${
-                            doc.type === 'pdf' ? 'bg-red-100' : 
-                            doc.type === 'docx' ? 'bg-blue-100' : 
-                            'bg-green-100'
-                          }`}>
-                            <FileText className={`h-4 w-4 ${
-                              doc.type === 'pdf' ? 'text-red-600' : 
-                              doc.type === 'docx' ? 'text-blue-600' : 
-                              'text-green-600'
-                            }`} />
-                          </div>
-                          <span className="font-medium">{doc.title}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="uppercase">{doc.type}</TableCell>
-                      <TableCell>{doc.size}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          className={`${
-                            doc.status === 'processed' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
-                            doc.status === 'processing' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : 
-                            'bg-red-100 text-red-800 hover:bg-red-100'
-                          }`}
-                        >
-                          {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{doc.agent}</TableCell>
-                      <TableCell>
-                        {new Date(doc.uploadedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="processed">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.filter(doc => doc.status === 'processed').map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className={`p-2 rounded ${
-                            doc.type === 'pdf' ? 'bg-red-100' : 
-                            doc.type === 'docx' ? 'bg-blue-100' : 
-                            'bg-green-100'
-                          }`}>
-                            <FileText className={`h-4 w-4 ${
-                              doc.type === 'pdf' ? 'text-red-600' : 
-                              doc.type === 'docx' ? 'text-blue-600' : 
-                              'text-green-600'
-                            }`} />
-                          </div>
-                          <span className="font-medium">{doc.title}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="uppercase">{doc.type}</TableCell>
-                      <TableCell>{doc.size}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                          Processed
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{doc.agent}</TableCell>
-                      <TableCell>
-                        {new Date(doc.uploadedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="processing">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.filter(doc => doc.status === 'processing').map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className={`p-2 rounded ${
-                            doc.type === 'pdf' ? 'bg-red-100' : 
-                            doc.type === 'docx' ? 'bg-blue-100' : 
-                            'bg-green-100'
-                          }`}>
-                            <FileText className={`h-4 w-4 ${
-                              doc.type === 'pdf' ? 'text-red-600' : 
-                              doc.type === 'docx' ? 'text-blue-600' : 
-                              'text-green-600'
-                            }`} />
-                          </div>
-                          <span className="font-medium">{doc.title}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="uppercase">{doc.type}</TableCell>
-                      <TableCell>{doc.size}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                          Processing
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{doc.agent}</TableCell>
-                      <TableCell>
-                        {new Date(doc.uploadedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="failed">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.filter(doc => doc.status === 'failed').map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className={`p-2 rounded ${
-                            doc.type === 'pdf' ? 'bg-red-100' : 
-                            doc.type === 'docx' ? 'bg-blue-100' : 
-                            'bg-green-100'
-                          }`}>
-                            <FileText className={`h-4 w-4 ${
-                              doc.type === 'pdf' ? 'text-red-600' : 
-                              doc.type === 'docx' ? 'text-blue-600' : 
-                              'text-green-600'
-                            }`} />
-                          </div>
-                          <span className="font-medium">{doc.title}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="uppercase">{doc.type}</TableCell>
-                      <TableCell>{doc.size}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-                          Failed
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{doc.agent}</TableCell>
-                      <TableCell>
-                        {new Date(doc.uploadedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Document Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Agent</TableHead>
+                <TableHead>Uploaded</TableHead>
+                <TableHead className="w-10"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDocuments.map((doc) => (
+                <TableRow key={doc.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className={`p-2 rounded ${
+                        doc.type === 'pdf' ? 'bg-red-100' : 
+                        doc.type === 'docx' ? 'bg-blue-100' : 
+                        'bg-green-100'
+                      }`}>
+                        <FileText className={`h-4 w-4 ${
+                          doc.type === 'pdf' ? 'text-red-600' : 
+                          doc.type === 'docx' ? 'text-blue-600' : 
+                          'text-green-600'
+                        }`} />
+                      </div>
+                      <span className="font-medium">{doc.title}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="uppercase">{doc.type}</TableCell>
+                  <TableCell>{doc.size}</TableCell>
+                  <TableCell>{doc.agent}</TableCell>
+                  <TableCell>
+                    {new Date(doc.uploadedAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };
