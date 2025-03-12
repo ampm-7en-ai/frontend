@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, Edit, FileSpreadsheet, FileText, Filter, Globe, MoreHorizontal, Plus, Search, Trash, Upload } from 'lucide-react';
+import { Book, Edit, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -256,9 +256,8 @@ const KnowledgeBase = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Document Name</TableHead>
+                <TableHead className="w-[40%]">Document Name</TableHead>
                 <TableHead>Format</TableHead>
-                <TableHead>Details</TableHead>
                 <TableHead>Agents</TableHead>
                 <TableHead>Uploaded</TableHead>
                 <TableHead className="w-16 text-right">Actions</TableHead>
@@ -268,11 +267,16 @@ const KnowledgeBase = () => {
               {filteredDocuments.map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className={`p-2 rounded ${getIconBackground(doc)}`}>
-                        {renderSourceIcon(doc)}
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-2 rounded ${getIconBackground(doc)}`}>
+                          {renderSourceIcon(doc)}
+                        </div>
+                        <span className="font-medium">{doc.title}</span>
                       </div>
-                      <span className="font-medium">{doc.title}</span>
+                      <div className="ml-10 text-xs text-muted-foreground mt-1">
+                        {renderMetric(doc)} • {doc.size}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -280,7 +284,6 @@ const KnowledgeBase = () => {
                       {doc.type.toUpperCase()}
                     </Badge>
                   </TableCell>
-                  <TableCell>{renderMetric(doc)}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <div className="flex -space-x-2">
