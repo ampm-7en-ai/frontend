@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Sliders, Bell, Languages, Moon, Clock } from 'lucide-react';
+import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
 
 const PreferencesSettings = () => {
   return (
@@ -15,6 +15,8 @@ const PreferencesSettings = () => {
         <h2 className="text-2xl font-semibold">Preferences</h2>
         <Button>Save Changes</Button>
       </div>
+
+      <BusinessSettingsNav />
 
       <Card>
         <CardHeader>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Home,
@@ -59,7 +60,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         { label: 'Integrations', href: '/settings/business/integrations' },
         { label: 'Billing', href: '/settings/business/billing' },
         { label: 'Preferences', href: '/settings/business/preferences' },
-        { label: 'Chatbox Appearance', href: '/settings/business/chatbox' },
       ]
     },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },

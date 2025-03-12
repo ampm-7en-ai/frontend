@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -13,10 +12,8 @@ import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
 import AgentSettings from './pages/settings/business/AgentSettings';
 import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
-import ChatbotSettings from './pages/settings/business/ChatboxSettings';
 import { ProtectedRoute, getDashboardPath } from './utils/routeUtils';
 
-// Import the new pages
 import BusinessList from './pages/businesses/BusinessList';
 import BusinessDetail from './pages/businesses/BusinessDetail';
 import UserList from './pages/users/UserList';
@@ -39,11 +36,9 @@ import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings
 import BillingSettings from './pages/settings/platform/BillingSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
 
-// Dashboard router component to manage conditional dashboard rendering
 const DashboardRouter = () => {
   const { user } = useAuth();
   
-  // Redirect to the appropriate dashboard based on user role
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -66,7 +61,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         
-        {/* Main layout with nested routes */}
         <Route path="/" element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardRouter />} />
           <Route path="/dashboard/superadmin" element={
@@ -80,13 +74,11 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Agent routes */}
           <Route path="/agents" element={<AgentList />} />
           <Route path="/agents/create" element={<AgentCreate />} />
           <Route path="/agents/:agentId/test" element={<AgentTest />} />
           <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
           
-          {/* Business routes */}
           <Route path="/businesses" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
               <BusinessList />
@@ -98,7 +90,6 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* User routes */}
           <Route path="/users" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
               <UserList />
@@ -110,26 +101,21 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Analytics route */}
           <Route path="/analytics" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
               <PlatformAnalytics />
             </ProtectedRoute>
           } />
           
-          {/* Conversation routes */}
           <Route path="/conversations" element={<ConversationList />} />
           <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
           
-          {/* Knowledge base routes */}
           <Route path="/knowledge" element={<KnowledgeBase />} />
           <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
           
-          {/* Help routes */}
           <Route path="/help/documentation" element={<Documentation />} />
           <Route path="/help/support" element={<SupportTicket />} />
           
-          {/* Business Settings routes */}
           <Route path="/settings/business/profile" element={<BusinessProfile />} />
           <Route path="/settings/business/team" element={<TeamSettings />} />
           <Route path="/settings/business/agents" element={<AgentSettings />} />
@@ -138,7 +124,6 @@ function App() {
           <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
           <Route path="/settings/business/chatbox" element={<ChatbotSettings />} />
           
-          {/* Platform Settings routes (for superadmin) */}
           <Route path="/settings/platform/general" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
               <GeneralSettings />
@@ -170,7 +155,6 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Fallback route */}
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
