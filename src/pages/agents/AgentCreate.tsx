@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -16,21 +17,45 @@ import {
   ShieldAlert,
   ShieldCheck,
   ShieldQuestion,
-  Plus
+  Plus,
+  AlertCircle,
+  Check,
+  ArrowRight
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-
-// Add new imports for the checkbox
 import { Checkbox } from "@/components/ui/checkbox";
 import { File, Globe } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AgentCreate = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  // Form state
+  const [agentName, setAgentName] = useState('');
+  const [agentDescription, setAgentDescription] = useState('');
+  const [activeTab, setActiveTab] = useState('basic');
   const [selectedAgentType, setSelectedAgentType] = useState('support');
   const [showCustomTypeDialog, setShowCustomTypeDialog] = useState(false);
   const [customTypeName, setCustomTypeName] = useState('');
   const [customTypeDescription, setCustomTypeDescription] = useState('');
+  const [selectedKnowledgeSources, setSelectedKnowledgeSources] = useState<string[]>([]);
+  
+  // Form validation
+  const [nameError, setNameError] = useState(false);
+  const [descriptionError, setDescriptionError] = useState(false);
+  
+  const handleAgentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAgentName(e.target.value);
+    if (e.target.value.trim()) setNameError(false);
+  };
+  
+  const handleAgentDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setAgentDescription(e.target.value);
+    if (e.target.value.trim()) setDescriptionError(false);
+  };
   
   const handleAgentTypeChange = (value: string) => {
     setSelectedAgentType(value);
@@ -43,6 +68,74 @@ const AgentCreate = () => {
     // Here you would typically save the custom type to your backend
     // For now, we'll just close the dialog
     setShowCustomTypeDialog(false);
+  };
+  
+  const handleTabChange = (value: string) => {
+    // Validate required fields before allowing tab change
+    if (activeTab === 'basic' && value !== 'basic') {
+      if (!validateBasicInfo()) {
+        return;
+      }
+    }
+    
+    setActiveTab(value);
+  };
+  
+  const validateBasicInfo = () => {
+    let isValid = true;
+    
+    if (!agentName.trim()) {
+      setNameError(true);
+      isValid = false;
+    }
+    
+    if (!agentDescription.trim()) {
+      setDescriptionError(true);
+      isValid = false;
+    }
+    
+    if (!isValid) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill in all required fields before proceeding.",
+        variant: "destructive"
+      });
+    }
+    
+    return isValid;
+  };
+  
+  const handleSaveAgent = () => {
+    if (!validateBasicInfo()) {
+      setActiveTab('basic');
+      return;
+    }
+    
+    // Save agent logic would go here
+    toast({
+      title: "Agent Created",
+      description: `${agentName} has been successfully created.`,
+      variant: "default"
+    });
+    
+    // Navigate back to agent list
+    navigate('/agents');
+  };
+  
+  const toggleKnowledgeSource = (id: string) => {
+    setSelectedKnowledgeSources(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id) 
+        : [...prev, id]
+    );
+  };
+  
+  const handleNextTab = () => {
+    if (activeTab === 'basic' && validateBasicInfo()) {
+      setActiveTab('agent-type');
+    } else if (activeTab === 'agent-type') {
+      setActiveTab('knowledge');
+    }
   };
   
   interface KnowledgeSource {
@@ -103,9 +196,12 @@ const AgentCreate = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="basic">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="basic">Basic Info</TabsTrigger>
+          <TabsTrigger value="basic" data-state={nameError || descriptionError ? "error" : undefined}>
+            Basic Info {(nameError || descriptionError) && <AlertCircle className="ml-2 h-4 w-4 text-destructive" />}
+            {(!nameError && !descriptionError && agentName && agentDescription) && <Check className="ml-2 h-4 w-4 text-green-500" />}
+          </TabsTrigger>
           <TabsTrigger value="agent-type">Agent Type</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge Sources</TabsTrigger>
         </TabsList>
@@ -118,19 +214,45 @@ const AgentCreate = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="agent-name">Agent Name</Label>
-                <Input id="agent-name" placeholder="e.g., Customer Support Assistant" />
+                <Label htmlFor="agent-name" className="flex items-center">
+                  Agent Name <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Input 
+                  id="agent-name" 
+                  placeholder="e.g., Customer Support Assistant" 
+                  value={agentName}
+                  onChange={handleAgentNameChange}
+                  className={nameError ? "border-destructive" : ""}
+                />
+                {nameError && (
+                  <p className="text-destructive text-sm">Agent name is required</p>
+                )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="agent-description">Description</Label>
+                <Label htmlFor="agent-description" className="flex items-center">
+                  Description <span className="text-destructive ml-1">*</span>
+                </Label>
                 <Textarea 
                   id="agent-description" 
                   placeholder="Describe what this agent does and how it helps users"
-                  className="min-h-[100px]"
+                  className={`min-h-[100px] ${descriptionError ? "border-destructive" : ""}`}
+                  value={agentDescription}
+                  onChange={handleAgentDescriptionChange}
                 />
+                {descriptionError && (
+                  <p className="text-destructive text-sm">Agent description is required</p>
+                )}
               </div>
             </CardContent>
+            <CardFooter className="flex justify-between border-t pt-4">
+              <p className="text-sm text-muted-foreground flex items-center">
+                <span className="text-destructive mr-1">*</span> Required fields
+              </p>
+              <Button onClick={handleNextTab} disabled={!agentName || !agentDescription}>
+                Next Step <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
         
@@ -200,6 +322,14 @@ const AgentCreate = () => {
                 </div>
               </div>
             </CardContent>
+            <CardFooter className="flex justify-between border-t pt-4">
+              <Button variant="outline" onClick={() => setActiveTab('basic')}>
+                Previous
+              </Button>
+              <Button onClick={handleNextTab}>
+                Next Step <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
         
@@ -220,7 +350,12 @@ const AgentCreate = () => {
                       key={source.id}
                       className="flex items-start space-x-4 border rounded-lg p-4 hover:bg-accent/5 transition-colors"
                     >
-                      <Checkbox id={source.id} className="mt-1" />
+                      <Checkbox 
+                        id={source.id} 
+                        className="mt-1" 
+                        checked={selectedKnowledgeSources.includes(source.id)}
+                        onCheckedChange={() => toggleKnowledgeSource(source.id)}
+                      />
                       <div className="flex-1 space-y-1">
                         <Label
                           htmlFor={source.id}
@@ -242,19 +377,18 @@ const AgentCreate = () => {
                 })}
               </div>
             </CardContent>
+            <CardFooter className="flex justify-between border-t pt-4">
+              <Button variant="outline" onClick={() => setActiveTab('agent-type')}>
+                Previous
+              </Button>
+              <Button onClick={handleSaveAgent}>
+                <Save className="mr-2 h-4 w-4" />
+                Create Agent
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
-      
-      <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" asChild>
-          <Link to="/agents">Cancel</Link>
-        </Button>
-        <Button>
-          <Save className="mr-2 h-4 w-4" />
-          Save Agent
-        </Button>
-      </div>
 
       {/* Custom Agent Type Dialog */}
       <Dialog open={showCustomTypeDialog} onOpenChange={setShowCustomTypeDialog}>
