@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, Plus, Settings, MessageSquare, MoreVertical, Edit, Trash2, Copy, Play } from 'lucide-react';
+import { Bot, Settings, MessageSquare, MoreVertical, Edit, Trash2, Copy, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
@@ -41,16 +41,9 @@ const AgentList = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">AI Agents</h1>
-          <p className="text-muted-foreground">Manage and create your AI agents</p>
-        </div>
-        <Link to="/agents/create">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Create Agent
-          </Button>
-        </Link>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">AI Agents</h1>
+        <p className="text-muted-foreground">Manage and create your AI agents</p>
       </div>
 
       <div className="flex items-center justify-between">
