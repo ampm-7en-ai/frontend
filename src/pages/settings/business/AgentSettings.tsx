@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, Bot, ExternalLink, BarChart2, Settings as SettingsIcon, Clock, MessageSquare, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const agentsData = [
   { 
@@ -68,15 +69,7 @@ const AgentSettings = () => {
     <div className="flex">
       <BusinessSettingsNav />
       <div className="flex-1 p-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Agent Settings</h2>
-          <Button asChild>
-            <a href="/agents/create">
-              <Bot className="mr-2 h-4 w-4" />
-              Create New Agent
-            </a>
-          </Button>
-        </div>
+        <h2 className="text-2xl font-semibold mb-6">Agent Settings</h2>
 
         <Tabs defaultValue="agents" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
@@ -143,16 +136,6 @@ const AgentSettings = () => {
                             >
                               <SettingsIcon className="h-3.5 w-3.5 mr-1" />
                               Configure
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-8"
-                              asChild
-                            >
-                              <a href={`/agents/${agent.id}/test`}>
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </a>
                             </Button>
                           </div>
                         </TableCell>
@@ -389,11 +372,18 @@ const AgentSettings = () => {
                 </Select>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex justify-between">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => setIsDialogOpen(false)}>Save Changes</Button>
+              <div className="space-x-2">
+                <Button variant="outline" asChild>
+                  <Link to={`/agents/${selectedAgent.id}/edit`}>
+                    Advanced Settings
+                  </Link>
+                </Button>
+                <Button onClick={() => setIsDialogOpen(false)}>Save Changes</Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         )}

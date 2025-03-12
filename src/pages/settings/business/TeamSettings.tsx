@@ -1,36 +1,69 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Plus, User, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, User, Pencil } from 'lucide-react';
+
+type TeamMember = {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+  designation: string;
+};
 
 const TeamSettings = () => {
-  // Sample team members data
-  const teamMembers = [
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
       id: 1,
       name: 'Alex Johnson',
       email: 'alex.johnson@example.com',
-      role: 'Admin',
-      avatar: '/avatars/01.png',
+      role: 'admin',
+      designation: 'HR Manager',
     },
     {
       id: 2,
       name: 'Emily Smith',
       email: 'emily.smith@example.com',
-      role: 'Agent',
-      avatar: '/avatars/02.png',
+      role: 'user',
+      designation: 'Marketing Manager',
     },
-    {
-      id: 3,
-      name: 'David Brown',
-      email: 'david.brown@example.com',
-      role: 'Agent',
-      avatar: '/avatars/03.png',
-    },
-  ];
+  ]);
+
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newMember = {
+      id: selectedMember?.id || Date.now(),
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      role: formData.get('role') as 'admin' | 'user',
+      designation: formData.get('designation') as string,
+    };
+
+    if (selectedMember) {
+      setTeamMembers(members => 
+        members.map(m => m.id === selectedMember.id ? newMember : m)
+      );
+    } else {
+      setTeamMembers(members => [...members, newMember]);
+    }
+    setIsDialogOpen(false);
+    setSelectedMember(null);
+  };
+
+  const handleEdit = (member: TeamMember) => {
+    setSelectedMember(member);
+    setIsDialogOpen(true);
+  };
 
   return (
     <div className="flex">
@@ -38,73 +71,121 @@ const TeamSettings = () => {
       <div className="flex-1 p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Team Management</h2>
-          <Button>
+          <Button onClick={() => setIsDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Team Member
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Team Members</CardTitle>
-            <CardDescription>Manage your team and their roles.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="border rounded-md p-4">
-                  <div className="flex items-center space-x-4">
-                    <Avatar>
-                      <AvatarImage src={member.avatar} alt={member.name} />
-                      <AvatarFallback>
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="text-sm font-medium">{member.name}</h3>
-                      <p className="text-xs text-muted-foreground">{member.email}</p>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <Badge variant="secondary">{member.role}</Badge>
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                    <Button variant="outline" size="sm">
-                      Manage
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {selectedMember ? 'Edit Team Member' : 'Add New Team Member'}
+              </DialogTitle>
+              <DialogDescription>
+                Enter the details of the team member.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  defaultValue={selectedMember?.name}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  defaultValue={selectedMember?.email}
+                  required
+                />
+              </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Team Summary</CardTitle>
-            <CardDescription>Overview of your team's roles and permissions.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Total Team Members</div>
-                <div className="text-sm">{teamMembers.length}</div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select name="role" defaultValue={selectedMember?.role || 'user'}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Admins</div>
-                <div className="text-sm">
-                  {teamMembers.filter((member) => member.role === 'Admin').length}
+
+              <div className="space-y-2">
+                <Label htmlFor="designation">Designation</Label>
+                <Input
+                  id="designation"
+                  name="designation"
+                  defaultValue={selectedMember?.designation}
+                  required
+                />
+              </div>
+
+              {!selectedMember && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                  />
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Agents</div>
-                <div className="text-sm">
-                  {teamMembers.filter((member) => member.role === 'Agent').length}
+              )}
+
+              <DialogFooter>
+                <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {selectedMember ? 'Save Changes' : 'Add Member'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {teamMembers.map((member) => (
+            <Card key={member.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {member.name}
+                  </span>
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(member)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </CardTitle>
+                <CardDescription>{member.email}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Role</span>
+                    <span className="text-sm font-medium">{member.role}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Designation</span>
+                    <span className="text-sm font-medium">{member.designation}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

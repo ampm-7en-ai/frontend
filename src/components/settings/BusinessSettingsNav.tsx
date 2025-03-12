@@ -21,17 +21,17 @@ const BusinessSettingsNav = () => {
   ];
 
   return (
-    <div className="w-48 py-4 border-r border-border/40">
+    <div className="w-48 py-4">
       <div className="flex flex-col space-y-1">
         {navItems.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
             className={({ isActive }) =>
-              `flex items-center py-2 px-3 text-sm rounded-md hover:bg-muted/50 transition-colors
+              `flex items-center py-2 px-3 text-sm rounded-md transition-colors
               ${isActive 
-                ? 'bg-muted font-medium text-primary border-l-2 border-primary' 
-                : 'text-muted-foreground'
+                ? 'bg-primary/10 text-primary font-medium' 
+                : 'text-muted-foreground hover:bg-muted/50'
               }`
             }
           >
