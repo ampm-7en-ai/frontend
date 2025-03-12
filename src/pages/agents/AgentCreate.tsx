@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,10 +9,23 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, Database, Save } from 'lucide-react';
+import { 
+  ChevronLeft, 
+  Database, 
+  Save, 
+  Settings, 
+  Sliders, 
+  CpuIcon,
+  BrainCircuit, 
+  Upload 
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const AgentCreate = () => {
+  const [selectedModel, setSelectedModel] = useState('gpt4');
+  
   return (
     <MainLayout 
       pageTitle="Create Agent" 
@@ -61,38 +74,6 @@ const AgentCreate = () => {
                     placeholder="Describe what this agent does and how it helps users"
                     className="min-h-[100px]"
                   />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="agent-type">Agent Type</Label>
-                  <Select>
-                    <SelectTrigger id="agent-type">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="support">Customer Support</SelectItem>
-                      <SelectItem value="sales">Sales Assistant</SelectItem>
-                      <SelectItem value="technical">Technical Support</SelectItem>
-                      <SelectItem value="onboarding">Onboarding Guide</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="agent-personality">Personality</Label>
-                  <Select>
-                    <SelectTrigger id="agent-personality">
-                      <SelectValue placeholder="Select personality" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="professional">Professional</SelectItem>
-                      <SelectItem value="friendly">Friendly</SelectItem>
-                      <SelectItem value="helpful">Helpful</SelectItem>
-                      <SelectItem value="technical">Technical</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -145,6 +126,10 @@ const AgentCreate = () => {
                       Manage Knowledge Sources
                     </Link>
                   </Button>
+                  <Button className="ml-2" variant="outline">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Files
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -153,13 +138,16 @@ const AgentCreate = () => {
           <TabsContent value="advanced" className="space-y-4 pt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Advanced Settings</CardTitle>
-                <CardDescription>Configure technical aspects of your agent</CardDescription>
+                <CardTitle className="flex items-center">
+                  <CpuIcon className="mr-2 h-5 w-5" />
+                  AI Model Configuration
+                </CardTitle>
+                <CardDescription>Configure the underlying AI model</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="model">Language Model</Label>
-                  <Select>
+                  <Select defaultValue={selectedModel} onValueChange={setSelectedModel}>
                     <SelectTrigger id="model">
                       <SelectValue placeholder="Select model" />
                     </SelectTrigger>
@@ -190,7 +178,119 @@ const AgentCreate = () => {
                     </span>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BrainCircuit className="mr-2 h-5 w-5" />
+                  Agent Type & Personality
+                </CardTitle>
+                <CardDescription>Define the agent's role and behavior</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Agent Type</Label>
+                    <RadioGroup defaultValue="support" className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                        <RadioGroupItem value="support" id="support" />
+                        <Label htmlFor="support" className="flex flex-col cursor-pointer">
+                          <span className="font-medium">Customer Support</span>
+                          <span className="text-xs text-muted-foreground">Assists with user questions and problems</span>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                        <RadioGroupItem value="sales" id="sales" />
+                        <Label htmlFor="sales" className="flex flex-col cursor-pointer">
+                          <span className="font-medium">Sales Assistant</span>
+                          <span className="text-xs text-muted-foreground">Helps convert leads and answer product questions</span>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                        <RadioGroupItem value="technical" id="technical" />
+                        <Label htmlFor="technical" className="flex flex-col cursor-pointer">
+                          <span className="font-medium">Technical Support</span>
+                          <span className="text-xs text-muted-foreground">Helps with technical problems and troubleshooting</span>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                        <RadioGroupItem value="custom" id="custom" />
+                        <Label htmlFor="custom" className="flex flex-col cursor-pointer">
+                          <span className="font-medium">Custom</span>
+                          <span className="text-xs text-muted-foreground">Create a custom agent type</span>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
                 
+                <div className="space-y-4">
+                  <Label>Personality Traits</Label>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="formality">Formality</Label>
+                        <span className="text-sm text-muted-foreground">Professional</span>
+                      </div>
+                      <Slider defaultValue={[75]} max={100} step={1} id="formality" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Casual</span>
+                        <span>Professional</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="proactivity">Proactivity</Label>
+                        <span className="text-sm text-muted-foreground">Balanced</span>
+                      </div>
+                      <Slider defaultValue={[50]} max={100} step={1} id="proactivity" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Reactive</span>
+                        <span>Proactive</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="verbosity">Verbosity</Label>
+                        <span className="text-sm text-muted-foreground">Concise</span>
+                      </div>
+                      <Slider defaultValue={[30]} max={100} step={1} id="verbosity" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Concise</span>
+                        <span>Detailed</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="empathy">Empathy</Label>
+                        <span className="text-sm text-muted-foreground">High</span>
+                      </div>
+                      <Slider defaultValue={[80]} max={100} step={1} id="empathy" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Neutral</span>
+                        <span>Empathetic</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Sliders className="mr-2 h-5 w-5" />
+                  Behavior Settings
+                </CardTitle>
+                <CardDescription>Configure how the agent works and learns</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="memory">Conversation Memory</Label>
@@ -208,6 +308,26 @@ const AgentCreate = () => {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Allow the agent to improve from interactions over time
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="handoff">Expert Handoff</Label>
+                    <Switch id="handoff" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Allow the agent to escalate to human domain experts when needed
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="multilingual">Multilingual Support</Label>
+                    <Switch id="multilingual" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enable automatic translation for non-primary languages
                   </p>
                 </div>
               </CardContent>

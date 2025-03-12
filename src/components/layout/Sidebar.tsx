@@ -12,7 +12,10 @@ import {
   ChevronRight,
   ChevronDown,
   BarChart2,
-  FileText,
+  Users,
+  Upload,
+  ExternalLink,
+  Palette,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -38,11 +41,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   // Common navigation items for all roles
   const commonItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home },
-    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
   ];
 
   // Business Admin specific navigation items
   const adminItems = [
+    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
     { id: 'agents', label: 'Agents', href: '/agents', icon: Bot },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
     { 
@@ -57,6 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         { label: 'Integrations', href: '/settings/business/integrations' },
         { label: 'Billing', href: '/settings/business/billing' },
         { label: 'Preferences', href: '/settings/business/preferences' },
+        { label: 'Chatbox Appearance', href: '/settings/business/chatbox' },
       ]
     },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
@@ -64,23 +68,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
   // Super Admin specific navigation items
   const superAdminItems = [
+    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
     { 
       id: 'business-management',
       label: 'Businesses', 
       href: '/businesses', 
       icon: Building
     },
+    {
+      id: 'user-management',
+      label: 'Domain Experts',
+      href: '/users',
+      icon: Users
+    },
     { 
       id: 'platform-analytics',
       label: 'Platform Analytics', 
       href: '/analytics', 
       icon: BarChart2 
-    },
-    { 
-      id: 'templates',
-      label: 'Global Templates', 
-      href: '/templates', 
-      icon: FileText 
     },
     { 
       id: 'platform',

@@ -18,6 +18,10 @@ import ComplianceSettings from "./pages/settings/platform/ComplianceSettings";
 import BillingSettings from "./pages/settings/platform/BillingSettings";
 import CustomizationSettings from "./pages/settings/platform/CustomizationSettings";
 
+// User Management (Super Admin)
+import UserList from "./pages/users/UserList";
+import UserDetail from "./pages/users/UserDetail";
+
 // Business Settings (Admin)
 import BusinessProfile from "./pages/settings/business/BusinessProfile";
 import TeamSettings from "./pages/settings/business/TeamSettings";
@@ -25,6 +29,7 @@ import AgentSettings from "./pages/settings/business/AgentSettings";
 import IntegrationsSettings from "./pages/settings/business/IntegrationsSettings";
 import BusinessBillingSettings from "./pages/settings/business/BusinessBillingSettings";
 import PreferencesSettings from "./pages/settings/business/PreferencesSettings";
+import ChatboxSettings from "./pages/settings/business/ChatboxSettings";
 
 // Business Management (Super Admin)
 import BusinessList from "./pages/businesses/BusinessList";
@@ -32,9 +37,7 @@ import BusinessDetail from "./pages/businesses/BusinessDetail";
 
 // Platform Analytics (Super Admin)
 import PlatformAnalytics from "./pages/analytics/PlatformAnalytics";
-
-// Global Templates (Super Admin)
-import GlobalTemplates from "./pages/templates/GlobalTemplates";
+import SuperAdminDashboard from "./pages/dashboard/SuperAdminDashboard";
 
 // Knowledge Base and Agents
 import KnowledgeBase from "./pages/knowledge/KnowledgeBase";
@@ -71,12 +74,22 @@ const ProtectedRoute = ({ children, allowedRoles = ["admin", "superadmin"] }: { 
 
 // Wrapper for auth provider with router
 const AppRoutes = () => {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "superadmin";
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       
-      {/* Protected Routes */}
-      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      {/* Protected Routes with role-based dashboard */}
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            {isSuperAdmin ? <SuperAdminDashboard /> : <Index />}
+          </ProtectedRoute>
+        } 
+      />
       
       {/* Knowledge Base - Both roles */}
       <Route path="/knowledge" element={<ProtectedRoute><KnowledgeBase /></ProtectedRoute>} />
@@ -101,24 +114,26 @@ const AppRoutes = () => {
         <Route path="platform/billing" element={<ProtectedRoute allowedRoles={["superadmin"]}><BillingSettings /></ProtectedRoute>} />
         <Route path="platform/customization" element={<ProtectedRoute allowedRoles={["superadmin"]}><CustomizationSettings /></ProtectedRoute>} />
         
-        {/* Business Settings (Admin & Super Admin) */}
-        <Route path="business/profile" element={<ProtectedRoute><BusinessProfile /></ProtectedRoute>} />
-        <Route path="business/team" element={<ProtectedRoute><TeamSettings /></ProtectedRoute>} />
-        <Route path="business/agents" element={<ProtectedRoute><AgentSettings /></ProtectedRoute>} />
-        <Route path="business/integrations" element={<ProtectedRoute><IntegrationsSettings /></ProtectedRoute>} />
-        <Route path="business/billing" element={<ProtectedRoute><BusinessBillingSettings /></ProtectedRoute>} />
-        <Route path="business/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
+        {/* Business Settings (Admin Only) */}
+        <Route path="business/profile" element={<ProtectedRoute allowedRoles={["admin"]}><BusinessProfile /></ProtectedRoute>} />
+        <Route path="business/team" element={<ProtectedRoute allowedRoles={["admin"]}><TeamSettings /></ProtectedRoute>} />
+        <Route path="business/agents" element={<ProtectedRoute allowedRoles={["admin"]}><AgentSettings /></ProtectedRoute>} />
+        <Route path="business/integrations" element={<ProtectedRoute allowedRoles={["admin"]}><IntegrationsSettings /></ProtectedRoute>} />
+        <Route path="business/billing" element={<ProtectedRoute allowedRoles={["admin"]}><BusinessBillingSettings /></ProtectedRoute>} />
+        <Route path="business/preferences" element={<ProtectedRoute allowedRoles={["admin"]}><PreferencesSettings /></ProtectedRoute>} />
+        <Route path="business/chatbox" element={<ProtectedRoute allowedRoles={["admin"]}><ChatboxSettings /></ProtectedRoute>} />
       </Route>
       
       {/* Business Management - Super Admin only */}
       <Route path="/businesses" element={<ProtectedRoute allowedRoles={["superadmin"]}><BusinessList /></ProtectedRoute>} />
       <Route path="/businesses/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><BusinessDetail /></ProtectedRoute>} />
       
+      {/* User Management - Super Admin only */}
+      <Route path="/users" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserList /></ProtectedRoute>} />
+      <Route path="/users/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserDetail /></ProtectedRoute>} />
+      
       {/* Platform Analytics - Super Admin only */}
       <Route path="/analytics" element={<ProtectedRoute allowedRoles={["superadmin"]}><PlatformAnalytics /></ProtectedRoute>} />
-      
-      {/* Global Templates - Super Admin only */}
-      <Route path="/templates" element={<ProtectedRoute allowedRoles={["superadmin"]}><GlobalTemplates /></ProtectedRoute>} />
       
       {/* Help & Support - Both roles */}
       <Route path="/help/documentation" element={<ProtectedRoute><Documentation /></ProtectedRoute>} />
