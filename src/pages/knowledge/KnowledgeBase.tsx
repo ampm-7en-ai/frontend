@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -159,9 +158,11 @@ const KnowledgeBase = () => {
   };
 
   const handleEdit = (doc) => {
-    setEditingDocument(doc);
-    setNewUrl(doc.sourceType === 'website' ? doc.title : '');
     setIsEditDialogOpen(true);
+    setTimeout(() => {
+      setEditingDocument(doc);
+      setNewUrl(doc.sourceType === 'website' ? doc.title : '');
+    }, 50);
   };
 
   const handleSaveEdit = () => {
@@ -172,9 +173,7 @@ const KnowledgeBase = () => {
       sourceType: editingDocument?.sourceType
     });
     
-    // Reset states after closing
     setIsEditDialogOpen(false);
-    // Use setTimeout to allow the dialog to fully close before resetting states
     setTimeout(() => {
       setEditingDocument(null);
       setNewUrl('');
@@ -189,66 +188,85 @@ const KnowledgeBase = () => {
   };
 
   const renderEditDialog = () => {
-    if (!editingDocument) return null;
-
     return (
-      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-        setIsEditDialogOpen(open);
-        if (!open) {
-          // Reset states after dialog is closed
-          setTimeout(() => {
-            setEditingDocument(null);
-            setNewUrl('');
-            setNewFile(null);
-          }, 300);
-        }
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit {editingDocument.title}</DialogTitle>
-            <DialogDescription>Update your knowledge source</DialogDescription>
-          </DialogHeader>
-          
-          {editingDocument.sourceType === 'website' ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="url">URL</Label>
-                <Input
-                  id="url"
-                  type="url"
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  placeholder="Enter new URL"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="file">Upload New File</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept={editingDocument.type === 'csv' ? '.csv,.xlsx,.xls' : '.pdf,.docx,.txt'}
-                />
-                {newFile && (
-                  <p className="text-sm text-muted-foreground">
-                    Selected: {newFile.name} ({(newFile.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+      <Dialog 
+        open={isEditDialogOpen} 
+        onOpenChange={(open) => {
+          if (open) {
+            setIsEditDialogOpen(true);
+          } else {
+            setIsEditDialogOpen(false);
+            setTimeout(() => {
+              setEditingDocument(null);
+              setNewUrl('');
+              setNewFile(null);
+            }, 300);
+          }
+        }}
+      >
+        <DialogContent onClick={(e) => e.stopPropagation()}>
+          {editingDocument && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit {editingDocument.title}</DialogTitle>
+                <DialogDescription>Update your knowledge source</DialogDescription>
+              </DialogHeader>
+              
+              {editingDocument.sourceType === 'website' ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="url">URL</Label>
+                    <Input
+                      id="url"
+                      type="url"
+                      value={newUrl}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => setNewUrl(e.target.value)}
+                      placeholder="Enter new URL"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="file">Upload New File</Label>
+                    <Input
+                      id="file"
+                      type="file"
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={handleFileChange}
+                      accept={editingDocument.type === 'csv' ? '.csv,.xlsx,.xls' : '.pdf,.docx,.txt'}
+                    />
+                    {newFile && (
+                      <p className="text-sm text-muted-foreground">
+                        Selected: {newFile.name} ({(newFile.size / 1024 / 1024).toFixed(2)} MB)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit}>
-              Save Changes
-            </Button>
-          </DialogFooter>
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditDialogOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSaveEdit();
+                  }}
+                >
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     );
@@ -418,7 +436,10 @@ const KnowledgeBase = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem 
                           className="flex items-center gap-2 cursor-pointer"
-                          onClick={() => handleEdit(doc)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(doc);
+                          }}
                         >
                           <Edit className="h-4 w-4" /> Edit
                         </DropdownMenuItem>
