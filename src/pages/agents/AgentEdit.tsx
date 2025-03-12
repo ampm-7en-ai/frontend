@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,13 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { KnowledgeSourceForm } from '@/components/knowledge/KnowledgeSourceForm';
 
 const AgentEdit = () => {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Mock data for agent (in a real app, you would fetch this from an API)
   const [agent, setAgent] = React.useState({
     id: agentId,
     name: "Customer Support Agent",
@@ -46,7 +45,6 @@ const AgentEdit = () => {
   };
 
   const handleSaveChanges = () => {
-    // In a real app, you would save the changes to an API
     toast({
       title: "Changes saved",
       description: "Your agent settings have been updated successfully.",
@@ -340,27 +338,7 @@ const AgentEdit = () => {
         </TabsContent>
 
         <TabsContent value="knowledge" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Knowledge Base</CardTitle>
-              <CardDescription>Configure what knowledge your agent can access</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Connect your agent to knowledge sources to improve its responses. 
-                Knowledge sources can include documents, FAQs, and product information.
-              </p>
-              
-              <div className="bg-muted p-6 rounded-md flex flex-col items-center justify-center text-center">
-                <FileText className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="font-medium mb-2">No knowledge sources connected</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Your agent doesn't have any knowledge sources yet. Add sources to help it answer questions accurately.
-                </p>
-                <Button>Connect Knowledge Sources</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <KnowledgeSourceForm />
         </TabsContent>
       </Tabs>
     </div>
