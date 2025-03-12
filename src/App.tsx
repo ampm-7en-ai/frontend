@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import Index from './pages/Index';
@@ -20,22 +21,16 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={
-            <MainLayout pageTitle="Dashboard">
-              <Outlet />
-            </MainLayout>
-          }>
-            <Route index element={<Index />} />
-            <Route path="dashboard" element={<SuperAdminDashboard />} />
-            <Route path="agents" element={<AgentList />} />
-            <Route path="agents/create" element={<AgentCreate />} />
-            <Route path="agents/:agentId/test" element={<AgentTest />} />
-            <Route path="agents/:agentId/edit" element={<AgentEdit />} />
-            <Route path="settings/business/agents" element={<AgentSettings />} />
-            <Route path="settings/platform/compliance" element={<ComplianceSettings />} />
-            <Route path="settings/business/chatbox" element={<ChatbotSettings />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<MainLayout pageTitle="Dashboard"><SuperAdminDashboard /></MainLayout>} />
+          <Route path="/agents" element={<MainLayout pageTitle="Agents"><AgentList /></MainLayout>} />
+          <Route path="/agents/create" element={<MainLayout pageTitle="Create Agent"><AgentCreate /></MainLayout>} />
+          <Route path="/agents/:agentId/test" element={<MainLayout pageTitle="Test Agent"><AgentTest /></MainLayout>} />
+          <Route path="/agents/:agentId/edit" element={<MainLayout pageTitle="Edit Agent"><AgentEdit /></MainLayout>} />
+          <Route path="/settings/business/agents" element={<MainLayout pageTitle="Agent Settings"><AgentSettings /></MainLayout>} />
+          <Route path="/settings/platform/compliance" element={<MainLayout pageTitle="Compliance Settings"><ComplianceSettings /></MainLayout>} />
+          <Route path="/settings/business/chatbox" element={<MainLayout pageTitle="Chatbot Settings"><ChatbotSettings /></MainLayout>} />
+          <Route path="*" element={<MainLayout pageTitle="Not Found"><NotFound /></MainLayout>} />
         </Routes>
       </AuthProvider>
     </Router>
