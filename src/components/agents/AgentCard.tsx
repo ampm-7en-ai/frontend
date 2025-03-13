@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CalendarClock, MessageSquare } from 'lucide-react';
 import { 
@@ -8,7 +9,6 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
 import AgentKnowledgeSection from './AgentKnowledgeSection';
@@ -35,25 +35,6 @@ interface AgentCardProps {
   getModelBadgeColor: (model: string) => string;
 }
 
-const getRandomAvatarColor = () => {
-  const colors = [
-    'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
-    'bg-red-500', 'bg-pink-500', 'bg-indigo-500', 
-    'bg-purple-500', 'bg-teal-500', 'bg-orange-500',
-    'bg-cyan-500', 'bg-emerald-500', 'bg-violet-500'
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
-};
-
 const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const formattedDate = new Date(agent.lastModified).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -61,22 +42,13 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
     day: 'numeric'
   });
   
-  const avatarColor = getRandomAvatarColor();
-  const initials = getInitials(agent.name);
-
   return (
     <Card className="overflow-hidden border flex flex-col h-full">
       <CardHeader className="pb-0 pt-3 px-4">
         <div className="flex justify-between items-start">
-          <div className="flex items-start space-x-3">
-            <Avatar className={`w-11 h-11 ${avatarColor} text-white`}>
-              <AvatarImage alt={agent.name} />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-lg font-semibold mb-0.5">{agent.name}</CardTitle>
-              <CardDescription className="line-clamp-2">{agent.description}</CardDescription>
-            </div>
+          <div>
+            <CardTitle className="text-base font-semibold mb-0.5">{agent.name}</CardTitle>
+            <CardDescription className="line-clamp-2">{agent.description}</CardDescription>
           </div>
           <AgentActionsDropdown agentId={agent.id} />
         </div>
