@@ -13,6 +13,7 @@ interface AgentHandoffNotificationProps {
   timestamp: string;
   type?: HandoffType;
   className?: string;
+  compact?: boolean;
 }
 
 export function AgentHandoffNotification({
@@ -21,7 +22,8 @@ export function AgentHandoffNotification({
   reason,
   timestamp,
   type = 'ai-to-ai',
-  className
+  className,
+  compact = false
 }: AgentHandoffNotificationProps) {
   // Determine colors based on type
   const getTypeStyles = () => {
@@ -42,10 +44,43 @@ export function AgentHandoffNotification({
   const getIcon = () => {
     if (type === 'external') {
       return <PhoneForwarded className="h-5 w-5 flex-shrink-0" />;
+    } else if (type.includes('human')) {
+      return <User className="h-5 w-5 flex-shrink-0" />;
     }
-    // We could add more icons for different types if needed
     return <PhoneForwarded className="h-5 w-5 flex-shrink-0" />;
   };
+
+  if (compact) {
+    return (
+      <div className={cn(
+        "rounded-lg px-3 py-2 text-sm border my-2",
+        getTypeStyles(),
+        className
+      )}>
+        <div className="flex items-center gap-2">
+          {getIcon()}
+          <div className="flex-1 min-w-0">
+            <div className="text-xs">
+              <span className="font-medium">{from}</span>
+              <span className="mx-1">→</span>
+              <span className="font-medium">{to}</span>
+            </div>
+            {reason && (
+              <div className="text-xs opacity-80 line-clamp-1">
+                {reason}
+              </div>
+            )}
+          </div>
+          <div className="text-xs opacity-70">
+            {new Date(timestamp).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center my-6 relative">

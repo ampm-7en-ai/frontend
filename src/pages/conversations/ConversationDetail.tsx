@@ -20,6 +20,7 @@ import { ChevronLeft, Send, Paperclip, ThumbsUp, ThumbsDown, Bot, User2, MoreHor
   ExternalLink, UserPlus, RefreshCw, PhoneForwarded, FileText, AlertTriangle, Maximize2, BellRing, 
   TicketCheck, MessageSquare, ArrowRightLeft, Activity } from 'lucide-react';
 import { AgentHandoffNotification } from '@/components/conversations/AgentHandoffNotification';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const ConversationDetail = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -68,14 +69,6 @@ const ConversationDetail = () => {
         timestamp: '2023-06-10T14:32:00',
       },
       {
-        id: 'h1',
-        type: 'handoff',
-        from: 'General Bot',
-        to: 'Sales Bot',
-        reason: 'Topic specialized to sales inquiries',
-        timestamp: '2023-06-10T14:33:00',
-      },
-      {
         id: 'm4',
         sender: 'bot',
         content: 'I understand the frustration. Let me help you with that. Sometimes the verification links can expire after 24 hours. When did you receive the verification email?',
@@ -87,14 +80,6 @@ const ConversationDetail = () => {
         sender: 'user',
         content: 'I just received it about an hour ago.',
         timestamp: '2023-06-10T14:35:00',
-      },
-      {
-        id: 'h2',
-        type: 'handoff',
-        from: 'Sales Bot',
-        to: 'Technical Support Bot',
-        reason: 'Technical troubleshooting required',
-        timestamp: '2023-06-10T14:36:00',
       },
       {
         id: 'm6',
@@ -222,33 +207,22 @@ const ConversationDetail = () => {
     // Create handoff record
     const handoffId = `h${Date.now()}`;
     const currentAgent = conversation.messages.filter(m => m.sender === 'bot').pop()?.agent || conversation.agent;
-    const handoffType = handoffDestination.includes('Bot') ? 'ai-to-ai' : 
+    const newHandoffType = handoffDestination.includes('Bot') ? 'ai-to-ai' : 
                        handoffDestination.includes('External') ? 'external' : 'ai-to-human';
     
-    // Add handoff message to conversation
-    const handoffMessage = {
-      id: handoffId,
-      type: 'handoff',
-      from: currentAgent,
-      to: handoffDestination,
-      reason: handoffNotes || `Transferred to ${handoffDestination}`,
-      timestamp: new Date().toISOString(),
-    };
-    
-    // Add to handoff history
+    // Add handoff record to history
     const handoffRecord = {
       id: handoffId,
       from: currentAgent,
       to: handoffDestination,
       timestamp: new Date().toISOString(),
       reason: handoffNotes || `Transferred to ${handoffDestination}`,
-      type: handoffType as 'ai-to-ai' | 'ai-to-human' | 'external'
+      type: newHandoffType as 'ai-to-ai' | 'ai-to-human' | 'external'
     };
     
     // Update conversation with handoff information
     setConversation(prev => ({
       ...prev,
-      messages: [...prev.messages, handoffMessage],
       handoffHistory: [...prev.handoffHistory, handoffRecord],
       agent: handoffDestination // Update current agent
     }));
@@ -332,19 +306,6 @@ const ConversationDetail = () => {
   };
 
   const renderMessageItem = (item: any) => {
-    if (item.type === 'handoff') {
-      return (
-        <AgentHandoffNotification
-          key={item.id}
-          from={item.from}
-          to={item.to}
-          reason={item.reason}
-          timestamp={item.timestamp}
-          type={item.type === 'external' ? 'external' : 'ai-to-ai'}
-        />
-      );
-    }
-
     return (
       <div
         key={item.id}
@@ -448,9 +409,9 @@ const ConversationDetail = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className={`lg:col-span-3 order-3 lg:order-1 transition-all duration-300 ${isContextPanelOpen ? 'hidden lg:block' : 'block'}`}>
-          <Card className="h-[calc(100vh-120px)] flex flex-col">
+      <ResizablePanelGroup direction="horizontal" className="h-[calc(100vh-120px)]">
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
+          <Card className="h-full flex flex-col rounded-r-none border-r-0">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg">Active Conversations</CardTitle>
@@ -523,10 +484,12 @@ const ConversationDetail = () => {
               ))}
             </CardContent>
           </Card>
-        </div>
+        </ResizablePanel>
         
-        <div className={`lg:col-span-6 order-1 lg:order-2 transition-all duration-300 ${isContextPanelOpen ? 'lg:col-span-9' : 'lg:col-span-6'}`}>
-          <Card className="h-[calc(100vh-120px)] flex flex-col">
+        <ResizableHandle withHandle />
+        
+        <ResizablePanel defaultSize={50}>
+          <Card className="h-full flex flex-col rounded-none border-x-0">
             <CardHeader className="pb-3 border-b">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
@@ -572,7 +535,38 @@ const ConversationDetail = () => {
             </CardHeader>
             <CardContent className="p-0 flex-grow overflow-y-auto">
               <div className="p-4 space-y-4">
-                {conversation.messages.map(item => renderMessageItem(item))}
+                {conversation.messages.map(message => renderMessageItem(message))}
+                
+                {/* Insert handoff notifications between messages based on timestamps */}
+                {conversation.handoffHistory.map((handoff, index) => {
+                  // Find the messages that come before and after this handoff based on timestamp
+                  const handoffTime = new Date(handoff.timestamp).getTime();
+                  
+                  // Find the index where this handoff should be inserted
+                  let insertPosition = conversation.messages.findIndex(
+                    msg => new Date(msg.timestamp).getTime() > handoffTime
+                  );
+                  
+                  // If no message is found after this handoff, place it at the end
+                  insertPosition = insertPosition === -1 ? conversation.messages.length : insertPosition;
+                  
+                  // Check if this is the current position in the message array
+                  const isInsertionPoint = index === 0 ? 
+                    insertPosition === 3 : // First handoff after first 3 messages
+                    insertPosition === 5;  // Second handoff after 5 messages
+                  
+                  return isInsertionPoint ? (
+                    <AgentHandoffNotification
+                      key={handoff.id}
+                      from={handoff.from}
+                      to={handoff.to}
+                      reason={handoff.reason}
+                      timestamp={handoff.timestamp}
+                      type={handoff.type}
+                    />
+                  ) : null;
+                })}
+                
                 <div ref={messagesEndRef} />
               </div>
             </CardContent>
@@ -595,239 +589,228 @@ const ConversationDetail = () => {
               </form>
             </CardFooter>
           </Card>
-        </div>
+        </ResizablePanel>
         
-        <div className={`lg:col-span-3 order-2 lg:order-3 transition-all duration-300 ${isContextPanelOpen ? 'block' : 'hidden lg:block'}`}>
-          <div className="space-y-4 h-[calc(100vh-120px)] overflow-auto pr-1">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Current Assignment</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-4">
-                  <Avatar>
-                    <AvatarFallback className="bg-primary">
-                      <Bot className="h-4 w-4 text-primary-foreground" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{conversation.agent}</p>
-                    <p className="text-xs text-muted-foreground">AI Agent</p>
-                  </div>
+        <ResizableHandle withHandle />
+        
+        <ResizablePanel defaultSize={25} minSize={20}>
+          <Card className="h-full rounded-l-none border-l-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Current Assignment</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarFallback className="bg-primary">
+                    <Bot className="h-4 w-4 text-primary-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{conversation.agent}</p>
+                  <p className="text-xs text-muted-foreground">AI Agent</p>
                 </div>
-                {conversation.handoffHistory.length > 0 && (
-                  <>
-                    <Separator className="my-3" />
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium">Handoff History</p>
+              </div>
+              
+              {conversation.handoffHistory.length > 0 && (
+                <>
+                  <Separator className="my-1" />
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Handoff History</h3>
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                       {conversation.handoffHistory.map((handoff) => (
-                        <div key={handoff.id} className="text-xs text-muted-foreground">
-                          <div className="flex items-center">
-                            <ArrowRightLeft className="h-3 w-3 mr-1" />
-                            <span>
-                              {handoff.from} → {handoff.to}
-                            </span>
-                          </div>
-                          <p className="ml-4 text-xs text-muted-foreground">
-                            {new Date(handoff.timestamp).toLocaleString([], {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
+                        <AgentHandoffNotification
+                          key={handoff.id}
+                          from={handoff.from}
+                          to={handoff.to}
+                          reason={handoff.reason}
+                          timestamp={handoff.timestamp}
+                          type={handoff.type}
+                          compact={true}
+                        />
                       ))}
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center">
-                  <PhoneForwarded className="h-4 w-4 mr-2" />
-                  Handoff Controls
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Label>Destination Type</Label>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button 
-                      variant={handoffType === 'ai' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => setHandoffType('ai')}
-                      className="justify-start"
-                    >
-                      <Bot className="h-3.5 w-3.5 mr-1" />
-                      AI Agent
-                    </Button>
-                    <Button 
-                      variant={handoffType === 'internal' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => setHandoffType('internal')}
-                      className="justify-start"
-                    >
-                      <User2 className="h-3.5 w-3.5 mr-1" />
-                      Human
-                    </Button>
-                    <Button 
-                      variant={handoffType === 'external' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => setHandoffType('external')}
-                      className="justify-start"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                      External
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Select Destination</Label>
-                  {handoffType === 'ai' && (
-                    <Select onValueChange={setHandoffDestination}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select AI agent" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableAgents.ai.map((agent) => (
-                          <SelectItem key={agent.id} value={agent.name}>
-                            <div className="flex items-center">
-                              <span>{agent.name}</span>
-                              <Badge variant="outline" className="ml-2 text-xs">
-                                {agent.specialization}
-                              </Badge>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  
-                  {handoffType === 'internal' && (
-                    <Select onValueChange={setHandoffDestination}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select team member" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableAgents.internal.map((agent) => (
-                          <SelectItem key={agent.id} value={agent.name}>
-                            <div className="flex items-center justify-between">
-                              <span>{agent.name}</span>
-                              <div className="flex items-center">
-                                <Badge variant="outline" className="mr-2 text-xs">
-                                  {agent.department}
-                                </Badge>
-                                <div className={`h-2 w-2 rounded-full ${getAgentStatusColor(agent.status)}`}></div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  
-                  {handoffType === 'external' && (
-                    <Select onValueChange={setHandoffDestination}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select external system" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableAgents.external.map((system) => (
-                          <SelectItem 
-                            key={system.id} 
-                            value={system.name}
-                            disabled={system.status === 'disconnected'}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span>{system.name}</span>
-                              <div className="flex items-center">
-                                <Badge variant="outline" className="mr-2 text-xs">
-                                  {system.type}
-                                </Badge>
-                                {system.status === 'disconnected' && (
-                                  <AlertTriangle className="h-3 w-3 text-amber-500" />
-                                )}
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-                
-                {handoffType === 'external' && (
+                </>
+              )}
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center">
+                    <PhoneForwarded className="h-4 w-4 mr-2" />
+                    Handoff Controls
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Ticket Priority</Label>
-                    <Select defaultValue="medium" onValueChange={setHandoffPriority}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                
-                <Button 
-                  className="w-full" 
-                  onClick={() => setIsHandoffDialogOpen(true)}
-                  disabled={!handoffDestination}
-                >
-                  <PhoneForwarded className="h-4 w-4 mr-2" />
-                  Initiate Handoff
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Customer Context</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-xs font-medium">Account Status</p>
-                  <Badge variant="outline" className="mt-1">Premium Account</Badge>
-                </div>
-                <div>
-                  <p className="text-xs font-medium">Previous Interactions</p>
-                  <p className="text-xs text-muted-foreground">3 conversations in the last 30 days</p>
-                </div>
-                <Separator />
-                <div>
-                  <p className="text-xs font-medium">Detected Topics</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    <Badge variant="outline" className="text-xs">Email Verification</Badge>
-                    <Badge variant="outline" className="text-xs">Account Setup</Badge>
-                    <Badge variant="outline" className="text-xs">Technical Issue</Badge>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs font-medium">Customer Sentiment</p>
-                  <div className="mt-2">
-                    <Progress value={70} className="h-2" />
-                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                      <span>Frustrated</span>
-                      <span>Neutral</span>
-                      <span>Satisfied</span>
+                    <div className="flex justify-between">
+                      <Label>Destination Type</Label>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button 
+                        variant={handoffType === 'ai' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setHandoffType('ai')}
+                        className="justify-start"
+                      >
+                        <Bot className="h-3.5 w-3.5 mr-1" />
+                        AI Agent
+                      </Button>
+                      <Button 
+                        variant={handoffType === 'internal' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setHandoffType('internal')}
+                        className="justify-start"
+                      >
+                        <User2 className="h-3.5 w-3.5 mr-1" />
+                        Human
+                      </Button>
+                      <Button 
+                        variant={handoffType === 'external' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setHandoffType('external')}
+                        className="justify-start"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                        External
+                      </Button>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Select Destination</Label>
+                    {handoffType === 'ai' && (
+                      <Select onValueChange={setHandoffDestination}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select AI agent" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableAgents.ai.map((agent) => (
+                            <SelectItem key={agent.id} value={agent.name}>
+                              <div className="flex items-center">
+                                <span>{agent.name}</span>
+                                <Badge variant="outline" className="ml-2 text-xs">
+                                  {agent.specialization}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {handoffType === 'internal' && (
+                      <Select onValueChange={setHandoffDestination}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select team member" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableAgents.internal.map((agent) => (
+                            <SelectItem key={agent.id} value={agent.name}>
+                              <div className="flex items-center justify-between">
+                                <span>{agent.name}</span>
+                                <div className="flex items-center">
+                                  <Badge variant="outline" className="mr-2 text-xs">
+                                    {agent.department}
+                                  </Badge>
+                                  <div className={`h-2 w-2 rounded-full ${getAgentStatusColor(agent.status)}`}></div>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {handoffType === 'external' && (
+                      <Select onValueChange={setHandoffDestination}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select external system" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableAgents.external.map((system) => (
+                            <SelectItem 
+                              key={system.id} 
+                              value={system.name}
+                              disabled={system.status === 'disconnected'}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span>{system.name}</span>
+                                <div className="flex items-center">
+                                  <Badge variant="outline" className="mr-2 text-xs">
+                                    {system.type}
+                                  </Badge>
+                                  {system.status === 'disconnected' && (
+                                    <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                  )}
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Handoff Notes</Label>
+                    <Textarea
+                      placeholder="Provide context for the handoff..."
+                      className="h-20 resize-none"
+                      value={handoffNotes}
+                      onChange={(e) => setHandoffNotes(e.target.value)}
+                    />
+                  </div>
+                  
+                  <Button 
+                    className="w-full" 
+                    onClick={handleHandoffSubmit}
+                    disabled={!handoffDestination}
+                  >
+                    <PhoneForwarded className="h-4 w-4 mr-2" />
+                    Initiate Handoff
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Customer Context</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="text-xs font-medium">Account Status</p>
+                    <Badge variant="outline" className="mt-1">Premium Account</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium">Previous Interactions</p>
+                    <p className="text-xs text-muted-foreground">3 conversations in the last 30 days</p>
+                  </div>
+                  <Separator />
+                  <div>
+                    <p className="text-xs font-medium">Detected Topics</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {conversation.tags.map(tag => (
+                        <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium">Customer Sentiment</p>
+                    <div className="mt-2">
+                      <Progress value={70} className="h-2" />
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>Frustrated</span>
+                        <span>Neutral</span>
+                        <span>Satisfied</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
+        </ResizablePanel>
+      </ResizablePanelGroup>
       
       <Dialog open={isHandoffDialogOpen} onOpenChange={setIsHandoffDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -959,4 +942,3 @@ const ConversationDetail = () => {
 };
 
 export default ConversationDetail;
-
