@@ -4,7 +4,7 @@ import { PhoneForwarded, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-type HandoffType = 'ai-to-ai' | 'ai-to-human' | 'human-to-ai' | 'human-to-human' | 'external';
+export type HandoffType = 'ai-to-ai' | 'ai-to-human' | 'human-to-ai' | 'human-to-human' | 'external';
 
 interface AgentHandoffNotificationProps {
   from: string;
@@ -47,7 +47,7 @@ export function AgentHandoffNotification({
     } else if (type.includes('human')) {
       return <User className="h-5 w-5 flex-shrink-0" />;
     }
-    return <PhoneForwarded className="h-5 w-5 flex-shrink-0" />;
+    return <Bot className="h-5 w-5 flex-shrink-0" />;
   };
 
   if (compact) {

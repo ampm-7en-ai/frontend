@@ -22,6 +22,26 @@ import { ChevronLeft, Send, Paperclip, ThumbsUp, ThumbsDown, Bot, User2, MoreHor
 import { AgentHandoffNotification } from '@/components/conversations/AgentHandoffNotification';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
+// Define interface for message to include optional type property
+interface Message {
+  id: string;
+  sender: string;
+  content: string;
+  timestamp: string;
+  agent?: string;
+  type?: string;
+}
+
+// Define interface for handoff record to use the HandoffType
+interface HandoffRecord {
+  id: string;
+  from: string;
+  to: string;
+  timestamp: string;
+  reason?: string;
+  type: 'ai-to-ai' | 'ai-to-human' | 'human-to-ai' | 'human-to-human' | 'external';
+}
+
 const ConversationDetail = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
   const [newMessage, setNewMessage] = useState('');
@@ -101,7 +121,7 @@ const ConversationDetail = () => {
         timestamp: '2023-06-10T14:39:00',
         agent: 'Technical Support Bot'
       },
-    ],
+    ] as Message[],
     tags: ['Account Setup', 'Email Verification', 'New User'],
     handoffHistory: [
       {
@@ -120,7 +140,7 @@ const ConversationDetail = () => {
         reason: 'Technical troubleshooting required',
         type: 'ai-to-ai'
       }
-    ]
+    ] as HandoffRecord[]
   });
 
   // Scroll to bottom of messages when new ones are added
@@ -207,17 +227,26 @@ const ConversationDetail = () => {
     // Create handoff record
     const handoffId = `h${Date.now()}`;
     const currentAgent = conversation.messages.filter(m => m.sender === 'bot').pop()?.agent || conversation.agent;
-    const newHandoffType = handoffDestination.includes('Bot') ? 'ai-to-ai' : 
-                       handoffDestination.includes('External') ? 'external' : 'ai-to-human';
+    
+    // Determine the handoff type based on destination
+    let newHandoffType: 'ai-to-ai' | 'ai-to-human' | 'human-to-ai' | 'human-to-human' | 'external';
+    
+    if (handoffDestination.includes('Bot')) {
+      newHandoffType = 'ai-to-ai';
+    } else if (handoffDestination.includes('External')) {
+      newHandoffType = 'external';
+    } else {
+      newHandoffType = 'ai-to-human';
+    }
     
     // Add handoff record to history
-    const handoffRecord = {
+    const handoffRecord: HandoffRecord = {
       id: handoffId,
       from: currentAgent,
       to: handoffDestination,
       timestamp: new Date().toISOString(),
       reason: handoffNotes || `Transferred to ${handoffDestination}`,
-      type: newHandoffType as 'ai-to-ai' | 'ai-to-human' | 'external'
+      type: newHandoffType
     };
     
     // Update conversation with handoff information
@@ -525,7 +554,7 @@ const ConversationDetail = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="h-3.5 w-3.5" />
-                  {conversation.messages.filter(m => !m.type).length} messages
+                  {conversation.messages.length} messages
                 </div>
                 <div className="flex items-center gap-1">
                   <Activity className="h-3.5 w-3.5" />
@@ -937,6 +966,110 @@ const ConversationDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+const getBadgeVariant = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'default';
+    case 'pending':
+      return 'secondary';
+    default:
+      return 'secondary';
+  }
+};
+
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case 'low':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'medium':
+      return 'bg-amber-100 text-amber-800 border-amber-200';
+    case 'high':
+      return 'bg-red-100 text-red-800 border-red-200';
+    case 'critical':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+const getAgentStatusColor = (status: string) => {
+  switch (status) {
+    case 'available':
+      return 'text-green-600';
+    case 'busy':
+      return 'text-amber-600';
+    case 'away':
+      return 'text-gray-400';
+    case 'offline':
+      return 'text-red-600';
+    default:
+      return 'text-gray-600';
+  }
+};
+
+const getHandoffColor = (to: string) => {
+  if (to.includes('Freshdesk') || to.includes('External')) {
+    return 'bg-red-100 text-red-800 border-red-200';
+  } else if (to.includes('Support')) {
+    return 'bg-blue-100 text-blue-800 border-blue-200';
+  } else {
+    return 'bg-amber-100 text-amber-800 border-amber-200';
+  }
+};
+
+const renderMessageItem = (item: any) => {
+  return (
+    <div
+      key={item.id}
+      className={`flex ${item.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
+    >
+      <div
+        className={`flex gap-3 max-w-[80%] ${item.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+      >
+        <Avatar className={item.sender === 'user' ? 'bg-secondary' : 'bg-primary'}>
+          <AvatarFallback>
+            {item.sender === 'user' ? <User2 className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <div className="flex items-center mb-1">
+            <span className="text-xs font-medium">
+              {item.sender === 'user' ? 'John Doe' : item.agent || 'AI Assistant'}
+            </span>
+            {item.sender === 'bot' && (
+              <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4">
+                AI
+              </Badge>
+            )}
+          </div>
+          <div
+            className={`rounded-lg p-3 ${
+              item.sender === 'user'
+                ? 'bg-secondary text-secondary-foreground'
+                : 'bg-primary text-primary-foreground'
+            }`}
+          >
+            {item.content}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {item.sender === 'bot' && (
+              <div className="flex space-x-1">
+                <button className="hover:text-primary transition-colors">
+                  <ThumbsUp className="h-3 w-3" />
+                </button>
+                <button className="hover:text-primary transition-colors">
+                  <ThumbsDown className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
