@@ -59,7 +59,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
           onLogout={logout}
           toggleSidebar={toggleSidebar}
         />
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage ? 'p-0' : ''}`}>
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage ? 'p-0' : 'p-6'}`}>
           {children || <Outlet />}
         </main>
       </div>
