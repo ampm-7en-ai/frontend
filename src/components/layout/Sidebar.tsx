@@ -162,8 +162,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         </Button>
       </div>
 
-      <div className={`flex flex-col h-full ${isCollapsed ? 'w-20' : 'w-72'} bg-white border-r border-medium-gray/10 transition-all duration-300 ease-in-out shadow-sm overflow-hidden my-2`}>
-        <div className="flex items-center h-16 px-4 border-b border-medium-gray/10 mb-4">
+      <div className={`flex flex-col h-full ${isCollapsed ? 'w-20' : 'w-72'} bg-white transition-all duration-300 ease-in-out shadow-sm overflow-hidden`}>
+        <div className="flex items-center h-16 px-4 mb-4">
           {!isCollapsed ? (
             <span className="text-lg font-bold text-primary">7en.ai</span>
           ) : (
