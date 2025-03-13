@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,8 +32,10 @@ const ConversationDetail = () => {
   const [includeAttachments, setIncludeAttachments] = useState(true);
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [isContextPanelOpen, setIsContextPanelOpen] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const conversation = {
+  // Initial conversation state with mock data
+  const [conversation, setConversation] = useState({
     id: conversationId,
     customer: 'John Doe',
     email: 'john.doe@example.com',
@@ -133,39 +135,148 @@ const ConversationDetail = () => {
         type: 'ai-to-ai'
       }
     ]
-  };
+  });
 
-  const availableAgents = {
-    ai: [
-      { id: 'ai1', name: 'Customer Support Bot', specialization: 'General Support' },
-      { id: 'ai2', name: 'Technical Support Bot', specialization: 'Technical Issues' },
-      { id: 'ai3', name: 'Billing Specialist Bot', specialization: 'Billing and Payments' }
-    ],
-    internal: [
-      { id: 'h1', name: 'Sarah Johnson', department: 'Customer Success', status: 'available' },
-      { id: 'h2', name: 'Michael Chen', department: 'Technical Support', status: 'busy' },
-      { id: 'h3', name: 'Emily Rodriguez', department: 'Billing', status: 'away' }
-    ],
-    external: [
-      { id: 'ext1', name: 'Freshdesk', type: 'Helpdesk', status: 'connected' },
-      { id: 'ext2', name: 'Zendesk', type: 'Customer Support', status: 'connected' },
-      { id: 'ext3', name: 'Salesforce Service Cloud', type: 'CRM', status: 'disconnected' }
-    ]
-  };
+  // Scroll to bottom of messages when new ones are added
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversation.messages]);
 
-  const detectedTopics = [
-    { topic: 'Account Setup', confidence: 88 },
-    { topic: 'Email Verification', confidence: 75 },
-    { topic: 'Technical Issue', confidence: 45 }
-  ];
+  // Mock responses based on user input
+  const generateBotResponse = (userMessage: string) => {
+    let responseContent = "Thank you for your message. How else can I assist you today?";
+    const currentAgent = conversation.messages.filter(m => m.sender === 'bot').pop()?.agent || conversation.agent;
+    
+    // Simple response logic based on user message content
+    if (userMessage.toLowerCase().includes('email') || userMessage.toLowerCase().includes('verification')) {
+      responseContent = "I see you're still having issues with email verification. Let me check the status of your account. It appears that the new verification email has been sent successfully. Please allow up to 5 minutes for it to arrive.";
+    } else if (userMessage.toLowerCase().includes('thank')) {
+      responseContent = "You're welcome! Is there anything else you need help with today?";
+    } else if (userMessage.toLowerCase().includes('password')) {
+      responseContent = "If you need to reset your password, I can help with that. Would you like me to send a password reset link to your email address?";
+    } else if (userMessage.toLowerCase().includes('account')) {
+      responseContent = "Your account is currently in the verification stage. Once you verify your email, you'll have full access to all features of our platform.";
+    }
+    
+    return {
+      id: `m${Date.now()}`,
+      sender: 'bot',
+      content: responseContent,
+      timestamp: new Date().toISOString(),
+      agent: currentAgent
+    };
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
     
-    console.log('Sending message:', newMessage);
+    // Add user message to conversation
+    const userMessage = {
+      id: `m${Date.now()}`,
+      sender: 'user',
+      content: newMessage,
+      timestamp: new Date().toISOString(),
+    };
     
+    // Update conversation with new user message
+    setConversation(prev => ({
+      ...prev,
+      messages: [...prev.messages, userMessage]
+    }));
+    
+    // Clear input field
     setNewMessage('');
+    
+    // Simulate bot response after a short delay
+    setTimeout(() => {
+      const botResponse = generateBotResponse(userMessage.content);
+      
+      // Update conversation with bot response
+      setConversation(prev => ({
+        ...prev,
+        messages: [...prev.messages, botResponse]
+      }));
+      
+      // Trigger toast notification for new message
+      toast({
+        title: "New message",
+        description: `${botResponse.agent || conversation.agent} has responded to your message.`,
+        duration: 3000,
+      });
+    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds for realism
+  };
+
+  // Handle initiating a handoff to another agent
+  const handleHandoffSubmit = () => {
+    if (!handoffDestination) {
+      toast({
+        title: "Error",
+        description: "Please select a destination for the handoff",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create handoff record
+    const handoffId = `h${Date.now()}`;
+    const currentAgent = conversation.messages.filter(m => m.sender === 'bot').pop()?.agent || conversation.agent;
+    const handoffType = handoffDestination.includes('Bot') ? 'ai-to-ai' : 
+                       handoffDestination.includes('External') ? 'external' : 'ai-to-human';
+    
+    // Add handoff message to conversation
+    const handoffMessage = {
+      id: handoffId,
+      type: 'handoff',
+      from: currentAgent,
+      to: handoffDestination,
+      reason: handoffNotes || `Transferred to ${handoffDestination}`,
+      timestamp: new Date().toISOString(),
+    };
+    
+    // Add to handoff history
+    const handoffRecord = {
+      id: handoffId,
+      from: currentAgent,
+      to: handoffDestination,
+      timestamp: new Date().toISOString(),
+      reason: handoffNotes || `Transferred to ${handoffDestination}`,
+      type: handoffType as 'ai-to-ai' | 'ai-to-human' | 'external'
+    };
+    
+    // Update conversation with handoff information
+    setConversation(prev => ({
+      ...prev,
+      messages: [...prev.messages, handoffMessage],
+      handoffHistory: [...prev.handoffHistory, handoffRecord],
+      agent: handoffDestination // Update current agent
+    }));
+    
+    // Simulate response from new agent
+    setTimeout(() => {
+      const welcomeMessage = {
+        id: `m${Date.now()}`,
+        sender: 'bot',
+        content: `Hi there, I'm ${handoffDestination}. I've been briefed on your conversation and I'm ready to help. Let me review your case...`,
+        timestamp: new Date().toISOString(),
+        agent: handoffDestination
+      };
+      
+      setConversation(prev => ({
+        ...prev,
+        messages: [...prev.messages, welcomeMessage]
+      }));
+    }, 2000);
+    
+    toast({
+      title: "Handoff successful",
+      description: `Conversation transferred to ${handoffDestination}`,
+    });
+    
+    // Reset handoff form and close dialog
+    setHandoffNotes('');
+    setHandoffDestination('');
+    setIsHandoffDialogOpen(false);
   };
 
   const getBadgeVariant = (status: string) => {
@@ -207,22 +318,6 @@ const ConversationDetail = () => {
       default:
         return 'text-gray-600';
     }
-  };
-
-  const handleHandoffSubmit = () => {
-    console.log('Handoff type:', handoffType);
-    console.log('Handoff destination:', handoffDestination);
-    console.log('Handoff notes:', handoffNotes);
-    console.log('Handoff priority:', handoffPriority);
-    console.log('Include attachments:', includeAttachments);
-    console.log('Include metadata:', includeMetadata);
-    
-    toast({
-      title: "Handoff initiated",
-      description: `Conversation handed off to ${handoffDestination}`,
-    });
-    
-    setIsHandoffDialogOpen(false);
   };
 
   const getHandoffColor = (to: string) => {
@@ -301,6 +396,7 @@ const ConversationDetail = () => {
     );
   };
 
+  // Return component JSX structure
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
@@ -441,7 +537,7 @@ const ConversationDetail = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="h-3.5 w-3.5" />
-                  {conversation.messages.length} messages
+                  {conversation.messages.filter(m => !m.type).length} messages
                 </div>
                 <div className="flex items-center gap-1">
                   <Activity className="h-3.5 w-3.5" />
@@ -452,6 +548,7 @@ const ConversationDetail = () => {
             <CardContent className="p-0 flex-grow overflow-y-auto">
               <div className="p-4 space-y-4">
                 {conversation.messages.map(item => renderMessageItem(item))}
+                <div ref={messagesEndRef} />
               </div>
             </CardContent>
             <CardFooter className="p-3 border-t">
@@ -685,215 +782,4 @@ const ConversationDetail = () => {
                 <div>
                   <p className="text-xs font-medium">Detected Topics</p>
                   <div className="space-y-2 mt-2">
-                    {detectedTopics.map((topic, index) => (
-                      <div key={index} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>{topic.topic}</span>
-                          <span>{topic.confidence}%</span>
-                        </div>
-                        <Progress value={topic.confidence} className="h-1" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Response Time
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs">Current SLA</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
-                    On Track
-                  </Badge>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span>Time to first response</span>
-                    <span className="font-medium">45 seconds</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span>Average response time</span>
-                    <span className="font-medium">1.2 minutes</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span>Time since last message</span>
-                    <span className="font-medium">3.5 minutes</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-      
-      <Dialog open={isHandoffDialogOpen} onOpenChange={setIsHandoffDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Handoff Conversation</DialogTitle>
-            <DialogDescription>
-              Transfer this conversation to another agent or external system.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="destination-type">Destination Type</Label>
-              <RadioGroup 
-                id="destination-type" 
-                value={handoffType} 
-                onValueChange={(value) => setHandoffType(value as 'ai' | 'internal' | 'external')}
-                className="flex space-x-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ai" id="ai" />
-                  <Label htmlFor="ai" className="cursor-pointer">AI Agent</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="internal" id="internal" />
-                  <Label htmlFor="internal" className="cursor-pointer">Human Agent</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="external" id="external" />
-                  <Label htmlFor="external" className="cursor-pointer">External System</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="destination">Select Destination</Label>
-              {handoffType === 'ai' && (
-                <Select onValueChange={setHandoffDestination}>
-                  <SelectTrigger id="destination">
-                    <SelectValue placeholder="Select AI agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableAgents.ai.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.name}>
-                        {agent.name} ({agent.specialization})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              
-              {handoffType === 'internal' && (
-                <Select onValueChange={setHandoffDestination}>
-                  <SelectTrigger id="destination">
-                    <SelectValue placeholder="Select team member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableAgents.internal.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.name}>
-                        {agent.name} - {agent.department} 
-                        <span className={getAgentStatusColor(agent.status)}>
-                          ({agent.status})
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              
-              {handoffType === 'external' && (
-                <Select onValueChange={setHandoffDestination}>
-                  <SelectTrigger id="destination">
-                    <SelectValue placeholder="Select external system" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableAgents.external.map((system) => (
-                      <SelectItem 
-                        key={system.id} 
-                        value={system.name}
-                        disabled={system.status === 'disconnected'}
-                      >
-                        {system.name} ({system.type})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-            
-            {handoffType === 'external' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="priority">Ticket Priority</Label>
-                  <Select defaultValue="medium" onValueChange={setHandoffPriority}>
-                    <SelectTrigger id="priority">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Additional Options</Label>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="include-attachments" className="cursor-pointer">Include Attachments</Label>
-                    <Switch 
-                      id="include-attachments" 
-                      checked={includeAttachments}
-                      onCheckedChange={setIncludeAttachments}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="include-metadata" className="cursor-pointer">Include Metadata</Label>
-                    <Switch 
-                      id="include-metadata" 
-                      checked={includeMetadata}
-                      onCheckedChange={setIncludeMetadata}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="handoff-notes">Handoff Notes</Label>
-              <Textarea 
-                id="handoff-notes" 
-                placeholder="Add any context or notes for the receiving agent..." 
-                value={handoffNotes}
-                onChange={(e) => setHandoffNotes(e.target.value)}
-                className="min-h-[80px]"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsHandoffDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleHandoffSubmit} disabled={!handoffDestination}>
-              {handoffType === 'external' ? (
-                <>
-                  <TicketCheck className="h-4 w-4 mr-2" />
-                  Create Ticket
-                </>
-              ) : (
-                <>
-                  <PhoneForwarded className="h-4 w-4 mr-2" />
-                  Transfer
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default ConversationDetail;
+                    {detected
