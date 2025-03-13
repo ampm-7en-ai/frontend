@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className={`absolute top-4 ${isCollapsed ? 'right-0 translate-x-1/2' : 'right-3'} h-8 w-8 rounded-full bg-white shadow-sm z-10 transition-all duration-300`}
+        className={`absolute top-1/2 -translate-y-1/2 ${isCollapsed ? 'right-0 translate-x-1/2' : 'right-0 translate-x-1/2'} h-8 w-8 rounded-full bg-white shadow-md z-10 transition-all duration-300 hover:bg-accent`}
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4" />
