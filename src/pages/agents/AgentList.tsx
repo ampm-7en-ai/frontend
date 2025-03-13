@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,11 +6,8 @@ import { Bot, Search, Rocket } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
-import AgentTable from '@/components/agents/AgentTable';
 
 const AgentList = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  
   // Mock data - in a real app, this would come from an API
   const agents: Agent[] = [
     { 
@@ -104,24 +100,6 @@ const AgentList = () => {
           </Select>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="flex items-center bg-muted rounded-md p-1">
-            <Button 
-              variant={viewMode === 'grid' ? "secondary" : "ghost"} 
-              size="sm" 
-              onClick={() => setViewMode('grid')}
-              className="px-2 py-1"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-grid-2x2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
-            </Button>
-            <Button 
-              variant={viewMode === 'table' ? "secondary" : "ghost"} 
-              size="sm" 
-              onClick={() => setViewMode('table')}
-              className="px-2 py-1"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
-            </Button>
-          </div>
           <span className="text-sm text-muted-foreground hidden sm:inline-block">
             {filteredAgents.length} agent{filteredAgents.length !== 1 ? 's' : ''} found
           </span>
@@ -139,41 +117,27 @@ const AgentList = () => {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {viewMode === 'grid' ? (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredAgents.map((agent) => (
-                <AgentCard 
-                  key={agent.id} 
-                  agent={agent}
-                  getModelBadgeColor={getModelBadgeColor}
-                />
-              ))}
-            </div>
-          ) : (
-            <AgentTable 
-              agents={filteredAgents}
-              getModelBadgeColor={getModelBadgeColor}
-            />
-          )}
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredAgents.map((agent) => (
+              <AgentCard 
+                key={agent.id} 
+                agent={agent}
+                getModelBadgeColor={getModelBadgeColor}
+              />
+            ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="deployed">
-          {viewMode === 'grid' ? (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredAgents.filter(agent => agent.isDeployed).map((agent) => (
-                <AgentCard 
-                  key={agent.id} 
-                  agent={agent}
-                  getModelBadgeColor={getModelBadgeColor}
-                />
-              ))}
-            </div>
-          ) : (
-            <AgentTable 
-              agents={filteredAgents.filter(agent => agent.isDeployed)}
-              getModelBadgeColor={getModelBadgeColor}
-            />
-          )}
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredAgents.filter(agent => agent.isDeployed).map((agent) => (
+              <AgentCard 
+                key={agent.id} 
+                agent={agent}
+                getModelBadgeColor={getModelBadgeColor}
+              />
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

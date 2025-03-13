@@ -1,12 +1,14 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Bot, ChevronLeft, Circle, SendHorizontal, Zap } from 'lucide-react';
+import { Bot, ChevronLeft, Circle, SendHorizontal, Zap, Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import DeploymentDialog from '@/components/agents/DeploymentDialog';
 
 type Message = {
   id: number;
@@ -16,15 +18,43 @@ type Message = {
 };
 
 const AgentTest = () => {
+  // Mock agent data - in a real application, this would come from an API or props
+  const agent = {
+    id: "1",
+    name: "Customer Support Agent",
+    description: "Helps with product questions and customer service inquiries",
+    conversations: 1234,
+    lastModified: new Date().toISOString(),
+    averageRating: 4.8,
+    knowledgeSources: [
+      { id: 1, name: "Product Docs", type: "document", icon: "BookOpen", hasError: false },
+      { id: 2, name: "FAQ", type: "webpage", icon: "Globe", hasError: false }
+    ],
+    model: "gpt-4",
+    isDeployed: false
+  };
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      content: "Hello! I'm your Customer Support Agent. How can I help you today?",
+      content: `Hello! I'm your ${agent.name}. How can I help you today?`,
       sender: 'agent',
       timestamp: new Date(),
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
+
+  // Chat appearance settings (in a real app, these would come from the agent configuration)
+  const chatAppearance = {
+    primaryColor: '#8B5CF6', // Vivid purple
+    chatBubbleUserColor: '#8B5CF6',
+    chatBubbleAgentColor: '#F1F0FB',
+    chatFontSize: 'medium',
+    agentNameDisplay: true,
+    timestampDisplay: true,
+    roundedBubbles: true
+  };
 
   const handleSendMessage = () => {
     if (inputMessage.trim() === '') return;
@@ -70,13 +100,24 @@ const AgentTest = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center mb-4">
-        <Button variant="ghost" size="icon" asChild className="mr-2">
-          <Link to="/agents">
-            <ChevronLeft className="h-4 w-4" />
-          </Link>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" asChild className="mr-2">
+            <Link to="/agents">
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-bold">Test Agent</h1>
+        </div>
+        <Button 
+          variant={agent.isDeployed ? "secondary" : "default"} 
+          size="sm"
+          onClick={() => setDeploymentDialogOpen(true)}
+          className="flex items-center gap-1"
+        >
+          <Rocket className="h-4 w-4 mr-1" />
+          {agent.isDeployed ? "Manage Deployment" : "Deploy Agent"}
         </Button>
-        <h1 className="text-2xl font-bold">Test Agent</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -91,22 +132,25 @@ const AgentTest = () => {
                   <Bot className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Customer Support Agent</h3>
+                  <h3 className="font-semibold">{agent.name}</h3>
                   <Badge className="bg-green-100 text-green-800 mt-1">Active</Badge>
                 </div>
               </div>
               
               <div className="space-y-2 text-sm">
                 <div className="space-y-1">
-                  <p className="text-muted-foreground">Response Time:</p>
-                  <p className="font-medium">1.2 seconds</p>
+                  <p className="text-muted-foreground">Model:</p>
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                    {agent.model}
+                  </Badge>
                 </div>
                 
                 <div className="space-y-1">
                   <p className="text-muted-foreground">Knowledge Sources:</p>
                   <div className="flex flex-wrap gap-1">
-                    <Badge variant="outline">Product Docs</Badge>
-                    <Badge variant="outline">FAQ</Badge>
+                    {agent.knowledgeSources.map(source => (
+                      <Badge key={source.id} variant="outline">{source.name}</Badge>
+                    ))}
                   </div>
                 </div>
                 
@@ -154,25 +198,32 @@ const AgentTest = () => {
                     className={cn(
                       "max-w-[80%] rounded-lg p-3",
                       message.sender === 'user' 
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                        ? `bg-[${chatAppearance.chatBubbleUserColor}] text-primary-foreground`
+                        : `bg-[${chatAppearance.chatBubbleAgentColor}]`
                     )}
+                    style={{
+                      borderRadius: chatAppearance.roundedBubbles ? '0.75rem' : '0.25rem',
+                      fontSize: chatAppearance.chatFontSize === 'small' ? '0.875rem' : 
+                               chatAppearance.chatFontSize === 'large' ? '1.125rem' : '1rem'
+                    }}
                   >
-                    {message.sender === 'agent' && (
+                    {message.sender === 'agent' && chatAppearance.agentNameDisplay && (
                       <div className="flex items-center mb-1">
                         <Avatar className="h-5 w-5 mr-2">
                           <AvatarFallback>AI</AvatarFallback>
                         </Avatar>
-                        <span className="text-xs font-semibold">Support Agent</span>
+                        <span className="text-xs font-semibold">{agent.name}</span>
                       </div>
                     )}
                     <p>{message.content}</p>
-                    <div className={cn(
-                      "text-xs mt-1",
-                      message.sender === 'user' ? "text-primary-foreground/70" : "text-muted-foreground"
-                    )}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
+                    {chatAppearance.timestampDisplay && (
+                      <div className={cn(
+                        "text-xs mt-1",
+                        message.sender === 'user' ? "text-primary-foreground/70" : "text-muted-foreground"
+                      )}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -186,7 +237,7 @@ const AgentTest = () => {
                   onKeyDown={handleKeyDown}
                   className="flex-1"
                 />
-                <Button onClick={handleSendMessage} size="icon">
+                <Button onClick={handleSendMessage} size="icon" style={{ backgroundColor: chatAppearance.primaryColor }}>
                   <SendHorizontal className="h-4 w-4" />
                 </Button>
               </div>
@@ -194,6 +245,13 @@ const AgentTest = () => {
           </Card>
         </div>
       </div>
+
+      {/* Deployment Dialog */}
+      <DeploymentDialog 
+        open={deploymentDialogOpen} 
+        onOpenChange={setDeploymentDialogOpen} 
+        agent={agent} 
+      />
     </div>
   );
 };
