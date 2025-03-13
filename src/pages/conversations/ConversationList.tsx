@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { 
   Search, Filter, MoreHorizontal, MessageSquare, Clock, 
   User, Bot, Send, Info, Users, Tag, ArrowRight, 
-  ThumbsUp, ThumbsDown, HelpCircle, AlertCircle, CheckCircle 
+  ThumbsUp, ThumbsDown, HelpCircle, AlertCircle, CheckCircle, 
+  ChevronRight, X, Maximize2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +26,7 @@ const ConversationList = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Mock conversation data
   const conversations = [
@@ -185,13 +188,13 @@ const ConversationList = () => {
   return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
       {/* Left Panel - Conversation List */}
-      <div className="w-80 border-r p-4 flex flex-col h-full">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Conversations</h2>
+      <div className="w-72 border-r flex flex-col h-full">
+        <div className="p-3 border-b">
+          <h2 className="text-lg font-semibold mb-2">Conversations</h2>
           <div className="relative">
             <Input 
-              placeholder="Search conversations..." 
-              className="pl-10" 
+              placeholder="Search..." 
+              className="pl-9 h-9" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -202,7 +205,7 @@ const ConversationList = () => {
               variant={filterStatus === 'all' ? "default" : "outline"} 
               size="sm"
               onClick={() => setFilterStatus('all')}
-              className="flex-1"
+              className="flex-1 h-8"
             >
               All
             </Button>
@@ -210,7 +213,7 @@ const ConversationList = () => {
               variant={filterStatus === 'active' ? "default" : "outline"} 
               size="sm"
               onClick={() => setFilterStatus('active')}
-              className="flex-1"
+              className="flex-1 h-8"
             >
               Active
             </Button>
@@ -218,14 +221,14 @@ const ConversationList = () => {
               variant={filterStatus === 'pending' ? "default" : "outline"} 
               size="sm"
               onClick={() => setFilterStatus('pending')}
-              className="flex-1"
+              className="flex-1 h-8"
             >
               Pending
             </Button>
           </div>
         </div>
         
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 p-2">
           {filteredConversations.map((conversation) => (
             <Card 
               key={conversation.id} 
@@ -244,7 +247,7 @@ const ConversationList = () => {
                       conversation.status === 'pending' ? "bg-amber-500" : "bg-gray-500"
                     )} />
                     <div>
-                      <h3 className="font-medium">{conversation.customer}</h3>
+                      <h3 className="font-medium text-sm">{conversation.customer}</h3>
                       <div className="text-xs text-muted-foreground">{conversation.topic}</div>
                     </div>
                   </div>
@@ -252,10 +255,10 @@ const ConversationList = () => {
                     {conversation.time}
                   </div>
                 </div>
-                <div className="mt-2 text-sm line-clamp-2">
+                <div className="mt-1 text-xs line-clamp-1 text-muted-foreground">
                   {conversation.lastMessage}
                 </div>
-                <div className="mt-2 flex justify-between items-center">
+                <div className="mt-1 flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Clock className="h-3 w-3 mr-1" />
@@ -280,33 +283,32 @@ const ConversationList = () => {
       <div className="flex-1 flex flex-col h-full">
         {activeConversation ? (
           <>
-            <div className="border-b p-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <h2 className="text-xl font-bold">{activeConversation.customer}</h2>
-                  <div className="ml-3">{getStatusBadge(activeConversation.status)}</div>
+            <div className="border-b p-3 flex justify-between items-center">
+              <div className="flex items-center">
+                <h2 className="text-base font-semibold">{activeConversation.customer}</h2>
+                <div className="ml-2">{getStatusBadge(activeConversation.status)}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4 mr-1" />
+                  {activeConversation.duration}
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {activeConversation.duration}
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Tag className="h-4 w-4 mr-1" />
-                    {activeConversation.topic}
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
+            <div className="flex-1 overflow-y-auto p-3 bg-slate-50">
               {activeConversation.messages.map((message) => (
                 <div 
                   key={message.id} 
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
                 >
                   {message.sender === 'bot' && (
                     <Avatar className="h-8 w-8 mr-2 bg-primary">
@@ -328,7 +330,7 @@ const ConversationList = () => {
                         {message.agent}
                       </div>
                     )}
-                    <p className="break-words">{message.content}</p>
+                    <p className="break-words text-sm">{message.content}</p>
                     <div className="text-xs mt-1 opacity-70">
                       {message.timestamp}
                     </div>
@@ -344,7 +346,7 @@ const ConversationList = () => {
               ))}
             </div>
             
-            <form onSubmit={handleSendMessage} className="border-t p-4 bg-white">
+            <form onSubmit={handleSendMessage} className="border-t p-3 bg-white">
               <div className="flex items-center gap-2">
                 <Input
                   placeholder="Type your message..."
@@ -352,9 +354,8 @@ const ConversationList = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   className="flex-1"
                 />
-                <Button type="submit" className="bg-primary">
-                  <Send className="h-4 w-4 mr-2" />
-                  Send
+                <Button type="submit" size="icon" className="rounded-full h-9 w-9">
+                  <Send className="h-4 w-4" />
                 </Button>
               </div>
             </form>
@@ -370,13 +371,20 @@ const ConversationList = () => {
         )}
       </div>
       
-      {/* Right Panel - Conversation Details */}
-      <div className="w-72 border-l p-4 h-full overflow-y-auto">
-        {activeConversation ? (
-          <>
-            <h2 className="text-xl font-bold mb-4">Details</h2>
-            
-            <div className="space-y-6">
+      {/* Right Panel as Flyout - Conversation Details */}
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent className="w-80 p-0 overflow-y-auto">
+          <SheetHeader className="p-4 border-b">
+            <div className="flex justify-between items-center">
+              <SheetTitle>Conversation Details</SheetTitle>
+              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </SheetHeader>
+          
+          {activeConversation ? (
+            <div className="p-4 space-y-6">
               {/* Agent Information */}
               <div>
                 <h3 className="text-sm font-medium mb-2 flex items-center">
@@ -517,16 +525,16 @@ const ConversationList = () => {
                 </div>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            <div className="text-center">
-              <Info className="h-8 w-8 mx-auto mb-2 opacity-20" />
-              <p className="text-sm">Select a conversation to view details</p>
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground p-4">
+              <div className="text-center">
+                <Info className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                <p className="text-sm">Select a conversation to view details</p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
