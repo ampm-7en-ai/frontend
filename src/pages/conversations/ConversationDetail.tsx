@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -32,7 +31,6 @@ const ConversationDetail = () => {
   const [includeAttachments, setIncludeAttachments] = useState(true);
   const [includeMetadata, setIncludeMetadata] = useState(true);
   
-  // Mock conversation data
   const conversation = {
     id: conversationId,
     customer: 'John Doe',
@@ -56,6 +54,7 @@ const ConversationDetail = () => {
         sender: 'bot',
         content: 'Hi John! I\'d be happy to help you set up your account. Can you tell me what specific step you\'re having trouble with?',
         timestamp: '2023-06-10T14:31:00',
+        agent: 'General Bot'
       },
       {
         id: 'm3',
@@ -64,34 +63,53 @@ const ConversationDetail = () => {
         timestamp: '2023-06-10T14:32:00',
       },
       {
+        id: 'h1',
+        type: 'handoff',
+        from: 'General Bot',
+        to: 'Sales Bot',
+        reason: 'Topic specialized to sales inquiries',
+        timestamp: '2023-06-10T14:33:00',
+      },
+      {
         id: 'm4',
         sender: 'bot',
         content: 'I understand the frustration. Let me help you with that. Sometimes the verification links can expire after 24 hours. When did you receive the verification email?',
-        timestamp: '2023-06-10T14:33:00',
+        timestamp: '2023-06-10T14:34:00',
+        agent: 'Sales Bot'
       },
       {
         id: 'm5',
         sender: 'user',
         content: 'I just received it about an hour ago.',
-        timestamp: '2023-06-10T14:34:00',
+        timestamp: '2023-06-10T14:35:00',
+      },
+      {
+        id: 'h2',
+        type: 'handoff',
+        from: 'Sales Bot',
+        to: 'Technical Support Bot',
+        reason: 'Technical troubleshooting required',
+        timestamp: '2023-06-10T14:36:00',
       },
       {
         id: 'm6',
         sender: 'bot',
         content: 'Thanks for confirming. In that case, let\'s try requesting a new verification email. Would you like me to do that for you?',
-        timestamp: '2023-06-10T14:35:00',
+        timestamp: '2023-06-10T14:37:00',
+        agent: 'Technical Support Bot'
       },
       {
         id: 'm7',
         sender: 'user',
         content: 'Yes, please. That would be helpful.',
-        timestamp: '2023-06-10T14:36:00',
+        timestamp: '2023-06-10T14:38:00',
       },
       {
         id: 'm8',
         sender: 'bot',
         content: 'Great! I\'ve sent a new verification email to john.doe@example.com. Please check your inbox (and spam folder, just in case) in the next few minutes. Let me know if you receive it and if you\'re able to complete the verification process.',
-        timestamp: '2023-06-10T14:37:00',
+        timestamp: '2023-06-10T14:39:00',
+        agent: 'Technical Support Bot'
       },
     ],
     tags: ['Account Setup', 'Email Verification', 'New User'],
@@ -100,14 +118,21 @@ const ConversationDetail = () => {
         id: 'h1',
         from: 'General Bot',
         to: 'Sales Bot',
-        timestamp: '2023-06-10T14:29:00',
+        timestamp: '2023-06-10T14:33:00',
         reason: 'Topic specialized to sales inquiries',
+        type: 'ai-to-ai'
+      },
+      {
+        id: 'h2',
+        from: 'Sales Bot',
+        to: 'Technical Support Bot',
+        timestamp: '2023-06-10T14:36:00',
+        reason: 'Technical troubleshooting required',
         type: 'ai-to-ai'
       }
     ]
   };
 
-  // Mock data for available agents and systems
   const availableAgents = {
     ai: [
       { id: 'ai1', name: 'Customer Support Bot', specialization: 'General Support' },
@@ -126,7 +151,6 @@ const ConversationDetail = () => {
     ]
   };
 
-  // Topics detected in the conversation (mock data)
   const detectedTopics = [
     { topic: 'Account Setup', confidence: 88 },
     { topic: 'Email Verification', confidence: 75 },
@@ -137,20 +161,17 @@ const ConversationDetail = () => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
     
-    // In a real application, you would send this message to your backend
     console.log('Sending message:', newMessage);
     
-    // Clear the input
     setNewMessage('');
   };
 
-  // Helper function to determine badge variant based on status
   const getBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':
-        return 'default'; // Use default instead of success
+        return 'default';
       case 'pending':
-        return 'secondary'; // Use secondary instead of warning
+        return 'secondary';
       default:
         return 'secondary';
     }
@@ -185,9 +206,8 @@ const ConversationDetail = () => {
         return 'text-gray-600';
     }
   };
-  
+
   const handleHandoffSubmit = () => {
-    // In a real application, you would send the handoff information to your backend
     console.log('Handoff type:', handoffType);
     console.log('Handoff destination:', handoffDestination);
     console.log('Handoff notes:', handoffNotes);
@@ -195,13 +215,88 @@ const ConversationDetail = () => {
     console.log('Include attachments:', includeAttachments);
     console.log('Include metadata:', includeMetadata);
     
-    // Show toast notification and close dialog
     toast({
       title: "Handoff initiated",
       description: `Conversation handed off to ${handoffDestination}`,
     });
     
     setIsHandoffDialogOpen(false);
+  };
+
+  const renderMessageItem = (item: any) => {
+    if (item.type === 'handoff') {
+      const getHandoffColor = () => {
+        if (item.to.includes('Freshdesk') || item.to.includes('External')) {
+          return 'bg-red-100 text-red-800 border-red-200';
+        } else if (item.to.includes('Support')) {
+          return 'bg-blue-100 text-blue-800 border-blue-200';
+        } else {
+          return 'bg-amber-100 text-amber-800 border-amber-200';
+        }
+      };
+
+      return (
+        <div key={item.id} className="flex items-center justify-center my-4">
+          <div className={`rounded-full px-4 py-2 text-sm border ${getHandoffColor()}`}>
+            <div className="flex items-center">
+              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              Conversation transferred to {item.to}
+            </div>
+            {item.reason && (
+              <div className="text-xs mt-1 opacity-80">
+                Reason: {item.reason}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={item.id}
+        className={`flex ${item.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+      >
+        <div
+          className={`flex gap-3 max-w-[80%] ${item.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+        >
+          <Avatar className={item.sender === 'user' ? 'bg-secondary' : 'bg-primary'}>
+            <AvatarFallback>
+              {item.sender === 'user' ? <User2 className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="flex items-center mb-1">
+              <span className="text-xs font-medium">
+                {item.sender === 'user' ? conversation.customer : item.agent || conversation.agent}
+              </span>
+            </div>
+            <div
+              className={`rounded-lg p-3 ${
+                item.sender === 'user'
+                  ? 'bg-secondary text-secondary-foreground'
+                  : 'bg-primary text-primary-foreground'
+              }`}
+            >
+              {item.content}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+              {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {item.sender === 'bot' && (
+                <div className="flex space-x-1">
+                  <button className="hover:text-primary transition-colors">
+                    <ThumbsUp className="h-3 w-3" />
+                  </button>
+                  <button className="hover:text-primary transition-colors">
+                    <ThumbsDown className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -227,7 +322,6 @@ const ConversationDetail = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Panel: Conversation List */}
         <div className="lg:col-span-3 order-3 lg:order-1">
           <Card className="h-[calc(100vh-120px)] flex flex-col">
             <CardHeader className="pb-2">
@@ -251,7 +345,6 @@ const ConversationDetail = () => {
               </TabsList>
             </Tabs>
             <CardContent className="flex-grow overflow-auto space-y-2 pb-0">
-              {/* Mock conversation list - this would be populated from API */}
               {Array.from({ length: 10 }).map((_, index) => (
                 <Card 
                   key={index} 
@@ -305,7 +398,6 @@ const ConversationDetail = () => {
           </Card>
         </div>
         
-        {/* Center Panel: Conversation View */}
         <div className="lg:col-span-6 order-1 lg:order-2">
           <Card className="h-[calc(100vh-120px)] flex flex-col">
             <CardHeader className="pb-3 border-b">
@@ -353,59 +445,7 @@ const ConversationDetail = () => {
             </CardHeader>
             <CardContent className="p-0 flex-grow overflow-y-auto">
               <div className="p-4 space-y-6">
-                {/* Handoff indicator */}
-                <div className="flex items-center justify-center">
-                  <div className="bg-muted/50 text-xs text-muted-foreground rounded-full px-3 py-1 flex items-center">
-                    <ArrowRightLeft className="h-3 w-3 mr-1" />
-                    Conversation transferred from General Bot to Sales Bot
-                  </div>
-                </div>
-                
-                {conversation.messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`flex gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-                    >
-                      <Avatar className={message.sender === 'user' ? 'bg-secondary' : 'bg-primary'}>
-                        <AvatarFallback>
-                          {message.sender === 'user' ? <User2 className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center mb-1">
-                          <span className="text-xs font-medium">
-                            {message.sender === 'user' ? conversation.customer : conversation.agent}
-                          </span>
-                        </div>
-                        <div
-                          className={`rounded-lg p-3 ${
-                            message.sender === 'user'
-                              ? 'bg-secondary text-secondary-foreground'
-                              : 'bg-primary text-primary-foreground'
-                          }`}
-                        >
-                          {message.content}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          {message.sender === 'bot' && (
-                            <div className="flex space-x-1">
-                              <button className="hover:text-primary transition-colors">
-                                <ThumbsUp className="h-3 w-3" />
-                              </button>
-                              <button className="hover:text-primary transition-colors">
-                                <ThumbsDown className="h-3 w-3" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                {conversation.messages.map(item => renderMessageItem(item))}
               </div>
             </CardContent>
             <CardFooter className="p-3 border-t">
@@ -429,10 +469,8 @@ const ConversationDetail = () => {
           </Card>
         </div>
         
-        {/* Right Panel: Conversation Details and Handoff Controls */}
         <div className="lg:col-span-3 order-2 lg:order-3">
           <div className="space-y-4 h-[calc(100vh-120px)] overflow-auto pr-1">
-            {/* Current Assignment Card */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Current Assignment</CardTitle>
@@ -478,7 +516,6 @@ const ConversationDetail = () => {
               </CardContent>
             </Card>
             
-            {/* Handoff Control Panel */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center">
@@ -625,7 +662,6 @@ const ConversationDetail = () => {
               </CardContent>
             </Card>
             
-            {/* Customer Context */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Customer Context</CardTitle>
@@ -657,7 +693,6 @@ const ConversationDetail = () => {
               </CardContent>
             </Card>
             
-            {/* SLA Tracking */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center">
@@ -692,7 +727,6 @@ const ConversationDetail = () => {
         </div>
       </div>
       
-      {/* Handoff Dialog */}
       <Dialog open={isHandoffDialogOpen} onOpenChange={setIsHandoffDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
