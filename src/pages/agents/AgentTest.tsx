@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Bot, ChevronLeft, Circle, SendHorizontal, Zap, Rocket } from 'lucide-react';
+import { Bot, ChevronLeft, Circle, SendHorizontal, Zap, Rocket, X, Maximize2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -37,7 +37,7 @@ const AgentTest = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      content: `Hello! I'm your ${agent.name}. How can I help you today?`,
+      content: `Hello! How can I help you today?`,
       sender: 'agent',
       timestamp: new Date(),
     },
@@ -47,13 +47,14 @@ const AgentTest = () => {
 
   // Chat appearance settings (in a real app, these would come from the agent configuration)
   const chatAppearance = {
-    primaryColor: '#8B5CF6', // Vivid purple
-    chatBubbleUserColor: '#8B5CF6',
+    primaryColor: '#9b87f5', // Vivid purple from the reference image
+    chatBubbleUserColor: '#9b87f5',
     chatBubbleAgentColor: '#F1F0FB',
     chatFontSize: 'medium',
     agentNameDisplay: true,
     timestampDisplay: true,
-    roundedBubbles: true
+    roundedBubbles: true,
+    headerColor: '#9b87f5', // Header color from the reference image
   };
 
   const handleSendMessage = () => {
@@ -172,20 +173,30 @@ const AgentTest = () => {
         </div>
         
         <div className="md:col-span-2">
-          <Card className="flex flex-col h-[600px]">
-            <CardHeader className="border-b">
+          <Card className="flex flex-col h-[600px] overflow-hidden border-0 shadow-lg">
+            {/* Redesigned Chat Header */}
+            <div 
+              className="p-4 flex items-center justify-between" 
+              style={{ backgroundColor: chatAppearance.headerColor }}
+            >
               <div className="flex items-center">
-                <div className="flex items-center mr-2">
-                  <Circle className="h-2 w-2 fill-green-500 text-green-500 mr-1" />
-                  <span className="text-sm text-muted-foreground">Online</span>
+                <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center mr-3">
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
-                <Badge variant="outline" className="ml-auto flex items-center">
-                  <Zap className="h-3 w-3 mr-1 text-primary" />
-                  Test Mode
-                </Badge>
+                <h3 className="font-medium text-white">{agent.name}</h3>
               </div>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Chat Messages */}
+            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.map((message) => (
                 <div 
                   key={message.id}
@@ -194,32 +205,35 @@ const AgentTest = () => {
                     message.sender === 'user' ? "justify-end" : "justify-start"
                   )}
                 >
+                  {message.sender === 'agent' && (
+                    <div className="h-8 w-8 rounded-full mr-2 flex-shrink-0 bg-purple-500 flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-white" />
+                    </div>
+                  )}
                   <div 
                     className={cn(
-                      "max-w-[80%] rounded-lg p-3",
+                      "max-w-[80%] p-3",
                       message.sender === 'user' 
-                        ? `bg-[${chatAppearance.chatBubbleUserColor}] text-primary-foreground`
-                        : `bg-[${chatAppearance.chatBubbleAgentColor}]`
+                        ? `rounded-t-lg rounded-bl-lg bg-[${chatAppearance.chatBubbleUserColor}] text-white`
+                        : `rounded-t-lg rounded-br-lg bg-white border border-gray-200`
                     )}
                     style={{
-                      borderRadius: chatAppearance.roundedBubbles ? '0.75rem' : '0.25rem',
+                      backgroundColor: message.sender === 'user' ? chatAppearance.chatBubbleUserColor : 'white',
+                      borderRadius: chatAppearance.roundedBubbles ? (
+                        message.sender === 'user' ? '1rem 1rem 0 1rem' : '1rem 1rem 1rem 0'
+                      ) : '0.25rem',
                       fontSize: chatAppearance.chatFontSize === 'small' ? '0.875rem' : 
-                               chatAppearance.chatFontSize === 'large' ? '1.125rem' : '1rem'
+                               chatAppearance.chatFontSize === 'large' ? '1.125rem' : '1rem',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}
                   >
-                    {message.sender === 'agent' && chatAppearance.agentNameDisplay && (
-                      <div className="flex items-center mb-1">
-                        <Avatar className="h-5 w-5 mr-2">
-                          <AvatarFallback>AI</AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs font-semibold">{agent.name}</span>
-                      </div>
-                    )}
-                    <p>{message.content}</p>
+                    <p className={message.sender === 'user' ? 'text-white' : 'text-gray-800'}>
+                      {message.content}
+                    </p>
                     {chatAppearance.timestampDisplay && (
                       <div className={cn(
                         "text-xs mt-1",
-                        message.sender === 'user' ? "text-primary-foreground/70" : "text-muted-foreground"
+                        message.sender === 'user' ? "text-white/80" : "text-gray-500"
                       )}>
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
@@ -228,17 +242,24 @@ const AgentTest = () => {
                 </div>
               ))}
             </CardContent>
-            <div className="p-4 border-t">
-              <div className="flex items-center space-x-2">
+            
+            {/* Input Area */}
+            <div className="p-4 border-t bg-white">
+              <div className="flex items-center">
                 <Input
                   placeholder="Type your message..."
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1"
+                  className="flex-1 border-gray-200 focus:ring-purple-500 focus:border-purple-500"
                 />
-                <Button onClick={handleSendMessage} size="icon" style={{ backgroundColor: chatAppearance.primaryColor }}>
-                  <SendHorizontal className="h-4 w-4" />
+                <Button 
+                  onClick={handleSendMessage} 
+                  size="icon" 
+                  className="ml-2 rounded-full h-10 w-10"
+                  style={{ backgroundColor: chatAppearance.primaryColor }}
+                >
+                  <SendHorizontal className="h-5 w-5 text-white" />
                 </Button>
               </div>
             </div>
