@@ -34,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface SidebarProps {
   isCollapsed: boolean;
+  toggleSidebar: () => void;
 }
 
 interface SidebarItem {
@@ -45,7 +46,7 @@ interface SidebarItem {
   action?: React.ReactNode;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -144,11 +145,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
   return (
     <div className={`flex flex-col h-full ${isCollapsed ? 'w-20' : 'w-72'} bg-white border-r border-medium-gray/10 transition-all duration-300 ease-in-out shadow-sm overflow-hidden`}>
-      <div className="flex items-center h-16 px-4 border-b border-medium-gray/10">
+      <div className="flex items-center h-16 px-4 border-b border-medium-gray/10 justify-between">
         {!isCollapsed ? (
-          <span className="text-lg font-bold text-primary">7en.ai</span>
+          <>
+            <span className="text-lg font-bold text-primary">7en.ai</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="h-8 w-8 rounded-full"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </>
         ) : (
-          <span className="text-lg font-bold text-primary mx-auto">7</span>
+          <>
+            <span className="text-lg font-bold text-primary mx-auto">7</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="absolute right-1 h-8 w-8 rounded-full"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
       
