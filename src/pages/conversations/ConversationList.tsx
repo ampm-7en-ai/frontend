@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -608,5 +609,237 @@ const ConversationList = () => {
                 >
                   <CardContent className="p-3">
                     <div className="flex justify-between items-start">
-                     
+                      <div className="flex items-center">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full mr-2",
+                          conversation.status === 'active' ? "bg-green-500" : 
+                          conversation.status === 'pending' ? "bg-amber-500" : "bg-gray-500"
+                        )} />
+                        <div>
+                          <h3 className="font-medium text-sm">{conversation.customer}</h3>
+                          <div className="text-xs text-muted-foreground">{conversation.topic}</div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {conversation.time}
+                      </div>
+                    </div>
+                    <div className="mt-1 text-xs line-clamp-1 text-muted-foreground">
+                      {conversation.lastMessage}
+                    </div>
+                    <div className="mt-1 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {conversation.duration}
+                        </div>
+                        {conversation.handoffCount > 0 && (
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Users className="h-3 w-3 mr-1" />
+                            {conversation.handoffCount}
+                          </div>
+                        )}
+                      </div>
+                      {getPriorityIndicator(conversation.priority)}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+          
+          {/* Mobile/Tablet Message View */}
+          <div className="flex-1 flex flex-col h-full">
+            {activeConversation ? (
+              <>
+                <div className="border-b p-3 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <h2 className="text-base font-semibold">{activeConversation.customer}</h2>
+                    <div className="ml-2">{getStatusBadge(activeConversation.status)}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {activeConversation.duration}
+                    </div>
+                    <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                      <SheetTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full"
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent position="right" size="lg">
+                        <SheetHeader>
+                          <SheetTitle>Conversation Details</SheetTitle>
+                        </SheetHeader>
+                        <div className="mt-6 space-y-6">
+                          {/* Agent Information */}
+                          <div>
+                            <h3 className="text-sm font-medium mb-2 flex items-center">
+                              <Bot className="h-4 w-4 mr-1" />
+                              Current Agent
+                            </h3>
+                            <div className="bg-slate-50 rounded-lg p-3">
+                              <div className="flex items-center">
+                                <Avatar className="h-8 w-8 mr-2 bg-primary">
+                                  <AvatarFallback>
+                                    <Bot className="h-4 w-4" />
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium text-sm">{activeConversation.agent}</div>
+                                  <div className="text-xs text-muted-foreground">AI Assistant</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Separator />
+                          
+                          {/* Customer Information */}
+                          <div>
+                            <h3 className="text-sm font-medium mb-2 flex items-center">
+                              <User className="h-4 w-4 mr-1" />
+                              Customer Information
+                            </h3>
+                            
+                            <div className="space-y-3">
+                              <div>
+                                <div className="text-xs text-muted-foreground">Full Name</div>
+                                <div className="text-sm">{activeConversation.customer}</div>
+                              </div>
+                              <div>
+                                <div className="text-xs text-muted-foreground">Email</div>
+                                <div className="text-sm">{activeConversation.email}</div>
+                              </div>
+                              <div>
+                                <div className="text-xs text-muted-foreground">Satisfaction</div>
+                                <div className="text-sm">{getSatisfactionIndicator(activeConversation.satisfaction)}</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Separator />
+                          
+                          {/* Handoff Controls */}
+                          <div>
+                            <h3 className="text-sm font-medium mb-2 flex items-center">
+                              <ArrowRight className="h-4 w-4 mr-1" />
+                              Handoff Controls
+                            </h3>
+                            
+                            <div className="space-y-2">
+                              <div className="text-xs text-muted-foreground">Transfer to</div>
+                              <select className="w-full text-sm border rounded p-1.5">
+                                <option>Sales Team</option>
+                                <option>Support Team</option>
+                                <option>Technical Team</option>
+                                <option>John Doe (Agent)</option>
+                                <option>Jane Smith (Agent)</option>
+                              </select>
+                              
+                              <div className="text-xs text-muted-foreground mt-2">Reason</div>
+                              <select className="w-full text-sm border rounded p-1.5">
+                                <option>Need specialized knowledge</option>
+                                <option>Customer request</option>
+                                <option>Technical escalation</option>
+                                <option>Follow-up required</option>
+                              </select>
+                              
+                              <Button className="w-full mt-2">
+                                <ArrowRight className="h-4 w-4 mr-2" />
+                                Transfer Conversation
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-3 bg-slate-50">
+                  {activeConversation.messages.map((message) => (
+                    <div 
+                      key={message.id} 
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+                    >
+                      {message.sender === 'bot' && (
+                        <Avatar className="h-8 w-8 mr-2 bg-primary">
+                          <AvatarFallback>
+                            <Bot className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div 
+                        className={cn(
+                          "max-w-[80%] p-3 rounded-lg",
+                          message.sender === 'user' 
+                            ? "bg-primary text-primary-foreground rounded-tr-none" 
+                            : "bg-white border border-gray-200 rounded-tl-none"
+                        )}
+                      >
+                        {message.sender === 'bot' && message.agent && (
+                          <div className="text-xs font-medium mb-1 text-muted-foreground">
+                            {message.agent}
+                          </div>
+                        )}
+                        <p className="break-words text-sm">{message.content}</p>
+                        <div className="text-xs mt-1 opacity-70">
+                          {message.timestamp}
+                        </div>
+                      </div>
+                      {message.sender === 'user' && (
+                        <Avatar className="h-8 w-8 ml-2 bg-purple-500">
+                          <AvatarFallback>
+                            <User className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                <form onSubmit={handleSendMessage} className="border-t p-3 bg-white">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Type your message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button type="submit" size="icon" className="rounded-full h-9 w-9">
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="text-center">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <h3 className="text-lg font-medium">No conversation selected</h3>
+                  <p>Select a conversation from the list to view messages</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Make layout full width by removing padding */}
+      <style jsx global>{`
+        main {
+          padding: 0 !important;
+          max-width: none !important;
+        }
+      `}</style>
+    </div>
+  );
+};
 
+export default ConversationList;

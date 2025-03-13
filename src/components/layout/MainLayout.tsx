@@ -47,6 +47,8 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
       ]
     : breadcrumbs;
 
+  const isConversationsPage = location.pathname.includes('/conversations');
+
   return (
     <div className="flex h-screen bg-light-gray/50 overflow-hidden">
       <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
@@ -57,7 +59,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
           onLogout={logout}
           toggleSidebar={toggleSidebar}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage ? 'p-0' : ''}`}>
           {children || <Outlet />}
         </main>
       </div>
