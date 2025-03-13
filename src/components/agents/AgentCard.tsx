@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Bot } from 'lucide-react';
+import React from 'react';
+import { Bot, CalendarClock, MessageSquare } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -36,8 +36,14 @@ interface AgentCardProps {
 }
 
 const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
+  const formattedDate = new Date(agent.lastModified).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+
   return (
-    <Card key={agent.id} className="overflow-hidden border flex flex-col">
+    <Card className="overflow-hidden border flex flex-col w-full">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
@@ -52,6 +58,7 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
           <AgentActionsDropdown agentId={agent.id} />
         </div>
       </CardHeader>
+      
       <CardContent className="pb-2 flex-1">
         <div className="space-y-4">
           <div>
@@ -63,12 +70,16 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             knowledgeSources={agent.knowledgeSources} 
           />
           
-          <div className="text-sm flex items-center justify-between text-muted-foreground">
-            <div>
-              <span className="font-medium">{agent.conversations.toLocaleString()}</span> conversations
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="flex items-center text-sm text-muted-foreground space-x-1.5">
+              <MessageSquare className="h-4 w-4 text-primary/70" />
+              <span className="font-medium">{agent.conversations.toLocaleString()}</span>
+              <span>conversations</span>
             </div>
-            <div>
-              Last updated: {new Date(agent.lastModified).toLocaleDateString()}
+            
+            <div className="flex items-center justify-end text-sm text-muted-foreground space-x-1.5">
+              <CalendarClock className="h-4 w-4 text-primary/70" />
+              <span>{formattedDate}</span>
             </div>
           </div>
         </div>
