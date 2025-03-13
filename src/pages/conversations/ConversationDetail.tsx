@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -396,6 +397,30 @@ const ConversationDetail = () => {
     );
   };
 
+  // Define available agents for handoff
+  const availableAgents = {
+    ai: [
+      { id: 'ai1', name: 'General Bot', specialization: 'General Knowledge' },
+      { id: 'ai2', name: 'Sales Bot', specialization: 'Sales' },
+      { id: 'ai3', name: 'Technical Support Bot', specialization: 'Tech Support' },
+      { id: 'ai4', name: 'Billing Bot', specialization: 'Billing' },
+      { id: 'ai5', name: 'Customer Service Bot', specialization: 'Customer Service' },
+    ],
+    internal: [
+      { id: 'human1', name: 'Sarah Johnson', department: 'Support', status: 'available' },
+      { id: 'human2', name: 'Michael Brown', department: 'Sales', status: 'busy' },
+      { id: 'human3', name: 'Emily Davis', department: 'Technical', status: 'available' },
+      { id: 'human4', name: 'David Miller', department: 'Billing', status: 'away' },
+      { id: 'human5', name: 'Jessica Wilson', department: 'Customer Success', status: 'available' },
+    ],
+    external: [
+      { id: 'ext1', name: 'Freshdesk Support', type: 'Ticketing', status: 'connected' },
+      { id: 'ext2', name: 'Zendesk Chat', type: 'Live Chat', status: 'connected' },
+      { id: 'ext3', name: 'External CRM', type: 'CRM', status: 'disconnected' },
+      { id: 'ext4', name: 'Intercom', type: 'Customer Messaging', status: 'connected' },
+    ]
+  };
+
   // Return component JSX structure
   return (
     <div className="space-y-4">
@@ -781,5 +806,157 @@ const ConversationDetail = () => {
                 <Separator />
                 <div>
                   <p className="text-xs font-medium">Detected Topics</p>
-                  <div className="space-y-2 mt-2">
-                    {detected
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    <Badge variant="outline" className="text-xs">Email Verification</Badge>
+                    <Badge variant="outline" className="text-xs">Account Setup</Badge>
+                    <Badge variant="outline" className="text-xs">Technical Issue</Badge>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium">Customer Sentiment</p>
+                  <div className="mt-2">
+                    <Progress value={70} className="h-2" />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>Frustrated</span>
+                      <span>Neutral</span>
+                      <span>Satisfied</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+      
+      <Dialog open={isHandoffDialogOpen} onOpenChange={setIsHandoffDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Handoff to Another Agent</DialogTitle>
+            <DialogDescription>
+              Transfer this conversation to another agent or external system.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Handoff Type</Label>
+              <RadioGroup defaultValue="ai" value={handoffType} onValueChange={(value: any) => setHandoffType(value)}>
+                <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2 border rounded-md p-3 flex-1">
+                    <RadioGroupItem value="ai" id="ai" />
+                    <Label htmlFor="ai" className="flex items-center">
+                      <Bot className="h-4 w-4 mr-2" />
+                      AI Agent
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border rounded-md p-3 flex-1">
+                    <RadioGroupItem value="internal" id="internal" />
+                    <Label htmlFor="internal" className="flex items-center">
+                      <User2 className="h-4 w-4 mr-2" />
+                      Human
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border rounded-md p-3 flex-1">
+                    <RadioGroupItem value="external" id="external" />
+                    <Label htmlFor="external" className="flex items-center">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      External
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Select Destination</Label>
+              {handoffType === 'ai' && (
+                <Select onValueChange={setHandoffDestination}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select AI agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableAgents.ai.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.name}>
+                        {agent.name} - {agent.specialization}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {handoffType === 'internal' && (
+                <Select onValueChange={setHandoffDestination}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableAgents.internal.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.name}>
+                        {agent.name} - {agent.department}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {handoffType === 'external' && (
+                <Select onValueChange={setHandoffDestination}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select external system" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableAgents.external.map((system) => (
+                      <SelectItem key={system.id} value={system.name} disabled={system.status === 'disconnected'}>
+                        {system.name} ({system.status === 'disconnected' ? 'Unavailable' : 'Available'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Handoff Notes (Optional)</Label>
+              <Textarea
+                placeholder="Provide context for the handoff..."
+                value={handoffNotes}
+                onChange={(e) => setHandoffNotes(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="includeAttachments">Include Attachments</Label>
+                <Switch
+                  id="includeAttachments"
+                  checked={includeAttachments}
+                  onCheckedChange={setIncludeAttachments}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="includeMetadata">Include Metadata</Label>
+                <Switch
+                  id="includeMetadata"
+                  checked={includeMetadata}
+                  onCheckedChange={setIncludeMetadata}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsHandoffDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" onClick={handleHandoffSubmit} disabled={!handoffDestination}>
+              <PhoneForwarded className="h-4 w-4 mr-2" />
+              Transfer Conversation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default ConversationDetail;
+
