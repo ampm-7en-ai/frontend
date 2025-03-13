@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -19,6 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, Send, Paperclip, ThumbsUp, ThumbsDown, Bot, User2, MoreHorizontal, Clock, Tag, HelpCircle, 
   ExternalLink, UserPlus, RefreshCw, PhoneForwarded, FileText, AlertTriangle, Maximize2, BellRing, 
   TicketCheck, MessageSquare, ArrowRightLeft, Activity } from 'lucide-react';
+import { AgentHandoffNotification } from '@/components/conversations/AgentHandoffNotification';
 
 const ConversationDetail = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -238,22 +238,14 @@ const ConversationDetail = () => {
   const renderMessageItem = (item: any) => {
     if (item.type === 'handoff') {
       return (
-        <div key={item.id} className="flex items-center justify-center my-6 relative">
-          <div className="absolute left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
-          <div className={`z-10 rounded-full px-6 py-3 text-sm border shadow-sm flex items-center gap-2 ${getHandoffColor(item.to)}`}>
-            <PhoneForwarded className="h-5 w-5" />
-            <div>
-              <div className="font-medium">
-                Conversation transferred to {item.to}
-              </div>
-              {item.reason && (
-                <div className="text-xs mt-1 opacity-90">
-                  Reason: {item.reason}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <AgentHandoffNotification
+          key={item.id}
+          from={item.from}
+          to={item.to}
+          reason={item.reason}
+          timestamp={item.timestamp}
+          type={item.type === 'external' ? 'external' : 'ai-to-ai'}
+        />
       );
     }
 
