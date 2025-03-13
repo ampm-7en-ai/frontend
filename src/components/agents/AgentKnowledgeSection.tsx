@@ -24,14 +24,14 @@ interface AgentKnowledgeSectionProps {
 }
 
 const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSectionProps) => {
-  const displayedSources = knowledgeSources.slice(0, 2);
-  const remainingSources = knowledgeSources.length - 2;
+  const displayedSources = knowledgeSources.slice(0, 3); // Show up to 3 sources
+  const remainingSources = knowledgeSources.length - 3;
   const hasErrorSources = knowledgeSources.some(source => source.hasError);
   
   return (
     <div>
       <div className="text-sm font-medium mb-2 text-muted-foreground">Knowledge Sources</div>
-      <div className="flex flex-wrap">
+      <div className="flex flex-wrap gap-1.5">
         {displayedSources.map(source => (
           <KnowledgeSourceBadge key={source.id} source={source} />
         ))}
@@ -41,10 +41,10 @@ const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSect
               <TooltipTrigger asChild>
                 <Link 
                   to={`/agents/${agentId}/edit?tab=knowledge`}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 mr-2 mb-2 rounded-full bg-muted/50 hover:bg-muted text-sm text-muted-foreground transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted/50 hover:bg-muted text-xs text-muted-foreground transition-colors"
                 >
                   +{remainingSources} more
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <ChevronRight className="h-3 w-3" />
                 </Link>
               </TooltipTrigger>
               <TooltipContent>
@@ -56,14 +56,14 @@ const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSect
       </div>
       
       {hasErrorSources && (
-        <div className="mt-2 flex items-center">
+        <div className="mt-2.5">
           <Link 
             to={`/agents/${agentId}/edit?tab=knowledge`}
-            className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors border border-red-200"
+            className="group inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors border border-red-200 text-xs"
           >
-            <span className="flex items-center gap-1.5">
-              <AlertCircle className="h-3.5 w-3.5 text-red-500" />
-              <span className="text-xs font-medium">Some knowledge sources need retraining</span>
+            <span className="flex items-center gap-1">
+              <AlertCircle className="h-3 w-3 text-red-500" />
+              <span className="font-medium">Some knowledge sources need retraining</span>
             </span>
             <RefreshCw className="h-3 w-3 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
