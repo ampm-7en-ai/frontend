@@ -9,6 +9,7 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
 import AgentKnowledgeSection from './AgentKnowledgeSection';
@@ -35,25 +36,61 @@ interface AgentCardProps {
   getModelBadgeColor: (model: string) => string;
 }
 
+// Function to get a random avatar color
+const getRandomAvatarColor = () => {
+  const colors = [
+    'bg-purple-500', 'bg-blue-500', 'bg-green-500', 
+    'bg-yellow-500', 'bg-red-500', 'bg-pink-500',
+    'bg-indigo-500', 'bg-teal-500'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+// Function to get initials from name
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+};
+
 const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const formattedDate = new Date(agent.lastModified).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
   });
+  
+  // Generate random color and initials for avatar
+  const avatarColor = getRandomAvatarColor();
+  const initials = getInitials(agent.name);
 
   return (
     <Card className="overflow-hidden border flex flex-col w-full">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <div className="p-2 rounded-full bg-primary/10">
-                <Bot size={18} className="text-primary" />
+          <div className="flex items-start space-x-4">
+            <Avatar className={`w-12 h-12 ${avatarColor} text-white`}>
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <div className="space-y-1.5">
+              <CardTitle className="text-xl">
+                {agent.name}
+              </CardTitle>
+              <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                <div className="flex items-center space-x-1">
+                  <MessageSquare className="h-3.5 w-3.5 text-primary/70" />
+                  <span>{agent.conversations.toLocaleString()} conversations</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <CalendarClock className="h-3.5 w-3.5 text-primary/70" />
+                  <span>Updated {formattedDate}</span>
+                </div>
               </div>
-              {agent.name}
-            </CardTitle>
-            <CardDescription className="line-clamp-2">{agent.description}</CardDescription>
+              <CardDescription className="line-clamp-2 mt-1">{agent.description}</CardDescription>
+            </div>
           </div>
           <AgentActionsDropdown agentId={agent.id} />
         </div>
@@ -69,19 +106,6 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             agentId={agent.id} 
             knowledgeSources={agent.knowledgeSources} 
           />
-          
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="flex items-center text-sm text-muted-foreground space-x-1.5">
-              <MessageSquare className="h-4 w-4 text-primary/70" />
-              <span className="font-medium">{agent.conversations.toLocaleString()}</span>
-              <span>conversations</span>
-            </div>
-            
-            <div className="flex items-center justify-end text-sm text-muted-foreground space-x-1.5">
-              <CalendarClock className="h-4 w-4 text-primary/70" />
-              <span>{formattedDate}</span>
-            </div>
-          </div>
         </div>
       </CardContent>
       
