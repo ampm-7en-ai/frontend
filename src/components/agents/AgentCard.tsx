@@ -69,27 +69,28 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
   const initials = getInitials(agent.name);
 
   return (
-    <Card className="overflow-hidden border flex flex-col w-full h-full">
-      <CardHeader className="pb-3 pt-4">
+    <Card className="overflow-hidden border flex flex-col h-full">
+      <CardHeader className="pb-2 pt-3 px-4">
         <div className="flex justify-between items-start">
           {/* Avatar and basic info */}
           <div className="flex items-start space-x-3">
             <Avatar className={`w-11 h-11 ${avatarColor} text-white`}>
+              <AvatarImage alt={agent.name} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg mb-0.5">{agent.name}</CardTitle>
-              
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <MessageSquare className="h-3.5 w-3.5 text-muted-foreground/80" />
-                  <span className="font-medium text-muted-foreground">{agent.conversations.toLocaleString()}</span>
-                  <span>conversations</span>
+              <CardTitle className="text-lg font-semibold mb-0.5">{agent.name}</CardTitle>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <MessageSquare className="h-3 w-3" />
+                  <span className="font-medium">{agent.conversations.toLocaleString()}</span>
                 </div>
-                
-                <div className="flex items-center gap-1.5">
-                  <CalendarClock className="h-3.5 w-3.5 text-muted-foreground/80" />
-                  <span>Updated <span className="font-medium">{formattedDate}</span></span>
+                <div className="flex items-center gap-1">
+                  <CalendarClock className="h-3 w-3" />
+                  <span>{formattedDate}</span>
+                </div>
+                <div className="ml-1">
+                  <AgentModelBadge model={agent.model} getModelBadgeColor={getModelBadgeColor} />
                 </div>
               </div>
             </div>
@@ -98,24 +99,18 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
           {/* Actions dropdown */}
           <AgentActionsDropdown agentId={agent.id} />
         </div>
-        
-        <CardDescription className="line-clamp-2 mt-2.5">{agent.description}</CardDescription>
       </CardHeader>
       
-      <CardContent className="pb-3 pt-0 px-6 flex-1">
-        <div className="space-y-4">
-          <div>
-            <AgentModelBadge model={agent.model} getModelBadgeColor={getModelBadgeColor} />
-          </div>
-          
-          <AgentKnowledgeSection 
-            agentId={agent.id} 
-            knowledgeSources={agent.knowledgeSources} 
-          />
-        </div>
+      <CardContent className="px-4 py-2 flex-1">
+        <CardDescription className="line-clamp-2 mb-3">{agent.description}</CardDescription>
+        
+        <AgentKnowledgeSection 
+          agentId={agent.id} 
+          knowledgeSources={agent.knowledgeSources} 
+        />
       </CardContent>
       
-      <CardFooter className="flex flex-col gap-2 p-4 pt-2 mt-auto border-t bg-muted/30">
+      <CardFooter className="flex flex-col gap-2 p-3 mt-auto border-t bg-muted/30">
         <AgentFooterActions agent={agent} />
       </CardFooter>
     </Card>

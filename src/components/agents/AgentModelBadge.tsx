@@ -10,8 +10,8 @@ interface AgentModelBadgeProps {
 
 const AgentModelBadge = ({ model, getModelBadgeColor }: AgentModelBadgeProps) => {
   return (
-    <Badge variant="outline" className={`${getModelBadgeColor(model)} text-xs font-medium py-0.5 h-5`}>
-      <Brain className="h-3 w-3 mr-1" />
+    <Badge variant="outline" className={`${getModelBadgeColor(model)} text-xs font-medium py-0 h-4 px-1.5`}>
+      <Brain className="h-2.5 w-2.5 mr-0.5" />
       {model}
     </Badge>
   );

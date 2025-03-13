@@ -30,8 +30,8 @@ const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSect
   
   return (
     <div>
-      <div className="text-sm font-medium mb-2 text-muted-foreground">Knowledge Sources</div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="text-sm font-medium mb-1.5 text-muted-foreground">Knowledge Sources</div>
+      <div className="flex flex-wrap gap-1">
         {displayedSources.map(source => (
           <KnowledgeSourceBadge key={source.id} source={source} />
         ))}
@@ -41,7 +41,7 @@ const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSect
               <TooltipTrigger asChild>
                 <Link 
                   to={`/agents/${agentId}/edit?tab=knowledge`}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted/50 hover:bg-muted text-xs text-muted-foreground transition-colors"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 hover:bg-muted text-xs text-muted-foreground transition-colors"
                 >
                   +{remainingSources} more
                   <ChevronRight className="h-3 w-3" />
@@ -56,10 +56,10 @@ const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSect
       </div>
       
       {hasErrorSources && (
-        <div className="mt-2.5">
+        <div className="mt-2">
           <Link 
             to={`/agents/${agentId}/edit?tab=knowledge`}
-            className="group inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors border border-red-200 text-xs"
+            className="group inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors border border-red-200 text-xs"
           >
             <span className="flex items-center gap-1">
               <AlertCircle className="h-3 w-3 text-red-500" />
