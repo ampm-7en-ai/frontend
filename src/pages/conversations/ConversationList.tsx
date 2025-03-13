@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,6 @@ const ConversationList = () => {
   const isMobile = useIsMobile();
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
   
-  // States
   const [selectedConversation, setSelectedConversation] = useState<string | null>('conv1');
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,7 +31,6 @@ const ConversationList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
 
-  // Update window width on resize
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
@@ -43,7 +40,6 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Mock conversation data
   const conversations = [
     {
       id: 'conv1',
@@ -129,10 +125,8 @@ const ConversationList = () => {
     },
   ];
 
-  // Selected conversation details
   const activeConversation = conversations.find(c => c.id === selectedConversation) || null;
 
-  // Status badge styling
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -146,7 +140,6 @@ const ConversationList = () => {
     }
   };
 
-  // Priority indicator
   const getPriorityIndicator = (priority: string) => {
     switch (priority) {
       case 'high':
@@ -160,7 +153,6 @@ const ConversationList = () => {
     }
   };
 
-  // Satisfaction indicator
   const getSatisfactionIndicator = (satisfaction: string) => {
     switch (satisfaction) {
       case 'high':
@@ -174,12 +166,10 @@ const ConversationList = () => {
     }
   };
 
-  // Handle sending a new message
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedConversation) return;
 
-    // In a real application, you'd send this to your backend
     toast({
       title: "Message sent",
       description: "Your message has been sent to the customer.",
@@ -188,7 +178,6 @@ const ConversationList = () => {
     setNewMessage('');
   };
 
-  // Filter conversations based on search and filter criteria
   const filteredConversations = conversations.filter(conv => {
     const matchesSearch = 
       conv.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -206,7 +195,6 @@ const ConversationList = () => {
     <div className="h-[calc(100vh-4rem)] overflow-hidden">
       {isDesktop ? (
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          {/* Left Panel - Conversation List */}
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
             <div className="border-r flex flex-col h-full">
               <div className="p-3 border-b">
@@ -302,7 +290,6 @@ const ConversationList = () => {
           
           <ResizableHandle withHandle />
           
-          {/* Center Panel - Conversation Messages */}
           <ResizablePanel defaultSize={50}>
             <div className="flex flex-col h-full">
               {activeConversation ? (
@@ -398,12 +385,10 @@ const ConversationList = () => {
           
           <ResizableHandle withHandle />
           
-          {/* Right Panel - Conversation Details */}
           <ResizablePanel defaultSize={30}>
             <div className="border-l h-full overflow-y-auto">
               {activeConversation ? (
                 <div className="p-4 space-y-6">
-                  {/* Agent Information */}
                   <div>
                     <h3 className="text-sm font-medium mb-2 flex items-center">
                       <Bot className="h-4 w-4 mr-1" />
@@ -438,7 +423,6 @@ const ConversationList = () => {
                   
                   <Separator />
                   
-                  {/* Customer Information */}
                   <div>
                     <h3 className="text-sm font-medium mb-2 flex items-center">
                       <User className="h-4 w-4 mr-1" />
@@ -463,7 +447,6 @@ const ConversationList = () => {
                   
                   <Separator />
                   
-                  {/* Handoff Controls */}
                   <div>
                     <h3 className="text-sm font-medium mb-2 flex items-center">
                       <ArrowRight className="h-4 w-4 mr-1" />
@@ -497,7 +480,6 @@ const ConversationList = () => {
                   
                   <Separator />
                   
-                  {/* Topic Classification */}
                   <div>
                     <h3 className="text-sm font-medium mb-2 flex items-center">
                       <Tag className="h-4 w-4 mr-1" />
@@ -527,7 +509,6 @@ const ConversationList = () => {
                   
                   <Separator />
                   
-                  {/* Knowledge Gaps */}
                   <div>
                     <h3 className="text-sm font-medium mb-2 flex items-center">
                       <Info className="h-4 w-4 mr-1" />
@@ -556,7 +537,6 @@ const ConversationList = () => {
         </ResizablePanelGroup>
       ) : (
         <div className="flex h-full">
-          {/* Left Panel - Conversation List */}
           <div className="w-72 border-r flex flex-col h-full">
             <div className="p-3 border-b">
               <h2 className="text-lg font-semibold mb-2">Conversations</h2>
@@ -648,7 +628,6 @@ const ConversationList = () => {
             </div>
           </div>
           
-          {/* Mobile/Tablet Message View */}
           <div className="flex-1 flex flex-col h-full">
             {activeConversation ? (
               <>
@@ -672,12 +651,11 @@ const ConversationList = () => {
                           <Info className="h-4 w-4" />
                         </Button>
                       </SheetTrigger>
-                      <SheetContent position="right" size="lg">
+                      <SheetContent side="right" className="w-[350px] sm:w-[450px]">
                         <SheetHeader>
                           <SheetTitle>Conversation Details</SheetTitle>
                         </SheetHeader>
                         <div className="mt-6 space-y-6">
-                          {/* Agent Information */}
                           <div>
                             <h3 className="text-sm font-medium mb-2 flex items-center">
                               <Bot className="h-4 w-4 mr-1" />
@@ -700,7 +678,6 @@ const ConversationList = () => {
                           
                           <Separator />
                           
-                          {/* Customer Information */}
                           <div>
                             <h3 className="text-sm font-medium mb-2 flex items-center">
                               <User className="h-4 w-4 mr-1" />
@@ -725,7 +702,6 @@ const ConversationList = () => {
                           
                           <Separator />
                           
-                          {/* Handoff Controls */}
                           <div>
                             <h3 className="text-sm font-medium mb-2 flex items-center">
                               <ArrowRight className="h-4 w-4 mr-1" />
@@ -831,7 +807,6 @@ const ConversationList = () => {
         </div>
       )}
       
-      {/* Make layout full width by removing padding */}
       <style jsx global>{`
         main {
           padding: 0 !important;

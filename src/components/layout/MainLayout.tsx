@@ -63,6 +63,16 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
           {children || <Outlet />}
         </main>
       </div>
+      
+      {/* Apply fullwidth style only to conversations page */}
+      {isConversationsPage && (
+        <style jsx global>{`
+          main {
+            padding: 0 !important;
+            max-width: none !important;
+          }
+        `}</style>
+      )}
     </div>
   );
 }
