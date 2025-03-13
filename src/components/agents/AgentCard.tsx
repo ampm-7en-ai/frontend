@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CalendarClock, MessageSquare } from 'lucide-react';
 import { 
@@ -36,7 +35,6 @@ interface AgentCardProps {
   getModelBadgeColor: (model: string) => string;
 }
 
-// Function to get a random avatar color
 const getRandomAvatarColor = () => {
   const colors = [
     'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
@@ -47,7 +45,6 @@ const getRandomAvatarColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-// Function to get initials from name
 const getInitials = (name: string) => {
   return name
     .split(' ')
@@ -64,7 +61,6 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
     day: 'numeric'
   });
   
-  // Generate random color and initials for avatar
   const avatarColor = getRandomAvatarColor();
   const initials = getInitials(agent.name);
 
@@ -72,7 +68,6 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
     <Card className="overflow-hidden border flex flex-col h-full">
       <CardHeader className="pb-0 pt-3 px-4">
         <div className="flex justify-between items-start">
-          {/* Avatar and basic info */}
           <div className="flex items-start space-x-3">
             <Avatar className={`w-11 h-11 ${avatarColor} text-white`}>
               <AvatarImage alt={agent.name} />
@@ -80,17 +75,15 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             </Avatar>
             <div>
               <CardTitle className="text-lg font-semibold mb-0.5">{agent.name}</CardTitle>
+              <CardDescription className="line-clamp-2">{agent.description}</CardDescription>
             </div>
           </div>
-
-          {/* Actions dropdown */}
           <AgentActionsDropdown agentId={agent.id} />
         </div>
       </CardHeader>
       
-      <CardContent className="px-4 py-2 flex-1">
-        {/* Moved model, conversations and date info here */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+      <CardContent className="px-4 pt-2 pb-2 flex-1">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 mt-1">
           <div className="flex items-center gap-1">
             <MessageSquare className="h-3 w-3" />
             <span className="font-medium">{agent.conversations.toLocaleString()}</span>
@@ -103,8 +96,6 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             <AgentModelBadge model={agent.model} getModelBadgeColor={getModelBadgeColor} />
           </div>
         </div>
-        
-        <CardDescription className="line-clamp-2 mb-3">{agent.description}</CardDescription>
         
         <AgentKnowledgeSection 
           agentId={agent.id} 
