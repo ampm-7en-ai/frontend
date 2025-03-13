@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -30,6 +31,7 @@ const ConversationDetail = () => {
   const [handoffPriority, setHandoffPriority] = useState('medium');
   const [includeAttachments, setIncludeAttachments] = useState(true);
   const [includeMetadata, setIncludeMetadata] = useState(true);
+  const [isContextPanelOpen, setIsContextPanelOpen] = useState(false);
   
   const conversation = {
     id: conversationId,
@@ -223,30 +225,33 @@ const ConversationDetail = () => {
     setIsHandoffDialogOpen(false);
   };
 
+  const getHandoffColor = (to: string) => {
+    if (to.includes('Freshdesk') || to.includes('External')) {
+      return 'bg-red-100 text-red-800 border-red-200';
+    } else if (to.includes('Support')) {
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    } else {
+      return 'bg-amber-100 text-amber-800 border-amber-200';
+    }
+  };
+
   const renderMessageItem = (item: any) => {
     if (item.type === 'handoff') {
-      const getHandoffColor = () => {
-        if (item.to.includes('Freshdesk') || item.to.includes('External')) {
-          return 'bg-red-100 text-red-800 border-red-200';
-        } else if (item.to.includes('Support')) {
-          return 'bg-blue-100 text-blue-800 border-blue-200';
-        } else {
-          return 'bg-amber-100 text-amber-800 border-amber-200';
-        }
-      };
-
       return (
-        <div key={item.id} className="flex items-center justify-center my-4">
-          <div className={`rounded-full px-4 py-2 text-sm border ${getHandoffColor()}`}>
-            <div className="flex items-center">
-              <ArrowRightLeft className="h-4 w-4 mr-2" />
-              Conversation transferred to {item.to}
-            </div>
-            {item.reason && (
-              <div className="text-xs mt-1 opacity-80">
-                Reason: {item.reason}
+        <div key={item.id} className="flex items-center justify-center my-6 relative">
+          <div className="absolute left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
+          <div className={`z-10 rounded-full px-6 py-3 text-sm border shadow-sm flex items-center gap-2 ${getHandoffColor(item.to)}`}>
+            <PhoneForwarded className="h-5 w-5" />
+            <div>
+              <div className="font-medium">
+                Conversation transferred to {item.to}
               </div>
-            )}
+              {item.reason && (
+                <div className="text-xs mt-1 opacity-90">
+                  Reason: {item.reason}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -255,7 +260,7 @@ const ConversationDetail = () => {
     return (
       <div
         key={item.id}
-        className={`flex ${item.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+        className={`flex ${item.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
       >
         <div
           className={`flex gap-3 max-w-[80%] ${item.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
@@ -270,6 +275,11 @@ const ConversationDetail = () => {
               <span className="text-xs font-medium">
                 {item.sender === 'user' ? conversation.customer : item.agent || conversation.agent}
               </span>
+              {item.sender === 'bot' && (
+                <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4">
+                  AI
+                </Badge>
+              )}
             </div>
             <div
               className={`rounded-lg p-3 ${
@@ -315,14 +325,18 @@ const ConversationDetail = () => {
           <Badge className={getPriorityColor(conversation.priority)}>
             {conversation.priority.charAt(0).toUpperCase() + conversation.priority.slice(1)} Priority
           </Badge>
-          <Button variant="outline" size="sm">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsContextPanelOpen(!isContextPanelOpen)}
+          >
+            {isContextPanelOpen ? <ChevronLeft className="h-4 w-4" /> : <MoreHorizontal className="h-4 w-4" />}
           </Button>
         </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-3 order-3 lg:order-1">
+        <div className={`lg:col-span-3 order-3 lg:order-1 transition-all duration-300 ${isContextPanelOpen ? 'hidden lg:block' : 'block'}`}>
           <Card className="h-[calc(100vh-120px)] flex flex-col">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
@@ -398,7 +412,7 @@ const ConversationDetail = () => {
           </Card>
         </div>
         
-        <div className="lg:col-span-6 order-1 lg:order-2">
+        <div className={`lg:col-span-6 order-1 lg:order-2 transition-all duration-300 ${isContextPanelOpen ? 'lg:col-span-9' : 'lg:col-span-6'}`}>
           <Card className="h-[calc(100vh-120px)] flex flex-col">
             <CardHeader className="pb-3 border-b">
               <div className="flex justify-between items-start">
@@ -424,7 +438,7 @@ const ConversationDetail = () => {
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-6 mt-1 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-4 mt-1 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
                   Started: {new Date(conversation.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -444,7 +458,7 @@ const ConversationDetail = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0 flex-grow overflow-y-auto">
-              <div className="p-4 space-y-6">
+              <div className="p-4 space-y-4">
                 {conversation.messages.map(item => renderMessageItem(item))}
               </div>
             </CardContent>
@@ -469,7 +483,7 @@ const ConversationDetail = () => {
           </Card>
         </div>
         
-        <div className="lg:col-span-3 order-2 lg:order-3">
+        <div className={`lg:col-span-3 order-2 lg:order-3 transition-all duration-300 ${isContextPanelOpen ? 'block' : 'hidden lg:block'}`}>
           <div className="space-y-4 h-[calc(100vh-120px)] overflow-auto pr-1">
             <Card>
               <CardHeader className="pb-2">
