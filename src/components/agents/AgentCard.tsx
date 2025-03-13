@@ -70,7 +70,7 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
 
   return (
     <Card className="overflow-hidden border flex flex-col h-full">
-      <CardHeader className="pb-2 pt-3 px-4">
+      <CardHeader className="pb-0 pt-3 px-4">
         <div className="flex justify-between items-start">
           {/* Avatar and basic info */}
           <div className="flex items-start space-x-3">
@@ -80,19 +80,6 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             </Avatar>
             <div>
               <CardTitle className="text-lg font-semibold mb-0.5">{agent.name}</CardTitle>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <MessageSquare className="h-3 w-3" />
-                  <span className="font-medium">{agent.conversations.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CalendarClock className="h-3 w-3" />
-                  <span>{formattedDate}</span>
-                </div>
-                <div className="ml-1">
-                  <AgentModelBadge model={agent.model} getModelBadgeColor={getModelBadgeColor} />
-                </div>
-              </div>
             </div>
           </div>
 
@@ -102,6 +89,21 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
       </CardHeader>
       
       <CardContent className="px-4 py-2 flex-1">
+        {/* Moved model, conversations and date info here */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+          <div className="flex items-center gap-1">
+            <MessageSquare className="h-3 w-3" />
+            <span className="font-medium">{agent.conversations.toLocaleString()}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <CalendarClock className="h-3 w-3" />
+            <span>{formattedDate}</span>
+          </div>
+          <div>
+            <AgentModelBadge model={agent.model} getModelBadgeColor={getModelBadgeColor} />
+          </div>
+        </div>
+        
         <CardDescription className="line-clamp-2 mb-3">{agent.description}</CardDescription>
         
         <AgentKnowledgeSection 
