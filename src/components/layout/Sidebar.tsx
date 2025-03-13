@@ -145,21 +145,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     : adminItems;
 
   return (
-    <div className={`flex flex-col h-full relative ${isCollapsed ? 'w-20' : 'w-72'} bg-white border-r border-medium-gray/10 transition-all duration-300 ease-in-out shadow-sm overflow-hidden`}>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleSidebar}
-        className={`absolute top-4 ${isCollapsed ? 'right-0 translate-x-1/2' : 'right-0 translate-x-1/2'} h-8 w-8 rounded-full bg-white shadow-md z-20 transition-all duration-300 hover:bg-accent`}
-      >
-        {isCollapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronLeft className="h-4 w-4" />
-        )}
-      </Button>
+    <div className={`flex flex-col h-full relative ${isCollapsed ? 'w-20' : 'w-72'} bg-white border-r border-medium-gray/10 transition-all duration-300 ease-in-out shadow-sm overflow-hidden rounded-xl mx-2 my-2`}>
+      {/* Sidebar toggle button - positioned at top right edge, always visible */}
+      <div className="absolute -right-3 top-6 z-50">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="h-6 w-6 rounded-full bg-white shadow-md hover:bg-accent transition-all duration-300"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          )}
+        </Button>
+      </div>
 
-      <div className="flex items-center h-16 px-4 border-b border-medium-gray/10">
+      <div className="flex items-center h-16 px-4 border-b border-medium-gray/10 mb-4">
         {!isCollapsed ? (
           <span className="text-lg font-bold text-primary">7en.ai</span>
         ) : (
@@ -167,7 +170,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         )}
       </div>
       
-      <div className="px-3 py-4 border-b border-medium-gray/10">
+      <div className="px-3 py-2 mb-4">
         {!isCollapsed ? (
           <div className="flex items-center px-2">
             <Avatar className="h-10 w-10 bg-primary/90 text-white">
@@ -187,42 +190,42 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         )}
       </div>
       
-      <nav className="flex-1 px-3 py-6 space-y-4 overflow-y-auto">
-        <div className="space-y-1.5">
+      <nav className="flex-1 px-3 py-2 space-y-3 overflow-y-auto">
+        <div className="space-y-1">
           {commonItems.map((item) => (
             <NavLink
               key={item.id}
               to={item.href}
               className={({ isActive }) =>
-                `flex items-center px-4 py-3.5 text-sm rounded-md
-                ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
+                `flex items-center px-3.5 py-3 text-sm rounded-lg
+                ${isActive ? 'bg-accent text-primary font-medium shadow-sm' : 'text-black hover:bg-secondary'}`
               }
             >
-              <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+              <item.icon className={`w-4.5 h-4.5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
               {!isCollapsed && <span className="text-sm">{item.label}</span>}
             </NavLink>
           ))}
         </div>
         
         {roleBasedItems.length > 0 && (
-          <div className="pt-6">
+          <div className="pt-4">
             {!isCollapsed && (
-              <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-3">
+              <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-2">
                 {userRole === "superadmin" ? "ADMINISTRATION" : "BUSINESS"}
               </div>
             )}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {roleBasedItems.map((item) => (
                 <div key={item.id}>
                   {item.children ? (
                     <>
                       <button
-                        className={`w-full flex items-center justify-between px-4 py-3.5 text-sm rounded-md h-auto 
-                        ${expandedItems.includes(item.id) ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`}
+                        className={`w-full flex items-center justify-between px-3.5 py-3 text-sm rounded-lg h-auto 
+                        ${expandedItems.includes(item.id) ? 'bg-accent text-primary font-medium shadow-sm' : 'text-black hover:bg-secondary'}`}
                         onClick={() => !isCollapsed && toggleExpand(item.id)}
                       >
                         <div className="flex items-center">
-                          <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                          <item.icon className={`w-4.5 h-4.5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
                           {!isCollapsed && <span className="text-sm">{item.label}</span>}
                         </div>
                         {!isCollapsed && (
@@ -238,8 +241,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                               key={child.label}
                               to={child.href}
                               className={({ isActive }) =>
-                                `flex items-center px-3 py-2.5 text-sm rounded-md
-                                ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}`
+                                `flex items-center px-3 py-2.5 text-sm rounded-lg
+                                ${isActive ? 'bg-accent text-primary font-medium shadow-sm' : 'text-black hover:bg-secondary'}`
                               }
                             >
                               <span className="text-sm">{child.label}</span>
@@ -253,12 +256,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       <NavLink
                         to={item.href}
                         className={({ isActive }) =>
-                          `flex items-center h-[45px] px-4 py-3.5 text-sm rounded-md
-                          ${isActive ? 'bg-accent text-primary font-medium' : 'text-black hover:bg-secondary'}
+                          `flex items-center px-3.5 py-3 text-sm rounded-lg
+                          ${isActive ? 'bg-accent text-primary font-medium shadow-sm' : 'text-black hover:bg-secondary'}
                           w-full`
                         }
                       >
-                        <item.icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                        <item.icon className={`w-4.5 h-4.5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
                         {!isCollapsed && <span className="text-sm">{item.label}</span>}
                       </NavLink>
                     </div>
@@ -270,24 +273,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         )}
       </nav>
 
-      <div className="mt-auto p-4 border-t border-medium-gray/10">
+      <div className="mt-auto p-4 mx-2 mb-2 border-t border-medium-gray/10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="default"
-              className={`w-full ${isCollapsed ? 'p-2' : ''} flex items-center justify-center gap-2`}
+              className={`w-full ${isCollapsed ? 'p-2' : ''} flex items-center justify-center gap-2 rounded-lg shadow-sm`}
             >
               {isCollapsed ? (
-                <Plus className="h-5 w-5" />
+                <Plus className="h-4.5 w-4.5" />
               ) : (
                 <>
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-4.5 w-4.5" />
                   New Agent
                 </>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[300px] p-4">
+          <DropdownMenuContent align="end" className="w-[300px] p-4 shadow-md rounded-lg">
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <Bot className="h-5 w-5" />
@@ -309,7 +312,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   <p className="text-sm text-red-500">Please enter an agent name</p>
                 )}
               </div>
-              <Button onClick={handleCreateAgent} className="w-full">
+              <Button onClick={handleCreateAgent} className="w-full rounded-lg shadow-sm">
                 Create Agent
               </Button>
             </div>
