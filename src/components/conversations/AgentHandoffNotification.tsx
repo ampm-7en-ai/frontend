@@ -15,7 +15,6 @@ interface AgentHandoffNotificationProps {
   className?: string;
   compact?: boolean;
   id?: string;
-  isHighlighted?: boolean;
 }
 
 export function AgentHandoffNotification({
@@ -26,8 +25,7 @@ export function AgentHandoffNotification({
   type = 'ai-to-ai',
   className,
   compact = false,
-  id,
-  isHighlighted = false
+  id
 }: AgentHandoffNotificationProps) {
   // Determine colors based on type
   const getTypeStyles = () => {
@@ -61,7 +59,6 @@ export function AgentHandoffNotification({
         className={cn(
           "rounded-lg px-3 py-2 text-sm border my-2 transition-all duration-300",
           getTypeStyles(),
-          isHighlighted && "ring-2 ring-primary shadow-md",
           className
         )}
       >
@@ -80,15 +77,11 @@ export function AgentHandoffNotification({
   }
 
   return (
-    <div id={id} className={cn(
-      "flex items-center justify-center my-4 relative transition-all duration-300",
-      isHighlighted && "z-10"
-    )}>
+    <div id={id} className="flex items-center justify-center my-4 relative">
       <div className="absolute left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
       <div className={cn(
-        "z-10 rounded-lg px-3 py-2 text-sm border shadow-sm transition-all duration-300 inline-flex items-center gap-2",
+        "z-10 rounded-lg px-3 py-2 text-sm border shadow-sm inline-flex items-center gap-2",
         getTypeStyles(),
-        isHighlighted && "ring-2 ring-primary shadow-md",
         className
       )}>
         {getIcon()}

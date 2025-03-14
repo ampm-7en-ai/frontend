@@ -208,17 +208,11 @@ const ConversationList = () => {
 
     const transferId = `transfer-${handoff.id}`;
     
-    setHighlightedHandoffId(handoff.id);
-    
     setTimeout(() => {
       const element = document.getElementById(transferId);
       if (element && messageContainerRef.current) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      
-      setTimeout(() => {
-        setHighlightedHandoffId(null);
-      }, 2000);
     }, 100);
     
     toast({
@@ -242,7 +236,6 @@ const ConversationList = () => {
 
   const renderMessageItem = (message: any) => {
     const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
-    const isHandoffHighlighted = message.type === 'transfer' && message.id === highlightedHandoffId;
 
     if (message.type === 'transfer') {
       const isTransferHighlighted = selectedAgent && 
@@ -256,8 +249,7 @@ const ConversationList = () => {
         >
           <div className={cn(
             "bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 max-w-[80%] transition-all duration-300",
-            isTransferHighlighted && "bg-amber-100 border-amber-300 shadow-md",
-            isHandoffHighlighted && "ring-2 ring-primary shadow-md"
+            isTransferHighlighted && "bg-amber-100 border-amber-300 shadow-md"
           )}>
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
@@ -918,4 +910,3 @@ const ConversationList = () => {
 };
 
 export default ConversationList;
-
