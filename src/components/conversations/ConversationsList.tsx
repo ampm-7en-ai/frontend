@@ -51,6 +51,38 @@ const ConversationsList = () => {
         }
       ]
     },
+    {
+      id: '2',
+      customer: 'Michael Brown',
+      lastMessage: {
+        id: 'm15',
+        sender: 'Michael Brown',
+        content: 'I\'m still experiencing the same issue after talking to 3 different agents',
+        timestamp: '11:45 AM',
+        tags: ['unresolved', 'urgent', 'multiple-transfers'],
+      },
+      status: 'active',
+      handoffs: [
+        {
+          id: 'h1',
+          from: 'General Bot',
+          to: 'Technical Support Bot',
+          timestamp: '09:15 AM',
+        },
+        {
+          id: 'h2',
+          from: 'Technical Support Bot',
+          to: 'Billing Specialist',
+          timestamp: '10:20 AM',
+        },
+        {
+          id: 'h3',
+          from: 'Billing Specialist',
+          to: 'Senior Support Agent',
+          timestamp: '11:05 AM',
+        }
+      ]
+    },
     // Add more conversation examples here
   ];
 

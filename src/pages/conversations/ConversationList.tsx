@@ -65,6 +65,40 @@ const ConversationList = () => {
     },
     {
       id: 'conv2',
+      customer: 'Michael Brown',
+      email: 'michael.b@example.com',
+      lastMessage: 'I\'m still experiencing the same issue after talking to 3 different agents',
+      time: '5 minutes ago',
+      status: 'active',
+      agent: 'Senior Support Agent',
+      satisfaction: 'low',
+      priority: 'high',
+      duration: '3h 30m',
+      handoffCount: 3,
+      topic: 'Billing Issue',
+      messages: [
+        { id: 'm1', content: 'Hello, I need help with my subscription. I was charged twice this month.', sender: 'user', timestamp: '3 hours ago' },
+        { id: 'm2', content: 'Hi Michael! I\'m the General Bot. I understand you\'re having billing concerns. Let me check your account details.', sender: 'bot', timestamp: '3 hours ago', agent: 'General Bot' },
+        { id: 'm3', content: 'I can see two charges on your account from our system. Let me transfer you to our Technical Support Bot who can better assist with this issue.', sender: 'bot', timestamp: '2 hours 55m ago', agent: 'General Bot' },
+        { id: 'transfer1', type: 'transfer', from: 'General Bot', to: 'Technical Support Bot', reason: 'Technical expertise needed for billing investigation', timestamp: '2 hours 50m ago' },
+        { id: 'm4', content: 'Hello Michael, I\'m the Technical Support Bot. I\'ve reviewed your account and can see the duplicate charge. This appears to be a system glitch.', sender: 'bot', timestamp: '2 hours 45m ago', agent: 'Technical Support Bot' },
+        { id: 'm5', content: 'Can you please help me get a refund for the duplicate charge?', sender: 'user', timestamp: '2 hours 40m ago' },
+        { id: 'm6', content: 'I\'ll need to check if this requires approval from our billing department. Let me transfer you to a Billing Specialist who can process the refund for you.', sender: 'bot', timestamp: '2 hours 35m ago', agent: 'Technical Support Bot' },
+        { id: 'transfer2', type: 'transfer', from: 'Technical Support Bot', to: 'Billing Specialist', reason: 'Refund authorization required', timestamp: '2 hours 30m ago' },
+        { id: 'm7', content: 'Hello Michael, I\'m Sam from the Billing team. I\'m looking at your account now.', sender: 'bot', timestamp: '2 hours 25m ago', agent: 'Billing Specialist' },
+        { id: 'm8', content: 'I see the duplicate charge, but our system shows this might be for two different subscription tiers. Are you using multiple features of our platform?', sender: 'bot', timestamp: '2 hours 20m ago', agent: 'Billing Specialist' },
+        { id: 'm9', content: 'No, I only have one account and one subscription. I should only be charged once per month according to my plan.', sender: 'user', timestamp: '2 hours 15m ago' },
+        { id: 'm10', content: 'I understand. This seems more complex than I initially thought. Let me transfer you to one of our Senior Support Agents who has higher authorization levels to resolve this.', sender: 'bot', timestamp: '2 hours 10m ago', agent: 'Billing Specialist' },
+        { id: 'transfer3', type: 'transfer', from: 'Billing Specialist', to: 'Senior Support Agent', reason: 'Complex billing issue requiring senior authorization', timestamp: '2 hours 5m ago' },
+        { id: 'm11', content: 'Hi Michael, I\'m Alex, a Senior Support Agent. I apologize for all the transfers. I\'m reviewing your entire case history now.', sender: 'bot', timestamp: '2 hours ago', agent: 'Senior Support Agent' },
+        { id: 'm12', content: 'I can confirm there is indeed a duplicate charge. I\'ll need to check with our finance department about why this happened and how to prevent it in the future.', sender: 'bot', timestamp: '1 hour 55m ago', agent: 'Senior Support Agent' },
+        { id: 'm13', content: 'So will I get my refund today? This has been very frustrating to deal with.', sender: 'user', timestamp: '1 hour 50m ago' },
+        { id: 'm14', content: 'I understand your frustration, Michael. I\'ve submitted the refund request, but it typically takes 3-5 business days to process. I\'ll mark this as urgent, but I cannot guarantee it will be processed today.', sender: 'bot', timestamp: '1 hour 45m ago', agent: 'Senior Support Agent' },
+        { id: 'm15', content: 'I\'m still experiencing the same issue after talking to 3 different agents. All I want is my money back for a service I didn\'t sign up for twice.', sender: 'user', timestamp: '5 minutes ago' },
+      ]
+    },
+    {
+      id: 'conv3',
       customer: 'Jane Smith',
       email: 'jane.smith@example.com',
       lastMessage: 'Can you tell me more about your pricing plans?',
@@ -79,7 +113,7 @@ const ConversationList = () => {
       messages: []
     },
     {
-      id: 'conv3',
+      id: 'conv4',
       customer: 'Robert Johnson',
       email: 'robert.j@example.com',
       lastMessage: 'Thank you for your help!',
@@ -94,7 +128,7 @@ const ConversationList = () => {
       messages: []
     },
     {
-      id: 'conv4',
+      id: 'conv5',
       customer: 'Emily Williams',
       email: 'emily.w@example.com',
       lastMessage: 'I\'m still experiencing the same issue',
@@ -106,21 +140,6 @@ const ConversationList = () => {
       duration: '4h 22m',
       handoffCount: 2,
       topic: 'Technical Support',
-      messages: []
-    },
-    {
-      id: 'conv5',
-      customer: 'Michael Brown',
-      email: 'michael.b@example.com',
-      lastMessage: 'Can we schedule a demo?',
-      time: '5 hours ago',
-      status: 'pending',
-      agent: 'Sales Bot',
-      satisfaction: 'medium',
-      priority: 'normal',
-      duration: '1h 15m',
-      handoffCount: 1,
-      topic: 'Product Demo',
       messages: []
     },
   ];
@@ -190,6 +209,75 @@ const ConversationList = () => {
   });
 
   const isDesktop = windowWidth >= 1024;
+
+  const renderMessageItem = (message: any) => {
+    if (message.type === 'transfer') {
+      return (
+        <div key={message.id} className="flex justify-center my-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 max-w-[80%]">
+            <div className="flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4" />
+              <div>
+                <span className="font-medium">Conversation transferred</span>
+                <div className="text-xs">
+                  From: <span className="font-medium">{message.from}</span> → 
+                  To: <span className="font-medium">{message.to}</span>
+                </div>
+                {message.reason && (
+                  <div className="text-xs mt-1">
+                    Reason: {message.reason}
+                  </div>
+                )}
+                <div className="text-xs mt-1 text-amber-700">
+                  {message.timestamp}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        key={message.id} 
+        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+      >
+        {message.sender === 'bot' && (
+          <Avatar className="h-8 w-8 mr-2 bg-primary">
+            <AvatarFallback>
+              <Bot className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+        <div 
+          className={cn(
+            "max-w-[80%] p-3 rounded-lg",
+            message.sender === 'user' 
+              ? "bg-primary text-primary-foreground rounded-tr-none" 
+              : "bg-white border border-gray-200 rounded-tl-none"
+          )}
+        >
+          {message.sender === 'bot' && message.agent && (
+            <div className="text-xs font-medium mb-1 text-muted-foreground">
+              {message.agent}
+            </div>
+          )}
+          <p className="break-words text-sm">{message.content}</p>
+          <div className="text-xs mt-1 opacity-70">
+            {message.timestamp}
+          </div>
+        </div>
+        {message.sender === 'user' && (
+          <Avatar className="h-8 w-8 ml-2 bg-purple-500">
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden">
@@ -317,43 +405,7 @@ const ConversationList = () => {
                   
                   <div className="flex-1 overflow-y-auto p-3 bg-slate-50">
                     {activeConversation.messages.map((message) => (
-                      <div 
-                        key={message.id} 
-                        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
-                      >
-                        {message.sender === 'bot' && (
-                          <Avatar className="h-8 w-8 mr-2 bg-primary">
-                            <AvatarFallback>
-                              <Bot className="h-4 w-4" />
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                        <div 
-                          className={cn(
-                            "max-w-[80%] p-3 rounded-lg",
-                            message.sender === 'user' 
-                              ? "bg-primary text-primary-foreground rounded-tr-none" 
-                              : "bg-white border border-gray-200 rounded-tl-none"
-                          )}
-                        >
-                          {message.sender === 'bot' && message.agent && (
-                            <div className="text-xs font-medium mb-1 text-muted-foreground">
-                              {message.agent}
-                            </div>
-                          )}
-                          <p className="break-words text-sm">{message.content}</p>
-                          <div className="text-xs mt-1 opacity-70">
-                            {message.timestamp}
-                          </div>
-                        </div>
-                        {message.sender === 'user' && (
-                          <Avatar className="h-8 w-8 ml-2 bg-purple-500">
-                            <AvatarFallback>
-                              <User className="h-4 w-4" />
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                      </div>
+                      renderMessageItem(message)
                     ))}
                   </div>
                   
@@ -740,43 +792,7 @@ const ConversationList = () => {
                 
                 <div className="flex-1 overflow-y-auto p-3 bg-slate-50">
                   {activeConversation.messages.map((message) => (
-                    <div 
-                      key={message.id} 
-                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
-                    >
-                      {message.sender === 'bot' && (
-                        <Avatar className="h-8 w-8 mr-2 bg-primary">
-                          <AvatarFallback>
-                            <Bot className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <div 
-                        className={cn(
-                          "max-w-[80%] p-3 rounded-lg",
-                          message.sender === 'user' 
-                            ? "bg-primary text-primary-foreground rounded-tr-none" 
-                            : "bg-white border border-gray-200 rounded-tl-none"
-                        )}
-                      >
-                        {message.sender === 'bot' && message.agent && (
-                          <div className="text-xs font-medium mb-1 text-muted-foreground">
-                            {message.agent}
-                          </div>
-                        )}
-                        <p className="break-words text-sm">{message.content}</p>
-                        <div className="text-xs mt-1 opacity-70">
-                          {message.timestamp}
-                        </div>
-                      </div>
-                      {message.sender === 'user' && (
-                        <Avatar className="h-8 w-8 ml-2 bg-purple-500">
-                          <AvatarFallback>
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                    </div>
+                    renderMessageItem(message)
                   ))}
                 </div>
                 
