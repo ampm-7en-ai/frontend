@@ -15,14 +15,15 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import KnowledgeTrainingStatus from '@/components/agents/KnowledgeTrainingStatus';
+import EnhancedKnowledgeTraining from '@/components/agents/EnhancedKnowledgeTraining';
+import { KnowledgeSource } from '@/hooks/useKnowledgeSources';
 
 // Sample knowledge sources data
-const knowledgeSources = [
-  { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
-  { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20' },
-  { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10' },
-  { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25' },
+const mockKnowledgeSources: KnowledgeSource[] = [
+  { id: 1, name: 'Product Documentation', type: 'document', icon: '📄', trainingStatus: 'none' },
+  { id: 2, name: 'FAQs', type: 'webpage', icon: '🌐', trainingStatus: 'none' },
+  { id: 3, name: 'Customer Support Guidelines', type: 'document', icon: '📄', trainingStatus: 'none' },
+  { id: 4, name: 'Pricing Information', type: 'document', icon: '💰', trainingStatus: 'none' },
 ];
 
 const AgentEdit = () => {
@@ -100,6 +101,10 @@ const AgentEdit = () => {
   const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
     handleChange('knowledgeSources', selectedSourceIds);
   };
+
+  // Convert agent.knowledgeSources IDs to KnowledgeSource objects for the EnhancedKnowledgeTraining component
+  const selectedKnowledgeSources = mockKnowledgeSources
+    .filter(source => agent.knowledgeSources.includes(source.id));
 
   return (
     <div className="space-y-6">
@@ -500,9 +505,8 @@ const AgentEdit = () => {
         </TabsContent>
         
         <TabsContent value="knowledge" className="space-y-6 mt-6">
-          <KnowledgeTrainingStatus 
-            agentId={agentId || ''} 
-            initialSelectedSources={agent.knowledgeSources}
+          <EnhancedKnowledgeTraining 
+            initialSources={selectedKnowledgeSources}
             onSourcesChange={handleKnowledgeSourcesChange}
           />
         </TabsContent>
