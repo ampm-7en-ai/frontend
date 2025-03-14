@@ -49,6 +49,11 @@ const EnhancedKnowledgeTraining = ({
     }
   };
 
+  // Check if the source needs individual training button
+  const needsIndividualTraining = (source: KnowledgeSource) => {
+    return source.trainingStatus === 'failed' || source.isBroken || source.isDeleted;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -106,7 +111,7 @@ const EnhancedKnowledgeTraining = ({
                   </div>
                   
                   {/* Show individual train button only for failed sources or broken/deleted sources */}
-                  {(source.trainingStatus === 'failed' || source.isBroken || source.isDeleted) && (
+                  {needsIndividualTraining(source) && (
                     <Button 
                       variant="outline" 
                       size="sm" 

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ChevronRight, RefreshCw } from 'lucide-react';
+import { AlertCircle, ChevronRight, RefreshCw, AlertTriangle } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -16,6 +16,8 @@ interface KnowledgeSource {
   type: string;
   icon: string;
   hasError: boolean;
+  isDeleted?: boolean;
+  isBroken?: boolean;
 }
 
 interface AgentKnowledgeSectionProps {
@@ -26,7 +28,12 @@ interface AgentKnowledgeSectionProps {
 const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSectionProps) => {
   const displayedSources = knowledgeSources.slice(0, 3); // Show up to 3 sources
   const remainingSources = knowledgeSources.length - 3;
+  
   const hasErrorSources = knowledgeSources.some(source => source.hasError);
+  const hasBrokenSources = knowledgeSources.some(source => source.isBroken);
+  const hasDeletedSources = knowledgeSources.some(source => source.isDeleted);
+  
+  const hasProblematicSources = hasErrorSources || hasBrokenSources || hasDeletedSources;
   
   return (
     <div>
@@ -55,15 +62,22 @@ const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSect
         )}
       </div>
       
-      {hasErrorSources && (
+      {hasProblematicSources && (
         <div className="mt-2">
           <Link 
             to={`/agents/${agentId}/edit?tab=knowledge`}
             className="group inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors border border-red-200 text-xs"
           >
             <span className="flex items-center gap-1">
-              <AlertCircle className="h-3 w-3 text-red-500" />
-              <span className="font-medium">Some knowledge sources need attention</span>
+              {hasDeletedSources && <AlertCircle className="h-3 w-3 text-red-500" />}
+              {hasBrokenSources && <AlertTriangle className="h-3 w-3 text-amber-500" />}
+              <span className="font-medium">
+                {hasDeletedSources 
+                  ? "Some knowledge sources have been deleted" 
+                  : hasBrokenSources 
+                    ? "Some knowledge sources are broken"
+                    : "Some knowledge sources need attention"}
+              </span>
             </span>
             <RefreshCw className="h-3 w-3 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
