@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ const KnowledgeTrainingStatus = ({
   );
   
   const [needsRetraining, setNeedsRetraining] = useState(false);
+  const [sourcesChanged, setSourcesChanged] = useState(false);
   
   const externalKnowledgeSources = [
     { id: 101, name: 'Product Features Overview', type: 'pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
@@ -68,15 +70,15 @@ const KnowledgeTrainingStatus = ({
     const currentSourceIds = knowledgeSources.map(source => source.id);
     
     // Check if the specific sources have changed (not just length)
-    const sourcesChanged = lengthChanged || !prevSourceIds.every(id => currentSourceIds.includes(id));
+    const sourceIdsChanged = lengthChanged || !prevSourceIds.every(id => currentSourceIds.includes(id));
     
     // Update previous state for next comparison
     setPrevSourcesLength(knowledgeSources.length);
     setPrevSourceIds(currentSourceIds);
     
     // Set needs retraining if any of the conditions are met
-    setNeedsRetraining(untrained || sourcesChanged);
-  }, [knowledgeSources, prevSourcesLength, prevSourceIds]);
+    setNeedsRetraining(untrained || sourceIdsChanged || sourcesChanged);
+  }, [knowledgeSources, prevSourcesLength, prevSourceIds, sourcesChanged]);
 
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
@@ -88,8 +90,9 @@ const KnowledgeTrainingStatus = ({
       onSourcesChange(updatedSourceIds);
     }
     
-    // Explicitly set needsRetraining to true when a source is removed
-    setNeedsRetraining(true);
+    // Explicitly set sourcesChanged to true when a source is removed
+    // This ensures we always need retraining after deletion, even if all remaining sources are trained
+    setSourcesChanged(true);
     
     toast({
       title: "Source removed",
@@ -127,6 +130,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
 
     setNeedsRetraining(true);
+    setSourcesChanged(true);
 
     if (onSourcesChange) {
       const updatedSourceIds = [...knowledgeSources.map(s => s.id), ...newSourceIds];
@@ -188,7 +192,7 @@ const KnowledgeTrainingStatus = ({
       });
       
       // We only update needsRetraining when all sources are successfully trained
-      // This keeps the Train All button active if we need to retrain for any other reason
+      // and no sources have been changed (added or removed)
       checkAndUpdateNeedsRetraining();
     }, 5000);
   };
@@ -199,7 +203,8 @@ const KnowledgeTrainingStatus = ({
     const allTrained = knowledgeSources.every(s => s.trainingStatus === 'success');
     
     // Only set needsRetraining to false if all sources are trained
-    if (allTrained) {
+    // AND no sources have been changed (added or removed)
+    if (allTrained && !sourcesChanged) {
       setNeedsRetraining(false);
     }
   };
@@ -262,6 +267,9 @@ const KnowledgeTrainingStatus = ({
     }
 
     setIsTrainingAll(false);
+    
+    // Reset the sourcesChanged flag after training all sources
+    setSourcesChanged(false);
     
     // Only clear needsRetraining after all sources have been processed successfully
     checkAndUpdateNeedsRetraining();
