@@ -1,50 +1,48 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Ban, AlertTriangle, Trash2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { MoreVertical } from 'lucide-react';
+import { RefreshCw, Trash2 } from 'lucide-react';
 
 interface KnowledgeSourceActionsProps {
   sourceId: number;
+  sourceStatus: string;
   onRemove: (id: number) => void;
-  onMarkBroken: (id: number) => void;
-  onMarkDeleted: (id: number) => void;
+  onTrain: (id: number) => void;
+  isTraining: boolean;
 }
 
 const KnowledgeSourceActions = ({ 
   sourceId, 
+  sourceStatus,
   onRemove, 
-  onMarkBroken, 
-  onMarkDeleted 
+  onTrain,
+  isTraining
 }: KnowledgeSourceActionsProps) => {
+  const needsTraining = sourceStatus === 'failed' || sourceStatus === 'none';
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-7 w-7">
-          <MoreVertical className="h-4 w-4" />
+    <div className="flex gap-2">
+      {needsTraining && (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-7 text-xs"
+          disabled={isTraining}
+          onClick={() => onTrain(sourceId)}
+        >
+          <RefreshCw className={`h-3 w-3 mr-1 ${isTraining ? 'animate-spin' : ''}`} />
+          Train
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onMarkBroken(sourceId)}>
-          <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
-          <span>Simulate Broken Link</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onMarkDeleted(sourceId)}>
-          <Ban className="mr-2 h-4 w-4 text-red-500" />
-          <span>Simulate Deleted Source</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onRemove(sourceId)} className="text-red-500">
-          <Trash2 className="mr-2 h-4 w-4" />
-          <span>Remove</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      )}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="h-7 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+        onClick={() => onRemove(sourceId)}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
   );
 };
 

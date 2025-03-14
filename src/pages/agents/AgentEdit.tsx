@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Plus } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import EnhancedKnowledgeTraining from '@/components/agents/EnhancedKnowledgeTraining';
 import { KnowledgeSource } from '@/hooks/useKnowledgeSources';
-import { Link } from 'react-router-dom';
 
 // Sample knowledge sources data
 const mockKnowledgeSources: KnowledgeSource[] = [
