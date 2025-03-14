@@ -17,16 +17,24 @@ interface HandoffHistoryProps {
   handoffs: Handoff[];
   compact?: boolean;
   className?: string;
+  onHandoffClick?: (handoff: Handoff) => void;
 }
 
 const HandoffHistory: React.FC<HandoffHistoryProps> = ({ 
   handoffs, 
   compact = false,
-  className
+  className,
+  onHandoffClick
 }) => {
   if (!handoffs || handoffs.length === 0) {
     return null;
   }
+
+  const handleCardClick = (handoff: Handoff) => {
+    if (onHandoffClick) {
+      onHandoffClick(handoff);
+    }
+  };
 
   // For the compact version (used in conversation list)
   if (compact) {
@@ -72,7 +80,13 @@ const HandoffHistory: React.FC<HandoffHistoryProps> = ({
               {handoff.timestamp}
             </div>
             
-            <div className="bg-white rounded-lg p-2 border border-slate-200 shadow-sm">
+            <div 
+              className="bg-white rounded-lg p-2 border border-slate-200 shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
+              onClick={() => handleCardClick(handoff)}
+              role="button"
+              tabIndex={0}
+              aria-label={`View conversation between ${handoff.from} and ${handoff.to}`}
+            >
               <div className="flex items-center text-xs">
                 <div className="flex items-center">
                   <Avatar className="h-5 w-5 mr-1 bg-slate-200">
@@ -99,8 +113,13 @@ const HandoffHistory: React.FC<HandoffHistoryProps> = ({
               </div>
               
               {handoff.reason && (
-                <div className="text-[10px] text-muted-foreground mt-1 ml-6 italic">
-                  Reason: {handoff.reason}
+                <div className="ml-6 mt-1">
+                  <div className="text-[10px] text-muted-foreground italic">
+                    Reason: {handoff.reason}
+                  </div>
+                  <div className="text-[9px] text-slate-400 mt-0.5">
+                    {handoff.timestamp}
+                  </div>
                 </div>
               )}
             </div>

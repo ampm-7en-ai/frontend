@@ -31,6 +31,7 @@ const ConversationList = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -198,6 +199,15 @@ const ConversationList = () => {
     setNewMessage('');
   };
 
+  const handleHandoffClick = (handoff: any) => {
+    setSelectedAgent(handoff.from);
+    
+    toast({
+      title: `Viewing messages from ${handoff.from}`,
+      description: `Scrolled to conversation segment with ${handoff.from}`,
+    });
+  };
+
   const filteredConversations = conversations.filter(conv => {
     const matchesSearch = 
       conv.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -212,17 +222,31 @@ const ConversationList = () => {
   const isDesktop = windowWidth >= 1024;
 
   const renderMessageItem = (message: any) => {
+    const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
+
     if (message.type === 'transfer') {
+      const isTransferHighlighted = selectedAgent && 
+        (message.from === selectedAgent || message.to === selectedAgent);
+      
       return (
         <div key={message.id} className="flex justify-center my-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 max-w-[80%]">
+          <div className={cn(
+            "bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 max-w-[80%]",
+            isTransferHighlighted && "bg-amber-100 border-amber-300 shadow-md"
+          )}>
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
               <div>
                 <span className="font-medium">Conversation transferred</span>
                 <div className="text-xs">
-                  From: <span className="font-medium">{message.from}</span> → 
-                  To: <span className="font-medium">{message.to}</span>
+                  From: <span className={cn(
+                    "font-medium", 
+                    message.from === selectedAgent && "text-primary"
+                  )}>{message.from}</span> → 
+                  To: <span className={cn(
+                    "font-medium",
+                    message.to === selectedAgent && "text-primary"
+                  )}>{message.to}</span>
                 </div>
                 {message.reason && (
                   <div className="text-xs mt-1">
@@ -243,9 +267,13 @@ const ConversationList = () => {
       <div 
         key={message.id} 
         className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+        id={`message-${message.id}`}
       >
         {message.sender === 'bot' && (
-          <Avatar className="h-8 w-8 mr-2 bg-primary">
+          <Avatar className={cn(
+            "h-8 w-8 mr-2",
+            isHighlighted ? "bg-primary ring-2 ring-primary/30" : "bg-primary"
+          )}>
             <AvatarFallback>
               <Bot className="h-4 w-4" />
             </AvatarFallback>
@@ -253,14 +281,19 @@ const ConversationList = () => {
         )}
         <div 
           className={cn(
-            "max-w-[80%] p-3 rounded-lg",
+            "max-w-[80%] p-3 rounded-lg transition-all",
             message.sender === 'user' 
               ? "bg-primary text-primary-foreground rounded-tr-none" 
-              : "bg-white border border-gray-200 rounded-tl-none"
+              : isHighlighted
+                ? "bg-primary/5 border-2 border-primary/20 rounded-tl-none"
+                : "bg-white border border-gray-200 rounded-tl-none"
           )}
         >
           {message.sender === 'bot' && message.agent && (
-            <div className="text-xs font-medium mb-1 text-muted-foreground">
+            <div className={cn(
+              "text-xs font-medium mb-1",
+              isHighlighted ? "text-primary" : "text-muted-foreground"
+            )}>
               {message.agent}
             </div>
           )}
@@ -389,6 +422,22 @@ const ConversationList = () => {
                       <div className="ml-2">{getStatusBadge(activeConversation.status)}</div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {selectedAgent && (
+                        <Badge 
+                          variant="outline" 
+                          className="flex items-center gap-1 border-primary/30 text-primary"
+                        >
+                          <Bot className="h-3 w-3" />
+                          Viewing: {selectedAgent}
+                          <X 
+                            className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedAgent(null);
+                            }}
+                          />
+                        </Badge>
+                      )}
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Clock className="h-4 w-4 mr-1" />
                         {activeConversation.duration}
@@ -473,6 +522,7 @@ const ConversationList = () => {
                               timestamp: transfer.timestamp,
                               reason: transfer.reason
                             }))}
+                          onHandoffClick={handleHandoffClick}
                         />
                       </div>
                     )}
@@ -694,6 +744,22 @@ const ConversationList = () => {
                     <div className="ml-2">{getStatusBadge(activeConversation.status)}</div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {selectedAgent && (
+                      <Badge 
+                        variant="outline" 
+                        className="flex items-center gap-1 border-primary/30 text-primary"
+                      >
+                        <Bot className="h-3 w-3" />
+                        Viewing: {selectedAgent}
+                        <X 
+                          className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAgent(null);
+                          }}
+                        />
+                      </Badge>
+                    )}
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Clock className="h-4 w-4 mr-1" />
                       {activeConversation.duration}

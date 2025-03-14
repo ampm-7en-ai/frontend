@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, RefreshCw } from 'lucide-react';
 import HandoffHistory from './HandoffHistory';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
@@ -31,6 +33,8 @@ interface Conversation {
 }
 
 const ConversationsList = () => {
+  const { toast } = useToast();
+  
   const conversations: Conversation[] = [
     {
       id: '1',
@@ -88,6 +92,13 @@ const ConversationsList = () => {
       ]
     },
   ];
+
+  const handleHandoffClick = (handoff: Handoff) => {
+    toast({
+      title: `Viewing messages from ${handoff.from}`,
+      description: "Navigation to full conversation view required to see complete history.",
+    });
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -148,7 +159,11 @@ const ConversationsList = () => {
                 </p>
                 {conversation.handoffs && conversation.handoffs.length > 1 && (
                   <div className="mt-2">
-                    <HandoffHistory handoffs={conversation.handoffs} compact={true} />
+                    <HandoffHistory 
+                      handoffs={conversation.handoffs} 
+                      compact={true} 
+                      onHandoffClick={handleHandoffClick}
+                    />
                   </div>
                 )}
                 <div className="flex gap-2 mt-2">
