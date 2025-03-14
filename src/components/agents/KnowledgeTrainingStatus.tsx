@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2 } from 'lucide-react';
@@ -16,7 +16,7 @@ interface KnowledgeSource {
   type: string;
   size: string;
   lastUpdated: string;
-  trainingStatus?: 'idle' | 'training' | 'success' | 'error';
+  trainingStatus: 'idle' | 'training' | 'success' | 'error';
   progress?: number;
 }
 
@@ -40,7 +40,10 @@ const KnowledgeTrainingStatus = ({
     { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10', trainingStatus: 'idle', progress: 0 },
     { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25', trainingStatus: 'idle', progress: 0 },
   ].filter(source => initialSelectedSources.includes(source.id)));
-
+  
+  // Track whether there are any sources that need training
+  const [needsRetraining, setNeedsRetraining] = useState(false);
+  
   // External knowledge sources for import
   const externalKnowledgeSources = [
     { id: 101, name: 'Product Features Overview', type: 'pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
@@ -49,6 +52,12 @@ const KnowledgeTrainingStatus = ({
     { id: 104, name: 'Company Website', type: 'url', size: 'N/A', lastUpdated: '2023-05-28' },
     { id: 105, name: 'Customer Data', type: 'csv', size: '0.8 MB', lastUpdated: '2023-05-15' },
   ];
+
+  // Check if retraining is needed whenever knowledge sources change
+  useEffect(() => {
+    const untrained = knowledgeSources.some(source => source.trainingStatus === 'idle');
+    setNeedsRetraining(untrained);
+  }, [knowledgeSources]);
 
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
@@ -60,11 +69,27 @@ const KnowledgeTrainingStatus = ({
         .map(s => s.id);
       onSourcesChange(updatedSourceIds);
     }
+    
+    // Notify user that retraining may be needed after removal
+    toast({
+      title: "Source removed",
+      description: "Consider retraining your agent to update its knowledge.",
+      variant: "default",
+    });
   };
 
   const importSelectedSources = (sourceIds: number[]) => {
     // Filter out sources that are already imported
     const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
+    
+    if (newSourceIds.length === 0) {
+      toast({
+        title: "No new sources selected",
+        description: "All selected sources are already imported.",
+      });
+      setIsImportDialogOpen(false);
+      return;
+    }
     
     // This would be replaced with actual import logic
     const newSources = newSourceIds.map(id => {
@@ -92,7 +117,7 @@ const KnowledgeTrainingStatus = ({
 
     toast({
       title: "Knowledge sources imported",
-      description: `${newSourceIds.length} sources have been imported successfully.`,
+      description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
     });
   };
 
@@ -138,11 +163,13 @@ const KnowledgeTrainingStatus = ({
         )
       );
 
+      const sourceName = knowledgeSources.find(s => s.id === sourceId)?.name;
+      
       toast({
         title: success ? "Training complete" : "Training failed",
         description: success
-          ? `${prev => prev.find(s => s.id === sourceId)?.name} has been trained successfully.`
-          : `Failed to train ${prev => prev.find(s => s.id === sourceId)?.name}. Please try again.`,
+          ? `${sourceName} has been trained successfully.`
+          : `Failed to train ${sourceName}. Please try again.`,
         variant: success ? "default" : "destructive",
       });
     }, 5000); // Simulate 5 second training
@@ -216,7 +243,7 @@ const KnowledgeTrainingStatus = ({
     });
   };
 
-  const getStatusIcon = (status: string, progress?: number) => {
+  const getStatusIcon = (status: 'idle' | 'training' | 'success' | 'error', progress?: number) => {
     switch (status) {
       case 'training':
         return (
@@ -301,7 +328,7 @@ const KnowledgeTrainingStatus = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex items-center">
-                          {getStatusIcon(source.trainingStatus || 'idle', source.progress)}
+                          {getStatusIcon(source.trainingStatus, source.progress)}
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -346,6 +373,13 @@ const KnowledgeTrainingStatus = ({
             </div>
           )}
         </div>
+        
+        {needsRetraining && knowledgeSources.length > 0 && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+          </div>
+        )}
       </CardContent>
 
       {/* Import Dialog */}
