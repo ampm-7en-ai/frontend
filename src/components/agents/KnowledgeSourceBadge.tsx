@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Database, Globe, AlertTriangle } from 'lucide-react';
+import { BookOpen, Database, Globe, AlertTriangle, Link2Off } from 'lucide-react';
 import { 
   Tooltip, 
   TooltipContent, 
@@ -14,6 +14,7 @@ interface KnowledgeSource {
   type: string;
   icon: string;
   hasError: boolean;
+  linkBroken?: boolean;
 }
 
 interface KnowledgeSourceBadgeProps {
@@ -34,33 +35,55 @@ const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {
     }
   };
 
+  const getBadgeStyle = () => {
+    if (source.linkBroken) {
+      return 'bg-orange-50 text-orange-700 hover:bg-orange-100';
+    } else if (source.hasError) {
+      return 'bg-red-50 text-red-700 hover:bg-red-100';
+    } else {
+      return 'bg-primary/5 text-primary hover:bg-primary/10';
+    }
+  };
+  
+  const getTextColor = () => {
+    if (source.linkBroken) {
+      return 'text-orange-500';
+    } else if (source.hasError) {
+      return 'text-red-500';
+    } else {
+      return 'text-primary';
+    }
+  };
+
+  const getTooltipContent = () => {
+    if (source.linkBroken) {
+      return 'Knowledge source link is broken';
+    } else if (source.hasError) {
+      return 'Knowledge source needs retraining';
+    } else {
+      return `Type: ${source.type}`;
+    }
+  };
+
   return (
     <TooltipProvider key={source.id}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div 
-            className={`
-              inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full 
-              transition-colors duration-200
-              ${source.hasError 
-                ? 'bg-red-50 text-red-700 hover:bg-red-100' 
-                : 'bg-primary/5 text-primary hover:bg-primary/10'
-              }
-            `}
-          >
-            <span className={`${source.hasError ? 'text-red-500' : 'text-primary'}`}>
+          <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-colors duration-200 ${getBadgeStyle()}`}>
+            <span className={getTextColor()}>
               {getIcon()}
             </span>
             <span className="text-xs font-medium">{source.name}</span>
             {source.hasError && (
               <AlertTriangle className="h-3 w-3 text-red-500" />
             )}
+            {source.linkBroken && (
+              <Link2Off className="h-3 w-3 text-orange-500" />
+            )}
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          {source.hasError 
-            ? 'Knowledge source needs retraining' 
-            : `Type: ${source.type}`}
+          {getTooltipContent()}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

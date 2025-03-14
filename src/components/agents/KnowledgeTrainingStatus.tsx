@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2 } from 'lucide-react';
+import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -17,6 +16,7 @@ interface KnowledgeSource {
   lastUpdated: string;
   trainingStatus: 'idle' | 'training' | 'success' | 'error';
   progress?: number;
+  linkBroken?: boolean;
 }
 
 interface KnowledgeTrainingStatusProps {
@@ -36,8 +36,8 @@ const KnowledgeTrainingStatus = ({
   
   const mockKnowledgeSources: KnowledgeSource[] = [
     { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15', trainingStatus: 'idle', progress: 0 },
-    { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20', trainingStatus: 'idle', progress: 0 },
-    { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10', trainingStatus: 'idle', progress: 0 },
+    { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20', trainingStatus: 'idle', progress: 0, linkBroken: true },
+    { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10', trainingStatus: 'error', progress: 100 },
     { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25', trainingStatus: 'idle', progress: 0 },
   ];
   
@@ -45,13 +45,13 @@ const KnowledgeTrainingStatus = ({
     mockKnowledgeSources.filter(source => initialSelectedSources.includes(source.id))
   );
   
-  const [needsRetraining, setNeedsRetraining] = useState(false);
+  const [needsRetraining, setNeedsRetraining] = useState(true);
   
   const externalKnowledgeSources = [
     { id: 101, name: 'Product Features Overview', type: 'pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
     { id: 102, name: 'Pricing Structure', type: 'docx', size: '1.1 MB', lastUpdated: '2023-06-02' },
     { id: 103, name: 'Technical Specifications', type: 'pdf', size: '3.7 MB', lastUpdated: '2023-06-05' },
-    { id: 104, name: 'Company Website', type: 'url', size: 'N/A', lastUpdated: '2023-05-28' },
+    { id: 104, name: 'Company Website', type: 'url', size: 'N/A', lastUpdated: '2023-05-28', linkBroken: true },
     { id: 105, name: 'Customer Data', type: 'csv', size: '0.8 MB', lastUpdated: '2023-05-15' },
   ];
 
@@ -59,25 +59,11 @@ const KnowledgeTrainingStatus = ({
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>(knowledgeSources.map(source => source.id));
 
   useEffect(() => {
-    // Check if any sources need training
-    const untrained = knowledgeSources.some(source => source.trainingStatus === 'idle');
+    setNeedsRetraining(true);
     
-    // Check if the number of sources has changed
-    const lengthChanged = prevSourcesLength !== knowledgeSources.length;
-    
-    // Get current source IDs for comparison
-    const currentSourceIds = knowledgeSources.map(source => source.id);
-    
-    // Check if the specific sources have changed (not just length)
-    const sourcesChanged = lengthChanged || !prevSourceIds.every(id => currentSourceIds.includes(id));
-    
-    // Update previous state for next comparison
     setPrevSourcesLength(knowledgeSources.length);
-    setPrevSourceIds(currentSourceIds);
-    
-    // Set needs retraining if any of the conditions are met
-    setNeedsRetraining(untrained || sourcesChanged);
-  }, [knowledgeSources, prevSourcesLength, prevSourceIds]);
+    setPrevSourceIds(knowledgeSources.map(source => source.id));
+  }, [knowledgeSources]);
 
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
@@ -89,7 +75,6 @@ const KnowledgeTrainingStatus = ({
       onSourcesChange(updatedSourceIds);
     }
     
-    // Explicitly set needsRetraining to true when a source is removed
     setNeedsRetraining(true);
     
     toast({
@@ -113,6 +98,7 @@ const KnowledgeTrainingStatus = ({
     
     const newSources: KnowledgeSource[] = newSourceIds.map(id => {
       const source = externalKnowledgeSources.find(s => s.id === id);
+      const sourceCopy = { ...source };
       return {
         id: source!.id,
         name: source!.name,
@@ -120,7 +106,8 @@ const KnowledgeTrainingStatus = ({
         size: source!.size,
         lastUpdated: source!.lastUpdated,
         trainingStatus: 'idle' as 'idle',
-        progress: 0
+        progress: 0,
+        linkBroken: sourceCopy.linkBroken || false
       };
     });
 
@@ -173,7 +160,12 @@ const KnowledgeTrainingStatus = ({
       setKnowledgeSources(prev => 
         prev.map(source => 
           source.id === sourceId 
-            ? { ...source, trainingStatus: success ? 'success' : 'error', progress: 100 } 
+            ? { 
+                ...source, 
+                trainingStatus: success ? 'success' : 'error', 
+                progress: 100,
+                linkBroken: source.linkBroken && success ? false : source.linkBroken 
+              } 
             : source
         )
       );
@@ -188,14 +180,7 @@ const KnowledgeTrainingStatus = ({
         variant: success ? "default" : "destructive",
       });
       
-      const allTrained = knowledgeSources.every(s => 
-        s.id === sourceId 
-          ? success 
-          : s.trainingStatus === 'success'
-      );
-      if (allTrained) {
-        setNeedsRetraining(false);
-      }
+      setNeedsRetraining(true);
     }, 5000);
   };
 
@@ -212,7 +197,7 @@ const KnowledgeTrainingStatus = ({
     setIsTrainingAll(true);
 
     for (const source of knowledgeSources) {
-      if (source.trainingStatus !== 'success') {
+      if (source.trainingStatus !== 'success' || source.linkBroken) {
         setKnowledgeSources(prev => 
           prev.map(s => 
             s.id === source.id 
@@ -245,7 +230,12 @@ const KnowledgeTrainingStatus = ({
             setKnowledgeSources(prev => 
               prev.map(s => 
                 s.id === source.id 
-                  ? { ...s, trainingStatus: success ? 'success' : 'error', progress: 100 } 
+                  ? { 
+                      ...s, 
+                      trainingStatus: success ? 'success' : 'error', 
+                      progress: 100,
+                      linkBroken: s.linkBroken && success ? false : s.linkBroken 
+                    } 
                   : s
               )
             );
@@ -258,7 +248,7 @@ const KnowledgeTrainingStatus = ({
 
     setIsTrainingAll(false);
     
-    setNeedsRetraining(false);
+    setNeedsRetraining(true);
     
     toast({
       title: "Training complete",
@@ -266,7 +256,11 @@ const KnowledgeTrainingStatus = ({
     });
   };
 
-  const getStatusIcon = (status: 'idle' | 'training' | 'success' | 'error', progress?: number) => {
+  const getStatusIcon = (status: 'idle' | 'training' | 'success' | 'error', progress?: number, linkBroken?: boolean) => {
+    if (linkBroken) {
+      return <Link2Off className="h-4 w-4 text-orange-500" />;
+    }
+    
     switch (status) {
       case 'training':
         return (
@@ -282,6 +276,10 @@ const KnowledgeTrainingStatus = ({
       default:
         return null;
     }
+  };
+  
+  const shouldShowTrainButton = (source: KnowledgeSource) => {
+    return source.trainingStatus === 'error' || source.linkBroken || source.trainingStatus === 'idle';
   };
 
   const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
@@ -327,74 +325,92 @@ const KnowledgeTrainingStatus = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="border rounded-md divide-y">
-          {knowledgeSources.map((source) => (
-            <div key={source.id} className="flex items-center p-4">
-              <div className="flex-1 flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium">{source.name}</div>
-                  <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                    <span className="mr-3">Type: {source.type}</span>
-                    <span className="mr-3">Size: {source.size}</span>
-                    <span>Last updated: {source.lastUpdated}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  {source.trainingStatus === 'training' && (
-                    <div className="w-24">
-                      <Progress value={source.progress} className="h-2" />
+        <div className="border rounded-md overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Knowledge Source</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Last Updated</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {knowledgeSources.map((source) => (
+                <TableRow key={source.id}>
+                  <TableCell className="py-2">
+                    <div className="flex items-center">
+                      {getIcon(source.type)}
+                      <span className="ml-2 font-medium">{source.name}</span>
+                      {source.linkBroken && (
+                        <span className="ml-2 text-xs text-orange-500 flex items-center gap-1">
+                          <Link2Off className="h-3 w-3" /> Broken Link
+                        </span>
+                      )}
+                      {source.trainingStatus === 'error' && !source.linkBroken && (
+                        <span className="ml-2 text-xs text-red-500 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" /> Training Failed
+                        </span>
+                      )}
                     </div>
-                  )}
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center">
-                          {getStatusIcon(source.trainingStatus, source.progress)}
+                  </TableCell>
+                  <TableCell className="py-2">{source.size}</TableCell>
+                  <TableCell className="py-2">{source.lastUpdated}</TableCell>
+                  <TableCell className="py-2">
+                    {source.trainingStatus === 'training' ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-16">
+                          <div className="w-16 bg-gray-200 rounded-full h-2 flex items-center">
+                            <div 
+                              className="bg-primary h-2 rounded-full" 
+                              style={{ width: `${source.progress || 0}%` }}>
+                            </div>
+                          </div>
                         </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {source.trainingStatus === 'idle' && 'Not trained yet'}
-                        {source.trainingStatus === 'training' && 'Training in progress...'}
-                        {source.trainingStatus === 'success' && 'Training completed successfully'}
-                        {source.trainingStatus === 'error' && 'Training failed'}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <div className="flex items-center gap-2">
-                    {source.trainingStatus !== 'training' && source.trainingStatus !== 'success' && (
+                        <span className="text-xs text-muted-foreground">{source.progress}%</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        {getStatusIndicator(source)}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right py-2">
+                    <div className="flex items-center justify-end gap-2">
+                      {shouldShowTrainButton(source) && source.trainingStatus !== 'training' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => trainSource(source.id)}
+                          className="h-8 px-2"
+                        >
+                          <Zap className="h-3.5 w-3.5 mr-1" />
+                          Train
+                        </Button>
+                      )}
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        onClick={() => trainSource(source.id)}
-                        className="h-8 px-2"
+                        onClick={() => removeSource(source.id)}
+                        className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
-                        <Zap className="h-3.5 w-3.5 mr-1" />
-                        Train
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => removeSource(source.id)}
-                      className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {knowledgeSources.length === 0 && (
-            <div className="p-8 text-center text-muted-foreground">
-              <p className="mb-4">No knowledge sources selected</p>
-              <p className="text-sm">Click "Import Sources" to add knowledge sources to your agent</p>
-            </div>
-          )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {knowledgeSources.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    <p className="mb-2">No knowledge sources selected</p>
+                    <p className="text-sm text-muted-foreground">Click "Import Sources" to add knowledge sources to your agent</p>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         
         {needsRetraining && knowledgeSources.length > 0 && (
@@ -447,6 +463,11 @@ const KnowledgeTrainingStatus = ({
                           className={`text-sm font-medium ${isAlreadyImported ? "line-through" : "cursor-pointer"}`}
                         >
                           {source.name}
+                          {source.linkBroken && (
+                            <span className="ml-2 text-xs text-orange-500 flex items-center gap-1 inline-flex">
+                              <Link2Off className="h-3 w-3" /> Broken Link
+                            </span>
+                          )}
                         </label>
                       </TableCell>
                       <TableCell>{source.type}</TableCell>
@@ -474,6 +495,60 @@ const KnowledgeTrainingStatus = ({
       </Dialog>
     </Card>
   );
+};
+
+const getIcon = (type: string) => {
+  switch (type) {
+    case 'document':
+    case 'pdf':
+    case 'docx':
+      return <BookOpen className="h-4 w-4 text-blue-500" />;
+    case 'database':
+    case 'csv':
+      return <Database className="h-4 w-4 text-purple-500" />;
+    case 'webpage':
+    case 'url':
+      return <Globe className="h-4 w-4 text-green-500" />;
+    default:
+      return <BookOpen className="h-4 w-4 text-blue-500" />;
+  }
+};
+
+const getStatusIndicator = (source: KnowledgeSource) => {
+  if (source.linkBroken) {
+    return (
+      <div className="flex items-center gap-1 text-orange-500 font-medium text-xs">
+        <Link2Off className="h-4 w-4" />
+        <span>Link broken</span>
+      </div>
+    );
+  }
+  
+  switch (source.trainingStatus) {
+    case 'success':
+      return (
+        <div className="flex items-center gap-1 text-green-500 font-medium text-xs">
+          <CheckCircle className="h-4 w-4" />
+          <span>Trained</span>
+        </div>
+      );
+    case 'error':
+      return (
+        <div className="flex items-center gap-1 text-red-500 font-medium text-xs">
+          <AlertCircle className="h-4 w-4" />
+          <span>Failed</span>
+        </div>
+      );
+    case 'idle':
+      return (
+        <div className="flex items-center gap-1 text-amber-500 font-medium text-xs">
+          <AlertCircle className="h-4 w-4" />
+          <span>Needs training</span>
+        </div>
+      );
+    default:
+      return null;
+  }
 };
 
 export default KnowledgeTrainingStatus;
