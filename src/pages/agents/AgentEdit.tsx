@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Plus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import EnhancedKnowledgeTraining from '@/components/agents/EnhancedKnowledgeTraining';
 import { KnowledgeSource } from '@/hooks/useKnowledgeSources';
+import { Link } from 'react-router-dom';
 
 // Sample knowledge sources data
 const mockKnowledgeSources: KnowledgeSource[] = [
@@ -505,6 +506,21 @@ const AgentEdit = () => {
         </TabsContent>
         
         <TabsContent value="knowledge" className="space-y-6 mt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">Knowledge Sources</h3>
+            <Button 
+              variant="default" 
+              size="sm"
+              asChild
+              className="flex items-center gap-1"
+            >
+              <Link to="/knowledge/upload">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Source
+              </Link>
+            </Button>
+          </div>
+          
           <EnhancedKnowledgeTraining 
             initialSources={selectedKnowledgeSources}
             onSourcesChange={handleKnowledgeSourcesChange}
