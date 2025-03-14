@@ -14,6 +14,8 @@ interface AgentHandoffNotificationProps {
   type?: HandoffType;
   className?: string;
   compact?: boolean;
+  id?: string;
+  isHighlighted?: boolean;
 }
 
 export function AgentHandoffNotification({
@@ -23,7 +25,9 @@ export function AgentHandoffNotification({
   timestamp,
   type = 'ai-to-ai',
   className,
-  compact = false
+  compact = false,
+  id,
+  isHighlighted = false
 }: AgentHandoffNotificationProps) {
   // Determine colors based on type
   const getTypeStyles = () => {
@@ -52,11 +56,15 @@ export function AgentHandoffNotification({
 
   if (compact) {
     return (
-      <div className={cn(
-        "rounded-lg px-3 py-2 text-sm border my-2",
-        getTypeStyles(),
-        className
-      )}>
+      <div 
+        id={id}
+        className={cn(
+          "rounded-lg px-3 py-2 text-sm border my-2 transition-all duration-300",
+          getTypeStyles(),
+          isHighlighted && "ring-2 ring-primary shadow-md",
+          className
+        )}
+      >
         <div className="flex items-center gap-2">
           {getIcon()}
           <div className="flex-1 min-w-0">
@@ -83,11 +91,15 @@ export function AgentHandoffNotification({
   }
 
   return (
-    <div className="flex items-center justify-center my-6 relative">
+    <div id={id} className={cn(
+      "flex items-center justify-center my-6 relative transition-all duration-300",
+      isHighlighted && "z-10"
+    )}>
       <div className="absolute left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
       <div className={cn(
-        "z-10 rounded-lg px-4 py-3 text-sm border shadow-sm",
+        "z-10 rounded-lg px-4 py-3 text-sm border shadow-sm transition-all duration-300",
         getTypeStyles(),
+        isHighlighted && "ring-2 ring-primary shadow-md",
         className
       )}>
         <div className="flex items-center gap-3">

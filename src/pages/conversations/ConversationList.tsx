@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,10 @@ const ConversationList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [highlightedHandoffId, setHighlightedHandoffId] = useState<string | null>(null);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -201,6 +205,21 @@ const ConversationList = () => {
 
   const handleHandoffClick = (handoff: any) => {
     setSelectedAgent(handoff.from);
+
+    const transferId = `transfer-${handoff.id}`;
+    
+    setHighlightedHandoffId(handoff.id);
+    
+    setTimeout(() => {
+      const element = document.getElementById(transferId);
+      if (element && messageContainerRef.current) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      
+      setTimeout(() => {
+        setHighlightedHandoffId(null);
+      }, 2000);
+    }, 100);
     
     toast({
       title: `Viewing messages from ${handoff.from}`,
@@ -223,16 +242,22 @@ const ConversationList = () => {
 
   const renderMessageItem = (message: any) => {
     const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
+    const isHandoffHighlighted = message.type === 'transfer' && message.id === highlightedHandoffId;
 
     if (message.type === 'transfer') {
       const isTransferHighlighted = selectedAgent && 
         (message.from === selectedAgent || message.to === selectedAgent);
       
       return (
-        <div key={message.id} className="flex justify-center my-4">
+        <div 
+          key={message.id} 
+          id={`transfer-${message.id}`}
+          className="flex justify-center my-4"
+        >
           <div className={cn(
-            "bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 max-w-[80%]",
-            isTransferHighlighted && "bg-amber-100 border-amber-300 shadow-md"
+            "bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 max-w-[80%] transition-all duration-300",
+            isTransferHighlighted && "bg-amber-100 border-amber-300 shadow-md",
+            isHandoffHighlighted && "ring-2 ring-primary shadow-md"
           )}>
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
@@ -453,10 +478,14 @@ const ConversationList = () => {
                     </div>
                   </div>
                   
-                  <div className="flex-1 overflow-y-auto p-3 bg-slate-50">
+                  <div 
+                    ref={messageContainerRef}
+                    className="flex-1 overflow-y-auto p-3 bg-slate-50"
+                  >
                     {activeConversation.messages.map((message) => (
                       renderMessageItem(message)
                     ))}
+                    <div ref={messagesEndRef} />
                   </div>
                   
                   <form onSubmit={handleSendMessage} className="border-t p-3 bg-white">
