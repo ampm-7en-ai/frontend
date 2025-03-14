@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, RefreshCw } from 'lucide-react';
+import HandoffHistory from './HandoffHistory';
 
 interface Message {
   id: string;
@@ -19,6 +19,7 @@ interface Handoff {
   from: string;
   to: string;
   timestamp: string;
+  reason?: string;
 }
 
 interface Conversation {
@@ -68,22 +69,24 @@ const ConversationsList = () => {
           from: 'General Bot',
           to: 'Technical Support Bot',
           timestamp: '09:15 AM',
+          reason: 'Technical expertise needed'
         },
         {
           id: 'h2',
           from: 'Technical Support Bot',
           to: 'Billing Specialist',
           timestamp: '10:20 AM',
+          reason: 'Billing issue identified'
         },
         {
           id: 'h3',
           from: 'Billing Specialist',
           to: 'Senior Support Agent',
           timestamp: '11:05 AM',
+          reason: 'Escalation required'
         }
       ]
     },
-    // Add more conversation examples here
   ];
 
   return (
@@ -144,18 +147,8 @@ const ConversationsList = () => {
                   {conversation.lastMessage.content}
                 </p>
                 {conversation.handoffs && conversation.handoffs.length > 1 && (
-                  <div className="text-xs text-muted-foreground mt-2">
-                    <div className="flex flex-wrap items-center gap-1">
-                      <span className="font-medium">Previous:</span>
-                      {conversation.handoffs.map((handoff, index) => (
-                        <React.Fragment key={handoff.id}>
-                          <span className="bg-slate-100 px-1.5 py-0.5 rounded-full">{handoff.from}</span>
-                          {index < conversation.handoffs!.length - 1 && (
-                            <RefreshCw className="h-3 w-3 mx-0.5 text-slate-400" />
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
+                  <div className="mt-2">
+                    <HandoffHistory handoffs={conversation.handoffs} compact={true} />
                   </div>
                 )}
                 <div className="flex gap-2 mt-2">

@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import HandoffHistory from '@/components/conversations/HandoffHistory';
 
 const ConversationList = () => {
   const { user } = useAuth();
@@ -462,35 +463,17 @@ const ConversationList = () => {
                     
                     {activeConversation.handoffCount > 0 && (
                       <div className="mt-4">
-                        <h4 className="text-xs font-medium text-muted-foreground mb-2">Agent History:</h4>
-                        <div className="bg-slate-50 rounded-lg p-3 space-y-2">
-                          {activeConversation.messages
+                        <HandoffHistory 
+                          handoffs={activeConversation.messages
                             .filter(msg => msg.type === 'transfer')
-                            .map((transfer, index) => (
-                              <div key={transfer.id} className="flex items-center text-xs border-b border-slate-100 pb-2 last:border-0 last:pb-0">
-                                <div className="flex flex-col w-full">
-                                  <div className="flex items-center">
-                                    <Avatar className="h-5 w-5 mr-1">
-                                      <AvatarFallback className="text-[10px]">
-                                        <Bot className="h-3 w-3" />
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-medium">{transfer.from}</span>
-                                    <ArrowRight className="h-3 w-3 mx-1" />
-                                    <Avatar className="h-5 w-5 mr-1">
-                                      <AvatarFallback className="text-[10px]">
-                                        <Bot className="h-3 w-3" />
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-medium">{transfer.to}</span>
-                                  </div>
-                                  <div className="text-[11px] text-muted-foreground mt-1 ml-5">
-                                    {transfer.timestamp} - {transfer.reason}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
+                            .map(transfer => ({
+                              id: transfer.id,
+                              from: transfer.from,
+                              to: transfer.to,
+                              timestamp: transfer.timestamp,
+                              reason: transfer.reason
+                            }))}
+                        />
                       </div>
                     )}
                   </div>
