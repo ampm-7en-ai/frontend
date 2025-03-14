@@ -104,7 +104,7 @@ const KnowledgeTrainingStatus = ({
         type: source!.type,
         size: source!.size,
         lastUpdated: source!.lastUpdated,
-        trainingStatus: 'idle',
+        trainingStatus: 'idle' as const,
         progress: 0
       };
     });
