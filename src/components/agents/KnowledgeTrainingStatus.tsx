@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,12 +33,18 @@ const KnowledgeTrainingStatus = ({
   const { toast } = useToast();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
-  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([
+  
+  // Explicitly type the mock data to match KnowledgeSource interface
+  const mockKnowledgeSources: KnowledgeSource[] = [
     { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15', trainingStatus: 'idle', progress: 0 },
     { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20', trainingStatus: 'idle', progress: 0 },
     { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10', trainingStatus: 'idle', progress: 0 },
     { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25', trainingStatus: 'idle', progress: 0 },
-  ].filter(source => initialSelectedSources.includes(source.id)));
+  ];
+  
+  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>(
+    mockKnowledgeSources.filter(source => initialSelectedSources.includes(source.id))
+  );
   
   // Track whether there are any sources that need training
   const [needsRetraining, setNeedsRetraining] = useState(false);
@@ -104,7 +109,7 @@ const KnowledgeTrainingStatus = ({
         type: source!.type,
         size: source!.size,
         lastUpdated: source!.lastUpdated,
-        trainingStatus: 'idle' as const,
+        trainingStatus: 'idle' as 'idle',
         progress: 0
       };
     });
