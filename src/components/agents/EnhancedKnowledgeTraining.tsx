@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { useKnowledgeSources, KnowledgeSource } from '@/hooks/useKnowledgeSources';
 import KnowledgeSourceActions from './KnowledgeSourceActions';
 import { Badge } from '@/components/ui/badge';
+import { Toaster } from '@/components/ui/toaster';
 
 interface EnhancedKnowledgeTrainingProps {
   initialSources: KnowledgeSource[];
@@ -148,6 +149,7 @@ const EnhancedKnowledgeTraining = ({
           ))}
         </div>
       )}
+      <Toaster />
     </div>
   );
 };
