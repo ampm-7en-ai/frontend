@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
+import KnowledgeTrainingStatus from '@/components/agents/KnowledgeTrainingStatus';
 
 // Sample knowledge sources data
 const knowledgeSources = [
@@ -95,6 +95,10 @@ const AgentEdit = () => {
 
   const goBack = () => {
     navigate('/agents');
+  };
+
+  const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
+    handleChange('knowledgeSources', selectedSourceIds);
   };
 
   return (
@@ -496,66 +500,11 @@ const AgentEdit = () => {
         </TabsContent>
         
         <TabsContent value="knowledge" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Knowledge Sources</CardTitle>
-              <CardDescription>Select which knowledge your agent can access to improve its responses</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="border rounded-md divide-y">
-                {knowledgeSources.map((source) => (
-                  <div key={source.id} className="flex items-center p-4">
-                    <Checkbox 
-                      id={`source-${source.id}`} 
-                      checked={agent.knowledgeSources.includes(source.id)}
-                      onCheckedChange={() => toggleKnowledgeSource(source.id)}
-                      className="mr-4"
-                    />
-                    <div className="flex-1">
-                      <label 
-                        htmlFor={`source-${source.id}`} 
-                        className="flex items-center text-sm font-medium cursor-pointer"
-                      >
-                        <Book className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {source.name}
-                      </label>
-                      <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                        <span className="mr-3">Type: {source.type}</span>
-                        <span className="mr-3">Size: {source.size}</span>
-                        <span>Last updated: {source.lastUpdated}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {agent.knowledgeSources.length > 0 ? (
-                <div className="flex justify-between items-center pt-4">
-                  <p className="text-sm text-muted-foreground">
-                    {agent.knowledgeSources.length} knowledge sources selected
-                  </p>
-                  <Button 
-                    onClick={handleRetrainAI} 
-                    disabled={isRetraining}
-                    className="relative"
-                  >
-                    {isRetraining && (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    )}
-                    {!isRetraining && (
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                    )}
-                    {isRetraining ? 'Retraining...' : 'Retrain AI'}
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-sm text-amber-600 flex items-center">
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  No knowledge sources selected. Your agent will use only its general knowledge.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <KnowledgeTrainingStatus 
+            agentId={agentId || ''} 
+            initialSelectedSources={agent.knowledgeSources}
+            onSourcesChange={handleKnowledgeSourcesChange}
+          />
         </TabsContent>
       </Tabs>
     </div>
