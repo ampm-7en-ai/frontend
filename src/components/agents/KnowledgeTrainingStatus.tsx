@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -188,15 +187,21 @@ const KnowledgeTrainingStatus = ({
         variant: success ? "default" : "destructive",
       });
       
-      const allTrained = knowledgeSources.every(s => 
-        s.id === sourceId 
-          ? success 
-          : s.trainingStatus === 'success'
-      );
-      if (allTrained) {
-        setNeedsRetraining(false);
-      }
+      // We only update needsRetraining when all sources are successfully trained
+      // This keeps the Train All button active if we need to retrain for any other reason
+      checkAndUpdateNeedsRetraining();
     }, 5000);
+  };
+
+  // Helper function to determine if agent needs retraining
+  const checkAndUpdateNeedsRetraining = () => {
+    // Check if all sources are successfully trained
+    const allTrained = knowledgeSources.every(s => s.trainingStatus === 'success');
+    
+    // Only set needsRetraining to false if all sources are trained
+    if (allTrained) {
+      setNeedsRetraining(false);
+    }
   };
 
   const trainAllSources = async () => {
@@ -258,7 +263,8 @@ const KnowledgeTrainingStatus = ({
 
     setIsTrainingAll(false);
     
-    setNeedsRetraining(false);
+    // Only clear needsRetraining after all sources have been processed successfully
+    checkAndUpdateNeedsRetraining();
     
     toast({
       title: "Training complete",
