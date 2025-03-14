@@ -61,13 +61,18 @@ const HandoffHistory: React.FC<HandoffHistoryProps> = ({
         <div className="absolute left-2.5 top-0 bottom-0 w-0.5 bg-slate-200"></div>
         
         {handoffs.map((handoff, index) => (
-          <div key={handoff.id} className="mb-3 relative">
+          <div key={handoff.id} className="mb-4 relative">
             {/* Timeline dot */}
-            <div className="absolute left-[-18px] top-0.5 w-4 h-4 rounded-full bg-slate-100 border-2 border-slate-300 flex items-center justify-center">
+            <div className="absolute left-[-18px] top-0.5 w-4 h-4 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center">
               <RefreshCw className="h-2 w-2 text-slate-500" />
             </div>
             
-            <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
+            {/* Timestamp on timeline */}
+            <div className="absolute left-[-115px] top-0 text-[9px] text-slate-500 whitespace-nowrap">
+              {handoff.timestamp}
+            </div>
+            
+            <div className="bg-white rounded-lg p-2 border border-slate-200 shadow-sm">
               <div className="flex items-center text-xs">
                 <div className="flex items-center">
                   <Avatar className="h-5 w-5 mr-1 bg-slate-200">
@@ -91,12 +96,6 @@ const HandoffHistory: React.FC<HandoffHistoryProps> = ({
                     {handoff.to}
                   </span>
                 </div>
-                <Badge 
-                  variant="outline" 
-                  className="ml-auto text-[9px] h-4 px-1 bg-white"
-                >
-                  {handoff.timestamp}
-                </Badge>
               </div>
               
               {handoff.reason && (
