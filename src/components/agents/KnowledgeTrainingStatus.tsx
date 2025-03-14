@@ -8,7 +8,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-// Define knowledge source types
 interface KnowledgeSource {
   id: number;
   name: string;
@@ -34,7 +33,6 @@ const KnowledgeTrainingStatus = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
   
-  // Explicitly type the mock data to match KnowledgeSource interface
   const mockKnowledgeSources: KnowledgeSource[] = [
     { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15', trainingStatus: 'idle', progress: 0 },
     { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20', trainingStatus: 'idle', progress: 0 },
@@ -46,10 +44,8 @@ const KnowledgeTrainingStatus = ({
     mockKnowledgeSources.filter(source => initialSelectedSources.includes(source.id))
   );
   
-  // Track whether there are any sources that need training
   const [needsRetraining, setNeedsRetraining] = useState(false);
   
-  // External knowledge sources for import
   const externalKnowledgeSources = [
     { id: 101, name: 'Product Features Overview', type: 'pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
     { id: 102, name: 'Pricing Structure', type: 'docx', size: '1.1 MB', lastUpdated: '2023-06-02' },
@@ -58,17 +54,18 @@ const KnowledgeTrainingStatus = ({
     { id: 105, name: 'Customer Data', type: 'csv', size: '0.8 MB', lastUpdated: '2023-05-15' },
   ];
 
-  // Check if retraining is needed whenever knowledge sources change
+  const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
+
   useEffect(() => {
     const untrained = knowledgeSources.some(source => source.trainingStatus === 'idle');
-    // Set needsRetraining to true if any sources are untrained or if they are removed
-    setNeedsRetraining(untrained || initialSelectedSources.length > knowledgeSources.length);
-  }, [knowledgeSources, initialSelectedSources]);
+    const lengthChanged = prevSourcesLength !== knowledgeSources.length;
+    setPrevSourcesLength(knowledgeSources.length);
+    setNeedsRetraining(untrained || lengthChanged);
+  }, [knowledgeSources, prevSourcesLength]);
 
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
     
-    // Notify parent component if callback provided
     if (onSourcesChange) {
       const updatedSourceIds = knowledgeSources
         .filter(s => s.id !== sourceId)
@@ -76,10 +73,8 @@ const KnowledgeTrainingStatus = ({
       onSourcesChange(updatedSourceIds);
     }
     
-    // When a source is removed, set needsRetraining to true
     setNeedsRetraining(true);
     
-    // Notify user that retraining may be needed after removal
     toast({
       title: "Source removed",
       description: "Consider retraining your agent to update its knowledge.",
@@ -88,7 +83,6 @@ const KnowledgeTrainingStatus = ({
   };
 
   const importSelectedSources = (sourceIds: number[]) => {
-    // Filter out sources that are already imported
     const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
     
     if (newSourceIds.length === 0) {
@@ -100,7 +94,6 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    // This would be replaced with actual import logic
     const newSources: KnowledgeSource[] = newSourceIds.map(id => {
       const source = externalKnowledgeSources.find(s => s.id === id);
       return {
@@ -114,14 +107,11 @@ const KnowledgeTrainingStatus = ({
       };
     });
 
-    // Add new sources to the list
     setKnowledgeSources(prev => [...prev, ...newSources]);
     setIsImportDialogOpen(false);
 
-    // When new sources are added, set needsRetraining to true
     setNeedsRetraining(true);
 
-    // Notify parent component if callback provided
     if (onSourcesChange) {
       const updatedSourceIds = [...knowledgeSources.map(s => s.id), ...newSourceIds];
       onSourcesChange(updatedSourceIds);
@@ -134,7 +124,6 @@ const KnowledgeTrainingStatus = ({
   };
 
   const trainSource = async (sourceId: number) => {
-    // Update status to training
     setKnowledgeSources(prev => 
       prev.map(source => 
         source.id === sourceId 
@@ -143,7 +132,6 @@ const KnowledgeTrainingStatus = ({
       )
     );
 
-    // Simulate progress updates
     const intervalId = setInterval(() => {
       setKnowledgeSources(prev => {
         const sourceTrain = prev.find(s => s.id === sourceId);
@@ -160,12 +148,10 @@ const KnowledgeTrainingStatus = ({
       });
     }, 500);
 
-    // Simulate API call for training
     setTimeout(() => {
       clearInterval(intervalId);
       
-      // Randomly succeed or fail for demo purposes
-      const success = Math.random() > 0.2; // 80% success rate
+      const success = Math.random() > 0.2;
       
       setKnowledgeSources(prev => 
         prev.map(source => 
@@ -185,7 +171,6 @@ const KnowledgeTrainingStatus = ({
         variant: success ? "default" : "destructive",
       });
       
-      // Check if all sources are now trained
       const allTrained = knowledgeSources.every(s => 
         s.id === sourceId 
           ? success 
@@ -194,7 +179,7 @@ const KnowledgeTrainingStatus = ({
       if (allTrained) {
         setNeedsRetraining(false);
       }
-    }, 5000); // Simulate 5 second training
+    }, 5000);
   };
 
   const trainAllSources = async () => {
@@ -209,10 +194,8 @@ const KnowledgeTrainingStatus = ({
 
     setIsTrainingAll(true);
 
-    // Start training each source sequentially
     for (const source of knowledgeSources) {
       if (source.trainingStatus !== 'success') {
-        // Update status to training
         setKnowledgeSources(prev => 
           prev.map(s => 
             s.id === source.id 
@@ -221,7 +204,6 @@ const KnowledgeTrainingStatus = ({
           )
         );
 
-        // Simulate training process
         await new Promise<void>((resolve) => {
           const intervalId = setInterval(() => {
             setKnowledgeSources(prev => {
@@ -241,7 +223,7 @@ const KnowledgeTrainingStatus = ({
 
           setTimeout(() => {
             clearInterval(intervalId);
-            const success = Math.random() > 0.2; // 80% success rate for demo
+            const success = Math.random() > 0.2;
             
             setKnowledgeSources(prev => 
               prev.map(s => 
@@ -259,7 +241,6 @@ const KnowledgeTrainingStatus = ({
 
     setIsTrainingAll(false);
     
-    // After training all sources, set needsRetraining to false
     setNeedsRetraining(false);
     
     toast({
@@ -407,7 +388,6 @@ const KnowledgeTrainingStatus = ({
         )}
       </CardContent>
 
-      {/* Import Dialog */}
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
