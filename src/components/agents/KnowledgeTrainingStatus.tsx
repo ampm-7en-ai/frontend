@@ -56,8 +56,9 @@ const KnowledgeTrainingStatus = ({
   // Check if retraining is needed whenever knowledge sources change
   useEffect(() => {
     const untrained = knowledgeSources.some(source => source.trainingStatus === 'idle');
-    setNeedsRetraining(untrained);
-  }, [knowledgeSources]);
+    // Set needsRetraining to true if any sources are untrained or if they are removed
+    setNeedsRetraining(untrained || initialSelectedSources.length > knowledgeSources.length);
+  }, [knowledgeSources, initialSelectedSources]);
 
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
@@ -69,6 +70,9 @@ const KnowledgeTrainingStatus = ({
         .map(s => s.id);
       onSourcesChange(updatedSourceIds);
     }
+    
+    // When a source is removed, set needsRetraining to true
+    setNeedsRetraining(true);
     
     // Notify user that retraining may be needed after removal
     toast({
@@ -100,7 +104,7 @@ const KnowledgeTrainingStatus = ({
         type: source!.type,
         size: source!.size,
         lastUpdated: source!.lastUpdated,
-        trainingStatus: 'idle' as const,
+        trainingStatus: 'idle' as const, // Explicitly define the type here
         progress: 0
       };
     });
@@ -108,6 +112,9 @@ const KnowledgeTrainingStatus = ({
     // Add new sources to the list
     setKnowledgeSources(prev => [...prev, ...newSources]);
     setIsImportDialogOpen(false);
+
+    // When new sources are added, set needsRetraining to true
+    setNeedsRetraining(true);
 
     // Notify parent component if callback provided
     if (onSourcesChange) {
@@ -172,6 +179,16 @@ const KnowledgeTrainingStatus = ({
           : `Failed to train ${sourceName}. Please try again.`,
         variant: success ? "default" : "destructive",
       });
+      
+      // Check if all sources are now trained
+      const allTrained = knowledgeSources.every(s => 
+        s.id === sourceId 
+          ? success 
+          : s.trainingStatus === 'success'
+      );
+      if (allTrained) {
+        setNeedsRetraining(false);
+      }
     }, 5000); // Simulate 5 second training
   };
 
@@ -237,6 +254,9 @@ const KnowledgeTrainingStatus = ({
 
     setIsTrainingAll(false);
     
+    // After training all sources, set needsRetraining to false
+    setNeedsRetraining(false);
+    
     toast({
       title: "Training complete",
       description: "All knowledge sources have been processed.",
@@ -290,7 +310,7 @@ const KnowledgeTrainingStatus = ({
           </Button>
           <Button 
             onClick={trainAllSources} 
-            disabled={isTrainingAll || knowledgeSources.length === 0 || !knowledgeSources.some(s => s.trainingStatus !== 'success')}
+            disabled={isTrainingAll || knowledgeSources.length === 0 || !needsRetraining}
             size="sm"
             className="flex items-center gap-1"
           >
