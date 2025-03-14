@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -141,10 +140,10 @@ const KnowledgeTrainingStatus = ({
       setKnowledgeSources(prev => {
         const sourceTrain = prev.find(s => s.id === sourceId);
         if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
-          return prev.map(source => 
+          return prev.map(s => 
             source.id === sourceId 
-              ? { ...source, progress: (source.progress || 0) + 10 } 
-              : source
+              ? { ...s, progress: (s.progress || 0) + 10 } 
+              : s
           );
         } else {
           clearInterval(intervalId);
@@ -198,53 +197,51 @@ const KnowledgeTrainingStatus = ({
     setIsTrainingAll(true);
 
     for (const source of knowledgeSources) {
-      if (source.trainingStatus !== 'success' || source.linkBroken) {
-        setKnowledgeSources(prev => 
-          prev.map(s => 
-            s.id === source.id 
-              ? { ...s, trainingStatus: 'training', progress: 0 } 
-              : s
-          )
-        );
+      setKnowledgeSources(prev => 
+        prev.map(s => 
+          s.id === source.id 
+            ? { ...s, trainingStatus: 'training', progress: 0 } 
+            : s
+        )
+      );
 
-        await new Promise<void>((resolve) => {
-          const intervalId = setInterval(() => {
-            setKnowledgeSources(prev => {
-              const sourceTrain = prev.find(s => s.id === source.id);
-              if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
-                return prev.map(s => 
-                  s.id === source.id 
-                    ? { ...s, progress: (s.progress || 0) + 20 } 
-                    : s
-                );
-              } else {
-                clearInterval(intervalId);
-                return prev;
-              }
-            });
-          }, 300);
-
-          setTimeout(() => {
-            clearInterval(intervalId);
-            const success = Math.random() > 0.2;
-            
-            setKnowledgeSources(prev => 
-              prev.map(s => 
+      await new Promise<void>((resolve) => {
+        const intervalId = setInterval(() => {
+          setKnowledgeSources(prev => {
+            const sourceTrain = prev.find(s => s.id === source.id);
+            if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
+              return prev.map(s => 
                 s.id === source.id 
-                  ? { 
-                      ...s, 
-                      trainingStatus: success ? 'success' : 'error', 
-                      progress: 100,
-                      linkBroken: s.linkBroken && success ? false : s.linkBroken 
-                    } 
+                  ? { ...s, progress: (s.progress || 0) + 20 } 
                   : s
-              )
-            );
-            
-            resolve();
-          }, 2000);
-        });
-      }
+              );
+            } else {
+              clearInterval(intervalId);
+              return prev;
+            }
+          });
+        }, 300);
+
+        setTimeout(() => {
+          clearInterval(intervalId);
+          const success = Math.random() > 0.2;
+          
+          setKnowledgeSources(prev => 
+            prev.map(s => 
+              s.id === source.id 
+                ? { 
+                    ...s, 
+                    trainingStatus: success ? 'success' : 'error', 
+                    progress: 100,
+                    linkBroken: s.linkBroken && success ? false : s.linkBroken 
+                  } 
+                : s
+            )
+          );
+          
+          resolve();
+        }, 2000);
+      });
     }
 
     setIsTrainingAll(false);
@@ -280,7 +277,7 @@ const KnowledgeTrainingStatus = ({
   };
   
   const shouldShowTrainButton = (source: KnowledgeSource) => {
-    return source.trainingStatus === 'error' || source.linkBroken || source.trainingStatus === 'idle';
+    return source.trainingStatus === 'error' || source.linkBroken;
   };
 
   const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
