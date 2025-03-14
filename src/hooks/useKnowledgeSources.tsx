@@ -27,11 +27,9 @@ export function useKnowledgeSources({
   const [needsRetraining, setNeedsRetraining] = useState(false);
 
   useEffect(() => {
-    // Initialize with the given sources
     if (initialSources.length > 0) {
       setKnowledgeSources(initialSources);
       
-      // Check if any source needs training initially
       const hasFailedOrNone = initialSources.some(
         s => s.trainingStatus === 'failed' || s.trainingStatus === 'none' || s.isDeleted || s.isBroken
       );
@@ -39,7 +37,6 @@ export function useKnowledgeSources({
     }
   }, [initialSources]);
 
-  // Simulate training a single source
   const trainSource = async (sourceId: number) => {
     setKnowledgeSources(prev => 
       prev.map(source => 
@@ -49,7 +46,6 @@ export function useKnowledgeSources({
       )
     );
 
-    // Simulate progress
     const interval = setInterval(() => {
       setKnowledgeSources(prev => {
         const sourceIndex = prev.findIndex(s => s.id === sourceId);
@@ -69,7 +65,6 @@ export function useKnowledgeSources({
         if (newProgress >= 100) {
           clearInterval(interval);
           
-          // For simulation, let's succeed mostly, but occasionally fail
           const willSucceed = Math.random() > 0.2;
           
           const updatedSources = [...prev];
@@ -94,7 +89,6 @@ export function useKnowledgeSources({
       });
     }, 300);
 
-    // Wait for training to complete (simulated)
     await new Promise(resolve => setTimeout(resolve, 3000));
 
     const updatedSource = knowledgeSources.find(s => s.id === sourceId);
@@ -115,7 +109,6 @@ export function useKnowledgeSources({
     return updatedSource?.trainingStatus || 'failed';
   };
 
-  // Train all sources
   const trainAllSources = async () => {
     setIsTrainingAll(true);
     
@@ -126,7 +119,6 @@ export function useKnowledgeSources({
     setIsTrainingAll(false);
     setSourcesChanged(false);
     
-    // Check if all sources were trained successfully
     const allSuccessful = knowledgeSources.every(
       s => s.trainingStatus === 'success' && !s.isDeleted && !s.isBroken
     );
@@ -139,7 +131,6 @@ export function useKnowledgeSources({
     });
   };
 
-  // Remove a source
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
     
@@ -158,7 +149,6 @@ export function useKnowledgeSources({
     });
   };
 
-  // Mark a source as broken for simulation
   const markSourceAsBroken = (sourceId: number) => {
     setKnowledgeSources(prev => 
       prev.map(source => 
@@ -172,11 +162,10 @@ export function useKnowledgeSources({
     toast({
       title: "Source marked as broken",
       description: "This source needs to be retrained.",
-      variant: "warning"
+      variant: "destructive"
     });
   };
 
-  // Mark a source as deleted (but keep in list) for simulation
   const markSourceAsDeleted = (sourceId: number) => {
     setKnowledgeSources(prev => 
       prev.map(source => 
