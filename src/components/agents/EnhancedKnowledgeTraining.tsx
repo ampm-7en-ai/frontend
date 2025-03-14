@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useKnowledgeSources, KnowledgeSource } from '@/hooks/useKnowledgeSources';
 import { Badge } from '@/components/ui/badge';
-import { Toaster } from '@/components/ui/toaster';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -41,36 +40,6 @@ const EnhancedKnowledgeTraining = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
 
-  const getStatusBadge = (source: KnowledgeSource) => {
-    if (source.isDeleted) {
-      return (
-        <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
-          Deleted
-        </Badge>
-      );
-    }
-    
-    if (source.isBroken) {
-      return (
-        <Badge variant="outline" className="bg-amber-100 text-amber-600 border-amber-200">
-          <Link2 className="h-3 w-3 mr-1" />
-          Broken Link
-        </Badge>
-      );
-    }
-    
-    if (source.trainingStatus === 'failed') {
-      return (
-        <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          Failed
-        </Badge>
-      );
-    }
-    
-    return null;
-  };
-
   // Check if the source needs a train button
   const needsTraining = (source: KnowledgeSource) => {
     return source.trainingStatus === 'failed' || 
@@ -86,8 +55,6 @@ const EnhancedKnowledgeTraining = ({
   };
 
   const importSelectedSources = () => {
-    // In a real app, you would add these sources to the knowledgeSources array
-    // and update the parent component
     if (selectedImportSources.length === 0) return;
 
     const newSources = externalKnowledgeSources
@@ -101,7 +68,6 @@ const EnhancedKnowledgeTraining = ({
         trainingProgress: 0
       }));
 
-    // This would need actual implementation in useKnowledgeSources for adding sources
     if (onSourcesChange) {
       const currentSourceIds = knowledgeSources.map(s => s.id);
       onSourcesChange([...currentSourceIds, ...newSources.map(s => s.id)]);
@@ -111,50 +77,6 @@ const EnhancedKnowledgeTraining = ({
     setSelectedImportSources([]);
   };
   
-  const renderStatusIndicator = (source: KnowledgeSource) => {
-    if (source.trainingStatus === 'training') {
-      return (
-        <div className="flex items-center gap-2">
-          <div className="relative w-8 h-8">
-            <Progress 
-              value={source.trainingProgress} 
-              className="h-8 w-8 rounded-full"
-            />
-            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">
-              {source.trainingProgress}%
-            </span>
-          </div>
-          <span className="text-xs text-blue-500">Training...</span>
-        </div>
-      );
-    }
-    
-    if (source.trainingStatus === 'success') {
-      return (
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
-          <span className="text-xs text-green-500">Trained</span>
-        </div>
-      );
-    }
-    
-    if (source.trainingStatus === 'failed' || source.isBroken || source.isDeleted) {
-      return (
-        <div className="text-xs text-red-500 font-medium">
-          {source.isDeleted ? 'Source has been deleted' : 
-           source.isBroken ? 'Source link is broken' : 
-           'Training failed - try again'}
-        </div>
-      );
-    }
-    
-    return (
-      <div className="text-xs text-muted-foreground">
-        Not trained yet
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -185,26 +107,90 @@ const EnhancedKnowledgeTraining = ({
           No knowledge sources added yet.
         </div>
       ) : (
-        <div className="space-y-2">
-          {knowledgeSources.map((source) => (
-            <Card 
-              key={source.id} 
-              className={`
-                ${source.isDeleted ? 'border-red-300 bg-red-50/50' : ''}
-                ${source.isBroken ? 'border-amber-300 bg-amber-50/50' : ''}
-                ${source.trainingStatus === 'failed' && !source.isDeleted && !source.isBroken ? 'border-red-200 bg-red-50/30' : ''}
-                ${source.trainingStatus === 'success' ? 'border-green-200 bg-green-50/20' : ''}
-              `}
-            >
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{source.name}</span>
-                    {getStatusBadge(source)}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {renderStatusIndicator(source)}
-                    <div className="flex gap-2">
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Source</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {knowledgeSources.map((source) => (
+                <TableRow 
+                  key={source.id}
+                  className={`
+                    ${source.isDeleted ? 'bg-red-50/50' : ''}
+                    ${source.isBroken ? 'bg-amber-50/50' : ''}
+                    ${source.trainingStatus === 'failed' && !source.isDeleted && !source.isBroken ? 'bg-red-50/30' : ''}
+                    ${source.trainingStatus === 'success' ? 'bg-green-50/20' : ''}
+                  `}
+                >
+                  <TableCell className="font-medium py-3">
+                    <div className="flex items-center gap-2">
+                      <span>{source.name}</span>
+                      {source.isDeleted && (
+                        <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
+                          Deleted
+                        </Badge>
+                      )}
+                      
+                      {source.isBroken && (
+                        <Badge variant="outline" className="bg-amber-100 text-amber-600 border-amber-200">
+                          <Link2 className="h-3 w-3 mr-1" />
+                          Broken Link
+                        </Badge>
+                      )}
+                      
+                      {source.trainingStatus === 'failed' && !source.isDeleted && !source.isBroken && (
+                        <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Failed
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  
+                  <TableCell className="text-sm text-muted-foreground py-3">
+                    {source.type}
+                  </TableCell>
+                  
+                  <TableCell className="py-3">
+                    {source.trainingStatus === 'training' ? (
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <Progress 
+                            value={source.trainingProgress} 
+                            className="h-8 w-8 rounded-full"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">
+                            {source.trainingProgress}%
+                          </span>
+                        </div>
+                        <span className="text-xs text-blue-500">Training...</span>
+                      </div>
+                    ) : source.trainingStatus === 'success' ? (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <span className="text-xs text-green-500">Trained</span>
+                      </div>
+                    ) : source.trainingStatus === 'failed' || source.isBroken || source.isDeleted ? (
+                      <div className="text-xs text-red-500 font-medium">
+                        {source.isDeleted ? 'Source has been deleted' : 
+                         source.isBroken ? 'Source link is broken' : 
+                         'Training failed'}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">
+                        Not trained yet
+                      </div>
+                    )}
+                  </TableCell>
+                  
+                  <TableCell className="text-right py-3">
+                    <div className="flex justify-end gap-2">
                       {needsTraining(source) && (
                         <Button 
                           variant="outline" 
@@ -226,18 +212,12 @@ const EnhancedKnowledgeTraining = ({
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center mt-2">
-                  <div className="text-xs text-muted-foreground">
-                    {source.type}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
