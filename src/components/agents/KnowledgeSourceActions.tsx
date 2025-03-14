@@ -33,11 +33,11 @@ const KnowledgeSourceActions = ({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => onMarkBroken(sourceId)}>
           <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
-          <span>Simulate Broken</span>
+          <span>Simulate Broken Link</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onMarkDeleted(sourceId)}>
           <Ban className="mr-2 h-4 w-4 text-red-500" />
-          <span>Simulate Deleted</span>
+          <span>Simulate Deleted Source</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onRemove(sourceId)} className="text-red-500">
           <Trash2 className="mr-2 h-4 w-4" />

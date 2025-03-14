@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useKnowledgeSources, KnowledgeSource } from '@/hooks/useKnowledgeSources';
 import KnowledgeSourceActions from './KnowledgeSourceActions';
+import { Badge } from '@/components/ui/badge';
 
 interface EnhancedKnowledgeTrainingProps {
   initialSources: KnowledgeSource[];
@@ -51,7 +52,9 @@ const EnhancedKnowledgeTraining = ({
 
   // Check if the source needs individual training button
   const needsIndividualTraining = (source: KnowledgeSource) => {
-    return source.trainingStatus === 'failed' || source.isBroken || source.isDeleted;
+    return source.trainingStatus === 'failed' || 
+           source.isBroken === true || 
+           source.isDeleted === true;
   };
 
   return (
@@ -76,16 +79,32 @@ const EnhancedKnowledgeTraining = ({
       ) : (
         <div className="space-y-2">
           {knowledgeSources.map((source) => (
-            <Card key={source.id} className={source.isDeleted || source.isBroken ? 'border-red-200 bg-red-50/30' : ''}>
+            <Card 
+              key={source.id} 
+              className={`
+                ${source.isDeleted ? 'border-red-300 bg-red-50' : ''}
+                ${source.isBroken ? 'border-amber-300 bg-amber-50/50' : ''}
+                ${source.trainingStatus === 'failed' && !source.isDeleted && !source.isBroken ? 'border-red-200 bg-red-50/30' : ''}
+              `}
+            >
               <CardContent className="p-4">
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{source.name}</span>
                     {source.isDeleted && (
-                      <span className="text-xs font-medium px-1.5 py-0.5 bg-red-100 text-red-600 rounded">Deleted</span>
+                      <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
+                        Deleted
+                      </Badge>
                     )}
                     {source.isBroken && (
-                      <span className="text-xs font-medium px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded">Broken</span>
+                      <Badge variant="outline" className="bg-amber-100 text-amber-600 border-amber-200">
+                        Broken
+                      </Badge>
+                    )}
+                    {source.trainingStatus === 'failed' && !source.isDeleted && !source.isBroken && (
+                      <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
+                        Failed
+                      </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-2">

@@ -77,8 +77,8 @@ export function useKnowledgeSources({
             ...source,
             trainingStatus: willSucceed ? 'success' : 'failed',
             trainingProgress: 100,
-            isBroken: source.isBroken ? false : source.isBroken,
-            isDeleted: source.isDeleted ? false : source.isDeleted
+            isBroken: source.isBroken && willSucceed ? false : source.isBroken,
+            isDeleted: source.isDeleted && willSucceed ? false : source.isDeleted
           };
           
           return updatedSources;
@@ -168,6 +168,12 @@ export function useKnowledgeSources({
       )
     );
     setNeedsRetraining(true);
+    
+    toast({
+      title: "Source marked as broken",
+      description: "This source needs to be retrained.",
+      variant: "warning"
+    });
   };
 
   // Mark a source as deleted (but keep in list) for simulation
@@ -180,6 +186,12 @@ export function useKnowledgeSources({
       )
     );
     setNeedsRetraining(true);
+    
+    toast({
+      title: "Source marked as deleted",
+      description: "This source needs to be removed or updated.",
+      variant: "destructive"
+    });
   };
 
   const canTrainAll = knowledgeSources.length > 0;

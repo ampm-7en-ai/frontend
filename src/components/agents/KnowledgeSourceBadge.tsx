@@ -62,15 +62,15 @@ const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {
 
   const getBadgeStyle = () => {
     if (source.isDeleted) {
-      return 'bg-red-50 text-red-700 hover:bg-red-100';
+      return 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200';
     }
     
     if (source.isBroken) {
-      return 'bg-amber-50 text-amber-700 hover:bg-amber-100';
+      return 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-200';
     }
     
     if (source.hasError) {
-      return 'bg-red-50 text-red-700 hover:bg-red-100';
+      return 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200';
     }
     
     return 'bg-primary/5 text-primary hover:bg-primary/10';
