@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { FileText, Import } from 'lucide-react';
 import EnhancedKnowledgeTraining from '@/components/agents/EnhancedKnowledgeTraining';
 import { KnowledgeSource } from '@/hooks/useKnowledgeSources';
 

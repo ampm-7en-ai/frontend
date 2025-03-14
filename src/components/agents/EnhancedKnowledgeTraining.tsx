@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Import, Trash2, AlertTriangle, Link2 } from 'lucide-react';
+import { RefreshCw, Import, Trash2, AlertTriangle, Link2, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useKnowledgeSources, KnowledgeSource } from '@/hooks/useKnowledgeSources';
@@ -34,38 +34,46 @@ const EnhancedKnowledgeTraining = ({
     trainSource,
     trainAllSources,
     removeSource,
+    markSourceAsBroken,
     canTrainAll
   } = useKnowledgeSources({ initialSources, onSourcesChange });
 
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return 'Pending';
-      case 'training': return 'Training...';
-      case 'success': return 'Trained';
-      case 'failed': return 'Failed';
-      default: return 'Not trained';
+  const getStatusBadge = (source: KnowledgeSource) => {
+    if (source.isDeleted) {
+      return (
+        <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
+          Deleted
+        </Badge>
+      );
     }
-  };
-
-  const getStatusColor = (source: KnowledgeSource) => {
-    if (source.isDeleted) return 'text-red-500';
-    if (source.isBroken) return 'text-amber-500';
     
-    switch (source.trainingStatus) {
-      case 'success': return 'text-green-500';
-      case 'failed': return 'text-red-500';
-      case 'training': return 'text-blue-500';
-      default: return 'text-muted-foreground';
+    if (source.isBroken) {
+      return (
+        <Badge variant="outline" className="bg-amber-100 text-amber-600 border-amber-200">
+          <Link2 className="h-3 w-3 mr-1" />
+          Broken Link
+        </Badge>
+      );
     }
+    
+    if (source.trainingStatus === 'failed') {
+      return (
+        <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
+          <AlertTriangle className="h-3 w-3 mr-1" />
+          Failed
+        </Badge>
+      );
+    }
+    
+    return null;
   };
 
   // Check if the source needs a train button
   const needsTraining = (source: KnowledgeSource) => {
     return source.trainingStatus === 'failed' || 
-           source.trainingStatus === 'none' ||
            source.isBroken === true;
   };
 
@@ -101,6 +109,50 @@ const EnhancedKnowledgeTraining = ({
 
     setIsImportDialogOpen(false);
     setSelectedImportSources([]);
+  };
+  
+  const renderStatusIndicator = (source: KnowledgeSource) => {
+    if (source.trainingStatus === 'training') {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="relative w-8 h-8">
+            <Progress 
+              value={source.trainingProgress} 
+              className="h-8 w-8 rounded-full"
+            />
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">
+              {source.trainingProgress}%
+            </span>
+          </div>
+          <span className="text-xs text-blue-500">Training...</span>
+        </div>
+      );
+    }
+    
+    if (source.trainingStatus === 'success') {
+      return (
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-green-500" />
+          <span className="text-xs text-green-500">Trained</span>
+        </div>
+      );
+    }
+    
+    if (source.trainingStatus === 'failed' || source.isBroken || source.isDeleted) {
+      return (
+        <div className="text-xs text-red-500 font-medium">
+          {source.isDeleted ? 'Source has been deleted' : 
+           source.isBroken ? 'Source link is broken' : 
+           'Training failed - try again'}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="text-xs text-muted-foreground">
+        Not trained yet
+      </div>
+    );
   };
 
   return (
@@ -138,37 +190,20 @@ const EnhancedKnowledgeTraining = ({
             <Card 
               key={source.id} 
               className={`
-                ${source.isDeleted ? 'border-red-300 bg-red-50' : ''}
+                ${source.isDeleted ? 'border-red-300 bg-red-50/50' : ''}
                 ${source.isBroken ? 'border-amber-300 bg-amber-50/50' : ''}
                 ${source.trainingStatus === 'failed' && !source.isDeleted && !source.isBroken ? 'border-red-200 bg-red-50/30' : ''}
+                ${source.trainingStatus === 'success' ? 'border-green-200 bg-green-50/20' : ''}
               `}
             >
               <CardContent className="p-4">
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{source.name}</span>
-                    {source.isDeleted && (
-                      <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
-                        Deleted
-                      </Badge>
-                    )}
-                    {source.isBroken && (
-                      <Badge variant="outline" className="bg-amber-100 text-amber-600 border-amber-200">
-                        <Link2 className="h-3 w-3 mr-1" />
-                        Broken Link
-                      </Badge>
-                    )}
-                    {source.trainingStatus === 'failed' && !source.isDeleted && !source.isBroken && (
-                      <Badge variant="outline" className="bg-red-100 text-red-600 border-red-200">
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        Failed
-                      </Badge>
-                    )}
+                    {getStatusBadge(source)}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs ${getStatusColor(source)}`}>
-                      {getStatusText(source.trainingStatus)}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    {renderStatusIndicator(source)}
                     <div className="flex gap-2">
                       {needsTraining(source) && (
                         <Button 
@@ -193,10 +228,6 @@ const EnhancedKnowledgeTraining = ({
                     </div>
                   </div>
                 </div>
-
-                {source.trainingStatus === 'training' && (
-                  <Progress value={source.trainingProgress} className="h-2" />
-                )}
 
                 <div className="flex justify-between items-center mt-2">
                   <div className="text-xs text-muted-foreground">
@@ -276,8 +307,6 @@ const EnhancedKnowledgeTraining = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      <Toaster />
     </div>
   );
 };
