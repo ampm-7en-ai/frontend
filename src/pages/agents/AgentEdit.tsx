@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import KnowledgeTrainingStatus from '@/components/agents/KnowledgeTrainingStatus';
+import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 
 // Sample knowledge sources data
 const knowledgeSources = [
