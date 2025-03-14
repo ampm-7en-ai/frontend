@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Database, Globe, AlertTriangle, Ban } from 'lucide-react';
+import { BookOpen, Database, Globe, AlertTriangle } from 'lucide-react';
 import { 
   Tooltip, 
   TooltipContent, 
@@ -14,8 +14,6 @@ interface KnowledgeSource {
   type: string;
   icon: string;
   hasError: boolean;
-  isDeleted?: boolean;
-  isBroken?: boolean;
 }
 
 interface KnowledgeSourceBadgeProps {
@@ -24,14 +22,6 @@ interface KnowledgeSourceBadgeProps {
 
 const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {
   const getIcon = () => {
-    if (source.isDeleted) {
-      return <Ban className="h-3 w-3" />;
-    }
-    
-    if (source.isBroken) {
-      return <AlertTriangle className="h-3 w-3" />;
-    }
-    
     switch (source.type) {
       case 'document':
         return <BookOpen className="h-3 w-3" />;
@@ -44,54 +34,6 @@ const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {
     }
   };
 
-  const getTooltipText = () => {
-    if (source.isDeleted) {
-      return 'Source has been deleted and needs to be removed';
-    }
-    
-    if (source.isBroken) {
-      return 'Source is broken and needs repair';
-    }
-    
-    if (source.hasError) {
-      return 'Knowledge source needs retraining';
-    }
-    
-    return `Type: ${source.type}`;
-  };
-
-  const getBadgeStyle = () => {
-    if (source.isDeleted) {
-      return 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200';
-    }
-    
-    if (source.isBroken) {
-      return 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-200';
-    }
-    
-    if (source.hasError) {
-      return 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200';
-    }
-    
-    return 'bg-primary/5 text-primary hover:bg-primary/10';
-  };
-
-  const getIconColor = () => {
-    if (source.isDeleted) {
-      return 'text-red-500';
-    }
-    
-    if (source.isBroken) {
-      return 'text-amber-500';
-    }
-    
-    if (source.hasError) {
-      return 'text-red-500';
-    }
-    
-    return 'text-primary';
-  };
-
   return (
     <TooltipProvider key={source.id}>
       <Tooltip>
@@ -99,20 +41,26 @@ const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {
           <div 
             className={`
               inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full 
-              transition-colors duration-200 ${getBadgeStyle()}
+              transition-colors duration-200
+              ${source.hasError 
+                ? 'bg-red-50 text-red-700 hover:bg-red-100' 
+                : 'bg-primary/5 text-primary hover:bg-primary/10'
+              }
             `}
           >
-            <span className={getIconColor()}>
+            <span className={`${source.hasError ? 'text-red-500' : 'text-primary'}`}>
               {getIcon()}
             </span>
             <span className="text-xs font-medium">{source.name}</span>
-            {(source.hasError || source.isBroken || source.isDeleted) && (
-              <AlertTriangle className={`h-3 w-3 ${getIconColor()}`} />
+            {source.hasError && (
+              <AlertTriangle className="h-3 w-3 text-red-500" />
             )}
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          {getTooltipText()}
+          {source.hasError 
+            ? 'Knowledge source needs retraining' 
+            : `Type: ${source.type}`}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
