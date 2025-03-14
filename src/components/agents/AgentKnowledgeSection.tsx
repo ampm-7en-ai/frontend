@@ -63,7 +63,7 @@ const AgentKnowledgeSection = ({ agentId, knowledgeSources }: AgentKnowledgeSect
           >
             <span className="flex items-center gap-1">
               <AlertCircle className="h-3 w-3 text-red-500" />
-              <span className="font-medium">Some knowledge sources need retraining</span>
+              <span className="font-medium">Some knowledge sources need attention</span>
             </span>
             <RefreshCw className="h-3 w-3 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
