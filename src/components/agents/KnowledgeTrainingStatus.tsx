@@ -96,7 +96,7 @@ const KnowledgeTrainingStatus = ({
     }
     
     // This would be replaced with actual import logic
-    const newSources = newSourceIds.map(id => {
+    const newSources: KnowledgeSource[] = newSourceIds.map(id => {
       const source = externalKnowledgeSources.find(s => s.id === id);
       return {
         id: source!.id,
@@ -104,7 +104,7 @@ const KnowledgeTrainingStatus = ({
         type: source!.type,
         size: source!.size,
         lastUpdated: source!.lastUpdated,
-        trainingStatus: 'idle' as const, // Explicitly define the type here
+        trainingStatus: 'idle',
         progress: 0
       };
     });
