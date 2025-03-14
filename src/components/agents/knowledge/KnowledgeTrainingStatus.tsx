@@ -20,6 +20,7 @@ const KnowledgeTrainingStatus = ({
   onSourcesChange 
 }: KnowledgeTrainingStatusProps) => {
   const { toast } = useToast();
+  
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
   

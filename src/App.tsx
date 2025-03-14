@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -36,6 +35,8 @@ import SecuritySettings from './pages/settings/platform/SecuritySettings';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
 import BillingSettings from './pages/settings/platform/BillingSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+
+import { Toaster } from "@/components/ui/toaster";
 
 const DashboardRouter = () => {
   const { user } = useAuth();
@@ -170,6 +171,7 @@ function App() {
       <AuthProvider>
         <RouteWithAuth />
       </AuthProvider>
+      <Toaster />
     </Router>
   );
 }
