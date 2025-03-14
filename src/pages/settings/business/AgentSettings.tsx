@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,27 +87,25 @@ const AgentSettings = () => {
   };
 
   return (
-    <div className="flex">
-      <BusinessSettingsNav />
-      <div className="flex-1 p-6">
-        <h2 className="text-2xl font-semibold mb-6">Agent Settings</h2>
+    <div className="flex-1 p-6">
+      <h2 className="text-2xl font-semibold mb-6">Agent Settings</h2>
 
-        <Tabs defaultValue="agents" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="agents">
-              <Bot className="mr-2 h-4 w-4" />
-              AI Agents
-            </TabsTrigger>
-            <TabsTrigger value="performance">
-              <BarChart2 className="mr-2 h-4 w-4" />
-              Performance
-            </TabsTrigger>
-            <TabsTrigger value="global">
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              Global Settings
-            </TabsTrigger>
-          </TabsList>
-          
+      <Tabs defaultValue="agents" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="agents">
+            <Bot className="mr-2 h-4 w-4" />
+            AI Agents
+          </TabsTrigger>
+          <TabsTrigger value="performance">
+            <BarChart2 className="mr-2 h-4 w-4" />
+            Performance
+          </TabsTrigger>
+          <TabsTrigger value="global">
+            <SettingsIcon className="mr-2 h-4 w-4" />
+            Global Settings
+          </TabsTrigger>
+        </TabsList>
+        
           <TabsContent value="agents" className="space-y-6">
             <Card>
               <CardHeader>
@@ -353,7 +349,6 @@ const AgentSettings = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         {selectedAgent && (

@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import BusinessSettingsNav from '@/components/settings/BusinessSettingsNav';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -171,124 +169,120 @@ const IntegrationsSettings = () => {
   };
 
   return (
-    <div className="flex gap-6">
-      <BusinessSettingsNav />
-      
-      <div className="flex-1 space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Integrations</h2>
-          <Button asChild variant="outline">
-            <a href="https://docs.example.com/integrations" target="_blank" rel="noopener noreferrer">
-              <Link className="h-4 w-4 mr-2" />
-              Integration Docs
-            </a>
-          </Button>
-        </div>
-
-        <Tabs defaultValue="communication">
-          <TabsList className="mb-6">
-            <TabsTrigger value="communication">Communication</TabsTrigger>
-            <TabsTrigger value="helpdesk">Helpdesk</TabsTrigger>
-            <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="communication" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {renderIntegrationCards('communication')}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="helpdesk" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {renderIntegrationCards('helpdesk')}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="ecommerce" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {renderIntegrationCards('ecommerce')}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="other" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {activeIntegrations
-                .filter(integration => 
-                  !['communication', 'helpdesk', 'ecommerce'].includes(integration.category)
-                )
-                .map(integration => (
-                  <Card key={integration.id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center space-x-2">
-                          <div className="bg-primary/10 p-2 rounded-md">
-                            <integration.icon className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-base">{integration.name}</CardTitle>
-                            {integration.isPremium && (
-                              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 mt-1">
-                                Premium
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <Switch 
-                          checked={integration.connected} 
-                          onCheckedChange={() => {
-                            if (!integration.connected) {
-                              openIntegrationDialog(integration);
-                            } else {
-                              toggleIntegration(integration.id);
-                            }
-                          }}
-                        />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-muted-foreground">{integration.description}</p>
-                    </CardContent>
-                    <CardFooter className="bg-muted/40 border-t pt-2 pb-2 px-6">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 text-xs ml-auto"
-                        onClick={() => openIntegrationDialog(integration)}
-                        disabled={!integration.connected}
-                      >
-                        Configure
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Custom Integrations</CardTitle>
-            <CardDescription>Connect custom services using our API and webhooks.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <div className="bg-muted p-3 rounded-lg">
-                <Box className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h4 className="font-medium text-sm">Custom Webhook Integration</h4>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Integrate with any custom service using our webhook API.
-                </p>
-              </div>
-              <Button className="ml-auto" variant="outline" size="sm">
-                Set Up Webhook
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="flex-1 space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold">Integrations</h2>
+        <Button asChild variant="outline">
+          <a href="https://docs.example.com/integrations" target="_blank" rel="noopener noreferrer">
+            <Link className="h-4 w-4 mr-2" />
+            Integration Docs
+          </a>
+        </Button>
       </div>
+
+      <Tabs defaultValue="communication">
+        <TabsList className="mb-6">
+          <TabsTrigger value="communication">Communication</TabsTrigger>
+          <TabsTrigger value="helpdesk">Helpdesk</TabsTrigger>
+          <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
+          <TabsTrigger value="other">Other</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="communication" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderIntegrationCards('communication')}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="helpdesk" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderIntegrationCards('helpdesk')}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="ecommerce" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderIntegrationCards('ecommerce')}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="other" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeIntegrations
+              .filter(integration => 
+                !['communication', 'helpdesk', 'ecommerce'].includes(integration.category)
+              )
+              .map(integration => (
+                <Card key={integration.id} className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-primary/10 p-2 rounded-md">
+                          <integration.icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">{integration.name}</CardTitle>
+                          {integration.isPremium && (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 mt-1">
+                              Premium
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={integration.connected} 
+                        onCheckedChange={() => {
+                          if (!integration.connected) {
+                            openIntegrationDialog(integration);
+                          } else {
+                            toggleIntegration(integration.id);
+                          }
+                        }}
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground">{integration.description}</p>
+                  </CardContent>
+                  <CardFooter className="bg-muted/40 border-t pt-2 pb-2 px-6">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 text-xs ml-auto"
+                      onClick={() => openIntegrationDialog(integration)}
+                      disabled={!integration.connected}
+                    >
+                      Configure
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Custom Integrations</CardTitle>
+          <CardDescription>Connect custom services using our API and webhooks.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-4">
+            <div className="bg-muted p-3 rounded-lg">
+              <Box className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h4 className="font-medium text-sm">Custom Webhook Integration</h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                Integrate with any custom service using our webhook API.
+              </p>
+            </div>
+            <Button className="ml-auto" variant="outline" size="sm">
+              Set Up Webhook
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         {selectedIntegration && (
