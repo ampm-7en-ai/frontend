@@ -25,7 +25,7 @@ interface Conversation {
   id: string;
   customer: string;
   lastMessage: Message;
-  status: 'active' | 'closed' | 'unread';
+  status: 'active' | 'closed' | 'unread' | 'pending';
   handoffs?: Handoff[];
 }
 
@@ -61,7 +61,7 @@ const ConversationsList = () => {
         timestamp: '11:45 AM',
         tags: ['unresolved', 'urgent', 'multiple-transfers'],
       },
-      status: 'active',
+      status: 'pending',
       handoffs: [
         {
           id: 'h1',
@@ -101,6 +101,7 @@ const ConversationsList = () => {
           <Button variant="outline" size="sm">Unread</Button>
           <Button variant="outline" size="sm">Active</Button>
           <Button variant="outline" size="sm">Closed</Button>
+          <Button variant="outline" size="sm">Pending</Button>
         </div>
       </div>
 
@@ -123,6 +124,11 @@ const ConversationsList = () => {
                         active
                       </span>
                     )}
+                    {conversation.status === 'pending' && (
+                      <span className="px-1.5 py-0.5 text-xs bg-amber-500 text-white rounded-full">
+                        pending
+                      </span>
+                    )}
                     {conversation.handoffs && conversation.handoffs.length > 0 && (
                       <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 border border-amber-200 rounded-full flex items-center">
                         <RefreshCw className="h-3 w-3 mr-1" />
@@ -137,6 +143,19 @@ const ConversationsList = () => {
                 <p className="text-sm text-muted-foreground truncate mt-1">
                   {conversation.lastMessage.content}
                 </p>
+                {conversation.handoffs && conversation.handoffs.length > 1 && (
+                  <div className="text-xs text-muted-foreground mt-2 flex items-center">
+                    <span className="font-medium mr-1">Previous:</span>
+                    {conversation.handoffs.slice(0, -1).map((handoff, index) => (
+                      <React.Fragment key={handoff.id}>
+                        <span>{handoff.from}</span>
+                        {index < conversation.handoffs!.length - 2 && (
+                          <span className="mx-1">→</span>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-2 mt-2">
                   {conversation.lastMessage.tags.map((tag) => (
                     <span
