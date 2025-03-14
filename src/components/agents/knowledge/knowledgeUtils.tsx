@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BookOpen, Database, Globe, CheckCircle, AlertCircle, Link2Off } from 'lucide-react';
 import { KnowledgeSource } from './types';
@@ -83,4 +84,41 @@ export const getToastMessageForSourceChange = (action: 'removed' | 'added' | 'mo
         variant: "default" as const,
       };
   }
+};
+
+export const getTrainingStatusToast = (status: 'start' | 'success' | 'error', sourceName: string) => {
+  switch (status) {
+    case 'start':
+      return {
+        title: "Training started",
+        description: `${sourceName} is now being processed. This may take a few moments.`,
+        variant: "default" as const,
+      };
+    case 'success':
+      return {
+        title: "Training complete",
+        description: `${sourceName} has been trained successfully and is ready to use.`,
+        variant: "default" as const,
+      };
+    case 'error':
+      return {
+        title: "Training failed",
+        description: `Failed to train ${sourceName}. Please try again or check your source.`,
+        variant: "destructive" as const,
+      };
+    default:
+      return {
+        title: "Training status update",
+        description: `${sourceName} training status has changed.`,
+        variant: "default" as const,
+      };
+  }
+};
+
+export const getRetrainingRequiredToast = () => {
+  return {
+    title: "Retraining required",
+    description: "Your knowledge sources have changed. Please retrain your agent to apply these changes.",
+    variant: "destructive" as const,
+  };
 };

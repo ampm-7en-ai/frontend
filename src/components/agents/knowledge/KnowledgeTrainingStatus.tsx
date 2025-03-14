@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
 import { KnowledgeSource } from './types';
 import ImportSourcesDialog from './ImportSourcesDialog';
-import { getToastMessageForSourceChange } from './knowledgeUtils';
+import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -49,6 +49,10 @@ const KnowledgeTrainingStatus = ({
 
   useEffect(() => {
     setNeedsRetraining(true);
+    
+    if (prevSourcesLength > 0 && knowledgeSources.length !== prevSourcesLength) {
+      toast(getRetrainingRequiredToast());
+    }
     
     setPrevSourcesLength(knowledgeSources.length);
     setPrevSourceIds(knowledgeSources.map(source => source.id));
@@ -124,6 +128,8 @@ const KnowledgeTrainingStatus = ({
   };
 
   const trainSource = async (sourceId: number) => {
+    const sourceName = knowledgeSources.find(s => s.id === sourceId)?.name || "Knowledge source";
+    
     setKnowledgeSources(prev => 
       prev.map(source => 
         source.id === sourceId 
@@ -131,6 +137,8 @@ const KnowledgeTrainingStatus = ({
           : source
       )
     );
+    
+    toast(getTrainingStatusToast('start', sourceName));
 
     const intervalId = setInterval(() => {
       setKnowledgeSources(prev => {
@@ -165,16 +173,8 @@ const KnowledgeTrainingStatus = ({
             : source
         )
       );
-
-      const sourceName = knowledgeSources.find(s => s.id === sourceId)?.name;
       
-      toast({
-        title: success ? "Training complete" : "Training failed",
-        description: success
-          ? `${sourceName} has been trained successfully.`
-          : `Failed to train ${sourceName}. Please try again.`,
-        variant: success ? "default" : "destructive",
-      });
+      toast(getTrainingStatusToast(success ? 'success' : 'error', sourceName));
       
       setNeedsRetraining(true);
     }, 5000);
@@ -191,6 +191,11 @@ const KnowledgeTrainingStatus = ({
     }
 
     setIsTrainingAll(true);
+    
+    toast({
+      title: "Training all sources",
+      description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`,
+    });
 
     for (const source of knowledgeSources) {
       setKnowledgeSources(prev => 
@@ -242,7 +247,7 @@ const KnowledgeTrainingStatus = ({
 
     setIsTrainingAll(false);
     
-    setNeedsRetraining(true);
+    setNeedsRetraining(false);
     
     toast({
       title: "Training complete",
