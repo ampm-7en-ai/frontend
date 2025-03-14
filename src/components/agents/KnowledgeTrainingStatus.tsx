@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off } from 'lucide-react';
+import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off, BookOpen, Database, Globe } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
