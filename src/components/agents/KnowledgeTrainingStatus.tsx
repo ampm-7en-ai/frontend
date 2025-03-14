@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -45,8 +45,7 @@ const KnowledgeTrainingStatus = ({
     mockKnowledgeSources.filter(source => initialSelectedSources.includes(source.id))
   );
   
-  const [needsRetraining, setNeedsRetraining] = useState(false);
-  const [sourcesChanged, setSourcesChanged] = useState(false);
+  const [needsRetraining, setNeedsRetraining] = useState(true);
   
   const externalKnowledgeSources = [
     { id: 101, name: 'Product Features Overview', type: 'pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
@@ -60,9 +59,6 @@ const KnowledgeTrainingStatus = ({
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>(knowledgeSources.map(source => source.id));
 
   useEffect(() => {
-    // Check if any sources need training
-    const untrained = knowledgeSources.some(source => source.trainingStatus === 'idle');
-    
     // Check if the number of sources has changed
     const lengthChanged = prevSourcesLength !== knowledgeSources.length;
     
@@ -76,9 +72,11 @@ const KnowledgeTrainingStatus = ({
     setPrevSourcesLength(knowledgeSources.length);
     setPrevSourceIds(currentSourceIds);
     
-    // Set needs retraining if any of the conditions are met
-    setNeedsRetraining(untrained || sourceIdsChanged || sourcesChanged);
-  }, [knowledgeSources, prevSourcesLength, prevSourceIds, sourcesChanged]);
+    // Always enable retraining when sources change or when component loads
+    if (sourceIdsChanged) {
+      setNeedsRetraining(true);
+    }
+  }, [knowledgeSources, prevSourcesLength, prevSourceIds]);
 
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
@@ -90,9 +88,8 @@ const KnowledgeTrainingStatus = ({
       onSourcesChange(updatedSourceIds);
     }
     
-    // Explicitly set sourcesChanged to true when a source is removed
-    // This ensures we always need retraining after deletion, even if all remaining sources are trained
-    setSourcesChanged(true);
+    // Always set needsRetraining to true when a source is removed
+    setNeedsRetraining(true);
     
     toast({
       title: "Source removed",
@@ -130,7 +127,6 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
 
     setNeedsRetraining(true);
-    setSourcesChanged(true);
 
     if (onSourcesChange) {
       const updatedSourceIds = [...knowledgeSources.map(s => s.id), ...newSourceIds];
@@ -141,72 +137,6 @@ const KnowledgeTrainingStatus = ({
       title: "Knowledge sources imported",
       description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
     });
-  };
-
-  const trainSource = async (sourceId: number) => {
-    setKnowledgeSources(prev => 
-      prev.map(source => 
-        source.id === sourceId 
-          ? { ...source, trainingStatus: 'training', progress: 0 } 
-          : source
-      )
-    );
-
-    const intervalId = setInterval(() => {
-      setKnowledgeSources(prev => {
-        const sourceTrain = prev.find(s => s.id === sourceId);
-        if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
-          return prev.map(source => 
-            source.id === sourceId 
-              ? { ...source, progress: (source.progress || 0) + 10 } 
-              : source
-          );
-        } else {
-          clearInterval(intervalId);
-          return prev;
-        }
-      });
-    }, 500);
-
-    setTimeout(() => {
-      clearInterval(intervalId);
-      
-      const success = Math.random() > 0.2;
-      
-      setKnowledgeSources(prev => 
-        prev.map(source => 
-          source.id === sourceId 
-            ? { ...source, trainingStatus: success ? 'success' : 'error', progress: 100 } 
-            : source
-        )
-      );
-
-      const sourceName = knowledgeSources.find(s => s.id === sourceId)?.name;
-      
-      toast({
-        title: success ? "Training complete" : "Training failed",
-        description: success
-          ? `${sourceName} has been trained successfully.`
-          : `Failed to train ${sourceName}. Please try again.`,
-        variant: success ? "default" : "destructive",
-      });
-      
-      // We only update needsRetraining when all sources are successfully trained
-      // and no sources have been changed (added or removed)
-      checkAndUpdateNeedsRetraining();
-    }, 5000);
-  };
-
-  // Helper function to determine if agent needs retraining
-  const checkAndUpdateNeedsRetraining = () => {
-    // Check if all sources are successfully trained
-    const allTrained = knowledgeSources.every(s => s.trainingStatus === 'success');
-    
-    // Only set needsRetraining to false if all sources are trained
-    // AND no sources have been changed (added or removed)
-    if (allTrained && !sourcesChanged) {
-      setNeedsRetraining(false);
-    }
   };
 
   const trainAllSources = async () => {
@@ -222,57 +152,50 @@ const KnowledgeTrainingStatus = ({
     setIsTrainingAll(true);
 
     for (const source of knowledgeSources) {
-      if (source.trainingStatus !== 'success') {
-        setKnowledgeSources(prev => 
-          prev.map(s => 
-            s.id === source.id 
-              ? { ...s, trainingStatus: 'training', progress: 0 } 
-              : s
-          )
-        );
+      // Reset all sources to training state regardless of previous status
+      setKnowledgeSources(prev => 
+        prev.map(s => 
+          s.id === source.id 
+            ? { ...s, trainingStatus: 'training', progress: 0 } 
+            : s
+        )
+      );
 
-        await new Promise<void>((resolve) => {
-          const intervalId = setInterval(() => {
-            setKnowledgeSources(prev => {
-              const sourceTrain = prev.find(s => s.id === source.id);
-              if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
-                return prev.map(s => 
-                  s.id === source.id 
-                    ? { ...s, progress: (s.progress || 0) + 20 } 
-                    : s
-                );
-              } else {
-                clearInterval(intervalId);
-                return prev;
-              }
-            });
-          }, 300);
-
-          setTimeout(() => {
-            clearInterval(intervalId);
-            const success = Math.random() > 0.2;
-            
-            setKnowledgeSources(prev => 
-              prev.map(s => 
+      await new Promise<void>((resolve) => {
+        const intervalId = setInterval(() => {
+          setKnowledgeSources(prev => {
+            const sourceTrain = prev.find(s => s.id === source.id);
+            if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
+              return prev.map(s => 
                 s.id === source.id 
-                  ? { ...s, trainingStatus: success ? 'success' : 'error', progress: 100 } 
+                  ? { ...s, progress: (s.progress || 0) + 20 } 
                   : s
-              )
-            );
-            
-            resolve();
-          }, 2000);
-        });
-      }
+              );
+            } else {
+              clearInterval(intervalId);
+              return prev;
+            }
+          });
+        }, 300);
+
+        setTimeout(() => {
+          clearInterval(intervalId);
+          const success = Math.random() > 0.2;
+          
+          setKnowledgeSources(prev => 
+            prev.map(s => 
+              s.id === source.id 
+                ? { ...s, trainingStatus: success ? 'success' : 'error', progress: 100 } 
+                : s
+            )
+          );
+          
+          resolve();
+        }, 2000);
+      });
     }
 
     setIsTrainingAll(false);
-    
-    // Reset the sourcesChanged flag after training all sources
-    setSourcesChanged(false);
-    
-    // Only clear needsRetraining after all sources have been processed successfully
-    checkAndUpdateNeedsRetraining();
     
     toast({
       title: "Training complete",
@@ -327,7 +250,7 @@ const KnowledgeTrainingStatus = ({
           </Button>
           <Button 
             onClick={trainAllSources} 
-            disabled={isTrainingAll || knowledgeSources.length === 0 || !needsRetraining}
+            disabled={isTrainingAll || knowledgeSources.length === 0}
             size="sm"
             className="flex items-center gap-1"
           >
@@ -377,27 +300,14 @@ const KnowledgeTrainingStatus = ({
                     </Tooltip>
                   </TooltipProvider>
 
-                  <div className="flex items-center gap-2">
-                    {source.trainingStatus !== 'training' && source.trainingStatus !== 'success' && (
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => trainSource(source.id)}
-                        className="h-8 px-2"
-                      >
-                        <Zap className="h-3.5 w-3.5 mr-1" />
-                        Train
-                      </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => removeSource(source.id)}
-                      className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => removeSource(source.id)}
+                    className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -414,7 +324,7 @@ const KnowledgeTrainingStatus = ({
         {needsRetraining && knowledgeSources.length > 0 && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
             <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+            <span>Click "Train All" to process all knowledge sources for your agent to use them.</span>
           </div>
         )}
       </CardContent>
