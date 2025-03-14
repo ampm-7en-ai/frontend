@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Check, CheckCircle, LoaderCircle, AlertCircle, Zap, Import } from 'lucide-react';
+import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -17,7 +16,6 @@ interface KnowledgeSource {
   type: string;
   size: string;
   lastUpdated: string;
-  selected?: boolean;
   trainingStatus?: 'idle' | 'training' | 'success' | 'error';
   progress?: number;
 }
@@ -37,11 +35,11 @@ const KnowledgeTrainingStatus = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([
-    { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15', selected: initialSelectedSources.includes(1), trainingStatus: 'idle', progress: 0 },
-    { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20', selected: initialSelectedSources.includes(2), trainingStatus: 'idle', progress: 0 },
-    { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10', selected: initialSelectedSources.includes(3), trainingStatus: 'idle', progress: 0 },
-    { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25', selected: initialSelectedSources.includes(4), trainingStatus: 'idle', progress: 0 },
-  ]);
+    { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15', trainingStatus: 'idle', progress: 0 },
+    { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20', trainingStatus: 'idle', progress: 0 },
+    { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10', trainingStatus: 'idle', progress: 0 },
+    { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25', trainingStatus: 'idle', progress: 0 },
+  ].filter(source => initialSelectedSources.includes(source.id)));
 
   // External knowledge sources for import
   const externalKnowledgeSources = [
@@ -52,27 +50,24 @@ const KnowledgeTrainingStatus = ({
     { id: 105, name: 'Customer Data', type: 'csv', size: '0.8 MB', lastUpdated: '2023-05-15' },
   ];
 
-  const toggleSourceSelection = (sourceId: number) => {
-    setKnowledgeSources(prev => 
-      prev.map(source => 
-        source.id === sourceId 
-          ? { ...source, selected: !source.selected } 
-          : source
-      )
-    );
+  const removeSource = (sourceId: number) => {
+    setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
     
     // Notify parent component if callback provided
     if (onSourcesChange) {
-      const updatedSources = knowledgeSources.map(s => 
-        s.id === sourceId ? { ...s, selected: !s.selected } : s
-      );
-      onSourcesChange(updatedSources.filter(s => s.selected).map(s => s.id));
+      const updatedSourceIds = knowledgeSources
+        .filter(s => s.id !== sourceId)
+        .map(s => s.id);
+      onSourcesChange(updatedSourceIds);
     }
   };
 
   const importSelectedSources = (sourceIds: number[]) => {
+    // Filter out sources that are already imported
+    const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
+    
     // This would be replaced with actual import logic
-    const newSources = sourceIds.map(id => {
+    const newSources = newSourceIds.map(id => {
       const source = externalKnowledgeSources.find(s => s.id === id);
       return {
         id: source!.id,
@@ -80,7 +75,6 @@ const KnowledgeTrainingStatus = ({
         type: source!.type,
         size: source!.size,
         lastUpdated: source!.lastUpdated,
-        selected: true,
         trainingStatus: 'idle' as const,
         progress: 0
       };
@@ -90,9 +84,15 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeSources(prev => [...prev, ...newSources]);
     setIsImportDialogOpen(false);
 
+    // Notify parent component if callback provided
+    if (onSourcesChange) {
+      const updatedSourceIds = [...knowledgeSources.map(s => s.id), ...newSourceIds];
+      onSourcesChange(updatedSourceIds);
+    }
+
     toast({
       title: "Knowledge sources imported",
-      description: `${sourceIds.length} sources have been imported successfully.`,
+      description: `${newSourceIds.length} sources have been imported successfully.`,
     });
   };
 
@@ -148,12 +148,11 @@ const KnowledgeTrainingStatus = ({
     }, 5000); // Simulate 5 second training
   };
 
-  const trainAllSelected = async () => {
-    const selectedSources = knowledgeSources.filter(s => s.selected);
-    if (selectedSources.length === 0) {
+  const trainAllSources = async () => {
+    if (knowledgeSources.length === 0) {
       toast({
         title: "No sources selected",
-        description: "Please select at least one knowledge source to train.",
+        description: "Please import at least one knowledge source to train.",
         variant: "destructive",
       });
       return;
@@ -161,8 +160,8 @@ const KnowledgeTrainingStatus = ({
 
     setIsTrainingAll(true);
 
-    // Start training each selected source sequentially
-    for (const source of selectedSources) {
+    // Start training each source sequentially
+    for (const source of knowledgeSources) {
       if (source.trainingStatus !== 'success') {
         // Update status to training
         setKnowledgeSources(prev => 
@@ -213,7 +212,7 @@ const KnowledgeTrainingStatus = ({
     
     toast({
       title: "Training complete",
-      description: "All selected knowledge sources have been processed.",
+      description: "All knowledge sources have been processed.",
     });
   };
 
@@ -231,21 +230,26 @@ const KnowledgeTrainingStatus = ({
       case 'error':
         return <AlertCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <Circle className="h-4 w-4 text-gray-300" />;
+        return null;
     }
   };
 
-  // Render a circle icon for idle state
-  const Circle = ({ className }: { className?: string }) => (
-    <div className={`rounded-full border-2 border-current ${className}`} style={{ width: '1rem', height: '1rem' }}></div>
-  );
+  const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
+
+  const toggleImportSelection = (sourceId: number) => {
+    setSelectedImportSources(prev => 
+      prev.includes(sourceId) 
+        ? prev.filter(id => id !== sourceId) 
+        : [...prev, sourceId]
+    );
+  };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-lg">Knowledge Sources</CardTitle>
-          <CardDescription>Select which knowledge your agent can access to improve its responses</CardDescription>
+          <CardDescription>Connect knowledge sources to your agent to improve its responses</CardDescription>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -258,8 +262,8 @@ const KnowledgeTrainingStatus = ({
             Import Sources
           </Button>
           <Button 
-            onClick={trainAllSelected} 
-            disabled={isTrainingAll || !knowledgeSources.some(s => s.selected && s.trainingStatus !== 'success')}
+            onClick={trainAllSources} 
+            disabled={isTrainingAll || knowledgeSources.length === 0 || !knowledgeSources.some(s => s.trainingStatus !== 'success')}
             size="sm"
             className="flex items-center gap-1"
           >
@@ -268,7 +272,7 @@ const KnowledgeTrainingStatus = ({
             ) : (
               <Zap className="h-4 w-4" />
             )}
-            {isTrainingAll ? 'Training...' : 'Train Selected'}
+            {isTrainingAll ? 'Training...' : 'Train All'}
           </Button>
         </div>
       </CardHeader>
@@ -276,20 +280,9 @@ const KnowledgeTrainingStatus = ({
         <div className="border rounded-md divide-y">
           {knowledgeSources.map((source) => (
             <div key={source.id} className="flex items-center p-4">
-              <Checkbox 
-                id={`source-${source.id}`}
-                checked={source.selected}
-                onCheckedChange={() => toggleSourceSelection(source.id)}
-                className="mr-4"
-              />
               <div className="flex-1 flex items-center justify-between">
                 <div>
-                  <label 
-                    htmlFor={`source-${source.id}`}
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    {source.name}
-                  </label>
+                  <div className="text-sm font-medium">{source.name}</div>
                   <div className="flex items-center mt-1 text-xs text-muted-foreground">
                     <span className="mr-3">Type: {source.type}</span>
                     <span className="mr-3">Size: {source.size}</span>
@@ -320,24 +313,36 @@ const KnowledgeTrainingStatus = ({
                     </Tooltip>
                   </TooltipProvider>
 
-                  {source.selected && source.trainingStatus !== 'training' && source.trainingStatus !== 'success' && (
+                  <div className="flex items-center gap-2">
+                    {source.trainingStatus !== 'training' && source.trainingStatus !== 'success' && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => trainSource(source.id)}
+                        className="h-8 px-2"
+                      >
+                        <Zap className="h-3.5 w-3.5 mr-1" />
+                        Train
+                      </Button>
+                    )}
                     <Button 
                       size="sm" 
-                      variant="ghost" 
-                      onClick={() => trainSource(source.id)}
-                      className="h-8 px-2"
+                      variant="outline" 
+                      onClick={() => removeSource(source.id)}
+                      className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
                     >
-                      Train
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
 
           {knowledgeSources.length === 0 && (
-            <div className="p-4 text-center text-muted-foreground">
-              No knowledge sources selected. Click "Import Sources" to add sources.
+            <div className="p-8 text-center text-muted-foreground">
+              <p className="mb-4">No knowledge sources selected</p>
+              <p className="text-sm">Click "Import Sources" to add knowledge sources to your agent</p>
             </div>
           )}
         </div>
@@ -371,14 +376,13 @@ const KnowledgeTrainingStatus = ({
                   return (
                     <TableRow key={source.id} className={isAlreadyImported ? "opacity-50" : ""}>
                       <TableCell>
-                        <Checkbox 
+                        <input 
+                          type="checkbox" 
                           id={`import-${source.id}`}
                           disabled={isAlreadyImported}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              // This would be handled by the import function
-                            }
-                          }}
+                          checked={selectedImportSources.includes(source.id)}
+                          onChange={() => toggleImportSelection(source.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                         />
                       </TableCell>
                       <TableCell>
@@ -403,8 +407,11 @@ const KnowledgeTrainingStatus = ({
             <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => importSelectedSources([101, 103])}>
-              Import Selected
+            <Button 
+              onClick={() => importSelectedSources(selectedImportSources)}
+              disabled={selectedImportSources.length === 0}
+            >
+              Import Selected ({selectedImportSources.length})
             </Button>
           </DialogFooter>
         </DialogContent>
