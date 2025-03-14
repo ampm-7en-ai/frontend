@@ -3,7 +3,7 @@ import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, ArrowRightLeft } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -125,7 +125,7 @@ const ConversationsList = () => {
                     )}
                     {conversation.handoffs && conversation.handoffs.length > 0 && (
                       <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 border border-amber-200 rounded-full flex items-center">
-                        <ArrowRightLeft className="h-3 w-3 mr-1" />
+                        <RefreshCw className="h-3 w-3 mr-1" />
                         {conversation.handoffs.length}
                       </span>
                     )}
