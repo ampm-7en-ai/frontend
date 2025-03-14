@@ -261,26 +261,10 @@ const ConversationList = () => {
           )}>
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
-              <div>
-                <span className="font-medium">Conversation transferred</span>
-                <div className="text-xs">
-                  From: <span className={cn(
-                    "font-medium", 
-                    message.from === selectedAgent && "text-primary"
-                  )}>{message.from}</span> → 
-                  To: <span className={cn(
-                    "font-medium",
-                    message.to === selectedAgent && "text-primary"
-                  )}>{message.to}</span>
-                </div>
-                {message.reason && (
-                  <div className="text-xs mt-1">
-                    Reason: {message.reason}
-                  </div>
-                )}
-                <div className="text-xs mt-1 text-amber-700">
-                  {message.timestamp}
-                </div>
+              <div className="text-xs">
+                <span className="font-medium">{message.from}</span>
+                <span className="mx-1">→</span>
+                <span className="font-medium">{message.to}</span>
               </div>
             </div>
           </div>
@@ -934,3 +918,4 @@ const ConversationList = () => {
 };
 
 export default ConversationList;
+
