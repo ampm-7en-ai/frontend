@@ -73,17 +73,6 @@ export function AgentHandoffNotification({
               <span className="mx-1">→</span>
               <span className="font-medium">{to}</span>
             </div>
-            {reason && (
-              <div className="text-xs opacity-80 line-clamp-1">
-                {reason}
-              </div>
-            )}
-          </div>
-          <div className="text-xs opacity-70">
-            {new Date(timestamp).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
           </div>
         </div>
       </div>
@@ -92,47 +81,20 @@ export function AgentHandoffNotification({
 
   return (
     <div id={id} className={cn(
-      "flex items-center justify-center my-6 relative transition-all duration-300",
+      "flex items-center justify-center my-4 relative transition-all duration-300",
       isHighlighted && "z-10"
     )}>
       <div className="absolute left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
       <div className={cn(
-        "z-10 rounded-lg px-4 py-3 text-sm border shadow-sm transition-all duration-300",
+        "z-10 rounded-lg px-3 py-2 text-sm border shadow-sm transition-all duration-300 inline-flex items-center gap-2",
         getTypeStyles(),
         isHighlighted && "ring-2 ring-primary shadow-md",
         className
       )}>
-        <div className="flex items-center gap-3">
-          {getIcon()}
-          <div>
-            <div className="font-medium">
-              This conversation has been transferred
-            </div>
-            <div className="flex items-center gap-1 mt-1">
-              <span className="opacity-80">From:</span> 
-              <Badge variant="outline" className="font-normal">
-                {from}
-              </Badge>
-              <span className="opacity-80">to</span> 
-              <Badge variant="outline" className="font-normal">
-                {to}
-              </Badge>
-            </div>
-            {reason && (
-              <div className="mt-1 opacity-80 text-xs">
-                <strong>Reason:</strong> {reason}
-              </div>
-            )}
-            <div className="mt-1 text-xs opacity-70">
-              {new Date(timestamp).toLocaleString([], {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </div>
-          </div>
-        </div>
+        {getIcon()}
+        <span className="font-medium text-xs">
+          {from} → {to}
+        </span>
       </div>
     </div>
   );
