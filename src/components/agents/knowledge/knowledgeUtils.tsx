@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BookOpen, Database, Globe, CheckCircle, AlertCircle, Link2Off } from 'lucide-react';
 import { KnowledgeSource } from './types';
@@ -54,5 +53,34 @@ export const getStatusIndicator = (source: KnowledgeSource) => {
       );
     default:
       return null;
+  }
+};
+
+export const getToastMessageForSourceChange = (action: 'removed' | 'added' | 'modified', sourceName: string) => {
+  switch (action) {
+    case 'removed':
+      return {
+        title: "Knowledge source removed",
+        description: `${sourceName} has been removed. Your agent needs retraining to update its knowledge.`,
+        variant: "destructive" as const,
+      };
+    case 'added':
+      return {
+        title: "Knowledge source added",
+        description: `${sourceName} has been added. Training is required for the agent to use this knowledge.`,
+        variant: "default" as const,
+      };
+    case 'modified':
+      return {
+        title: "Knowledge source modified",
+        description: `${sourceName} has been modified. Your agent needs retraining to update its knowledge.`,
+        variant: "default" as const,
+      };
+    default:
+      return {
+        title: "Knowledge source updated",
+        description: "Consider retraining your agent to update its knowledge.",
+        variant: "default" as const,
+      };
   }
 };

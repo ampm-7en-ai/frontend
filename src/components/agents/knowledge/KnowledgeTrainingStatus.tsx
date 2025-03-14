@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
 import { KnowledgeSource } from './types';
 import ImportSourcesDialog from './ImportSourcesDialog';
+import { getToastMessageForSourceChange } from './knowledgeUtils';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -55,6 +55,10 @@ const KnowledgeTrainingStatus = ({
   }, [knowledgeSources]);
 
   const removeSource = (sourceId: number) => {
+    const sourceToRemove = knowledgeSources.find(source => source.id === sourceId);
+    
+    if (!sourceToRemove) return;
+    
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
     
     if (onSourcesChange) {
@@ -66,11 +70,8 @@ const KnowledgeTrainingStatus = ({
     
     setNeedsRetraining(true);
     
-    toast({
-      title: "Source removed",
-      description: "Consider retraining your agent to update its knowledge.",
-      variant: "default",
-    });
+    const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
+    toast(toastInfo);
   };
 
   const importSelectedSources = (sourceIds: number[]) => {
@@ -110,10 +111,16 @@ const KnowledgeTrainingStatus = ({
       onSourcesChange(updatedSourceIds);
     }
 
-    toast({
-      title: "Knowledge sources imported",
-      description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
-    });
+    if (newSourceIds.length === 1) {
+      const newSourceName = newSources[0].name;
+      const toastInfo = getToastMessageForSourceChange('added', newSourceName);
+      toast(toastInfo);
+    } else {
+      toast({
+        title: "Knowledge sources imported",
+        description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
+      });
+    }
   };
 
   const trainSource = async (sourceId: number) => {
