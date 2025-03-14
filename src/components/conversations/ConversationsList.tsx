@@ -144,16 +144,18 @@ const ConversationsList = () => {
                   {conversation.lastMessage.content}
                 </p>
                 {conversation.handoffs && conversation.handoffs.length > 1 && (
-                  <div className="text-xs text-muted-foreground mt-2 flex items-center">
-                    <span className="font-medium mr-1">Previous:</span>
-                    {conversation.handoffs.slice(0, -1).map((handoff, index) => (
-                      <React.Fragment key={handoff.id}>
-                        <span>{handoff.from}</span>
-                        {index < conversation.handoffs!.length - 2 && (
-                          <span className="mx-1">→</span>
-                        )}
-                      </React.Fragment>
-                    ))}
+                  <div className="text-xs text-muted-foreground mt-2">
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="font-medium">Previous:</span>
+                      {conversation.handoffs.map((handoff, index) => (
+                        <React.Fragment key={handoff.id}>
+                          <span className="bg-slate-100 px-1.5 py-0.5 rounded-full">{handoff.from}</span>
+                          {index < conversation.handoffs!.length - 1 && (
+                            <RefreshCw className="h-3 w-3 mx-0.5 text-slate-400" />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
                   </div>
                 )}
                 <div className="flex gap-2 mt-2">

@@ -69,7 +69,7 @@ const ConversationList = () => {
       email: 'michael.b@example.com',
       lastMessage: 'I\'m still experiencing the same issue after talking to 3 different agents',
       time: '5 minutes ago',
-      status: 'active',
+      status: 'pending',
       agent: 'Senior Support Agent',
       satisfaction: 'low',
       priority: 'high',
@@ -461,13 +461,35 @@ const ConversationList = () => {
                     </div>
                     
                     {activeConversation.handoffCount > 0 && (
-                      <div className="mt-2">
-                        <div className="text-xs text-muted-foreground mb-1">Previous Agents:</div>
-                        <div className="flex items-center text-xs">
-                          <Avatar className="h-6 w-6 mr-1">
-                            <AvatarFallback className="text-[10px]">JD</AvatarFallback>
-                          </Avatar>
-                          <span>John Doe (Support) → </span>
+                      <div className="mt-4">
+                        <h4 className="text-xs font-medium text-muted-foreground mb-2">Agent History:</h4>
+                        <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+                          {activeConversation.messages
+                            .filter(msg => msg.type === 'transfer')
+                            .map((transfer, index) => (
+                              <div key={transfer.id} className="flex items-center text-xs border-b border-slate-100 pb-2 last:border-0 last:pb-0">
+                                <div className="flex flex-col w-full">
+                                  <div className="flex items-center">
+                                    <Avatar className="h-5 w-5 mr-1">
+                                      <AvatarFallback className="text-[10px]">
+                                        <Bot className="h-3 w-3" />
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-medium">{transfer.from}</span>
+                                    <ArrowRight className="h-3 w-3 mx-1" />
+                                    <Avatar className="h-5 w-5 mr-1">
+                                      <AvatarFallback className="text-[10px]">
+                                        <Bot className="h-3 w-3" />
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-medium">{transfer.to}</span>
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground mt-1 ml-5">
+                                    {transfer.timestamp} - {transfer.reason}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     )}
