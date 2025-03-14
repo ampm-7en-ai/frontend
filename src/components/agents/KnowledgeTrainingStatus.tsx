@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,13 +56,28 @@ const KnowledgeTrainingStatus = ({
   ];
 
   const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
+  const [prevSourceIds, setPrevSourceIds] = useState<number[]>(knowledgeSources.map(source => source.id));
 
   useEffect(() => {
+    // Check if any sources need training
     const untrained = knowledgeSources.some(source => source.trainingStatus === 'idle');
+    
+    // Check if the number of sources has changed
     const lengthChanged = prevSourcesLength !== knowledgeSources.length;
+    
+    // Get current source IDs for comparison
+    const currentSourceIds = knowledgeSources.map(source => source.id);
+    
+    // Check if the specific sources have changed (not just length)
+    const sourcesChanged = lengthChanged || !prevSourceIds.every(id => currentSourceIds.includes(id));
+    
+    // Update previous state for next comparison
     setPrevSourcesLength(knowledgeSources.length);
-    setNeedsRetraining(untrained || lengthChanged);
-  }, [knowledgeSources, prevSourcesLength]);
+    setPrevSourceIds(currentSourceIds);
+    
+    // Set needs retraining if any of the conditions are met
+    setNeedsRetraining(untrained || sourcesChanged);
+  }, [knowledgeSources, prevSourcesLength, prevSourceIds]);
 
   const removeSource = (sourceId: number) => {
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
@@ -73,6 +89,7 @@ const KnowledgeTrainingStatus = ({
       onSourcesChange(updatedSourceIds);
     }
     
+    // Explicitly set needsRetraining to true when a source is removed
     setNeedsRetraining(true);
     
     toast({
