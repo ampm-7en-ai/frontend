@@ -10,7 +10,7 @@ import {
   Search, Filter, MoreHorizontal, MessageSquare, Clock, 
   User, Bot, Send, Info, Users, Tag, ArrowRight, 
   ThumbsUp, ThumbsDown, HelpCircle, AlertCircle, CheckCircle, 
-  ChevronRight, X, Maximize2
+  ChevronRight, X, Maximize2, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
@@ -216,7 +216,7 @@ const ConversationList = () => {
         <div key={message.id} className="flex justify-center my-4">
           <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 max-w-[80%]">
             <div className="flex items-center gap-2">
-              <ArrowRightLeft className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
               <div>
                 <span className="font-medium">Conversation transferred</span>
                 <div className="text-xs">
