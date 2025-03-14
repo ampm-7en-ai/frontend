@@ -141,7 +141,7 @@ const KnowledgeTrainingStatus = ({
         const sourceTrain = prev.find(s => s.id === sourceId);
         if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
           return prev.map(s => 
-            source.id === sourceId 
+            s.id === sourceId 
               ? { ...s, progress: (s.progress || 0) + 10 } 
               : s
           );
