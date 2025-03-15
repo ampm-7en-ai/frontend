@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,11 +25,65 @@ const KnowledgeTrainingStatus = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
   
+  // Enhanced mock data with our new properties
   const mockKnowledgeSources: KnowledgeSource[] = [
-    { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15', trainingStatus: 'idle', progress: 0 },
-    { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20', trainingStatus: 'idle', progress: 0, linkBroken: true },
-    { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10', trainingStatus: 'error', progress: 100 },
-    { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25', trainingStatus: 'idle', progress: 0 },
+    { 
+      id: 1, 
+      name: 'Product Documentation', 
+      type: 'document', 
+      size: '2.4 MB', 
+      lastUpdated: '2023-12-15', 
+      trainingStatus: 'idle', 
+      progress: 0 
+    },
+    { 
+      id: 2, 
+      name: 'Company Website', 
+      type: 'webpage', 
+      size: '0.8 MB', 
+      lastUpdated: '2023-12-20', 
+      trainingStatus: 'idle', 
+      progress: 0, 
+      linkBroken: true,
+      insideLinks: [
+        { url: 'https://example.com/about', title: 'About Us', status: 'success' },
+        { url: 'https://example.com/products', title: 'Products', status: 'success' },
+        { url: 'https://example.com/contact', title: 'Contact', status: 'pending' }
+      ]
+    },
+    { 
+      id: 3, 
+      name: 'Support Guidelines', 
+      type: 'document', 
+      size: '1.5 MB', 
+      lastUpdated: '2023-12-10', 
+      trainingStatus: 'error', 
+      progress: 100 
+    },
+    { 
+      id: 4, 
+      name: 'Blog Posts', 
+      type: 'url', 
+      size: '0.3 MB', 
+      lastUpdated: '2023-12-25', 
+      trainingStatus: 'idle', 
+      progress: 0,
+      crawlOptions: 'single'
+    },
+    {
+      id: 5,
+      name: 'Google Drive Documents',
+      type: 'thirdParty',
+      size: '5.5 MB',
+      lastUpdated: '2023-12-22',
+      trainingStatus: 'idle',
+      progress: 0,
+      documents: [
+        { id: 'd1', name: 'Q4 Report.pdf', type: 'pdf', size: '1.2 MB' },
+        { id: 'd2', name: 'Customer Feedback.docx', type: 'docx', size: '0.8 MB' },
+        { id: 'd3', name: 'Product Roadmap.xlsx', type: 'xlsx', size: '0.5 MB' }
+      ]
+    }
   ];
   
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>(
@@ -79,6 +134,18 @@ const KnowledgeTrainingStatus = ({
     toast(toastInfo);
   };
 
+  const updateSource = (sourceId: number, data: Partial<KnowledgeSource>) => {
+    setKnowledgeSources(prev => 
+      prev.map(source => 
+        source.id === sourceId 
+          ? { ...source, ...data } 
+          : source
+      )
+    );
+    
+    setNeedsRetraining(true);
+  };
+
   const importSelectedSources = (sourceIds: number[]) => {
     const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
     
@@ -94,7 +161,9 @@ const KnowledgeTrainingStatus = ({
     const newSources: KnowledgeSource[] = newSourceIds.map(id => {
       const source = externalKnowledgeSources.find(s => s.id === id);
       const sourceCopy = { ...source };
-      return {
+      
+      // Add additional properties based on source type
+      let enhancedSource: KnowledgeSource = {
         id: source!.id,
         name: source!.name,
         type: source!.type,
@@ -104,6 +173,13 @@ const KnowledgeTrainingStatus = ({
         progress: 0,
         linkBroken: sourceCopy.linkBroken || false
       };
+
+      // Add crawl options for URL sources
+      if (source!.type === 'url') {
+        enhancedSource.crawlOptions = 'single';
+      }
+
+      return enhancedSource;
     });
 
     setKnowledgeSources(prev => [...prev, ...newSources]);
@@ -129,7 +205,11 @@ const KnowledgeTrainingStatus = ({
   };
 
   const trainSource = async (sourceId: number) => {
-    const sourceName = knowledgeSources.find(s => s.id === sourceId)?.name || "Knowledge source";
+    const sourceIndex = knowledgeSources.findIndex(s => s.id === sourceId);
+    if (sourceIndex === -1) return;
+    
+    const sourceName = knowledgeSources[sourceIndex].name;
+    const sourceType = knowledgeSources[sourceIndex].type;
     
     setKnowledgeSources(prev => 
       prev.map(source => 
@@ -162,15 +242,27 @@ const KnowledgeTrainingStatus = ({
       
       const success = Math.random() > 0.2;
       
+      // Generate mock inside links for webpage sources on successful training
+      let updatedSource: Partial<KnowledgeSource> = {
+        trainingStatus: success ? 'success' : 'error',
+        progress: 100,
+        linkBroken: knowledgeSources[sourceIndex].linkBroken && success ? false : knowledgeSources[sourceIndex].linkBroken
+      };
+      
+      // For webpages and URLs, generate mock inside links on successful training
+      if (success && (sourceType === 'webpage' || (sourceType === 'url' && knowledgeSources[sourceIndex].crawlOptions === 'children'))) {
+        updatedSource.insideLinks = [
+          { url: 'https://example.com/products/feature1', title: 'Feature 1', status: 'success' },
+          { url: 'https://example.com/products/feature2', title: 'Feature 2', status: 'success' },
+          { url: 'https://example.com/blog/post1', title: 'Blog Post 1', status: 'success' },
+          { url: 'https://example.com/support/faq', title: 'FAQ', status: 'pending' }
+        ];
+      }
+      
       setKnowledgeSources(prev => 
         prev.map(source => 
           source.id === sourceId 
-            ? { 
-                ...source, 
-                trainingStatus: success ? 'success' : 'error', 
-                progress: 100,
-                linkBroken: source.linkBroken && success ? false : source.linkBroken 
-              } 
+            ? { ...source, ...updatedSource } 
             : source
         )
       );
@@ -228,15 +320,27 @@ const KnowledgeTrainingStatus = ({
           clearInterval(intervalId);
           const success = Math.random() > 0.2;
           
+          // Generate mock inside links for webpage sources on successful training
+          let updatedSource: Partial<KnowledgeSource> = {
+            trainingStatus: success ? 'success' : 'error',
+            progress: 100,
+            linkBroken: source.linkBroken && success ? false : source.linkBroken
+          };
+          
+          // For webpages and URLs, generate mock inside links on successful training
+          if (success && (source.type === 'webpage' || (source.type === 'url' && source.crawlOptions === 'children'))) {
+            updatedSource.insideLinks = [
+              { url: 'https://example.com/products/feature1', title: 'Feature 1', status: 'success' },
+              { url: 'https://example.com/products/feature2', title: 'Feature 2', status: 'success' },
+              { url: 'https://example.com/blog/post1', title: 'Blog Post 1', status: 'success' },
+              { url: 'https://example.com/support/faq', title: 'FAQ', status: 'pending' }
+            ];
+          }
+          
           setKnowledgeSources(prev => 
             prev.map(s => 
               s.id === source.id 
-                ? { 
-                    ...s, 
-                    trainingStatus: success ? 'success' : 'error', 
-                    progress: 100,
-                    linkBroken: s.linkBroken && success ? false : s.linkBroken 
-                  } 
+                ? { ...s, ...updatedSource }
                 : s
             )
           );
@@ -293,6 +397,7 @@ const KnowledgeTrainingStatus = ({
           sources={knowledgeSources} 
           onTrainSource={trainSource}
           onRemoveSource={removeSource}
+          onUpdateSource={updateSource}
         />
         
         {needsRetraining && knowledgeSources.length > 0 && (

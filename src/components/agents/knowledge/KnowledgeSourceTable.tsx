@@ -1,20 +1,136 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Trash2, Zap, Link2Off } from 'lucide-react';
+import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { getSourceTypeIcon, getStatusIndicator } from './knowledgeUtils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface KnowledgeSourceTableProps {
   sources: KnowledgeSource[];
   onTrainSource: (sourceId: number) => void;
   onRemoveSource: (sourceId: number) => void;
+  onUpdateSource?: (sourceId: number, data: Partial<KnowledgeSource>) => void;
 }
 
-const KnowledgeSourceTable = ({ sources, onTrainSource, onRemoveSource }: KnowledgeSourceTableProps) => {
+const KnowledgeSourceTable = ({ 
+  sources, 
+  onTrainSource, 
+  onRemoveSource,
+  onUpdateSource 
+}: KnowledgeSourceTableProps) => {
+  const { toast } = useToast();
+  const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
+
   const shouldShowTrainButton = (source: KnowledgeSource) => {
     return source.trainingStatus === 'error' || source.linkBroken;
+  };
+
+  const toggleRowExpansion = (sourceId: number) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [sourceId]: !prev[sourceId]
+    }));
+  };
+
+  const handleCrawlOptionChange = (sourceId: number, option: 'single' | 'children') => {
+    if (onUpdateSource) {
+      onUpdateSource(sourceId, { crawlOptions: option });
+      toast({
+        title: "Crawl option updated",
+        description: `The source will be crawled using the ${option === 'single' ? 'single URL' : 'children URLs'} option.`,
+      });
+    }
+  };
+
+  const getInsideLinksContent = (source: KnowledgeSource) => {
+    if (!source.insideLinks || source.insideLinks.length === 0) {
+      return (
+        <div className="py-2 px-4 text-sm text-muted-foreground">
+          No inside links found. The crawler will extract links during training.
+        </div>
+      );
+    }
+
+    return (
+      <div className="px-2 py-2">
+        <div className="text-sm font-medium mb-2">Inside Links ({source.insideLinks.length})</div>
+        <div className="space-y-1 max-h-40 overflow-y-auto">
+          {source.insideLinks.map((link, index) => (
+            <div key={index} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+              <div className={`w-2 h-2 rounded-full mr-2 ${
+                link.status === 'success' ? 'bg-green-500' : 
+                link.status === 'error' ? 'bg-red-500' : 'bg-amber-500'
+              }`} />
+              <ExternalLink className="h-3 w-3 mr-2 text-muted-foreground" />
+              <span className="truncate" title={link.url}>{link.title || link.url}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const getDocumentsContent = (source: KnowledgeSource) => {
+    if (!source.documents || source.documents.length === 0) {
+      return (
+        <div className="py-2 px-4 text-sm text-muted-foreground">
+          No documents found in this third-party source.
+        </div>
+      );
+    }
+
+    return (
+      <div className="px-2 py-2">
+        <div className="text-sm font-medium mb-2">Documents ({source.documents.length})</div>
+        <div className="space-y-1 max-h-40 overflow-y-auto">
+          {source.documents.map((doc) => (
+            <div key={doc.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+              <FileText className="h-3 w-3 mr-2 text-blue-500" />
+              <span className="truncate flex-1" title={doc.name}>{doc.name}</span>
+              <span className="text-muted-foreground">{doc.size}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const getCrawlOptionsContent = (source: KnowledgeSource) => {
+    return (
+      <div className="px-4 py-3">
+        <div className="text-sm font-medium mb-2">Crawl Options</div>
+        <RadioGroup 
+          defaultValue={source.crawlOptions || 'single'} 
+          className="space-y-2"
+          onValueChange={(value) => handleCrawlOptionChange(source.id, value as 'single' | 'children')}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="single" id={`single-${source.id}`} />
+            <Label htmlFor={`single-${source.id}`} className="flex items-center cursor-pointer">
+              <Link className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-sm">Single URL</span>
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="children" id={`children-${source.id}`} />
+            <Label htmlFor={`children-${source.id}`} className="flex items-center cursor-pointer">
+              <ArrowDown className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-sm">Crawl children URLs</span>
+            </Label>
+          </div>
+        </RadioGroup>
+        <div className="mt-2 text-xs text-muted-foreground">
+          {source.crawlOptions === 'children' 
+            ? "The agent will extract and crawl all links found on this page."
+            : "The agent will only extract information from this specific URL."}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -22,6 +138,7 @@ const KnowledgeSourceTable = ({ sources, onTrainSource, onRemoveSource }: Knowle
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-8"></TableHead>
             <TableHead>Knowledge Source</TableHead>
             <TableHead>Size</TableHead>
             <TableHead>Last Updated</TableHead>
@@ -32,75 +149,107 @@ const KnowledgeSourceTable = ({ sources, onTrainSource, onRemoveSource }: Knowle
         <TableBody>
           {sources.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
+              <TableCell colSpan={6} className="h-24 text-center">
                 <p className="mb-2">No knowledge sources selected</p>
                 <p className="text-sm text-muted-foreground">Click "Import Sources" to add knowledge sources to your agent</p>
               </TableCell>
             </TableRow>
           ) : (
             sources.map((source) => (
-              <TableRow key={source.id}>
-                <TableCell className="py-2">
-                  <div className="flex items-center">
-                    {getSourceTypeIcon(source.type)}
-                    <span className="ml-2 font-medium">{source.name}</span>
-                    {source.linkBroken && (
-                      <span className="ml-2 text-xs text-orange-500 flex items-center gap-1">
-                        <Link2Off className="h-3 w-3" /> Broken Link
-                      </span>
+              <React.Fragment key={source.id}>
+                <TableRow>
+                  <TableCell className="py-2 w-8">
+                    {(source.type === 'webpage' || source.documents?.length > 0 || source.type === 'url') && (
+                      <button 
+                        onClick={() => toggleRowExpansion(source.id)}
+                        className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-gray-100"
+                      >
+                        {expandedRows[source.id] ? 
+                          <ChevronDown className="h-4 w-4" /> : 
+                          <ChevronRight className="h-4 w-4" />
+                        }
+                      </button>
                     )}
-                    {source.trainingStatus === 'error' && !source.linkBroken && (
-                      <span className="ml-2 text-xs text-red-500 flex items-center gap-1">
-                        <LoaderCircle className="h-3 w-3" /> Training Failed
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="py-2">{source.size}</TableCell>
-                <TableCell className="py-2">{source.lastUpdated}</TableCell>
-                <TableCell className="py-2">
-                  {source.trainingStatus === 'training' ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-16">
-                        <div className="w-16 bg-gray-200 rounded-full h-2 flex items-center">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ width: `${source.progress || 0}%` }}>
+                  </TableCell>
+                  <TableCell className="py-2">
+                    <div className="flex items-center">
+                      {getSourceTypeIcon(source.type)}
+                      <span className="ml-2 font-medium">{source.name}</span>
+                      {source.linkBroken && (
+                        <span className="ml-2 text-xs text-orange-500 flex items-center gap-1">
+                          <Link2Off className="h-3 w-3" /> Broken Link
+                        </span>
+                      )}
+                      {source.trainingStatus === 'error' && !source.linkBroken && (
+                        <span className="ml-2 text-xs text-red-500 flex items-center gap-1">
+                          <LoaderCircle className="h-3 w-3" /> Training Failed
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-2">{source.size}</TableCell>
+                  <TableCell className="py-2">{source.lastUpdated}</TableCell>
+                  <TableCell className="py-2">
+                    {source.trainingStatus === 'training' ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-16">
+                          <div className="w-16 bg-gray-200 rounded-full h-2 flex items-center">
+                            <div 
+                              className="bg-primary h-2 rounded-full" 
+                              style={{ width: `${source.progress || 0}%` }}>
+                            </div>
                           </div>
                         </div>
+                        <span className="text-xs text-muted-foreground">{source.progress}%</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">{source.progress}%</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      {getStatusIndicator(source)}
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="text-right py-2">
-                  <div className="flex items-center justify-end gap-2">
-                    {shouldShowTrainButton(source) && source.trainingStatus !== 'training' && (
+                    ) : (
+                      <div className="flex items-center">
+                        {getStatusIndicator(source)}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right py-2">
+                    <div className="flex items-center justify-end gap-2">
+                      {shouldShowTrainButton(source) && source.trainingStatus !== 'training' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => onTrainSource(source.id)}
+                          className="h-8 px-2"
+                        >
+                          <Zap className="h-3.5 w-3.5 mr-1" />
+                          Train
+                        </Button>
+                      )}
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        onClick={() => onTrainSource(source.id)}
-                        className="h-8 px-2"
+                        onClick={() => onRemoveSource(source.id)}
+                        className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
-                        <Zap className="h-3.5 w-3.5 mr-1" />
-                        Train
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => onRemoveSource(source.id)}
-                      className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+                    </div>
+                  </TableCell>
+                </TableRow>
+
+                {/* Expandable row for additional information */}
+                {expandedRows[source.id] && (
+                  <TableRow className="bg-muted/30">
+                    <TableCell colSpan={6} className="p-0 border-t-0">
+                      <Collapsible open={true}>
+                        <CollapsibleContent>
+                          <div className="p-2 bg-muted/30 border-t border-dashed">
+                            {source.type === 'url' && getCrawlOptionsContent(source)}
+                            {source.type === 'webpage' && getInsideLinksContent(source)}
+                            {source.documents?.length > 0 && getDocumentsContent(source)}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
             ))
           )}
         </TableBody>
