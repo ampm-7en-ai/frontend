@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LoaderCircle, Import, Zap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import KnowledgeSourceTable from './KnowledgeSourceTable';
-import { KnowledgeSource } from './types';
+
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import KnowledgeSourceTable from './table/KnowledgeSourceTable';
 import ImportSourcesDialog from './ImportSourcesDialog';
-import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
+import KnowledgeHeader from './components/KnowledgeHeader';
+import TrainingWarning from './components/TrainingWarning';
+import { useKnowledgeTraining } from './hooks/useKnowledgeTraining';
+import { mockKnowledgeSources } from './mockData';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -19,130 +19,21 @@ const KnowledgeTrainingStatus = ({
   initialSelectedSources = [], 
   onSourcesChange 
 }: KnowledgeTrainingStatusProps) => {
-  const { toast } = useToast();
-  
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [isTrainingAll, setIsTrainingAll] = useState(false);
-  
-  const mockKnowledgeSources: KnowledgeSource[] = [
-    { 
-      id: 1, 
-      name: 'Product Documentation', 
-      type: 'document', 
-      size: '2.4 MB', 
-      lastUpdated: '2023-12-15', 
-      trainingStatus: 'idle', 
-      progress: 0 
-    },
-    { 
-      id: 2, 
-      name: 'Company Website', 
-      type: 'webpage', 
-      size: '0.8 MB', 
-      lastUpdated: '2023-12-20', 
-      trainingStatus: 'idle', 
-      progress: 0, 
-      linkBroken: true,
-      insideLinks: [
-        { url: 'https://example.com/about', title: 'About Us', status: 'success' },
-        { url: 'https://example.com/products', title: 'Products', status: 'success' },
-        { url: 'https://example.com/contact', title: 'Contact', status: 'pending' }
-      ]
-    },
-    { 
-      id: 3, 
-      name: 'Support Guidelines', 
-      type: 'document', 
-      size: '1.5 MB', 
-      lastUpdated: '2023-12-10', 
-      trainingStatus: 'error', 
-      progress: 100 
-    },
-    { 
-      id: 4, 
-      name: 'Blog Posts', 
-      type: 'url', 
-      size: '0.3 MB', 
-      lastUpdated: '2023-12-25', 
-      trainingStatus: 'idle', 
-      progress: 0,
-      crawlOptions: 'single'
-    },
-    {
-      id: 5,
-      name: 'Google Drive Documents',
-      type: 'thirdParty',
-      size: '5.5 MB',
-      lastUpdated: '2023-12-22',
-      trainingStatus: 'idle',
-      progress: 0,
-      documents: [
-        { id: 'd1', name: 'Q4 Report.pdf', type: 'pdf', size: '1.2 MB' },
-        { id: 'd2', name: 'Customer Feedback.docx', type: 'docx', size: '0.8 MB' },
-        { id: 'd3', name: 'Product Roadmap.xlsx', type: 'xlsx', size: '0.5 MB' }
-      ]
-    }
-  ];
-  
-  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>(
-    mockKnowledgeSources.filter(source => initialSelectedSources.includes(source.id))
+
+  const {
+    knowledgeSources,
+    setKnowledgeSources,
+    isTrainingAll,
+    needsRetraining,
+    trainSource,
+    trainAllSources,
+    removeSource,
+    updateSource
+  } = useKnowledgeTraining(
+    mockKnowledgeSources.filter(source => initialSelectedSources.includes(source.id)),
+    onSourcesChange
   );
-  
-  const [needsRetraining, setNeedsRetraining] = useState(true);
-  
-  const externalKnowledgeSources = [
-    { id: 101, name: 'Product Features Overview', type: 'pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
-    { id: 102, name: 'Pricing Structure', type: 'docx', size: '1.1 MB', lastUpdated: '2023-06-02' },
-    { id: 103, name: 'Technical Specifications', type: 'pdf', size: '3.7 MB', lastUpdated: '2023-06-05' },
-    { id: 104, name: 'Company Website', type: 'url', size: 'N/A', lastUpdated: '2023-05-28', linkBroken: true },
-    { id: 105, name: 'Customer Data', type: 'csv', size: '0.8 MB', lastUpdated: '2023-05-15' },
-  ];
-
-  const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
-  const [prevSourceIds, setPrevSourceIds] = useState<number[]>(knowledgeSources.map(source => source.id));
-
-  useEffect(() => {
-    setNeedsRetraining(true);
-    
-    if (prevSourcesLength > 0 && knowledgeSources.length !== prevSourcesLength) {
-      toast(getRetrainingRequiredToast());
-    }
-    
-    setPrevSourcesLength(knowledgeSources.length);
-    setPrevSourceIds(knowledgeSources.map(source => source.id));
-  }, [knowledgeSources]);
-
-  const removeSource = (sourceId: number) => {
-    const sourceToRemove = knowledgeSources.find(source => source.id === sourceId);
-    
-    if (!sourceToRemove) return;
-    
-    setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
-    
-    if (onSourcesChange) {
-      const updatedSourceIds = knowledgeSources
-        .filter(s => s.id !== sourceId)
-        .map(s => s.id);
-      onSourcesChange(updatedSourceIds);
-    }
-    
-    setNeedsRetraining(true);
-    
-    const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
-    toast(toastInfo);
-  };
-
-  const updateSource = (sourceId: number, data: Partial<KnowledgeSource>) => {
-    setKnowledgeSources(prev => 
-      prev.map(source => 
-        source.id === sourceId 
-          ? { ...source, ...data } 
-          : source
-      )
-    );
-    
-    setNeedsRetraining(true);
-  };
 
   const importSelectedSources = (sourceIds: number[]) => {
     const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
@@ -156,32 +47,19 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    const newSources: KnowledgeSource[] = newSourceIds.map(id => {
-      const source = externalKnowledgeSources.find(s => s.id === id);
-      const sourceCopy = { ...source };
+    const newSources = newSourceIds.map(id => {
+      const source = mockKnowledgeSources.find(s => s.id === id);
+      if (!source) throw new Error(`Source with id ${id} not found`);
       
-      let enhancedSource: KnowledgeSource = {
-        id: source!.id,
-        name: source!.name,
-        type: source!.type,
-        size: source!.size,
-        lastUpdated: source!.lastUpdated,
-        trainingStatus: 'idle' as 'idle',
-        progress: 0,
-        linkBroken: sourceCopy.linkBroken || false
+      return {
+        ...source,
+        trainingStatus: 'idle' as const,
+        progress: 0
       };
-
-      if (source!.type === 'url') {
-        enhancedSource.crawlOptions = 'single';
-      }
-
-      return enhancedSource;
     });
 
     setKnowledgeSources(prev => [...prev, ...newSources]);
     setIsImportDialogOpen(false);
-
-    setNeedsRetraining(true);
 
     if (onSourcesChange) {
       const updatedSourceIds = [...knowledgeSources.map(s => s.id), ...newSourceIds];
@@ -190,8 +68,7 @@ const KnowledgeTrainingStatus = ({
 
     if (newSourceIds.length === 1) {
       const newSourceName = newSources[0].name;
-      const toastInfo = getToastMessageForSourceChange('added', newSourceName);
-      toast(toastInfo);
+      toast(getToastMessageForSourceChange('added', newSourceName));
     } else {
       toast({
         title: "Knowledge sources imported",
@@ -200,120 +77,15 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  const trainSource = async (sourceId: number) => {
-    const sourceIndex = knowledgeSources.findIndex(s => s.id === sourceId);
-    if (sourceIndex === -1) return;
-    
-    const sourceName = knowledgeSources[sourceIndex].name;
-    const sourceType = knowledgeSources[sourceIndex].type;
-    
-    setKnowledgeSources(prev => 
-      prev.map(source => 
-        source.id === sourceId 
-          ? { ...source, trainingStatus: 'training', progress: 0 } 
-          : source
-      )
-    );
-    
-    toast(getTrainingStatusToast('start', sourceName));
-
-    try {
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setKnowledgeSources(prev => 
-          prev.map(source => 
-            source.id === sourceId 
-              ? { ...source, progress, trainingStatus: 'training' } 
-              : source
-          )
-        );
-      }
-
-      const success = Math.random() > 0.2;
-      
-      setKnowledgeSources(prev => 
-        prev.map(source => 
-          source.id === sourceId 
-            ? { 
-                ...source, 
-                trainingStatus: success ? 'success' : 'error',
-                progress: 100,
-                linkBroken: source.linkBroken && success ? false : source.linkBroken
-              } 
-            : source
-        )
-      );
-      
-      toast(getTrainingStatusToast(success ? 'success' : 'error', sourceName));
-    } catch (error) {
-      setKnowledgeSources(prev => 
-        prev.map(source => 
-          source.id === sourceId 
-            ? { ...source, trainingStatus: 'error', progress: 100 } 
-            : source
-        )
-      );
-      toast(getTrainingStatusToast('error', sourceName));
-    }
-  };
-
-  const trainAllSources = async () => {
-    if (knowledgeSources.length === 0) {
-      toast({
-        title: "No sources selected",
-        description: "Please import at least one knowledge source to train.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsTrainingAll(true);
-    
-    toast({
-      title: "Training all sources",
-      description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`,
-    });
-
-    for (const source of knowledgeSources) {
-      await trainSource(source.id);
-    }
-
-    setIsTrainingAll(false);
-    setNeedsRetraining(false);
-  };
-
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div>
-          <CardTitle className="text-lg">Knowledge Sources</CardTitle>
-          <CardDescription>Connect knowledge sources to your agent to improve its responses</CardDescription>
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsImportDialogOpen(true)}
-            className="flex items-center gap-1"
-          >
-            <Import className="h-4 w-4" />
-            Import Sources
-          </Button>
-          <Button 
-            onClick={trainAllSources} 
-            disabled={isTrainingAll || knowledgeSources.length === 0}
-            size="sm"
-            className="flex items-center gap-1"
-          >
-            {isTrainingAll ? (
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-            ) : (
-              <Zap className="h-4 w-4" />
-            )}
-            {isTrainingAll ? 'Training...' : 'Train All'}
-          </Button>
-        </div>
-      </CardHeader>
+      <KnowledgeHeader 
+        isTrainingAll={isTrainingAll}
+        onImportClick={() => setIsImportDialogOpen(true)}
+        onTrainAllClick={trainAllSources}
+        sourcesLength={knowledgeSources.length}
+      />
+      
       <CardContent>
         <KnowledgeSourceTable 
           sources={knowledgeSources} 
@@ -322,18 +94,16 @@ const KnowledgeTrainingStatus = ({
           onUpdateSource={updateSource}
         />
         
-        {needsRetraining && knowledgeSources.length > 0 && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
-            <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
-          </div>
-        )}
+        <TrainingWarning 
+          show={needsRetraining} 
+          sourcesLength={knowledgeSources.length} 
+        />
       </CardContent>
 
       <ImportSourcesDialog
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
-        externalSources={externalKnowledgeSources}
+        externalSources={mockKnowledgeSources}
         currentSources={knowledgeSources}
         onImport={importSelectedSources}
       />
@@ -342,4 +112,3 @@ const KnowledgeTrainingStatus = ({
 };
 
 export default KnowledgeTrainingStatus;
-
