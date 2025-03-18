@@ -6,7 +6,6 @@ import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, Externa
 import { KnowledgeSource } from './types';
 import { getSourceTypeIcon, getStatusIndicator } from './knowledgeUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -45,16 +44,6 @@ const KnowledgeSourceTable = ({
       ...prev,
       [sourceId]: !prev[sourceId]
     }));
-  };
-
-  const handleCrawlOptionChange = (sourceId: number, option: 'single' | 'children') => {
-    if (onUpdateSource) {
-      onUpdateSource(sourceId, { crawlOptions: option });
-      toast({
-        title: "Crawl option updated",
-        description: `The source will be crawled using the ${option === 'single' ? 'single URL' : 'children URLs'} option.`,
-      });
-    }
   };
 
   const toggleLinkSelection = (sourceId: number, linkIndex: number) => {
@@ -200,7 +189,7 @@ const KnowledgeSourceTable = ({
               <Checkbox 
                 id={`select-all-links-${source.id}`}
                 checked={allSelected}
-                className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                indeterminate={someSelected && !allSelected}
                 onCheckedChange={(checked) => selectAllLinks(source.id, !!checked)}
               />
               <Label 
@@ -264,7 +253,7 @@ const KnowledgeSourceTable = ({
               <Checkbox 
                 id={`select-all-docs-${source.id}`}
                 checked={allSelected}
-                className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                indeterminate={someSelected && !allSelected}
                 onCheckedChange={(checked) => selectAllDocuments(source.id, !!checked)}
               />
               <Label 
@@ -303,39 +292,6 @@ const KnowledgeSourceTable = ({
     );
   };
 
-  const getCrawlOptionsContent = (source: KnowledgeSource) => {
-    return (
-      <div className="px-4 py-3">
-        <div className="text-sm font-medium mb-2">Crawl Options</div>
-        <RadioGroup 
-          defaultValue={source.crawlOptions || 'single'} 
-          className="space-y-2"
-          onValueChange={(value) => handleCrawlOptionChange(source.id, value as 'single' | 'children')}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="single" id={`single-${source.id}`} />
-            <Label htmlFor={`single-${source.id}`} className="flex items-center cursor-pointer">
-              <Link className="h-3.5 w-3.5 mr-1.5" />
-              <span className="text-sm">Single URL</span>
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="children" id={`children-${source.id}`} />
-            <Label htmlFor={`children-${source.id}`} className="flex items-center cursor-pointer">
-              <ArrowDown className="h-3.5 w-3.5 mr-1.5" />
-              <span className="text-sm">Crawl children URLs</span>
-            </Label>
-          </div>
-        </RadioGroup>
-        <div className="mt-2 text-xs text-muted-foreground">
-          {source.crawlOptions === 'children' 
-            ? "The agent will extract and crawl all links found on this page."
-            : "The agent will only extract information from this specific URL."}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -354,7 +310,7 @@ const KnowledgeSourceTable = ({
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
                 <p className="mb-2">No knowledge sources selected</p>
-                <p className="text-sm text-muted-foreground">Click "Import Sources" to add knowledge sources to your agent</p>
+                <p className="text-sm text-muted-foreground">Click "Add Source" to add knowledge sources to your agent</p>
               </TableCell>
             </TableRow>
           ) : (
@@ -453,7 +409,6 @@ const KnowledgeSourceTable = ({
                       <Collapsible open={true}>
                         <CollapsibleContent>
                           <div className="p-2 bg-muted/30 border-t border-dashed">
-                            {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
                             {source.documents?.length > 0 && getDocumentsContent(source)}
                           </div>

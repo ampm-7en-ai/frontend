@@ -3,11 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { CrawlUrlDialog } from './CrawlUrlDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, AlertTriangle, FileText, Globe, Database } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Plus, RefreshCw, AlertTriangle, FileText, Globe, Database, MoreHorizontal } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
-import { KnowledgeSource } from './types';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { KnowledgeSource, SourceType } from './types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import AddSourceDialog from './AddSourceDialog';
 
 // Mock knowledge sources for demonstration
 const mockKnowledgeSources: KnowledgeSource[] = [
@@ -60,10 +66,12 @@ const EnhancedKnowledgeTrainingStatus = ({
   initialSelectedSources = [], 
   onSourcesChange 
 }: EnhancedKnowledgeTrainingStatusProps) => {
+  const { toast } = useToast();
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>(mockKnowledgeSources);
   const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>(initialSelectedSources);
   const [isRetraining, setIsRetraining] = useState(false);
   const [isCrawlDialogOpen, setIsCrawlDialogOpen] = useState(false);
+  const [isAddSourceDialogOpen, setIsAddSourceDialogOpen] = useState(false);
   const [selectedUrlSource, setSelectedUrlSource] = useState<KnowledgeSource | undefined>(undefined);
   
   useEffect(() => {
@@ -93,17 +101,6 @@ const EnhancedKnowledgeTrainingStatus = ({
         description: "Your agent has been updated with the selected knowledge sources.",
       });
     }, 2000);
-  };
-
-  const handleAddNewSource = (type: string) => {
-    // In a real app, you would open different dialogs based on the type
-    console.log(`Adding new ${type} source`);
-    
-    if (type === 'url') {
-      // Open URL crawl dialog with no initial source
-      setSelectedUrlSource(undefined);
-      setIsCrawlDialogOpen(true);
-    }
   };
 
   const handleEditUrlSource = (source: KnowledgeSource) => {
@@ -153,6 +150,55 @@ const EnhancedKnowledgeTrainingStatus = ({
         });
       }
     }, 500);
+  };
+
+  const handleAddSource = (sourceType: SourceType, sourceId?: number, crawlOption?: 'single' | 'children') => {
+    // In a real app, you would call an API to add the source
+    console.log(`Adding ${sourceType} source with ID ${sourceId}`);
+    
+    // For this demo, we'll just add a new source to the list
+    const newId = Math.max(...knowledgeSources.map(s => s.id)) + 1;
+    
+    let newSource: KnowledgeSource = {
+      id: newId,
+      name: `New ${sourceType} Source ${newId}`,
+      type: sourceType,
+      size: '0 KB',
+      lastUpdated: new Date().toISOString().split('T')[0],
+      trainingStatus: 'idle'
+    };
+    
+    // Add specific properties based on source type
+    if (sourceType === 'url' && crawlOption) {
+      newSource = {
+        ...newSource,
+        name: 'New Website URL',
+        crawlOptions: crawlOption,
+        url: 'https://example.com/new'
+      };
+    } else if (sourceType === 'document') {
+      newSource = {
+        ...newSource,
+        name: 'New Document Collection',
+        documents: [
+          { id: `d${newId}1`, name: 'Document 1.pdf', type: 'pdf', size: '1.0 MB', selected: true },
+          { id: `d${newId}2`, name: 'Document 2.docx', type: 'docx', size: '0.5 MB', selected: true }
+        ]
+      };
+    } else if (sourceType === 'database') {
+      newSource = {
+        ...newSource,
+        name: 'New Database Connection'
+      };
+    }
+    
+    setKnowledgeSources(prev => [...prev, newSource]);
+    setSelectedSourceIds(prev => [...prev, newId]);
+    
+    toast({
+      title: "Source added successfully",
+      description: `A new ${sourceType} source has been added to your agent.`,
+    });
   };
 
   const handleRemoveSource = (sourceId: number) => {
@@ -238,51 +284,27 @@ const EnhancedKnowledgeTrainingStatus = ({
             </CardDescription>
           </div>
           <div>
-            <Dialog>
-              <DialogTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Source
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Knowledge Source</DialogTitle>
-                  <DialogDescription>
-                    Choose the type of knowledge source you want to add.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid grid-cols-3 gap-4 pt-4">
-                  <Button 
-                    variant="outline" 
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
-                    onClick={() => handleAddNewSource('document')}
-                  >
-                    <FileText className="h-8 w-8" />
-                    <span>Document</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
-                    onClick={() => handleAddNewSource('url')}
-                  >
-                    <Globe className="h-8 w-8" />
-                    <span>Website URL</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
-                    onClick={() => handleAddNewSource('database')}
-                  >
-                    <Database className="h-8 w-8" />
-                    <span>Database</span>
-                  </Button>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline">Cancel</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => setIsAddSourceDialogOpen(true)}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Add From Library
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  setSelectedUrlSource(undefined);
+                  setIsCrawlDialogOpen(true);
+                }}>
+                  <Globe className="h-4 w-4 mr-2" />
+                  Add New URL
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent>
@@ -337,6 +359,13 @@ const EnhancedKnowledgeTrainingStatus = ({
         onOpenChange={setIsCrawlDialogOpen}
         onCrawlComplete={handleCrawlComplete}
         knowledgeSource={selectedUrlSource}
+      />
+
+      {/* Add Source Dialog */}
+      <AddSourceDialog
+        open={isAddSourceDialogOpen}
+        onOpenChange={setIsAddSourceDialogOpen}
+        onAddSource={handleAddSource}
       />
     </div>
   );

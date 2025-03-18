@@ -1,4 +1,6 @@
 
+import React from 'react';
+
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -33,4 +35,14 @@ export interface SourceConfig {
   description: string;
   acceptedTypes?: string;
   placeholder?: string;
+}
+
+export interface SourceOption {
+  id: number;
+  name: string;
+  type: string;
+  size: string;
+  lastUpdated: string;
+  description?: string;
+  url?: string;
 }
