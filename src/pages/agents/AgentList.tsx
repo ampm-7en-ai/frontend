@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -112,6 +113,9 @@ const AgentList = () => {
     getModelBadgeColor 
   } = useAgentFiltering(agents);
 
+  // Fix for TypeScript errors: Ensure that filteredAgents is marked as EnhancedAgent[]
+  const deployedAgents: EnhancedAgent[] = filteredAgents.filter(agent => agent.isDeployed);
+
   return (
     <div className="space-y-6">
       <div>
@@ -176,7 +180,7 @@ const AgentList = () => {
 
         <TabsContent value="deployed">
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredAgents.filter(agent => agent.isDeployed).map((agent) => (
+            {deployedAgents.map((agent) => (
               <AgentCard 
                 key={agent.id} 
                 agent={agent}
