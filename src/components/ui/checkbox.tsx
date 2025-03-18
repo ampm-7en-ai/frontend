@@ -11,25 +11,16 @@ const Checkbox = React.forwardRef<
     indeterminate?: boolean
   }
 >(({ className, indeterminate, ...props }, ref) => {
-  const innerRef = React.useRef<HTMLButtonElement>(null)
+  // Use a React ref instead of directly setting the DOM property
+  const [isIndeterminate, setIsIndeterminate] = React.useState(!!indeterminate)
   
   React.useEffect(() => {
-    if (innerRef.current) {
-      innerRef.current.indeterminate = !!indeterminate
-    }
+    setIsIndeterminate(!!indeterminate)
   }, [indeterminate])
 
   return (
     <CheckboxPrimitive.Root
-      ref={(node) => {
-        // Handle both refs
-        if (typeof ref === 'function') {
-          ref(node)
-        } else if (ref) {
-          ref.current = node
-        }
-        innerRef.current = node
-      }}
+      ref={ref}
       className={cn(
         "peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
         className
@@ -39,7 +30,7 @@ const Checkbox = React.forwardRef<
       <CheckboxPrimitive.Indicator
         className={cn("flex items-center justify-center text-current")}
       >
-        {indeterminate ? (
+        {isIndeterminate ? (
           <Minus className="h-4 w-4" />
         ) : (
           <Check className="h-4 w-4" />
