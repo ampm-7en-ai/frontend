@@ -12,12 +12,14 @@ export interface KnowledgeSource {
     url: string;
     title: string;
     status: 'success' | 'error' | 'pending';
+    selected?: boolean;
   }[];
   documents?: {
     id: string;
     name: string;
     type: string;
     size: string;
+    selected?: boolean;
   }[];
   crawlOptions?: 'single' | 'children' | null;
 }
