@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -39,6 +38,10 @@ const mockSourceOptions: Record<SourceType, SourceOption[]> = {
   plainText: [
     { id: 601, name: 'Company FAQ', type: 'plainText', size: '12 KB', lastUpdated: '2024-03-10', description: 'Frequently asked questions and answers' },
     { id: 602, name: 'Release Notes', type: 'plainText', size: '45 KB', lastUpdated: '2024-03-05', description: 'Latest product release notes and updates' }
+  ],
+  thirdParty: [
+    { id: 701, name: 'Google Drive Integration', type: 'thirdParty', size: 'N/A', lastUpdated: '2024-03-18', description: 'Connected Google Drive documents' },
+    { id: 702, name: 'Dropbox Files', type: 'thirdParty', size: 'N/A', lastUpdated: '2024-03-17', description: 'Synced Dropbox files' }
   ]
 };
 
