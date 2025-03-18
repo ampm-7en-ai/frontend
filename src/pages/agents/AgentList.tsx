@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ const AgentList = () => {
       selectedModel: 'gpt4',
       temperature: 0.7,
       maxResponseLength: 'medium',
+      agentType: 'support',
       showOnMobile: true,
       collectVisitorData: true,
       autoShowAfter: 30,
@@ -57,6 +59,7 @@ const AgentList = () => {
       selectedModel: 'gpt35',
       temperature: 0.5,
       maxResponseLength: 'long',
+      agentType: 'technical',
       showOnMobile: true,
       collectVisitorData: true,
       autoShowAfter: 20,
@@ -85,6 +88,7 @@ const AgentList = () => {
       selectedModel: 'anthropic',
       temperature: 0.8,
       maxResponseLength: 'medium',
+      agentType: 'sales',
       showOnMobile: true,
       collectVisitorData: true,
       autoShowAfter: 15,
