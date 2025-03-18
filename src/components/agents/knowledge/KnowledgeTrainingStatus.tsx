@@ -1,12 +1,13 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './table/KnowledgeSourceTable';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import KnowledgeHeader from './components/KnowledgeHeader';
 import TrainingWarning from './components/TrainingWarning';
 import { useKnowledgeTraining } from './hooks/useKnowledgeTraining';
 import { mockKnowledgeSources } from './mockData';
+import { getToastMessageForSourceChange } from './knowledgeUtils';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -19,6 +20,7 @@ const KnowledgeTrainingStatus = ({
   initialSelectedSources = [], 
   onSourcesChange 
 }: KnowledgeTrainingStatusProps) => {
+  const { toast } = useToast();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const {

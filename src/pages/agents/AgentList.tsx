@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,9 +30,6 @@ const AgentList = () => {
       showOnMobile: true,
       collectVisitorData: true,
       autoShowAfter: 30,
-      conversations: 1254,
-      lastModified: '2023-12-10T14:30:00Z',
-      averageRating: 4.8,
       knowledgeSources: [
         { id: 1, name: 'Product Documentation', type: 'document', icon: 'BookOpen', hasError: false },
         { id: 2, name: 'Customer Support Guidelines', type: 'document', icon: 'BookOpen', hasError: true },
@@ -42,7 +38,10 @@ const AgentList = () => {
         { id: 5, name: 'Troubleshooting Guide', type: 'document', icon: 'BookOpen', hasError: true }
       ],
       model: 'gpt-4',
-      isDeployed: false
+      isDeployed: false,
+      conversations: 1254,
+      lastModified: '2023-12-10T14:30:00Z',
+      averageRating: 4.8
     },
     { 
       id: '2', 

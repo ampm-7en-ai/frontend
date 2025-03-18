@@ -1,5 +1,4 @@
-
-import { SourceType, SourceOption } from './types';
+import { SourceType, SourceOption, KnowledgeSource } from './types';
 
 export const mockSourceOptions: Record<SourceType, SourceOption[]> = {
   document: [
@@ -29,3 +28,25 @@ export const mockSourceOptions: Record<SourceType, SourceOption[]> = {
     { id: 702, name: 'Dropbox Files', type: 'thirdParty', size: 'N/A', lastUpdated: '2024-03-17', description: 'Synced Dropbox files' }
   ]
 };
+
+export const mockKnowledgeSources: KnowledgeSource[] = [
+  {
+    id: 1,
+    name: 'Product Manual.pdf',
+    type: 'document',
+    size: '5.2 MB',
+    lastUpdated: '2024-02-15',
+    trainingStatus: 'idle',
+    progress: 0
+  },
+  {
+    id: 2,
+    name: 'Knowledge Base',
+    type: 'url',
+    size: 'N/A',
+    lastUpdated: '2024-03-12',
+    trainingStatus: 'success',
+    progress: 100,
+    url: 'https://support.example.com'
+  }
+];
