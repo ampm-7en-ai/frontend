@@ -30,6 +30,22 @@ export const getStatusIndicator = (source: KnowledgeSource) => {
     );
   }
   
+  if (source.trainingStatus === 'training') {
+    return (
+      <div className="flex items-center gap-2 w-full max-w-[200px]">
+        <div className="flex-1 bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-primary h-2 rounded-full transition-all duration-300" 
+            style={{ width: `${source.progress || 0}%` }}>
+          </div>
+        </div>
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {source.progress}%
+        </span>
+      </div>
+    );
+  }
+  
   switch (source.trainingStatus) {
     case 'success':
       return (

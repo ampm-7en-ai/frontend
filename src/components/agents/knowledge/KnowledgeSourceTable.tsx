@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ const KnowledgeSourceTable = ({
   const [selectedUrlCount, setSelectedUrlCount] = useState<Record<number, number>>({});
 
   const shouldShowTrainButton = (source: KnowledgeSource) => {
-    return source.trainingStatus === 'error' || source.linkBroken;
+    return source.trainingStatus === 'error' || source.trainingStatus === 'idle' || source.linkBroken;
   };
 
   const toggleRowExpansion = (sourceId: number) => {
@@ -332,18 +331,7 @@ const KnowledgeSourceTable = ({
                   </TableCell>
                   <TableCell className="py-2">
                     <div className="flex items-center">
-                      {getSourceTypeIcon(source.type)}
-                      <span className="ml-2 font-medium">{source.name}</span>
-                      {source.linkBroken && (
-                        <span className="ml-2 text-xs text-orange-500 flex items-center gap-1">
-                          <Link2Off className="h-3 w-3" /> Broken Link
-                        </span>
-                      )}
-                      {source.trainingStatus === 'error' && !source.linkBroken && (
-                        <span className="ml-2 text-xs text-red-500 flex items-center gap-1">
-                          <LoaderCircle className="h-3 w-3" /> Training Failed
-                        </span>
-                      )}
+                      {getStatusIndicator(source)}
                     </div>
                   </TableCell>
                   <TableCell className="py-2">{source.size}</TableCell>
@@ -377,7 +365,7 @@ const KnowledgeSourceTable = ({
                           className="h-8 px-2"
                         >
                           <Zap className="h-3.5 w-3.5 mr-1" />
-                          Train
+                          {source.trainingStatus === 'error' ? 'Retry' : 'Train'}
                         </Button>
                       )}
                       {source.type === 'url' && onEditUrlSource && (
@@ -402,7 +390,6 @@ const KnowledgeSourceTable = ({
                   </TableCell>
                 </TableRow>
 
-                {/* Expandable row for additional information */}
                 {expandedRows[source.id] && (
                   <TableRow className="bg-muted/30">
                     <TableCell colSpan={6} className="p-0 border-t-0">

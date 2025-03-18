@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off } from 'lucide-react';
+import { LoaderCircle, Import, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
 import { KnowledgeSource } from './types';
@@ -25,7 +24,6 @@ const KnowledgeTrainingStatus = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
   
-  // Enhanced mock data with our new properties
   const mockKnowledgeSources: KnowledgeSource[] = [
     { 
       id: 1, 
@@ -162,7 +160,6 @@ const KnowledgeTrainingStatus = ({
       const source = externalKnowledgeSources.find(s => s.id === id);
       const sourceCopy = { ...source };
       
-      // Add additional properties based on source type
       let enhancedSource: KnowledgeSource = {
         id: source!.id,
         name: source!.name,
@@ -174,7 +171,6 @@ const KnowledgeTrainingStatus = ({
         linkBroken: sourceCopy.linkBroken || false
       };
 
-      // Add crawl options for URL sources
       if (source!.type === 'url') {
         enhancedSource.crawlOptions = 'single';
       }
@@ -221,56 +217,44 @@ const KnowledgeTrainingStatus = ({
     
     toast(getTrainingStatusToast('start', sourceName));
 
-    const intervalId = setInterval(() => {
-      setKnowledgeSources(prev => {
-        const sourceTrain = prev.find(s => s.id === sourceId);
-        if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
-          return prev.map(s => 
-            s.id === sourceId 
-              ? { ...s, progress: (s.progress || 0) + 10 } 
-              : s
-          );
-        } else {
-          clearInterval(intervalId);
-          return prev;
-        }
-      });
-    }, 500);
-
-    setTimeout(() => {
-      clearInterval(intervalId);
-      
-      const success = Math.random() > 0.2;
-      
-      // Generate mock inside links for webpage sources on successful training
-      let updatedSource: Partial<KnowledgeSource> = {
-        trainingStatus: success ? 'success' : 'error',
-        progress: 100,
-        linkBroken: knowledgeSources[sourceIndex].linkBroken && success ? false : knowledgeSources[sourceIndex].linkBroken
-      };
-      
-      // For webpages and URLs, generate mock inside links on successful training
-      if (success && (sourceType === 'webpage' || (sourceType === 'url' && knowledgeSources[sourceIndex].crawlOptions === 'children'))) {
-        updatedSource.insideLinks = [
-          { url: 'https://example.com/products/feature1', title: 'Feature 1', status: 'success' },
-          { url: 'https://example.com/products/feature2', title: 'Feature 2', status: 'success' },
-          { url: 'https://example.com/blog/post1', title: 'Blog Post 1', status: 'success' },
-          { url: 'https://example.com/support/faq', title: 'FAQ', status: 'pending' }
-        ];
+    try {
+      for (let progress = 0; progress <= 100; progress += 10) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setKnowledgeSources(prev => 
+          prev.map(source => 
+            source.id === sourceId 
+              ? { ...source, progress, trainingStatus: 'training' } 
+              : source
+          )
+        );
       }
+
+      const success = Math.random() > 0.2;
       
       setKnowledgeSources(prev => 
         prev.map(source => 
           source.id === sourceId 
-            ? { ...source, ...updatedSource } 
+            ? { 
+                ...source, 
+                trainingStatus: success ? 'success' : 'error',
+                progress: 100,
+                linkBroken: source.linkBroken && success ? false : source.linkBroken
+              } 
             : source
         )
       );
       
       toast(getTrainingStatusToast(success ? 'success' : 'error', sourceName));
-      
-      setNeedsRetraining(true);
-    }, 5000);
+    } catch (error) {
+      setKnowledgeSources(prev => 
+        prev.map(source => 
+          source.id === sourceId 
+            ? { ...source, trainingStatus: 'error', progress: 100 } 
+            : source
+        )
+      );
+      toast(getTrainingStatusToast('error', sourceName));
+    }
   };
 
   const trainAllSources = async () => {
@@ -291,73 +275,11 @@ const KnowledgeTrainingStatus = ({
     });
 
     for (const source of knowledgeSources) {
-      setKnowledgeSources(prev => 
-        prev.map(s => 
-          s.id === source.id 
-            ? { ...s, trainingStatus: 'training', progress: 0 } 
-            : s
-        )
-      );
-
-      await new Promise<void>((resolve) => {
-        const intervalId = setInterval(() => {
-          setKnowledgeSources(prev => {
-            const sourceTrain = prev.find(s => s.id === source.id);
-            if (sourceTrain && sourceTrain.trainingStatus === 'training' && (sourceTrain.progress || 0) < 100) {
-              return prev.map(s => 
-                s.id === source.id 
-                  ? { ...s, progress: (s.progress || 0) + 20 } 
-                  : s
-              );
-            } else {
-              clearInterval(intervalId);
-              return prev;
-            }
-          });
-        }, 300);
-
-        setTimeout(() => {
-          clearInterval(intervalId);
-          const success = Math.random() > 0.2;
-          
-          // Generate mock inside links for webpage sources on successful training
-          let updatedSource: Partial<KnowledgeSource> = {
-            trainingStatus: success ? 'success' : 'error',
-            progress: 100,
-            linkBroken: source.linkBroken && success ? false : source.linkBroken
-          };
-          
-          // For webpages and URLs, generate mock inside links on successful training
-          if (success && (source.type === 'webpage' || (source.type === 'url' && source.crawlOptions === 'children'))) {
-            updatedSource.insideLinks = [
-              { url: 'https://example.com/products/feature1', title: 'Feature 1', status: 'success' },
-              { url: 'https://example.com/products/feature2', title: 'Feature 2', status: 'success' },
-              { url: 'https://example.com/blog/post1', title: 'Blog Post 1', status: 'success' },
-              { url: 'https://example.com/support/faq', title: 'FAQ', status: 'pending' }
-            ];
-          }
-          
-          setKnowledgeSources(prev => 
-            prev.map(s => 
-              s.id === source.id 
-                ? { ...s, ...updatedSource }
-                : s
-            )
-          );
-          
-          resolve();
-        }, 2000);
-      });
+      await trainSource(source.id);
     }
 
     setIsTrainingAll(false);
-    
     setNeedsRetraining(false);
-    
-    toast({
-      title: "Training complete",
-      description: "All knowledge sources have been processed.",
-    });
   };
 
   return (
@@ -420,3 +342,4 @@ const KnowledgeTrainingStatus = ({
 };
 
 export default KnowledgeTrainingStatus;
+
