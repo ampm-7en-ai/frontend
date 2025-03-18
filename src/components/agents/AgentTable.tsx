@@ -31,16 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
-import { Agent, KnowledgeSource } from '@/types/agent';
-
-interface EnhancedAgent extends Agent {
-  conversations: number;
-  lastModified: string;
-  averageRating: number;
-  knowledgeSources: KnowledgeSource[];
-  model: string;
-  isDeployed: boolean;
-}
+import { Agent, KnowledgeSource, EnhancedAgent } from '@/types/agent';
 
 interface AgentTableProps {
   agents: EnhancedAgent[];

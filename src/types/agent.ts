@@ -47,3 +47,13 @@ export interface Agent {
   conversations?: number;
   averageRating?: number;
 }
+
+// This interface extends Agent with additional display properties used in lists/tables
+export interface EnhancedAgent extends Omit<Agent, 'knowledgeSources'> {
+  conversations: number;
+  lastModified: string;
+  averageRating: number;
+  knowledgeSources: KnowledgeSource[];
+  model: string;
+  isDeployed: boolean;
+}

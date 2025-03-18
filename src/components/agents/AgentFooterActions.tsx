@@ -1,12 +1,13 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Rocket, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeploymentDialog from './DeploymentDialog';
-import { Agent } from '@/types/agent';
+import { Agent, EnhancedAgent } from '@/types/agent';
 
 interface AgentFooterActionsProps {
-  agent: Agent;
+  agent: Agent | EnhancedAgent;
 }
 
 const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {

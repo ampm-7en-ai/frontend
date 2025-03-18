@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CalendarClock, MessageSquare } from 'lucide-react';
 import { 
@@ -12,17 +13,10 @@ import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
 import AgentKnowledgeSection from './AgentKnowledgeSection';
 import AgentFooterActions from './AgentFooterActions';
-import { Agent, KnowledgeSource } from '@/types/agent';
+import { EnhancedAgent } from '@/types/agent';
 
 interface AgentCardProps {
-  agent: Agent & {
-    conversations: number;
-    lastModified: string;
-    averageRating: number;
-    knowledgeSources: KnowledgeSource[];
-    model: string;
-    isDeployed: boolean;
-  };
+  agent: EnhancedAgent;
   getModelBadgeColor: (model: string) => string;
 }
 
