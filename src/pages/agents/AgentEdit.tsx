@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
+import EnhancedKnowledgeTrainingStatus from '@/components/agents/knowledge/EnhancedKnowledgeTrainingStatus';
 
 // Sample knowledge sources data
 const knowledgeSources = [
@@ -500,7 +500,7 @@ const AgentEdit = () => {
         </TabsContent>
         
         <TabsContent value="knowledge" className="space-y-6 mt-6">
-          <KnowledgeTrainingStatus 
+          <EnhancedKnowledgeTrainingStatus 
             agentId={agentId || ''} 
             initialSelectedSources={agent.knowledgeSources}
             onSourcesChange={handleKnowledgeSourcesChange}

@@ -22,4 +22,5 @@ export interface KnowledgeSource {
     selected?: boolean;
   }[];
   crawlOptions?: 'single' | 'children' | null;
+  url?: string;
 }
