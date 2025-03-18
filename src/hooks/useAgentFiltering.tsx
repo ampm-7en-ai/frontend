@@ -1,15 +1,36 @@
 
 import { useState, useMemo } from 'react';
-import { EnhancedAgent } from '@/types/agent';
 
-export const useAgentFiltering = (agents: EnhancedAgent[]): {
+interface KnowledgeSource {
+  id: number;
+  name: string;
+  type: string;
+  icon: string;
+  hasError: boolean;
+}
+
+export interface Agent {
+  id: string;
+  name: string;
+  description: string;
+  conversations: number;
+  lastModified: string;
+  averageRating: number;
+  knowledgeSources: KnowledgeSource[];
+  model: string;
+  isDeployed: boolean;
+}
+
+interface UseAgentFilteringResult {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   modelFilter: string;
   setModelFilter: (filter: string) => void;
-  filteredAgents: EnhancedAgent[];
+  filteredAgents: Agent[];
   getModelBadgeColor: (model: string) => string;
-} => {
+}
+
+export const useAgentFiltering = (agents: Agent[]): UseAgentFilteringResult => {
   const [searchQuery, setSearchQuery] = useState('');
   const [modelFilter, setModelFilter] = useState('all');
 
@@ -40,4 +61,3 @@ export const useAgentFiltering = (agents: EnhancedAgent[]): {
     getModelBadgeColor,
   };
 };
-

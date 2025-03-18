@@ -13,10 +13,25 @@ import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
 import AgentKnowledgeSection from './AgentKnowledgeSection';
 import AgentFooterActions from './AgentFooterActions';
-import { EnhancedAgent } from '@/types/agent';
 
 interface AgentCardProps {
-  agent: EnhancedAgent;
+  agent: {
+    id: string;
+    name: string;
+    description: string;
+    conversations: number;
+    lastModified: string;
+    averageRating: number;
+    knowledgeSources: Array<{
+      id: number;
+      name: string;
+      type: string;
+      icon: string;
+      hasError: boolean;
+    }>;
+    model: string;
+    isDeployed: boolean;
+  };
   getModelBadgeColor: (model: string) => string;
 }
 

@@ -4,32 +4,19 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bot, Search, Rocket } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAgentFiltering } from '@/hooks/useAgentFiltering';
+import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
-import { EnhancedAgent } from '@/types/agent';
 
 const AgentList = () => {
   // Mock data - in a real app, this would come from an API
-  const agents: EnhancedAgent[] = [
+  const agents: Agent[] = [
     { 
       id: '1', 
       name: 'Customer Support', 
       description: 'General customer support agent', 
-      status: 'active',
-      primaryColor: '#4f46e5',
-      secondaryColor: '#ffffff',
-      fontFamily: 'Inter',
-      chatbotName: 'Support Bot',
-      welcomeMessage: 'How can I help you today?',
-      buttonText: 'Chat with us',
-      position: 'bottom-right',
-      selectedModel: 'gpt4',
-      temperature: 0.7,
-      maxResponseLength: 'medium',
-      agentType: 'support',
-      showOnMobile: true,
-      collectVisitorData: true,
-      autoShowAfter: 30,
+      conversations: 1254,
+      lastModified: '2023-12-10T14:30:00Z',
+      averageRating: 4.8,
       knowledgeSources: [
         { id: 1, name: 'Product Documentation', type: 'document', icon: 'BookOpen', hasError: false },
         { id: 2, name: 'Customer Support Guidelines', type: 'document', icon: 'BookOpen', hasError: true },
@@ -38,30 +25,12 @@ const AgentList = () => {
         { id: 5, name: 'Troubleshooting Guide', type: 'document', icon: 'BookOpen', hasError: true }
       ],
       model: 'gpt-4',
-      isDeployed: false,
-      conversations: 1254,
-      lastModified: '2023-12-10T14:30:00Z',
-      averageRating: 4.8
+      isDeployed: false
     },
     { 
       id: '2', 
       name: 'Product Specialist', 
       description: 'Technical product information and troubleshooting', 
-      status: 'active',
-      primaryColor: '#10b981',
-      secondaryColor: '#ffffff',
-      fontFamily: 'Roboto',
-      chatbotName: 'Product Bot',
-      welcomeMessage: 'Need help with our products?',
-      buttonText: 'Product Help',
-      position: 'bottom-right',
-      selectedModel: 'gpt35',
-      temperature: 0.5,
-      maxResponseLength: 'long',
-      agentType: 'technical',
-      showOnMobile: true,
-      collectVisitorData: true,
-      autoShowAfter: 20,
       conversations: 856,
       lastModified: '2023-12-05T09:15:00Z',
       averageRating: 4.6,
@@ -76,21 +45,6 @@ const AgentList = () => {
       id: '3', 
       name: 'Sales Assistant', 
       description: 'Helps with product recommendations and sales inquiries', 
-      status: 'active',
-      primaryColor: '#f97316',
-      secondaryColor: '#ffffff',
-      fontFamily: 'Poppins',
-      chatbotName: 'Sales Bot',
-      welcomeMessage: 'Looking to make a purchase?',
-      buttonText: 'Talk to Sales',
-      position: 'bottom-left',
-      selectedModel: 'anthropic',
-      temperature: 0.8,
-      maxResponseLength: 'medium',
-      agentType: 'sales',
-      showOnMobile: true,
-      collectVisitorData: true,
-      autoShowAfter: 15,
       conversations: 532,
       lastModified: '2023-11-28T16:45:00Z',
       averageRating: 4.4,
@@ -111,8 +65,6 @@ const AgentList = () => {
     filteredAgents, 
     getModelBadgeColor 
   } = useAgentFiltering(agents);
-
-  const deployedAgents = filteredAgents.filter(agent => agent.isDeployed);
 
   return (
     <div className="space-y-6">
@@ -178,7 +130,7 @@ const AgentList = () => {
 
         <TabsContent value="deployed">
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {deployedAgents.map((agent) => (
+            {filteredAgents.filter(agent => agent.isDeployed).map((agent) => (
               <AgentCard 
                 key={agent.id} 
                 agent={agent}

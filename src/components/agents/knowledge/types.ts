@@ -1,6 +1,4 @@
 
-import React from 'react';
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -24,25 +22,4 @@ export interface KnowledgeSource {
     selected?: boolean;
   }[];
   crawlOptions?: 'single' | 'children' | null;
-  url?: string;
-}
-
-export type SourceType = 'document' | 'url' | 'database' | 'csv' | 'plainText' | 'thirdParty';
-
-export interface SourceConfig {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  acceptedTypes?: string;
-  placeholder?: string;
-}
-
-export interface SourceOption {
-  id: number;
-  name: string;
-  type: string;
-  size: string;
-  lastUpdated: string;
-  description?: string;
-  url?: string;
 }
