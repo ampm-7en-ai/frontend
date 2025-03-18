@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Separator } from '@/components/ui/separator';
+import { Agent } from '@/types/agent';
 
 interface AppearanceSectionProps {
-  agent: any;
+  agent: Agent;
   onAgentChange: (name: string, value: any) => void;
 }
 

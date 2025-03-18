@@ -31,25 +31,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
+import { Agent, KnowledgeSource } from '@/types/agent';
+
+interface EnhancedAgent extends Agent {
+  conversations: number;
+  lastModified: string;
+  averageRating: number;
+  knowledgeSources: KnowledgeSource[];
+  model: string;
+  isDeployed: boolean;
+}
 
 interface AgentTableProps {
-  agents: Array<{
-    id: string;
-    name: string;
-    description: string;
-    conversations: number;
-    lastModified: string;
-    averageRating: number;
-    knowledgeSources: Array<{
-      id: number;
-      name: string;
-      type: string;
-      icon: string;
-      hasError: boolean;
-    }>;
-    model: string;
-    isDeployed: boolean;
-  }>;
+  agents: EnhancedAgent[];
   getModelBadgeColor: (model: string) => string;
 }
 

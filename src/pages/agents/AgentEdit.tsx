@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import EnhancedKnowledgeTrainingStatus from '@/components/agents/knowledge/Enhan
 import GeneralSection from '@/components/agents/edit/GeneralSection';
 import AppearanceSection from '@/components/agents/edit/AppearanceSection';
 import AdvancedSection from '@/components/agents/edit/AdvancedSection';
+import { Agent } from '@/types/agent';
 
 const AgentEdit = () => {
   const { agentId } = useParams();
@@ -15,8 +17,8 @@ const AgentEdit = () => {
   const { toast } = useToast();
   
   // Mock data for agent (in a real app, you would fetch this from an API)
-  const [agent, setAgent] = useState({
-    id: agentId,
+  const [agent, setAgent] = useState<Agent>({
+    id: agentId || '',
     name: "Customer Support Agent",
     description: "This agent helps customers with their inquiries and provides support.",
     status: "active",

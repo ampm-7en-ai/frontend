@@ -1,28 +1,9 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Rocket, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeploymentDialog from './DeploymentDialog';
-
-interface Agent {
-  id: string;
-  name: string;
-  isDeployed: boolean;
-  // Add other properties as needed for DeploymentDialog
-  description: string;
-  conversations: number;
-  lastModified: string;
-  averageRating: number;
-  knowledgeSources: Array<{
-    id: number;
-    name: string;
-    type: string;
-    icon: string;
-    hasError: boolean;
-  }>;
-  model: string;
-}
+import { Agent } from '@/types/agent';
 
 interface AgentFooterActionsProps {
   agent: Agent;

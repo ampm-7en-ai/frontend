@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CpuIcon, BrainCircuit, Sliders } from 'lucide-react';
+import { Agent, AgentModelType, AgentResponseLength } from '@/types/agent';
 
 interface AdvancedSectionProps {
-  agent: any;
+  agent: Agent;
   onAgentChange: (name: string, value: any) => void;
 }
 

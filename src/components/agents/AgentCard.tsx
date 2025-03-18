@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CalendarClock, MessageSquare } from 'lucide-react';
 import { 
@@ -13,22 +12,14 @@ import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
 import AgentKnowledgeSection from './AgentKnowledgeSection';
 import AgentFooterActions from './AgentFooterActions';
+import { Agent, KnowledgeSource } from '@/types/agent';
 
 interface AgentCardProps {
-  agent: {
-    id: string;
-    name: string;
-    description: string;
+  agent: Agent & {
     conversations: number;
     lastModified: string;
     averageRating: number;
-    knowledgeSources: Array<{
-      id: number;
-      name: string;
-      type: string;
-      icon: string;
-      hasError: boolean;
-    }>;
+    knowledgeSources: KnowledgeSource[];
     model: string;
     isDeployed: boolean;
   };

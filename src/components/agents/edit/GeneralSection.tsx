@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Agent } from '@/types/agent';
 
 interface GeneralSectionProps {
-  agent: any;
+  agent: Agent;
   onAgentChange: (name: string, value: any) => void;
 }
 
