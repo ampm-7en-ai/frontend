@@ -1,14 +1,20 @@
 
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { FileText, Database, Globe, FileSpreadsheet, FileType, Box } from 'lucide-react';
-import { SourceType, SourceOption } from './types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { SourceType, SourceOption } from './types';
+import { FileText, Database, Globe, FileSpreadsheet, FileType, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Mock source options
 const mockSourceOptions: Record<SourceType, SourceOption[]> = {
@@ -33,77 +39,7 @@ const mockSourceOptions: Record<SourceType, SourceOption[]> = {
   plainText: [
     { id: 601, name: 'Company FAQ', type: 'plainText', size: '12 KB', lastUpdated: '2024-03-10', description: 'Frequently asked questions and answers' },
     { id: 602, name: 'Release Notes', type: 'plainText', size: '45 KB', lastUpdated: '2024-03-05', description: 'Latest product release notes and updates' }
-  ],
-  thirdParty: [
-    { id: 701, name: 'Google Drive Integration', type: 'thirdParty', size: 'Varies', lastUpdated: '2024-03-18', description: 'Access documents from your organization\'s Google Drive' },
-    { id: 702, name: 'SharePoint Connection', type: 'thirdParty', size: 'Varies', lastUpdated: '2024-03-15', description: 'Connect to your SharePoint document library' }
   ]
-};
-
-// URL Crawl Options component
-interface UrlCrawlOptionsProps {
-  url: string;
-  onComplete: (option: 'single' | 'children') => void;
-  onBack: () => void;
-}
-
-const UrlCrawlOptions: React.FC<UrlCrawlOptionsProps> = ({ url, onComplete, onBack }) => {
-  const [selectedOption, setSelectedOption] = useState<'single' | 'children'>('single');
-  
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Configure Crawl Options</h3>
-        <Button variant="outline" size="sm" onClick={onBack}>
-          Back
-        </Button>
-      </div>
-      
-      <div className="py-2">
-        <p className="text-sm text-muted-foreground mb-2">URL: {url}</p>
-        
-        <div className="space-y-4 mt-4">
-          <div className="flex items-start space-x-2">
-            <Checkbox 
-              id="single-option" 
-              checked={selectedOption === 'single'} 
-              onCheckedChange={() => setSelectedOption('single')}
-            />
-            <div className="grid gap-1.5">
-              <Label htmlFor="single-option" className="font-medium">
-                Single URL
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Only crawl this specific URL and extract its content.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-2">
-            <Checkbox 
-              id="children-option" 
-              checked={selectedOption === 'children'} 
-              onCheckedChange={() => setSelectedOption('children')}
-            />
-            <div className="grid gap-1.5">
-              <Label htmlFor="children-option" className="font-medium">
-                Crawl Children URLs
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Crawl this URL and extract links found on the page.
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex justify-end mt-6">
-          <Button onClick={() => onComplete(selectedOption)}>
-            Start Crawling
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 interface AddSourceDialogProps {
@@ -117,151 +53,206 @@ const AddSourceDialog: React.FC<AddSourceDialogProps> = ({
   onOpenChange, 
   onAddSource 
 }) => {
-  const [activeTab, setActiveTab] = useState<SourceType>('document');
-  const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
-  const [showUrlOptions, setShowUrlOptions] = useState(false);
-  const [selectedUrl, setSelectedUrl] = useState('');
+  const [selectedSourceType, setSelectedSourceType] = useState<SourceType | null>(null);
+  const [selectedSources, setSelectedSources] = useState<number[]>([]);
+  const [crawlUrls, setCrawlUrls] = useState<string[]>([]);
+  const [isTraining, setIsTraining] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [newUrl, setNewUrl] = useState('');
 
-  // Reset state when dialog opens or closes
-  React.useEffect(() => {
-    if (!open) {
-      // Short timeout to ensure dialog is fully closed before resetting state
-      setTimeout(() => {
-        setSelectedSourceId(null);
-        setShowUrlOptions(false);
-        setSelectedUrl('');
-      }, 100);
-    }
-  }, [open]);
+  const handleSourceTypeSelect = (type: SourceType) => {
+    setSelectedSourceType(type);
+    setSelectedSources([]);
+    setCrawlUrls([]);
+  };
 
   const handleSourceSelect = (id: number) => {
-    setSelectedSourceId(id);
+    setSelectedSources(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(sourceId => sourceId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
   };
 
-  const handleSourceAdd = () => {
-    if (activeTab === 'url' && selectedSourceId) {
-      const selectedSource = mockSourceOptions.url.find(source => source.id === selectedSourceId);
-      if (selectedSource?.url) {
-        setSelectedUrl(selectedSource.url);
-        setShowUrlOptions(true);
-        return;
+  const handleAddUrl = () => {
+    if (newUrl && !crawlUrls.includes(newUrl)) {
+      setCrawlUrls(prev => [...prev, newUrl]);
+      setNewUrl('');
+    }
+  };
+
+  const handleTrain = async () => {
+    setIsTraining(true);
+    setProgress(0);
+
+    // For URL type with crawling
+    if (selectedSourceType === 'url' && crawlUrls.length > 0) {
+      for (const url of crawlUrls) {
+        await onAddSource('url', undefined, 'children');
+        setProgress(prev => Math.min(prev + (100 / crawlUrls.length), 100));
+      }
+    } else {
+      // For other source types
+      for (const sourceId of selectedSources) {
+        await onAddSource(selectedSourceType!, sourceId);
+        setProgress(prev => Math.min(prev + (100 / selectedSources.length), 100));
       }
     }
-    
-    onAddSource(activeTab, selectedSourceId || undefined);
+
+    setIsTraining(false);
     onOpenChange(false);
   };
 
-  const handleUrlCrawlComplete = (option: 'single' | 'children') => {
-    onAddSource('url', selectedSourceId, option);
-    setShowUrlOptions(false);
-    onOpenChange(false);
-  };
-
-  const getSourceIcon = (type: string) => {
+  const getSourceIcon = (type: SourceType) => {
     switch (type) {
-      case 'pdf':
-      case 'docx':
-        return <FileText className="h-5 w-5 text-blue-500" />;
+      case 'document':
+        return <FileText className="h-4 w-4" />;
       case 'database':
-        return <Database className="h-5 w-5 text-purple-500" />;
+        return <Database className="h-4 w-4" />;
       case 'url':
-        return <Globe className="h-5 w-5 text-green-500" />;
+        return <Globe className="h-4 w-4" />;
       case 'csv':
-        return <FileSpreadsheet className="h-5 w-5 text-emerald-500" />;
+        return <FileSpreadsheet className="h-4 w-4" />;
       case 'plainText':
-        return <FileType className="h-5 w-5 text-amber-500" />;
-      case 'thirdParty':
-        return <Box className="h-5 w-5 text-indigo-500" />;
-      default:
-        return <FileText className="h-5 w-5 text-gray-500" />;
+        return <FileType className="h-4 w-4" />;
     }
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as SourceType);
-    setSelectedSourceId(null);
+  const renderSourceList = () => {
+    if (!selectedSourceType) return null;
+
+    if (selectedSourceType === 'url') {
+      return (
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter URL"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+            />
+            <Button onClick={handleAddUrl}>Add URL</Button>
+          </div>
+          
+          {crawlUrls.length > 0 && (
+            <div className="space-y-2">
+              <Label>URLs to crawl:</Label>
+              <ScrollArea className="h-[200px] border rounded-md p-2">
+                {crawlUrls.map((url, index) => (
+                  <div key={index} className="flex items-center space-x-2 py-2">
+                    <Checkbox
+                      checked={selectedSources.includes(index)}
+                      onCheckedChange={() => handleSourceSelect(index)}
+                    />
+                    <span className="text-sm">{url}</span>
+                  </div>
+                ))}
+              </ScrollArea>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <ScrollArea className="h-[300px]">
+        <div className="space-y-2">
+          {mockSourceOptions[selectedSourceType].map((source) => (
+            <div
+              key={source.id}
+              className="flex items-start space-x-3 p-3 rounded-lg border"
+            >
+              <Checkbox
+                checked={selectedSources.includes(source.id)}
+                onCheckedChange={() => handleSourceSelect(source.id)}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  {getSourceIcon(selectedSourceType)}
+                  <p className="font-medium text-sm">{source.name}</p>
+                </div>
+                <p className="text-sm text-muted-foreground">{source.description}</p>
+                <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
+                  <span>Size: {source.size}</span>
+                  <span>Updated: {source.lastUpdated}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>Add Knowledge Source</DialogTitle>
-          <DialogDescription>
-            Select the type of knowledge source you want to add to your agent.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="flex items-center gap-2">
+            Add Source
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={() => handleSourceTypeSelect('document')}>
+            <FileText className="h-4 w-4 mr-2" />
+            Documents
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSourceTypeSelect('url')}>
+            <Globe className="h-4 w-4 mr-2" />
+            URLs
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSourceTypeSelect('database')}>
+            <Database className="h-4 w-4 mr-2" />
+            Database
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSourceTypeSelect('csv')}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            CSV
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSourceTypeSelect('plainText')}>
+            <FileType className="h-4 w-4 mr-2" />
+            Plain Text
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-        {showUrlOptions ? (
-          <UrlCrawlOptions 
-            url={selectedUrl} 
-            onComplete={handleUrlCrawlComplete} 
-            onBack={() => setShowUrlOptions(false)} 
-          />
-        ) : (
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full">
-              <TabsTrigger value="document">Documents</TabsTrigger>
-              <TabsTrigger value="url">URLs</TabsTrigger>
-              <TabsTrigger value="database">Database</TabsTrigger>
-              <TabsTrigger value="csv">CSV</TabsTrigger>
-              <TabsTrigger value="plainText">Plain Text</TabsTrigger>
-              <TabsTrigger value="thirdParty">Third Party</TabsTrigger>
-            </TabsList>
-            
-            {(Object.keys(mockSourceOptions) as SourceType[]).map((sourceType) => (
-              <TabsContent key={sourceType} value={sourceType} className="pt-4">
-                <div className="mb-4">
-                  <Input placeholder={`Search ${sourceType}...`} />
-                </div>
-                
-                <ScrollArea className="h-[300px] rounded-md border p-4">
-                  <div className="space-y-2">
-                    {mockSourceOptions[sourceType].map((source) => (
-                      <div 
-                        key={source.id} 
-                        className={`flex items-start p-3 rounded-md cursor-pointer ${
-                          selectedSourceId === source.id ? 'bg-primary/10 border border-primary/20' : 'hover:bg-muted'
-                        }`}
-                        onClick={() => handleSourceSelect(source.id)}
-                      >
-                        <div className="mr-3 mt-1">{getSourceIcon(source.type)}</div>
-                        <div className="flex-1">
-                          <div className="font-medium">{source.name}</div>
-                          <div className="text-sm text-muted-foreground">{source.description || source.url || 'No description'}</div>
-                          <div className="flex mt-1 text-xs text-muted-foreground">
-                            <span className="mr-4">Size: {source.size}</span>
-                            <span>Updated: {source.lastUpdated}</span>
-                          </div>
-                        </div>
-                        <Checkbox 
-                          checked={selectedSourceId === source.id}
-                          className="mt-1"
-                          onCheckedChange={() => handleSourceSelect(source.id)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                
-                <div className="flex justify-between mt-4">
-                  <Button variant="outline" onClick={() => onOpenChange(false)}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleSourceAdd}
-                    disabled={!selectedSourceId}
-                  >
-                    Add Selected Source
-                  </Button>
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        )}
-      </DialogContent>
-    </Dialog>
+      <Dialog open={selectedSourceType !== null} onOpenChange={() => setSelectedSourceType(null)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add {selectedSourceType} Source</DialogTitle>
+            <DialogDescription>
+              Select the sources you want to add to your knowledge base
+            </DialogDescription>
+          </DialogHeader>
+
+          {renderSourceList()}
+
+          {isTraining && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Training...</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <Progress value={progress} />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setSelectedSourceType(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleTrain}
+              disabled={isTraining || (selectedSources.length === 0 && crawlUrls.length === 0)}
+            >
+              {isTraining ? 'Training...' : 'Train Selected Sources'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
