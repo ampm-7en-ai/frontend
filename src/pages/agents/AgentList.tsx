@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Bot, Search, Rocket } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAgentFiltering } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
-import { EnhancedAgent, KnowledgeSource } from '@/types/agent';
+import { EnhancedAgent } from '@/types/agent';
 
 const AgentList = () => {
   // Mock data - in a real app, this would come from an API
@@ -113,8 +112,7 @@ const AgentList = () => {
     getModelBadgeColor 
   } = useAgentFiltering(agents);
 
-  // Fix for TypeScript errors: Ensure that filteredAgents is marked as EnhancedAgent[]
-  const deployedAgents: EnhancedAgent[] = filteredAgents.filter(agent => agent.isDeployed);
+  const deployedAgents = filteredAgents.filter(agent => agent.isDeployed);
 
   return (
     <div className="space-y-6">
