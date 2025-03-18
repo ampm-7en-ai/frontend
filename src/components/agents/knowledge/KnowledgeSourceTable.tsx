@@ -2,26 +2,34 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown } from 'lucide-react';
+import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown, Minus } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { getSourceTypeIcon, getStatusIndicator } from './knowledgeUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface KnowledgeSourceTableProps {
   sources: KnowledgeSource[];
-  onTrainSource: (sourceId: number) => void;
-  onRemoveSource: (sourceId: number) => void;
+  selectedSourceIds?: number[];
+  onSelectionChange?: (sourceIds: number[]) => void;
+  onTrainSource?: (sourceId: number) => void;
+  onRemoveSource?: (sourceId: number) => void;
+  onRetrainSource?: () => void;
+  onEditUrlSource?: (source: KnowledgeSource) => void;
   onUpdateSource?: (sourceId: number, data: Partial<KnowledgeSource>) => void;
 }
 
 const KnowledgeSourceTable = ({ 
   sources, 
-  onTrainSource, 
-  onRemoveSource,
+  selectedSourceIds = [],
+  onSelectionChange,
+  onTrainSource = () => {},
+  onRemoveSource = () => {},
+  onRetrainSource = () => {},
+  onEditUrlSource,
   onUpdateSource 
 }: KnowledgeSourceTableProps) => {
   const { toast } = useToast();
@@ -160,7 +168,9 @@ const KnowledgeSourceTable = ({
     }
     
     // Call train function
-    onTrainSource(sourceId);
+    if (onTrainSource) {
+      onTrainSource(sourceId);
+    }
     
     toast({
       title: "Retraining started",
@@ -190,14 +200,14 @@ const KnowledgeSourceTable = ({
               <Checkbox 
                 id={`select-all-links-${source.id}`}
                 checked={allSelected}
-                indeterminate={someSelected}
+                className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
                 onCheckedChange={(checked) => selectAllLinks(source.id, !!checked)}
               />
               <Label 
                 htmlFor={`select-all-links-${source.id}`}
                 className="text-xs cursor-pointer"
               >
-                {allSelected ? "Deselect All" : "Select All"}
+                {allSelected ? "Deselect All" : someSelected ? "Select All" : "Select All"}
               </Label>
             </div>
             <Button 
@@ -254,14 +264,14 @@ const KnowledgeSourceTable = ({
               <Checkbox 
                 id={`select-all-docs-${source.id}`}
                 checked={allSelected}
-                indeterminate={someSelected}
+                className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
                 onCheckedChange={(checked) => selectAllDocuments(source.id, !!checked)}
               />
               <Label 
                 htmlFor={`select-all-docs-${source.id}`}
                 className="text-xs cursor-pointer"
               >
-                {allSelected ? "Deselect All" : "Select All"}
+                {allSelected ? "Deselect All" : someSelected ? "Select All" : "Select All"}
               </Label>
             </div>
             <Button 
@@ -412,6 +422,16 @@ const KnowledgeSourceTable = ({
                         >
                           <Zap className="h-3.5 w-3.5 mr-1" />
                           Train
+                        </Button>
+                      )}
+                      {source.type === 'url' && onEditUrlSource && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onEditUrlSource(source)}
+                          className="h-8 px-2"
+                        >
+                          <Link className="h-3.5 w-3.5" />
                         </Button>
                       )}
                       <Button 

@@ -111,6 +111,70 @@ const EnhancedKnowledgeTrainingStatus = ({
     setIsCrawlDialogOpen(true);
   };
 
+  const handleTrainSource = (sourceId: number) => {
+    // In a real app, you would call an API to train the source
+    console.log(`Training source ${sourceId}`);
+    
+    // For this demo, we'll just update the source status
+    setKnowledgeSources(prev => 
+      prev.map(source => 
+        source.id === sourceId 
+          ? { ...source, trainingStatus: 'training', progress: 0 } 
+          : source
+      )
+    );
+    
+    // Simulate training progress
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      
+      if (progress <= 100) {
+        setKnowledgeSources(prev => 
+          prev.map(source => 
+            source.id === sourceId 
+              ? { ...source, progress } 
+              : source
+          )
+        );
+      } else {
+        clearInterval(interval);
+        setKnowledgeSources(prev => 
+          prev.map(source => 
+            source.id === sourceId 
+              ? { ...source, trainingStatus: 'success', progress: 100 } 
+              : source
+          )
+        );
+        
+        toast({
+          title: "Source trained successfully",
+          description: "The knowledge source has been trained and is now available for use.",
+        });
+      }
+    }, 500);
+  };
+
+  const handleRemoveSource = (sourceId: number) => {
+    setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
+    setSelectedSourceIds(prev => prev.filter(id => id !== sourceId));
+    
+    toast({
+      title: "Source removed",
+      description: "The knowledge source has been removed from your agent.",
+    });
+  };
+
+  const handleUpdateSource = (sourceId: number, data: Partial<KnowledgeSource>) => {
+    setKnowledgeSources(prev => 
+      prev.map(source => 
+        source.id === sourceId 
+          ? { ...source, ...data } 
+          : source
+      )
+    );
+  };
+
   const handleCrawlComplete = (urls: { url: string; title: string; selected: boolean }[]) => {
     if (selectedUrlSource) {
       // Update existing source
@@ -226,7 +290,9 @@ const EnhancedKnowledgeTrainingStatus = ({
             sources={knowledgeSources} 
             selectedSourceIds={selectedSourceIds}
             onSelectionChange={handleSourceSelectionChange}
-            onRetrainSource={() => {}}
+            onTrainSource={handleTrainSource}
+            onRemoveSource={handleRemoveSource}
+            onUpdateSource={handleUpdateSource}
             onEditUrlSource={handleEditUrlSource}
           />
           
