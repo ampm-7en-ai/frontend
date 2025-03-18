@@ -122,6 +122,18 @@ const AddSourceDialog: React.FC<AddSourceDialogProps> = ({
   const [showUrlOptions, setShowUrlOptions] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState('');
 
+  // Reset state when dialog opens or closes
+  React.useEffect(() => {
+    if (!open) {
+      // Short timeout to ensure dialog is fully closed before resetting state
+      setTimeout(() => {
+        setSelectedSourceId(null);
+        setShowUrlOptions(false);
+        setSelectedUrl('');
+      }, 100);
+    }
+  }, [open]);
+
   const handleSourceSelect = (id: number) => {
     setSelectedSourceId(id);
   };
@@ -166,6 +178,11 @@ const AddSourceDialog: React.FC<AddSourceDialogProps> = ({
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as SourceType);
+    setSelectedSourceId(null);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
@@ -183,7 +200,7 @@ const AddSourceDialog: React.FC<AddSourceDialogProps> = ({
             onBack={() => setShowUrlOptions(false)} 
           />
         ) : (
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as SourceType)}>
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full">
               <TabsTrigger value="document">Documents</TabsTrigger>
               <TabsTrigger value="url">URLs</TabsTrigger>
