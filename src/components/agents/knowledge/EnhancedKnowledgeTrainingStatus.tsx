@@ -23,6 +23,7 @@ const EnhancedKnowledgeTrainingStatus: React.FC<EnhancedKnowledgeTrainingStatusP
   const [trainedSources, setTrainedSources] = useState<SourceOption[]>([]);
   const [isTraining, setIsTraining] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleSourceTrained = async (sourceType: SourceType, sourceId?: number, crawlOption?: 'single' | 'children') => {
@@ -73,7 +74,11 @@ const EnhancedKnowledgeTrainingStatus: React.FC<EnhancedKnowledgeTrainingStatusP
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <AddSourceDialog onAddSource={handleSourceTrained} />
+        <AddSourceDialog 
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onAddSource={handleSourceTrained}
+        />
       </div>
 
       <Card>
@@ -111,14 +116,14 @@ const EnhancedKnowledgeTrainingStatus: React.FC<EnhancedKnowledgeTrainingStatusP
                     <TableCell className="font-medium">{source.name}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {getSourceIcon(source.type)}
+                        {getSourceIcon(source.type as SourceType)}
                         <span className="capitalize">{source.type}</span>
                       </div>
                     </TableCell>
                     <TableCell>{source.size}</TableCell>
                     <TableCell>{new Date(source.lastUpdated).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Badge variant="success">Trained</Badge>
+                      <Badge variant="default">Trained</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
