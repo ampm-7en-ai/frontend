@@ -24,3 +24,13 @@ export interface KnowledgeSource {
   crawlOptions?: 'single' | 'children' | null;
   url?: string;
 }
+
+export type SourceType = 'document' | 'url' | 'database' | 'csv' | 'plainText' | 'thirdParty';
+
+export interface SourceConfig {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  acceptedTypes?: string;
+  placeholder?: string;
+}
