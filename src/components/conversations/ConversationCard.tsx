@@ -43,16 +43,8 @@ const ConversationCard = ({
     >
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
-          <div className="flex items-center gap-2">
-            <div className={cn(
-              "w-2 h-2 rounded-full",
-              conversation.status === 'active' ? "bg-emerald-500" : 
-              conversation.status === 'pending' ? "bg-amber-400" : "bg-slate-300"
-            )} />
-            <div>
-              <h3 className="font-medium text-gray-800 text-sm">{conversation.customer}</h3>
-              <div className="text-xs text-gray-500">{conversation.topic}</div>
-            </div>
+          <div>
+            <h3 className="font-medium text-gray-800 text-sm">{conversation.customer}</h3>
           </div>
           <div className="text-xs text-gray-400 font-light">
             {conversation.time}
@@ -76,12 +68,6 @@ const ConversationCard = ({
               </div>
             )}
           </div>
-          
-          {conversation.agent && (
-            <div className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full border border-blue-100">
-              {conversation.agent}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
