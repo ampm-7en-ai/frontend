@@ -2,7 +2,6 @@
 import React from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
-import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Instagram, Slack, Mail, Phone } from 'lucide-react';
 
 interface ConversationListPanelProps {
@@ -69,7 +68,7 @@ const ConversationListPanel = ({
   };
 
   return (
-    <div className="border-r flex flex-col h-full">
+    <div className="flex flex-col h-full">
       <ConversationFilters 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -81,7 +80,7 @@ const ConversationListPanel = ({
         setAgentTypeFilter={setAgentTypeFilter}
       />
       
-      <div className="overflow-y-auto flex-1 p-2">
+      <div className="overflow-y-auto flex-1 p-3">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-2 opacity-20" />
@@ -92,7 +91,7 @@ const ConversationListPanel = ({
           </div>
         ) : (
           filteredConversations.map((conversation) => (
-            <div key={conversation.id} className="mb-2 relative">
+            <div key={conversation.id} className="mb-3 relative">
               {conversation.channel && (
                 <div className="absolute left-1 top-2 z-10">
                   <div className={`flex items-center justify-center w-6 h-6 rounded-full shadow-sm ${getChannelColorClass(conversation.channel)}`}>
@@ -100,11 +99,13 @@ const ConversationListPanel = ({
                   </div>
                 </div>
               )}
-              <ConversationCard 
-                conversation={conversation}
-                isSelected={selectedConversation === conversation.id}
-                onClick={() => setSelectedConversation(conversation.id)}
-              />
+              <div className="pl-6">
+                <ConversationCard 
+                  conversation={conversation}
+                  isSelected={selectedConversation === conversation.id}
+                  onClick={() => setSelectedConversation(conversation.id)}
+                />
+              </div>
             </div>
           ))
         )}
