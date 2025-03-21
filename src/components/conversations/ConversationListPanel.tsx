@@ -35,17 +35,17 @@ const ConversationListPanel = ({
   const getChannelIcon = (channel: string) => {
     switch (channel) {
       case 'instagram':
-        return <Instagram className="h-4 w-4" />;
+        return <Instagram className="h-4 w-4 text-pink-500" />;
       case 'slack':
-        return <Slack className="h-4 w-4" />;
+        return <Slack className="h-4 w-4 text-purple-500" />;
       case 'whatsapp':
-        return <MessageSquare className="h-4 w-4" />;
+        return <MessageSquare className="h-4 w-4 text-emerald-500" />;
       case 'freshdesk':
-        return <Mail className="h-4 w-4" />;
+        return <Mail className="h-4 w-4 text-blue-500" />;
       case 'phone':
-        return <Phone className="h-4 w-4" />;
+        return <Phone className="h-4 w-4 text-amber-500" />;
       default:
-        return <MessageSquare className="h-4 w-4" />;
+        return <MessageSquare className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -53,22 +53,22 @@ const ConversationListPanel = ({
   const getChannelColorClass = (channel: string) => {
     switch (channel) {
       case 'instagram':
-        return 'bg-pink-100 text-pink-800 border-pink-200';
+        return 'bg-pink-50 text-pink-600 border-pink-100';
       case 'slack':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-purple-50 text-purple-600 border-purple-100';
       case 'whatsapp':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-emerald-50 text-emerald-600 border-emerald-100';
       case 'freshdesk':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-50 text-blue-600 border-blue-100';
       case 'phone':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-amber-50 text-amber-600 border-amber-100';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-50 text-gray-600 border-gray-100';
     }
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white border-r">
       <ConversationFilters 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -83,9 +83,9 @@ const ConversationListPanel = ({
       <div className="overflow-y-auto flex-1 p-3">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4">
-            <MessageSquare className="h-12 w-12 text-muted-foreground mb-2 opacity-20" />
-            <h3 className="font-medium">No conversations found</h3>
-            <p className="text-sm text-muted-foreground mt-1">
+            <MessageSquare className="h-12 w-12 text-gray-300 mb-2" />
+            <h3 className="font-medium text-gray-700">No conversations found</h3>
+            <p className="text-sm text-gray-500 mt-1">
               Try adjusting your filters
             </p>
           </div>
