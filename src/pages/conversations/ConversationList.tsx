@@ -22,6 +22,7 @@ const ConversationList = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>('conv1');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [channelFilter, setChannelFilter] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -45,9 +46,10 @@ const ConversationList = () => {
       conv.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()) ||
       conv.topic.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesFilter = filterStatus === 'all' || conv.status === filterStatus;
+    const matchesStatus = filterStatus === 'all' || conv.status === filterStatus;
+    const matchesChannel = channelFilter === 'all' || conv.channel === channelFilter;
     
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesStatus && matchesChannel;
   });
 
   const handleSendMessage = (message: string) => {
@@ -82,6 +84,8 @@ const ConversationList = () => {
               selectedConversation={selectedConversation}
               setSelectedConversation={setSelectedConversation}
               getPriorityIndicator={getPriorityIndicator}
+              channelFilter={channelFilter}
+              setChannelFilter={setChannelFilter}
             />
           </ResizablePanel>
           
@@ -136,6 +140,8 @@ const ConversationList = () => {
             selectedConversation={selectedConversation}
             setSelectedConversation={setSelectedConversation}
             getPriorityIndicator={getPriorityIndicator}
+            channelFilter={channelFilter}
+            setChannelFilter={setChannelFilter}
           />
         </div>
         

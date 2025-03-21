@@ -12,6 +12,8 @@ interface ConversationListPanelProps {
   selectedConversation: string | null;
   setSelectedConversation: (id: string) => void;
   getPriorityIndicator: (priority: string) => React.ReactNode;
+  channelFilter: string;
+  setChannelFilter: (channel: string) => void;
 }
 
 const ConversationListPanel = ({
@@ -22,7 +24,9 @@ const ConversationListPanel = ({
   filteredConversations,
   selectedConversation,
   setSelectedConversation,
-  getPriorityIndicator
+  getPriorityIndicator,
+  channelFilter,
+  setChannelFilter
 }: ConversationListPanelProps) => {
   return (
     <div className="border-r flex flex-col h-full">
@@ -31,6 +35,8 @@ const ConversationListPanel = ({
         setSearchQuery={setSearchQuery}
         filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
+        channelFilter={channelFilter}
+        setChannelFilter={setChannelFilter}
       />
       
       <div className="overflow-y-auto flex-1 p-2">
