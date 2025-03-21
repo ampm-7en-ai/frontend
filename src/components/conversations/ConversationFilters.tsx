@@ -2,7 +2,25 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Check, X, MessageSquare, Instagram, Slack, Mail, Phone } from 'lucide-react';
+import { 
+  Search, 
+  Check, 
+  X, 
+  MessageSquare, 
+  Instagram, 
+  Slack, 
+  Mail, 
+  Phone,
+  Tags,
+  Filter
+} from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 
 interface ConversationFiltersProps {
   searchQuery: string;
@@ -33,90 +51,111 @@ const ConversationFilters = ({
         />
       </div>
       
-      <div className="flex gap-2 mt-4">
-        <Button 
-          variant={filterStatus === 'all' ? "default" : "outline"} 
-          size="sm" 
-          onClick={() => setFilterStatus('all')}
-          className="font-medium"
-        >
-          All
-        </Button>
-        <Button 
-          variant={filterStatus === 'unresolved' ? "default" : "outline"} 
-          size="sm"
-          onClick={() => setFilterStatus('unresolved')}
-          className="flex items-center gap-1"
-        >
-          <X className="h-3.5 w-3.5" />
-          Unresolved
-        </Button>
-        <Button 
-          variant={filterStatus === 'resolved' ? "default" : "outline"} 
-          size="sm"
-          onClick={() => setFilterStatus('resolved')}
-          className="flex items-center gap-1"
-        >
-          <Check className="h-3.5 w-3.5" />
-          Resolved
-        </Button>
+      <div className="flex gap-2 mt-4 items-center justify-between">
+        <div className="flex gap-2">
+          <Button 
+            variant={filterStatus === 'all' ? "default" : "outline"} 
+            size="sm" 
+            onClick={() => setFilterStatus('all')}
+            className="font-medium"
+          >
+            All
+          </Button>
+          <Button 
+            variant={filterStatus === 'unresolved' ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setFilterStatus('unresolved')}
+            className="flex items-center gap-1"
+          >
+            <X className="h-3.5 w-3.5" />
+            Unresolved
+          </Button>
+          <Button 
+            variant={filterStatus === 'resolved' ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setFilterStatus('resolved')}
+            className="flex items-center gap-1"
+          >
+            <Check className="h-3.5 w-3.5" />
+            Resolved
+          </Button>
+        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Filter className="h-3.5 w-3.5" />
+              Channels
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuCheckboxItem 
+              checked={channelFilter === 'all'}
+              onCheckedChange={() => setChannelFilter('all')}
+            >
+              All Channels
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem 
+              checked={channelFilter === 'whatsapp'}
+              onCheckedChange={() => setChannelFilter('whatsapp')}
+              className="flex items-center gap-2"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              WhatsApp
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem 
+              checked={channelFilter === 'slack'}
+              onCheckedChange={() => setChannelFilter('slack')}
+              className="flex items-center gap-2"
+            >
+              <Slack className="h-3.5 w-3.5" />
+              Slack
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem 
+              checked={channelFilter === 'instagram'}
+              onCheckedChange={() => setChannelFilter('instagram')}
+              className="flex items-center gap-2"
+            >
+              <Instagram className="h-3.5 w-3.5" />
+              Instagram
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem 
+              checked={channelFilter === 'freshdesk'}
+              onCheckedChange={() => setChannelFilter('freshdesk')}
+              className="flex items-center gap-2"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              Freshdesk
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem 
+              checked={channelFilter === 'phone'}
+              onCheckedChange={() => setChannelFilter('phone')}
+              className="flex items-center gap-2"
+            >
+              <Phone className="h-3.5 w-3.5" />
+              Phone
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       
-      <div className="flex gap-2 mt-2 flex-wrap">
-        <Button 
-          variant={channelFilter === 'all' ? "secondary" : "outline"} 
-          size="sm"
-          onClick={() => setChannelFilter('all')}
-          className="h-7"
-        >
-          All Channels
-        </Button>
-        <Button 
-          variant={channelFilter === 'whatsapp' ? "secondary" : "outline"} 
-          size="sm"
-          onClick={() => setChannelFilter('whatsapp')}
-          className="flex items-center gap-1 h-7"
-        >
-          <MessageSquare className="h-3 w-3" />
-          WhatsApp
-        </Button>
-        <Button 
-          variant={channelFilter === 'slack' ? "secondary" : "outline"} 
-          size="sm"
-          onClick={() => setChannelFilter('slack')}
-          className="flex items-center gap-1 h-7"
-        >
-          <Slack className="h-3 w-3" />
-          Slack
-        </Button>
-        <Button 
-          variant={channelFilter === 'instagram' ? "secondary" : "outline"} 
-          size="sm"
-          onClick={() => setChannelFilter('instagram')}
-          className="flex items-center gap-1 h-7"
-        >
-          <Instagram className="h-3 w-3" />
-          Instagram
-        </Button>
-        <Button 
-          variant={channelFilter === 'freshdesk' ? "secondary" : "outline"} 
-          size="sm"
-          onClick={() => setChannelFilter('freshdesk')}
-          className="flex items-center gap-1 h-7"
-        >
-          <Mail className="h-3 w-3" />
-          Freshdesk
-        </Button>
-        <Button 
-          variant={channelFilter === 'phone' ? "secondary" : "outline"} 
-          size="sm"
-          onClick={() => setChannelFilter('phone')}
-          className="flex items-center gap-1 h-7"
-        >
-          <Phone className="h-3 w-3" />
-          Phone
-        </Button>
-      </div>
+      {channelFilter !== 'all' && (
+        <div className="mt-3 flex items-center gap-2">
+          <Tags className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">
+            Filtering by: <span className="font-medium capitalize">{channelFilter}</span>
+          </span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-5 p-0"
+            onClick={() => setChannelFilter('all')}
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

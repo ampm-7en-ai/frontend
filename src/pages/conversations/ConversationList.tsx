@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -12,12 +11,34 @@ import MessageContainer from '@/components/conversations/MessageContainer';
 import ConversationDetailsPanel from '@/components/conversations/ConversationDetailsPanel';
 import ConversationSidebar from '@/components/conversations/ConversationSidebar';
 
+interface Conversation {
+  id: string;
+  customer: string;
+  email: string;
+  lastMessage: string;
+  time: string;
+  status: string;
+  agent: string;
+  satisfaction: string;
+  priority: string;
+  duration: string;
+  handoffCount: number;
+  topic: string;
+  channel: string;
+  messages: Array<any>;
+}
+
 const ConversationList = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { conversations } = useConversations();
+  const { conversations: originalConversations } = useConversations();
   const { getStatusBadge, getPriorityIndicator, getSatisfactionIndicator } = useConversationUtils();
+  
+  const conversations = originalConversations.map(conv => ({
+    ...conv,
+    channel: conv.channel || 'whatsapp'
+  }));
   
   const [selectedConversation, setSelectedConversation] = useState<string | null>('conv1');
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,7 +147,6 @@ const ConversationList = () => {
     );
   }
 
-  // Mobile/tablet layout
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden">
       <div className="flex h-full">
