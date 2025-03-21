@@ -1,6 +1,6 @@
 
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Flag, Zap, Star } from 'lucide-react';
+import { CheckCircle, Flag, Zap, Star, ThumbsUp, ThumbsDown } from 'lucide-react';
 import React from 'react';
 
 export const useConversationUtils = () => {
