@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +26,7 @@ interface Conversation {
   topic: string;
   channel: string;
   messages: Array<any>;
+  agentType?: 'human' | 'ai';
 }
 
 const ConversationList = () => {
@@ -34,18 +34,19 @@ const ConversationList = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { conversations: originalConversations } = useConversations();
-  const { getStatusBadge, getPriorityIndicator, getSatisfactionIndicator } = useConversationUtils();
+  const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
-  // Ensure each conversation has a channel property
   const conversations = originalConversations.map(conv => ({
     ...conv,
-    channel: conv.channel || 'whatsapp'
+    channel: conv.channel || 'whatsapp',
+    agentType: conv.agentType || (Math.random() > 0.5 ? 'ai' : 'human')
   }));
   
   const [selectedConversation, setSelectedConversation] = useState<string | null>('conv1');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
+  const [agentTypeFilter, setAgentTypeFilter] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -71,8 +72,9 @@ const ConversationList = () => {
     
     const matchesStatus = filterStatus === 'all' || conv.status === filterStatus;
     const matchesChannel = channelFilter === 'all' || conv.channel === channelFilter;
+    const matchesAgentType = agentTypeFilter === 'all' || conv.agentType === agentTypeFilter;
     
-    return matchesSearch && matchesStatus && matchesChannel;
+    return matchesSearch && matchesStatus && matchesChannel && matchesAgentType;
   });
 
   const handleSendMessage = (message: string) => {
@@ -106,9 +108,10 @@ const ConversationList = () => {
               filteredConversations={filteredConversations}
               selectedConversation={selectedConversation}
               setSelectedConversation={setSelectedConversation}
-              getPriorityIndicator={getPriorityIndicator}
               channelFilter={channelFilter}
               setChannelFilter={setChannelFilter}
+              agentTypeFilter={agentTypeFilter}
+              setAgentTypeFilter={setAgentTypeFilter}
             />
           </ResizablePanel>
           
@@ -161,9 +164,10 @@ const ConversationList = () => {
             filteredConversations={filteredConversations}
             selectedConversation={selectedConversation}
             setSelectedConversation={setSelectedConversation}
-            getPriorityIndicator={getPriorityIndicator}
             channelFilter={channelFilter}
             setChannelFilter={setChannelFilter}
+            agentTypeFilter={agentTypeFilter}
+            setAgentTypeFilter={setAgentTypeFilter}
           />
         </div>
         

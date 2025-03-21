@@ -13,9 +13,10 @@ interface ConversationListPanelProps {
   filteredConversations: any[];
   selectedConversation: string | null;
   setSelectedConversation: (id: string) => void;
-  getPriorityIndicator: (priority: string) => React.ReactNode;
   channelFilter: string;
   setChannelFilter: (channel: string) => void;
+  agentTypeFilter: string;
+  setAgentTypeFilter: (type: string) => void;
 }
 
 const ConversationListPanel = ({
@@ -26,9 +27,10 @@ const ConversationListPanel = ({
   filteredConversations,
   selectedConversation,
   setSelectedConversation,
-  getPriorityIndicator,
   channelFilter,
-  setChannelFilter
+  setChannelFilter,
+  agentTypeFilter,
+  setAgentTypeFilter
 }: ConversationListPanelProps) => {
   // Helper function to get channel icon
   const getChannelIcon = (channel: string) => {
@@ -75,6 +77,8 @@ const ConversationListPanel = ({
         setFilterStatus={setFilterStatus}
         channelFilter={channelFilter}
         setChannelFilter={setChannelFilter}
+        agentTypeFilter={agentTypeFilter}
+        setAgentTypeFilter={setAgentTypeFilter}
       />
       
       <div className="overflow-y-auto flex-1 p-2">
@@ -100,7 +104,6 @@ const ConversationListPanel = ({
                 conversation={conversation}
                 isSelected={selectedConversation === conversation.id}
                 onClick={() => setSelectedConversation(conversation.id)}
-                getPriorityIndicator={getPriorityIndicator}
               />
             </div>
           ))

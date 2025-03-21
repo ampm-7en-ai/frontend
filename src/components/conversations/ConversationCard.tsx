@@ -25,14 +25,12 @@ interface ConversationCardProps {
   conversation: Conversation;
   isSelected: boolean;
   onClick: () => void;
-  getPriorityIndicator: (priority: string) => React.ReactNode;
 }
 
 const ConversationCard = ({ 
   conversation, 
   isSelected, 
-  onClick, 
-  getPriorityIndicator 
+  onClick
 }: ConversationCardProps) => {
   return (
     <Card 
@@ -75,7 +73,6 @@ const ConversationCard = ({
               </div>
             )}
           </div>
-          {getPriorityIndicator(conversation.priority)}
         </div>
       </CardContent>
     </Card>

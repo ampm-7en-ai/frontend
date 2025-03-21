@@ -12,17 +12,11 @@ import {
   Slack, 
   Mail, 
   Phone,
-  Filter
+  Filter,
+  User,
+  Bot
 } from 'lucide-react';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel
-} from '@/components/ui/dropdown-menu';
-import {
   Select,
   SelectContent,
   SelectGroup,
@@ -39,6 +33,8 @@ interface ConversationFiltersProps {
   setFilterStatus: (status: string) => void;
   channelFilter: string;
   setChannelFilter: (channel: string) => void;
+  agentTypeFilter: string;
+  setAgentTypeFilter: (type: string) => void;
 }
 
 const ConversationFilters = ({
@@ -47,7 +43,9 @@ const ConversationFilters = ({
   filterStatus,
   setFilterStatus,
   channelFilter,
-  setChannelFilter
+  setChannelFilter,
+  agentTypeFilter,
+  setAgentTypeFilter
 }: ConversationFiltersProps) => {
   return (
     <div className="p-4 border-b">
@@ -61,28 +59,13 @@ const ConversationFilters = ({
         />
       </div>
       
-      <div className="mb-4">
+      <div className="mb-4 grid grid-cols-2 gap-2">
         <Select 
           value={channelFilter}
           onValueChange={setChannelFilter}
         >
           <SelectTrigger className="w-full">
-            <div className="flex items-center gap-2">
-              {channelFilter === 'all' ? (
-                <Filter className="h-4 w-4" />
-              ) : channelFilter === 'whatsapp' ? (
-                <MessageSquare className="h-4 w-4" />
-              ) : channelFilter === 'slack' ? (
-                <Slack className="h-4 w-4" />
-              ) : channelFilter === 'instagram' ? (
-                <Instagram className="h-4 w-4" />
-              ) : channelFilter === 'freshdesk' ? (
-                <Mail className="h-4 w-4" />
-              ) : (
-                <Phone className="h-4 w-4" />
-              )}
-              <SelectValue placeholder="Select Channel" />
-            </div>
+            <SelectValue placeholder="Select Channel" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -121,6 +104,33 @@ const ConversationFilters = ({
             </SelectGroup>
           </SelectContent>
         </Select>
+
+        <Select 
+          value={agentTypeFilter}
+          onValueChange={setAgentTypeFilter}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Agent Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Agent Type</SelectLabel>
+              <SelectItem value="all">All Agents</SelectItem>
+              <SelectItem value="human">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>Human</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="ai">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  <span>AI Agent</span>
+                </div>
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
       
       <Tabs value={filterStatus} onValueChange={setFilterStatus} className="w-full">
@@ -139,32 +149,53 @@ const ConversationFilters = ({
         </TabsList>
       </Tabs>
       
-      {channelFilter !== 'all' && (
-        <div className="mt-4 flex items-center gap-2 p-2 bg-muted/50 rounded-md text-sm">
-          <span className="font-medium">Active filter:</span>
-          <span className="flex items-center gap-1.5 text-muted-foreground capitalize">
-            {channelFilter === 'whatsapp' ? (
-              <><MessageSquare className="h-3.5 w-3.5" /> WhatsApp</>
-            ) : channelFilter === 'slack' ? (
-              <><Slack className="h-3.5 w-3.5" /> Slack</>
-            ) : channelFilter === 'instagram' ? (
-              <><Instagram className="h-3.5 w-3.5" /> Instagram</>
-            ) : channelFilter === 'freshdesk' ? (
-              <><Mail className="h-3.5 w-3.5" /> Freshdesk</>
-            ) : (
-              <><Phone className="h-3.5 w-3.5" /> Phone</>
-            )}
-          </span>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-5 p-0 ml-auto"
-            onClick={() => setChannelFilter('all')}
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      )}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {channelFilter !== 'all' && (
+          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md text-sm">
+            <span className="text-muted-foreground capitalize">
+              {channelFilter === 'whatsapp' ? (
+                <><MessageSquare className="h-3.5 w-3.5 inline mr-1.5" /> WhatsApp</>
+              ) : channelFilter === 'slack' ? (
+                <><Slack className="h-3.5 w-3.5 inline mr-1.5" /> Slack</>
+              ) : channelFilter === 'instagram' ? (
+                <><Instagram className="h-3.5 w-3.5 inline mr-1.5" /> Instagram</>
+              ) : channelFilter === 'freshdesk' ? (
+                <><Mail className="h-3.5 w-3.5 inline mr-1.5" /> Freshdesk</>
+              ) : (
+                <><Phone className="h-3.5 w-3.5 inline mr-1.5" /> Phone</>
+              )}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-5 p-0 ml-auto"
+              onClick={() => setChannelFilter('all')}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+        
+        {agentTypeFilter !== 'all' && (
+          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md text-sm">
+            <span className="text-muted-foreground capitalize">
+              {agentTypeFilter === 'human' ? (
+                <><User className="h-3.5 w-3.5 inline mr-1.5" /> Human</>
+              ) : (
+                <><Bot className="h-3.5 w-3.5 inline mr-1.5" /> AI Agent</>
+              )}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-5 p-0 ml-auto"
+              onClick={() => setAgentTypeFilter('all')}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
