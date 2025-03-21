@@ -1,6 +1,6 @@
 
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { CheckCircle, Flag, Zap, Star } from 'lucide-react';
 import React from 'react';
 
 export const useConversationUtils = () => {
@@ -20,11 +20,11 @@ export const useConversationUtils = () => {
   const getPriorityIndicator = (priority: string) => {
     switch (priority) {
       case 'high':
-        return <Badge variant="outline" className="border-red-500 text-red-500"><AlertCircle className="h-3 w-3 mr-1" /> High</Badge>;
+        return <Zap className="h-4 w-4 text-amber-500" aria-label="High Priority" />;
       case 'normal':
-        return <Badge variant="outline" className="border-blue-500 text-blue-500"><CheckCircle className="h-3 w-3 mr-1" /> Normal</Badge>;
+        return <Star className="h-4 w-4 text-blue-400" aria-label="Normal Priority" />;
       case 'low':
-        return <Badge variant="outline" className="border-green-500 text-green-500"><ThumbsUp className="h-3 w-3 mr-1" /> Low</Badge>;
+        return <Flag className="h-4 w-4 text-gray-400" aria-label="Low Priority" />;
       default:
         return null;
     }

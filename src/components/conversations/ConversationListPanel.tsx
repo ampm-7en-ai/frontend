@@ -90,15 +90,11 @@ const ConversationListPanel = ({
           filteredConversations.map((conversation) => (
             <div key={conversation.id} className="mb-2 relative">
               {conversation.channel && (
-                <Badge 
-                  variant="outline" 
-                  className={`absolute -left-1 -top-1 z-10 flex items-center gap-1.5 text-xs px-2 py-1 ${getChannelColorClass(conversation.channel)}`}
-                >
-                  {getChannelIcon(conversation.channel)}
-                  <span className="capitalize text-[10px] font-medium">
-                    {conversation.channel === 'freshdesk' ? 'Email' : conversation.channel}
-                  </span>
-                </Badge>
+                <div className="absolute left-1 top-2 z-10">
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full shadow-sm ${getChannelColorClass(conversation.channel)}`}>
+                    {getChannelIcon(conversation.channel)}
+                  </div>
+                </div>
               )}
               <ConversationCard 
                 conversation={conversation}
