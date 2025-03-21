@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +36,7 @@ const ConversationList = () => {
   const { conversations: originalConversations } = useConversations();
   const { getStatusBadge, getPriorityIndicator, getSatisfactionIndicator } = useConversationUtils();
   
+  // Ensure each conversation has a channel property
   const conversations = originalConversations.map(conv => ({
     ...conv,
     channel: conv.channel || 'whatsapp'
