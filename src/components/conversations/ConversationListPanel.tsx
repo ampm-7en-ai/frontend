@@ -87,7 +87,7 @@ const ConversationListPanel = ({
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-2 opacity-20" />
             <h3 className="font-medium">No conversations found</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Try adjusting your filters or search query
+              Try adjusting your filters
             </p>
           </div>
         ) : (

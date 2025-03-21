@@ -36,17 +36,13 @@ const ConversationList = () => {
   const { conversations: originalConversations } = useConversations();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
-  const conversations = originalConversations.map(conv => ({
-    ...conv,
-    channel: conv.channel || 'whatsapp',
-    agentType: conv.agentType || (Math.random() > 0.5 ? 'ai' : 'human')
-  }));
+  const conversations = originalConversations;
   
   const [selectedConversation, setSelectedConversation] = useState<string | null>('conv1');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [channelFilter, setChannelFilter] = useState('all');
-  const [agentTypeFilter, setAgentTypeFilter] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('resolved');
+  const [channelFilter, setChannelFilter] = useState('instagram');
+  const [agentTypeFilter, setAgentTypeFilter] = useState('human');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -65,16 +61,11 @@ const ConversationList = () => {
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 
   const filteredConversations = conversations.filter(conv => {
-    const matchesSearch = 
-      conv.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.topic.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesStatus = filterStatus === 'all' || conv.status === filterStatus;
     const matchesChannel = channelFilter === 'all' || conv.channel === channelFilter;
     const matchesAgentType = agentTypeFilter === 'all' || conv.agentType === agentTypeFilter;
     
-    return matchesSearch && matchesStatus && matchesChannel && matchesAgentType;
+    return matchesStatus && matchesChannel && matchesAgentType;
   });
 
   const handleSendMessage = (message: string) => {
