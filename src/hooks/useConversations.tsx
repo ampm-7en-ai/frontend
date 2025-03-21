@@ -18,6 +18,7 @@ export const useConversations = () => {
       handoffCount: 0,
       topic: 'Account Setup',
       channel: 'whatsapp',
+      agentType: 'ai',
       messages: [
         { id: 'm1', content: 'Hello, I need help with setting up my account.', sender: 'user', timestamp: '2 hours ago' },
         { id: 'm2', content: 'Hi John! I\'d be happy to help you set up your account. Can you tell me what specific step you\'re having trouble with?', sender: 'bot', timestamp: '2 hours ago', agent: 'Sales Bot' },
@@ -41,6 +42,7 @@ export const useConversations = () => {
       handoffCount: 3,
       topic: 'Billing Issue',
       channel: 'slack',
+      agentType: 'human',
       messages: [
         { id: 'm1', content: 'Hello, I need help with my subscription. I was charged twice this month.', sender: 'user', timestamp: '3 hours ago' },
         { id: 'm2', content: 'Hi Michael! I\'m the General Bot. I understand you\'re having billing concerns. Let me check your account details.', sender: 'bot', timestamp: '3 hours ago', agent: 'General Bot' },
@@ -76,6 +78,7 @@ export const useConversations = () => {
       handoffCount: 1,
       topic: 'Pricing Plans',
       channel: 'instagram',
+      agentType: 'ai',
       messages: [
         { id: 'm1', content: 'Hi there! I\'m interested in your product but can\'t find detailed pricing on your website.', sender: 'user', timestamp: '3 hours 45m ago' },
         { id: 'm2', content: 'Hello Jane! I\'d be happy to explain our pricing plans. We offer Basic ($9.99/mo), Pro ($19.99/mo), and Enterprise (custom pricing).', sender: 'bot', timestamp: '3 hours 40m ago', agent: 'Support Bot' },
@@ -99,6 +102,7 @@ export const useConversations = () => {
       handoffCount: 0,
       topic: 'General Inquiry',
       channel: 'freshdesk',
+      agentType: 'ai',
       messages: [
         { id: 'm1', content: 'I have a question about your software compatibility.', sender: 'user', timestamp: '1 day 32m ago' },
         { id: 'm2', content: 'Hello Robert! I\'d be happy to help with compatibility questions. Which operating system are you using?', sender: 'bot', timestamp: '1 day 30m ago', agent: 'Sales Bot' },
@@ -126,6 +130,7 @@ export const useConversations = () => {
       handoffCount: 2,
       topic: 'Technical Support',
       channel: 'phone',
+      agentType: 'ai',
       messages: [
         { id: 'm1', content: 'I\'m having trouble with your mobile app. It keeps crashing when I try to upload photos.', sender: 'user', timestamp: '8 hours ago' },
         { id: 'm2', content: 'I\'m sorry to hear you\'re experiencing issues, Emily. Let me help you troubleshoot this. What device and OS version are you using?', sender: 'bot', timestamp: '7 hours 55m ago', agent: 'Support Bot' },
@@ -151,6 +156,7 @@ export const useConversations = () => {
       handoffCount: 0,
       topic: 'Feature Request',
       channel: 'instagram',
+      agentType: 'human',
       messages: [
         { id: 'm1', content: 'Hi, I heard you\'re releasing a new scheduling feature soon.', sender: 'user', timestamp: '7 hours 10m ago' },
         { id: 'm2', content: 'Hello Sarah! Yes, we\'re excited about our upcoming scheduling feature. It\'s currently in beta testing.', sender: 'bot', timestamp: '7 hours 5m ago', agent: 'Product Bot' },
