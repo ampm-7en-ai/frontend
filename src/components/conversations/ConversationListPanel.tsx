@@ -60,7 +60,7 @@ const ConversationListPanel = ({
       />
       
       {/* Conversation List */}
-      <div className="overflow-y-auto flex-1 pt-2">
+      <div className="overflow-y-auto flex-1 pt-0">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <p className="text-sm text-gray-500 mt-1">
@@ -69,7 +69,7 @@ const ConversationListPanel = ({
           </div>
         ) : (
           filteredConversations.map((conversation) => (
-            <div key={conversation.id} className="mb-1">
+            <div key={conversation.id} className="mb-0">
               <ConversationCard 
                 conversation={conversation}
                 isSelected={selectedConversation === conversation.id}

@@ -43,28 +43,46 @@ const ConversationCard = ({
     return colors[index];
   };
   
-  // Get channel icon
+  // Get channel icon with brand-appropriate colors
   const getChannelIcon = () => {
-    const iconProps = { className: "h-4 w-4 text-white", strokeWidth: 2 };
-    
     switch (conversation.channel?.toLowerCase()) {
       case 'email':
-        return <Mail {...iconProps} />;
+        return (
+          <div className="bg-blue-600 w-full h-full flex items-center justify-center">
+            <Mail className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+        );
       case 'phone':
-        return <Phone {...iconProps} />;
+        return (
+          <div className="bg-green-600 w-full h-full flex items-center justify-center">
+            <Phone className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+        );
       case 'slack':
-        return <Slack {...iconProps} />;
+        return (
+          <div className="bg-purple-700 w-full h-full flex items-center justify-center">
+            <Slack className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+        );
       case 'instagram':
-        return <Mail {...iconProps} />; // Using Mail as placeholder for Instagram
+        return (
+          <div className="bg-pink-600 w-full h-full flex items-center justify-center">
+            <Mail className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+        );
       default:
-        return <MessageSquare {...iconProps} />;
+        return (
+          <div className="bg-gray-600 w-full h-full flex items-center justify-center">
+            <MessageSquare className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+        );
     }
   };
 
   return (
     <Card 
       className={cn(
-        "hover:bg-gray-50 transition-all duration-200 cursor-pointer border-0 shadow-none",
+        "hover:bg-gray-50 transition-all duration-200 cursor-pointer border-0 shadow-none rounded-none",
         isSelected 
           ? "bg-blue-50/40" 
           : "bg-transparent"
@@ -73,10 +91,8 @@ const ConversationCard = ({
     >
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
-          <Avatar className={cn("h-9 w-9", getAvatarColor(conversation.customer))}>
-            <AvatarFallback className="text-white flex items-center justify-center">
-              {getChannelIcon()}
-            </AvatarFallback>
+          <Avatar className="h-9 w-9 rounded-none overflow-hidden">
+            {getChannelIcon()}
           </Avatar>
           
           <div className="flex-1 min-w-0">
