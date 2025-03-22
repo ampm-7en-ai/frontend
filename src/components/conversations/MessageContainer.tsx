@@ -38,11 +38,20 @@ const MessageContainer = ({
         const element = document.getElementById(`message-${firstAgentMessage.id}`);
         if (element) {
           // Scroll to the element with a small offset
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100); // Small delay to ensure the DOM is ready
         }
       }
     }
   }, [selectedAgent, conversation?.messages]);
+
+  // Effect to scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current && !selectedAgent) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [conversation?.messages?.length, selectedAgent]);
 
   if (!conversation) {
     return <ConversationEmptyState />;

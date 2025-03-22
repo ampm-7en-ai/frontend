@@ -1,11 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Bot, HelpCircle, Info, Tag, User } from 'lucide-react';
+import { Bot, HelpCircle, Info, Ticket, User } from 'lucide-react';
 import HandoffHistory from './HandoffHistory';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -20,6 +28,11 @@ const ConversationDetailsPanel = ({
   onHandoffClick,
   getSatisfactionIndicator
 }: ConversationDetailsPanelProps) => {
+  const [showTicketDialog, setShowTicketDialog] = useState(false);
+  const [ticketSubject, setTicketSubject] = useState('');
+  const [ticketPriority, setTicketPriority] = useState('medium');
+  const [ticketDescription, setTicketDescription] = useState('');
+
   if (!conversation) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground p-4">
@@ -30,6 +43,12 @@ const ConversationDetailsPanel = ({
       </div>
     );
   }
+
+  const handleCreateTicket = () => {
+    // Implement ticket creation functionality here
+    alert(`Creating ticket: ${ticketSubject} (${ticketPriority} priority)`);
+    setShowTicketDialog(false);
+  };
 
   return (
     <div className="p-4 space-y-6">
@@ -96,81 +115,66 @@ const ConversationDetailsPanel = ({
       
       <Separator />
       
-      <div>
-        <h3 className="text-sm font-medium mb-2 flex items-center">
-          <ArrowRight className="h-4 w-4 mr-1" />
-          Handoff Controls
-        </h3>
-        
-        <div className="space-y-2">
-          <div className="text-xs text-muted-foreground">Transfer to</div>
-          <select className="w-full text-sm border rounded p-1.5">
-            <option>Sales Team</option>
-            <option>Support Team</option>
-            <option>Technical Team</option>
-            <option>John Doe (Agent)</option>
-            <option>Jane Smith (Agent)</option>
-          </select>
-          
-          <div className="text-xs text-muted-foreground mt-2">Reason</div>
-          <select className="w-full text-sm border rounded p-1.5">
-            <option>Need specialized knowledge</option>
-            <option>Customer request</option>
-            <option>Technical escalation</option>
-            <option>Follow-up required</option>
-          </select>
-          
-          <Button className="w-full mt-2">
-            <ArrowRight className="h-4 w-4 mr-2" />
-            Transfer Conversation
-          </Button>
-        </div>
-      </div>
-      
-      <Separator />
-      
-      <div>
-        <h3 className="text-sm font-medium mb-2 flex items-center">
-          <Tag className="h-4 w-4 mr-1" />
-          Topic Classification
-        </h3>
-        
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <div className="text-sm">Account Setup</div>
-            <Badge variant="outline" className="text-xs">95%</Badge>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="text-sm">Email Verification</div>
-            <Badge variant="outline" className="text-xs">88%</Badge>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="text-sm">Technical Support</div>
-            <Badge variant="outline" className="text-xs">45%</Badge>
-          </div>
-          
-          <Button variant="outline" size="sm" className="w-full mt-2">
-            <HelpCircle className="h-4 w-4 mr-2" />
-            Adjust Topics
-          </Button>
-        </div>
-      </div>
-      
-      <Separator />
-      
-      <div>
-        <h3 className="text-sm font-medium mb-2 flex items-center">
-          <Info className="h-4 w-4 mr-1" />
-          Knowledge Insights
-        </h3>
-        
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
-          <div className="font-medium text-amber-800">Potential Knowledge Gaps</div>
-          <ul className="list-disc pl-4 mt-1 text-amber-700 space-y-1">
-            <li>Detailed verification process</li>
-            <li>Account recovery options</li>
-          </ul>
-        </div>
+      {/* Create Ticket Button and Dialog */}
+      <div className="pt-2">
+        <Dialog open={showTicketDialog} onOpenChange={setShowTicketDialog}>
+          <DialogTrigger asChild>
+            <Button className="w-full">
+              <Ticket className="h-4 w-4 mr-2" />
+              Create Support Ticket
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create Freshdesk Ticket</DialogTitle>
+              <DialogDescription>
+                Create a new support ticket in Freshdesk for this conversation.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Subject</label>
+                <input
+                  className="w-full text-sm border rounded p-2"
+                  placeholder="Ticket subject"
+                  value={ticketSubject}
+                  onChange={(e) => setTicketSubject(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Priority</label>
+                <select 
+                  className="w-full text-sm border rounded p-1.5"
+                  value={ticketPriority}
+                  onChange={(e) => setTicketPriority(e.target.value)}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <textarea
+                  className="w-full text-sm border rounded p-2 min-h-[100px]"
+                  placeholder="Ticket description"
+                  value={ticketDescription}
+                  onChange={(e) => setTicketDescription(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowTicketDialog(false)}>Cancel</Button>
+              <Button onClick={handleCreateTicket} disabled={!ticketSubject}>
+                <Ticket className="h-4 w-4 mr-2" />
+                Create Ticket
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

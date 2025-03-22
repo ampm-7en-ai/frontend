@@ -2,8 +2,6 @@
 import React from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
 
 interface ConversationListPanelProps {
   filterStatus: string;
@@ -34,8 +32,6 @@ const ConversationListPanel = ({
 }: ConversationListPanelProps) => {
   return (
     <div className="flex flex-col h-full bg-white border-r">
-      {/* Removed search bar */}
-      
       {/* Filters */}
       <ConversationFilters 
         searchQuery={searchQuery}
@@ -58,7 +54,7 @@ const ConversationListPanel = ({
           </div>
         ) : (
           filteredConversations.map((conversation) => (
-            <div key={conversation.id} className="mb-0">
+            <div key={conversation.id}>
               <ConversationCard 
                 conversation={conversation}
                 isSelected={selectedConversation === conversation.id}
