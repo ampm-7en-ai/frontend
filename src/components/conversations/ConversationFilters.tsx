@@ -45,14 +45,14 @@ const ConversationFilters = ({
 }: ConversationFiltersProps) => {
   return (
     <div className="border-b">
-      {/* Status filter with toggle buttons instead of tabs */}
-      <div className="px-2 pt-2 flex items-center">
-        <div className="flex gap-2 w-full bg-muted rounded-md p-1">
+      {/* Status filter with centered toggle buttons */}
+      <div className="px-2 pt-2 flex justify-center">
+        <div className="flex gap-2 bg-muted rounded-md p-1 w-auto">
           <Button
             variant={filterStatus === "unresolved" ? "default" : "ghost"}
             size="sm"
             onClick={() => setFilterStatus("unresolved")}
-            className="w-full flex items-center justify-center gap-2 rounded-md"
+            className="flex items-center justify-center gap-2 rounded-md"
           >
             <AlertCircle className="h-4 w-4" />
             <span>Unresolved</span>
@@ -61,7 +61,7 @@ const ConversationFilters = ({
             variant={filterStatus === "resolved" ? "default" : "ghost"}
             size="sm"
             onClick={() => setFilterStatus("resolved")}
-            className="w-full flex items-center justify-center gap-2 rounded-md"
+            className="flex items-center justify-center gap-2 rounded-md"
           >
             <CheckCircle className="h-4 w-4" />
             <span>Resolved</span>
