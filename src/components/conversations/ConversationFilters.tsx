@@ -69,7 +69,8 @@ const ConversationFilters = ({
         </div>
       </div>
       
-      <div className="px-2 pb-2 grid grid-cols-2 gap-2">
+      {/* Added mt-3 class to create vertical spacing between components */}
+      <div className="px-2 pb-2 grid grid-cols-2 gap-2 mt-3">
         <Select 
           value={channelFilter}
           onValueChange={setChannelFilter}
