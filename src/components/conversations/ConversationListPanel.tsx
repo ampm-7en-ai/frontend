@@ -34,18 +34,7 @@ const ConversationListPanel = ({
 }: ConversationListPanelProps) => {
   return (
     <div className="flex flex-col h-full bg-white border-r">
-      {/* Search Bar */}
-      <div className="p-3 border-b">
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search conversations"
-            className="pl-9 bg-gray-50 border-gray-100"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
+      {/* Removed search bar */}
       
       {/* Filters */}
       <ConversationFilters 

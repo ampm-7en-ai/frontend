@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ConversationHeader from './ConversationHeader';
@@ -24,6 +24,25 @@ const MessageContainer = ({
 }: MessageContainerProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Effect to scroll to agent messages when selectedAgent changes
+  useEffect(() => {
+    if (selectedAgent && messageContainerRef.current) {
+      // Find the first message from the selected agent
+      const firstAgentMessage = conversation?.messages.find(
+        (msg: any) => msg.sender === 'bot' && msg.agent === selectedAgent
+      );
+      
+      if (firstAgentMessage) {
+        // Find the corresponding element
+        const element = document.getElementById(`message-${firstAgentMessage.id}`);
+        if (element) {
+          // Scroll to the element with a small offset
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  }, [selectedAgent, conversation?.messages]);
 
   if (!conversation) {
     return <ConversationEmptyState />;
