@@ -41,12 +41,14 @@ const Login = () => {
         
         <h1 className="text-2xl font-semibold text-center mb-6">Log in to your account</h1>
         
-        <Tabs defaultValue="admin" className="w-full mb-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="admin" onClick={() => setUsername('admin')}>Business Admin</TabsTrigger>
-            <TabsTrigger value="superadmin" onClick={() => setUsername('superadmin')}>Platform Admin</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex justify-center mb-6">
+          <Tabs defaultValue="admin" className="w-auto">
+            <TabsList size="xs" className="w-auto">
+              <TabsTrigger value="admin" size="xs" onClick={() => setUsername('admin')}>Business Admin</TabsTrigger>
+              <TabsTrigger value="superadmin" size="xs" onClick={() => setUsername('superadmin')}>Platform Admin</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
         
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-3">
