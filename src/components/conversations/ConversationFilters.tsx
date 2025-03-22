@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { 
   MessageSquare, 
   Instagram, 
@@ -8,7 +8,9 @@ import {
   Mail, 
   Phone,
   User,
-  Bot
+  Bot,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import { 
   Select,
@@ -43,18 +45,28 @@ const ConversationFilters = ({
 }: ConversationFiltersProps) => {
   return (
     <div className="border-b">
-      {/* Status filter tabs with only two options - aligned with dropdowns */}
-      <div className="px-2 pt-2">
-        <Tabs defaultValue="unresolved" value={filterStatus} onValueChange={setFilterStatus} className="w-full">
-          <TabsList className="w-full grid grid-cols-2 h-9">
-            <TabsTrigger value="unresolved" className="text-sm px-4">
-              Unresolved
-            </TabsTrigger>
-            <TabsTrigger value="resolved" className="text-sm px-4">
-              Resolved
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+      {/* Status filter with toggle buttons instead of tabs */}
+      <div className="px-2 pt-2 flex items-center">
+        <div className="flex gap-2 w-full bg-muted rounded-md p-1">
+          <Button
+            variant={filterStatus === "unresolved" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setFilterStatus("unresolved")}
+            className="w-full flex items-center justify-center gap-2 rounded-md"
+          >
+            <AlertCircle className="h-4 w-4" />
+            <span>Unresolved</span>
+          </Button>
+          <Button
+            variant={filterStatus === "resolved" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setFilterStatus("resolved")}
+            className="w-full flex items-center justify-center gap-2 rounded-md"
+          >
+            <CheckCircle className="h-4 w-4" />
+            <span>Resolved</span>
+          </Button>
+        </div>
       </div>
       
       <div className="px-2 pb-2 grid grid-cols-2 gap-2">
