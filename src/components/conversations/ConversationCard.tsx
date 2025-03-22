@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, Users } from 'lucide-react';
+import { Clock, Users, MessageSquare, Phone, Mail, Slack } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -19,6 +19,7 @@ interface Conversation {
   handoffCount: number;
   topic: string;
   messages: any[];
+  channel?: string;
 }
 
 interface ConversationCardProps {
@@ -32,16 +33,6 @@ const ConversationCard = ({
   isSelected, 
   onClick
 }: ConversationCardProps) => {
-  // Get initials for avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
   // Get avatar background color based on the first letter
   const getAvatarColor = (name: string) => {
     const colors = [
@@ -51,13 +42,31 @@ const ConversationCard = ({
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
   };
+  
+  // Get channel icon
+  const getChannelIcon = () => {
+    const iconProps = { className: "h-4 w-4 text-white", strokeWidth: 2 };
+    
+    switch (conversation.channel?.toLowerCase()) {
+      case 'email':
+        return <Mail {...iconProps} />;
+      case 'phone':
+        return <Phone {...iconProps} />;
+      case 'slack':
+        return <Slack {...iconProps} />;
+      case 'instagram':
+        return <Mail {...iconProps} />; // Using Mail as placeholder for Instagram
+      default:
+        return <MessageSquare {...iconProps} />;
+    }
+  };
 
   return (
     <Card 
       className={cn(
         "hover:bg-gray-50 transition-all duration-200 cursor-pointer border-0 shadow-none",
         isSelected 
-          ? "bg-blue-50/40 border-l-2 border-l-primary" 
+          ? "bg-blue-50/40" 
           : "bg-transparent"
       )}
       onClick={onClick}
@@ -65,8 +74,8 @@ const ConversationCard = ({
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
           <Avatar className={cn("h-9 w-9", getAvatarColor(conversation.customer))}>
-            <AvatarFallback className="text-white">
-              {getInitials(conversation.customer)}
+            <AvatarFallback className="text-white flex items-center justify-center">
+              {getChannelIcon()}
             </AvatarFallback>
           </Avatar>
           
