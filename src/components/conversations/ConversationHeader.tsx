@@ -49,31 +49,31 @@ const ConversationHeader = ({
     switch (conversation.channel?.toLowerCase()) {
       case 'email':
         return (
-          <div className="bg-blue-600 w-full h-full flex items-center justify-center">
+          <div className="bg-blue-600 w-full h-full flex items-center justify-center rounded-sm">
             <Mail className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
       case 'phone':
         return (
-          <div className="bg-green-600 w-full h-full flex items-center justify-center">
+          <div className="bg-green-600 w-full h-full flex items-center justify-center rounded-sm">
             <Phone className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
       case 'slack':
         return (
-          <div className="bg-purple-700 w-full h-full flex items-center justify-center">
+          <div className="bg-purple-700 w-full h-full flex items-center justify-center rounded-sm">
             <Slack className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
       case 'instagram':
         return (
-          <div className="bg-pink-600 w-full h-full flex items-center justify-center">
+          <div className="bg-pink-600 w-full h-full flex items-center justify-center rounded-sm">
             <Mail className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
       default:
         return (
-          <div className="bg-gray-600 w-full h-full flex items-center justify-center">
+          <div className="bg-gray-600 w-full h-full flex items-center justify-center rounded-sm">
             <MessageSquare className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
