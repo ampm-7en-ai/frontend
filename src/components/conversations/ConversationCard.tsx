@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface Conversation {
   id: string;
@@ -31,42 +32,72 @@ const ConversationCard = ({
   isSelected, 
   onClick
 }: ConversationCardProps) => {
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Get avatar background color based on the first letter
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      "bg-blue-500", "bg-emerald-500", "bg-purple-500", 
+      "bg-amber-500", "bg-rose-500", "bg-indigo-500"
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
   return (
     <Card 
       className={cn(
-        "mb-2 hover:bg-gray-50 transition-all duration-200 cursor-pointer",
+        "hover:bg-gray-50 transition-all duration-200 cursor-pointer border-0 shadow-none",
         isSelected 
-          ? "border-primary/40 bg-blue-50/40 shadow-sm ring-1 ring-primary/10" 
-          : "border-gray-100 shadow-sm"
+          ? "bg-blue-50/40 border-l-2 border-l-primary" 
+          : "bg-transparent"
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-medium text-gray-800 text-sm">{conversation.customer}</h3>
-          </div>
-          <div className="text-xs text-gray-400 font-light">
-            {conversation.time}
-          </div>
-        </div>
-        
-        <div className="mt-2 text-xs line-clamp-2 text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-100">
-          {conversation.lastMessage}
-        </div>
-        
-        <div className="mt-2 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center text-xs text-gray-500">
-              <Clock className="h-3 w-3 mr-1 text-gray-400" />
-              {conversation.duration}
-            </div>
-            {conversation.handoffCount > 0 && (
-              <div className="flex items-center text-xs text-gray-500">
-                <Users className="h-3 w-3 mr-1 text-gray-400" />
-                {conversation.handoffCount}
+      <CardContent className="p-3">
+        <div className="flex items-start gap-3">
+          <Avatar className={cn("h-9 w-9", getAvatarColor(conversation.customer))}>
+            <AvatarFallback className="text-white">
+              {getInitials(conversation.customer)}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium text-gray-800 text-sm truncate">
+                {conversation.customer}
+              </h3>
+              <div className="text-xs text-gray-400 whitespace-nowrap">
+                {conversation.time}
               </div>
-            )}
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+              {conversation.lastMessage}
+            </p>
+            
+            <div className="mt-2 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center text-xs text-gray-500">
+                  <Clock className="h-3 w-3 mr-1 text-gray-400" />
+                  {conversation.duration}
+                </div>
+                {conversation.handoffCount > 0 && (
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Users className="h-3 w-3 mr-1 text-gray-400" />
+                    {conversation.handoffCount}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>

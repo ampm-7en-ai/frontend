@@ -43,17 +43,14 @@ const ConversationFilters = ({
 }: ConversationFiltersProps) => {
   return (
     <div className="border-b">
-      {/* Status filter tabs moved to the top */}
-      <Tabs value={filterStatus} onValueChange={setFilterStatus} className="w-full mb-2 pt-2">
-        <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="all" className="text-sm">
-            All
+      {/* Status filter tabs with only two options */}
+      <Tabs defaultValue="unresolved" value={filterStatus} onValueChange={setFilterStatus} className="w-full mb-2 pt-2">
+        <TabsList className="w-full grid grid-cols-2">
+          <TabsTrigger value="unresolved" className="text-sm">
+            Unresolved
           </TabsTrigger>
           <TabsTrigger value="resolved" className="text-sm">
             Resolved
-          </TabsTrigger>
-          <TabsTrigger value="unresolved" className="text-sm">
-            Unresolved
           </TabsTrigger>
         </TabsList>
       </Tabs>

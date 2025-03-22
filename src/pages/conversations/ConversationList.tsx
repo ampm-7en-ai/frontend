@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -40,9 +41,9 @@ const ConversationList = () => {
   
   const [selectedConversation, setSelectedConversation] = useState<string | null>('conv1');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('resolved');
-  const [channelFilter, setChannelFilter] = useState('instagram');
-  const [agentTypeFilter, setAgentTypeFilter] = useState('human');
+  const [filterStatus, setFilterStatus] = useState('unresolved');
+  const [channelFilter, setChannelFilter] = useState('all');
+  const [agentTypeFilter, setAgentTypeFilter] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
