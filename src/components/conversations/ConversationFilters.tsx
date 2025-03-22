@@ -43,8 +43,8 @@ const ConversationFilters = ({
 }: ConversationFiltersProps) => {
   return (
     <div className="border-b">
-      {/* Status filter tabs with only two options - updated spacing to match dropdowns */}
-      <div className="p-2">
+      {/* Status filter tabs with only two options - aligned with dropdowns */}
+      <div className="px-2 pt-2">
         <Tabs defaultValue="unresolved" value={filterStatus} onValueChange={setFilterStatus} className="w-full">
           <TabsList className="w-full grid grid-cols-2 h-9">
             <TabsTrigger value="unresolved" className="text-sm">
@@ -57,7 +57,7 @@ const ConversationFilters = ({
         </Tabs>
       </div>
       
-      <div className="p-2 grid grid-cols-2 gap-2">
+      <div className="px-2 pb-2 grid grid-cols-2 gap-2">
         <Select 
           value={channelFilter}
           onValueChange={setChannelFilter}

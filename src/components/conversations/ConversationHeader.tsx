@@ -106,22 +106,6 @@ const ConversationHeader = ({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {selectedAgent && (
-          <Badge 
-            variant="outline" 
-            className="flex items-center gap-1 border-primary/30 text-primary"
-          >
-            <Bot className="h-3 w-3" />
-            Viewing: {selectedAgent}
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedAgent(null);
-              }}
-            />
-          </Badge>
-        )}
         <div className="flex items-center text-sm text-muted-foreground">
           <Clock className="h-4 w-4 mr-1" />
           {conversation.duration}
