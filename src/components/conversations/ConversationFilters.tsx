@@ -47,10 +47,10 @@ const ConversationFilters = ({
       <div className="px-2 pt-2">
         <Tabs defaultValue="unresolved" value={filterStatus} onValueChange={setFilterStatus} className="w-full">
           <TabsList className="w-full grid grid-cols-2 h-9">
-            <TabsTrigger value="unresolved" className="text-sm">
+            <TabsTrigger value="unresolved" className="text-sm px-4">
               Unresolved
             </TabsTrigger>
-            <TabsTrigger value="resolved" className="text-sm">
+            <TabsTrigger value="resolved" className="text-sm px-4">
               Resolved
             </TabsTrigger>
           </TabsList>
