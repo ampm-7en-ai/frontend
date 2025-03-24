@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ChevronRight, RefreshCw, FileText, BookOpen, Database, Globe } from 'lucide-react';
@@ -19,21 +18,11 @@ import {
   PopoverTrigger 
 } from "@/components/ui/popover";
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
-
-// Define the interface using only what this component needs
-interface KnowledgeSourceForSection {
-  id: number;
-  name: string;
-  type: string;
-  hasError: boolean;
-  content?: string;
-  linkBroken?: boolean;
-  icon?: string;
-}
+import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 
 interface AgentKnowledgeSectionProps {
   agentId: string;
-  knowledgeSources: KnowledgeSourceForSection[];
+  knowledgeSources: KnowledgeSource[];
   asFlyout?: boolean;
   onViewSource?: (sourceId: number) => void;
 }
@@ -44,19 +33,18 @@ const AgentKnowledgeSection = ({
   asFlyout = false,
   onViewSource
 }: AgentKnowledgeSectionProps) => {
-  const [selectedSource, setSelectedSource] = useState<KnowledgeSourceForSection | null>(null);
-  const displayedSources = knowledgeSources.slice(0, 3); // Show up to 3 sources
+  const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
+  const displayedSources = knowledgeSources.slice(0, 3);
   const remainingSources = knowledgeSources.length - 3;
   const hasErrorSources = knowledgeSources.some(source => source.hasError);
   
-  const handleSourceClick = (source: KnowledgeSourceForSection) => {
+  const handleSourceClick = (source: KnowledgeSource) => {
     setSelectedSource(source);
     if (onViewSource) {
       onViewSource(source.id);
     }
   };
   
-  // For regular inline display
   if (!asFlyout) {
     return (
       <div>
@@ -103,7 +91,6 @@ const AgentKnowledgeSection = ({
     );
   }
   
-  // For flyout display
   return (
     <div className="p-4 space-y-4">
       <div className="text-sm font-medium">Knowledge Sources</div>

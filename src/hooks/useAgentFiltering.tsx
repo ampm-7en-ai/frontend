@@ -5,8 +5,10 @@ interface KnowledgeSource {
   id: number;
   name: string;
   type: string;
-  icon: string;
+  icon?: string; // Make icon optional
   hasError: boolean;
+  linkBroken?: boolean; // Add linkBroken property
+  content?: string; // Add content property
 }
 
 export interface Agent {

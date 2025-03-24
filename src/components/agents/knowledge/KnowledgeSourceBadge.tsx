@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BookOpen, Database, Globe, AlertTriangle, Link2Off } from 'lucide-react';
 import { 
@@ -7,16 +6,7 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from '@/components/ui/tooltip';
-
-interface KnowledgeSource {
-  id: number;
-  name: string;
-  type: string;
-  icon?: string;
-  hasError: boolean;
-  linkBroken?: boolean;
-  content?: string;
-}
+import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 
 interface KnowledgeSourceBadgeProps {
   source: KnowledgeSource;
