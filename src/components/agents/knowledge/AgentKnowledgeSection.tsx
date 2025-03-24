@@ -28,6 +28,7 @@ interface KnowledgeSourceForSection {
   hasError: boolean;
   content?: string;
   linkBroken?: boolean;
+  icon?: string;
 }
 
 interface AgentKnowledgeSectionProps {

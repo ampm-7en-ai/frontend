@@ -18,7 +18,7 @@ import {
   PopoverContent, 
   PopoverTrigger 
 } from "@/components/ui/popover";
-import KnowledgeSourceBadge from './KnowledgeSourceBadge';
+import KnowledgeSourceBadge from './knowledge/KnowledgeSourceBadge';
 
 interface KnowledgeSource {
   id: number;
@@ -27,6 +27,7 @@ interface KnowledgeSource {
   icon?: string;
   hasError: boolean;
   content?: string;
+  linkBroken?: boolean;
 }
 
 interface AgentKnowledgeSectionProps {

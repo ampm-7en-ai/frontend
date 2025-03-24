@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
-import AgentKnowledgeSection from './AgentKnowledgeSection';
+import AgentKnowledgeSection from './knowledge/AgentKnowledgeSection';
 import AgentFooterActions from './AgentFooterActions';
 
 interface AgentCardProps {
@@ -26,7 +26,7 @@ interface AgentCardProps {
       id: number;
       name: string;
       type: string;
-      icon: string;
+      icon?: string;
       hasError: boolean;
     }>;
     model: string;

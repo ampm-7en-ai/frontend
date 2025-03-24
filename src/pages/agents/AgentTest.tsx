@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,7 @@ type Agent = {
   conversations: number;
   lastModified: string;
   averageRating: number;
-  knowledgeSources: { id: number; name: string; type: string; icon: string; hasError: boolean; content?: string }[];
+  knowledgeSources: { id: number; name: string; type: string; icon?: string; hasError: boolean; content?: string }[];
   model: string;
   isDeployed: boolean;
   systemPrompt?: string;
@@ -550,4 +549,3 @@ const AgentTest = () => {
 };
 
 export default AgentTest;
-
