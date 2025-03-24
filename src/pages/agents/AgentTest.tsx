@@ -150,10 +150,11 @@ const AgentTest = () => {
         systemPrompt: foundAgent.systemPrompt || ""
       })));
       
-      const initialMessages = Array(numChatWindows).fill(null).map(() => [{
+      // Fix: Ensure sender is one of the allowed types
+      const initialMessages: Message[][] = Array(numChatWindows).fill(null).map(() => [{
         id: 1,
         content: `Hello! I'm the ${foundAgent.name}. How can I help you today?`,
-        sender: 'agent',
+        sender: 'agent' as const, // Explicitly typed
         model: chatConfigs[0].model,
         timestamp: new Date(),
       }]);
@@ -244,10 +245,14 @@ const AgentTest = () => {
           responseContent = responseContent.split('. ').join('.\n\n');
         }
         
+        // Determine the appropriate sender type based on the window index
+        const senderType: 'agent' | 'agent2' | 'agent3' = 
+          i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3';
+        
         const agentMessage: Message = {
           id: Date.now() + i + 1,
           content: responseContent,
-          sender: i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3',
+          sender: senderType,
           model: chatConfigs[i].model,
           timestamp: new Date(),
         };
@@ -261,22 +266,22 @@ const AgentTest = () => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   const handleClearChat = () => {
     if (agent) {
-      const initialMessages = Array(numChatWindows).fill(null).map((_, i) => [{
-        id: Date.now() + i,
-        content: `Hello! I'm the ${agent.name}. How can I help you today?`,
-        sender: i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3',
-        model: chatConfigs[i].model,
-        timestamp: new Date(),
-      }]);
+      // Fix: Ensure sender is one of the allowed types
+      const initialMessages: Message[][] = Array(numChatWindows).fill(null).map((_, i) => {
+        // Determine the appropriate sender type based on the window index
+        const senderType: 'agent' | 'agent2' | 'agent3' = 
+          i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3';
+          
+        return [{
+          id: Date.now() + i,
+          content: `Hello! I'm the ${agent.name}. How can I help you today?`,
+          sender: senderType,
+          model: chatConfigs[i].model,
+          timestamp: new Date(),
+        }];
+      });
       
       setMessages(initialMessages);
     }
