@@ -5,20 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { 
   Bot, ChevronLeft, SendHorizontal, X, 
-  Settings, User, ChevronDown, FileText,
-  BookOpen, Code, Globe, Database, Sliders
+  Settings, BookOpen, Code, Globe, Database, Sliders,
+  FileText, Info
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import AgentKnowledgeSection from '@/components/agents/AgentKnowledgeSection';
 
 type Message = {
   id: number;
@@ -45,8 +45,7 @@ type ChatConfig = {
   model: string;
   temperature: number;
   systemPrompt: string;
-  maxTokens: number;
-  flavor?: 'base' | 'fast';
+  maxLength: number;
 };
 
 const MODELS = {
@@ -120,9 +119,9 @@ const AgentTest = () => {
   const [agent, setAgent] = useState<Agent | null>(null);
   
   const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>([
-    { model: "llama", temperature: 0.6, systemPrompt: "", maxTokens: 512, flavor: "base" },
-    { model: "deepseek", temperature: 0.7, systemPrompt: "", maxTokens: 512, flavor: "base" },
-    { model: "anthropic", temperature: 0.7, systemPrompt: "", maxTokens: 512, flavor: "base" }
+    { model: "llama", temperature: 0.6, systemPrompt: "", maxLength: 512 },
+    { model: "deepseek", temperature: 0.7, systemPrompt: "", maxLength: 512 },
+    { model: "anthropic", temperature: 0.7, systemPrompt: "", maxLength: 512 }
   ]);
 
   const [numModels, setNumModels] = useState(3);
@@ -130,11 +129,10 @@ const AgentTest = () => {
   const [messages, setMessages] = useState<Message[][]>([[], [], []]);
   const [inputMessage, setInputMessage] = useState('');
   
-  const [configPanelExpanded, setConfigPanelExpanded] = useState<number[]>([]);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [selectedSourceContent, setSelectedSourceContent] = useState<string>("");
   const [sourceViewMode, setSourceViewMode] = useState<'markdown' | 'text'>('markdown');
-  const [activeTab, setActiveTab] = useState<string>("model1");
+  const [showKnowledgeFlyout, setShowKnowledgeFlyout] = useState(false);
 
   const messageContainerRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
@@ -203,6 +201,11 @@ const AgentTest = () => {
           responseContent = responseContent.split('. ').join('.\n\n');
         }
         
+        // Adjust length based on maxLength
+        if (chatConfigs[i].maxLength < 400 && responseContent.length > chatConfigs[i].maxLength) {
+          responseContent = responseContent.substring(0, chatConfigs[i].maxLength) + "...";
+        }
+        
         const senderType = `agent${i+1}` as 'agent1' | 'agent2' | 'agent3';
         
         const agentMessage: Message = {
@@ -252,14 +255,6 @@ const AgentTest = () => {
     }
   };
 
-  const toggleConfigPanel = (index: number) => {
-    if (configPanelExpanded.includes(index)) {
-      setConfigPanelExpanded(configPanelExpanded.filter(i => i !== index));
-    } else {
-      setConfigPanelExpanded([...configPanelExpanded, index]);
-    }
-  };
-
   const getModelDisplay = (modelKey: string) => {
     return MODELS[modelKey as keyof typeof MODELS]?.name || modelKey;
   };
@@ -303,6 +298,23 @@ const AgentTest = () => {
             </SelectContent>
           </Select>
           
+          <Popover open={showKnowledgeFlyout} onOpenChange={setShowKnowledgeFlyout}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <BookOpen className="h-4 w-4 mr-1" />
+                Knowledge
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-96 p-0">
+              <AgentKnowledgeSection 
+                agentId={agent.id} 
+                knowledgeSources={agent.knowledgeSources} 
+                asFlyout 
+                onViewSource={handleViewSource}
+              />
+            </PopoverContent>
+          </Popover>
+          
           <Button 
             variant="outline" 
             size="sm"
@@ -335,173 +347,104 @@ const AgentTest = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  onClick={() => toggleConfigPanel(index)}
-                >
-                  <Sliders className="h-4 w-4" />
-                </Button>
+                
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Sliders className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-4">
+                    <div className="space-y-4">
+                      <h3 className="font-medium">Parameters</h3>
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <Label>Temperature</Label>
+                          <span className="text-sm text-muted-foreground">{chatConfigs[index].temperature.toFixed(1)}</span>
+                        </div>
+                        <Slider
+                          min={0}
+                          max={2}
+                          step={0.1}
+                          value={[chatConfigs[index].temperature]}
+                          onValueChange={([value]) => handleUpdateChatConfig(index, 'temperature', value)}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Precise</span>
+                          <span>Creative</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <Label>Output length</Label>
+                          <span className="text-sm text-muted-foreground">{chatConfigs[index].maxLength}</span>
+                        </div>
+                        <Slider
+                          min={128}
+                          max={2048}
+                          step={128}
+                          value={[chatConfigs[index].maxLength]}
+                          onValueChange={([value]) => handleUpdateChatConfig(index, 'maxLength', value)}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Short</span>
+                          <span>Long</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label>System Prompt</Label>
+                        <Textarea 
+                          value={chatConfigs[index].systemPrompt} 
+                          onChange={(e) => handleUpdateChatConfig(index, 'systemPrompt', e.target.value)}
+                          className="min-h-[100px] resize-none text-sm"
+                          placeholder="Enter system instructions for the AI..."
+                        />
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
-            
-            <Collapsible 
-              open={configPanelExpanded.includes(index)} 
-              className="border-t border-b"
-            >
-              <CollapsibleContent className="p-4 space-y-4 bg-gray-50">
-                <h3 className="font-medium">Parameters</h3>
-                
-                <div className="space-y-1">
-                  <Label>Flavor</Label>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant={chatConfigs[index].flavor === 'base' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => handleUpdateChatConfig(index, 'flavor', 'base')}
-                      className="flex-1"
-                    >
-                      Base
-                    </Button>
-                    <Button 
-                      variant={chatConfigs[index].flavor === 'fast' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => handleUpdateChatConfig(index, 'flavor', 'fast')}
-                      className="flex-1"
-                    >
-                      Fast
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Label>Temperature</Label>
-                    <span className="text-sm text-muted-foreground">{chatConfigs[index].temperature.toFixed(1)}</span>
-                  </div>
-                  <Slider
-                    min={0}
-                    max={2}
-                    step={0.1}
-                    value={[chatConfigs[index].temperature]}
-                    onValueChange={([value]) => handleUpdateChatConfig(index, 'temperature', value)}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>0</span>
-                    <span>2</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Label>Maximum tokens</Label>
-                    <span className="text-sm text-muted-foreground">{chatConfigs[index].maxTokens}</span>
-                  </div>
-                  <Slider
-                    min={128}
-                    max={8192}
-                    step={128}
-                    value={[chatConfigs[index].maxTokens]}
-                    onValueChange={([value]) => handleUpdateChatConfig(index, 'maxTokens', value)}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span></span>
-                    <span>8192</span>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-            
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="p-4 border-b bg-gray-50">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-xs font-medium uppercase text-gray-500">System Prompt</h3>
-                </div>
-                <Textarea 
-                  value={chatConfigs[index].systemPrompt} 
-                  onChange={(e) => handleUpdateChatConfig(index, 'systemPrompt', e.target.value)}
-                  className="min-h-[80px] resize-none text-sm border-gray-200"
-                  placeholder="Enter system instructions for the AI..."
-                />
-              </div>
-
-              <div 
-                ref={messageContainerRefs[index]}
-                className="flex-1 overflow-y-auto p-4 space-y-4 bg-white"
-              >
-                {messages[index].map((message) => {
-                  if (message.sender === 'user') {
-                    return (
-                      <div key={message.id} className="flex items-start gap-3 justify-end">
-                        <div className="bg-gray-100 rounded-lg p-3 max-w-[85%]">
-                          <div className="flex items-center justify-between mb-1">
-                            <Badge variant="outline" className="text-xs">USER</Badge>
-                            <span className="text-xs text-gray-500">
-                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-                        </div>
+                        
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white" ref={messageContainerRefs[index]}>
+              {messages[index].map((message) => {
+                if (message.sender === 'user') {
+                  return (
+                    <div key={message.id} className="flex justify-end mb-4">
+                      <div className="bg-primary text-primary-foreground rounded-lg py-2 px-3 max-w-[90%]">
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       </div>
-                    );
-                  } else {
-                    return (
-                      <div key={message.id} className="flex items-start gap-3">
-                        <div className="bg-white border rounded-lg p-3 max-w-[85%]">
-                          <div className="flex items-center justify-between mb-1">
-                            <Badge variant="outline" className="text-xs">AI ASSISTANT</Badge>
-                            <span className="text-xs text-gray-500">
-                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-                        </div>
-                      </div>
-                    );
-                  }
-                })}
-                {messages[index].length === 0 && (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="text-center text-gray-500 p-4">
-                      <Bot className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                      <p className="text-sm">Send a message to see responses from this model</p>
                     </div>
+                  );
+                } else {
+                  return (
+                    <div key={message.id} className="flex mb-4">
+                      <div className="bg-muted rounded-lg py-2 px-3 max-w-[90%]">
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      </div>
+                    </div>
+                  );
+                }
+              })}
+              {messages[index].length === 0 && (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-500 p-4">
+                    <Bot className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                    <p className="text-sm">Send a message to see responses from this model</p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </Card>
         ))}
       </div>
-
-      <Card>
-        <CardHeader className="py-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Knowledge Sources</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 space-y-2">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {agent.knowledgeSources.map(source => (
-              <div 
-                key={source.id}
-                className="flex items-center justify-between p-3 text-sm rounded-md border hover:bg-gray-50 cursor-pointer"
-                onClick={() => handleViewSource(source.id)}
-              >
-                <div className="flex items-center">
-                  {getSourceIcon(source.type)}
-                  <span className="ml-2">{source.name}</span>
-                </div>
-                <FileText className="h-4 w-4 text-gray-400" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="sticky bottom-0 w-full mt-2">
         <div className="flex items-center">
