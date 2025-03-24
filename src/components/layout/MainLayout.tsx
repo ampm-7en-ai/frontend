@@ -4,6 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { useAuth } from '@/context/AuthContext';
 import Sidebar from './Sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 export type MainLayoutProps = {
   pageTitle?: string;
@@ -50,29 +51,31 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
   const isConversationsPage = location.pathname.includes('/conversations');
 
   return (
-    <div className="flex h-screen bg-light-gray/50 overflow-hidden">
-      <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header 
-          pageTitle={derivedTitle}
-          breadcrumbs={defaultBreadcrumbs}
-          onLogout={logout}
-          toggleSidebar={toggleSidebar}
-        />
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage ? 'p-0' : 'p-6'}`}>
-          {children || <Outlet />}
-        </main>
+    <SidebarProvider>
+      <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full">
+        <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header 
+            pageTitle={derivedTitle}
+            breadcrumbs={defaultBreadcrumbs}
+            onLogout={logout}
+            toggleSidebar={toggleSidebar}
+          />
+          <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage ? 'p-0' : 'p-6'}`}>
+            {children || <Outlet />}
+          </main>
+        </div>
+        
+        {/* Apply fullwidth style only to conversations page */}
+        {isConversationsPage && (
+          <style dangerouslySetInnerHTML={{ __html: `
+            main {
+              padding: 0 !important;
+              max-width: none !important;
+            }
+          `}} />
+        )}
       </div>
-      
-      {/* Apply fullwidth style only to conversations page */}
-      {isConversationsPage && (
-        <style dangerouslySetInnerHTML={{ __html: `
-          main {
-            padding: 0 !important;
-            max-width: none !important;
-          }
-        `}} />
-      )}
-    </div>
+    </SidebarProvider>
   );
 }

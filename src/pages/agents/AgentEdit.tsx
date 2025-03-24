@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,13 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton
-} from '@/components/ui/sidebar';
 
 // Sample knowledge sources data
 const knowledgeSources = [
@@ -110,82 +102,100 @@ const AgentEdit = () => {
     handleChange('knowledgeSources', selectedSourceIds);
   };
 
-  // Sidebar menu items based on active tab
-  const getSidebarMenuItems = () => {
+  // Custom sidebar navigation based on active tab
+  const renderSidebarNav = () => {
     switch(activeTab) {
       case "general":
         return (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={true}>
-                <Bot className="h-4 w-4 mr-2" />
-                Agent Information
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Responses
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <div className="space-y-2">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start font-medium bg-accent text-primary" 
+              size="sm"
+            >
+              <Bot className="h-4 w-4 mr-2" />
+              Agent Information
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start" 
+              size="sm"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Responses
+            </Button>
+          </div>
         );
       case "appearance":
         return (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={true}>
-                <Palette className="h-4 w-4 mr-2" />
-                Visual Settings
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Chat Window
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <div className="space-y-2">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start font-medium bg-accent text-primary" 
+              size="sm"
+            >
+              <Palette className="h-4 w-4 mr-2" />
+              Visual Settings
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start" 
+              size="sm"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Chat Window
+            </Button>
+          </div>
         );
       case "advanced":
         return (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={true}>
-                <CpuIcon className="h-4 w-4 mr-2" />
-                AI Model
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <BrainCircuit className="h-4 w-4 mr-2" />
-                Personality
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <Sliders className="h-4 w-4 mr-2" />
-                Behavior
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <div className="space-y-2">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start font-medium bg-accent text-primary" 
+              size="sm"
+            >
+              <CpuIcon className="h-4 w-4 mr-2" />
+              AI Model
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start" 
+              size="sm"
+            >
+              <BrainCircuit className="h-4 w-4 mr-2" />
+              Personality
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start" 
+              size="sm"
+            >
+              <Sliders className="h-4 w-4 mr-2" />
+              Behavior
+            </Button>
+          </div>
         );
       case "knowledge":
         return (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={true}>
-                <FileText className="h-4 w-4 mr-2" />
-                Knowledge Sources
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Training Status
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <div className="space-y-2">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start font-medium bg-accent text-primary" 
+              size="sm"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Knowledge Sources
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start" 
+              size="sm"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Training Status
+            </Button>
+          </div>
         );
       default:
         return null;
@@ -611,7 +621,7 @@ const AgentEdit = () => {
           <div className="flex">
             {/* Left sidebar for secondary navigation */}
             <div className="w-64 pr-6 border-r">
-              {getSidebarMenuItems()}
+              {renderSidebarNav()}
             </div>
             
             {/* Main content area */}
@@ -635,3 +645,4 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
+
