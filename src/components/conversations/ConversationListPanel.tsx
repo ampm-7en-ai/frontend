@@ -31,13 +31,11 @@ const ConversationListPanel = ({
   setAgentTypeFilter
 }: ConversationListPanelProps) => {
   return (
-    <div className="flex flex-col h-full bg-white border-r">
+    <div className="flex flex-col h-full bg-white border-r max-w-[1440px] mx-auto">
       {/* Filters */}
       <ConversationFilters 
-        filterResolved="unresolved"
-        onFilterResolvedChange={(value) => {
-          // Handle resolved/unresolved filter change if needed
-        }}
+        filterResolved={filterStatus}
+        onFilterResolvedChange={setFilterStatus}
         channelFilter={channelFilter}
         setChannelFilter={setChannelFilter}
         agentTypeFilter={agentTypeFilter}

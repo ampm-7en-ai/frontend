@@ -544,7 +544,7 @@ const AgentEdit = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6 h-[calc(100vh-180px)]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
         <div className="h-full px-4">
           {renderChatPreview()}
         </div>
