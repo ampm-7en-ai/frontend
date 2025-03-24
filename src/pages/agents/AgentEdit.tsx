@@ -426,35 +426,27 @@ const AgentEdit = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="model">Language Model</Label>
-            <Select 
-              value={agent.selectedModel} 
-              onValueChange={(value) => handleChange('selectedModel', value)}
-            >
+            <Label htmlFor="model">AI Model</Label>
+            <Select defaultValue="gpt4">
               <SelectTrigger id="model">
-                <SelectValue placeholder="Select model" />
+                <SelectValue placeholder="Select a model" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="gpt4">GPT-4</SelectItem>
-                <SelectItem value="gpt35">GPT-3.5 Turbo</SelectItem>
-                <SelectItem value="anthropic">Claude 3</SelectItem>
-                <SelectItem value="mistral">Mistral 7B</SelectItem>
-                <SelectItem value="llama">Llama 2</SelectItem>
-                <SelectItem value="gemini">Gemini Pro</SelectItem>
+                <SelectItem value="gpt4">GPT-4 (OpenAI)</SelectItem>
+                <SelectItem value="gpt35">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                <SelectItem value="claude">Claude 3 (Anthropic)</SelectItem>
+                <SelectItem value="gemini">Gemini Pro (Google)</SelectItem>
+                <SelectItem value="mistral">Mistral Large (Mistral AI)</SelectItem>
+                <SelectItem value="llama">Llama 2 (Meta AI)</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex justify-end mt-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 text-xs"
-                onClick={goToTestPage}
-              >
-                <Rocket className="h-3.5 w-3.5" />
-                Test this model
-                <ExternalLink className="h-3.5 w-3.5 ml-1" />
-              </Button>
-            </div>
+            <Button 
+              variant="link" 
+              className="text-xs text-muted-foreground mt-1 pl-0"
+              onClick={() => window.open(`/agents/${agentId}/test`, '_blank')}
+            >
+              Test this model in a new tab →
+            </Button>
           </div>
           
           <div className="space-y-2">
@@ -725,4 +717,3 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
-

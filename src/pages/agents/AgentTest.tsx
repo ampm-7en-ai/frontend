@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { 
   Bot, ChevronLeft, Circle, SendHorizontal, Zap, Rocket, X, Maximize2, 
-  Repeat, SplitSquareVertical, Languages, Settings, ExternalLink, Dices
+  Repeat, SplitSquareVertical, Languages, Settings, ExternalLink, Dices, User,
+  ChevronDown, ChevronUp, FileCog, FileText, BookOpen, Code, FileJson, Globe, Database
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,11 +20,15 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 type Message = {
   id: number;
   content: string;
-  sender: 'user' | 'agent' | 'agent2';
+  sender: 'user' | 'agent' | 'agent2' | 'agent3';
   model?: string;
   timestamp: Date;
 };
@@ -34,11 +40,18 @@ type Agent = {
   conversations: number;
   lastModified: string;
   averageRating: number;
-  knowledgeSources: { id: number; name: string; type: string; icon: string; hasError: boolean }[];
+  knowledgeSources: { id: number; name: string; type: string; icon: string; hasError: boolean; content?: string }[];
   model: string;
   isDeployed: boolean;
   systemPrompt?: string;
 };
+
+type ChatConfig = {
+  model: string;
+  temperature: number;
+  systemPrompt: string;
+  maxTokens: number;
+}
 
 const MODELS = {
   'gpt4': { name: 'GPT-4', provider: 'OpenAI' },
@@ -46,10 +59,11 @@ const MODELS = {
   'anthropic': { name: 'Claude 3', provider: 'Anthropic' },
   'mistral': { name: 'Mistral 7B', provider: 'Mistral AI' },
   'llama': { name: 'Llama 2', provider: 'Meta AI' },
-  'gemini': { name: 'Gemini Pro', provider: 'Google' }
+  'gemini': { name: 'Gemini Pro', provider: 'Google' },
+  'mixtral': { name: 'Mixtral 8x7B', provider: 'Mistral AI' },
+  'palm': { name: 'PaLM 2', provider: 'Google' }
 };
 
-// Mock agent data - would come from API in a real app
 const mockAgents: Agent[] = [
   {
     id: "1",
@@ -59,8 +73,10 @@ const mockAgents: Agent[] = [
     lastModified: new Date().toISOString(),
     averageRating: 4.8,
     knowledgeSources: [
-      { id: 1, name: "Product Docs", type: "document", icon: "BookOpen", hasError: false },
-      { id: 2, name: "FAQ", type: "webpage", icon: "Globe", hasError: false }
+      { id: 1, name: "Product Docs", type: "document", icon: "BookOpen", hasError: false, 
+        content: "# Product Documentation\n\nOur product is a cloud-based solution that helps businesses automate customer support workflows. Key features include:\n\n- AI-powered response suggestions\n- Integration with popular CRM systems\n- Analytics dashboard\n- Multi-channel support (email, chat, social media)" },
+      { id: 2, name: "FAQ", type: "webpage", icon: "Globe", hasError: false,
+        content: "## Frequently Asked Questions\n\n**Q: How do I reset my password?**\nA: Click on the 'Forgot Password' link on the login page and follow the instructions sent to your email.\n\n**Q: How do I upgrade my subscription?**\nA: Go to Settings > Billing and select your desired plan.\n\n**Q: Can I integrate with Salesforce?**\nA: Yes, we offer native integration with Salesforce and other popular CRM systems." }
     ],
     model: "gpt4",
     isDeployed: false,
@@ -74,7 +90,8 @@ const mockAgents: Agent[] = [
     lastModified: new Date().toISOString(),
     averageRating: 4.6,
     knowledgeSources: [
-      { id: 3, name: "Pricing Guide", type: "document", icon: "DollarSign", hasError: false }
+      { id: 3, name: "Pricing Guide", type: "document", icon: "DollarSign", hasError: false,
+        content: "# Pricing Guide\n\n## Basic Plan - $9.99/month\n- Up to 5 users\n- Core features\n- Email support\n\n## Pro Plan - $29.99/month\n- Unlimited users\n- All core features plus advanced analytics\n- Priority email & chat support\n- API access\n\n## Enterprise Plan - Custom pricing\n- All Pro features\n- Dedicated account manager\n- Custom integrations\n- 24/7 phone support" }
     ],
     model: "gpt35",
     isDeployed: true,
@@ -88,8 +105,10 @@ const mockAgents: Agent[] = [
     lastModified: new Date().toISOString(),
     averageRating: 4.9,
     knowledgeSources: [
-      { id: 4, name: "Technical Manual", type: "document", icon: "FileText", hasError: false },
-      { id: 5, name: "Troubleshooting Guide", type: "document", icon: "Tool", hasError: false }
+      { id: 4, name: "Technical Manual", type: "document", icon: "FileText", hasError: false,
+        content: "# Technical Manual\n\n## System Requirements\n- Operating System: Windows 10/11, macOS 10.14+, Linux\n- RAM: 8GB minimum, 16GB recommended\n- Disk Space: 250MB\n- Internet: Broadband connection\n\n## Installation Guide\n1. Download the installer from your account dashboard\n2. Run the installer and follow on-screen instructions\n3. Launch the application and sign in with your credentials" },
+      { id: 5, name: "Troubleshooting Guide", type: "document", icon: "Tool", hasError: false,
+        content: "# Troubleshooting Guide\n\n## Common Issues\n\n### Application Won't Start\n- Verify system requirements\n- Check for conflicting software\n- Try reinstalling the application\n\n### Connection Problems\n- Check your internet connection\n- Verify firewall settings\n- Ensure the server is not down for maintenance" }
     ],
     model: "anthropic",
     isDeployed: true,
@@ -101,123 +120,145 @@ const AgentTest = () => {
   const { agentId } = useParams();
   const { toast } = useToast();
   
-  // State for agent selection and details
   const [selectedAgentId, setSelectedAgentId] = useState<string>(agentId || "1");
   const [agent, setAgent] = useState<Agent | null>(null);
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
   
-  // State for model comparison
+  const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>([
+    { model: "gpt4", temperature: 0.7, systemPrompt: "", maxTokens: 500 },
+    { model: "gemini", temperature: 0.7, systemPrompt: "", maxTokens: 500 }
+  ]);
+
   const [compareMode, setCompareMode] = useState(false);
-  const [primaryModel, setPrimaryModel] = useState<string>("gpt4");
-  const [secondaryModel, setSecondaryModel] = useState<string>("gemini");
+  const [numChatWindows, setNumChatWindows] = useState(1);
   
-  // State for chat messages
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[][]>([[]]);
   const [inputMessage, setInputMessage] = useState('');
   
-  // State for system prompt
-  const [systemPrompt, setSystemPrompt] = useState<string>("");
-  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
-  
-  // Chat appearance settings
-  const chatAppearance = {
-    primaryColor: '#9b87f5',
-    chatBubbleUserColor: '#9b87f5',
-    chatBubbleAgentColor: '#F1F0FB',
-    chatBubbleAgent2Color: '#E6F7FF',
-    chatFontSize: 'medium',
-    agentNameDisplay: true,
-    timestampDisplay: true,
-    roundedBubbles: true,
-    headerColor: '#9b87f5',
-  };
+  const [configPanelExpanded, setConfigPanelExpanded] = useState(true);
+  const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
+  const [selectedSourceContent, setSelectedSourceContent] = useState<string>("");
+  const [sourceViewMode, setSourceViewMode] = useState<'markdown' | 'text'>('markdown');
 
-  // Load agent data
   useEffect(() => {
-    // In a real app, this would be an API call
     const foundAgent = mockAgents.find(a => a.id === selectedAgentId);
     if (foundAgent) {
       setAgent(foundAgent);
-      setSystemPrompt(foundAgent.systemPrompt || "");
       
-      // Initialize chat with welcome message
-      setMessages([{
+      setChatConfigs(prev => prev.map(config => ({
+        ...config,
+        systemPrompt: foundAgent.systemPrompt || ""
+      })));
+      
+      const initialMessages = Array(numChatWindows).fill(null).map(() => [{
         id: 1,
         content: `Hello! I'm the ${foundAgent.name}. How can I help you today?`,
         sender: 'agent',
-        model: foundAgent.model,
+        model: chatConfigs[0].model,
         timestamp: new Date(),
       }]);
+      
+      setMessages(initialMessages);
     }
   }, [selectedAgentId]);
+
+  useEffect(() => {
+    if (compareMode) {
+      setNumChatWindows(2);
+      
+      if (messages.length === 1) {
+        setMessages([messages[0], [...messages[0]]]);
+      }
+    } else {
+      setNumChatWindows(1);
+      setMessages([messages[0]]);
+    }
+  }, [compareMode]);
+
+  useEffect(() => {
+    setChatConfigs(prev => {
+      if (prev.length < numChatWindows) {
+        return [
+          ...prev,
+          ...Array(numChatWindows - prev.length).fill(null).map(() => ({
+            model: "gemini",
+            temperature: 0.7,
+            systemPrompt: agent?.systemPrompt || "",
+            maxTokens: 500
+          }))
+        ];
+      }
+      if (prev.length > numChatWindows) {
+        return prev.slice(0, numChatWindows);
+      }
+      return prev;
+    });
+  }, [numChatWindows, agent]);
 
   const handleAgentChange = (newAgentId: string) => {
     setSelectedAgentId(newAgentId);
   };
 
+  const handleUpdateChatConfig = (index: number, field: keyof ChatConfig, value: any) => {
+    setChatConfigs(prev => {
+      const newConfigs = [...prev];
+      newConfigs[index] = {
+        ...newConfigs[index],
+        [field]: value
+      };
+      return newConfigs;
+    });
+  };
+
   const handleSendMessage = () => {
     if (inputMessage.trim() === '') return;
     
-    // Add user message
     const userMessage: Message = {
-      id: messages.length + 1,
+      id: Date.now(),
       content: inputMessage,
       sender: 'user',
       timestamp: new Date(),
     };
     
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setMessages(prev => prev.map(msgArray => [...msgArray, userMessage]));
     setInputMessage('');
     
-    // Simulate agent response(s) after a short delay
-    setTimeout(() => {
-      let responseContent = "I understand your question. Based on our product documentation, the feature you're looking for can be found in the Settings menu under 'Advanced Options'. Would you like me to guide you through the setup process?";
-      
-      if (inputMessage.toLowerCase().includes('pricing')) {
-        responseContent = "Our pricing plans start at $9.99/month for the Basic plan, which includes up to 5 users. The Pro plan is $29.99/month with unlimited users and premium features. Would you like me to send you a detailed comparison?";
-      } else if (inputMessage.toLowerCase().includes('refund') || inputMessage.toLowerCase().includes('return')) {
-        responseContent = "Our refund policy allows returns within 30 days of purchase. To process a refund, please provide your order number and reason for the return. I'd be happy to help you with the process.";
-      }
-      
-      // Primary model response
-      const agentMessage: Message = {
-        id: messages.length + 2,
-        content: responseContent,
-        sender: 'agent',
-        model: primaryModel,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, agentMessage]);
-      
-      // If compare mode is on, add second model response
-      if (compareMode) {
-        setTimeout(() => {
-          // Simulate a slightly different response from the second model
-          let secondResponseContent = responseContent;
-          
-          if (secondaryModel === 'gemini' && primaryModel !== 'gemini') {
-            secondResponseContent = "Based on my analysis, the feature you're looking for is in the Settings section under 'Advanced Options'. I can walk you through how to set it up if you'd like more assistance.";
-            
-            if (inputMessage.toLowerCase().includes('pricing')) {
-              secondResponseContent = "We offer two main pricing tiers: Basic at $9.99/month (supports 5 users) and Pro at $29.99/month (unlimited users with premium features). Would you like to see a detailed breakdown of what's included in each plan?";
-            } else if (inputMessage.toLowerCase().includes('refund') || inputMessage.toLowerCase().includes('return')) {
-              secondResponseContent = "According to our return policy, you can request a refund within 30 days of your purchase. To initiate the process, I'll need your order number and the reason for your return. I'm here to help make this as smooth as possible.";
-            }
-          }
-          
-          const secondAgentMessage: Message = {
-            id: messages.length + 3,
-            content: secondResponseContent,
-            sender: 'agent2',
-            model: secondaryModel,
-            timestamp: new Date(),
-          };
-          
-          setMessages(prev => [...prev, secondAgentMessage]);
-        }, 1000);
-      }
-    }, 1000);
+    for (let i = 0; i < numChatWindows; i++) {
+      setTimeout(() => {
+        let responseContent = "I understand your question. Based on our product documentation, the feature you're looking for can be found in the Settings menu under 'Advanced Options'. Would you like me to guide you through the setup process?";
+        
+        if (inputMessage.toLowerCase().includes('pricing')) {
+          responseContent = "Our pricing plans start at $9.99/month for the Basic plan, which includes up to 5 users. The Pro plan is $29.99/month with unlimited users and premium features. Would you like me to send you a detailed comparison?";
+        } else if (inputMessage.toLowerCase().includes('refund') || inputMessage.toLowerCase().includes('return')) {
+          responseContent = "Our refund policy allows returns within 30 days of purchase. To process a refund, please provide your order number and reason for the return. I'd be happy to help you with the process.";
+        }
+        
+        if (chatConfigs[i].model === 'gemini' || chatConfigs[i].model === 'palm') {
+          responseContent = responseContent.replace("I understand", "I've analyzed");
+          responseContent = responseContent.replace("Would you like me to", "I can");
+        }
+        
+        if (chatConfigs[i].temperature > 0.8) {
+          responseContent += " By the way, is there anything else you'd like to know about our services?";
+        } else if (chatConfigs[i].temperature < 0.4) {
+          responseContent = responseContent.split('. ').join('.\n\n');
+        }
+        
+        const agentMessage: Message = {
+          id: Date.now() + i + 1,
+          content: responseContent,
+          sender: i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3',
+          model: chatConfigs[i].model,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[i] = [...newMessages[i], agentMessage];
+          return newMessages;
+        });
+      }, 1000 + (i * 500));
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -228,42 +269,41 @@ const AgentTest = () => {
   };
 
   const handleClearChat = () => {
-    // Keep just the welcome message
     if (agent) {
-      setMessages([{
-        id: 1,
+      const initialMessages = Array(numChatWindows).fill(null).map((_, i) => [{
+        id: Date.now() + i,
         content: `Hello! I'm the ${agent.name}. How can I help you today?`,
-        sender: 'agent',
-        model: primaryModel,
+        sender: i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3',
+        model: chatConfigs[i].model,
         timestamp: new Date(),
       }]);
-
-      if (compareMode) {
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            id: 2,
-            content: `Hi there! I'm the ${agent.name} powered by ${MODELS[secondaryModel as keyof typeof MODELS]?.name}. How may I assist you today?`,
-            sender: 'agent2',
-            model: secondaryModel,
-            timestamp: new Date(),
-          }]);
-        }, 500);
-      }
+      
+      setMessages(initialMessages);
     }
   };
 
   const toggleCompareMode = () => {
     setCompareMode(!compareMode);
-    
-    // Reset chat when toggling compare mode
-    handleClearChat();
   };
 
-  const handleUpdateSystemPrompt = () => {
-    toast({
-      title: "System prompt updated",
-      description: "The AI will use this prompt for future messages.",
-    });
+  const handleViewSource = (sourceId: number) => {
+    const source = agent?.knowledgeSources.find(s => s.id === sourceId);
+    if (source && source.content) {
+      setSelectedSourceId(sourceId);
+      setSelectedSourceContent(source.content);
+    }
+  };
+
+  const toggleConfigPanel = () => {
+    setConfigPanelExpanded(!configPanelExpanded);
+  };
+
+  const getModelDisplay = (modelKey: string) => {
+    return MODELS[modelKey as keyof typeof MODELS]?.name || modelKey;
+  };
+
+  const getProviderDisplay = (modelKey: string) => {
+    return MODELS[modelKey as keyof typeof MODELS]?.provider || 'Unknown';
   };
 
   if (!agent) {
@@ -271,17 +311,36 @@ const AgentTest = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 p-4">
-      <div className="flex items-center justify-between mb-4">
+    <div className="max-w-[1400px] mx-auto space-y-4 p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div className="flex items-center">
           <Button variant="ghost" size="icon" asChild className="mr-2">
             <Link to="/agents">
               <ChevronLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold">Test Agent</h1>
+          <h1 className="text-2xl font-bold">Agent Testing Lab</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <Select 
+            value={selectedAgentId} 
+            onValueChange={handleAgentChange}
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Select agent" />
+            </SelectTrigger>
+            <SelectContent>
+              {mockAgents.map(agent => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  <div className="flex items-center">
+                    <Bot className="mr-2 h-4 w-4 text-primary" />
+                    {agent.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
           <Button 
             variant="outline" 
             size="sm"
@@ -294,6 +353,7 @@ const AgentTest = () => {
             <SplitSquareVertical className="h-4 w-4 mr-1" />
             {compareMode ? "Disable Comparison" : "Compare Models"}
           </Button>
+          
           <Button 
             variant={agent.isDeployed ? "secondary" : "default"} 
             size="sm"
@@ -306,314 +366,330 @@ const AgentTest = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Agent Selection</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="agent-select">Select Agent</Label>
-                <Select 
-                  value={selectedAgentId} 
-                  onValueChange={handleAgentChange}
-                >
-                  <SelectTrigger id="agent-select">
-                    <SelectValue placeholder="Select agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockAgents.map(agent => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <Card className="mb-4">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Bot className="h-6 w-6 text-primary" />
               </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <div className="mr-3 p-2 rounded-full bg-primary/10">
-                    <Bot className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{agent.name}</h3>
-                    <Badge className="bg-green-100 text-green-800 mt-1">Active</Badge>
-                  </div>
-                </div>
-                
-                <div className="mt-3 space-y-2 text-sm">
-                  <div className="space-y-1">
-                    {compareMode ? (
-                      <>
-                        <Label htmlFor="primary-model">Primary Model</Label>
-                        <Select 
-                          value={primaryModel} 
-                          onValueChange={setPrimaryModel}
-                        >
-                          <SelectTrigger id="primary-model">
-                            <SelectValue placeholder="Select model" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(MODELS).map(([key, model]) => (
-                              <SelectItem key={key} value={key}>
-                                {model.name} ({model.provider})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        
-                        <div className="mt-2">
-                          <Label htmlFor="secondary-model">Secondary Model</Label>
-                          <Select 
-                            value={secondaryModel} 
-                            onValueChange={setSecondaryModel}
-                          >
-                            <SelectTrigger id="secondary-model">
-                              <SelectValue placeholder="Select model" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(MODELS).map(([key, model]) => (
-                                <SelectItem key={key} value={key}>
-                                  {model.name} ({model.provider})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="space-y-1">
-                        <p className="text-muted-foreground">Current Model:</p>
-                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                          {MODELS[primaryModel as keyof typeof MODELS]?.name || agent.model}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-1 mt-3">
-                    <p className="text-muted-foreground">Knowledge Sources:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {agent.knowledgeSources.map(source => (
-                        <Badge key={source.id} variant="outline">{source.name}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="system-prompt-toggle">System Prompt</Label>
-                  <Switch 
-                    id="system-prompt-toggle" 
-                    checked={showSystemPrompt}
-                    onCheckedChange={setShowSystemPrompt}
-                  />
-                </div>
-                
-                {showSystemPrompt && (
-                  <div className="mt-2 space-y-2">
-                    <Textarea 
-                      value={systemPrompt} 
-                      onChange={(e) => setSystemPrompt(e.target.value)}
-                      placeholder="Enter system prompt..."
-                      className="h-32 text-sm font-mono"
-                    />
-                    <Button 
-                      size="sm" 
-                      onClick={handleUpdateSystemPrompt}
-                      className="w-full"
-                    >
-                      Update System Prompt
-                    </Button>
-                  </div>
-                )}
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-1">
-                <p className="text-muted-foreground">Test Scenarios:</p>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <span className="mr-2">🛒</span> Product Question
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <span className="mr-2">💰</span> Pricing Question
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <span className="mr-2">🔙</span> Return Policy
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <span className="mr-2">🎮</span> Custom Scenario
-                </Button>
-              </div>
-              
-              <Separator />
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={handleClearChat}
-              >
-                <Repeat className="h-4 w-4 mr-2" />
-                Reset Conversation
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="md:col-span-2">
-          <Card className="flex flex-col h-[600px] overflow-hidden border-0 shadow-lg">
-            {/* Chat Header */}
-            <div 
-              className="p-4 flex items-center justify-between" 
-              style={{ backgroundColor: chatAppearance.headerColor }}
-            >
-              <div className="flex items-center">
-                <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center mr-3">
-                  <Bot className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-white">{agent.name}</h3>
-                  {compareMode && (
-                    <div className="flex items-center mt-0.5">
-                      <Badge variant="secondary" className="text-xs bg-white/20 text-white border-none">
-                        Comparison Mode
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
-                  <Dices className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
-                  <Maximize2 className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
-                  <X className="h-4 w-4" />
-                </Button>
+              <div>
+                <h2 className="text-lg font-semibold">{agent.name}</h2>
+                <p className="text-muted-foreground text-sm">{agent.description}</p>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                {agent.knowledgeSources.length} Knowledge Sources
+              </Badge>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                {agent.conversations} Conversations
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <Collapsible 
+          open={configPanelExpanded} 
+          onOpenChange={setConfigPanelExpanded}
+          className="lg:w-[320px] xl:w-[350px] flex-shrink-0"
+        >
+          <Card className="flex flex-col h-full border shadow-sm">
+            <CardHeader className="p-4 pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Testing Configuration</CardTitle>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    {configPanelExpanded ? <ChevronLeft className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+            </CardHeader>
             
-            {/* Chat Messages */}
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-              {messages.map((message) => {
-                // Different styling based on sender and model
-                let backgroundColor;
-                let textColor = 'text-gray-800';
-                let borderRadius;
+            <CollapsibleContent>
+              <CardContent className="px-4 py-2 space-y-4">
+                {compareMode && (
+                  <Tabs defaultValue="model1" className="w-full">
+                    <TabsList className="w-full">
+                      <TabsTrigger value="model1" className="flex-1">Model 1</TabsTrigger>
+                      <TabsTrigger value="model2" className="flex-1">Model 2</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="model1" className="mt-2 space-y-4">
+                      {renderModelConfig(0)}
+                    </TabsContent>
+                    
+                    <TabsContent value="model2" className="mt-2 space-y-4">
+                      {renderModelConfig(1)}
+                    </TabsContent>
+                  </Tabs>
+                )}
                 
-                if (message.sender === 'user') {
-                  backgroundColor = chatAppearance.chatBubbleUserColor;
-                  textColor = 'text-white';
-                  borderRadius = chatAppearance.roundedBubbles ? '1rem 1rem 0 1rem' : '0.25rem';
-                } else if (message.sender === 'agent') {
-                  backgroundColor = 'white';
-                  borderRadius = chatAppearance.roundedBubbles ? '1rem 1rem 1rem 0' : '0.25rem';
-                } else if (message.sender === 'agent2') {
-                  backgroundColor = chatAppearance.chatBubbleAgent2Color;
-                  borderRadius = chatAppearance.roundedBubbles ? '1rem 1rem 1rem 0' : '0.25rem';
-                }
+                {!compareMode && renderModelConfig(0)}
                 
-                return (
-                  <div 
-                    key={message.id}
-                    className={cn(
-                      "flex",
-                      message.sender === 'user' ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    {message.sender !== 'user' && (
-                      <div className="h-8 w-8 rounded-full mr-2 flex-shrink-0 bg-purple-500 flex items-center justify-center">
-                        <Bot className="h-5 w-5 text-white" />
+                <div className="space-y-2 mt-4">
+                  <Label>Knowledge Sources</Label>
+                  <div className="bg-gray-50 rounded-md p-2 space-y-1 max-h-[200px] overflow-y-auto">
+                    {agent.knowledgeSources.map(source => (
+                      <div 
+                        key={source.id}
+                        className="flex items-center justify-between p-2 text-sm rounded-md hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleViewSource(source.id)}
+                      >
+                        <div className="flex items-center">
+                          {getSourceIcon(source.type)}
+                          <span className="ml-2">{source.name}</span>
+                        </div>
+                        <FileText className="h-4 w-4 text-gray-400" />
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-2">
+                  <Label>Quick Test Scenarios</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Button variant="outline" size="sm" className="justify-start">
+                      <span className="mr-2">🛒</span> Product Question
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start">
+                      <span className="mr-2">💰</span> Pricing Question
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start">
+                      <span className="mr-2">🔙</span> Return Policy
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start">
+                      <span className="mr-2">🎮</span> Custom Scenario
+                    </Button>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={handleClearChat}
+                >
+                  <Repeat className="h-4 w-4 mr-2" />
+                  Reset Conversation
+                </Button>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+        
+        <div className={`grid ${compareMode ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4 flex-1`}>
+          {Array(numChatWindows).fill(null).map((_, index) => (
+            <Card key={`chat-${index}`} className="flex flex-col h-[600px] overflow-hidden border shadow-lg">
+              <div 
+                className="p-3 flex items-center justify-between" 
+                style={{ backgroundColor: index === 0 ? '#9b87f5' : index === 1 ? '#7bbfff' : '#f59b87' }}
+              >
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center mr-3">
+                    <Bot className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-white">{agent.name}</h3>
+                    <div className="flex items-center mt-0.5">
+                      <Badge variant="secondary" className="text-xs bg-white/20 text-white border-none">
+                        {getModelDisplay(chatConfigs[index].model)} ({getProviderDisplay(chatConfigs[index].model)})
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => console.log("Export chat")}>
+                        Export Chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleClearChat}>
+                        Clear Chat
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20">
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                {messages[index]?.map((message) => {
+                  let backgroundColor;
+                  let textColor = 'text-gray-800';
+                  let borderRadius = '0.75rem';
+                  
+                  if (message.sender === 'user') {
+                    backgroundColor = '#9b87f5';
+                    textColor = 'text-white';
+                    borderRadius = '1rem 1rem 0 1rem';
+                  } else if (message.sender === 'agent') {
+                    backgroundColor = 'white';
+                    borderRadius = '1rem 1rem 1rem 0';
+                  } else if (message.sender === 'agent2') {
+                    backgroundColor = '#F0F7FF';
+                    borderRadius = '1rem 1rem 1rem 0';
+                  } else if (message.sender === 'agent3') {
+                    backgroundColor = '#FFF7F0';
+                    borderRadius = '1rem 1rem 1rem 0';
+                  }
+                  
+                  return (
                     <div 
+                      key={message.id}
                       className={cn(
-                        "max-w-[80%] p-3 border border-gray-200",
-                        message.sender === 'user' ? "rounded-t-lg rounded-bl-lg" : "rounded-t-lg rounded-br-lg"
+                        "flex",
+                        message.sender === 'user' ? "justify-end" : "justify-start"
                       )}
-                      style={{
-                        backgroundColor,
-                        borderRadius,
-                        fontSize: chatAppearance.chatFontSize === 'small' ? '0.875rem' : 
-                                 chatAppearance.chatFontSize === 'large' ? '1.125rem' : '1rem',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                      }}
                     >
-                      {compareMode && message.sender !== 'user' && (
-                        <div className="flex items-center mb-1 pb-1 border-b border-gray-200">
-                          <Badge variant="outline" className="text-xs">
-                            {MODELS[message.model as keyof typeof MODELS]?.name || 'AI Model'}
-                          </Badge>
+                      {message.sender !== 'user' && (
+                        <div className="h-8 w-8 rounded-full mr-2 flex-shrink-0 bg-purple-500 flex items-center justify-center">
+                          <Bot className="h-5 w-5 text-white" />
                         </div>
                       )}
-                      <p className={textColor}>
-                        {message.content}
-                      </p>
-                      {chatAppearance.timestampDisplay && (
+                      <div 
+                        className="max-w-[80%] p-3 border border-gray-200 shadow-sm"
+                        style={{
+                          backgroundColor,
+                          borderRadius,
+                          fontSize: '1rem',
+                        }}
+                      >
+                        {message.model && message.sender !== 'user' && (
+                          <div className="flex items-center mb-1 pb-1 border-b border-gray-200">
+                            <Badge variant="outline" className="text-xs">
+                              {getModelDisplay(message.model)}
+                            </Badge>
+                          </div>
+                        )}
+                        <p className={textColor} style={{ whiteSpace: 'pre-wrap' }}>
+                          {message.content}
+                        </p>
                         <div className={cn(
                           "text-xs mt-1",
                           message.sender === 'user' ? "text-white/80" : "text-gray-500"
                         )}>
                           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
+                      </div>
+                      {message.sender === 'user' && (
+                        <div 
+                          className="w-8 h-8 rounded-full flex items-center justify-center ml-2 text-xs font-medium flex-shrink-0"
+                          style={{
+                            background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          <User size={16} />
+                        </div>
                       )}
                     </div>
-                    {message.sender === 'user' && (
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center ml-2 text-xs font-medium flex-shrink-0"
-                        style={{
-                          background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        <User size={16} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </CardContent>
-            
-            {/* Input Area */}
-            <div className="p-4 border-t bg-white">
-              <div className="flex items-center">
-                <Input
-                  placeholder="Type your message..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-1 border-gray-200 focus:ring-purple-500 focus:border-purple-500"
-                />
-                <Button 
-                  onClick={handleSendMessage} 
-                  size="icon" 
-                  className="ml-2 rounded-full h-10 w-10"
-                  style={{ backgroundColor: chatAppearance.primaryColor }}
-                >
-                  <SendHorizontal className="h-5 w-5 text-white" />
-                </Button>
+                  );
+                })}
+              </CardContent>
+              
+              <div className="p-4 border-t bg-white">
+                <div className="flex items-center">
+                  <Input
+                    placeholder="Type your message..."
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 border-gray-200 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  <Button 
+                    onClick={handleSendMessage} 
+                    size="icon" 
+                    className="ml-2 rounded-full h-10 w-10"
+                    style={{ backgroundColor: index === 0 ? '#9b87f5' : index === 1 ? '#7bbfff' : '#f59b87' }}
+                  >
+                    <SendHorizontal className="h-5 w-5 text-white" />
+                  </Button>
+                </div>
+                <div className="text-center mt-2 text-xs text-gray-400">
+                  powered by 7en.ai
+                </div>
               </div>
-              <div className="text-center mt-2 text-xs text-gray-400">
-                powered by 7en.ai
-              </div>
-            </div>
-          </Card>
+            </Card>
+          ))}
         </div>
       </div>
 
-      {/* Deployment Dialog */}
+      <Dialog open={selectedSourceId !== null} onOpenChange={(open) => !open && setSelectedSourceId(null)}>
+        <DialogContent className="max-w-[800px] max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                {selectedSourceId && 
+                  getSourceIcon(agent.knowledgeSources.find(s => s.id === selectedSourceId)?.type || 'document')}
+                <span className="ml-2">
+                  {selectedSourceId && 
+                    agent.knowledgeSources.find(s => s.id === selectedSourceId)?.name}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant={sourceViewMode === 'markdown' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSourceViewMode('markdown')}
+                  className="h-8"
+                >
+                  <Code className="h-4 w-4 mr-1" />
+                  Markdown
+                </Button>
+                <Button
+                  variant={sourceViewMode === 'text' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSourceViewMode('text')}
+                  className="h-8"
+                >
+                  <FileText className="h-4 w-4 mr-1" />
+                  Text
+                </Button>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto mt-2 p-4 bg-gray-50 rounded-md font-mono text-sm">
+            {sourceViewMode === 'markdown' ? (
+              <div className="prose max-w-none dark:prose-invert">
+                {selectedSourceContent.split('\n').map((line, index) => (
+                  <div key={index}>
+                    {line.startsWith('# ') ? (
+                      <h1>{line.substring(2)}</h1>
+                    ) : line.startsWith('## ') ? (
+                      <h2>{line.substring(3)}</h2>
+                    ) : line.startsWith('### ') ? (
+                      <h3>{line.substring(4)}</h3>
+                    ) : line.startsWith('- ') ? (
+                      <ul className="my-1"><li>{line.substring(2)}</li></ul>
+                    ) : line.trim() === '' ? (
+                      <br />
+                    ) : (
+                      <p className="my-1">{line}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <pre className="whitespace-pre-wrap">{selectedSourceContent}</pre>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <DeploymentDialog 
         open={deploymentDialogOpen} 
         onOpenChange={setDeploymentDialogOpen} 
@@ -621,6 +697,95 @@ const AgentTest = () => {
       />
     </div>
   );
+
+  function renderModelConfig(index: number) {
+    return (
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Label htmlFor={`model-${index}`}>AI Model</Label>
+          <Select 
+            value={chatConfigs[index].model} 
+            onValueChange={(value) => handleUpdateChatConfig(index, 'model', value)}
+          >
+            <SelectTrigger id={`model-${index}`}>
+              <SelectValue placeholder="Select model" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(MODELS).map(([key, model]) => (
+                <SelectItem key={key} value={key}>
+                  {model.name} ({model.provider})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label htmlFor={`temperature-${index}`}>Temperature: {chatConfigs[index].temperature.toFixed(1)}</Label>
+          </div>
+          <Slider
+            id={`temperature-${index}`}
+            min={0}
+            max={1}
+            step={0.1}
+            value={[chatConfigs[index].temperature]}
+            onValueChange={([value]) => handleUpdateChatConfig(index, 'temperature', value)}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Precise</span>
+            <span>Balanced</span>
+            <span>Creative</span>
+          </div>
+        </div>
+        
+        <div className="space-y-1">
+          <Label htmlFor={`max-tokens-${index}`}>Max Output Length: {chatConfigs[index].maxTokens}</Label>
+          <Slider
+            id={`max-tokens-${index}`}
+            min={100}
+            max={2000}
+            step={100}
+            value={[chatConfigs[index].maxTokens]}
+            onValueChange={([value]) => handleUpdateChatConfig(index, 'maxTokens', value)}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Short</span>
+            <span>Medium</span>
+            <span>Long</span>
+          </div>
+        </div>
+        
+        <div className="space-y-1">
+          <Label htmlFor={`system-prompt-${index}`}>System Prompt</Label>
+          <Textarea 
+            id={`system-prompt-${index}`}
+            value={chatConfigs[index].systemPrompt} 
+            onChange={(e) => handleUpdateChatConfig(index, 'systemPrompt', e.target.value)}
+            className="h-20 text-sm font-mono"
+            placeholder="Enter system instructions for the AI..."
+          />
+        </div>
+      </div>
+    );
+  }
+
+  function getSourceIcon(type: string) {
+    switch (type) {
+      case 'document':
+        return <FileText className="h-4 w-4 text-blue-500" />;
+      case 'webpage':
+        return <Globe className="h-4 w-4 text-green-500" />;
+      case 'database':
+        return <Database className="h-4 w-4 text-purple-500" />;
+      case 'api':
+        return <Code className="h-4 w-4 text-orange-500" />;
+      case 'json':
+        return <FileJson className="h-4 w-4 text-yellow-500" />;
+      default:
+        return <BookOpen className="h-4 w-4 text-gray-500" />;
+    }
+  }
 };
 
 export default AgentTest;
