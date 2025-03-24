@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { Play, Rocket, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeploymentDialog from './DeploymentDialog';
-import { Agent } from '@/hooks/useAgentFiltering';
+import { Agent } from '@/components/agents/modelComparison/types';
+import ModelTestLink from './modelComparison/ModelTestLink';
 
 interface AgentFooterActionsProps {
   agent: Agent;
@@ -16,12 +17,15 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
   return (
     <>
       <div className="flex flex-col gap-2 w-full">
-        <Button variant="outline" size="sm" className="w-full" asChild>
-          <Link to={`/agents/${agent.id}/test`}>
-            <Play className="h-3.5 w-3.5 mr-1" />
-            Test
-          </Link>
-        </Button>
+        <ModelTestLink 
+          modelInfo={{ 
+            model: agent.model,
+            label: "Test with Agent",
+            openInNewTab: false
+          }}
+          agentId={agent.id}
+          className="w-full"
+        />
         <Button 
           variant={agent.isDeployed ? "secondary" : "default"} 
           size="sm" 

@@ -35,3 +35,9 @@ export type KnowledgeSource = {
   hasError: boolean;
   content?: string;
 };
+
+export type ModelTestLink = {
+  model: string;
+  label?: string;
+  openInNewTab?: boolean;
+};
