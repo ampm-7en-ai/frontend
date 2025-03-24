@@ -450,78 +450,19 @@ const AgentEdit = () => {
 
   const renderChatPreview = () => {
     return (
-      <div className="flex flex-col h-full bg-slate-50 rounded-lg">
-        <div 
-          className="p-4 rounded-t-lg flex items-center justify-between"
-          style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
-        >
-          <div className="flex items-center gap-2">
-            <Bot size={18} />
-            <span className="font-medium">{agent.chatbotName}</span>
-          </div>
+      <div className="flex flex-col h-full rounded-lg overflow-hidden border">
+        <div className="flex-1 relative">
+          <ChatboxPreview
+            primaryColor={agent.primaryColor}
+            secondaryColor={agent.secondaryColor}
+            fontFamily={agent.fontFamily}
+            chatbotName={agent.chatbotName}
+            welcomeMessage={agent.welcomeMessage}
+            buttonText={agent.buttonText}
+            position={agent.position}
+            className="w-full h-full"
+          />
         </div>
-        
-        <div className="flex-1 p-4 overflow-y-auto">
-          <div className="flex gap-2 items-start mb-4">
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
-            >
-              <Bot size={16} />
-            </div>
-            <div
-              className="rounded-lg p-3 max-w-[80%]"
-              style={{ backgroundColor: `${agent.primaryColor}20` }}
-            >
-              <p className="text-sm">{agent.welcomeMessage}</p>
-            </div>
-          </div>
-          
-          <div className="flex gap-2 items-start justify-end mb-4">
-            <div
-              className="rounded-lg p-3 bg-gray-100 max-w-[80%]"
-            >
-              <p className="text-sm">Hi there, do you offer any discounts for bulk orders?</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 text-xs">
-              You
-            </div>
-          </div>
-          
-          <div className="flex gap-2 items-start mb-4">
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
-            >
-              <Bot size={16} />
-            </div>
-            <div
-              className="rounded-lg p-3 max-w-[80%]"
-              style={{ backgroundColor: `${agent.primaryColor}20` }}
-            >
-              <p className="text-sm">Yes, we offer discounts starting at orders of 10 items or more. The discount increases with larger quantities. Would you like me to provide you with our discount tiers?</p>
-            </div>
-          </div>
-        </div>
-        
-        <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
-          <div className="relative">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="pr-10"
-            />
-            <Button 
-              type="submit" 
-              size="icon" 
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
-              style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
-            >
-              <Send size={14} />
-            </Button>
-          </div>
-        </form>
       </div>
     );
   };
