@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton
+} from '@/components/ui/sidebar';
 
 // Sample knowledge sources data
 const knowledgeSources = [
@@ -29,6 +37,7 @@ const AgentEdit = () => {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("general");
   
   // Mock data for agent (in a real app, you would fetch this from an API)
   const [agent, setAgent] = useState({
@@ -101,9 +110,454 @@ const AgentEdit = () => {
     handleChange('knowledgeSources', selectedSourceIds);
   };
 
-  return (
+  // Sidebar menu items based on active tab
+  const getSidebarMenuItems = () => {
+    switch(activeTab) {
+      case "general":
+        return (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton isActive={true}>
+                <Bot className="h-4 w-4 mr-2" />
+                Agent Information
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Responses
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        );
+      case "appearance":
+        return (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton isActive={true}>
+                <Palette className="h-4 w-4 mr-2" />
+                Visual Settings
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Chat Window
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        );
+      case "advanced":
+        return (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton isActive={true}>
+                <CpuIcon className="h-4 w-4 mr-2" />
+                AI Model
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <BrainCircuit className="h-4 w-4 mr-2" />
+                Personality
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <Sliders className="h-4 w-4 mr-2" />
+                Behavior
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        );
+      case "knowledge":
+        return (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton isActive={true}>
+                <FileText className="h-4 w-4 mr-2" />
+                Knowledge Sources
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Training Status
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Content for General tab
+  const renderGeneralContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Agent Information</CardTitle>
+        <CardDescription>Basic information about your agent</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="agent-name">Agent Name</Label>
+          <Input 
+            id="agent-name" 
+            value={agent.name} 
+            onChange={(e) => handleChange('name', e.target.value)}
+            placeholder="e.g. Customer Support Agent" 
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="agent-description">Description</Label>
+          <Textarea 
+            id="agent-description" 
+            value={agent.description} 
+            onChange={(e) => handleChange('description', e.target.value)}
+            placeholder="Describe what this agent does" 
+            className="min-h-[120px]"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="agent-status">Status</Label>
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="agent-status" 
+              checked={agent.status === 'active'} 
+              onCheckedChange={(checked) => handleChange('status', checked ? 'active' : 'inactive')} 
+            />
+            <span className={agent.status === 'active' ? "text-green-600" : "text-gray-500"}>
+              {agent.status === 'active' ? "Active" : "Inactive"}
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Inactive agents will not be accessible to your visitors
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Content for Appearance tab
+  const renderAppearanceContent = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Visual Settings</CardTitle>
+          <CardDescription>Customize the look and feel of your chatbot</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="primary-color">Primary Color</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="primary-color-input" 
+                    type="color" 
+                    value={agent.primaryColor} 
+                    onChange={(e) => handleChange('primaryColor', e.target.value)}
+                    className="w-12 h-10 p-1"
+                  />
+                  <Input 
+                    id="primary-color-value" 
+                    value={agent.primaryColor} 
+                    onChange={(e) => handleChange('primaryColor', e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secondary-color">Text Color</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="secondary-color-input" 
+                    type="color" 
+                    value={agent.secondaryColor} 
+                    onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                    className="w-12 h-10 p-1"
+                  />
+                  <Input 
+                    id="secondary-color-value" 
+                    value={agent.secondaryColor} 
+                    onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="font-family">Font Family</Label>
+              <Select 
+                value={agent.fontFamily} 
+                onValueChange={(value) => handleChange('fontFamily', value)}
+              >
+                <SelectTrigger id="font-family">
+                  <SelectValue placeholder="Select font" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Inter">Inter</SelectItem>
+                  <SelectItem value="Arial">Arial</SelectItem>
+                  <SelectItem value="Helvetica">Helvetica</SelectItem>
+                  <SelectItem value="Georgia">Georgia</SelectItem>
+                  <SelectItem value="Verdana">Verdana</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Separator />
+
+            <div className="space-y-2">
+              <Label htmlFor="chatbot-name">Chatbot Name</Label>
+              <Input 
+                id="chatbot-name" 
+                value={agent.chatbotName} 
+                onChange={(e) => handleChange('chatbotName', e.target.value)}
+                placeholder="e.g. Customer Support"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="welcome-message">Welcome Message</Label>
+              <Input 
+                id="welcome-message" 
+                value={agent.welcomeMessage} 
+                onChange={(e) => handleChange('welcomeMessage', e.target.value)}
+                placeholder="Hello! How can I help you today?"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="button-text">Button Text</Label>
+              <Input 
+                id="button-text" 
+                value={agent.buttonText} 
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Chat with us"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Position</Label>
+              <RadioGroup 
+                value={agent.position} 
+                onValueChange={(value) => handleChange('position', value)}
+                className="grid grid-cols-2 gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="bottom-right" id="position-right" />
+                  <Label htmlFor="position-right">Bottom Right</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="bottom-left" id="position-left" />
+                  <Label htmlFor="position-left">Bottom Left</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Preview</CardTitle>
+          <CardDescription>See how your chatbot will appear on your website</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChatboxPreview 
+            primaryColor={agent.primaryColor}
+            secondaryColor={agent.secondaryColor}
+            fontFamily={agent.fontFamily}
+            chatbotName={agent.chatbotName}
+            welcomeMessage={agent.welcomeMessage}
+            buttonText={agent.buttonText}
+            position={agent.position as 'bottom-right' | 'bottom-left'}
+            className="mt-4"
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Content for Advanced Settings tab
+  const renderAdvancedContent = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <CpuIcon className="mr-2 h-5 w-5" />
+            AI Model Configuration
+          </CardTitle>
+          <CardDescription>Configure the underlying AI model</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="model">Language Model</Label>
+            <Select 
+              value={agent.selectedModel} 
+              onValueChange={(value) => handleChange('selectedModel', value)}
+            >
+              <SelectTrigger id="model">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt4">GPT-4</SelectItem>
+                <SelectItem value="gpt35">GPT-3.5 Turbo</SelectItem>
+                <SelectItem value="anthropic">Claude 3</SelectItem>
+                <SelectItem value="mistral">Mistral 7B</SelectItem>
+                <SelectItem value="llama">Llama 2</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="temperature">Temperature</Label>
+            <div className="flex items-center space-x-2">
+              <Input 
+                id="temperature" 
+                type="number" 
+                value={agent.temperature}
+                onChange={(e) => handleChange('temperature', parseFloat(e.target.value))}
+                min="0" 
+                max="1" 
+                step="0.1"
+                className="w-24"
+              />
+              <span className="text-xs text-muted-foreground">
+                Higher values make responses more creative but less predictable
+              </span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="max-response-length">Maximum Response Length</Label>
+            <Select 
+              value={agent.maxResponseLength} 
+              onValueChange={(value) => handleChange('maxResponseLength', value)}
+            >
+              <SelectTrigger id="max-response-length">
+                <SelectValue placeholder="Select length" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="short">Short (1-2 sentences)</SelectItem>
+                <SelectItem value="medium">Medium (3-5 sentences)</SelectItem>
+                <SelectItem value="long">Long (6+ sentences)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Controls the typical length of responses from your agent.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BrainCircuit className="mr-2 h-5 w-5" />
+            Agent Type & Personality
+          </CardTitle>
+          <CardDescription>Define the agent's role and behavior</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Agent Type</Label>
+              <RadioGroup defaultValue="support" className="grid grid-cols-2 gap-2">
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="support" id="support" />
+                  <Label htmlFor="support" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Customer Support</span>
+                    <span className="text-xs text-muted-foreground">Assists with user questions and problems</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="sales" id="sales" />
+                  <Label htmlFor="sales" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Sales Assistant</span>
+                    <span className="text-xs text-muted-foreground">Helps convert leads and answer product questions</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="technical" id="technical" />
+                  <Label htmlFor="technical" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Technical Support</span>
+                    <span className="text-xs text-muted-foreground">Helps with technical problems and troubleshooting</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="custom" id="custom" />
+                  <Label htmlFor="custom" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Custom</span>
+                    <span className="text-xs text-muted-foreground">Create a custom agent type</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Sliders className="mr-2 h-5 w-5" />
+            Behavior Settings
+          </CardTitle>
+          <CardDescription>Configure how the agent works and learns</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="memory">Conversation Memory</Label>
+              <Switch id="memory" defaultChecked />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enable conversation history so the agent remembers previous interactions
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="learning">Continuous Learning</Label>
+              <Switch id="learning" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Allow the agent to improve from interactions over time
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="handoff">Expert Handoff</Label>
+              <Switch id="handoff" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Allow the agent to escalate to human domain experts when needed
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="multilingual">Multilingual Support</Label>
+              <Switch id="multilingual" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enable automatic translation for non-primary languages
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  return (
+    <div className="h-full">
+      <div className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -115,398 +569,67 @@ const AgentEdit = () => {
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={goBack}>Cancel</Button>
-          <Button onClick={handleSaveChanges}>Save Changes</Button>
+          <Button onClick={handleSaveChanges}>
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="general">
-            <Bot className="h-4 w-4 mr-2" />
-            General
-          </TabsTrigger>
-          <TabsTrigger value="appearance">
-            <Palette className="h-4 w-4 mr-2" />
-            Appearance
-          </TabsTrigger>
-          <TabsTrigger value="advanced">
-            <Sliders className="h-4 w-4 mr-2" />
-            Advanced Settings
-          </TabsTrigger>
-          <TabsTrigger value="knowledge">
-            <FileText className="h-4 w-4 mr-2" />
-            Knowledge
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="general" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Agent Information</CardTitle>
-              <CardDescription>Basic information about your agent</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="agent-name">Agent Name</Label>
-                <Input 
-                  id="agent-name" 
-                  value={agent.name} 
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder="e.g. Customer Support Agent" 
-                />
+      <div className="flex mt-4">
+        <div className="w-full">
+          <div className="flex justify-center mb-6">
+            <Tabs 
+              defaultValue="general" 
+              className="w-full"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
+              <div className="flex justify-center">
+                <TabsList size="xs" className="w-auto">
+                  <TabsTrigger value="general" size="xs">
+                    <Bot className="h-4 w-4 mr-2" />
+                    General
+                  </TabsTrigger>
+                  <TabsTrigger value="appearance" size="xs">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Appearance
+                  </TabsTrigger>
+                  <TabsTrigger value="advanced" size="xs">
+                    <Sliders className="h-4 w-4 mr-2" />
+                    Advanced Settings
+                  </TabsTrigger>
+                  <TabsTrigger value="knowledge" size="xs">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Knowledge
+                  </TabsTrigger>
+                </TabsList>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="agent-description">Description</Label>
-                <Textarea 
-                  id="agent-description" 
-                  value={agent.description} 
-                  onChange={(e) => handleChange('description', e.target.value)}
-                  placeholder="Describe what this agent does" 
-                  className="min-h-[120px]"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="agent-status">Status</Label>
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="agent-status" 
-                    checked={agent.status === 'active'} 
-                    onCheckedChange={(checked) => handleChange('status', checked ? 'active' : 'inactive')} 
-                  />
-                  <span className={agent.status === 'active' ? "text-green-600" : "text-gray-500"}>
-                    {agent.status === 'active' ? "Active" : "Inactive"}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Inactive agents will not be accessible to your visitors
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="appearance" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Visual Settings</CardTitle>
-                <CardDescription>Customize the look and feel of your chatbot</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="primary-color">Primary Color</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          id="primary-color-input" 
-                          type="color" 
-                          value={agent.primaryColor} 
-                          onChange={(e) => handleChange('primaryColor', e.target.value)}
-                          className="w-12 h-10 p-1"
-                        />
-                        <Input 
-                          id="primary-color-value" 
-                          value={agent.primaryColor} 
-                          onChange={(e) => handleChange('primaryColor', e.target.value)}
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="secondary-color">Text Color</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          id="secondary-color-input" 
-                          type="color" 
-                          value={agent.secondaryColor} 
-                          onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                          className="w-12 h-10 p-1"
-                        />
-                        <Input 
-                          id="secondary-color-value" 
-                          value={agent.secondaryColor} 
-                          onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="font-family">Font Family</Label>
-                    <Select 
-                      value={agent.fontFamily} 
-                      onValueChange={(value) => handleChange('fontFamily', value)}
-                    >
-                      <SelectTrigger id="font-family">
-                        <SelectValue placeholder="Select font" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Inter">Inter</SelectItem>
-                        <SelectItem value="Arial">Arial</SelectItem>
-                        <SelectItem value="Helvetica">Helvetica</SelectItem>
-                        <SelectItem value="Georgia">Georgia</SelectItem>
-                        <SelectItem value="Verdana">Verdana</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <Separator />
+            </Tabs>
+          </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="chatbot-name">Chatbot Name</Label>
-                    <Input 
-                      id="chatbot-name" 
-                      value={agent.chatbotName} 
-                      onChange={(e) => handleChange('chatbotName', e.target.value)}
-                      placeholder="e.g. Customer Support"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="welcome-message">Welcome Message</Label>
-                    <Input 
-                      id="welcome-message" 
-                      value={agent.welcomeMessage} 
-                      onChange={(e) => handleChange('welcomeMessage', e.target.value)}
-                      placeholder="Hello! How can I help you today?"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="button-text">Button Text</Label>
-                    <Input 
-                      id="button-text" 
-                      value={agent.buttonText} 
-                      onChange={(e) => handleChange('buttonText', e.target.value)}
-                      placeholder="Chat with us"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Position</Label>
-                    <RadioGroup 
-                      value={agent.position} 
-                      onValueChange={(value) => handleChange('position', value)}
-                      className="grid grid-cols-2 gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="bottom-right" id="position-right" />
-                        <Label htmlFor="position-right">Bottom Right</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="bottom-left" id="position-left" />
-                        <Label htmlFor="position-left">Bottom Left</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="flex">
+            {/* Left sidebar for secondary navigation */}
+            <div className="w-64 pr-6 border-r">
+              {getSidebarMenuItems()}
+            </div>
             
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Preview</CardTitle>
-                  <CardDescription>See how your chatbot will appear on your website</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChatboxPreview 
-                    primaryColor={agent.primaryColor}
-                    secondaryColor={agent.secondaryColor}
-                    fontFamily={agent.fontFamily}
-                    chatbotName={agent.chatbotName}
-                    welcomeMessage={agent.welcomeMessage}
-                    buttonText={agent.buttonText}
-                    position={agent.position as 'bottom-right' | 'bottom-left'}
-                    className="mt-4"
-                  />
-                </CardContent>
-              </Card>
+            {/* Main content area */}
+            <div className="flex-1 pl-6">
+              {activeTab === "general" && renderGeneralContent()}
+              {activeTab === "appearance" && renderAppearanceContent()}
+              {activeTab === "advanced" && renderAdvancedContent()}
+              {activeTab === "knowledge" && (
+                <KnowledgeTrainingStatus 
+                  agentId={agentId || ''} 
+                  initialSelectedSources={agent.knowledgeSources}
+                  onSourcesChange={handleKnowledgeSourcesChange}
+                />
+              )}
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="advanced" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <CpuIcon className="mr-2 h-5 w-5" />
-                AI Model Configuration
-              </CardTitle>
-              <CardDescription>Configure the underlying AI model</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="model">Language Model</Label>
-                <Select 
-                  value={agent.selectedModel} 
-                  onValueChange={(value) => handleChange('selectedModel', value)}
-                >
-                  <SelectTrigger id="model">
-                    <SelectValue placeholder="Select model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gpt4">GPT-4</SelectItem>
-                    <SelectItem value="gpt35">GPT-3.5 Turbo</SelectItem>
-                    <SelectItem value="anthropic">Claude 3</SelectItem>
-                    <SelectItem value="mistral">Mistral 7B</SelectItem>
-                    <SelectItem value="llama">Llama 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="temperature">Temperature</Label>
-                <div className="flex items-center space-x-2">
-                  <Input 
-                    id="temperature" 
-                    type="number" 
-                    value={agent.temperature}
-                    onChange={(e) => handleChange('temperature', parseFloat(e.target.value))}
-                    min="0" 
-                    max="1" 
-                    step="0.1"
-                    className="w-24"
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    Higher values make responses more creative but less predictable
-                  </span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="max-response-length">Maximum Response Length</Label>
-                <Select 
-                  value={agent.maxResponseLength} 
-                  onValueChange={(value) => handleChange('maxResponseLength', value)}
-                >
-                  <SelectTrigger id="max-response-length">
-                    <SelectValue placeholder="Select length" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="short">Short (1-2 sentences)</SelectItem>
-                    <SelectItem value="medium">Medium (3-5 sentences)</SelectItem>
-                    <SelectItem value="long">Long (6+ sentences)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Controls the typical length of responses from your agent.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BrainCircuit className="mr-2 h-5 w-5" />
-                Agent Type & Personality
-              </CardTitle>
-              <CardDescription>Define the agent's role and behavior</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Agent Type</Label>
-                  <RadioGroup defaultValue="support" className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                      <RadioGroupItem value="support" id="support" />
-                      <Label htmlFor="support" className="flex flex-col cursor-pointer">
-                        <span className="font-medium">Customer Support</span>
-                        <span className="text-xs text-muted-foreground">Assists with user questions and problems</span>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                      <RadioGroupItem value="sales" id="sales" />
-                      <Label htmlFor="sales" className="flex flex-col cursor-pointer">
-                        <span className="font-medium">Sales Assistant</span>
-                        <span className="text-xs text-muted-foreground">Helps convert leads and answer product questions</span>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                      <RadioGroupItem value="technical" id="technical" />
-                      <Label htmlFor="technical" className="flex flex-col cursor-pointer">
-                        <span className="font-medium">Technical Support</span>
-                        <span className="text-xs text-muted-foreground">Helps with technical problems and troubleshooting</span>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                      <RadioGroupItem value="custom" id="custom" />
-                      <Label htmlFor="custom" className="flex flex-col cursor-pointer">
-                        <span className="font-medium">Custom</span>
-                        <span className="text-xs text-muted-foreground">Create a custom agent type</span>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Sliders className="mr-2 h-5 w-5" />
-                Behavior Settings
-              </CardTitle>
-              <CardDescription>Configure how the agent works and learns</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="memory">Conversation Memory</Label>
-                  <Switch id="memory" defaultChecked />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Enable conversation history so the agent remembers previous interactions
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="learning">Continuous Learning</Label>
-                  <Switch id="learning" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Allow the agent to improve from interactions over time
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="handoff">Expert Handoff</Label>
-                  <Switch id="handoff" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Allow the agent to escalate to human domain experts when needed
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="multilingual">Multilingual Support</Label>
-                  <Switch id="multilingual" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Enable automatic translation for non-primary languages
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="knowledge" className="space-y-6 mt-6">
-          <KnowledgeTrainingStatus 
-            agentId={agentId || ''} 
-            initialSelectedSources={agent.knowledgeSources}
-            onSourcesChange={handleKnowledgeSourcesChange}
-          />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 };
