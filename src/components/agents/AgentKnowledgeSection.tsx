@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ChevronRight, RefreshCw, FileText } from 'lucide-react';
+import { AlertCircle, ChevronRight, RefreshCw, FileText, BookOpen, Database, Globe } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -24,7 +24,7 @@ interface KnowledgeSource {
   id: number;
   name: string;
   type: string;
-  icon: string;
+  icon?: string;
   hasError: boolean;
   content?: string;
 }
@@ -42,9 +42,17 @@ const AgentKnowledgeSection = ({
   asFlyout = false,
   onViewSource
 }: AgentKnowledgeSectionProps) => {
+  const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
   const displayedSources = knowledgeSources.slice(0, 3); // Show up to 3 sources
   const remainingSources = knowledgeSources.length - 3;
   const hasErrorSources = knowledgeSources.some(source => source.hasError);
+  
+  const handleSourceClick = (source: KnowledgeSource) => {
+    setSelectedSource(source);
+    if (onViewSource) {
+      onViewSource(source.id);
+    }
+  };
   
   // For regular inline display
   if (!asFlyout) {
@@ -102,7 +110,7 @@ const AgentKnowledgeSection = ({
           <div 
             key={source.id}
             className="flex items-center justify-between p-3 text-sm rounded-md border hover:bg-gray-50 cursor-pointer"
-            onClick={() => onViewSource && onViewSource(source.id)}
+            onClick={() => handleSourceClick(source)}
           >
             <div className="flex items-center">
               {getSourceIcon(source.type)}
@@ -112,6 +120,21 @@ const AgentKnowledgeSection = ({
           </div>
         ))}
       </div>
+      
+      {selectedSource && (
+        <div className="mt-4">
+          <div className="text-sm font-medium mb-2">Source Content</div>
+          <div className="p-3 bg-gray-50 rounded-md border overflow-auto max-h-96">
+            {selectedSource.content ? (
+              <div className="prose prose-sm max-w-none">
+                <pre className="text-xs whitespace-pre-wrap">{selectedSource.content}</pre>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground italic">No preview available</div>
+            )}
+          </div>
+        </div>
+      )}
       
       {hasErrorSources && (
         <div className="mt-2">
@@ -145,4 +168,3 @@ function getSourceIcon(type: string) {
 }
 
 export default AgentKnowledgeSection;
-

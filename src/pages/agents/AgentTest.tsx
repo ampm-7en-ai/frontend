@@ -18,7 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import AgentKnowledgeSection from '@/components/agents/AgentKnowledgeSection';
+import { AgentKnowledgeSection } from '@/components/agents/AgentKnowledgeSection';
+import { mockKnowledgeSources } from '@/data/mockKnowledgeSources';
 
 type Message = {
   id: number;
@@ -133,6 +134,7 @@ const AgentTest = () => {
   const [selectedSourceContent, setSelectedSourceContent] = useState<string>("");
   const [sourceViewMode, setSourceViewMode] = useState<'markdown' | 'text'>('markdown');
   const [showKnowledgeFlyout, setShowKnowledgeFlyout] = useState(false);
+  const [isKnowledgePopoverOpen, setIsKnowledgePopoverOpen] = useState(false);
 
   const messageContainerRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
@@ -189,7 +191,7 @@ const AgentTest = () => {
         if (chatConfigs[i].model === "llama") {
           responseContent = "It seems like you might have entered 'CV,' which can refer to a few things, such as 'Curriculum Vitae,' a document detailing your education, work experience, and skills.\n\nIf you're looking for information on how to create a CV, I'd be happy to provide guidance. Alternatively, if 'CV' stands for something else in your context, please provide more details so I can offer a more relevant response.";
         } else if (chatConfigs[i].model === "deepseek") {
-          responseContent = "Hello! It looks like you're referring to \"CV,\" which can have multiple meanings depending on the context. Here are a few common interpretations:\n\n1. Curriculum Vitae (CV):\n   • A detailed document highlighting your academic and professional history, often used for job applications, academic positions, or research roles. It typically includes education, work experience, publications, awards, and skills.\n   • Need help crafting or reviewing a CV? Let me know!\n\n2. Computer Vision (CV):\n   • A field of artificial intelligence (AI) focused on enabling machines to interpret and analyze visual data (images, videos). Applications include facial recognition, object detection, and autonomous vehicles.\n   • Are you working on a computer vision project?\n\n3. Coefficient of Variation (CV):\n   • A statistical measure of data dispersion, calculated as the ratio of the standard deviation to the mean. It's often used to compare variability across datasets.\n   • Need help with statistics or data analysis?\n\n4. Cyclonic Vortex (CV):\n   • A meteorological term related to weather systems.";
+          responseContent = "Hello! It looks like you're referring to \"CV,\" which can have multiple meanings depending on the context. Here are a few common interpretations:\n\n1. Curriculum Vitae (CV):\n   • A detailed document highlighting your academic and professional history\n   • Need help crafting or reviewing a CV? Let me know!\n\n2. Computer Vision (CV):\n   • A field of artificial intelligence (AI) focused on enabling machines to interpret and analyze visual data (images, videos). Applications include facial recognition, object detection, and autonomous vehicles.\n   • Are you working on a computer vision project?\n\n3. Coefficient of Variation (CV):\n   • A statistical measure of data dispersion, calculated as the ratio of the standard deviation to the mean. It's often used to compare variability across datasets.\n   • Need help with statistics or data analysis?\n\n4. Cyclonic Vortex (CV):\n   • A meteorological term related to weather systems.";
         } else {
           responseContent = "CV could refer to:\n\n- Curriculum Vitae: A comprehensive document outlining your professional and academic history\n- Computer Vision: A field of AI that enables computers to derive meaningful information from digital images\n- Coefficient of Variation: A statistical measure\n\nCould you please specify which meaning of CV you're referring to so I can better assist you?";
         }
@@ -298,19 +300,22 @@ const AgentTest = () => {
             </SelectContent>
           </Select>
           
-          <Popover open={showKnowledgeFlyout} onOpenChange={setShowKnowledgeFlyout}>
+          <Popover open={isKnowledgePopoverOpen} onOpenChange={setIsKnowledgePopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <BookOpen className="h-4 w-4 mr-1" />
+              <Button 
+                variant="link" 
+                size="sm" 
+                className="text-sm font-medium text-primary hover:underline"
+                onClick={() => setIsKnowledgePopoverOpen(true)}
+              >
                 Knowledge
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-96 p-0">
+            <PopoverContent className="w-[400px] p-0" align="start">
               <AgentKnowledgeSection 
-                agentId={agent.id} 
-                knowledgeSources={agent.knowledgeSources} 
-                asFlyout 
-                onViewSource={handleViewSource}
+                agentId={agentId || '1'} 
+                knowledgeSources={mockKnowledgeSources} 
+                asFlyout={true} 
               />
             </PopoverContent>
           </Popover>
@@ -544,3 +549,4 @@ const AgentTest = () => {
 };
 
 export default AgentTest;
+
