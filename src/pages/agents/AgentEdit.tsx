@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ const AgentEdit = () => {
   });
   
   const [isRetraining, setIsRetraining] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
   
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -102,104 +104,18 @@ const AgentEdit = () => {
     handleChange('knowledgeSources', selectedSourceIds);
   };
 
-  // Custom sidebar navigation based on active tab
-  const renderSidebarNav = () => {
-    switch(activeTab) {
-      case "general":
-        return (
-          <div className="space-y-2">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start font-medium bg-accent text-primary" 
-              size="sm"
-            >
-              <Bot className="h-4 w-4 mr-2" />
-              Agent Information
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start" 
-              size="sm"
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Responses
-            </Button>
-          </div>
-        );
-      case "appearance":
-        return (
-          <div className="space-y-2">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start font-medium bg-accent text-primary" 
-              size="sm"
-            >
-              <Palette className="h-4 w-4 mr-2" />
-              Visual Settings
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start" 
-              size="sm"
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Chat Window
-            </Button>
-          </div>
-        );
-      case "advanced":
-        return (
-          <div className="space-y-2">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start font-medium bg-accent text-primary" 
-              size="sm"
-            >
-              <CpuIcon className="h-4 w-4 mr-2" />
-              AI Model
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start" 
-              size="sm"
-            >
-              <BrainCircuit className="h-4 w-4 mr-2" />
-              Personality
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start" 
-              size="sm"
-            >
-              <Sliders className="h-4 w-4 mr-2" />
-              Behavior
-            </Button>
-          </div>
-        );
-      case "knowledge":
-        return (
-          <div className="space-y-2">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start font-medium bg-accent text-primary" 
-              size="sm"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Knowledge Sources
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start" 
-              size="sm"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Training Status
-            </Button>
-          </div>
-        );
-      default:
-        return null;
-    }
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    
+    // Here you would typically send the message to your backend
+    // For the demo, we'll just clear the input
+    setNewMessage('');
+    
+    toast({
+      title: "Message sent",
+      description: "Your message has been sent.",
+    });
   };
 
   // Content for General tab
@@ -253,144 +169,123 @@ const AgentEdit = () => {
 
   // Content for Appearance tab
   const renderAppearanceContent = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Visual Settings</CardTitle>
-          <CardDescription>Customize the look and feel of your chatbot</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="primary-color">Primary Color</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    id="primary-color-input" 
-                    type="color" 
-                    value={agent.primaryColor} 
-                    onChange={(e) => handleChange('primaryColor', e.target.value)}
-                    className="w-12 h-10 p-1"
-                  />
-                  <Input 
-                    id="primary-color-value" 
-                    value={agent.primaryColor} 
-                    onChange={(e) => handleChange('primaryColor', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="secondary-color">Text Color</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    id="secondary-color-input" 
-                    type="color" 
-                    value={agent.secondaryColor} 
-                    onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                    className="w-12 h-10 p-1"
-                  />
-                  <Input 
-                    id="secondary-color-value" 
-                    value={agent.secondaryColor} 
-                    onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Visual Settings</CardTitle>
+        <CardDescription>Customize the look and feel of your chatbot</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="primary-color">Primary Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="primary-color-input" 
+                  type="color" 
+                  value={agent.primaryColor} 
+                  onChange={(e) => handleChange('primaryColor', e.target.value)}
+                  className="w-12 h-10 p-1"
+                />
+                <Input 
+                  id="primary-color-value" 
+                  value={agent.primaryColor} 
+                  onChange={(e) => handleChange('primaryColor', e.target.value)}
+                  className="flex-1"
+                />
               </div>
             </div>
-            
             <div className="space-y-2">
-              <Label htmlFor="font-family">Font Family</Label>
-              <Select 
-                value={agent.fontFamily} 
-                onValueChange={(value) => handleChange('fontFamily', value)}
-              >
-                <SelectTrigger id="font-family">
-                  <SelectValue placeholder="Select font" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Inter">Inter</SelectItem>
-                  <SelectItem value="Arial">Arial</SelectItem>
-                  <SelectItem value="Helvetica">Helvetica</SelectItem>
-                  <SelectItem value="Georgia">Georgia</SelectItem>
-                  <SelectItem value="Verdana">Verdana</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Separator />
-
-            <div className="space-y-2">
-              <Label htmlFor="chatbot-name">Chatbot Name</Label>
-              <Input 
-                id="chatbot-name" 
-                value={agent.chatbotName} 
-                onChange={(e) => handleChange('chatbotName', e.target.value)}
-                placeholder="e.g. Customer Support"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="welcome-message">Welcome Message</Label>
-              <Input 
-                id="welcome-message" 
-                value={agent.welcomeMessage} 
-                onChange={(e) => handleChange('welcomeMessage', e.target.value)}
-                placeholder="Hello! How can I help you today?"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="button-text">Button Text</Label>
-              <Input 
-                id="button-text" 
-                value={agent.buttonText} 
-                onChange={(e) => handleChange('buttonText', e.target.value)}
-                placeholder="Chat with us"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Position</Label>
-              <RadioGroup 
-                value={agent.position} 
-                onValueChange={(value) => handleChange('position', value)}
-                className="grid grid-cols-2 gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="bottom-right" id="position-right" />
-                  <Label htmlFor="position-right">Bottom Right</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="bottom-left" id="position-left" />
-                  <Label htmlFor="position-left">Bottom Left</Label>
-                </div>
-              </RadioGroup>
+              <Label htmlFor="secondary-color">Text Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="secondary-color-input" 
+                  type="color" 
+                  value={agent.secondaryColor} 
+                  onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                  className="w-12 h-10 p-1"
+                />
+                <Input 
+                  id="secondary-color-value" 
+                  value={agent.secondaryColor} 
+                  onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Preview</CardTitle>
-          <CardDescription>See how your chatbot will appear on your website</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChatboxPreview 
-            primaryColor={agent.primaryColor}
-            secondaryColor={agent.secondaryColor}
-            fontFamily={agent.fontFamily}
-            chatbotName={agent.chatbotName}
-            welcomeMessage={agent.welcomeMessage}
-            buttonText={agent.buttonText}
-            position={agent.position as 'bottom-right' | 'bottom-left'}
-            className="mt-4"
-          />
-        </CardContent>
-      </Card>
-    </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="font-family">Font Family</Label>
+            <Select 
+              value={agent.fontFamily} 
+              onValueChange={(value) => handleChange('fontFamily', value)}
+            >
+              <SelectTrigger id="font-family">
+                <SelectValue placeholder="Select font" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Inter">Inter</SelectItem>
+                <SelectItem value="Arial">Arial</SelectItem>
+                <SelectItem value="Helvetica">Helvetica</SelectItem>
+                <SelectItem value="Georgia">Georgia</SelectItem>
+                <SelectItem value="Verdana">Verdana</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="chatbot-name">Chatbot Name</Label>
+            <Input 
+              id="chatbot-name" 
+              value={agent.chatbotName} 
+              onChange={(e) => handleChange('chatbotName', e.target.value)}
+              placeholder="e.g. Customer Support"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="welcome-message">Welcome Message</Label>
+            <Input 
+              id="welcome-message" 
+              value={agent.welcomeMessage} 
+              onChange={(e) => handleChange('welcomeMessage', e.target.value)}
+              placeholder="Hello! How can I help you today?"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="button-text">Button Text</Label>
+            <Input 
+              id="button-text" 
+              value={agent.buttonText} 
+              onChange={(e) => handleChange('buttonText', e.target.value)}
+              placeholder="Chat with us"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Position</Label>
+            <RadioGroup 
+              value={agent.position} 
+              onValueChange={(value) => handleChange('position', value)}
+              className="grid grid-cols-2 gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="bottom-right" id="position-right" />
+                <Label htmlFor="position-right">Bottom Right</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="bottom-left" id="position-left" />
+                <Label htmlFor="position-left">Bottom Left</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   // Content for Advanced Settings tab
@@ -565,6 +460,90 @@ const AgentEdit = () => {
     </div>
   );
 
+  // Render chat preview for the left column
+  const renderChatPreview = () => {
+    return (
+      <div className="flex flex-col h-full bg-slate-50 rounded-lg">
+        {/* Chat Header */}
+        <div 
+          className="p-4 rounded-t-lg flex items-center justify-between"
+          style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
+        >
+          <div className="flex items-center gap-2">
+            <Bot size={18} />
+            <span className="font-medium">{agent.chatbotName}</span>
+          </div>
+        </div>
+        
+        {/* Messages Area */}
+        <div className="flex-1 p-4 overflow-y-auto">
+          {/* Bot welcome message */}
+          <div className="flex gap-2 items-start mb-4">
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
+            >
+              <Bot size={16} />
+            </div>
+            <div
+              className="rounded-lg p-3 max-w-[80%]"
+              style={{ backgroundColor: `${agent.primaryColor}20` }}
+            >
+              <p className="text-sm">{agent.welcomeMessage}</p>
+            </div>
+          </div>
+          
+          {/* Sample conversation */}
+          <div className="flex gap-2 items-start justify-end mb-4">
+            <div
+              className="rounded-lg p-3 bg-gray-100 max-w-[80%]"
+            >
+              <p className="text-sm">Hi there, do you offer any discounts for bulk orders?</p>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 text-xs">
+              You
+            </div>
+          </div>
+          
+          <div className="flex gap-2 items-start mb-4">
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
+            >
+              <Bot size={16} />
+            </div>
+            <div
+              className="rounded-lg p-3 max-w-[80%]"
+              style={{ backgroundColor: `${agent.primaryColor}20` }}
+            >
+              <p className="text-sm">Yes, we offer discounts starting at orders of 10 items or more. The discount increases with larger quantities. Would you like me to provide you with our discount tiers?</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Message Input */}
+        <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
+          <div className="relative">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type your message..."
+              className="pr-10"
+            />
+            <Button 
+              type="submit" 
+              size="icon" 
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
+              style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
+            >
+              <Send size={14} />
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
   return (
     <div className="h-full">
       <div className="flex items-center justify-between border-b pb-4">
@@ -577,67 +556,68 @@ const AgentEdit = () => {
             <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={goBack}>Cancel</Button>
-          <Button onClick={handleSaveChanges}>
-            <Save className="h-4 w-4 mr-2" />
-            Save Changes
-          </Button>
-        </div>
+        <Button onClick={handleSaveChanges}>
+          <Save className="h-4 w-4 mr-2" />
+          Save Changes
+        </Button>
       </div>
 
-      <div className="flex mt-4">
-        <div className="w-full">
-          <div className="flex justify-center mb-6">
-            <Tabs 
-              defaultValue="general" 
-              className="w-full"
-              value={activeTab}
-              onValueChange={setActiveTab}
-            >
-              <div className="flex justify-center">
-                <TabsList size="xs" className="w-auto">
-                  <TabsTrigger value="general" size="xs">
-                    <Bot className="h-4 w-4 mr-2" />
-                    General
-                  </TabsTrigger>
-                  <TabsTrigger value="appearance" size="xs">
-                    <Palette className="h-4 w-4 mr-2" />
-                    Appearance
-                  </TabsTrigger>
-                  <TabsTrigger value="advanced" size="xs">
-                    <Sliders className="h-4 w-4 mr-2" />
-                    Advanced Settings
-                  </TabsTrigger>
-                  <TabsTrigger value="knowledge" size="xs">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Knowledge
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-            </Tabs>
-          </div>
-
-          <div className="flex">
-            {/* Left sidebar for secondary navigation */}
-            <div className="w-64 pr-6 border-r">
-              {renderSidebarNav()}
+      {/* Main content - 2 column layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 h-[calc(100vh-180px)]">
+        {/* Left column - Chat Preview */}
+        <div className="h-full">
+          {renderChatPreview()}
+        </div>
+        
+        {/* Right column - Configuration */}
+        <div className="h-full overflow-y-auto">
+          <Tabs 
+            defaultValue="general" 
+            className="w-full"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
+            <div className="flex justify-start mb-6">
+              <TabsList size="xs" className="w-auto">
+                <TabsTrigger value="general" size="xs">
+                  <Bot className="h-4 w-4 mr-2" />
+                  General
+                </TabsTrigger>
+                <TabsTrigger value="appearance" size="xs">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Appearance
+                </TabsTrigger>
+                <TabsTrigger value="advanced" size="xs">
+                  <Sliders className="h-4 w-4 mr-2" />
+                  Advanced Settings
+                </TabsTrigger>
+                <TabsTrigger value="knowledge" size="xs">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Knowledge
+                </TabsTrigger>
+              </TabsList>
             </div>
             
-            {/* Main content area */}
-            <div className="flex-1 pl-6">
-              {activeTab === "general" && renderGeneralContent()}
-              {activeTab === "appearance" && renderAppearanceContent()}
-              {activeTab === "advanced" && renderAdvancedContent()}
-              {activeTab === "knowledge" && (
-                <KnowledgeTrainingStatus 
-                  agentId={agentId || ''} 
-                  initialSelectedSources={agent.knowledgeSources}
-                  onSourcesChange={handleKnowledgeSourcesChange}
-                />
-              )}
-            </div>
-          </div>
+            <TabsContent value="general" className="mt-0">
+              {renderGeneralContent()}
+            </TabsContent>
+            
+            <TabsContent value="appearance" className="mt-0">
+              {renderAppearanceContent()}
+            </TabsContent>
+            
+            <TabsContent value="advanced" className="mt-0">
+              {renderAdvancedContent()}
+            </TabsContent>
+            
+            <TabsContent value="knowledge" className="mt-0">
+              <KnowledgeTrainingStatus 
+                agentId={agentId || ''} 
+                initialSelectedSources={agent.knowledgeSources}
+                onSourcesChange={handleKnowledgeSourcesChange}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
@@ -645,4 +625,3 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
-

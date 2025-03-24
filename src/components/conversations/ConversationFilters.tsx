@@ -1,147 +1,95 @@
 
 import React from 'react';
+import { Search, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
-  MessageSquare, 
-  Instagram, 
-  Slack, 
-  Mail, 
-  Phone,
-  User,
-  Bot,
-  CheckCircle,
-  AlertCircle
-} from 'lucide-react';
-import { 
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ConversationFiltersProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
   filterStatus: string;
-  setFilterStatus: (status: string) => void;
-  channelFilter: string;
-  setChannelFilter: (channel: string) => void;
-  agentTypeFilter: string;
-  setAgentTypeFilter: (type: string) => void;
+  onFilterStatusChange: (value: string) => void;
+  filterAgent: string;
+  onFilterAgentChange: (value: string) => void;
+  filterResolved: string;
+  onFilterResolvedChange: (value: string) => void;
 }
 
 const ConversationFilters = ({
-  searchQuery,
-  setSearchQuery,
+  searchTerm,
+  onSearchChange,
   filterStatus,
-  setFilterStatus,
-  channelFilter,
-  setChannelFilter,
-  agentTypeFilter,
-  setAgentTypeFilter
+  onFilterStatusChange,
+  filterAgent,
+  onFilterAgentChange,
+  filterResolved,
+  onFilterResolvedChange
 }: ConversationFiltersProps) => {
   return (
-    <div className="border-b">
-      {/* Status filter with centered toggle buttons */}
-      <div className="px-2 pt-2 flex justify-center">
-        <div className="flex gap-2 bg-muted rounded-md p-1 w-auto">
-          <Button
-            variant={filterStatus === "unresolved" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setFilterStatus("unresolved")}
-            className="flex items-center justify-center gap-2 rounded-md"
-          >
-            <AlertCircle className="h-4 w-4" />
-            <span>Unresolved</span>
-          </Button>
-          <Button
-            variant={filterStatus === "resolved" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setFilterStatus("resolved")}
-            className="flex items-center justify-center gap-2 rounded-md"
-          >
-            <CheckCircle className="h-4 w-4" />
-            <span>Resolved</span>
-          </Button>
+    <div className="bg-white rounded-lg p-4 mb-4">
+      <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center mb-4">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search conversations..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Select value={filterStatus} onValueChange={onFilterStatusChange}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={filterAgent} onValueChange={onFilterAgentChange}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="All Agents" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Agents</SelectItem>
+              <SelectItem value="sales-agent">Sales Agent</SelectItem>
+              <SelectItem value="support-agent">Support Agent</SelectItem>
+              <SelectItem value="technical-agent">Technical Agent</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       
-      {/* Added mt-3 class to create vertical spacing between components */}
-      <div className="px-2 pb-2 grid grid-cols-2 gap-2 mt-3">
-        <Select 
-          value={channelFilter}
-          onValueChange={setChannelFilter}
+      <div className="flex justify-between items-center">
+        <Tabs 
+          value={filterResolved} 
+          onValueChange={onFilterResolvedChange}
+          className="w-auto"
         >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select Channel" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Channels</SelectLabel>
-              <SelectItem value="all">All Channels</SelectItem>
-              <SelectItem value="instagram">
-                <div className="flex items-center gap-2">
-                  <Instagram className="h-4 w-4" />
-                  <span>Instagram</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="slack">
-                <div className="flex items-center gap-2">
-                  <Slack className="h-4 w-4" />
-                  <span>Slack</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="whatsapp">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>WhatsApp</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="freshdesk">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  <span>Freshdesk</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="phone">
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  <span>Phone</span>
-                </div>
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        <Select 
-          value={agentTypeFilter}
-          onValueChange={setAgentTypeFilter}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Agent Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Agent Type</SelectLabel>
-              <SelectItem value="all">All Agents</SelectItem>
-              <SelectItem value="human">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>Human</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="ai">
-                <div className="flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
-                  <span>AI Agent</span>
-                </div>
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          <TabsList size="xs">
+            <TabsTrigger value="all" size="xs">All</TabsTrigger>
+            <TabsTrigger value="unresolved" size="xs">Unresolved</TabsTrigger>
+            <TabsTrigger value="resolved" size="xs">Resolved</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        <Button variant="outline" size="sm" className="text-xs">
+          <Filter className="h-3 w-3 mr-1" />
+          More Filters
+        </Button>
       </div>
     </div>
   );
