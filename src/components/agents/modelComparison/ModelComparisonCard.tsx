@@ -5,7 +5,7 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger } from '@/components/ui/popover';
-import { Message } from './types';
+import { Message, ChatConfig } from './types';
 import { UserMessage } from './UserMessage';
 import { ModelMessage } from './ModelMessage';
 import { ModelConfigPopover } from './ModelConfigPopover';
@@ -19,7 +19,7 @@ interface ModelComparisonCardProps {
   messages: Message[];
   onModelChange: (value: string) => void;
   onOpenSystemPrompt: () => void;
-  onUpdateConfig: (field: string, value: any) => void;
+  onUpdateConfig: (field: keyof ChatConfig, value: any) => void;
   modelOptions: Record<string, { name: string; provider: string }>;
   primaryColor: string;
 }

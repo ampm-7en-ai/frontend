@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { ChatConfig } from './types';
 
 interface ModelConfigPopoverProps {
   temperature: number;
   maxLength: number;
   systemPrompt: string;
-  onUpdateConfig: (field: string, value: any) => void;
+  onUpdateConfig: (field: keyof ChatConfig, value: any) => void;
   onOpenSystemPrompt: () => void;
 }
 
