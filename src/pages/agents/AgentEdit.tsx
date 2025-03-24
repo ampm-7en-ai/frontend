@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, Rocket, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,14 @@ const knowledgeSources = [
   { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10' },
   { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25' },
 ];
+
+// Predefined system prompts for different agent types
+const agentTypeSystemPrompts = {
+  support: "You are a helpful customer support assistant. Your goal is to assist users with their questions and problems related to our products and services. Be friendly, patient, and informative.",
+  sales: "You are a knowledgeable sales assistant. Your goal is to help potential customers understand our products, answer their questions, and guide them towards making a purchase decision. Be enthusiastic but not pushy.",
+  technical: "You are a technical support specialist. Your goal is to help users troubleshoot and resolve technical issues with our products. Be precise, thorough, and explain technical concepts clearly.",
+  custom: ""
+};
 
 // Predefined avatars
 const predefinedAvatars = [
@@ -74,12 +82,15 @@ const AgentEdit = () => {
     avatar: {
       type: 'default',
       src: ''
-    }
+    },
+    agentType: 'support',
+    systemPrompt: agentTypeSystemPrompts.support
   });
   
   const [isRetraining, setIsRetraining] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [customAvatarFile, setCustomAvatarFile] = useState<File | null>(null);
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -124,6 +135,19 @@ const AgentEdit = () => {
 
   const goBack = () => {
     navigate('/agents');
+  };
+  
+  const goToTestPage = () => {
+    navigate(`/agents/${agentId}/test`);
+  };
+
+  const handleAgentTypeChange = (type: string) => {
+    const systemPrompt = type === 'custom' ? agent.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
+    setAgent({
+      ...agent,
+      agentType: type,
+      systemPrompt
+    });
   };
 
   const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
@@ -422,6 +446,18 @@ const AgentEdit = () => {
                 <SelectItem value="llama">Llama 2</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex justify-end mt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1 text-xs"
+                onClick={goToTestPage}
+              >
+                <Rocket className="h-3.5 w-3.5" />
+                Test this model
+                <ExternalLink className="h-3.5 w-3.5 ml-1" />
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -469,15 +505,29 @@ const AgentEdit = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <BrainCircuit className="mr-2 h-5 w-5" />
-            Agent Type & Personality
+            Agent Type & System Prompt
           </CardTitle>
           <CardDescription>Define the agent's role and behavior</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Agent Type</Label>
-              <RadioGroup defaultValue="support" className="grid grid-cols-2 gap-2">
+              <div className="flex items-center justify-between">
+                <Label>Agent Type</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+                  className="text-xs"
+                >
+                  {showSystemPrompt ? "Hide System Prompt" : "Show System Prompt"}
+                </Button>
+              </div>
+              <RadioGroup 
+                value={agent.agentType} 
+                onValueChange={handleAgentTypeChange}
+                className="grid grid-cols-2 gap-2"
+              >
                 <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
                   <RadioGroupItem value="support" id="support" />
                   <Label htmlFor="support" className="flex flex-col cursor-pointer">
@@ -508,6 +558,22 @@ const AgentEdit = () => {
                 </div>
               </RadioGroup>
             </div>
+            
+            {showSystemPrompt && (
+              <div className="space-y-2">
+                <Label htmlFor="system-prompt">System Prompt</Label>
+                <Textarea
+                  id="system-prompt"
+                  value={agent.systemPrompt}
+                  onChange={(e) => handleChange('systemPrompt', e.target.value)}
+                  className="min-h-[150px] font-mono text-sm"
+                  placeholder="Enter instructions for how your AI agent should behave..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  This is the instruction set that guides how your AI agent behaves. It's sent with every conversation to define the agent's role and constraints.
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
