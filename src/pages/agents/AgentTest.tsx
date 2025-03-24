@@ -166,11 +166,17 @@ const AgentTest = () => {
       setNumChatWindows(2);
       
       if (messages.length === 1) {
-        setMessages([messages[0], [...messages[0]]]);
+        const updatedMessages = [
+          [...messages[0]],
+          [...messages[0]]
+        ];
+        setMessages(updatedMessages);
       }
     } else {
       setNumChatWindows(1);
-      setMessages([messages[0]]);
+      if (messages.length > 1) {
+        setMessages([messages[0]]);
+      }
     }
   }, [compareMode]);
 
@@ -290,7 +296,15 @@ const AgentTest = () => {
   };
 
   const toggleCompareMode = () => {
-    setCompareMode(!compareMode);
+    const newCompareMode = !compareMode;
+    setCompareMode(newCompareMode);
+    
+    if (newCompareMode) {
+      toast({
+        title: "Compare Mode Enabled",
+        description: "You can now test your agent with two different models side by side.",
+      });
+    }
   };
 
   const handleViewSource = (sourceId: number) => {
@@ -796,3 +810,5 @@ const AgentTest = () => {
 };
 
 export default AgentTest;
+
+
