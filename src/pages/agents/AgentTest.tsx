@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { 
   Bot, ChevronLeft, SendHorizontal, X, 
   Settings, BookOpen, Code, Globe, Database, Sliders,
-  FileText, Info, User, Send
+  FileText, Info, User, Send, Maximize2, Minimize2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import AgentKnowledgeSection from '@/components/agents/knowledge/AgentKnowledgeSection';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 import { mockKnowledgeSources } from '@/data/mockKnowledgeSources';
@@ -135,6 +136,8 @@ const AgentTest = () => {
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isKnowledgePopoverOpen, setIsKnowledgePopoverOpen] = useState(false);
+  
+  const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
 
   const messageContainerRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
@@ -165,6 +168,10 @@ const AgentTest = () => {
       };
       return newConfigs;
     });
+  };
+
+  const handleSystemPromptEdit = (index: number) => {
+    setIsSystemPromptOpen(index);
   };
 
   const handleSendMessage = () => {
@@ -370,11 +377,21 @@ const AgentTest = () => {
                       </div>
                       
                       <div className="space-y-1">
-                        <Label>System Prompt</Label>
+                        <div className="flex items-center justify-between">
+                          <Label>System Prompt</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 rounded-full"
+                            onClick={() => handleSystemPromptEdit(index)}
+                          >
+                            <Maximize2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                         <Textarea 
                           value={chatConfigs[index].systemPrompt} 
                           onChange={(e) => handleUpdateChatConfig(index, 'systemPrompt', e.target.value)}
-                          className="min-h-[100px] resize-none text-sm"
+                          className="min-h-[100px] max-h-[200px] resize-none text-sm"
                           placeholder="Enter system instructions for the AI..."
                         />
                       </div>
@@ -494,6 +511,64 @@ const AgentTest = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={isSystemPromptOpen !== null} onOpenChange={() => setIsSystemPromptOpen(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit System Prompt</DialogTitle>
+            <DialogDescription>
+              Define the behavior and capabilities of your AI model
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Bot className="h-5 w-5 mr-2 text-primary" />
+                <span className="font-medium">
+                  {isSystemPromptOpen !== null && getModelDisplay(chatConfigs[isSystemPromptOpen].model)}
+                </span>
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                <span className="text-xs bg-slate-100 px-2 py-0.5 rounded">
+                  {isSystemPromptOpen !== null && chatConfigs[isSystemPromptOpen].systemPrompt.length} characters
+                </span>
+              </div>
+            </div>
+            
+            {isSystemPromptOpen !== null && (
+              <Textarea
+                value={chatConfigs[isSystemPromptOpen].systemPrompt}
+                onChange={(e) => handleUpdateChatConfig(isSystemPromptOpen, 'systemPrompt', e.target.value)}
+                placeholder="You are a helpful AI assistant. Your task is to..."
+                className="min-h-[300px] font-mono text-sm p-4"
+                expandable={true}
+              />
+            )}
+            
+            <div className="text-xs text-muted-foreground space-y-2 mt-2">
+              <p>
+                <strong>Tips for effective system prompts:</strong>
+              </p>
+              <ul className="space-y-1 list-disc pl-4">
+                <li>Define the AI's role clearly (e.g., "You are a knowledgeable tour guide...")</li>
+                <li>Specify desired tone and communication style</li>
+                <li>Set boundaries for what the AI should or shouldn't do</li>
+                <li>Include any specific domain knowledge the AI should leverage</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setIsSystemPromptOpen(null)}
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <KnowledgeSourceModal
         open={isModalOpen}
