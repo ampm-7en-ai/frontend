@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { 
   Bot, ChevronLeft, SendHorizontal, X, 
   Settings, BookOpen, Code, Globe, Database, Sliders,
-  FileText, Info, User
+  FileText, Info, User, Send
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AgentKnowledgeSection from '@/components/agents/knowledge/AgentKnowledgeSection';
 import { mockKnowledgeSources } from '@/data/mockKnowledgeSources';
+import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 
 type Message = {
   id: number;
@@ -38,7 +39,7 @@ type Agent = {
   conversations: number;
   lastModified: string;
   averageRating: number;
-  knowledgeSources: { id: number; name: string; type: string; icon?: string; hasError: boolean; content?: string }[];
+  knowledgeSources: KnowledgeSource[];
   model: string;
   isDeployed: boolean;
   systemPrompt?: string;
@@ -502,7 +503,7 @@ const AgentTest = () => {
                 borderColor: '#9b87f530',
               }}
             />
-            <Button 
+            <button 
               onClick={handleSendMessage} 
               className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
               style={{ 
@@ -511,8 +512,8 @@ const AgentTest = () => {
                 boxShadow: '0 2px 5px #9b87f540'
               }}
             >
-              <SendHorizontal className="h-4 w-4" />
-            </Button>
+              <Send className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
