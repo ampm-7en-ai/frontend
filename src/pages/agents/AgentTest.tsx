@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { AgentKnowledgeSection } from '@/components/agents/AgentKnowledgeSection';
+import AgentKnowledgeSection from '@/components/agents/knowledge/AgentKnowledgeSection';
 import { mockKnowledgeSources } from '@/data/mockKnowledgeSources';
 
 type Message = {
