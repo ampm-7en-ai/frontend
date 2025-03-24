@@ -20,7 +20,7 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
         <ModelTestLink 
           modelInfo={{ 
             model: agent.model,
-            label: "Test with Agent",
+            label: "Model Lab",
             openInNewTab: false
           }}
           agentId={agent.id}

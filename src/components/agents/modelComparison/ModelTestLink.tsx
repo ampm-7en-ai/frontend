@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Beaker } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModelTestLink as ModelTestLinkType } from './types';
 
@@ -16,7 +16,7 @@ const ModelTestLink: React.FC<ModelTestLinkProps> = ({
   agentId = "1",
   className = "" 
 }) => {
-  const { model, label = "Test this model in a new tab", openInNewTab = true } = modelInfo;
+  const { model, label = "Try in Model Lab", openInNewTab = true } = modelInfo;
   
   return (
     <Button 
