@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,8 +49,8 @@ type ChatConfig = {
   model: string;
   temperature: number;
   systemPrompt: string;
-  maxTokens: number;
-}
+  maxTokens: number
+};
 
 const MODELS = {
   'gpt4': { name: 'GPT-4', provider: 'OpenAI' },
@@ -150,11 +149,10 @@ const AgentTest = () => {
         systemPrompt: foundAgent.systemPrompt || ""
       })));
       
-      // Fix: Ensure sender is one of the allowed types
       const initialMessages: Message[][] = Array(numChatWindows).fill(null).map(() => [{
         id: 1,
         content: `Hello! I'm the ${foundAgent.name}. How can I help you today?`,
-        sender: 'agent' as const, // Explicitly typed
+        sender: 'agent' as const,
         model: chatConfigs[0].model,
         timestamp: new Date(),
       }]);
@@ -245,7 +243,6 @@ const AgentTest = () => {
           responseContent = responseContent.split('. ').join('.\n\n');
         }
         
-        // Determine the appropriate sender type based on the window index
         const senderType: 'agent' | 'agent2' | 'agent3' = 
           i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3';
         
@@ -266,11 +263,16 @@ const AgentTest = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   const handleClearChat = () => {
     if (agent) {
-      // Fix: Ensure sender is one of the allowed types
       const initialMessages: Message[][] = Array(numChatWindows).fill(null).map((_, i) => {
-        // Determine the appropriate sender type based on the window index
         const senderType: 'agent' | 'agent2' | 'agent3' = 
           i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3';
           
