@@ -273,6 +273,9 @@ export const ChatboxPreview = ({
               <Send size={16} />
             </button>
           </div>
+          <div className="text-center mt-2 text-xs text-gray-400">
+            powered by 7en.ai
+          </div>
         </form>
       </CardContent>
     </Card>

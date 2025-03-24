@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,6 @@ const knowledgeSources = [
   { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25' },
 ];
 
-// Predefined system prompts for different agent types
 const agentTypeSystemPrompts = {
   support: "You are a helpful customer support assistant. Your goal is to assist users with their questions and problems related to our products and services. Be friendly, patient, and informative.",
   sales: "You are a knowledgeable sales assistant. Your goal is to help potential customers understand our products, answer their questions, and guide them towards making a purchase decision. Be enthusiastic but not pushy.",
@@ -34,7 +32,6 @@ const agentTypeSystemPrompts = {
   custom: ""
 };
 
-// Predefined avatars
 const predefinedAvatars = [
   {
     id: 'predefined-1',
@@ -138,7 +135,7 @@ const AgentEdit = () => {
   };
   
   const goToTestPage = () => {
-    navigate(`/agents/${agentId}/test`);
+    window.open(`/agents/${agentId}/test`, '_blank');
   };
 
   const handleAgentTypeChange = (type: string) => {
@@ -177,7 +174,6 @@ const AgentEdit = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create URL for preview
     const objectUrl = URL.createObjectURL(file);
     setCustomAvatarFile(file);
     handleAvatarChange('custom', objectUrl);
@@ -444,6 +440,7 @@ const AgentEdit = () => {
                 <SelectItem value="anthropic">Claude 3</SelectItem>
                 <SelectItem value="mistral">Mistral 7B</SelectItem>
                 <SelectItem value="llama">Llama 2</SelectItem>
+                <SelectItem value="gemini">Gemini Pro</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex justify-end mt-2">
@@ -653,7 +650,7 @@ const AgentEdit = () => {
   return (
     <div className="h-full">
       <div className="flex items-center justify-between border-b pb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -668,7 +665,7 @@ const AgentEdit = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
         <div className="h-full">
           {renderChatPreview()}
         </div>
@@ -728,3 +725,4 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
+
