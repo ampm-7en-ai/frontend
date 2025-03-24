@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Bot, X, Minimize2, Send, MessageSquare } from 'lucide-react';
@@ -17,7 +17,7 @@ interface ChatboxPreviewProps {
 }
 
 export const ChatboxPreview = ({
-  primaryColor = '#3b82f6',
+  primaryColor = '#9b87f5',
   secondaryColor = '#ffffff',
   fontFamily = 'Inter',
   chatbotName = 'Assistant',
@@ -33,16 +33,25 @@ export const ChatboxPreview = ({
   const [inputValue, setInputValue] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
   const [isButtonPulsing, setIsButtonPulsing] = useState(false);
+  const [showTypingIndicator, setShowTypingIndicator] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Add subtle pulse animation to chat button every few seconds
+    // Add pulse animation to chat button every few seconds
     const pulseInterval = setInterval(() => {
       setIsButtonPulsing(true);
-      setTimeout(() => setIsButtonPulsing(false), 1000);
+      setTimeout(() => setIsButtonPulsing(false), 1500);
     }, 5000);
     
     return () => clearInterval(pulseInterval);
   }, []);
+
+  useEffect(() => {
+    // Scroll to bottom when new messages are added
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const toggleChat = () => {
     setIsAnimating(true);
@@ -55,16 +64,19 @@ export const ChatboxPreview = ({
     if (inputValue.trim()) {
       // Add user message
       setMessages([...messages, { type: 'user', text: inputValue }]);
+      setInputValue('');
+      
+      // Show typing indicator
+      setShowTypingIndicator(true);
       
       // Simulate bot response after a short delay
       setTimeout(() => {
+        setShowTypingIndicator(false);
         setMessages(prev => [...prev, { 
           type: 'bot', 
           text: "Thank you for your message! This is a simulated response in the preview. In the actual chatbox, this would be a response from your AI assistant." 
         }]);
-      }, 1000);
-      
-      setInputValue('');
+      }, 1500);
     }
   };
 
@@ -80,18 +92,19 @@ export const ChatboxPreview = ({
         {!isOpen && (
           <button 
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-md transition-all duration-300 hover:shadow-lg",
-              isButtonPulsing && "animate-pulse"
+              "flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-all duration-300 hover:scale-105",
+              isButtonPulsing ? "animate-pulse" : ""
             )}
             style={{ 
               backgroundColor: primaryColor,
               color: secondaryColor,
               fontFamily: fontFamily,
-              transform: isAnimating ? 'scale(0.95)' : 'scale(1)'
+              transform: isAnimating ? 'scale(0.95)' : 'scale(1)',
+              boxShadow: `0 10px 25px -5px ${primaryColor}40, 0 8px 10px -6px ${primaryColor}30`
             }}
             onClick={toggleChat}
           >
-            <MessageSquare size={16} className="animate-bounce" />
+            <MessageSquare size={18} className="animate-bounce" />
             {buttonText}
           </button>
         )}
@@ -100,67 +113,68 @@ export const ChatboxPreview = ({
         {isOpen && (
           <Card 
             className={cn(
-              "w-[320px] shadow-lg transition-all duration-300",
+              "w-[350px] shadow-2xl transition-all duration-300 overflow-hidden",
               isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
             )}
             style={{ 
               fontFamily: fontFamily,
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+              boxShadow: `0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px ${primaryColor}20, 0 8px 16px ${primaryColor}15`
             }}
           >
             <div 
-              className="p-3 rounded-t-lg flex items-center justify-between"
+              className="p-4 rounded-t-lg flex items-center justify-between"
               style={{ 
-                backgroundColor: primaryColor, 
-                color: secondaryColor,
                 background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`
               }}
             >
               <div className="flex items-center gap-2">
-                <div className="p-1 rounded-full bg-white/20 backdrop-blur-sm">
-                  <Bot size={18} />
+                <div className="p-1.5 rounded-full bg-white/30 backdrop-blur-sm">
+                  <Bot size={20} className="text-white" />
                 </div>
-                <span className="font-medium">{chatbotName}</span>
+                <span className="font-medium text-white text-base">{chatbotName}</span>
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  className="p-1 rounded-full hover:bg-black/10 transition-colors"
+                  className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  <Minimize2 size={14} />
+                  <Minimize2 size={16} className="text-white" />
                 </button>
                 <button 
-                  className="p-1 rounded-full hover:bg-black/10 transition-colors"
+                  className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  <X size={14} />
+                  <X size={16} className="text-white" />
                 </button>
               </div>
             </div>
             
             <CardContent className="p-0">
-              <div className="max-h-[300px] overflow-y-auto p-3 space-y-4">
+              <div 
+                ref={chatContainerRef}
+                className="h-[320px] overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white"
+              >
                 {messages.map((message, index) => (
                   <div 
                     key={index} 
-                    className={`flex gap-2 items-start ${message.type === 'user' ? 'justify-end' : ''}`}
+                    className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : ''}`}
                   >
                     {message.type === 'bot' && (
                       <div 
-                        className="w-7 h-7 rounded-full flex items-center justify-center mt-1 flex-shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center mt-1 flex-shrink-0"
                         style={{ 
-                          backgroundColor: primaryColor, 
+                          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
                           color: secondaryColor,
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                          boxShadow: `0 2px 5px ${primaryColor}40`
                         }}
                       >
-                        <Bot size={14} />
+                        <Bot size={16} />
                       </div>
                     )}
                     
                     <div
                       className={cn(
-                        "rounded-lg p-2 max-w-[80%] shadow-sm",
+                        "rounded-lg p-3 max-w-[80%] shadow-sm",
                         message.type === 'user' 
                           ? 'bg-gray-100 text-gray-800' 
                           : 'text-gray-800'
@@ -175,7 +189,7 @@ export const ChatboxPreview = ({
                     
                     {message.type === 'user' && (
                       <div 
-                        className="w-7 h-7 rounded-full flex items-center justify-center mt-1 text-xs flex-shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0"
                         style={{
                           background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
                           boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
@@ -186,18 +200,48 @@ export const ChatboxPreview = ({
                     )}
                   </div>
                 ))}
+                
+                {/* Typing indicator */}
+                {showTypingIndicator && (
+                  <div className="flex gap-2 items-start">
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center mt-1 flex-shrink-0"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                        color: secondaryColor,
+                        boxShadow: `0 2px 5px ${primaryColor}40`
+                      }}
+                    >
+                      <Bot size={16} />
+                    </div>
+                    <div
+                      className={cn(
+                        "rounded-lg p-3 max-w-[80%] shadow-sm"
+                      )}
+                      style={{ 
+                        backgroundColor: `${primaryColor}15`,
+                        borderLeft: `3px solid ${primaryColor}`,
+                      }}
+                    >
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              <form onSubmit={handleSubmit} className="border-t p-3 bg-gray-50">
+              <form onSubmit={handleSubmit} className="border-t p-3 bg-white">
                 <div className="relative">
                   <Input
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder="Type your message..."
-                    className="pr-10 text-sm border rounded-full pl-4 shadow-sm focus:ring-2 focus:ring-offset-0"
+                    className="pr-12 text-sm border-2 rounded-full pl-4 shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0"
                     style={{ 
                       borderColor: `${primaryColor}30`,
-                      focusRing: primaryColor
                     }}
                   />
                   <button 
@@ -205,10 +249,11 @@ export const ChatboxPreview = ({
                     className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
                     style={{ 
                       backgroundColor: primaryColor,
-                      color: secondaryColor
+                      color: secondaryColor,
+                      boxShadow: `0 2px 5px ${primaryColor}40`
                     }}
                   >
-                    <Send size={14} />
+                    <Send size={16} />
                   </button>
                 </div>
               </form>
@@ -218,8 +263,8 @@ export const ChatboxPreview = ({
       </div>
       
       {/* Browser Frame */}
-      <div className="w-full h-[400px] bg-gray-100 rounded-md flex items-center justify-center border overflow-hidden shadow-sm">
-        <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 relative">
+      <div className="w-full h-[400px] bg-gradient-to-br from-gray-50 to-gray-100 rounded-md flex items-center justify-center border overflow-hidden shadow-md">
+        <div className="w-full h-full relative">
           <div className="absolute top-0 w-full h-8 bg-gray-200 flex items-center px-2 space-x-1.5">
             <div className="w-3 h-3 rounded-full bg-red-400"></div>
             <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
@@ -236,7 +281,7 @@ export const ChatboxPreview = ({
               <div className="w-20 h-20 bg-gray-200 rounded-md"></div>
               <div className="w-20 h-20 bg-gray-200 rounded-md"></div>
             </div>
-            <div className="text-muted-foreground">Website content preview</div>
+            <div className="text-sm text-gray-400">Website content preview</div>
           </div>
         </div>
       </div>

@@ -41,7 +41,7 @@ const AgentEdit = () => {
     chatbotName: 'Business Assistant',
     welcomeMessage: 'Hello! How can I help you today?',
     buttonText: 'Chat with us',
-    position: 'bottom-right',
+    position: 'bottom-right' as 'bottom-right' | 'bottom-left',
     showOnMobile: true,
     collectVisitorData: true,
     autoShowAfter: 30,
@@ -486,11 +486,11 @@ const AgentEdit = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
-        <div className="h-full px-4">
+        <div className="h-full px-4 max-w-[1440px] mx-auto">
           {renderChatPreview()}
         </div>
         
-        <div className="col-span-2 h-full overflow-y-auto px-4">
+        <div className="col-span-2 h-full overflow-y-auto px-4 max-w-[1440px] mx-auto">
           <Tabs 
             defaultValue="general" 
             className="w-full"
