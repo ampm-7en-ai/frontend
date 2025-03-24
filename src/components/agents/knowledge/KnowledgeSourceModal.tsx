@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BookOpen, Database, Globe, FileText, 
-  Code, Copy, Check, X
+  Code, Copy, Check, X, Bookmark
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KnowledgeSource } from '@/hooks/useAgentFiltering';
@@ -82,9 +82,9 @@ const KnowledgeSourceModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[85vh] p-0 overflow-hidden flex flex-col">
+      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden flex flex-col">
         <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle className="text-lg">Knowledge Sources</DialogTitle>
+          <DialogTitle className="text-xl">Knowledge Sources</DialogTitle>
           <DialogClose className="absolute right-4 top-4 opacity-70 ring-offset-background transition-opacity hover:opacity-100" />
         </DialogHeader>
         
@@ -92,7 +92,7 @@ const KnowledgeSourceModal = ({
           {/* Sources Panel */}
           <div className="w-1/3 border-r flex flex-col">
             <div className="p-3 border-b bg-muted/30">
-              <h3 className="text-sm font-medium text-muted-foreground">Available Sources</h3>
+              <h3 className="text-sm font-medium">Available Sources ({sources.length})</h3>
             </div>
             <ScrollArea className="flex-1">
               <div className="p-3 space-y-2">
@@ -101,9 +101,9 @@ const KnowledgeSourceModal = ({
                     key={source.id}
                     onClick={() => setSelectedSourceId(source.id)}
                     className={cn(
-                      "p-3 text-sm rounded-md border cursor-pointer",
+                      "p-3 text-sm rounded-md border cursor-pointer transition-all",
                       getSourceStatusClass(source),
-                      selectedSourceId === source.id && "border-primary/50 bg-primary/5"
+                      selectedSourceId === source.id && "border-primary/50 bg-primary/5 shadow-sm"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -111,10 +111,11 @@ const KnowledgeSourceModal = ({
                         {getSourceIcon(source.type)}
                         <span className="font-medium">{source.name}</span>
                       </div>
-                      {source.hasError && <span className="text-xs text-red-500">Error</span>}
-                      {source.linkBroken && <span className="text-xs text-orange-500">Link broken</span>}
+                      {source.hasError && <span className="text-xs text-red-500 font-medium px-1.5 py-0.5 bg-red-50 rounded-full">Error</span>}
+                      {source.linkBroken && <span className="text-xs text-orange-500 font-medium px-1.5 py-0.5 bg-orange-50 rounded-full">Link broken</span>}
                     </div>
-                    <div className="mt-1 text-xs text-muted-foreground">
+                    <div className="mt-2 text-xs text-muted-foreground flex items-center">
+                      <Bookmark className="h-3 w-3 mr-1.5 opacity-70" />
                       Type: {source.type}
                     </div>
                   </div>
@@ -155,10 +156,10 @@ const KnowledgeSourceModal = ({
                     </Tabs>
                   </div>
                 </div>
-                <ScrollArea className="flex-1 p-4">
+                <ScrollArea className="flex-1">
                   {selectedSource.content ? (
                     viewMode === 'markdown' ? (
-                      <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <div className="prose prose-sm max-w-none dark:prose-invert p-6">
                         {selectedSource.content.split('\n').map((line, index) => (
                           <div key={index}>
                             {line.startsWith('# ') ? (
@@ -178,20 +179,26 @@ const KnowledgeSourceModal = ({
                         ))}
                       </div>
                     ) : (
-                      <pre className="whitespace-pre-wrap text-sm font-mono bg-muted/50 p-4 rounded-md">
+                      <pre className="whitespace-pre-wrap text-sm font-mono bg-muted/50 p-6 rounded-md m-4 overflow-auto">
                         {selectedSource.content}
                       </pre>
                     )
                   ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground italic">
+                    <div className="flex items-center justify-center h-full text-muted-foreground italic p-4">
                       No content available for this source
                     </div>
                   )}
                 </ScrollArea>
               </>
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                Select a knowledge source to view its content
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 space-y-4">
+                <FileText className="h-12 w-12 text-muted-foreground/40" />
+                <div className="text-center max-w-md">
+                  <h3 className="text-lg font-medium mb-2">Select a knowledge source</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Choose a knowledge source from the list to view its content
+                  </p>
+                </div>
               </div>
             )}
           </div>
