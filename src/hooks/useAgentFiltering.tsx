@@ -1,7 +1,7 @@
 
 import { useState, useMemo } from 'react';
 
-interface KnowledgeSource {
+export interface KnowledgeSource {
   id: number;
   name: string;
   type: string;

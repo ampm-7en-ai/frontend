@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { 
   Bot, ChevronLeft, SendHorizontal, X, 
   Settings, BookOpen, Code, Globe, Database, Sliders,
-  FileText, Info
+  FileText, Info, User
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AgentKnowledgeSection from '@/components/agents/knowledge/AgentKnowledgeSection';
 import { mockKnowledgeSources } from '@/data/mockKnowledgeSources';
 
@@ -418,21 +420,57 @@ const AgentTest = () => {
               </div>
             </CardHeader>
                         
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white" ref={messageContainerRefs[index]}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white" ref={messageContainerRefs[index]}>
               {messages[index].map((message) => {
                 if (message.sender === 'user') {
                   return (
-                    <div key={message.id} className="flex justify-end mb-4">
-                      <div className="bg-primary text-primary-foreground rounded-lg py-2 px-3 max-w-[90%]">
+                    <div key={message.id} className="flex gap-2 items-start justify-end animate-fade-in">
+                      <div className="rounded-lg p-3 max-w-[80%] shadow-sm bg-gray-100 text-gray-800">
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <div className="text-xs mt-1 text-gray-400">
+                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0"
+                        style={{
+                          background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <User size={16} />
                       </div>
                     </div>
                   );
                 } else {
+                  const primaryColor = index === 0 ? '#9b87f5' : index === 1 ? '#33C3F0' : '#6E59A5';
                   return (
-                    <div key={message.id} className="flex mb-4">
-                      <div className="bg-muted rounded-lg py-2 px-3 max-w-[90%]">
+                    <div key={message.id} className="flex gap-2 items-start animate-fade-in">
+                      <div className="flex-shrink-0 mt-1">
+                        <div 
+                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                            color: '#FFFFFF',
+                            boxShadow: `0 2px 5px ${primaryColor}40`
+                          }}
+                        >
+                          <Bot size={16} />
+                        </div>
+                      </div>
+                      <div
+                        className="rounded-lg p-3 max-w-[80%] shadow-sm"
+                        style={{ 
+                          backgroundColor: `${primaryColor}15`,
+                        }}
+                      >
+                        <div className="text-xs font-medium mb-1 text-gray-600">
+                          {getModelDisplay(message.model || '')}
+                        </div>
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <div className="text-xs mt-1 text-gray-400">
+                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                       </div>
                     </div>
                   );
@@ -453,20 +491,29 @@ const AgentTest = () => {
 
       <div className="sticky bottom-0 w-full mt-2">
         <div className="flex items-center">
-          <Input
-            placeholder="Enter a message to compare AI responses..."
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1"
-          />
-          <Button 
-            onClick={handleSendMessage} 
-            className="ml-2"
-          >
-            <SendHorizontal className="h-4 w-4 mr-2" />
-            Submit
-          </Button>
+          <div className="relative flex-1">
+            <Input
+              placeholder="Enter a message to compare AI responses..."
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="pr-12 text-sm border-2 rounded-full pl-4 shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0"
+              style={{ 
+                borderColor: '#9b87f530',
+              }}
+            />
+            <Button 
+              onClick={handleSendMessage} 
+              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
+              style={{ 
+                backgroundColor: '#9b87f5',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 5px #9b87f540'
+              }}
+            >
+              <SendHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -545,6 +592,11 @@ const AgentTest = () => {
       default:
         return <BookOpen className="h-4 w-4 text-gray-500" />;
     }
+  }
+
+  // Helper function to adjust color brightness (simplified version)
+  function adjustColor(color: string, amount: number): string {
+    return color; // In a real implementation, this would actually adjust the color
   }
 };
 

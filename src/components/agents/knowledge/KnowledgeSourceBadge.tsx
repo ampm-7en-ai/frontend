@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BookOpen, Database, Globe, AlertTriangle, Link2Off } from 'lucide-react';
 import { 
@@ -10,6 +11,7 @@ import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 
 interface KnowledgeSourceBadgeProps {
   source: KnowledgeSource;
+  onClick?: () => void;
 }
 
 const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {

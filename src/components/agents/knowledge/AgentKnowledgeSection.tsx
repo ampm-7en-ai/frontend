@@ -1,20 +1,25 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ChevronRight, RefreshCw, FileText, BookOpen, Database, Globe } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { 
-  HoverCard, 
-  HoverCardContent, 
-  HoverCardTrigger 
-} from "@/components/ui/hover-card";
-import { 
-  Popover, 
-  PopoverContent, 
+} from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
   PopoverTrigger 
 } from "@/components/ui/popover";
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
