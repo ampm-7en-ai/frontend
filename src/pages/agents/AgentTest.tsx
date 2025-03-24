@@ -513,7 +513,7 @@ const AgentTest = () => {
       </div>
 
       <Dialog open={isSystemPromptOpen !== null} onOpenChange={() => setIsSystemPromptOpen(null)}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent fixedFooter className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit System Prompt</DialogTitle>
             <DialogDescription>
@@ -521,52 +521,55 @@ const AgentTest = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Bot className="h-5 w-5 mr-2 text-primary" />
-                <span className="font-medium">
-                  {isSystemPromptOpen !== null && getModelDisplay(chatConfigs[isSystemPromptOpen].model)}
-                </span>
+          <DialogBody>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Bot className="h-5 w-5 mr-2 text-primary" />
+                  <span className="font-medium">
+                    {isSystemPromptOpen !== null && getModelDisplay(chatConfigs[isSystemPromptOpen].model)}
+                  </span>
+                </div>
+                
+                <div className="text-sm text-muted-foreground">
+                  <span className="text-xs bg-slate-100 px-2 py-0.5 rounded">
+                    {isSystemPromptOpen !== null && chatConfigs[isSystemPromptOpen].systemPrompt.length} characters
+                  </span>
+                </div>
               </div>
               
-              <div className="text-sm text-muted-foreground">
-                <span className="text-xs bg-slate-100 px-2 py-0.5 rounded">
-                  {isSystemPromptOpen !== null && chatConfigs[isSystemPromptOpen].systemPrompt.length} characters
-                </span>
+              {isSystemPromptOpen !== null && (
+                <Textarea
+                  value={chatConfigs[isSystemPromptOpen].systemPrompt}
+                  onChange={(e) => handleUpdateChatConfig(isSystemPromptOpen, 'systemPrompt', e.target.value)}
+                  placeholder="You are a helpful AI assistant. Your task is to..."
+                  className="min-h-[300px] font-mono text-sm p-4"
+                  expandable={true}
+                  maxExpandedHeight="400px"
+                />
+              )}
+              
+              <div className="text-xs text-muted-foreground space-y-2">
+                <p>
+                  <strong>Tips for effective system prompts:</strong>
+                </p>
+                <ul className="space-y-1 list-disc pl-4">
+                  <li>Define the AI's role clearly (e.g., "You are a knowledgeable tour guide...")</li>
+                  <li>Specify desired tone and communication style</li>
+                  <li>Set boundaries for what the AI should or shouldn't do</li>
+                  <li>Include any specific domain knowledge the AI should leverage</li>
+                </ul>
               </div>
             </div>
-            
-            {isSystemPromptOpen !== null && (
-              <Textarea
-                value={chatConfigs[isSystemPromptOpen].systemPrompt}
-                onChange={(e) => handleUpdateChatConfig(isSystemPromptOpen, 'systemPrompt', e.target.value)}
-                placeholder="You are a helpful AI assistant. Your task is to..."
-                className="min-h-[300px] font-mono text-sm p-4"
-                expandable={true}
-              />
-            )}
-            
-            <div className="text-xs text-muted-foreground space-y-2 mt-2">
-              <p>
-                <strong>Tips for effective system prompts:</strong>
-              </p>
-              <ul className="space-y-1 list-disc pl-4">
-                <li>Define the AI's role clearly (e.g., "You are a knowledgeable tour guide...")</li>
-                <li>Specify desired tone and communication style</li>
-                <li>Set boundaries for what the AI should or shouldn't do</li>
-                <li>Include any specific domain knowledge the AI should leverage</li>
-              </ul>
-            </div>
-          </div>
+          </DialogBody>
           
-          <div className="flex justify-end">
+          <DialogFooter fixed>
             <Button
               onClick={() => setIsSystemPromptOpen(null)}
             >
               Done
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
