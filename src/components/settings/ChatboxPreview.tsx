@@ -137,7 +137,7 @@ export const ChatboxPreview = ({
                 )}
                 style={{ 
                   backgroundColor: message.type === 'bot' ? `${primaryColor}15` : '',
-                  borderLeft: message.type === 'bot' ? `3px solid ${primaryColor}` : '',
+                  // Removed the border-left style for bot messages
                 }}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.text}</p>
@@ -176,7 +176,7 @@ export const ChatboxPreview = ({
                 )}
                 style={{ 
                   backgroundColor: `${primaryColor}15`,
-                  borderLeft: `3px solid ${primaryColor}`,
+                  // Removed the border-left style for typing indicator
                 }}
               >
                 <div className="flex space-x-1">
