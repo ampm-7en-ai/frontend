@@ -1,31 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { 
-  Bot, ChevronLeft, SendHorizontal, Rocket, X, 
-  Settings, User, ChevronDown, ChevronUp, FileText,
-  BookOpen, Code, FileJson, Globe, Database
+  Bot, ChevronLeft, SendHorizontal, X, 
+  Settings, User, ChevronDown, FileText,
+  BookOpen, Code, Globe, Database, Sliders
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import DeploymentDialog from '@/components/agents/DeploymentDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Slider } from '@/components/ui/slider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 type Message = {
   id: number;
   content: string;
-  sender: 'user' | 'agent' | 'agent2' | 'agent3';
+  sender: 'user' | 'agent1' | 'agent2' | 'agent3';
   model?: string;
   timestamp: Date;
 };
@@ -47,7 +45,8 @@ type ChatConfig = {
   model: string;
   temperature: number;
   systemPrompt: string;
-  maxTokens: number
+  maxTokens: number;
+  flavor?: 'base' | 'fast';
 };
 
 const MODELS = {
@@ -55,10 +54,10 @@ const MODELS = {
   'gpt35': { name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
   'anthropic': { name: 'Claude 3', provider: 'Anthropic' },
   'mistral': { name: 'Mistral 7B', provider: 'Mistral AI' },
-  'llama': { name: 'Llama 2', provider: 'Meta AI' },
+  'llama': { name: 'Llama-3.1-70B-Instruct', provider: 'Meta AI' },
   'gemini': { name: 'Gemini Pro', provider: 'Google' },
   'mixtral': { name: 'Mixtral 8x7B', provider: 'Mistral AI' },
-  'palm': { name: 'PaLM 2', provider: 'Google' }
+  'deepseek': { name: 'DeepSeek-R1', provider: 'DeepSeek' }
 };
 
 const mockAgents: Agent[] = [
@@ -119,23 +118,25 @@ const AgentTest = () => {
   
   const [selectedAgentId, setSelectedAgentId] = useState<string>(agentId || "1");
   const [agent, setAgent] = useState<Agent | null>(null);
-  const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
   
   const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>([
-    { model: "gpt4", temperature: 0.7, systemPrompt: "", maxTokens: 500 },
-    { model: "gemini", temperature: 0.7, systemPrompt: "", maxTokens: 500 }
+    { model: "llama", temperature: 0.6, systemPrompt: "", maxTokens: 512, flavor: "base" },
+    { model: "deepseek", temperature: 0.7, systemPrompt: "", maxTokens: 512, flavor: "base" },
+    { model: "anthropic", temperature: 0.7, systemPrompt: "", maxTokens: 512, flavor: "base" }
   ]);
 
-  const [compareMode, setCompareMode] = useState(false);
-  const [numChatWindows, setNumChatWindows] = useState(1);
+  const [numModels, setNumModels] = useState(3);
   
-  const [messages, setMessages] = useState<Message[][]>([[]]);
+  const [messages, setMessages] = useState<Message[][]>([[], [], []]);
   const [inputMessage, setInputMessage] = useState('');
   
-  const [configPanelExpanded, setConfigPanelExpanded] = useState(true);
+  const [configPanelExpanded, setConfigPanelExpanded] = useState<number[]>([]);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [selectedSourceContent, setSelectedSourceContent] = useState<string>("");
   const [sourceViewMode, setSourceViewMode] = useState<'markdown' | 'text'>('markdown');
+  const [activeTab, setActiveTab] = useState<string>("model1");
+
+  const messageContainerRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
   useEffect(() => {
     const foundAgent = mockAgents.find(a => a.id === selectedAgentId);
@@ -147,59 +148,10 @@ const AgentTest = () => {
         systemPrompt: foundAgent.systemPrompt || ""
       })));
       
-      const initialMessages: Message[][] = Array(numChatWindows).fill(null).map(() => [{
-        id: 1,
-        content: `Hello! I'm the ${foundAgent.name}. How can I help you today?`,
-        sender: 'agent' as const,
-        model: chatConfigs[0].model,
-        timestamp: new Date(),
-      }]);
-      
-      setMessages(initialMessages);
+      // Clear message history when changing agent
+      setMessages(Array(numModels).fill(null).map(() => []));
     }
   }, [selectedAgentId]);
-
-  useEffect(() => {
-    if (compareMode) {
-      setNumChatWindows(2);
-      
-      // Create two identical message arrays when switching to compare mode
-      if (messages.length === 1) {
-        const updatedMessages = [
-          [...messages[0]],
-          [...messages[0]]
-        ];
-        setMessages(updatedMessages);
-      }
-    } else {
-      setNumChatWindows(1);
-      // Only keep the first chat window's messages when disabling compare mode
-      if (messages.length > 1) {
-        setMessages([messages[0]]);
-      }
-    }
-  }, [compareMode]);
-
-  useEffect(() => {
-    // Initialize chat configurations based on the number of chat windows
-    setChatConfigs(prev => {
-      if (prev.length < numChatWindows) {
-        return [
-          ...prev,
-          ...Array(numChatWindows - prev.length).fill(null).map(() => ({
-            model: "gemini",
-            temperature: 0.7,
-            systemPrompt: agent?.systemPrompt || "",
-            maxTokens: 500
-          }))
-        ];
-      }
-      if (prev.length > numChatWindows) {
-        return prev.slice(0, numChatWindows);
-      }
-      return prev;
-    });
-  }, [numChatWindows, agent]);
 
   const handleAgentChange = (newAgentId: string) => {
     setSelectedAgentId(newAgentId);
@@ -226,36 +178,32 @@ const AgentTest = () => {
       timestamp: new Date(),
     };
     
-    // Add user message to all chat windows
+    // Add user message to all model message arrays
     setMessages(prev => prev.map(msgArray => [...msgArray, userMessage]));
     setInputMessage('');
     
-    // Generate AI response for each chat window
-    for (let i = 0; i < numChatWindows; i++) {
+    // Generate AI response for each model
+    for (let i = 0; i < numModels; i++) {
       setTimeout(() => {
-        let responseContent = "I understand your question. Based on our product documentation, the feature you're looking for can be found in the Settings menu under 'Advanced Options'. Would you like me to guide you through the setup process?";
+        let responseContent = "";
         
-        if (inputMessage.toLowerCase().includes('pricing')) {
-          responseContent = "Our pricing plans start at $9.99/month for the Basic plan, which includes up to 5 users. The Pro plan is $29.99/month with unlimited users and premium features. Would you like me to send you a detailed comparison?";
-        } else if (inputMessage.toLowerCase().includes('refund') || inputMessage.toLowerCase().includes('return')) {
-          responseContent = "Our refund policy allows returns within 30 days of purchase. To process a refund, please provide your order number and reason for the return. I'd be happy to help you with the process.";
-        }
-        
-        // Modify response based on model
-        if (chatConfigs[i].model === 'gemini' || chatConfigs[i].model === 'palm') {
-          responseContent = responseContent.replace("I understand", "I've analyzed");
-          responseContent = responseContent.replace("Would you like me to", "I can");
+        // Generate different responses based on the model
+        if (chatConfigs[i].model === "llama") {
+          responseContent = "It seems like you might have entered 'CV,' which can refer to a few things, such as 'Curriculum Vitae,' a document detailing your education, work experience, and skills.\n\nIf you're looking for information on how to create a CV, I'd be happy to provide guidance. Alternatively, if 'CV' stands for something else in your context, please provide more details so I can offer a more relevant response.";
+        } else if (chatConfigs[i].model === "deepseek") {
+          responseContent = "Hello! It looks like you're referring to \"CV,\" which can have multiple meanings depending on the context. Here are a few common interpretations:\n\n1. Curriculum Vitae (CV):\n   • A detailed document highlighting your academic and professional history, often used for job applications, academic positions, or research roles. It typically includes education, work experience, publications, awards, and skills.\n   • Need help crafting or reviewing a CV? Let me know!\n\n2. Computer Vision (CV):\n   • A field of artificial intelligence (AI) focused on enabling machines to interpret and analyze visual data (images, videos). Applications include facial recognition, object detection, and autonomous vehicles.\n   • Are you working on a computer vision project?\n\n3. Coefficient of Variation (CV):\n   • A statistical measure of data dispersion, calculated as the ratio of the standard deviation to the mean. It's often used to compare variability across datasets.\n   • Need help with statistics or data analysis?\n\n4. Cyclonic Vortex (CV):\n   • A meteorological term related to weather systems.";
+        } else {
+          responseContent = "CV could refer to:\n\n- Curriculum Vitae: A comprehensive document outlining your professional and academic history\n- Computer Vision: A field of AI that enables computers to derive meaningful information from digital images\n- Coefficient of Variation: A statistical measure\n\nCould you please specify which meaning of CV you're referring to so I can better assist you?";
         }
         
         // Modify response based on temperature
         if (chatConfigs[i].temperature > 0.8) {
-          responseContent += " By the way, is there anything else you'd like to know about our services?";
+          responseContent += " By the way, is there anything else you'd like to know about these topics?";
         } else if (chatConfigs[i].temperature < 0.4) {
           responseContent = responseContent.split('. ').join('.\n\n');
         }
         
-        const senderType: 'agent' | 'agent2' | 'agent3' = 
-          i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3';
+        const senderType = `agent${i+1}` as 'agent1' | 'agent2' | 'agent3';
         
         const agentMessage: Message = {
           id: Date.now() + i + 1,
@@ -270,7 +218,14 @@ const AgentTest = () => {
           newMessages[i] = [...newMessages[i], agentMessage];
           return newMessages;
         });
-      }, 1000 + (i * 500));
+        
+        // Scroll to bottom after new message
+        setTimeout(() => {
+          if (messageContainerRefs[i]?.current) {
+            messageContainerRefs[i].current!.scrollTop = messageContainerRefs[i].current!.scrollHeight;
+          }
+        }, 100);
+      }, 1000 + (i * 500)); // Staggered responses
     }
   };
 
@@ -282,39 +237,11 @@ const AgentTest = () => {
   };
 
   const handleClearChat = () => {
-    if (agent) {
-      const initialMessages: Message[][] = Array(numChatWindows).fill(null).map((_, i) => {
-        const senderType: 'agent' | 'agent2' | 'agent3' = 
-          i === 0 ? 'agent' : i === 1 ? 'agent2' : 'agent3';
-          
-        return [{
-          id: Date.now() + i,
-          content: `Hello! I'm the ${agent.name}. How can I help you today?`,
-          sender: senderType,
-          model: chatConfigs[i].model,
-          timestamp: new Date(),
-        }];
-      });
-      
-      setMessages(initialMessages);
-    }
-  };
-
-  const toggleCompareMode = () => {
-    const newCompareMode = !compareMode;
-    setCompareMode(newCompareMode);
-    
-    if (newCompareMode) {
-      toast({
-        title: "Compare Mode Enabled",
-        description: "You can now test your agent with two different models side by side.",
-      });
-    } else {
-      toast({
-        title: "Compare Mode Disabled",
-        description: "Returned to single model testing mode.",
-      });
-    }
+    setMessages(Array(numModels).fill(null).map(() => []));
+    toast({
+      title: "Chat cleared",
+      description: "All messages have been cleared.",
+    });
   };
 
   const handleViewSource = (sourceId: number) => {
@@ -325,8 +252,12 @@ const AgentTest = () => {
     }
   };
 
-  const toggleConfigPanel = () => {
-    setConfigPanelExpanded(!configPanelExpanded);
+  const toggleConfigPanel = (index: number) => {
+    if (configPanelExpanded.includes(index)) {
+      setConfigPanelExpanded(configPanelExpanded.filter(i => i !== index));
+    } else {
+      setConfigPanelExpanded([...configPanelExpanded, index]);
+    }
   };
 
   const getModelDisplay = (modelKey: string) => {
@@ -350,7 +281,7 @@ const AgentTest = () => {
               <ChevronLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold">Agent Testing Lab</h1>
+          <h1 className="text-2xl font-bold">Model Comparison Lab</h1>
         </div>
         <div className="flex items-center gap-2">
           <Select 
@@ -373,246 +304,221 @@ const AgentTest = () => {
           </Select>
           
           <Button 
-            variant={compareMode ? "secondary" : "outline"}
+            variant="outline" 
             size="sm"
-            onClick={toggleCompareMode}
+            onClick={handleClearChat}
             className="flex items-center gap-1"
           >
-            {compareMode ? "Disable Comparison" : "Compare Models"}
-          </Button>
-          
-          <Button 
-            variant={agent.isDeployed ? "secondary" : "default"} 
-            size="sm"
-            onClick={() => setDeploymentDialogOpen(true)}
-            className="flex items-center gap-1"
-          >
-            <Rocket className="h-4 w-4 mr-1" />
-            {agent.isDeployed ? "Manage Deployment" : "Deploy Agent"}
+            <X className="h-4 w-4 mr-1" />
+            Clear Chat
           </Button>
         </div>
       </div>
 
-      <Card className="mb-4">
-        <CardContent className="py-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Array(numModels).fill(null).map((_, index) => (
+          <Card key={`model-${index}`} className="flex flex-col h-[650px] overflow-hidden">
+            <CardHeader className="p-3 flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <Select 
+                  value={chatConfigs[index].model} 
+                  onValueChange={(value) => handleUpdateChatConfig(index, 'model', value)}
+                >
+                  <SelectTrigger className="w-[190px] h-8">
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(MODELS).map(([key, model]) => (
+                      <SelectItem key={key} value={key}>
+                        {model.name} ({model.provider})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  onClick={() => toggleConfigPanel(index)}
+                >
+                  <Sliders className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            
+            <Collapsible 
+              open={configPanelExpanded.includes(index)} 
+              className="border-t border-b"
+            >
+              <CollapsibleContent className="p-4 space-y-4 bg-gray-50">
+                <h3 className="font-medium">Parameters</h3>
+                
+                <div className="space-y-1">
+                  <Label>Flavor</Label>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant={chatConfigs[index].flavor === 'base' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateChatConfig(index, 'flavor', 'base')}
+                      className="flex-1"
+                    >
+                      Base
+                    </Button>
+                    <Button 
+                      variant={chatConfigs[index].flavor === 'fast' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateChatConfig(index, 'flavor', 'fast')}
+                      className="flex-1"
+                    >
+                      Fast
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label>Temperature</Label>
+                    <span className="text-sm text-muted-foreground">{chatConfigs[index].temperature.toFixed(1)}</span>
+                  </div>
+                  <Slider
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    value={[chatConfigs[index].temperature]}
+                    onValueChange={([value]) => handleUpdateChatConfig(index, 'temperature', value)}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0</span>
+                    <span>2</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label>Maximum tokens</Label>
+                    <span className="text-sm text-muted-foreground">{chatConfigs[index].maxTokens}</span>
+                  </div>
+                  <Slider
+                    min={128}
+                    max={8192}
+                    step={128}
+                    value={[chatConfigs[index].maxTokens]}
+                    onValueChange={([value]) => handleUpdateChatConfig(index, 'maxTokens', value)}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span></span>
+                    <span>8192</span>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+            
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="p-4 border-b bg-gray-50">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-xs font-medium uppercase text-gray-500">System Prompt</h3>
+                </div>
+                <Textarea 
+                  value={chatConfigs[index].systemPrompt} 
+                  onChange={(e) => handleUpdateChatConfig(index, 'systemPrompt', e.target.value)}
+                  className="min-h-[80px] resize-none text-sm border-gray-200"
+                  placeholder="Enter system instructions for the AI..."
+                />
+              </div>
+
+              <div 
+                ref={messageContainerRefs[index]}
+                className="flex-1 overflow-y-auto p-4 space-y-4 bg-white"
+              >
+                {messages[index].map((message) => {
+                  if (message.sender === 'user') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-3 justify-end">
+                        <div className="bg-gray-100 rounded-lg p-3 max-w-[85%]">
+                          <div className="flex items-center justify-between mb-1">
+                            <Badge variant="outline" className="text-xs">USER</Badge>
+                            <span className="text-xs text-gray-500">
+                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div key={message.id} className="flex items-start gap-3">
+                        <div className="bg-white border rounded-lg p-3 max-w-[85%]">
+                          <div className="flex items-center justify-between mb-1">
+                            <Badge variant="outline" className="text-xs">AI ASSISTANT</Badge>
+                            <span className="text-xs text-gray-500">
+                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                        </div>
+                      </div>
+                    );
+                  }
+                })}
+                {messages[index].length === 0 && (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center text-gray-500 p-4">
+                      <Bot className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                      <p className="text-sm">Send a message to see responses from this model</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader className="py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Bot className="h-6 w-6 text-primary" />
+            <CardTitle className="text-base">Knowledge Sources</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {agent.knowledgeSources.map(source => (
+              <div 
+                key={source.id}
+                className="flex items-center justify-between p-3 text-sm rounded-md border hover:bg-gray-50 cursor-pointer"
+                onClick={() => handleViewSource(source.id)}
+              >
+                <div className="flex items-center">
+                  {getSourceIcon(source.type)}
+                  <span className="ml-2">{source.name}</span>
+                </div>
+                <FileText className="h-4 w-4 text-gray-400" />
               </div>
-              <div>
-                <h2 className="text-lg font-semibold">{agent.name}</h2>
-                <p className="text-muted-foreground text-sm">{agent.description}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                {agent.knowledgeSources.length} Knowledge Sources
-              </Badge>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                {agent.conversations} Conversations
-              </Badge>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex flex-col gap-4 lg:flex-row">
-        <Collapsible 
-          open={configPanelExpanded} 
-          onOpenChange={setConfigPanelExpanded}
-          className="lg:w-[320px] xl:w-[350px] flex-shrink-0"
-        >
-          <Card className="flex flex-col h-full border shadow-sm">
-            <CardHeader className="p-4 pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Testing Configuration</CardTitle>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                    {configPanelExpanded ? <ChevronLeft className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-            </CardHeader>
-            
-            <CollapsibleContent>
-              <CardContent className="px-4 py-2 space-y-4">
-                {compareMode && (
-                  <Tabs defaultValue="model1" className="w-full">
-                    <TabsList className="w-full">
-                      <TabsTrigger value="model1" className="flex-1">Model 1</TabsTrigger>
-                      <TabsTrigger value="model2" className="flex-1">Model 2</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="model1" className="mt-2 space-y-4">
-                      {renderModelConfig(0)}
-                    </TabsContent>
-                    
-                    <TabsContent value="model2" className="mt-2 space-y-4">
-                      {renderModelConfig(1)}
-                    </TabsContent>
-                  </Tabs>
-                )}
-                
-                {!compareMode && renderModelConfig(0)}
-                
-                <div className="space-y-2 mt-4">
-                  <Label>Knowledge Sources</Label>
-                  <div className="bg-gray-50 rounded-md p-2 space-y-1 max-h-[200px] overflow-y-auto">
-                    {agent.knowledgeSources.map(source => (
-                      <div 
-                        key={source.id}
-                        className="flex items-center justify-between p-2 text-sm rounded-md hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleViewSource(source.id)}
-                      >
-                        <div className="flex items-center">
-                          {getSourceIcon(source.type)}
-                          <span className="ml-2">{source.name}</span>
-                        </div>
-                        <FileText className="h-4 w-4 text-gray-400" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={handleClearChat}
-                >
-                  Clear Conversation
-                </Button>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-        
-        <div className={`grid ${compareMode ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4 flex-1`}>
-          {Array(numChatWindows).fill(null).map((_, index) => (
-            <Card key={`chat-${index}`} className="flex flex-col h-[600px] overflow-hidden border shadow-lg">
-              <div 
-                className="p-3 flex items-center justify-between" 
-                style={{ backgroundColor: index === 0 ? '#9b87f5' : index === 1 ? '#7bbfff' : '#f59b87' }}
-              >
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center mr-3">
-                    <Bot className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-white">{agent.name}</h3>
-                    <div className="flex items-center mt-0.5">
-                      <Badge variant="secondary" className="text-xs bg-white/20 text-white border-none">
-                        {getModelDisplay(chatConfigs[index].model)} ({getProviderDisplay(chatConfigs[index].model)})
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20">
-                  <X className="h-4 w-4" onClick={handleClearChat} />
-                </Button>
-              </div>
-              
-              <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-                {messages[index]?.map((message) => {
-                  let backgroundColor;
-                  let textColor = 'text-gray-800';
-                  let borderRadius = '0.75rem';
-                  
-                  if (message.sender === 'user') {
-                    backgroundColor = '#9b87f5';
-                    textColor = 'text-white';
-                    borderRadius = '1rem 1rem 0 1rem';
-                  } else if (message.sender === 'agent') {
-                    backgroundColor = 'white';
-                    borderRadius = '1rem 1rem 1rem 0';
-                  } else if (message.sender === 'agent2') {
-                    backgroundColor = '#F0F7FF';
-                    borderRadius = '1rem 1rem 1rem 0';
-                  } else if (message.sender === 'agent3') {
-                    backgroundColor = '#FFF7F0';
-                    borderRadius = '1rem 1rem 1rem 0';
-                  }
-                  
-                  return (
-                    <div 
-                      key={message.id}
-                      className={cn(
-                        "flex",
-                        message.sender === 'user' ? "justify-end" : "justify-start"
-                      )}
-                    >
-                      {message.sender !== 'user' && (
-                        <div className="h-8 w-8 rounded-full mr-2 flex-shrink-0 bg-purple-500 flex items-center justify-center">
-                          <Bot className="h-5 w-5 text-white" />
-                        </div>
-                      )}
-                      <div 
-                        className="max-w-[80%] p-3 border border-gray-200 shadow-sm"
-                        style={{
-                          backgroundColor,
-                          borderRadius,
-                          fontSize: '1rem',
-                        }}
-                      >
-                        {message.model && message.sender !== 'user' && (
-                          <div className="flex items-center mb-1 pb-1 border-b border-gray-200">
-                            <Badge variant="outline" className="text-xs">
-                              {getModelDisplay(message.model)}
-                            </Badge>
-                          </div>
-                        )}
-                        <p className={textColor} style={{ whiteSpace: 'pre-wrap' }}>
-                          {message.content}
-                        </p>
-                        <div className={cn(
-                          "text-xs mt-1",
-                          message.sender === 'user' ? "text-white/80" : "text-gray-500"
-                        )}>
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                      {message.sender === 'user' && (
-                        <div 
-                          className="w-8 h-8 rounded-full flex items-center justify-center ml-2 text-xs font-medium flex-shrink-0"
-                          style={{
-                            background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
-                            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                          }}
-                        >
-                          <User size={16} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </CardContent>
-              
-              {index === 0 || (index === numChatWindows - 1 && compareMode) ? (
-                <div className="p-4 border-t bg-white">
-                  <div className="flex items-center">
-                    <Input
-                      placeholder="Type your message..."
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="flex-1 border-gray-200 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                    <Button 
-                      onClick={handleSendMessage} 
-                      size="icon" 
-                      className="ml-2 rounded-full h-10 w-10"
-                      style={{ backgroundColor: index === 0 ? '#9b87f5' : index === 1 ? '#7bbfff' : '#f59b87' }}
-                    >
-                      <SendHorizontal className="h-5 w-5 text-white" />
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-            </Card>
-          ))}
+      <div className="sticky bottom-0 w-full mt-2">
+        <div className="flex items-center">
+          <Input
+            placeholder="Enter a message to compare AI responses..."
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="flex-1"
+          />
+          <Button 
+            onClick={handleSendMessage} 
+            className="ml-2"
+          >
+            <SendHorizontal className="h-4 w-4 mr-2" />
+            Submit
+          </Button>
         </div>
       </div>
 
@@ -677,84 +583,8 @@ const AgentTest = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      <DeploymentDialog 
-        open={deploymentDialogOpen} 
-        onOpenChange={setDeploymentDialogOpen} 
-        agent={agent} 
-      />
     </div>
   );
-
-  function renderModelConfig(index: number) {
-    return (
-      <div className="space-y-3">
-        <div className="space-y-1">
-          <Label htmlFor={`model-${index}`}>AI Model</Label>
-          <Select 
-            value={chatConfigs[index].model} 
-            onValueChange={(value) => handleUpdateChatConfig(index, 'model', value)}
-          >
-            <SelectTrigger id={`model-${index}`}>
-              <SelectValue placeholder="Select model" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(MODELS).map(([key, model]) => (
-                <SelectItem key={key} value={key}>
-                  {model.name} ({model.provider})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <Label htmlFor={`temperature-${index}`}>Temperature: {chatConfigs[index].temperature.toFixed(1)}</Label>
-          </div>
-          <Slider
-            id={`temperature-${index}`}
-            min={0}
-            max={1}
-            step={0.1}
-            value={[chatConfigs[index].temperature]}
-            onValueChange={([value]) => handleUpdateChatConfig(index, 'temperature', value)}
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Precise</span>
-            <span>Creative</span>
-          </div>
-        </div>
-        
-        <div className="space-y-1">
-          <Label htmlFor={`max-tokens-${index}`}>Max Output Length: {chatConfigs[index].maxTokens}</Label>
-          <Slider
-            id={`max-tokens-${index}`}
-            min={100}
-            max={2000}
-            step={100}
-            value={[chatConfigs[index].maxTokens]}
-            onValueChange={([value]) => handleUpdateChatConfig(index, 'maxTokens', value)}
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Short</span>
-            <span>Long</span>
-          </div>
-        </div>
-        
-        <div className="space-y-1">
-          <Label htmlFor={`system-prompt-${index}`}>System Prompt</Label>
-          <Textarea 
-            id={`system-prompt-${index}`}
-            value={chatConfigs[index].systemPrompt} 
-            onChange={(e) => handleUpdateChatConfig(index, 'systemPrompt', e.target.value)}
-            className="h-20 text-sm font-mono"
-            placeholder="Enter system instructions for the AI..."
-          />
-        </div>
-      </div>
-    );
-  }
 
   function getSourceIcon(type: string) {
     switch (type) {
