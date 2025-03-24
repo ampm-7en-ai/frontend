@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,7 @@ interface ChatboxPreviewProps {
   buttonText: string;
   position: 'bottom-right' | 'bottom-left';
   className?: string;
+  suggestions?: string[];
 }
 
 export const ChatboxPreview = ({
@@ -23,7 +25,8 @@ export const ChatboxPreview = ({
   welcomeMessage = 'Hello! How can I help you today?',
   buttonText = 'Chat with us',
   position = 'bottom-right',
-  className
+  className,
+  suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing']
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState([
     { type: 'bot', text: welcomeMessage }
@@ -58,6 +61,23 @@ export const ChatboxPreview = ({
         }]);
       }, 1500);
     }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    // Add user message with the suggestion text
+    setMessages([...messages, { type: 'user', text: suggestion }]);
+    
+    // Show typing indicator
+    setShowTypingIndicator(true);
+    
+    // Simulate bot response after a short delay
+    setTimeout(() => {
+      setShowTypingIndicator(false);
+      setMessages(prev => [...prev, { 
+        type: 'bot', 
+        text: `This is a simulated response to your question: "${suggestion}". In the actual chatbox, this would be a response from your AI assistant.` 
+      }]);
+    }, 1500);
   };
 
   return (
@@ -165,6 +185,27 @@ export const ChatboxPreview = ({
                   <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               </div>
+            </div>
+          )}
+          
+          {/* Suggestions - only show if we have messages and no suggestions have been clicked yet */}
+          {messages.length === 1 && suggestions && suggestions.length > 0 && (
+            <div className="flex flex-col gap-2 mt-3 animate-fade-in">
+              <p className="text-xs text-gray-500 mb-1">Suggested questions:</p>
+              {suggestions.filter(Boolean).map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="text-sm text-left px-4 py-2 rounded-full transition-all"
+                  style={{ 
+                    border: `1px solid ${primaryColor}30`,
+                    backgroundColor: `${primaryColor}08`,
+                    color: 'inherit'
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
             </div>
           )}
         </div>

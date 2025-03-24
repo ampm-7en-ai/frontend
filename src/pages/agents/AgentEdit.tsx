@@ -49,6 +49,11 @@ const AgentEdit = () => {
     selectedModel: 'gpt4',
     temperature: 0.7,
     maxResponseLength: 'medium',
+    suggestions: [
+      'How can I get started?',
+      'What features do you offer?',
+      'Tell me about your pricing'
+    ]
   });
   
   const [isRetraining, setIsRetraining] = useState(false);
@@ -59,6 +64,12 @@ const AgentEdit = () => {
       ...agent,
       [name]: value
     });
+  };
+
+  const handleSuggestionChange = (index: number, value: string) => {
+    const updatedSuggestions = [...agent.suggestions];
+    updatedSuggestions[index] = value;
+    handleChange('suggestions', updatedSuggestions);
   };
 
   const toggleKnowledgeSource = (id: number) => {
@@ -137,21 +148,23 @@ const AgentEdit = () => {
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="agent-status">Status</Label>
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="agent-status" 
-              checked={agent.status === 'active'} 
-              onCheckedChange={(checked) => handleChange('status', checked ? 'active' : 'inactive')} 
-            />
-            <span className={agent.status === 'active' ? "text-green-600" : "text-gray-500"}>
-              {agent.status === 'active' ? "Active" : "Inactive"}
-            </span>
-          </div>
+        <div className="space-y-4">
+          <Label>Suggested Questions</Label>
           <p className="text-sm text-muted-foreground">
-            Inactive agents will not be accessible to your visitors
+            Add up to 3 suggested questions for your users to click on
           </p>
+          
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="space-y-2">
+              <Label htmlFor={`suggestion-${index + 1}`}>Suggestion {index + 1}</Label>
+              <Input 
+                id={`suggestion-${index + 1}`} 
+                value={agent.suggestions[index] || ''}
+                onChange={(e) => handleSuggestionChange(index, e.target.value)}
+                placeholder={`e.g. Suggestion ${index + 1}`}
+              />
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -460,6 +473,7 @@ const AgentEdit = () => {
           buttonText={agent.buttonText}
           position={agent.position}
           className="w-full h-full"
+          suggestions={agent.suggestions}
         />
       </div>
     );
