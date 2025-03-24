@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { 
   Select, 
   SelectContent, 
@@ -14,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 interface ConversationFiltersProps {
   searchTerm?: string;
   onSearchChange?: (value: string) => void;
-  filterStatus: string;
+  filterStatus?: string;
   onFilterStatusChange?: (value: string) => void;
   setFilterStatus?: (value: string) => void;
   filterAgent?: string;
@@ -42,16 +40,10 @@ const ConversationFilters = ({
   agentTypeFilter,
   setAgentTypeFilter
 }: ConversationFiltersProps) => {
-  // Use either setFilterStatus or onFilterStatusChange based on which is provided
-  const handleStatusChange = (value: string) => {
-    if (setFilterStatus) setFilterStatus(value);
-    if (onFilterStatusChange) onFilterStatusChange(value);
-  };
-
   return (
     <div className="bg-white rounded-lg p-4 mb-4">
-      {/* Tabs at the top */}
-      <div className="flex justify-between items-center mb-4">
+      {/* Centered Tabs at the top */}
+      <div className="flex justify-center items-center mb-4">
         <Tabs 
           value={filterResolved || 'unresolved'} 
           onValueChange={onFilterResolvedChange || (() => {})}
@@ -63,42 +55,11 @@ const ConversationFilters = ({
             <TabsTrigger value="resolved" size="xs">Resolved</TabsTrigger>
           </TabsList>
         </Tabs>
-        
-        <Button variant="outline" size="sm" className="text-xs">
-          <Filter className="h-3 w-3 mr-1" />
-          More Filters
-        </Button>
       </div>
       
-      <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Select value={filterStatus} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-full sm:w-[140px]">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {filterAgent && onFilterAgentChange && (
-            <Select value={filterAgent} onValueChange={onFilterAgentChange}>
-              <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder="All Agents" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Agents</SelectItem>
-                <SelectItem value="sales-agent">Sales Agent</SelectItem>
-                <SelectItem value="support-agent">Support Agent</SelectItem>
-                <SelectItem value="technical-agent">Technical Agent</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-          
-          {channelFilter && setChannelFilter && (
+      <div className="flex flex-col sm:flex-row justify-center gap-4 items-start sm:items-center">
+        {channelFilter && setChannelFilter && (
+          <div className="flex gap-2 w-full sm:w-auto">
             <Select value={channelFilter} onValueChange={setChannelFilter}>
               <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="All Channels" />
@@ -111,9 +72,11 @@ const ConversationFilters = ({
                 <SelectItem value="social">Social Media</SelectItem>
               </SelectContent>
             </Select>
-          )}
-          
-          {agentTypeFilter && setAgentTypeFilter && (
+          </div>
+        )}
+        
+        {agentTypeFilter && setAgentTypeFilter && (
+          <div className="flex gap-2 w-full sm:w-auto">
             <Select value={agentTypeFilter} onValueChange={setAgentTypeFilter}>
               <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="All Agent Types" />
@@ -124,8 +87,24 @@ const ConversationFilters = ({
                 <SelectItem value="human">Human Agents</SelectItem>
               </SelectContent>
             </Select>
-          )}
-        </div>
+          </div>
+        )}
+        
+        {filterAgent && onFilterAgentChange && (
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Select value={filterAgent} onValueChange={onFilterAgentChange}>
+              <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectValue placeholder="All Agents" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Agents</SelectItem>
+                <SelectItem value="sales-agent">Sales Agent</SelectItem>
+                <SelectItem value="support-agent">Support Agent</SelectItem>
+                <SelectItem value="technical-agent">Technical Agent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
     </div>
   );
