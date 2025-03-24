@@ -450,19 +450,17 @@ const AgentEdit = () => {
 
   const renderChatPreview = () => {
     return (
-      <div className="flex flex-col h-full rounded-lg overflow-hidden border">
-        <div className="flex-1 relative">
-          <ChatboxPreview
-            primaryColor={agent.primaryColor}
-            secondaryColor={agent.secondaryColor}
-            fontFamily={agent.fontFamily}
-            chatbotName={agent.chatbotName}
-            welcomeMessage={agent.welcomeMessage}
-            buttonText={agent.buttonText}
-            position={agent.position}
-            className="w-full h-full"
-          />
-        </div>
+      <div className="h-full">
+        <ChatboxPreview
+          primaryColor={agent.primaryColor}
+          secondaryColor={agent.secondaryColor}
+          fontFamily={agent.fontFamily}
+          chatbotName={agent.chatbotName}
+          welcomeMessage={agent.welcomeMessage}
+          buttonText={agent.buttonText}
+          position={agent.position}
+          className="w-full h-full"
+        />
       </div>
     );
   };
@@ -486,11 +484,11 @@ const AgentEdit = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
-        <div className="h-full px-4 max-w-[1440px] mx-auto">
+        <div className="h-full">
           {renderChatPreview()}
         </div>
         
-        <div className="col-span-2 h-full overflow-y-auto px-4 max-w-[1440px] mx-auto">
+        <div className="col-span-2 h-full overflow-y-auto">
           <Tabs 
             defaultValue="general" 
             className="w-full"
@@ -545,3 +543,4 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
+
