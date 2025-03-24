@@ -1,65 +1,14 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { 
-  Bot, ChevronLeft, SendHorizontal, X, 
-  Settings, BookOpen, Code, Globe, Database, Sliders,
-  FileText, Info, User, Send, Maximize2, Minimize2
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { ChevronLeft, X, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Slider } from '@/components/ui/slider';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter,
-  DialogBody 
-} from '@/components/ui/dialog';
-import AgentKnowledgeSection from '@/components/agents/knowledge/AgentKnowledgeSection';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
-import { mockKnowledgeSources } from '@/data/mockKnowledgeSources';
-import { KnowledgeSource } from '@/hooks/useAgentFiltering';
-
-type Message = {
-  id: number;
-  content: string;
-  sender: 'user' | 'agent1' | 'agent2' | 'agent3';
-  model?: string;
-  timestamp: Date;
-};
-
-type Agent = {
-  id: string;
-  name: string;
-  description: string;
-  conversations: number;
-  lastModified: string;
-  averageRating: number;
-  knowledgeSources: KnowledgeSource[];
-  model: string;
-  isDeployed: boolean;
-  systemPrompt?: string;
-};
-
-type ChatConfig = {
-  model: string;
-  temperature: number;
-  systemPrompt: string;
-  maxLength: number;
-};
+import { Agent, ChatConfig, Message } from '@/components/agents/modelComparison/types';
+import { ModelComparisonCard } from '@/components/agents/modelComparison/ModelComparisonCard';
+import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
+import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
 
 const MODELS = {
   'gpt4': { name: 'GPT-4', provider: 'OpenAI' },
@@ -144,11 +93,7 @@ const AgentTest = () => {
   
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isKnowledgePopoverOpen, setIsKnowledgePopoverOpen] = useState(false);
-  
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
-
-  const messageContainerRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
   useEffect(() => {
     const foundAgent = mockAgents.find(a => a.id === selectedAgentId);
@@ -183,18 +128,15 @@ const AgentTest = () => {
     setIsSystemPromptOpen(index);
   };
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim() === '') return;
-    
+  const handleSendMessage = (messageText: string) => {
     const userMessage: Message = {
       id: Date.now(),
-      content: inputMessage,
+      content: messageText,
       sender: 'user',
       timestamp: new Date(),
     };
     
     setMessages(prev => prev.map(msgArray => [...msgArray, userMessage]));
-    setInputMessage('');
     
     for (let i = 0; i < numModels; i++) {
       setTimeout(() => {
@@ -233,20 +175,7 @@ const AgentTest = () => {
           newMessages[i] = [...newMessages[i], agentMessage];
           return newMessages;
         });
-        
-        setTimeout(() => {
-          if (messageContainerRefs[i]?.current) {
-            messageContainerRefs[i].current!.scrollTop = messageContainerRefs[i].current!.scrollHeight;
-          }
-        }, 100);
       }, 1000 + (i * 500));
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
     }
   };
 
@@ -258,6 +187,10 @@ const AgentTest = () => {
     });
   };
 
+  const handleViewKnowledgeSources = () => {
+    setIsModalOpen(true);
+  };
+
   const handleViewSource = (sourceId: number) => {
     setSelectedSourceId(sourceId);
     setIsModalOpen(true);
@@ -267,8 +200,14 @@ const AgentTest = () => {
     return MODELS[modelKey as keyof typeof MODELS]?.name || modelKey;
   };
 
-  const getProviderDisplay = (modelKey: string) => {
-    return MODELS[modelKey as keyof typeof MODELS]?.provider || 'Unknown';
+  const adjustColor = (color: string, amount: number): string => {
+    return color;
+  };
+
+  const handleUpdateSystemPrompt = (value: string) => {
+    if (isSystemPromptOpen !== null) {
+      handleUpdateChatConfig(isSystemPromptOpen, 'systemPrompt', value);
+    }
   };
 
   if (!agent) {
@@ -319,268 +258,42 @@ const AgentTest = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Array(numModels).fill(null).map((_, index) => (
-          <Card key={`model-${index}`} className="flex flex-col h-[650px] overflow-hidden">
-            <CardHeader className="p-3 flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <Select 
-                  value={chatConfigs[index].model} 
-                  onValueChange={(value) => handleUpdateChatConfig(index, 'model', value)}
-                >
-                  <SelectTrigger className="w-[190px] h-8">
-                    <SelectValue placeholder="Select model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(MODELS).map(([key, model]) => (
-                      <SelectItem key={key} value={key}>
-                        {model.name} ({model.provider})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Sliders className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 p-4">
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Parameters</h3>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <Label>Temperature</Label>
-                          <span className="text-sm text-muted-foreground">{chatConfigs[index].temperature.toFixed(1)}</span>
-                        </div>
-                        <Slider
-                          min={0}
-                          max={2}
-                          step={0.1}
-                          value={[chatConfigs[index].temperature]}
-                          onValueChange={([value]) => handleUpdateChatConfig(index, 'temperature', value)}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Precise</span>
-                          <span>Creative</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <Label>Output length</Label>
-                          <span className="text-sm text-muted-foreground">{chatConfigs[index].maxLength}</span>
-                        </div>
-                        <Slider
-                          min={128}
-                          max={2048}
-                          step={128}
-                          value={[chatConfigs[index].maxLength]}
-                          onValueChange={([value]) => handleUpdateChatConfig(index, 'maxLength', value)}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Short</span>
-                          <span>Long</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <Label>System Prompt</Label>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 rounded-full"
-                            onClick={() => handleSystemPromptEdit(index)}
-                          >
-                            <Maximize2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                        <Textarea 
-                          value={chatConfigs[index].systemPrompt} 
-                          onChange={(e) => handleUpdateChatConfig(index, 'systemPrompt', e.target.value)}
-                          className="min-h-[100px] max-h-[200px] resize-none text-sm"
-                          placeholder="Enter system instructions for the AI..."
-                        />
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-                        
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white" ref={messageContainerRefs[index]}>
-              {messages[index].map((message) => {
-                if (message.sender === 'user') {
-                  return (
-                    <div key={message.id} className="flex gap-2 items-start justify-end animate-fade-in">
-                      <div className="rounded-lg p-3 max-w-[80%] shadow-sm bg-gray-100 text-gray-800">
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <div className="text-xs mt-1 text-gray-400">
-                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0"
-                        style={{
-                          background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        <User size={16} />
-                      </div>
-                    </div>
-                  );
-                } else {
-                  const primaryColor = index === 0 ? '#9b87f5' : index === 1 ? '#33C3F0' : '#6E59A5';
-                  return (
-                    <div key={message.id} className="flex gap-2 items-start animate-fade-in">
-                      <div className="flex-shrink-0 mt-1">
-                        <div 
-                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                          style={{ 
-                            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                            color: '#FFFFFF',
-                            boxShadow: `0 2px 5px ${primaryColor}40`
-                          }}
-                        >
-                          <Bot size={16} />
-                        </div>
-                      </div>
-                      <div
-                        className="rounded-lg p-3 max-w-[80%] shadow-sm"
-                        style={{ 
-                          backgroundColor: `${primaryColor}15`,
-                        }}
-                      >
-                        <div className="text-xs font-medium mb-1 text-gray-600">
-                          {getModelDisplay(message.model || '')}
-                        </div>
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <div className="text-xs mt-1 text-gray-400">
-                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-              })}
-              {messages[index].length === 0 && (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center text-gray-500 p-4">
-                    <Bot className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                    <p className="text-sm">Send a message to see responses from this model</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="sticky bottom-0 w-full mt-2">
-        <div className="flex flex-col items-center">
-          <div className="relative flex-1 w-full mb-2">
-            <Input
-              placeholder="Enter a message to compare AI responses..."
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="pr-12 text-sm border-2 rounded-full pl-4 shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0"
-              style={{ 
-                borderColor: '#9b87f530',
-              }}
+        {Array(numModels).fill(null).map((_, index) => {
+          const primaryColor = index === 0 ? '#9b87f5' : index === 1 ? '#33C3F0' : '#6E59A5';
+          
+          return (
+            <ModelComparisonCard
+              key={`model-${index}`}
+              index={index}
+              model={chatConfigs[index].model}
+              temperature={chatConfigs[index].temperature}
+              maxLength={chatConfigs[index].maxLength}
+              systemPrompt={chatConfigs[index].systemPrompt}
+              messages={messages[index]}
+              onModelChange={(value) => handleUpdateChatConfig(index, 'model', value)}
+              onOpenSystemPrompt={() => handleSystemPromptEdit(index)}
+              onUpdateConfig={(field, value) => handleUpdateChatConfig(index, field, value)}
+              modelOptions={MODELS}
+              primaryColor={primaryColor}
             />
-            <button 
-              onClick={handleSendMessage} 
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
-              style={{ 
-                backgroundColor: '#9b87f5',
-                color: '#FFFFFF',
-                boxShadow: '0 2px 5px #9b87f540'
-              }}
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full sm:w-auto gap-2 text-muted-foreground hover:text-foreground mb-1"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <FileText className="h-4 w-4" />
-            View Knowledge Sources ({agent.knowledgeSources.length})
-          </Button>
-        </div>
+          );
+        })}
       </div>
 
-      <Dialog open={isSystemPromptOpen !== null} onOpenChange={() => setIsSystemPromptOpen(null)}>
-        <DialogContent fixedFooter className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit System Prompt</DialogTitle>
-            <DialogDescription>
-              Define the behavior and capabilities of your AI model
-            </DialogDescription>
-          </DialogHeader>
-          
-          <DialogBody>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Bot className="h-5 w-5 mr-2 text-primary" />
-                  <span className="font-medium">
-                    {isSystemPromptOpen !== null && getModelDisplay(chatConfigs[isSystemPromptOpen].model)}
-                  </span>
-                </div>
-                
-                <div className="text-sm text-muted-foreground">
-                  <span className="text-xs bg-slate-100 px-2 py-0.5 rounded">
-                    {isSystemPromptOpen !== null && chatConfigs[isSystemPromptOpen].systemPrompt.length} characters
-                  </span>
-                </div>
-              </div>
-              
-              {isSystemPromptOpen !== null && (
-                <Textarea
-                  value={chatConfigs[isSystemPromptOpen].systemPrompt}
-                  onChange={(e) => handleUpdateChatConfig(isSystemPromptOpen, 'systemPrompt', e.target.value)}
-                  placeholder="You are a helpful AI assistant. Your task is to..."
-                  className="min-h-[300px] font-mono text-sm p-4"
-                  expandable={true}
-                  maxExpandedHeight="400px"
-                />
-              )}
-              
-              <div className="text-xs text-muted-foreground space-y-2">
-                <p>
-                  <strong>Tips for effective system prompts:</strong>
-                </p>
-                <ul className="space-y-1 list-disc pl-4">
-                  <li>Define the AI's role clearly (e.g., "You are a knowledgeable tour guide...")</li>
-                  <li>Specify desired tone and communication style</li>
-                  <li>Set boundaries for what the AI should or shouldn't do</li>
-                  <li>Include any specific domain knowledge the AI should leverage</li>
-                </ul>
-              </div>
-            </div>
-          </DialogBody>
-          
-          <DialogFooter fixed>
-            <Button
-              onClick={() => setIsSystemPromptOpen(null)}
-            >
-              Done
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ChatInput 
+        onSendMessage={handleSendMessage}
+        onViewKnowledgeSources={handleViewKnowledgeSources}
+        knowledgeSourceCount={agent.knowledgeSources.length}
+      />
+
+      <SystemPromptDialog 
+        open={isSystemPromptOpen !== null}
+        onOpenChange={() => setIsSystemPromptOpen(null)}
+        modelIndex={isSystemPromptOpen}
+        modelName={isSystemPromptOpen !== null ? getModelDisplay(chatConfigs[isSystemPromptOpen].model) : ''}
+        systemPrompt={isSystemPromptOpen !== null ? chatConfigs[isSystemPromptOpen].systemPrompt : ''}
+        onUpdateSystemPrompt={handleUpdateSystemPrompt}
+      />
 
       <KnowledgeSourceModal
         open={isModalOpen}
@@ -590,23 +303,10 @@ const AgentTest = () => {
       />
     </div>
   );
-
-  function getSourceIcon(type: string) {
-    switch (type) {
-      case 'document':
-        return <FileText className="h-4 w-4 text-blue-500" />;
-      case 'webpage':
-        return <Globe className="h-4 w-4 text-green-500" />;
-      case 'database':
-        return <Database className="h-4 w-4 text-purple-500" />;
-      default:
-        return <BookOpen className="h-4 w-4 text-gray-500" />;
-    }
-  }
-
-  function adjustColor(color: string, amount: number): string {
-    return color;
-  }
 };
 
 export default AgentTest;
+
+function getSourceIcon(type: string) {
+  return null;
+}
