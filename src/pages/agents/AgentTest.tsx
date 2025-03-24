@@ -4,25 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { 
-  Bot, ChevronLeft, Circle, SendHorizontal, Zap, Rocket, X, Maximize2, 
-  Repeat, SplitSquareVertical, Languages, Settings, ExternalLink, Dices, User,
-  ChevronDown, ChevronUp, FileCog, FileText, BookOpen, Code, FileJson, Globe, Database
+  Bot, ChevronLeft, SendHorizontal, Rocket, X, 
+  Settings, User, ChevronDown, ChevronUp, FileText,
+  BookOpen, Code, FileJson, Globe, Database
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Slider } from '@/components/ui/slider';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 
 type Message = {
   id: number;
@@ -165,6 +163,7 @@ const AgentTest = () => {
     if (compareMode) {
       setNumChatWindows(2);
       
+      // Create two identical message arrays when switching to compare mode
       if (messages.length === 1) {
         const updatedMessages = [
           [...messages[0]],
@@ -174,6 +173,7 @@ const AgentTest = () => {
       }
     } else {
       setNumChatWindows(1);
+      // Only keep the first chat window's messages when disabling compare mode
       if (messages.length > 1) {
         setMessages([messages[0]]);
       }
@@ -181,6 +181,7 @@ const AgentTest = () => {
   }, [compareMode]);
 
   useEffect(() => {
+    // Initialize chat configurations based on the number of chat windows
     setChatConfigs(prev => {
       if (prev.length < numChatWindows) {
         return [
@@ -225,9 +226,11 @@ const AgentTest = () => {
       timestamp: new Date(),
     };
     
+    // Add user message to all chat windows
     setMessages(prev => prev.map(msgArray => [...msgArray, userMessage]));
     setInputMessage('');
     
+    // Generate AI response for each chat window
     for (let i = 0; i < numChatWindows; i++) {
       setTimeout(() => {
         let responseContent = "I understand your question. Based on our product documentation, the feature you're looking for can be found in the Settings menu under 'Advanced Options'. Would you like me to guide you through the setup process?";
@@ -238,11 +241,13 @@ const AgentTest = () => {
           responseContent = "Our refund policy allows returns within 30 days of purchase. To process a refund, please provide your order number and reason for the return. I'd be happy to help you with the process.";
         }
         
+        // Modify response based on model
         if (chatConfigs[i].model === 'gemini' || chatConfigs[i].model === 'palm') {
           responseContent = responseContent.replace("I understand", "I've analyzed");
           responseContent = responseContent.replace("Would you like me to", "I can");
         }
         
+        // Modify response based on temperature
         if (chatConfigs[i].temperature > 0.8) {
           responseContent += " By the way, is there anything else you'd like to know about our services?";
         } else if (chatConfigs[i].temperature < 0.4) {
@@ -304,6 +309,11 @@ const AgentTest = () => {
         title: "Compare Mode Enabled",
         description: "You can now test your agent with two different models side by side.",
       });
+    } else {
+      toast({
+        title: "Compare Mode Disabled",
+        description: "Returned to single model testing mode.",
+      });
     }
   };
 
@@ -363,15 +373,11 @@ const AgentTest = () => {
           </Select>
           
           <Button 
-            variant="outline" 
+            variant={compareMode ? "secondary" : "outline"}
             size="sm"
             onClick={toggleCompareMode}
-            className={cn(
-              "flex items-center gap-1",
-              compareMode && "bg-primary/10"
-            )}
+            className="flex items-center gap-1"
           >
-            <SplitSquareVertical className="h-4 w-4 mr-1" />
             {compareMode ? "Disable Comparison" : "Compare Models"}
           </Button>
           
@@ -471,34 +477,13 @@ const AgentTest = () => {
                 
                 <Separator />
                 
-                <div className="space-y-2">
-                  <Label>Quick Test Scenarios</Label>
-                  <div className="grid grid-cols-1 gap-2">
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <span className="mr-2">🛒</span> Product Question
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <span className="mr-2">💰</span> Pricing Question
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <span className="mr-2">🔙</span> Return Policy
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <span className="mr-2">🎮</span> Custom Scenario
-                    </Button>
-                  </div>
-                </div>
-                
-                <Separator />
-                
                 <Button 
                   variant="outline" 
                   size="sm" 
                   className="w-full"
                   onClick={handleClearChat}
                 >
-                  <Repeat className="h-4 w-4 mr-2" />
-                  Reset Conversation
+                  Clear Conversation
                 </Button>
               </CardContent>
             </CollapsibleContent>
@@ -525,26 +510,9 @@ const AgentTest = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-1">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20">
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => console.log("Export chat")}>
-                        Export Chat
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleClearChat}>
-                        Clear Chat
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20">
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20">
+                  <X className="h-4 w-4" onClick={handleClearChat} />
+                </Button>
               </div>
               
               <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
@@ -622,28 +590,27 @@ const AgentTest = () => {
                 })}
               </CardContent>
               
-              <div className="p-4 border-t bg-white">
-                <div className="flex items-center">
-                  <Input
-                    placeholder="Type your message..."
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 border-gray-200 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                  <Button 
-                    onClick={handleSendMessage} 
-                    size="icon" 
-                    className="ml-2 rounded-full h-10 w-10"
-                    style={{ backgroundColor: index === 0 ? '#9b87f5' : index === 1 ? '#7bbfff' : '#f59b87' }}
-                  >
-                    <SendHorizontal className="h-5 w-5 text-white" />
-                  </Button>
+              {index === 0 || (index === numChatWindows - 1 && compareMode) ? (
+                <div className="p-4 border-t bg-white">
+                  <div className="flex items-center">
+                    <Input
+                      placeholder="Type your message..."
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="flex-1 border-gray-200 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                    <Button 
+                      onClick={handleSendMessage} 
+                      size="icon" 
+                      className="ml-2 rounded-full h-10 w-10"
+                      style={{ backgroundColor: index === 0 ? '#9b87f5' : index === 1 ? '#7bbfff' : '#f59b87' }}
+                    >
+                      <SendHorizontal className="h-5 w-5 text-white" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="text-center mt-2 text-xs text-gray-400">
-                  powered by 7en.ai
-                </div>
-              </div>
+              ) : null}
             </Card>
           ))}
         </div>
@@ -755,7 +722,6 @@ const AgentTest = () => {
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Precise</span>
-            <span>Balanced</span>
             <span>Creative</span>
           </div>
         </div>
@@ -772,7 +738,6 @@ const AgentTest = () => {
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Short</span>
-            <span>Medium</span>
             <span>Long</span>
           </div>
         </div>
@@ -799,10 +764,6 @@ const AgentTest = () => {
         return <Globe className="h-4 w-4 text-green-500" />;
       case 'database':
         return <Database className="h-4 w-4 text-purple-500" />;
-      case 'api':
-        return <Code className="h-4 w-4 text-orange-500" />;
-      case 'json':
-        return <FileJson className="h-4 w-4 text-yellow-500" />;
       default:
         return <BookOpen className="h-4 w-4 text-gray-500" />;
     }
@@ -810,5 +771,3 @@ const AgentTest = () => {
 };
 
 export default AgentTest;
-
-
