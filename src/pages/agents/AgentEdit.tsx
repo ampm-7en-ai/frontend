@@ -17,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import AgentKnowledgeSection from '@/components/agents/knowledge/AgentKnowledgeSection';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -636,23 +635,6 @@ const AgentEdit = () => {
             className="w-full h-full"
             suggestions={agent.suggestions}
             avatarSrc={agent.avatar.type !== 'default' ? agent.avatar.src : undefined}
-          />
-        </div>
-        
-        {/* Knowledge Source button below chat */}
-        <div className="mt-4 px-4">
-          <AgentKnowledgeSection 
-            agentId={agentId || ''} 
-            knowledgeSources={knowledgeSources.filter(source => 
-              agent.knowledgeSources.includes(source.id)
-            ).map(source => ({
-              id: source.id,
-              name: source.name,
-              type: source.type,
-              hasError: false,
-              content: `# ${source.name}\n\nThis is sample content for ${source.name}.\n\n## Section 1\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n- Point 1\n- Point 2\n- Point 3`
-            }))}
-            isCompact={true}
           />
         </div>
       </div>

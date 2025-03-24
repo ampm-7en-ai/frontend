@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import KnowledgeSourceBadge from '../KnowledgeSourceBadge';
+import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
 import KnowledgeSourceModal from './KnowledgeSourceModal';
 import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 import { Button } from '@/components/ui/button';
@@ -17,12 +17,14 @@ interface AgentKnowledgeSectionProps {
   agentId: string;
   knowledgeSources: KnowledgeSource[];
   isCompact?: boolean;
+  onViewSource?: (sourceId: number) => void;
 }
 
 const AgentKnowledgeSection = ({ 
   agentId, 
   knowledgeSources,
-  isCompact = false
+  isCompact = false,
+  onViewSource
 }: AgentKnowledgeSectionProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
@@ -33,7 +35,11 @@ const AgentKnowledgeSection = ({
   
   const handleSourceClick = (source: KnowledgeSource) => {
     setSelectedSourceId(source.id);
-    setIsModalOpen(true);
+    if (onViewSource) {
+      onViewSource(source.id);
+    } else {
+      setIsModalOpen(true);
+    }
   };
   
   // For compact view (button only)

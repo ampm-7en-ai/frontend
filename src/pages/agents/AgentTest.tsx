@@ -290,27 +290,6 @@ const AgentTest = () => {
             </SelectContent>
           </Select>
           
-          <Popover open={isKnowledgePopoverOpen} onOpenChange={setIsKnowledgePopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="link" 
-                size="sm" 
-                className="text-sm font-medium text-primary hover:underline"
-                onClick={() => setIsKnowledgePopoverOpen(true)}
-              >
-                Knowledge
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[400px] p-0" align="start">
-              <AgentKnowledgeSection 
-                agentId={agentId || '1'} 
-                knowledgeSources={mockKnowledgeSources} 
-                asFlyout={true} 
-                onViewSource={handleViewSource}
-              />
-            </PopoverContent>
-          </Popover>
-          
           <Button 
             variant="outline" 
             size="sm"
@@ -479,8 +458,8 @@ const AgentTest = () => {
       </div>
 
       <div className="sticky bottom-0 w-full mt-2">
-        <div className="flex items-center">
-          <div className="relative flex-1">
+        <div className="flex flex-col items-center">
+          <div className="relative flex-1 w-full mb-2">
             <Input
               placeholder="Enter a message to compare AI responses..."
               value={inputMessage}
@@ -503,6 +482,16 @@ const AgentTest = () => {
               <Send className="h-4 w-4" />
             </button>
           </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto gap-2 text-muted-foreground hover:text-foreground mb-1"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <FileText className="h-4 w-4" />
+            View Knowledge Sources ({agent.knowledgeSources.length})
+          </Button>
         </div>
       </div>
 
