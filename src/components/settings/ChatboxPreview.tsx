@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send } from 'lucide-react';
+import { Bot, Send, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface ChatboxPreviewProps {
   primaryColor: string;
@@ -15,6 +16,7 @@ interface ChatboxPreviewProps {
   position: 'bottom-right' | 'bottom-left';
   className?: string;
   suggestions?: string[];
+  avatarSrc?: string;
 }
 
 export const ChatboxPreview = ({
@@ -26,7 +28,8 @@ export const ChatboxPreview = ({
   buttonText = 'Chat with us',
   position = 'bottom-right',
   className,
-  suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing']
+  suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
+  avatarSrc
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState([
     { type: 'bot', text: welcomeMessage }
@@ -98,8 +101,17 @@ export const ChatboxPreview = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-full bg-white/30 backdrop-blur-sm">
-            <Bot size={20} className="text-white" />
+          <div className="flex items-center justify-center overflow-hidden bg-white/30 backdrop-blur-sm rounded-full w-8 h-8">
+            {avatarSrc ? (
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                <AvatarFallback className="text-white bg-transparent">
+                  <Bot size={20} />
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <Bot size={20} className="text-white" />
+            )}
           </div>
           <span className="font-medium text-white text-base">{chatbotName}</span>
         </div>
@@ -116,15 +128,29 @@ export const ChatboxPreview = ({
               className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : ''}`}
             >
               {message.type === 'bot' && (
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center mt-1 flex-shrink-0"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                    color: secondaryColor,
-                    boxShadow: `0 2px 5px ${primaryColor}40`
-                  }}
-                >
-                  <Bot size={16} />
+                <div className="flex-shrink-0 mt-1">
+                  {avatarSrc ? (
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                      <AvatarFallback style={{ 
+                        background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                        color: secondaryColor
+                      }}>
+                        <Bot size={16} />
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                        color: secondaryColor,
+                        boxShadow: `0 2px 5px ${primaryColor}40`
+                      }}
+                    >
+                      <Bot size={16} />
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -151,7 +177,7 @@ export const ChatboxPreview = ({
                     boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                   }}
                 >
-                  You
+                  <User size={16} />
                 </div>
               )}
             </div>
@@ -160,15 +186,29 @@ export const ChatboxPreview = ({
           {/* Typing indicator */}
           {showTypingIndicator && (
             <div className="flex gap-2 items-start">
-              <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center mt-1 flex-shrink-0"
-                style={{ 
-                  background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                  color: secondaryColor,
-                  boxShadow: `0 2px 5px ${primaryColor}40`
-                }}
-              >
-                <Bot size={16} />
+              <div className="flex-shrink-0 mt-1">
+                {avatarSrc ? (
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                    <AvatarFallback style={{ 
+                      background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                      color: secondaryColor
+                    }}>
+                      <Bot size={16} />
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                      color: secondaryColor,
+                      boxShadow: `0 2px 5px ${primaryColor}40`
+                    }}
+                  >
+                    <Bot size={16} />
+                  </div>
+                )}
               </div>
               <div
                 className={cn(

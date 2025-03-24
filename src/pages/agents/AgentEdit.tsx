@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -16,12 +17,29 @@ import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
   { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20' },
   { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10' },
   { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25' },
+];
+
+// Predefined avatars
+const predefinedAvatars = [
+  {
+    id: 'predefined-1',
+    src: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: 'predefined-2',
+    src: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: 'predefined-3',
+    src: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=100&h=100'
+  }
 ];
 
 const AgentEdit = () => {
@@ -34,7 +52,6 @@ const AgentEdit = () => {
     id: agentId,
     name: "Customer Support Agent",
     description: "This agent helps customers with their inquiries and provides support.",
-    status: "active",
     primaryColor: '#9b87f5',
     secondaryColor: '#ffffff',
     fontFamily: 'Inter',
@@ -53,11 +70,16 @@ const AgentEdit = () => {
       'How can I get started?',
       'What features do you offer?',
       'Tell me about your pricing'
-    ]
+    ],
+    avatar: {
+      type: 'default',
+      src: ''
+    }
   });
   
   const [isRetraining, setIsRetraining] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [customAvatarFile, setCustomAvatarFile] = useState<File | null>(null);
   
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -120,6 +142,28 @@ const AgentEdit = () => {
     });
   };
 
+  const handleAvatarChange = (type: 'default' | 'predefined' | 'custom', src: string = '') => {
+    setAgent({
+      ...agent,
+      avatar: { type, src }
+    });
+  };
+
+  const handleCustomAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Create URL for preview
+    const objectUrl = URL.createObjectURL(file);
+    setCustomAvatarFile(file);
+    handleAvatarChange('custom', objectUrl);
+
+    toast({
+      title: "Avatar uploaded",
+      description: "Your custom avatar has been uploaded.",
+    });
+  };
+
   const renderGeneralContent = () => (
     <Card>
       <CardHeader>
@@ -178,6 +222,66 @@ const AgentEdit = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Chat Avatar</Label>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
+              <div 
+                className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all ${agent.avatar.type === 'default' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+                onClick={() => handleAvatarChange('default')}
+              >
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <Bot size={28} className="text-primary" />
+                </div>
+                <span className="text-xs font-medium">Default</span>
+              </div>
+
+              {predefinedAvatars.map((avatar) => (
+                <div 
+                  key={avatar.id}
+                  className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all ${agent.avatar.type === 'predefined' && agent.avatar.src === avatar.src ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+                  onClick={() => handleAvatarChange('predefined', avatar.src)}
+                >
+                  <Avatar className="w-14 h-14 mb-2 border">
+                    <AvatarImage src={avatar.src} alt="Predefined avatar" />
+                    <AvatarFallback>
+                      <Bot size={20} />
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-medium">Avatar {predefinedAvatars.indexOf(avatar) + 1}</span>
+                </div>
+              ))}
+
+              <div 
+                className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all relative ${agent.avatar.type === 'custom' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+              >
+                <label htmlFor="custom-avatar-upload" className="cursor-pointer flex flex-col items-center">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2 overflow-hidden border">
+                    {agent.avatar.type === 'custom' && agent.avatar.src ? (
+                      <Avatar className="w-full h-full">
+                        <AvatarImage src={agent.avatar.src} alt="Custom avatar" />
+                        <AvatarFallback>
+                          <Upload size={20} />
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Upload size={20} className="text-primary" />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium">Upload</span>
+                </label>
+                <input 
+                  id="custom-avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleCustomAvatarUpload}
+                />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="primary-color">Primary Color</Label>
@@ -474,6 +578,7 @@ const AgentEdit = () => {
           position={agent.position}
           className="w-full h-full"
           suggestions={agent.suggestions}
+          avatarSrc={agent.avatar.type !== 'default' ? agent.avatar.src : undefined}
         />
       </div>
     );
@@ -557,4 +662,3 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
-
