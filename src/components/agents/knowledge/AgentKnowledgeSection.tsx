@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import KnowledgeSourceBadge from './KnowledgeSourceBadge';
+import KnowledgeSourceBadge from '../KnowledgeSourceBadge';
 import KnowledgeSourceModal from './KnowledgeSourceModal';
 import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 import { Button } from '@/components/ui/button';
