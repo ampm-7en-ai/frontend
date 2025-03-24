@@ -13,26 +13,53 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ConversationFiltersProps {
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
+  searchQuery?: string;
+  setSearchQuery?: (value: string) => void;
+  searchTerm?: string;
+  onSearchChange?: (value: string) => void;
   filterStatus: string;
-  onFilterStatusChange: (value: string) => void;
-  filterAgent: string;
-  onFilterAgentChange: (value: string) => void;
-  filterResolved: string;
-  onFilterResolvedChange: (value: string) => void;
+  onFilterStatusChange?: (value: string) => void;
+  setFilterStatus?: (value: string) => void;
+  filterAgent?: string;
+  onFilterAgentChange?: (value: string) => void;
+  filterResolved?: string;
+  onFilterResolvedChange?: (value: string) => void;
+  channelFilter?: string;
+  setChannelFilter?: (value: string) => void;
+  agentTypeFilter?: string;
+  setAgentTypeFilter?: (value: string) => void;
 }
 
 const ConversationFilters = ({
+  searchQuery,
+  setSearchQuery,
   searchTerm,
   onSearchChange,
   filterStatus,
   onFilterStatusChange,
+  setFilterStatus,
   filterAgent,
   onFilterAgentChange,
   filterResolved,
-  onFilterResolvedChange
+  onFilterResolvedChange,
+  channelFilter,
+  setChannelFilter,
+  agentTypeFilter,
+  setAgentTypeFilter
 }: ConversationFiltersProps) => {
+  // Use either searchQuery or searchTerm based on which is provided
+  const searchValue = searchQuery || searchTerm || '';
+  const handleSearchChange = (value: string) => {
+    if (setSearchQuery) setSearchQuery(value);
+    if (onSearchChange) onSearchChange(value);
+  };
+
+  // Use either setFilterStatus or onFilterStatusChange based on which is provided
+  const handleStatusChange = (value: string) => {
+    if (setFilterStatus) setFilterStatus(value);
+    if (onFilterStatusChange) onFilterStatusChange(value);
+  };
+
   return (
     <div className="bg-white rounded-lg p-4 mb-4">
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center mb-4">
@@ -40,14 +67,14 @@ const ConversationFilters = ({
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search conversations..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            value={searchValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8"
           />
         </div>
         
         <div className="flex gap-2 w-full sm:w-auto">
-          <Select value={filterStatus} onValueChange={onFilterStatusChange}>
+          <Select value={filterStatus} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-full sm:w-[140px]">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
@@ -59,24 +86,54 @@ const ConversationFilters = ({
             </SelectContent>
           </Select>
           
-          <Select value={filterAgent} onValueChange={onFilterAgentChange}>
-            <SelectTrigger className="w-full sm:w-[140px]">
-              <SelectValue placeholder="All Agents" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Agents</SelectItem>
-              <SelectItem value="sales-agent">Sales Agent</SelectItem>
-              <SelectItem value="support-agent">Support Agent</SelectItem>
-              <SelectItem value="technical-agent">Technical Agent</SelectItem>
-            </SelectContent>
-          </Select>
+          {filterAgent && onFilterAgentChange && (
+            <Select value={filterAgent} onValueChange={onFilterAgentChange}>
+              <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectValue placeholder="All Agents" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Agents</SelectItem>
+                <SelectItem value="sales-agent">Sales Agent</SelectItem>
+                <SelectItem value="support-agent">Support Agent</SelectItem>
+                <SelectItem value="technical-agent">Technical Agent</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {channelFilter && setChannelFilter && (
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectValue placeholder="All Channels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Channels</SelectItem>
+                <SelectItem value="website">Website</SelectItem>
+                <SelectItem value="mobile">Mobile App</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="social">Social Media</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {agentTypeFilter && setAgentTypeFilter && (
+            <Select value={agentTypeFilter} onValueChange={setAgentTypeFilter}>
+              <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectValue placeholder="All Agent Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="ai">AI Agents</SelectItem>
+                <SelectItem value="human">Human Agents</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
       
       <div className="flex justify-between items-center">
         <Tabs 
-          value={filterResolved} 
-          onValueChange={onFilterResolvedChange}
+          value={filterResolved || 'all'} 
+          onValueChange={onFilterResolvedChange || (() => {})}
           className="w-auto"
         >
           <TabsList size="xs">
