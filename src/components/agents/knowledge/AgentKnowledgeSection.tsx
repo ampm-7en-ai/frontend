@@ -1,29 +1,17 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ChevronRight, RefreshCw, FileText, BookOpen, Database, Globe } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { AlertCircle, ChevronRight, RefreshCw } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger 
-} from "@/components/ui/popover";
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
+import KnowledgeSourceModal from './KnowledgeSourceModal';
 import { KnowledgeSource } from '@/hooks/useAgentFiltering';
+import { Button } from '@/components/ui/button';
 
 interface AgentKnowledgeSectionProps {
   agentId: string;
@@ -38,37 +26,50 @@ const AgentKnowledgeSection = ({
   asFlyout = false,
   onViewSource
 }: AgentKnowledgeSectionProps) => {
-  const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
+  
   const displayedSources = knowledgeSources.slice(0, 3);
   const remainingSources = knowledgeSources.length - 3;
   const hasErrorSources = knowledgeSources.some(source => source.hasError);
   
   const handleSourceClick = (source: KnowledgeSource) => {
-    setSelectedSource(source);
-    if (onViewSource) {
-      onViewSource(source.id);
+    setSelectedSourceId(source.id);
+    
+    if (asFlyout) {
+      if (onViewSource) {
+        onViewSource(source.id);
+      }
+    } else {
+      setIsModalOpen(true);
     }
   };
   
+  // For regular inline display
   if (!asFlyout) {
     return (
       <div>
         <div className="text-sm font-medium mb-1.5 text-muted-foreground">Knowledge Sources</div>
         <div className="flex flex-wrap gap-1">
           {displayedSources.map(source => (
-            <KnowledgeSourceBadge key={source.id} source={source} />
+            <div key={source.id} onClick={() => handleSourceClick(source)}>
+              <KnowledgeSourceBadge source={source} />
+            </div>
           ))}
+          
           {remainingSources > 0 && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link 
-                    to={`/agents/${agentId}/edit?tab=knowledge`}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 hover:bg-muted text-xs text-muted-foreground transition-colors"
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-auto px-2 py-0.5 rounded-full bg-muted/50 hover:bg-muted text-xs text-muted-foreground"
+                    onClick={() => setIsModalOpen(true)}
                   >
-                    +{remainingSources} more
-                    <ChevronRight className="h-3 w-3" />
-                  </Link>
+                    <span>+{remainingSources} more</span>
+                    <ChevronRight className="h-3 w-3 ml-1" />
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>View all knowledge sources</p>
@@ -92,10 +93,18 @@ const AgentKnowledgeSection = ({
             </Link>
           </div>
         )}
+        
+        <KnowledgeSourceModal 
+          open={isModalOpen} 
+          onOpenChange={setIsModalOpen} 
+          sources={knowledgeSources} 
+          initialSourceId={selectedSourceId}
+        />
       </div>
     );
   }
   
+  // For flyout display (simplified with button to open modal)
   return (
     <div className="p-4 space-y-4">
       <div className="text-sm font-medium">Knowledge Sources</div>
@@ -106,29 +115,21 @@ const AgentKnowledgeSection = ({
             className="flex items-center justify-between p-3 text-sm rounded-md border hover:bg-gray-50 cursor-pointer"
             onClick={() => handleSourceClick(source)}
           >
-            <div className="flex items-center">
-              {getSourceIcon(source.type)}
-              <span className="ml-2">{source.name}</span>
+            <div className="flex items-center gap-2">
+              <KnowledgeSourceBadge source={source} />
             </div>
-            <FileText className="h-4 w-4 text-gray-400" />
           </div>
         ))}
       </div>
       
-      {selectedSource && (
-        <div className="mt-4">
-          <div className="text-sm font-medium mb-2">Source Content</div>
-          <div className="p-3 bg-gray-50 rounded-md border overflow-auto max-h-96">
-            {selectedSource.content ? (
-              <div className="prose prose-sm max-w-none">
-                <pre className="text-xs whitespace-pre-wrap">{selectedSource.content}</pre>
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground italic">No preview available</div>
-            )}
-          </div>
-        </div>
-      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full"
+        onClick={() => setIsModalOpen(true)}
+      >
+        View All Sources
+      </Button>
       
       {hasErrorSources && (
         <div className="mt-2">
@@ -144,21 +145,15 @@ const AgentKnowledgeSection = ({
           </Link>
         </div>
       )}
+      
+      <KnowledgeSourceModal 
+        open={isModalOpen} 
+        onOpenChange={setIsModalOpen} 
+        sources={knowledgeSources} 
+        initialSourceId={selectedSourceId}
+      />
     </div>
   );
 };
-
-function getSourceIcon(type: string) {
-  switch (type) {
-    case 'document':
-      return <FileText className="h-4 w-4 text-blue-500" />;
-    case 'webpage':
-      return <Globe className="h-4 w-4 text-green-500" />;
-    case 'database':
-      return <Database className="h-4 w-4 text-purple-500" />;
-    default:
-      return <BookOpen className="h-4 w-4 text-gray-500" />;
-  }
-}
 
 export default AgentKnowledgeSection;

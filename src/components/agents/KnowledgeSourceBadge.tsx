@@ -7,21 +7,14 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from '@/components/ui/tooltip';
-
-interface KnowledgeSource {
-  id: number;
-  name: string;
-  type: string;
-  icon: string;
-  hasError: boolean;
-  linkBroken?: boolean;
-}
+import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 
 interface KnowledgeSourceBadgeProps {
   source: KnowledgeSource;
+  onClick?: () => void;
 }
 
-const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {
+const KnowledgeSourceBadge = ({ source, onClick }: KnowledgeSourceBadgeProps) => {
   const getIcon = () => {
     switch (source.type) {
       case 'document':
@@ -66,10 +59,13 @@ const KnowledgeSourceBadge = ({ source }: KnowledgeSourceBadgeProps) => {
   };
 
   return (
-    <TooltipProvider key={source.id}>
+    <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-colors duration-200 ${getBadgeStyle()}`}>
+          <div 
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-colors duration-200 cursor-pointer ${getBadgeStyle()}`}
+            onClick={onClick}
+          >
             <span className={getTextColor()}>
               {getIcon()}
             </span>

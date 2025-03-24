@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,12 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AgentKnowledgeSection from '@/components/agents/knowledge/AgentKnowledgeSection';
+import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 import { mockKnowledgeSources } from '@/data/mockKnowledgeSources';
 import { KnowledgeSource } from '@/hooks/useAgentFiltering';
 
@@ -134,9 +132,7 @@ const AgentTest = () => {
   const [inputMessage, setInputMessage] = useState('');
   
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
-  const [selectedSourceContent, setSelectedSourceContent] = useState<string>("");
-  const [sourceViewMode, setSourceViewMode] = useState<'markdown' | 'text'>('markdown');
-  const [showKnowledgeFlyout, setShowKnowledgeFlyout] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isKnowledgePopoverOpen, setIsKnowledgePopoverOpen] = useState(false);
 
   const messageContainerRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
@@ -151,7 +147,6 @@ const AgentTest = () => {
         systemPrompt: foundAgent.systemPrompt || ""
       })));
       
-      // Clear message history when changing agent
       setMessages(Array(numModels).fill(null).map(() => []));
     }
   }, [selectedAgentId]);
@@ -181,16 +176,13 @@ const AgentTest = () => {
       timestamp: new Date(),
     };
     
-    // Add user message to all model message arrays
     setMessages(prev => prev.map(msgArray => [...msgArray, userMessage]));
     setInputMessage('');
     
-    // Generate AI response for each model
     for (let i = 0; i < numModels; i++) {
       setTimeout(() => {
         let responseContent = "";
         
-        // Generate different responses based on the model
         if (chatConfigs[i].model === "llama") {
           responseContent = "It seems like you might have entered 'CV,' which can refer to a few things, such as 'Curriculum Vitae,' a document detailing your education, work experience, and skills.\n\nIf you're looking for information on how to create a CV, I'd be happy to provide guidance. Alternatively, if 'CV' stands for something else in your context, please provide more details so I can offer a more relevant response.";
         } else if (chatConfigs[i].model === "deepseek") {
@@ -199,14 +191,12 @@ const AgentTest = () => {
           responseContent = "CV could refer to:\n\n- Curriculum Vitae: A comprehensive document outlining your professional and academic history\n- Computer Vision: A field of AI that enables computers to derive meaningful information from digital images\n- Coefficient of Variation: A statistical measure\n\nCould you please specify which meaning of CV you're referring to so I can better assist you?";
         }
         
-        // Modify response based on temperature
         if (chatConfigs[i].temperature > 0.8) {
           responseContent += " By the way, is there anything else you'd like to know about these topics?";
         } else if (chatConfigs[i].temperature < 0.4) {
           responseContent = responseContent.split('. ').join('.\n\n');
         }
         
-        // Adjust length based on maxLength
         if (chatConfigs[i].maxLength < 400 && responseContent.length > chatConfigs[i].maxLength) {
           responseContent = responseContent.substring(0, chatConfigs[i].maxLength) + "...";
         }
@@ -227,13 +217,12 @@ const AgentTest = () => {
           return newMessages;
         });
         
-        // Scroll to bottom after new message
         setTimeout(() => {
           if (messageContainerRefs[i]?.current) {
             messageContainerRefs[i].current!.scrollTop = messageContainerRefs[i].current!.scrollHeight;
           }
         }, 100);
-      }, 1000 + (i * 500)); // Staggered responses
+      }, 1000 + (i * 500));
     }
   };
 
@@ -253,11 +242,8 @@ const AgentTest = () => {
   };
 
   const handleViewSource = (sourceId: number) => {
-    const source = agent?.knowledgeSources.find(s => s.id === sourceId);
-    if (source && source.content) {
-      setSelectedSourceId(sourceId);
-      setSelectedSourceContent(source.content);
-    }
+    setSelectedSourceId(sourceId);
+    setIsModalOpen(true);
   };
 
   const getModelDisplay = (modelKey: string) => {
@@ -319,6 +305,7 @@ const AgentTest = () => {
                 agentId={agentId || '1'} 
                 knowledgeSources={mockKnowledgeSources} 
                 asFlyout={true} 
+                onViewSource={handleViewSource}
               />
             </PopoverContent>
           </Popover>
@@ -518,67 +505,12 @@ const AgentTest = () => {
         </div>
       </div>
 
-      <Dialog open={selectedSourceId !== null} onOpenChange={(open) => !open && setSelectedSourceId(null)}>
-        <DialogContent className="max-w-[800px] max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                {selectedSourceId && 
-                  getSourceIcon(agent.knowledgeSources.find(s => s.id === selectedSourceId)?.type || 'document')}
-                <span className="ml-2">
-                  {selectedSourceId && 
-                    agent.knowledgeSources.find(s => s.id === selectedSourceId)?.name}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant={sourceViewMode === 'markdown' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSourceViewMode('markdown')}
-                  className="h-8"
-                >
-                  <Code className="h-4 w-4 mr-1" />
-                  Markdown
-                </Button>
-                <Button
-                  variant={sourceViewMode === 'text' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSourceViewMode('text')}
-                  className="h-8"
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  Text
-                </Button>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-auto mt-2 p-4 bg-gray-50 rounded-md font-mono text-sm">
-            {sourceViewMode === 'markdown' ? (
-              <div className="prose max-w-none dark:prose-invert">
-                {selectedSourceContent.split('\n').map((line, index) => (
-                  <div key={index}>
-                    {line.startsWith('# ') ? (
-                      <h1>{line.substring(2)}</h1>
-                    ) : line.startsWith('## ') ? (
-                      <h2>{line.substring(3)}</h2>
-                    ) : line.startsWith('### ') ? (
-                      <h3>{line.substring(4)}</h3>
-                    ) : line.startsWith('- ') ? (
-                      <ul className="my-1"><li>{line.substring(2)}</li></ul>
-                    ) : line.trim() === '' ? (
-                      <br />
-                    ) : (
-                      <p className="my-1">{line}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <pre className="whitespace-pre-wrap">{selectedSourceContent}</pre>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <KnowledgeSourceModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        sources={agent.knowledgeSources}
+        initialSourceId={selectedSourceId}
+      />
     </div>
   );
 
@@ -595,9 +527,8 @@ const AgentTest = () => {
     }
   }
 
-  // Helper function to adjust color brightness (simplified version)
   function adjustColor(color: string, amount: number): string {
-    return color; // In a real implementation, this would actually adjust the color
+    return color;
   }
 };
 
