@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 
-// Sample knowledge sources data
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
   { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20' },
@@ -32,13 +30,12 @@ const AgentEdit = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("general");
   
-  // Mock data for agent (in a real app, you would fetch this from an API)
   const [agent, setAgent] = useState({
     id: agentId,
     name: "Customer Support Agent",
     description: "This agent helps customers with their inquiries and provides support.",
     status: "active",
-    primaryColor: '#9b87f5', // Updated to use brand purple
+    primaryColor: '#9b87f5',
     secondaryColor: '#ffffff',
     fontFamily: 'Inter',
     chatbotName: 'Business Assistant',
@@ -48,9 +45,7 @@ const AgentEdit = () => {
     showOnMobile: true,
     collectVisitorData: true,
     autoShowAfter: 30,
-    // Knowledge sources
-    knowledgeSources: [1, 3], // IDs of selected knowledge sources
-    // Model settings
+    knowledgeSources: [1, 3],
     selectedModel: 'gpt4',
     temperature: 0.7,
     maxResponseLength: 'medium',
@@ -78,7 +73,6 @@ const AgentEdit = () => {
   const handleRetrainAI = () => {
     setIsRetraining(true);
     
-    // Simulate retraining process
     setTimeout(() => {
       setIsRetraining(false);
       toast({
@@ -89,7 +83,6 @@ const AgentEdit = () => {
   };
 
   const handleSaveChanges = () => {
-    // In a real app, you would save the changes to an API
     toast({
       title: "Changes saved",
       description: "Your agent settings have been updated successfully.",
@@ -108,8 +101,6 @@ const AgentEdit = () => {
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    // Here you would typically send the message to your backend
-    // For the demo, we'll just clear the input
     setNewMessage('');
     
     toast({
@@ -118,7 +109,6 @@ const AgentEdit = () => {
     });
   };
 
-  // Content for General tab
   const renderGeneralContent = () => (
     <Card>
       <CardHeader>
@@ -167,7 +157,6 @@ const AgentEdit = () => {
     </Card>
   );
 
-  // Content for Appearance tab
   const renderAppearanceContent = () => (
     <Card>
       <CardHeader>
@@ -288,7 +277,6 @@ const AgentEdit = () => {
     </Card>
   );
 
-  // Content for Advanced Settings tab
   const renderAdvancedContent = () => (
     <div className="space-y-6">
       <Card>
@@ -460,11 +448,9 @@ const AgentEdit = () => {
     </div>
   );
 
-  // Render chat preview for the left column
   const renderChatPreview = () => {
     return (
       <div className="flex flex-col h-full bg-slate-50 rounded-lg">
-        {/* Chat Header */}
         <div 
           className="p-4 rounded-t-lg flex items-center justify-between"
           style={{ backgroundColor: agent.primaryColor, color: agent.secondaryColor }}
@@ -475,9 +461,7 @@ const AgentEdit = () => {
           </div>
         </div>
         
-        {/* Messages Area */}
         <div className="flex-1 p-4 overflow-y-auto">
-          {/* Bot welcome message */}
           <div className="flex gap-2 items-start mb-4">
             <div 
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
@@ -493,7 +477,6 @@ const AgentEdit = () => {
             </div>
           </div>
           
-          {/* Sample conversation */}
           <div className="flex gap-2 items-start justify-end mb-4">
             <div
               className="rounded-lg p-3 bg-gray-100 max-w-[80%]"
@@ -521,7 +504,6 @@ const AgentEdit = () => {
           </div>
         </div>
         
-        {/* Message Input */}
         <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
           <div className="relative">
             <Input
@@ -562,15 +544,12 @@ const AgentEdit = () => {
         </Button>
       </div>
 
-      {/* Main content - 2 column layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 h-[calc(100vh-180px)]">
-        {/* Left column - Chat Preview */}
-        <div className="h-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6 h-[calc(100vh-180px)]">
+        <div className="h-full px-4">
           {renderChatPreview()}
         </div>
         
-        {/* Right column - Configuration */}
-        <div className="h-full overflow-y-auto">
+        <div className="col-span-2 h-full overflow-y-auto px-4">
           <Tabs 
             defaultValue="general" 
             className="w-full"

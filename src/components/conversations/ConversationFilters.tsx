@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Search, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   Select, 
@@ -13,8 +12,6 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ConversationFiltersProps {
-  searchQuery?: string;
-  setSearchQuery?: (value: string) => void;
   searchTerm?: string;
   onSearchChange?: (value: string) => void;
   filterStatus: string;
@@ -31,8 +28,6 @@ interface ConversationFiltersProps {
 }
 
 const ConversationFilters = ({
-  searchQuery,
-  setSearchQuery,
   searchTerm,
   onSearchChange,
   filterStatus,
@@ -47,13 +42,6 @@ const ConversationFilters = ({
   agentTypeFilter,
   setAgentTypeFilter
 }: ConversationFiltersProps) => {
-  // Use either searchQuery or searchTerm based on which is provided
-  const searchValue = searchQuery || searchTerm || '';
-  const handleSearchChange = (value: string) => {
-    if (setSearchQuery) setSearchQuery(value);
-    if (onSearchChange) onSearchChange(value);
-  };
-
   // Use either setFilterStatus or onFilterStatusChange based on which is provided
   const handleStatusChange = (value: string) => {
     if (setFilterStatus) setFilterStatus(value);
@@ -62,17 +50,27 @@ const ConversationFilters = ({
 
   return (
     <div className="bg-white rounded-lg p-4 mb-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center mb-4">
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-8"
-          />
-        </div>
+      {/* Tabs at the top */}
+      <div className="flex justify-between items-center mb-4">
+        <Tabs 
+          value={filterResolved || 'unresolved'} 
+          onValueChange={onFilterResolvedChange || (() => {})}
+          className="w-auto"
+          defaultValue="unresolved"
+        >
+          <TabsList size="xs">
+            <TabsTrigger value="unresolved" size="xs">Unresolved</TabsTrigger>
+            <TabsTrigger value="resolved" size="xs">Resolved</TabsTrigger>
+          </TabsList>
+        </Tabs>
         
+        <Button variant="outline" size="sm" className="text-xs">
+          <Filter className="h-3 w-3 mr-1" />
+          More Filters
+        </Button>
+      </div>
+      
+      <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
         <div className="flex gap-2 w-full sm:w-auto">
           <Select value={filterStatus} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-full sm:w-[140px]">
@@ -128,25 +126,6 @@ const ConversationFilters = ({
             </Select>
           )}
         </div>
-      </div>
-      
-      <div className="flex justify-between items-center">
-        <Tabs 
-          value={filterResolved || 'all'} 
-          onValueChange={onFilterResolvedChange || (() => {})}
-          className="w-auto"
-        >
-          <TabsList size="xs">
-            <TabsTrigger value="all" size="xs">All</TabsTrigger>
-            <TabsTrigger value="unresolved" size="xs">Unresolved</TabsTrigger>
-            <TabsTrigger value="resolved" size="xs">Resolved</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        
-        <Button variant="outline" size="sm" className="text-xs">
-          <Filter className="h-3 w-3 mr-1" />
-          More Filters
-        </Button>
       </div>
     </div>
   );
