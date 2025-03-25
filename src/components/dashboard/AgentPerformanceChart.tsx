@@ -47,7 +47,7 @@ interface AgentPerformanceChartProps {
   loading?: boolean;
 }
 
-// Colors for the various charts
+// Colors for the various charts - using more subtle gradients
 const SATISFACTION_COLORS = ['#4ade80', '#a3e635', '#fbbf24', '#fb923c', '#f87171'];
 const CHANNEL_COLORS = ['#25D366', '#3B82F6', '#E1306C', '#4A154B', '#4285F4'];
 const BAR_COLORS = ['#8884d8', '#82ca9d'];
@@ -71,8 +71,9 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={agentData}
-          margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
-          barSize={20}
+          margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+          barSize={16}
+          barGap={8}
         >
           <defs>
             <linearGradient id="colorConversations" x1="0" y1="0" x2="0" y2="1">
@@ -80,20 +81,31 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
               <stop offset="95%" stopColor="#8884d8" stopOpacity={0.3} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
           <XAxis 
             dataKey="name" 
             tick={{ fontSize: 10 }}
             axisLine={{ stroke: '#E5E7EB', strokeWidth: 1 }}
             tickLine={false}
-            angle={-45}
             textAnchor="end"
-            height={70}
+            height={50}
+            interval={0}
+            tick={(props) => {
+              const { x, y, payload } = props;
+              const name = payload.value;
+              const shortName = name.replace(" Bot", "");
+              return (
+                <text x={x} y={y + 10} fill="#888" fontSize={10} textAnchor="middle">
+                  {shortName}
+                </text>
+              );
+            }}
           />
           <YAxis 
             tick={{ fontSize: 10 }}
             axisLine={{ stroke: '#E5E7EB', strokeWidth: 1 }}
             tickLine={false}
+            domain={[0, 'dataMax + 20']}
           />
           <Tooltip
             contentStyle={{
@@ -104,12 +116,15 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
               fontSize: '12px',
               padding: '8px 12px'
             }}
+            formatter={(value: number) => [`${value}`, 'Conversations']}
+            labelFormatter={(label) => `${label}`}
           />
           <Bar 
             dataKey="conversations" 
             fill="url(#colorConversations)" 
             radius={[4, 4, 0, 0]}
             animationDuration={1500}
+            name="Conversations"
           />
         </BarChart>
       </ResponsiveContainer>
@@ -120,7 +135,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
   if (type === 'satisfaction') {
     return (
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
+        <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <defs>
             {SATISFACTION_COLORS.map((color, index) => (
               <linearGradient key={`gradient-${index}`} id={`satisfaction-color-${index}`} x1="0" y1="0" x2="0" y2="1">
@@ -138,7 +153,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
             paddingAngle={2}
             dataKey="value"
             labelLine={false}
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            label={({ name, percent }) => percent > 0.1 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''}
             animationDuration={1500}
           >
             {satisfactionData.map((entry, index) => (
@@ -164,7 +179,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
   if (type === 'channel') {
     return (
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
+        <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <defs>
             {CHANNEL_COLORS.map((color, index) => (
               <linearGradient key={`gradient-${index}`} id={`channel-color-${index}`} x1="0" y1="0" x2="0" y2="1">
@@ -182,7 +197,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
             paddingAngle={2}
             dataKey="value"
             labelLine={false}
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            label={({ name, percent }) => percent > 0.1 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''}
             animationDuration={1500}
           >
             {channelData.map((entry, index) => (
@@ -210,7 +225,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={trendData}
-          margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+          margin={{ top: 20, right: 20, left: 10, bottom: 10 }}
         >
           <defs>
             <linearGradient id="colorConversationsTrend" x1="0" y1="0" x2="0" y2="1">
@@ -222,7 +237,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
               <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.1} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
           <XAxis 
             dataKey="name"
             tick={{ fontSize: 10 }}
@@ -233,6 +248,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
             tick={{ fontSize: 10 }}
             axisLine={{ stroke: '#E5E7EB', strokeWidth: 1 }}
             tickLine={false}
+            domain={[0, 'dataMax + 10']}
           />
           <Tooltip
             contentStyle={{
@@ -243,7 +259,7 @@ export function AgentPerformanceChart({ type, loading = false }: AgentPerformanc
               fontSize: '12px'
             }}
           />
-          <Legend verticalAlign="top" height={36} />
+          <Legend verticalAlign="top" height={36} iconSize={8} iconType="circle" />
           <Line 
             type="monotone" 
             dataKey="conversations" 
