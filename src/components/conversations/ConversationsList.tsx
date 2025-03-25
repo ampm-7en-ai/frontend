@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -17,6 +16,7 @@ import {
 import HandoffHistory from './HandoffHistory';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import ConversationSidebar from './ConversationSidebar';
 
 interface Message {
   id: string;
@@ -38,6 +38,9 @@ interface Handoff {
 interface Conversation {
   id: string;
   customer: string;
+  email?: string;
+  agent?: string;
+  satisfaction?: string;
   lastMessage: Message;
   status: 'resolved' | 'unresolved';
   channel: 'whatsapp' | 'slack' | 'instagram' | 'freshdesk' | 'phone';
@@ -48,11 +51,17 @@ const ConversationsList = () => {
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   
   const conversations: Conversation[] = [
     {
       id: '1',
       customer: 'John Doe',
+      email: 'john.doe@example.com',
+      agent: 'General Bot',
+      satisfaction: 'neutral',
       lastMessage: {
         id: 'm1',
         sender: 'John Doe',
@@ -74,6 +83,9 @@ const ConversationsList = () => {
     {
       id: '2',
       customer: 'Michael Brown',
+      email: 'michael.brown@example.com',
+      agent: 'Technical Support Bot',
+      satisfaction: 'frustrated',
       lastMessage: {
         id: 'm15',
         sender: 'Michael Brown',
@@ -186,11 +198,55 @@ const ConversationsList = () => {
     }
   };
 
+  const handleConversationClick = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+    setSidebarOpen(true);
+  };
+
   const handleHandoffClick = (handoff: Handoff) => {
+    setSelectedAgent(handoff.from);
+    
     toast({
       title: `Viewing messages from ${handoff.from}`,
       description: "Navigation to full conversation view required to see complete history.",
     });
+  };
+
+  const handleNewHandoff = (handoff: Handoff) => {
+    if (!selectedConversation) return;
+    
+    const updatedConversation = { ...selectedConversation };
+    
+    if (!updatedConversation.handoffs) {
+      updatedConversation.handoffs = [];
+    }
+    updatedConversation.handoffs.push(handoff);
+    
+    updatedConversation.agent = handoff.to;
+    
+    setSelectedConversation(updatedConversation);
+    
+    toast({
+      title: "Handoff successful",
+      description: `Conversation transferred to ${handoff.to}`,
+    });
+  };
+
+  const getSatisfactionIndicator = (satisfaction: string) => {
+    switch (satisfaction) {
+      case 'frustrated':
+        return <span className="text-red-500">😠 Frustrated</span>;
+      case 'dissatisfied':
+        return <span className="text-amber-500">😟 Dissatisfied</span>;
+      case 'neutral':
+        return <span className="text-gray-500">😐 Neutral</span>;
+      case 'satisfied':
+        return <span className="text-green-500">😊 Satisfied</span>;
+      case 'delighted':
+        return <span className="text-emerald-500">😄 Delighted</span>;
+      default:
+        return <span className="text-gray-500">😐 Neutral</span>;
+    }
   };
 
   const filteredConversations = conversations.filter(conversation => {
@@ -299,6 +355,7 @@ const ConversationsList = () => {
           <div
             key={conversation.id}
             className="p-4 border-b hover:bg-accent/5 cursor-pointer"
+            onClick={() => handleConversationClick(conversation)}
           >
             <div className="flex items-start gap-3">
               <Avatar className="h-8 w-8">
@@ -367,6 +424,15 @@ const ConversationsList = () => {
           </div>
         ))}
       </div>
+
+      <ConversationSidebar
+        open={sidebarOpen}
+        onOpenChange={setSidebarOpen}
+        conversation={selectedConversation}
+        selectedAgent={selectedAgent}
+        onHandoffClick={handleNewHandoff}
+        getSatisfactionIndicator={getSatisfactionIndicator}
+      />
     </div>
   );
 };

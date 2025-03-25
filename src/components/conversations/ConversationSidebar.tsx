@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Sheet, 
   SheetContent, 
@@ -11,8 +11,9 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowRight, Bot, User, Info, Smile, Clock, Tag, CreditCard } from 'lucide-react';
+import { ArrowRight, Bot, User, Info, Smile, Clock, Tag, CreditCard, AlertTriangle } from 'lucide-react';
 import HandoffHistory from './HandoffHistory';
+import { useToast } from '@/hooks/use-toast';
 
 interface ConversationSidebarProps {
   open: boolean;
@@ -31,6 +32,11 @@ const ConversationSidebar = ({
   onHandoffClick,
   getSatisfactionIndicator
 }: ConversationSidebarProps) => {
+  // Add state for handoff functionality
+  const [handoffDestination, setHandoffDestination] = useState('');
+  const [handoffReason, setHandoffReason] = useState('');
+  const { toast } = useToast();
+
   // Helper function to get sentiment score as a percentage
   const getSentimentScore = (sentiment: string) => {
     switch (sentiment) {
@@ -41,6 +47,42 @@ const ConversationSidebar = ({
       case 'delighted': return 95;
       default: return 50; // Default to neutral
     }
+  };
+
+  // Handle the handoff process
+  const handleHandoff = () => {
+    if (!handoffDestination) {
+      toast({
+        title: "Error",
+        description: "Please select a destination for the handoff",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a simple handoff record for the onHandoffClick handler
+    const handoff = {
+      id: `handoff-${Date.now()}`,
+      from: conversation.agent || 'Current Agent',
+      to: handoffDestination,
+      timestamp: new Date().toISOString(),
+      reason: handoffReason || `Transferred to ${handoffDestination}`
+    };
+
+    // Call the parent handler
+    if (onHandoffClick) {
+      onHandoffClick(handoff);
+    }
+
+    // Show success message
+    toast({
+      title: "Handoff initiated",
+      description: `Conversation transferred to ${handoffDestination}`,
+    });
+
+    // Reset the form
+    setHandoffDestination('');
+    setHandoffReason('');
   };
 
   return (
@@ -96,7 +138,7 @@ const ConversationSidebar = ({
           
           <Separator />
           
-          {/* New Customer Context Section */}
+          {/* Customer Context Section */}
           <div>
             <h3 className="text-sm font-medium mb-3 flex items-center">
               <Info className="h-4 w-4 mr-1" />
@@ -168,26 +210,47 @@ const ConversationSidebar = ({
             
             <div className="space-y-2">
               <div className="text-xs text-muted-foreground">Transfer to</div>
-              <select className="w-full text-sm border rounded p-1.5">
-                <option>Sales Team</option>
-                <option>Support Team</option>
-                <option>Technical Team</option>
-                <option>John Doe (Agent)</option>
-                <option>Jane Smith (Agent)</option>
+              <select 
+                className="w-full text-sm border rounded p-1.5"
+                value={handoffDestination}
+                onChange={(e) => setHandoffDestination(e.target.value)}
+              >
+                <option value="">Select a destination</option>
+                <option value="Sales Team">Sales Team</option>
+                <option value="Support Team">Support Team</option>
+                <option value="Technical Team">Technical Team</option>
+                <option value="John Doe (Agent)">John Doe (Agent)</option>
+                <option value="Jane Smith (Agent)">Jane Smith (Agent)</option>
               </select>
               
               <div className="text-xs text-muted-foreground mt-2">Reason</div>
-              <select className="w-full text-sm border rounded p-1.5">
-                <option>Need specialized knowledge</option>
-                <option>Customer request</option>
-                <option>Technical escalation</option>
-                <option>Follow-up required</option>
+              <select 
+                className="w-full text-sm border rounded p-1.5"
+                value={handoffReason}
+                onChange={(e) => setHandoffReason(e.target.value)}
+              >
+                <option value="">Select a reason</option>
+                <option value="Need specialized knowledge">Need specialized knowledge</option>
+                <option value="Customer request">Customer request</option>
+                <option value="Technical escalation">Technical escalation</option>
+                <option value="Follow-up required">Follow-up required</option>
               </select>
               
-              <Button className="w-full mt-2">
+              <Button 
+                className="w-full mt-2"
+                onClick={handleHandoff}
+                disabled={!handoffDestination}
+              >
                 <ArrowRight className="h-4 w-4 mr-2" />
                 Transfer Conversation
               </Button>
+              
+              {!handoffDestination && (
+                <div className="mt-1 flex items-center text-amber-600 text-xs">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Please select a destination
+                </div>
+              )}
             </div>
           </div>
         </div>
