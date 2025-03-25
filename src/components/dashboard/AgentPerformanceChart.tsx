@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -42,13 +41,19 @@ const conversionData = [
 ];
 
 const trendData = [
-  { name: 'Mon', value: 45, previous: 35 },
-  { name: 'Tue', value: 52, previous: 42 },
-  { name: 'Wed', value: 49, previous: 40 },
-  { name: 'Thu', value: 60, previous: 45 },
-  { name: 'Fri', value: 55, previous: 48 },
-  { name: 'Sat', value: 38, previous: 30 },
-  { name: 'Sun', value: 30, previous: 25 },
+  { name: 'Mar 1', value: 0, previous: 0 },
+  { name: 'Mar 3', value: 0, previous: 0 },
+  { name: 'Mar 5', value: 0, previous: 0 },
+  { name: 'Mar 7', value: 0, previous: 0 },
+  { name: 'Mar 9', value: 0, previous: 0 },
+  { name: 'Mar 11', value: 0, previous: 0 },
+  { name: 'Mar 13', value: 0, previous: 0 },
+  { name: 'Mar 15', value: 0, previous: 0 },
+  { name: 'Mar 17', value: 0, previous: 0 },
+  { name: 'Mar 19', value: 0, previous: 0 },
+  { name: 'Mar 21', value: 12, previous: 0 },
+  { name: 'Mar 23', value: 0, previous: 0 },
+  { name: 'Mar 25', value: 0, previous: 0 },
 ];
 
 interface AgentPerformanceChartProps {
@@ -125,21 +130,20 @@ export const AgentPerformanceChart = ({
     return (
       <div className={`w-full h-full ${className || ''}`}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={trendData}
+          <BarChart data={trendData}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.1}/>
-              </linearGradient>
-              <linearGradient id="colorPrevious" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#9ca3af" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#9ca3af" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis 
+              dataKey="name" 
+              tick={{ fontSize: 10 }} 
+              axisLine={false} 
+              tickLine={false}
+            />
+            <YAxis 
+              tick={{ fontSize: 10 }} 
+              axisLine={false} 
+              tickLine={false}
+            />
             <Tooltip 
               contentStyle={{ 
                 backgroundColor: '#fff', 
@@ -148,26 +152,15 @@ export const AgentPerformanceChart = ({
                 border: 'none',
                 padding: '10px'
               }} 
+              formatter={(value) => [`${value} credits`]}
             />
-            <Area 
-              type="monotone" 
-              dataKey="previous" 
-              stroke="#9ca3af" 
-              strokeWidth={2} 
-              fillOpacity={1} 
-              fill="url(#colorPrevious)" 
-              activeDot={{ stroke: '#fff', strokeWidth: 2, r: 6 }}
-            />
-            <Area 
-              type="monotone" 
+            <Bar 
               dataKey="value" 
-              stroke="#0ea5e9" 
-              strokeWidth={2} 
-              fillOpacity={1} 
-              fill="url(#colorCurrent)" 
-              activeDot={{ stroke: '#fff', strokeWidth: 2, r: 6 }}
+              fill="#3b82f6" 
+              radius={[4, 4, 0, 0]} 
+              name="Credits Used" 
             />
-          </AreaChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     );

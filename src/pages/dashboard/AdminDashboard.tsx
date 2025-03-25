@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Bot, MessageSquare, ChevronRight, Book, Users, BarChart2, PieChart, Tre
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AgentPerformanceChart } from '@/components/dashboard/AgentPerformanceChart';
+import UsageStatsCard from '@/components/dashboard/UsageStatsCard';
 
 // Sample data for channel statistics
 const channelStats = [
@@ -262,29 +262,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <BarChart2 className="mr-2 h-5 w-5" />
-              Agent Usage
-            </CardTitle>
-            <CardDescription>Agent utilization by channel</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="usage" className="h-[330px]">
-              <TabsList className="mb-4">
-                <TabsTrigger value="usage">Usage</TabsTrigger>
-                <TabsTrigger value="channels">Channels</TabsTrigger>
-              </TabsList>
-              <TabsContent value="usage" className="h-[280px]">
-                <AgentPerformanceChart type="agent" />
-              </TabsContent>
-              <TabsContent value="channels" className="h-[280px]">
-                <AgentPerformanceChart type="channel" />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <UsageStatsCard />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
