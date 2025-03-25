@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -30,6 +31,16 @@ const channelData = [
   { name: 'Other', value: 5, color: '#6b7280' },
 ];
 
+const conversionData = [
+  { name: 'Mon', queries: 65, conversions: 32 },
+  { name: 'Tue', queries: 78, conversions: 45 },
+  { name: 'Wed', queries: 82, conversions: 53 },
+  { name: 'Thu', queries: 70, conversions: 40 },
+  { name: 'Fri', queries: 90, conversions: 58 },
+  { name: 'Sat', queries: 50, conversions: 28 },
+  { name: 'Sun', queries: 40, conversions: 22 },
+];
+
 const trendData = [
   { name: 'Mon', value: 45, previous: 35 },
   { name: 'Tue', value: 52, previous: 42 },
@@ -41,7 +52,7 @@ const trendData = [
 ];
 
 interface AgentPerformanceChartProps {
-  type?: 'agent' | 'satisfaction' | 'channel' | 'trend';
+  type?: 'agent' | 'satisfaction' | 'channel' | 'trend' | 'conversion';
   className?: string;
 }
 
@@ -75,6 +86,40 @@ export const AgentPerformanceChart = ({
       </g>
     );
   };
+
+  if (type === 'conversion') {
+    return (
+      <div className={`w-full h-full ${className || ''}`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={conversionData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+            <Tooltip
+              contentStyle={{ 
+                backgroundColor: '#fff', 
+                borderRadius: '8px', 
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+                border: 'none',
+                padding: '10px'
+              }}
+            />
+            <Legend
+              wrapperStyle={{
+                fontSize: '12px',
+                paddingTop: '10px'
+              }}
+            />
+            <Bar dataKey="queries" name="Total Queries" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="conversions" name="Successful Conversions" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
 
   if (type === 'trend') {
     return (

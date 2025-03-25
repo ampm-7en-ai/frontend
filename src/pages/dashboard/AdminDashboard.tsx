@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, MessageSquare, ChevronRight, Book, Users, BarChart2, PieChart, TrendingUp, 
-  Server, Database, Zap, Activity, Clock, Cpu, ArrowUp, ArrowDown } from 'lucide-react';
+  Server, Database, Zap, Activity, Clock, Cpu, ArrowUp, ArrowDown, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AgentPerformanceChart } from '@/components/dashboard/AgentPerformanceChart';
@@ -208,12 +209,12 @@ const AdminDashboard = () => {
               </div>
               
               <div className="bg-slate-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium mb-3">System Health Metrics</h3>
+                <h3 className="text-sm font-medium mb-3">Agent Performance Metrics</h3>
                 <div className="space-y-3">
                   <div className="flex items-center">
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
-                        <span className="text-sm">Database Performance</span>
+                        <span className="text-sm">Response Accuracy</span>
                         <span className="text-sm font-medium">92%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -222,28 +223,28 @@ const AdminDashboard = () => {
                           style={{ width: '92%' }}
                         ></div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Query response: 34ms avg</p>
+                      <p className="text-xs text-muted-foreground mt-1">Based on 1,205 interactions</p>
                     </div>
                   </div>
                   <div className="flex items-center">
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
-                        <span className="text-sm">Agent Availability</span>
-                        <span className="text-sm font-medium">99.2%</span>
+                        <span className="text-sm">First Response Resolution</span>
+                        <span className="text-sm font-medium">78.5%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5">
                         <div
                           className="bg-green-500 h-1.5 rounded-full"
-                          style={{ width: '99.2%' }}
+                          style={{ width: '78.5%' }}
                         ></div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Uptime: 728 hours</p>
+                      <p className="text-xs text-muted-foreground mt-1">Issues resolved in first message</p>
                     </div>
                   </div>
                   <div className="flex items-center">
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
-                        <span className="text-sm">KB Access Speed</span>
+                        <span className="text-sm">Knowledge Coverage</span>
                         <span className="text-sm font-medium">87%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -252,7 +253,7 @@ const AdminDashboard = () => {
                           style={{ width: '87%' }}
                         ></div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Response time: 180ms</p>
+                      <p className="text-xs text-muted-foreground mt-1">Questions answered from KB</p>
                     </div>
                   </div>
                 </div>
@@ -290,13 +291,13 @@ const AdminDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <TrendingUp className="mr-2 h-5 w-5" />
-              Usage Trends
+              <CheckCircle className="mr-2 h-5 w-5" />
+              Conversion Statistics
             </CardTitle>
-            <CardDescription>Weekly agent interaction volume</CardDescription>
+            <CardDescription>Customer engagement and conversion metrics</CardDescription>
           </CardHeader>
           <CardContent className="h-[250px]">
-            <AgentPerformanceChart type="trend" />
+            <AgentPerformanceChart type="conversion" />
           </CardContent>
         </Card>
         
@@ -304,33 +305,33 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Cpu className="mr-2 h-5 w-5" />
-              Agent Processing
+              Customer Satisfaction
             </CardTitle>
-            <CardDescription>Request processing statistics</CardDescription>
+            <CardDescription>Feedback and satisfaction levels</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <Card className="shadow-none border">
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Success</div>
-                  <div className="text-2xl font-bold mt-1 text-green-600">95%</div>
+                  <div className="text-sm text-muted-foreground">CSAT Score</div>
+                  <div className="text-2xl font-bold mt-1 text-green-600">4.7/5</div>
                 </CardContent>
               </Card>
               <Card className="shadow-none border">
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Avg. Latency</div>
-                  <div className="text-2xl font-bold mt-1">452ms</div>
+                  <div className="text-sm text-muted-foreground">NPS</div>
+                  <div className="text-2xl font-bold mt-1">+68</div>
                 </CardContent>
               </Card>
               <Card className="shadow-none border">
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Cache Hit</div>
-                  <div className="text-2xl font-bold mt-1 text-blue-600">68%</div>
+                  <div className="text-sm text-muted-foreground">Satisfied</div>
+                  <div className="text-2xl font-bold mt-1 text-blue-600">92%</div>
                 </CardContent>
               </Card>
             </div>
             <div className="h-[150px]">
-              <AgentPerformanceChart type="agent" />
+              <AgentPerformanceChart type="satisfaction" />
             </div>
           </CardContent>
         </Card>
