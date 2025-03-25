@@ -11,6 +11,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Enhanced data with channel and status information
 const dummyData = [
@@ -149,53 +158,50 @@ export function RecentConversationsTable({ className, data = dummyData }: Recent
           </Link>
         </Button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="text-left text-dark-gray border-b border-medium-gray/20">
-              <th className="py-2 px-4 font-medium text-sm">Customer</th>
-              <th className="py-2 px-4 font-medium text-sm">Channel</th>
-              <th className="py-2 px-4 font-medium text-sm">Preview</th>
-              <th className="py-2 px-4 font-medium text-sm">Agent</th>
-              <th className="py-2 px-4 font-medium text-sm">Time</th>
-              <th className="py-2 px-4 font-medium text-sm">Status</th>
-              <th className="py-2 px-4 font-medium text-sm"></th>
-            </tr>
-          </thead>
-          <tbody>
+      <ScrollArea className="h-[320px]">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Customer</TableHead>
+              <TableHead>Channel</TableHead>
+              <TableHead>Preview</TableHead>
+              <TableHead>Agent</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.map((conversation) => (
-              <tr 
-                key={conversation.id} 
-                className="border-b border-medium-gray/10 hover:bg-light-gray/50"
-              >
-                <td className="py-3 px-4 text-sm">
+              <TableRow key={conversation.id}>
+                <TableCell>
                   <div className="flex items-center">
                     {getSatisfactionIndicator(conversation.satisfaction)}
                     <span className="ml-2">{conversation.customer}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">{conversation.email}</div>
-                </td>
-                <td className="py-3 px-4 text-sm">
+                </TableCell>
+                <TableCell>
                   <div className="flex items-center">
                     {getChannelIcon(conversation.channel)}
                     <span className="ml-2 capitalize">{conversation.channel}</span>
                   </div>
-                </td>
-                <td className="py-3 px-4 text-sm">
+                </TableCell>
+                <TableCell>
                   <div className="max-w-[200px] truncate text-muted-foreground">{conversation.preview}</div>
-                </td>
-                <td className="py-3 px-4 text-sm">{conversation.agent}</td>
-                <td className="py-3 px-4 text-sm text-dark-gray">{conversation.time}</td>
-                <td className="py-3 px-4 text-sm">
+                </TableCell>
+                <TableCell>{conversation.agent}</TableCell>
+                <TableCell className="text-muted-foreground">{conversation.time}</TableCell>
+                <TableCell>
                   {getStatusBadge(conversation.status)}
-                </td>
-                <td className="py-3 px-4 text-sm">
+                </TableCell>
+                <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8 text-dark-gray"
+                        className="h-8 w-8 text-muted-foreground"
                       >
                         <MoreHorizontal size={16} />
                       </Button>
@@ -214,12 +220,12 @@ export function RecentConversationsTable({ className, data = dummyData }: Recent
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </ScrollArea>
     </div>
   );
 }

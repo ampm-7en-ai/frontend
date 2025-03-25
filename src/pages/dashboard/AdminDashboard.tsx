@@ -7,6 +7,7 @@ import { Bot, MessageSquare, ChevronRight, Book, Users, BarChart2, PieChart, Tre
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { RecentConversationsTable } from '@/components/dashboard/RecentConversationsTable';
+import { AgentPerformanceChart } from '@/components/dashboard/AgentPerformanceChart';
 
 // Sample data for channel statistics
 const channelStats = [
@@ -123,44 +124,20 @@ const AdminDashboard = () => {
             <CardDescription>Agent usage metrics</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="usage">
+            <Tabs defaultValue="usage" className="h-[330px]">
               <TabsList className="mb-4">
                 <TabsTrigger value="usage">Usage</TabsTrigger>
                 <TabsTrigger value="satisfaction">Satisfaction</TabsTrigger>
                 <TabsTrigger value="channels">Channels</TabsTrigger>
               </TabsList>
-              <TabsContent value="usage" className="h-[250px] flex flex-col">
-                <div className="text-sm font-medium mb-2">Agent Conversation Volume</div>
-                <div className="h-[220px] flex items-center justify-center bg-muted/20 rounded-md">
-                  [Agent Usage Chart]
-                </div>
+              <TabsContent value="usage" className="h-[280px]">
+                <AgentPerformanceChart type="agent" />
               </TabsContent>
-              <TabsContent value="satisfaction" className="h-[250px] flex flex-col">
-                <div className="text-sm font-medium mb-2">Customer Satisfaction</div>
-                <div className="h-[220px] flex items-center justify-center bg-muted/20 rounded-md">
-                  [Satisfaction Chart]
-                </div>
+              <TabsContent value="satisfaction" className="h-[280px]">
+                <AgentPerformanceChart type="satisfaction" />
               </TabsContent>
-              <TabsContent value="channels" className="h-[250px]">
-                <div className="text-sm font-medium mb-2">Channel Distribution</div>
-                <div className="space-y-3">
-                  {channelStats.map((item) => (
-                    <div key={item.channel} className="flex items-center gap-2">
-                      <div className="text-sm w-24">{item.channel}</div>
-                      <div className="flex-1">
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-primary rounded-full"
-                            style={{ width: `${item.percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="text-sm text-muted-foreground w-16 text-right">
-                        {item.count} ({item.percentage}%)
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <TabsContent value="channels" className="h-[280px]">
+                <AgentPerformanceChart type="channel" />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -176,8 +153,8 @@ const AdminDashboard = () => {
             </CardTitle>
             <CardDescription>Weekly conversation volume</CardDescription>
           </CardHeader>
-          <CardContent className="h-[250px] flex items-center justify-center bg-muted/20 rounded-md">
-            [Weekly Trend Chart]
+          <CardContent className="h-[250px]">
+            <AgentPerformanceChart type="trend" />
           </CardContent>
         </Card>
         
@@ -210,8 +187,8 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-            <div className="h-[150px] flex items-center justify-center bg-muted/20 rounded-md">
-              [Resolution Rate Chart]
+            <div className="h-[150px]">
+              <AgentPerformanceChart type="satisfaction" />
             </div>
           </CardContent>
         </Card>
