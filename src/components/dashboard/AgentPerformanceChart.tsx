@@ -1,5 +1,9 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+  ResponsiveContainer, Legend, PieChart, Pie, Cell, 
+  LineChart, Line, Sector, AreaChart, Area 
+} from 'recharts';
 
 // Sample data for the chart
 const agentData = [
