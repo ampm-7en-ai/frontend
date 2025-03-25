@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, MessageSquare, ChevronRight, Book, Users, BarChart2, PieChart, TrendingUp, 
-  Server, Database, Zap, Activity, Clock, Cpu, ArrowUp, ArrowDown, CheckCircle } from 'lucide-react';
+  Clock, Database, Zap, Activity, Cpu, ArrowUp, ArrowDown, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AgentPerformanceChart } from '@/components/dashboard/AgentPerformanceChart';
@@ -15,6 +15,28 @@ const channelStats = [
   { channel: 'Slack', count: 32, percentage: 25 },
   { channel: 'Instagram', count: 21, percentage: 16 },
   { channel: 'Freshdesk', count: 11, percentage: 9 },
+];
+
+// Sample data for agent performance comparison
+const agentPerformanceData = [
+  { 
+    agent: 'Customer Support Agent', 
+    conversations: 1203, 
+    responseTime: '1.2s',
+    satisfaction: 92
+  },
+  { 
+    agent: 'Sales Assistant', 
+    conversations: 845, 
+    responseTime: '1.5s',
+    satisfaction: 88
+  },
+  { 
+    agent: 'Technical Support', 
+    conversations: 532, 
+    responseTime: '2.1s',
+    satisfaction: 85
+  },
 ];
 
 const AdminDashboard = () => {
@@ -108,23 +130,23 @@ const AdminDashboard = () => {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Business Performance Summary</CardTitle>
-            <CardDescription>Technical indicators and system health metrics</CardDescription>
+            <CardDescription>Agent performance metrics and conversation statistics</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <Card className="bg-white shadow-sm border-0">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm text-muted-foreground">API Requests</p>
-                      <h3 className="text-2xl font-bold mt-1">1,243</h3>
+                      <p className="text-sm text-muted-foreground">Avg. Response Time</p>
+                      <h3 className="text-2xl font-bold mt-1">1.5s</h3>
                       <p className="text-xs text-green-600 flex items-center mt-1">
-                        <ArrowUp className="h-3 w-3 mr-1" />
-                        +8% vs last month
+                        <ArrowDown className="h-3 w-3 mr-1" />
+                        -0.3s from last month
                       </p>
                     </div>
                     <div className="p-2 rounded-md bg-blue-100">
-                      <Server className="h-4 w-4 text-blue-600" />
+                      <Clock className="h-4 w-4 text-blue-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -134,15 +156,15 @@ const AdminDashboard = () => {
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm text-muted-foreground">Response Time</p>
-                      <h3 className="text-2xl font-bold mt-1">248ms</h3>
+                      <p className="text-sm text-muted-foreground">Total Conversations</p>
+                      <h3 className="text-2xl font-bold mt-1">2,580</h3>
                       <p className="text-xs text-green-600 flex items-center mt-1">
-                        <ArrowDown className="h-3 w-3 mr-1" />
-                        -12% vs last month
+                        <ArrowUp className="h-3 w-3 mr-1" />
+                        +12% from last month
                       </p>
                     </div>
                     <div className="p-2 rounded-md bg-green-100">
-                      <Clock className="h-4 w-4 text-green-600" />
+                      <MessageSquare className="h-4 w-4 text-green-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -152,111 +174,56 @@ const AdminDashboard = () => {
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm text-muted-foreground">Token Usage</p>
-                      <h3 className="text-2xl font-bold mt-1">53.7K</h3>
-                      <p className="text-xs text-amber-600 flex items-center mt-1">
+                      <p className="text-sm text-muted-foreground">User Satisfaction</p>
+                      <h3 className="text-2xl font-bold mt-1">88%</h3>
+                      <p className="text-xs text-green-600 flex items-center mt-1">
                         <ArrowUp className="h-3 w-3 mr-1" />
-                        +21% vs last month
+                        +3% from last month
                       </p>
                     </div>
                     <div className="p-2 rounded-md bg-amber-100">
-                      <Zap className="h-4 w-4 text-amber-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white shadow-sm border-0">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Success Rate</p>
-                      <h3 className="text-2xl font-bold mt-1">94.8%</h3>
-                      <p className="text-xs text-red-600 flex items-center mt-1">
-                        <ArrowDown className="h-3 w-3 mr-1" />
-                        -1.2% vs last month
-                      </p>
-                    </div>
-                    <div className="p-2 rounded-md bg-red-100">
-                      <Activity className="h-4 w-4 text-red-600" />
+                      <Activity className="h-4 w-4 text-amber-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-slate-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium mb-3">Channel Distribution</h3>
-                <div className="space-y-3">
-                  {channelStats.map((item, index) => (
-                    <div key={index} className="flex items-center">
-                      <div className="flex-1">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">{item.channel}</span>
-                          <span className="text-sm font-medium">{item.count}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div
-                            className="bg-primary h-1.5 rounded-full"
-                            style={{ width: `${item.percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Agent Performance Comparison</h3>
+              <p className="text-xs text-muted-foreground">Compare metrics across your AI agents.</p>
               
-              <div className="bg-slate-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium mb-3">Agent Performance Metrics</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">Response Accuracy</span>
-                        <span className="text-sm font-medium">92%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className="bg-blue-500 h-1.5 rounded-full"
-                          style={{ width: '92%' }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">Based on 1,205 interactions</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">First Response Resolution</span>
-                        <span className="text-sm font-medium">78.5%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className="bg-green-500 h-1.5 rounded-full"
-                          style={{ width: '78.5%' }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">Issues resolved in first message</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">Knowledge Coverage</span>
-                        <span className="text-sm font-medium">87%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className="bg-purple-500 h-1.5 rounded-full"
-                          style={{ width: '87%' }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">Questions answered from KB</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b text-left text-xs text-muted-foreground">
+                      <th className="pb-2 font-medium">Agent</th>
+                      <th className="pb-2 font-medium">Conversations</th>
+                      <th className="pb-2 font-medium">Avg. Response Time</th>
+                      <th className="pb-2 font-medium">Satisfaction</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agentPerformanceData.map((agent, index) => (
+                      <tr key={index} className="border-b border-gray-100 text-sm">
+                        <td className="py-3 font-medium">{agent.agent}</td>
+                        <td className="py-3">{agent.conversations}</td>
+                        <td className="py-3">{agent.responseTime}</td>
+                        <td className="py-3">
+                          <div className="flex items-center gap-2">
+                            <span>{agent.satisfaction}%</span>
+                            <div className="w-24 bg-gray-200 rounded-full h-1.5">
+                              <div 
+                                className="bg-green-500 h-1.5 rounded-full" 
+                                style={{ width: `${agent.satisfaction}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </CardContent>
