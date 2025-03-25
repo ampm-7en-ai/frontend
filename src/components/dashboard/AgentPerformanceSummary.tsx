@@ -25,6 +25,14 @@ const agentPerformanceData = [
   },
 ];
 
+// Sample data for channel statistics
+const channelStats = [
+  { channel: 'WhatsApp', count: 64, percentage: 50 },
+  { channel: 'Slack', count: 32, percentage: 25 },
+  { channel: 'Instagram', count: 21, percentage: 16 },
+  { channel: 'Freshdesk', count: 11, percentage: 9 },
+];
+
 const AgentPerformanceSummary = () => {
   return (
     <Card className="lg:col-span-2">
@@ -87,6 +95,28 @@ const AgentPerformanceSummary = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+        
+        {/* Conversation Channels Section */}
+        <div className="mb-8">
+          <h3 className="text-sm font-medium mb-3">Conversation Channels</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {channelStats.map((item, index) => (
+              <Card key={index} className="border p-3">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">{item.channel}</span>
+                  <span className="text-lg font-bold">{item.count}</span>
+                  <div className="w-full bg-gray-100 h-1.5 mt-2 rounded-full">
+                    <div 
+                      className="bg-blue-500 h-1.5 rounded-full" 
+                      style={{ width: `${item.percentage}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-muted-foreground mt-1">{item.percentage}%</span>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
         
         <div className="space-y-4">

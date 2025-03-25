@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatCard } from './StatCard';
 import { AgentPerformanceChart } from './AgentPerformanceChart';
 import { Bot, CreditCard, History } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -90,13 +89,6 @@ const UsageStatsCard = () => {
           </div>
           <div className="h-48 w-full">
             <AgentPerformanceChart type="trend" className="h-full" />
-          </div>
-        </div>
-        
-        <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-medium">Credits used per agent</h3>
-          <div className="h-48">
-            <AgentPerformanceChart type="agent" className="h-full" />
           </div>
         </div>
       </CardContent>
