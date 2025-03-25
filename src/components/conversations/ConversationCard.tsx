@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, Users, MessageSquare, Phone, Mail, Slack } from 'lucide-react';
+import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -67,7 +67,13 @@ const ConversationCard = ({
       case 'instagram':
         return (
           <div className="bg-pink-600 w-full h-full flex items-center justify-center rounded-sm">
-            <Mail className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <Instagram className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+        );
+      case 'whatsapp':
+        return (
+          <div className="bg-green-500 w-full h-full flex items-center justify-center rounded-sm">
+            <MessageSquare className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
       default:
@@ -77,6 +83,12 @@ const ConversationCard = ({
           </div>
         );
     }
+  };
+
+  // Get channel name with proper capitalization
+  const getChannelName = () => {
+    if (!conversation.channel) return 'Chat';
+    return conversation.channel.charAt(0).toUpperCase() + conversation.channel.slice(1).toLowerCase();
   };
 
   return (
@@ -96,12 +108,22 @@ const ConversationCard = ({
           </Avatar>
           
           <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-gray-800 text-sm truncate">
-                {conversation.customer}
-              </h3>
-              <div className="text-xs text-gray-400 whitespace-nowrap">
-                {conversation.time}
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-medium text-gray-800 text-sm truncate">
+                  {conversation.customer}
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {conversation.time}
+                </p>
+              </div>
+              <div className="flex flex-col items-end">
+                <div className="text-xs text-gray-600 whitespace-nowrap">
+                  {conversation.messages?.length || 0} messages
+                </div>
+                <div className="text-xs text-green-500 mt-0.5">
+                  {getChannelName()}
+                </div>
               </div>
             </div>
             
