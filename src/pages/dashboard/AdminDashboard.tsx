@@ -129,7 +129,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Business Performance Summary</CardTitle>
+            <CardTitle>Agent Performance Summary</CardTitle>
             <CardDescription>Agent performance metrics and conversation statistics</CardDescription>
           </CardHeader>
           <CardContent>
