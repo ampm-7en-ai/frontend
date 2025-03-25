@@ -158,73 +158,75 @@ export function RecentConversationsTable({ className, data = dummyData }: Recent
           </Link>
         </Button>
       </div>
-      <ScrollArea className="h-[320px]">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Channel</TableHead>
-              <TableHead>Preview</TableHead>
-              <TableHead>Agent</TableHead>
-              <TableHead>Time</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((conversation) => (
-              <TableRow key={conversation.id}>
-                <TableCell>
-                  <div className="flex items-center">
-                    {getSatisfactionIndicator(conversation.satisfaction)}
-                    <span className="ml-2">{conversation.customer}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{conversation.email}</div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    {getChannelIcon(conversation.channel)}
-                    <span className="ml-2 capitalize">{conversation.channel}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="max-w-[200px] truncate text-muted-foreground">{conversation.preview}</div>
-                </TableCell>
-                <TableCell>{conversation.agent}</TableCell>
-                <TableCell className="text-muted-foreground">{conversation.time}</TableCell>
-                <TableCell>
-                  {getStatusBadge(conversation.status)}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-muted-foreground"
-                      >
-                        <MoreHorizontal size={16} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to={`/conversations/${conversation.id}`}>
-                          View Conversation
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleTransfer(conversation.id)}>
-                        Transfer to Human
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Close Conversation
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+      <ScrollArea className="h-[320px] w-full">
+        <div className="w-full">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[180px]">Customer</TableHead>
+                <TableHead className="w-[100px]">Channel</TableHead>
+                <TableHead className="w-[200px]">Preview</TableHead>
+                <TableHead className="w-[120px]">Agent</TableHead>
+                <TableHead className="w-[100px]">Time</TableHead>
+                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead className="w-[60px]"></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {data.map((conversation) => (
+                <TableRow key={conversation.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      {getSatisfactionIndicator(conversation.satisfaction)}
+                      <span className="ml-2">{conversation.customer}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate max-w-[160px]">{conversation.email}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      {getChannelIcon(conversation.channel)}
+                      <span className="ml-2 capitalize">{conversation.channel}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="max-w-[180px] truncate text-muted-foreground">{conversation.preview}</div>
+                  </TableCell>
+                  <TableCell>{conversation.agent}</TableCell>
+                  <TableCell className="text-muted-foreground">{conversation.time}</TableCell>
+                  <TableCell>
+                    {getStatusBadge(conversation.status)}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground"
+                        >
+                          <MoreHorizontal size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link to={`/conversations/${conversation.id}`}>
+                            View Conversation
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleTransfer(conversation.id)}>
+                          Transfer to Human
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          Close Conversation
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </ScrollArea>
     </div>
   );

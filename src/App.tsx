@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -38,139 +39,133 @@ import CustomizationSettings from './pages/settings/platform/CustomizationSettin
 
 import { Toaster } from "@/components/ui/toaster";
 
-const DashboardRouter = () => {
+// Create a separate component for protected routes that uses the AuthContext
+const ProtectedRoutes = () => {
   const { user } = useAuth();
   
   if (!user) {
     return <Navigate to="/login" replace />;
   }
   
-  if (user.role === 'superadmin') {
-    return <SuperAdminDashboard />;
-  } else if (user.role === 'admin') {
-    return <AdminDashboard />;
-  } else {
-    return <Navigate to="/login" replace />;
-  }
+  return (
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={
+          user.role === 'superadmin' ? <SuperAdminDashboard /> : <AdminDashboard />
+        } />
+        <Route path="/dashboard/superadmin" element={
+          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/admin" element={
+          <ProtectedRoute allowedRoles={['admin']} userRole={user?.role} fallbackPath="/dashboard">
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/agents" element={<AgentList />} />
+        <Route path="/agents/:agentId/test" element={<AgentTest />} />
+        <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
+        
+        <Route path="/businesses" element={
+          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <BusinessList />
+          </ProtectedRoute>
+        } />
+        <Route path="/businesses/:businessId" element={
+          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <BusinessDetail />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/users" element={
+          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <UserList />
+          </ProtectedRoute>
+        } />
+        <Route path="/users/:userId" element={
+          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <UserDetail />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/analytics" element={
+          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <PlatformAnalytics />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/conversations" element={<ConversationList />} />
+        <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
+        
+        <Route path="/knowledge" element={<KnowledgeBase />} />
+        <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
+        
+        <Route path="/help/documentation" element={<Documentation />} />
+        <Route path="/help/support" element={<SupportTicket />} />
+        
+        {/* Settings Routes */}
+        <Route path="/settings" element={<SettingsLayout />}>
+          {/* Business Settings Routes */}
+          <Route path="/settings/business/profile" element={<BusinessProfile />} />
+          <Route path="/settings/business/team" element={<TeamSettings />} />
+          <Route path="/settings/business/agents" element={<AgentSettings />} />
+          <Route path="/settings/business/integrations" element={<IntegrationsSettings />} />
+          <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
+          <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
+          
+          {/* Platform Settings Routes */}
+          <Route path="/settings/platform/general" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <GeneralSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/security" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <SecuritySettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/llm-providers" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <LLMProvidersSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/compliance" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <ComplianceSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/billing" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <BillingSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/platform/customization" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <CustomizationSettings />
+            </ProtectedRoute>
+          } />
+        </Route>
+        
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
 };
 
 function App() {
-  const RouteWithAuth = () => {
-    const { user } = useAuth();
-    
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        <Route path="/" element={<MainLayout />}>
-          <Route path="/dashboard" element={<DashboardRouter />} />
-          <Route path="/dashboard/superadmin" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <SuperAdminDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/admin" element={
-            <ProtectedRoute allowedRoles={['admin']} userRole={user?.role} fallbackPath="/dashboard">
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/agents" element={<AgentList />} />
-          <Route path="/agents/:agentId/test" element={<AgentTest />} />
-          <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
-          
-          <Route path="/businesses" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <BusinessList />
-            </ProtectedRoute>
-          } />
-          <Route path="/businesses/:businessId" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <BusinessDetail />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/users" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <UserList />
-            </ProtectedRoute>
-          } />
-          <Route path="/users/:userId" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <UserDetail />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/analytics" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <PlatformAnalytics />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/conversations" element={<ConversationList />} />
-          <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
-          
-          <Route path="/knowledge" element={<KnowledgeBase />} />
-          <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
-          
-          <Route path="/help/documentation" element={<Documentation />} />
-          <Route path="/help/support" element={<SupportTicket />} />
-          
-          {/* Settings Routes */}
-          <Route path="/settings" element={<SettingsLayout />}>
-            {/* Business Settings Routes */}
-            <Route path="/settings/business/profile" element={<BusinessProfile />} />
-            <Route path="/settings/business/team" element={<TeamSettings />} />
-            <Route path="/settings/business/agents" element={<AgentSettings />} />
-            <Route path="/settings/business/integrations" element={<IntegrationsSettings />} />
-            <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
-            <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
-            
-            {/* Platform Settings Routes */}
-            <Route path="/settings/platform/general" element={
-              <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-                <GeneralSettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings/platform/security" element={
-              <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-                <SecuritySettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings/platform/llm-providers" element={
-              <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-                <LLMProvidersSettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings/platform/compliance" element={
-              <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-                <ComplianceSettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings/platform/billing" element={
-              <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-                <BillingSettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings/platform/customization" element={
-              <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-                <CustomizationSettings />
-              </ProtectedRoute>
-            } />
-          </Route>
-          
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    );
-  }
-
   return (
     <Router>
-      <AuthProvider>
-        <RouteWithAuth />
-      </AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/*" element={
+          <AuthProvider>
+            <ProtectedRoutes />
+          </AuthProvider>
+        } />
+      </Routes>
       <Toaster />
     </Router>
   );

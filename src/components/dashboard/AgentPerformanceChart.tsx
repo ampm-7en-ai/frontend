@@ -1,353 +1,275 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, TooltipProps } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line
-} from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const agentPerformanceData = [
-  { agent: 'Support Bot', conversations: 78, satisfaction: 85, responseTime: 0.8 },
-  { agent: 'Sales Bot', conversations: 64, satisfaction: 92, responseTime: 0.6 },
-  { agent: 'Technical Bot', conversations: 52, satisfaction: 78, responseTime: 1.2 },
-  { agent: 'Billing Bot', conversations: 48, satisfaction: 88, responseTime: 0.9 },
-  { agent: 'Product Bot', conversations: 42, satisfaction: 90, responseTime: 0.7 },
+// Sample data for agent performance
+const agentData = [
+  { name: 'Support Bot', conversations: 120, satisfaction: 85 },
+  { name: 'Sales Bot', conversations: 98, satisfaction: 92 },
+  { name: 'Tech Bot', conversations: 86, satisfaction: 78 },
+  { name: 'Billing Bot', conversations: 75, satisfaction: 81 },
+  { name: 'Product Bot', conversations: 62, satisfaction: 89 },
 ];
 
-const channelData = [
-  { name: 'Monday', whatsapp: 24, slack: 12, instagram: 8, freshdesk: 5 },
-  { name: 'Tuesday', whatsapp: 18, slack: 22, instagram: 10, freshdesk: 7 },
-  { name: 'Wednesday', whatsapp: 30, slack: 16, instagram: 12, freshdesk: 9 },
-  { name: 'Thursday', whatsapp: 22, slack: 18, instagram: 15, freshdesk: 8 },
-  { name: 'Friday', whatsapp: 26, slack: 20, instagram: 18, freshdesk: 11 },
-  { name: 'Saturday', whatsapp: 14, slack: 8, instagram: 9, freshdesk: 3 },
-  { name: 'Sunday', whatsapp: 10, slack: 6, instagram: 7, freshdesk: 2 },
-];
-
+// Sample data for satisfaction
 const satisfactionData = [
-  { name: 'Delighted', value: 35, color: '#10B981' },
-  { name: 'Satisfied', value: 40, color: '#60A5FA' },
-  { name: 'Neutral', value: 15, color: '#9CA3AF' },
-  { name: 'Dissatisfied', value: 7, color: '#F97316' },
-  { name: 'Frustrated', value: 3, color: '#EF4444' },
+  { name: 'Delighted', value: 42 },
+  { name: 'Satisfied', value: 28 },
+  { name: 'Neutral', value: 15 },
+  { name: 'Dissatisfied', value: 10 },
+  { name: 'Frustrated', value: 5 },
 ];
 
+// Sample data for channel distribution
+const channelData = [
+  { name: 'WhatsApp', value: 35 },
+  { name: 'Web Chat', value: 25 },
+  { name: 'Instagram', value: 20 },
+  { name: 'Slack', value: 15 },
+  { name: 'Email', value: 5 },
+];
+
+// Sample data for trend
 const trendData = [
-  { day: 'Mon', conversations: 125 },
-  { day: 'Tue', conversations: 132 },
-  { day: 'Wed', conversations: 146 },
-  { day: 'Thu', conversations: 138 },
-  { day: 'Fri', conversations: 152 },
-  { day: 'Sat', conversations: 94 },
-  { day: 'Sun', conversations: 82 },
+  { name: 'Mon', conversations: 25, resolutions: 20 },
+  { name: 'Tue', conversations: 40, resolutions: 32 },
+  { name: 'Wed', conversations: 35, resolutions: 28 },
+  { name: 'Thu', conversations: 50, resolutions: 42 },
+  { name: 'Fri', conversations: 45, resolutions: 40 },
+  { name: 'Sat', conversations: 20, resolutions: 15 },
+  { name: 'Sun', conversations: 15, resolutions: 12 },
 ];
 
 interface AgentPerformanceChartProps {
-  type: 'agent' | 'channel' | 'satisfaction' | 'trend';
+  type: 'agent' | 'satisfaction' | 'channel' | 'trend';
+  loading?: boolean;
 }
 
-export function AgentPerformanceChart({ type }: AgentPerformanceChartProps) {
-  const renderAgentChart = () => (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart
-        data={agentPerformanceData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <defs>
-          <linearGradient id="conversationsGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.2}/>
-          </linearGradient>
-          <linearGradient id="satisfactionGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-        <XAxis 
-          dataKey="agent" 
-          tick={{ fontSize: 12 }} 
-          tickLine={false} 
-          axisLine={{ stroke: '#e5e7eb' }}
-        />
-        <YAxis 
-          tick={{ fontSize: 12 }} 
-          tickLine={false} 
-          axisLine={{ stroke: '#e5e7eb' }}
-        />
-        <ChartTooltip
-          content={(props) => {
-            if (!props.active || !props.payload) return null;
-            return (
-              <div className="rounded-lg bg-white p-2 shadow-lg border border-gray-100 text-xs">
-                <p className="font-semibold mb-1">{props.payload[0]?.payload.agent}</p>
-                {props.payload.map((entry, index) => (
-                  <p key={index} className="text-xs">
-                    <span className="font-medium">{entry.name}: </span>
-                    <span>{entry.value}</span>
-                    {entry.name === 'Satisfaction' && '%'}
-                  </p>
-                ))}
-              </div>
-            );
-          }}
-        />
-        <Legend 
-          verticalAlign="top" 
-          height={36} 
-          iconType="circle" 
-          iconSize={8}
-        />
-        <Bar 
-          dataKey="conversations" 
-          name="Conversations" 
-          fill="url(#conversationsGradient)" 
-          radius={[4, 4, 0, 0]}
-          barSize={30}
-          animationDuration={1500}
-        />
-        <Bar 
-          dataKey="satisfaction" 
-          name="Satisfaction %" 
-          fill="url(#satisfactionGradient)" 
-          radius={[4, 4, 0, 0]}
-          barSize={30}
-          animationDuration={1500}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  );
+// Colors for the various charts
+const SATISFACTION_COLORS = ['#4ade80', '#a3e635', '#fbbf24', '#fb923c', '#f87171'];
+const CHANNEL_COLORS = ['#25D366', '#3B82F6', '#E1306C', '#4A154B', '#4285F4'];
+const BAR_COLORS = ['#8884d8', '#82ca9d'];
+const LINE_COLORS = ['#8884d8', '#82ca9d'];
 
-  const renderChannelChart = () => (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart
-        data={channelData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <defs>
-          <linearGradient id="whatsappGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#25D366" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#25D366" stopOpacity={0.2}/>
-          </linearGradient>
-          <linearGradient id="slackGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#4A154B" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#4A154B" stopOpacity={0.2}/>
-          </linearGradient>
-          <linearGradient id="instagramGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#E1306C" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#E1306C" stopOpacity={0.2}/>
-          </linearGradient>
-          <linearGradient id="freshdeskGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#0052CC" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#0052CC" stopOpacity={0.2}/>
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-        <XAxis 
-          dataKey="name" 
-          tick={{ fontSize: 12 }} 
-          tickLine={false} 
-          axisLine={{ stroke: '#e5e7eb' }}
-        />
-        <YAxis 
-          tick={{ fontSize: 12 }} 
-          tickLine={false} 
-          axisLine={{ stroke: '#e5e7eb' }}
-        />
-        <ChartTooltip
-          content={(props) => {
-            if (!props.active || !props.payload) return null;
-            return (
-              <div className="rounded-lg bg-white p-2 shadow-lg border border-gray-100 text-xs">
-                <p className="font-semibold mb-1">{props.payload[0]?.payload.name}</p>
-                {props.payload.map((entry, index) => (
-                  <p key={index} className="text-xs">
-                    <span className="font-medium">{entry.name}: </span>
-                    <span>{entry.value} conversations</span>
-                  </p>
-                ))}
-              </div>
-            );
-          }}
-        />
-        <Legend 
-          verticalAlign="top" 
-          height={36} 
-          iconType="circle" 
-          iconSize={8}
-        />
-        <Bar 
-          dataKey="whatsapp" 
-          name="WhatsApp" 
-          fill="url(#whatsappGradient)" 
-          radius={[4, 4, 0, 0]}
-          barSize={8}
-          animationDuration={1500}
-        />
-        <Bar 
-          dataKey="slack" 
-          name="Slack" 
-          fill="url(#slackGradient)" 
-          radius={[4, 4, 0, 0]}
-          barSize={8}
-          animationDuration={1500}
-        />
-        <Bar 
-          dataKey="instagram" 
-          name="Instagram" 
-          fill="url(#instagramGradient)" 
-          radius={[4, 4, 0, 0]}
-          barSize={8}
-          animationDuration={1500}
-        />
-        <Bar 
-          dataKey="freshdesk" 
-          name="Freshdesk" 
-          fill="url(#freshdeskGradient)" 
-          radius={[4, 4, 0, 0]}
-          barSize={8}
-          animationDuration={1500}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  );
+export function AgentPerformanceChart({ type, loading = false }: AgentPerformanceChartProps) {
+  // Return loading skeleton if data is loading
+  if (loading) {
+    return (
+      <Card className="h-full">
+        <CardContent className="p-6">
+          <Skeleton className="h-[200px] w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const renderSatisfactionChart = () => (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
-        <Pie
-          data={satisfactionData}
-          cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={80}
-          paddingAngle={4}
-          dataKey="value"
-          animationDuration={1500}
+  // Agent Usage Chart (Bar Chart)
+  if (type === 'agent') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={agentData}
+          margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+          barSize={20}
         >
-          {satisfactionData.map((entry, index) => (
-            <Cell 
-              key={`cell-${index}`} 
-              fill={entry.color} 
-              stroke="none" 
-              className="hover:opacity-80 transition-opacity"
-            />
-          ))}
-        </Pie>
-        <ChartTooltip
-          content={(props) => {
-            if (!props.active || !props.payload?.length === 0) return null;
-            const data = props.payload[0]?.payload;
-            return (
-              <div className="rounded-lg bg-white p-2 shadow-lg border border-gray-100 text-xs">
-                <p className="font-semibold mb-1">{data.name}</p>
-                <p className="text-xs">
-                  <span className="font-medium">Value: </span>
-                  <span>{data.value}%</span>
-                </p>
-              </div>
-            );
-          }}
-        />
-        <Legend 
-          verticalAlign="bottom" 
-          align="center" 
-          layout="horizontal" 
-          iconType="circle" 
-          iconSize={8}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  );
+          <defs>
+            <linearGradient id="colorConversations" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#8884d8" stopOpacity={0.3} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+          <XAxis 
+            dataKey="name" 
+            tick={{ fontSize: 10 }}
+            axisLine={{ stroke: '#E5E7EB', strokeWidth: 1 }}
+            tickLine={false}
+            angle={-45}
+            textAnchor="end"
+            height={70}
+          />
+          <YAxis 
+            tick={{ fontSize: 10 }}
+            axisLine={{ stroke: '#E5E7EB', strokeWidth: 1 }}
+            tickLine={false}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '6px',
+              border: '1px solid #F3F4F6',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              fontSize: '12px',
+              padding: '8px 12px'
+            }}
+          />
+          <Bar 
+            dataKey="conversations" 
+            fill="url(#colorConversations)" 
+            radius={[4, 4, 0, 0]}
+            animationDuration={1500}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
 
-  const renderTrendChart = () => (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart
-        data={trendData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <defs>
-          <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-        <XAxis 
-          dataKey="day" 
-          tick={{ fontSize: 12 }} 
-          tickLine={false} 
-          axisLine={{ stroke: '#e5e7eb' }}
-        />
-        <YAxis 
-          tick={{ fontSize: 12 }} 
-          tickLine={false} 
-          axisLine={{ stroke: '#e5e7eb' }}
-        />
-        <ChartTooltip
-          content={(props) => {
-            if (!props.active || !props.payload) return null;
-            const data = props.payload[0]?.payload;
-            return (
-              <div className="rounded-lg bg-white p-2 shadow-lg border border-gray-100 text-xs">
-                <p className="font-semibold mb-1">{data.day}</p>
-                <p className="text-xs">
-                  <span className="font-medium">Conversations: </span>
-                  <span>{data.conversations}</span>
-                </p>
-              </div>
-            );
-          }}
-        />
-        <Line
-          type="monotone"
-          dataKey="conversations"
-          stroke="#3B82F6"
-          strokeWidth={3}
-          dot={{ r: 4, fill: "#3B82F6", strokeWidth: 2, stroke: "white" }}
-          activeDot={{ r: 6, fill: "#3B82F6", stroke: "white", strokeWidth: 2 }}
-          animationDuration={1500}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
+  // Satisfaction Distribution (Pie Chart)
+  if (type === 'satisfaction') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <defs>
+            {SATISFACTION_COLORS.map((color, index) => (
+              <linearGradient key={`gradient-${index}`} id={`satisfaction-color-${index}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.8} />
+                <stop offset="100%" stopColor={color} stopOpacity={0.5} />
+              </linearGradient>
+            ))}
+          </defs>
+          <Pie
+            data={satisfactionData}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={80}
+            paddingAngle={2}
+            dataKey="value"
+            labelLine={false}
+            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            animationDuration={1500}
+          >
+            {satisfactionData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={`url(#satisfaction-color-${index})`} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value: number) => [`${value} users`, 'Count']}
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '6px',
+              border: '1px solid #F3F4F6',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              fontSize: '12px'
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  }
 
-  const renderChart = () => {
-    switch (type) {
-      case 'agent':
-        return renderAgentChart();
-      case 'channel':
-        return renderChannelChart();
-      case 'satisfaction':
-        return renderSatisfactionChart();
-      case 'trend':
-        return renderTrendChart();
-      default:
-        return renderAgentChart();
-    }
-  };
+  // Channel Distribution (Pie Chart)
+  if (type === 'channel') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <defs>
+            {CHANNEL_COLORS.map((color, index) => (
+              <linearGradient key={`gradient-${index}`} id={`channel-color-${index}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.8} />
+                <stop offset="100%" stopColor={color} stopOpacity={0.5} />
+              </linearGradient>
+            ))}
+          </defs>
+          <Pie
+            data={channelData}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={80}
+            paddingAngle={2}
+            dataKey="value"
+            labelLine={false}
+            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            animationDuration={1500}
+          >
+            {channelData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={`url(#channel-color-${index})`} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value: number) => [`${value}%`, 'Percentage']}
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '6px',
+              border: '1px solid #F3F4F6',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              fontSize: '12px'
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  }
 
-  return (
-    <Card className="w-full h-full">
-      <CardContent className="p-4 h-full">
-        {renderChart()}
-      </CardContent>
-    </Card>
-  );
+  // Trend (Line Chart)
+  if (type === 'trend') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={trendData}
+          margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+        >
+          <defs>
+            <linearGradient id="colorConversationsTrend" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1} />
+            </linearGradient>
+            <linearGradient id="colorResolutionsTrend" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.1} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+          <XAxis 
+            dataKey="name"
+            tick={{ fontSize: 10 }}
+            axisLine={{ stroke: '#E5E7EB', strokeWidth: 1 }}
+            tickLine={false}
+          />
+          <YAxis 
+            tick={{ fontSize: 10 }}
+            axisLine={{ stroke: '#E5E7EB', strokeWidth: 1 }}
+            tickLine={false}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '6px',
+              border: '1px solid #F3F4F6',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              fontSize: '12px'
+            }}
+          />
+          <Legend verticalAlign="top" height={36} />
+          <Line 
+            type="monotone" 
+            dataKey="conversations" 
+            stroke="#8884d8" 
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            activeDot={{ r: 5 }}
+            animationDuration={1500}
+            name="Total Conversations"
+          />
+          <Line 
+            type="monotone" 
+            dataKey="resolutions" 
+            stroke="#82ca9d" 
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            activeDot={{ r: 5 }}
+            animationDuration={1500}
+            animationBegin={300}
+            name="Resolved"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // Default case - return null if type doesn't match
+  return null;
 }
