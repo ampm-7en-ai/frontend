@@ -3,9 +3,18 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bot, MessageSquare, ChevronRight, Book, Users, BarChart2 } from 'lucide-react';
+import { Bot, MessageSquare, ChevronRight, Book, Users, BarChart2, PieChart, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { RecentConversationsTable } from '@/components/dashboard/RecentConversationsTable';
+
+// Sample data for channel statistics
+const channelStats = [
+  { channel: 'WhatsApp', count: 64, percentage: 50 },
+  { channel: 'Slack', count: 32, percentage: 25 },
+  { channel: 'Instagram', count: 21, percentage: 16 },
+  { channel: 'Freshdesk', count: 11, percentage: 9 },
+];
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -101,43 +110,7 @@ const AdminDashboard = () => {
             <CardDescription>Customer interactions in the last 7 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { id: 'c1', user: 'John Doe', time: '2 hours ago', satisfaction: 'high', messages: 12 },
-                { id: 'c2', user: 'Jane Smith', time: '5 hours ago', satisfaction: 'medium', messages: 8 },
-                { id: 'c3', user: 'Alex Johnson', time: '1 day ago', satisfaction: 'high', messages: 15 },
-                { id: 'c4', user: 'Sarah Williams', time: '2 days ago', satisfaction: 'low', messages: 6 },
-              ].map((conversation) => (
-                <div key={conversation.id} className="flex items-center justify-between p-3 border border-border rounded-md bg-card/50 hover:bg-accent/5 transition-colors">
-                  <div>
-                    <h3 className="font-medium text-sm">{conversation.user}</h3>
-                    <p className="text-xs text-muted-foreground">{conversation.time}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-sm">{conversation.messages} messages</div>
-                      <div className={`text-xs ${
-                        conversation.satisfaction === 'high' ? 'text-green-600' : 
-                        conversation.satisfaction === 'medium' ? 'text-amber-600' : 
-                        'text-red-600'
-                      }`}>
-                        {conversation.satisfaction.charAt(0).toUpperCase() + conversation.satisfaction.slice(1)} satisfaction
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
-                      <Link to={`/conversations/${conversation.id}`}>
-                        <ChevronRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 text-center">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/conversations">View All Conversations</Link>
-              </Button>
-            </div>
+            <RecentConversationsTable className="mt-2" />
           </CardContent>
         </Card>
         
@@ -154,14 +127,92 @@ const AdminDashboard = () => {
               <TabsList className="mb-4">
                 <TabsTrigger value="usage">Usage</TabsTrigger>
                 <TabsTrigger value="satisfaction">Satisfaction</TabsTrigger>
+                <TabsTrigger value="channels">Channels</TabsTrigger>
               </TabsList>
-              <TabsContent value="usage" className="h-[250px] flex items-center justify-center bg-muted/20 rounded-md">
-                [Usage Chart]
+              <TabsContent value="usage" className="h-[250px] flex flex-col">
+                <div className="text-sm font-medium mb-2">Agent Conversation Volume</div>
+                <div className="h-[220px] flex items-center justify-center bg-muted/20 rounded-md">
+                  [Agent Usage Chart]
+                </div>
               </TabsContent>
-              <TabsContent value="satisfaction" className="h-[250px] flex items-center justify-center bg-muted/20 rounded-md">
-                [Satisfaction Chart]
+              <TabsContent value="satisfaction" className="h-[250px] flex flex-col">
+                <div className="text-sm font-medium mb-2">Customer Satisfaction</div>
+                <div className="h-[220px] flex items-center justify-center bg-muted/20 rounded-md">
+                  [Satisfaction Chart]
+                </div>
+              </TabsContent>
+              <TabsContent value="channels" className="h-[250px]">
+                <div className="text-sm font-medium mb-2">Channel Distribution</div>
+                <div className="space-y-3">
+                  {channelStats.map((item) => (
+                    <div key={item.channel} className="flex items-center gap-2">
+                      <div className="text-sm w-24">{item.channel}</div>
+                      <div className="flex-1">
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full"
+                            style={{ width: `${item.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground w-16 text-right">
+                        {item.count} ({item.percentage}%)
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </TabsContent>
             </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="mr-2 h-5 w-5" />
+              Conversation Trends
+            </CardTitle>
+            <CardDescription>Weekly conversation volume</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[250px] flex items-center justify-center bg-muted/20 rounded-md">
+            [Weekly Trend Chart]
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <PieChart className="mr-2 h-5 w-5" />
+              Resolution Rate
+            </CardTitle>
+            <CardDescription>Conversation resolution statistics</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <Card className="shadow-none border">
+                <CardContent className="p-4">
+                  <div className="text-sm text-muted-foreground">Resolved</div>
+                  <div className="text-2xl font-bold mt-1 text-green-600">78%</div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-none border">
+                <CardContent className="p-4">
+                  <div className="text-sm text-muted-foreground">Avg. Time</div>
+                  <div className="text-2xl font-bold mt-1">8.4m</div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-none border">
+                <CardContent className="p-4">
+                  <div className="text-sm text-muted-foreground">Handoffs</div>
+                  <div className="text-2xl font-bold mt-1 text-amber-600">22%</div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="h-[150px] flex items-center justify-center bg-muted/20 rounded-md">
+              [Resolution Rate Chart]
+            </div>
           </CardContent>
         </Card>
       </div>

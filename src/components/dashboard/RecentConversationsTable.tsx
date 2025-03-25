@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MoreHorizontal, ExternalLink } from 'lucide-react';
+import { MoreHorizontal, ExternalLink, MessageSquare, Slack, Instagram, Mail, Phone, Check, X, ChevronRight } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +8,11 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
+// Enhanced data with channel and status information
 const dummyData = [
   {
     id: '1',
@@ -17,6 +21,10 @@ const dummyData = [
     agent: 'Support Bot',
     time: '10 min ago',
     status: 'completed',
+    channel: 'whatsapp',
+    email: 'john.smith@example.com',
+    satisfaction: 'neutral',
+    preview: 'Hi, I need help with my recent order #12345'
   },
   {
     id: '2',
@@ -25,6 +33,10 @@ const dummyData = [
     agent: 'Billing Bot',
     time: '25 min ago',
     status: 'active',
+    channel: 'slack',
+    email: 'lisa.johnson@example.com',
+    satisfaction: 'satisfied',
+    preview: 'I have a question about my recent charge on my account'
   },
   {
     id: '3',
@@ -33,6 +45,10 @@ const dummyData = [
     agent: 'Tech Support Bot',
     time: '1 hour ago',
     status: 'escalated',
+    channel: 'freshdesk',
+    email: 'michael.brown@example.com',
+    satisfaction: 'frustrated',
+    preview: 'I\'m still experiencing the same issue after talking to 3 different agents'
   },
   {
     id: '4',
@@ -41,6 +57,10 @@ const dummyData = [
     agent: 'Product Bot',
     time: '2 hours ago',
     status: 'completed',
+    channel: 'instagram',
+    email: 'sarah.wilson@example.com',
+    satisfaction: 'delighted',
+    preview: 'When will the new product be available in my region?'
   },
   {
     id: '5',
@@ -49,6 +69,10 @@ const dummyData = [
     agent: 'Security Bot',
     time: '3 hours ago',
     status: 'completed',
+    channel: 'phone',
+    email: 'robert.davis@example.com',
+    satisfaction: 'dissatisfied',
+    preview: 'Thank you for resolving my payment issue so quickly.'
   }
 ];
 
@@ -58,26 +82,71 @@ type RecentConversationsTableProps = {
 };
 
 export function RecentConversationsTable({ className, data = dummyData }: RecentConversationsTableProps) {
+  const { toast } = useToast();
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <span className="status-success">Completed</span>;
+        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">Completed</Badge>;
       case 'active':
-        return <span className="status-info">Active</span>;
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">Active</Badge>;
       case 'escalated':
-        return <span className="status-warning">Escalated</span>;
+        return <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">Escalated</Badge>;
       default:
-        return <span className="status-info">{status}</span>;
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">{status}</Badge>;
     }
+  };
+
+  const getChannelIcon = (channel: string) => {
+    switch (channel) {
+      case 'instagram':
+        return <Instagram className="h-4 w-4 text-pink-600" />;
+      case 'slack':
+        return <Slack className="h-4 w-4 text-purple-600" />;
+      case 'whatsapp':
+        return <MessageSquare className="h-4 w-4 text-green-600" />;
+      case 'freshdesk':
+        return <Mail className="h-4 w-4 text-blue-600" />;
+      case 'phone':
+        return <Phone className="h-4 w-4 text-gray-600" />;
+      default:
+        return <MessageSquare className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getSatisfactionIndicator = (satisfaction: string) => {
+    switch (satisfaction) {
+      case 'frustrated':
+        return <span className="text-red-500">😠</span>;
+      case 'dissatisfied':
+        return <span className="text-amber-500">😟</span>;
+      case 'neutral':
+        return <span className="text-gray-500">😐</span>;
+      case 'satisfied':
+        return <span className="text-green-500">😊</span>;
+      case 'delighted':
+        return <span className="text-emerald-500">😄</span>;
+      default:
+        return <span className="text-gray-500">😐</span>;
+    }
+  };
+
+  const handleTransfer = (conversationId: string) => {
+    toast({
+      title: "Transfer initiated",
+      description: `Conversation ${conversationId} has been queued for transfer`,
+    });
   };
 
   return (
     <div className={`card ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">Recent Conversations</h3>
-        <Button variant="outline" size="sm" className="text-sm">
-          View All
-          <ExternalLink size={14} className="ml-1" />
+        <Button variant="outline" size="sm" className="text-sm" asChild>
+          <Link to="/conversations">
+            View All
+            <ExternalLink size={14} className="ml-1" />
+          </Link>
         </Button>
       </div>
       <div className="overflow-x-auto">
@@ -85,7 +154,8 @@ export function RecentConversationsTable({ className, data = dummyData }: Recent
           <thead>
             <tr className="text-left text-dark-gray border-b border-medium-gray/20">
               <th className="py-2 px-4 font-medium text-sm">Customer</th>
-              <th className="py-2 px-4 font-medium text-sm">Subject</th>
+              <th className="py-2 px-4 font-medium text-sm">Channel</th>
+              <th className="py-2 px-4 font-medium text-sm">Preview</th>
               <th className="py-2 px-4 font-medium text-sm">Agent</th>
               <th className="py-2 px-4 font-medium text-sm">Time</th>
               <th className="py-2 px-4 font-medium text-sm">Status</th>
@@ -98,9 +168,21 @@ export function RecentConversationsTable({ className, data = dummyData }: Recent
                 key={conversation.id} 
                 className="border-b border-medium-gray/10 hover:bg-light-gray/50"
               >
-                <td className="py-3 px-4 text-sm">{conversation.customer}</td>
                 <td className="py-3 px-4 text-sm">
-                  <div className="max-w-[200px] truncate">{conversation.subject}</div>
+                  <div className="flex items-center">
+                    {getSatisfactionIndicator(conversation.satisfaction)}
+                    <span className="ml-2">{conversation.customer}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{conversation.email}</div>
+                </td>
+                <td className="py-3 px-4 text-sm">
+                  <div className="flex items-center">
+                    {getChannelIcon(conversation.channel)}
+                    <span className="ml-2 capitalize">{conversation.channel}</span>
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-sm">
+                  <div className="max-w-[200px] truncate text-muted-foreground">{conversation.preview}</div>
                 </td>
                 <td className="py-3 px-4 text-sm">{conversation.agent}</td>
                 <td className="py-3 px-4 text-sm text-dark-gray">{conversation.time}</td>
@@ -119,8 +201,14 @@ export function RecentConversationsTable({ className, data = dummyData }: Recent
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Conversation</DropdownMenuItem>
-                      <DropdownMenuItem>Assign to Human</DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to={`/conversations/${conversation.id}`}>
+                          View Conversation
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleTransfer(conversation.id)}>
+                        Transfer to Human
+                      </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">
                         Close Conversation
                       </DropdownMenuItem>
