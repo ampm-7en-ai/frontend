@@ -13,16 +13,25 @@ export interface User {
   role: UserRole;
   avatar?: string;
   businessId?: string;  // Only for admin users
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 // Define auth context interface
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, authData?: AuthData) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+}
+
+interface AuthData {
+  accessToken: string;
+  refreshToken: string;
+  userId: number;
+  role: UserRole;
 }
 
 // Create the context with a default value
@@ -45,15 +54,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, authData?: AuthData) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // If authData is provided, we use it (API response)
+      if (authData) {
+        const userData = {
+          id: authData.userId.toString(),
+          name: username,
+          email: `${username}@example.com`, // This would come from the API in a real app
+          role: authData.role,
+          accessToken: authData.accessToken,
+          refreshToken: authData.refreshToken,
+          avatar: `https://ui-avatars.com/api/?name=${username}&background=0D8ABC&color=fff`,
+          ...(authData.role === 'admin' ? { businessId: 'b1' } : {})
+        };
+        
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(userData));
+        navigate('/');
+        return;
+      }
       
-      // Simplified auth logic based on username/password
+      // Legacy simulation code (fallback for development)
       if (username === 'superadmin' && password === '123456') {
         const superAdminUser = {
           id: '1',
@@ -61,6 +87,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           email: 'superadmin@example.com',
           role: 'superadmin' as UserRole,
           avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=0D8ABC&color=fff',
+          accessToken: 'mock-token',
+          refreshToken: 'mock-refresh-token'
         };
         setUser(superAdminUser);
         setIsAuthenticated(true);
@@ -74,6 +102,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           role: 'admin' as UserRole,
           businessId: 'b1',
           avatar: 'https://ui-avatars.com/api/?name=Business+Admin&background=0D8ABC&color=fff',
+          accessToken: 'mock-token',
+          refreshToken: 'mock-refresh-token'
         };
         setUser(adminUser);
         setIsAuthenticated(true);

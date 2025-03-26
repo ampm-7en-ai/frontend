@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +29,17 @@ const Login = () => {
     toast({
       title: "OTP Verification Required",
       description: `We've sent a 6-digit OTP code to ${email}. Please verify your account.`,
+      variant: "default",
+    });
+  };
+  
+  const handleOtpVerificationNeeded = (email: string) => {
+    setVerificationEmail(email);
+    setShowOtpVerification(true);
+    
+    toast({
+      title: "Account Verification Required",
+      description: `Please verify your account with the OTP sent to your email.`,
       variant: "default",
     });
   };
@@ -157,7 +169,7 @@ const Login = () => {
               </TabsList>
               
               <TabsContent value="login">
-                <LoginForm />
+                <LoginForm onOtpVerificationNeeded={handleOtpVerificationNeeded} />
               </TabsContent>
               
               <TabsContent value="signup">

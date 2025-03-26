@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,11 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -23,9 +22,14 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-const LoginForm = () => {
+interface LoginFormProps {
+  onOtpVerificationNeeded: (email: string) => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, error } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,14 +43,107 @@ const LoginForm = () => {
   });
 
   const handleLogin = async (values: LoginFormValues) => {
+    setIsLoggingIn(true);
+    
     try {
-      await login(values.username, values.password);
-    } catch (err) {
+      const formData = new FormData();
+      formData.append('username', values.username);
+      formData.append('password', values.password);
+      
+      const apiUrl = getApiUrl(API_ENDPOINTS.LOGIN);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        if (data.non_field_errors) {
+          if (data.non_field_errors.includes("Please verify your account first")) {
+            const email = `${values.username}@example.com`;
+            onOtpVerificationNeeded(email);
+            
+            toast({
+              title: "Account Verification Required",
+              description: "Please verify your account first",
+              variant: "default",
+            });
+            return;
+          } else if (data.non_field_errors.includes("Invalid login credentials")) {
+            form.setError("root", { 
+              message: "Invalid username or password" 
+            });
+          } else {
+            form.setError("root", { 
+              message: data.non_field_errors[0] 
+            });
+          }
+        } else {
+          toast({
+            title: "Login Failed",
+            description: "An unexpected error occurred. Please try again.",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+      
+      if (data.access && data.user_type) {
+        const userRole = data.user_type === "business" ? "admin" : data.user_type;
+        
+        await login(values.username, values.password, {
+          accessToken: data.access,
+          refreshToken: data.refresh,
+          userId: data.user_id,
+          role: userRole
+        });
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+          variant: "default",
+        });
+        
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "Invalid response from server",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login Failed",
-        description: error || "Please check your credentials and try again",
+        description: "Could not connect to the server. Please try again later.",
         variant: "destructive",
       });
+      
+      if (process.env.NODE_ENV === 'development') {
+        if (values.username === 'admin' || values.username === 'superadmin') {
+          const role = values.username === 'admin' ? 'admin' : 'superadmin';
+          
+          await login(values.username, values.password, {
+            accessToken: 'mock-token',
+            refreshToken: 'mock-refresh-token',
+            userId: role === 'admin' ? 2 : 1,
+            role: role
+          });
+          
+          toast({
+            title: "Development Mode Login",
+            description: `Logged in as ${role}`,
+            variant: "default",
+          });
+          
+          navigate('/dashboard');
+        }
+      }
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -120,6 +217,12 @@ const LoginForm = () => {
             )}
           />
           
+          {form.formState.errors.root && (
+            <div className="text-sm font-medium text-destructive">
+              {form.formState.errors.root.message}
+            </div>
+          )}
+          
           <div className="text-xs text-dark-gray">
             Demo credentials: 
             <ul className="mt-1 ml-4 list-disc">
@@ -146,8 +249,12 @@ const LoginForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full py-2 h-12">
-            Sign in
+          <Button 
+            type="submit" 
+            className="w-full py-2 h-12"
+            disabled={isLoggingIn}
+          >
+            {isLoggingIn ? "Signing in..." : "Sign in"}
           </Button>
         </form>
       </Form>
