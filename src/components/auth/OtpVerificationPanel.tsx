@@ -23,8 +23,7 @@ interface OtpVerificationPanelProps {
 const OtpVerificationPanel: React.FC<OtpVerificationPanelProps> = ({
   email,
   isVerifying,
-  onVerifyOtp,
-  onCancel
+  onVerifyOtp
 }) => {
   const form = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
@@ -73,17 +72,7 @@ const OtpVerificationPanel: React.FC<OtpVerificationPanelProps> = ({
             </Button>
           </div>
           
-          <div className="flex justify-end space-x-2">
-            {onCancel && (
-              <Button 
-                type="button"
-                onClick={onCancel}
-                variant="outline"
-                disabled={isVerifying}
-              >
-                Back to Sign Up
-              </Button>
-            )}
+          <div className="flex justify-center">
             <Button 
               type="submit"
               disabled={isVerifying}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -134,10 +133,6 @@ const Login = () => {
       });
     }
   };
-  
-  const handleCancelOtp = () => {
-    setShowOtpVerification(false);
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
@@ -152,7 +147,6 @@ const Login = () => {
             email={verificationEmail}
             isVerifying={verificationInProgress}
             onVerifyOtp={handleVerifyOtp}
-            onCancel={handleCancelOtp}
           />
         ) : (
           <div className="p-8 bg-white rounded-lg shadow-sm">
