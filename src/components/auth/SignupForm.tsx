@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -82,14 +83,27 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
         });
         
         const data = await response.json();
-        handleRegistrationResponse(data, response.ok, values.email);
+        
+        if (response.ok) {
+          if (data.message) {
+            toast({
+              title: "Registration Status",
+              description: data.message,
+              variant: "default",
+            });
+          }
+          
+          handleRegistrationSuccess(data, values.email);
+        } else {
+          handleRegistrationError(data);
+        }
       } catch (error) {
         console.error('API call failed:', error);
         
         if (process.env.NODE_ENV === 'development') {
           const simulatedData = {
             status: "success",
-            message: "Account created successfully. Please check your email for verification.",
+            message: "OTP sent for verification",
             data: {
               user: {
                 username: values.username,
@@ -99,7 +113,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             }
           };
           
-          handleRegistrationResponse(simulatedData, true, values.email);
+          handleRegistrationSuccess(simulatedData, values.email);
           
           toast({
             title: "Development Mode",
@@ -126,20 +140,40 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
     }
   };
   
-  const handleRegistrationResponse = (data: any, isSuccess: boolean, email: string) => {
-    console.log('Registration response:', data);
+  const handleRegistrationSuccess = (data: any, email: string) => {
+    console.log('Registration success:', data);
+    onSignupSuccess(data, email);
+  };
+  
+  const handleRegistrationError = (data: any) => {
+    console.log('Registration error response:', data);
     
-    if (isSuccess) {
-      onSignupSuccess(data, email);
-      toast({
-        title: "Registration Successful",
-        description: "Please check your email for verification",
-        variant: "default",
+    // Handle field-specific errors
+    if (data.username) {
+      form.setError('username', { 
+        type: 'server', 
+        message: Array.isArray(data.username) ? data.username[0] : data.username 
       });
-    } else {
+    }
+    
+    if (data.email) {
+      form.setError('email', { 
+        type: 'server', 
+        message: Array.isArray(data.email) ? data.email[0] : data.email 
+      });
+    }
+    
+    // Handle general error message if no field-specific errors
+    if (!data.username && !data.email && data.message) {
       toast({
         title: "Registration Failed",
-        description: data.message || "Please check your information and try again",
+        description: data.message,
+        variant: "destructive",
+      });
+    } else if (!data.username && !data.email && !data.message) {
+      toast({
+        title: "Registration Failed",
+        description: "Please check your information and try again",
         variant: "destructive",
       });
     }
