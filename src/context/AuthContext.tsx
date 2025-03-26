@@ -15,6 +15,7 @@ export interface User {
   businessId?: string;  // Only for admin users
   accessToken?: string;
   refreshToken?: string;
+  isVerified?: boolean;  // Added verification status
 }
 
 // Define auth context interface
@@ -25,6 +26,10 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  needsVerification: boolean;
+  setNeedsVerification: (value: boolean) => void;
+  pendingVerificationEmail: string | null;
+  setPendingVerificationEmail: (email: string | null) => void;
 }
 
 interface AuthData {
@@ -32,6 +37,7 @@ interface AuthData {
   refreshToken: string;
   userId: number;
   role: UserRole;
+  isVerified?: boolean;
 }
 
 // Create the context with a default value
@@ -43,14 +49,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [needsVerification, setNeedsVerification] = useState<boolean>(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Check if user is already logged in on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
       setIsAuthenticated(true);
+      
+      // Check if stored user needs verification
+      if (parsedUser.isVerified === false) {
+        setNeedsVerification(true);
+        if (parsedUser.email) {
+          setPendingVerificationEmail(parsedUser.email);
+        }
+      }
     }
   }, []);
 
@@ -61,6 +78,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       // If authData is provided, we use it (API response)
       if (authData) {
+        const isVerified = authData.isVerified !== false; // Default to true if not explicitly false
+        
         const userData = {
           id: authData.userId.toString(),
           name: username,
@@ -69,13 +88,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           accessToken: authData.accessToken,
           refreshToken: authData.refreshToken,
           avatar: `https://ui-avatars.com/api/?name=${username}&background=0D8ABC&color=fff`,
-          ...(authData.role === 'admin' ? { businessId: 'b1' } : {})
+          ...(authData.role === 'admin' ? { businessId: 'b1' } : {}),
+          isVerified: isVerified
         };
         
         setUser(userData);
         setIsAuthenticated(true);
         localStorage.setItem('user', JSON.stringify(userData));
-        navigate('/');
+        
+        if (!isVerified) {
+          setNeedsVerification(true);
+          setPendingVerificationEmail(`${username}@example.com`);
+          navigate('/verify');
+        } else {
+          navigate('/');
+        }
         return;
       }
       
@@ -88,7 +115,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           role: 'superadmin' as UserRole,
           avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=0D8ABC&color=fff',
           accessToken: 'mock-token',
-          refreshToken: 'mock-refresh-token'
+          refreshToken: 'mock-refresh-token',
+          isVerified: true
         };
         setUser(superAdminUser);
         setIsAuthenticated(true);
@@ -103,7 +131,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           businessId: 'b1',
           avatar: 'https://ui-avatars.com/api/?name=Business+Admin&background=0D8ABC&color=fff',
           accessToken: 'mock-token',
-          refreshToken: 'mock-refresh-token'
+          refreshToken: 'mock-refresh-token',
+          isVerified: true
         };
         setUser(adminUser);
         setIsAuthenticated(true);
@@ -122,6 +151,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
+    setNeedsVerification(false);
+    setPendingVerificationEmail(null);
     localStorage.removeItem('user');
     navigate('/login');
   };
@@ -133,6 +164,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isLoading,
     error,
     isAuthenticated,
+    needsVerification,
+    setNeedsVerification,
+    pendingVerificationEmail,
+    setPendingVerificationEmail
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import Login from './pages/Login';
+import Verify from './pages/Verify';
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import NotFound from './pages/NotFound';
@@ -40,10 +42,14 @@ import { Toaster } from "@/components/ui/toaster";
 
 // Create a separate component for protected routes that uses the AuthContext
 const ProtectedRoutes = () => {
-  const { user } = useAuth();
+  const { user, needsVerification } = useAuth();
   
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  
+  if (needsVerification) {
+    return <Navigate to="/verify" replace />;
   }
   
   return (
@@ -160,6 +166,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/verify" element={<Verify />} />
           <Route path="/*" element={<ProtectedRoutes />} />
         </Routes>
         <Toaster />

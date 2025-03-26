@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +30,7 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const { login } = useAuth();
+  const { login, setPendingVerificationEmail, setNeedsVerification } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,7 +64,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         if (data.non_field_errors) {
           if (data.non_field_errors.includes("Please verify your account first")) {
             const email = `${values.username}@example.com`;
-            onOtpVerificationNeeded(email);
+            
+            // Set verification status in auth context
+            setPendingVerificationEmail(email);
+            setNeedsVerification(true);
+            
+            // Navigate to verification page
+            navigate('/verify', { state: { email } });
             
             toast({
               title: "Account Verification Required",
@@ -97,7 +104,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           accessToken: data.access,
           refreshToken: data.refresh,
           userId: data.user_id,
-          role: userRole
+          role: userRole,
+          // Assume verification is handled separately
+          isVerified: true
         });
         
         toast({
@@ -130,7 +139,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             accessToken: 'mock-token',
             refreshToken: 'mock-refresh-token',
             userId: role === 'admin' ? 2 : 1,
-            role: role
+            role: role,
+            isVerified: true
           });
           
           toast({

@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Globe, Building, Phone, MapPin, User, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { useAuth } from '@/context/AuthContext';
 
 const signupSchema = z.object({
   business_name: z.string().min(1, "Business name is required"),
@@ -39,6 +40,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { setPendingVerificationEmail, setNeedsVerification } = useAuth();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -142,7 +145,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
   
   const handleRegistrationSuccess = (data: any, email: string) => {
     console.log('Registration success:', data);
-    onSignupSuccess(data, email);
+    
+    // Set verification status in auth context
+    setPendingVerificationEmail(email);
+    setNeedsVerification(true);
+    
+    // Navigate to verification page
+    navigate('/verify', { state: { email } });
+    
+    toast({
+      title: "Account Created",
+      description: "Please verify your email to continue",
+      variant: "default",
+    });
   };
   
   const handleRegistrationError = (data: any) => {
