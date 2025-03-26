@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 
 const signupSchema = z.object({
   business_name: z.string().min(1, "Business name is required"),
@@ -57,7 +57,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
     setIsLoading(true);
     
     try {
-      // Create JSON payload instead of FormData
       const payload = {
         bussiness_name: values.business_name,
         email: values.email,
@@ -70,7 +69,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
 
       console.log('Sending signup data:', payload);
       
-      const targetUrl = 'https://7en.ai/api/users/register/';
+      const targetUrl = getApiUrl(API_ENDPOINTS.REGISTER);
       
       try {
         const response = await fetch(targetUrl, {
@@ -80,10 +79,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             'Accept': 'application/json',
           },
           body: JSON.stringify(payload),
-          // Don't set mode to cors, let the browser handle it
         });
         
-        // Handle responses regardless of status
         const data = await response.json();
         handleRegistrationResponse(data, response.ok, values.email);
       } catch (error) {

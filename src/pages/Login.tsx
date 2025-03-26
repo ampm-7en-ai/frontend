@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
 import OtpVerificationDialog from '@/components/auth/OtpVerificationDialog';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 
 type OtpFormValues = {
   otp: string;
@@ -34,7 +34,6 @@ const Login = () => {
   const handleVerifyOtp = async (values: OtpFormValues) => {
     setVerificationInProgress(true);
     try {
-      // Create JSON payload instead of FormData
       const payload = {
         email: verificationEmail,
         otp: values.otp
@@ -42,7 +41,7 @@ const Login = () => {
       
       console.log('Sending OTP verification data:', payload);
       
-      const targetUrl = 'https://7en.ai/api/users/verify_otp/';
+      const targetUrl = getApiUrl(API_ENDPOINTS.VERIFY_OTP);
       
       try {
         const response = await fetch(targetUrl, {
@@ -52,7 +51,6 @@ const Login = () => {
             'Accept': 'application/json',
           },
           body: JSON.stringify(payload),
-          // Don't set mode to cors, let the browser handle it
         });
         
         const data = await response.json();
@@ -60,7 +58,6 @@ const Login = () => {
       } catch (error) {
         console.error('OTP verification call failed:', error);
         
-        // Use development fallback for testing only
         if (process.env.NODE_ENV === 'development') {
           const simulatedData = {
             status: "success",
@@ -181,7 +178,6 @@ const Login = () => {
         </div>
       </div>
       
-      {/* OTP Verification Dialog */}
       <OtpVerificationDialog
         open={otpVerificationOpen}
         onOpenChange={setOtpVerificationOpen}
