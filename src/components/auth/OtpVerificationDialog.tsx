@@ -44,8 +44,22 @@ const OtpVerificationDialog: React.FC<OtpVerificationDialogProps> = ({
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      // Only allow explicitly closing the dialog through the Cancel button
+      // Prevent closing when clicking outside
+      if (newOpen === false && !isVerifying) {
+        // If user is manually trying to close, only close if not verifying
+        onOpenChange(false);
+      } else if (newOpen === true) {
+        // Always allow opening
+        onOpenChange(true);
+      }
+    }}>
+      <DialogContent 
+        onPointerDownOutside={(e) => e.preventDefault()} 
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        className="sm:max-w-md"
+      >
         <DialogHeader>
           <DialogTitle>Verify Your Account</DialogTitle>
           <DialogDescription>
@@ -87,9 +101,14 @@ const OtpVerificationDialog: React.FC<OtpVerificationDialogProps> = ({
             <DialogFooter>
               <Button 
                 type="button"
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  if (!isVerifying) {
+                    onOpenChange(false);
+                  }
+                }}
                 variant="outline"
                 className="mr-2"
+                disabled={isVerifying}
               >
                 Cancel
               </Button>
