@@ -40,7 +40,6 @@ const Login = () => {
       
       console.log('Sending OTP verification data:', Object.fromEntries(formData));
       
-      const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
       const targetUrl = 'https://7en.ai/api/users/verify_otp/';
       
       try {
@@ -48,30 +47,15 @@ const Login = () => {
           method: 'POST',
           body: formData,
           mode: 'cors',
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-          }
         });
         
         const data = await response.json();
         handleOtpVerificationResponse(data, response.ok);
-      } catch (directError) {
-        console.error('Direct OTP verification call failed:', directError);
+      } catch (error) {
+        console.error('OTP verification call failed:', error);
         
-        try {
-          const proxyResponse = await fetch(corsProxyUrl + targetUrl, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Origin': window.location.origin,
-            }
-          });
-          
-          const proxyData = await proxyResponse.json();
-          handleOtpVerificationResponse(proxyData, proxyResponse.ok);
-        } catch (proxyError) {
-          console.error('Proxy OTP verification call failed:', proxyError);
-          
+        // Use development fallback for testing only
+        if (process.env.NODE_ENV === 'development') {
           const simulatedData = {
             status: "success",
             message: "OTP verified successfully",
@@ -90,6 +74,12 @@ const Login = () => {
             title: "Development Mode",
             description: "Using simulated OTP verification response",
             variant: "default",
+          });
+        } else {
+          toast({
+            title: "Verification Error",
+            description: "Could not connect to verification service. Please try again later.",
+            variant: "destructive",
           });
         }
       }

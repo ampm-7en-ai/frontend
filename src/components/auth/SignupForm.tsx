@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -68,7 +67,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
 
       console.log('Sending signup data:', Object.fromEntries(formData));
       
-      const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
       const targetUrl = 'https://7en.ai/api/users/register/';
       
       try {
@@ -76,36 +74,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
           method: 'POST',
           body: formData,
           mode: 'cors',
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-          }
         });
         
         const data = await response.json();
         handleRegistrationResponse(data, response.ok, values.email);
-      } catch (directError) {
-        console.error('Direct API call failed:', directError);
+      } catch (error) {
+        console.error('API call failed:', error);
         
-        try {
-          toast({
-            title: "Using CORS Proxy",
-            description: "Direct API call failed, attempting with a proxy...",
-            variant: "default",
-          });
-          
-          const proxyResponse = await fetch(corsProxyUrl + targetUrl, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Origin': window.location.origin,
-            }
-          });
-          
-          const proxyData = await proxyResponse.json();
-          handleRegistrationResponse(proxyData, proxyResponse.ok, values.email);
-        } catch (proxyError) {
-          console.error('Proxy API call failed:', proxyError);
-          
+        if (process.env.NODE_ENV === 'development') {
           const simulatedData = {
             status: "success",
             message: "Account created successfully. Please check your email for verification.",
@@ -124,6 +100,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             title: "Development Mode",
             description: "Using simulated response for demonstration purposes",
             variant: "default",
+          });
+        } else {
+          toast({
+            title: "Registration Error",
+            description: "Could not connect to registration service. Please try again later.",
+            variant: "destructive",
           });
         }
       }
