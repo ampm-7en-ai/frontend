@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
-import EmailVerificationDialog from '@/components/auth/EmailVerificationDialog';
 import OtpVerificationDialog from '@/components/auth/OtpVerificationDialog';
 
 type OtpFormValues = {
@@ -13,7 +12,6 @@ type OtpFormValues = {
 };
 
 const Login = () => {
-  const [verificationOpen, setVerificationOpen] = useState(false);
   const [otpVerificationOpen, setOtpVerificationOpen] = useState(false);
   const [registrationResponse, setRegistrationResponse] = useState<any>(null);
   const [verificationEmail, setVerificationEmail] = useState<string>("");
@@ -24,12 +22,13 @@ const Login = () => {
   const handleSignupSuccess = (data: any, email: string) => {
     setRegistrationResponse(data);
     setVerificationEmail(email);
-    setVerificationOpen(true);
-  };
-
-  const proceedToOtpVerification = () => {
-    setVerificationOpen(false);
     setOtpVerificationOpen(true);
+    
+    toast({
+      title: "OTP Verification Required",
+      description: `We've sent a 6-digit OTP code to ${email}. Please verify your account.`,
+      variant: "default",
+    });
   };
 
   const handleVerifyOtp = async (values: OtpFormValues) => {
@@ -117,7 +116,6 @@ const Login = () => {
       });
       
       setOtpVerificationOpen(false);
-      setVerificationOpen(false);
       
       if (data.data?.user) {
         setTimeout(() => {
@@ -187,15 +185,7 @@ const Login = () => {
         </div>
       </div>
       
-      {/* Verification Dialogs */}
-      <EmailVerificationDialog 
-        open={verificationOpen}
-        onOpenChange={setVerificationOpen}
-        email={verificationEmail}
-        registrationResponse={registrationResponse}
-        onProceedToOtp={proceedToOtpVerification}
-      />
-
+      {/* OTP Verification Dialog */}
       <OtpVerificationDialog
         open={otpVerificationOpen}
         onOpenChange={setOtpVerificationOpen}
