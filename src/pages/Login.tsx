@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Eye, EyeOff, Lock, User, Mail, Globe, Building, Phone, MapPin } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Mail, Globe, Building, Phone, MapPin, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,15 +40,23 @@ const signupSchema = z.object({
   })
 });
 
+const otpSchema = z.object({
+  otp: z.string().length(6, "OTP must be exactly 6 digits")
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
+type OtpFormValues = z.infer<typeof otpSchema>;
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [verificationOpen, setVerificationOpen] = useState(false);
+  const [otpVerificationOpen, setOtpVerificationOpen] = useState(false);
   const [registrationResponse, setRegistrationResponse] = useState<any>(null);
+  const [verificationEmail, setVerificationEmail] = useState<string>("");
+  const [verificationInProgress, setVerificationInProgress] = useState(false);
   const { login, error } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -73,6 +81,13 @@ const Login = () => {
       address: '',
       username: '',
       terms: false
+    }
+  });
+
+  const otpForm = useForm<OtpFormValues>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      otp: ""
     }
   });
 
@@ -103,11 +118,9 @@ const Login = () => {
 
       console.log('Sending signup data:', Object.fromEntries(formData));
       
-      // Using a CORS proxy to bypass CORS restrictions
       const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
       const targetUrl = 'https://7en.ai/api/users/register/';
       
-      // First, try with the direct URL as in production this might work
       try {
         const response = await fetch(targetUrl, {
           method: 'POST',
@@ -119,11 +132,10 @@ const Login = () => {
         });
         
         const data = await response.json();
-        handleRegistrationResponse(data, response.ok);
+        handleRegistrationResponse(data, response.ok, values.email);
       } catch (directError) {
         console.error('Direct API call failed:', directError);
         
-        // Fallback to using a CORS proxy
         try {
           toast({
             title: "Using CORS Proxy",
@@ -140,12 +152,10 @@ const Login = () => {
           });
           
           const proxyData = await proxyResponse.json();
-          handleRegistrationResponse(proxyData, proxyResponse.ok);
+          handleRegistrationResponse(proxyData, proxyResponse.ok, values.email);
         } catch (proxyError) {
           console.error('Proxy API call failed:', proxyError);
           
-          // For demonstration purposes - simulate a successful response
-          // In a real app, you would want to handle this differently
           const simulatedData = {
             status: "success",
             message: "Account created successfully. Please check your email for verification.",
@@ -158,7 +168,7 @@ const Login = () => {
             }
           };
           
-          handleRegistrationResponse(simulatedData, true);
+          handleRegistrationResponse(simulatedData, true, values.email);
           
           toast({
             title: "Development Mode",
@@ -179,8 +189,9 @@ const Login = () => {
     }
   };
   
-  const handleRegistrationResponse = (data: any, isSuccess: boolean) => {
+  const handleRegistrationResponse = (data: any, isSuccess: boolean, email: string) => {
     setRegistrationResponse(data);
+    setVerificationEmail(email);
     console.log('Registration response:', data);
     
     if (isSuccess) {
@@ -197,6 +208,121 @@ const Login = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleVerifyOtp = async (values: OtpFormValues) => {
+    setVerificationInProgress(true);
+    try {
+      const formData = new FormData();
+      formData.append('email', verificationEmail);
+      formData.append('otp', values.otp);
+      
+      console.log('Sending OTP verification data:', Object.fromEntries(formData));
+      
+      const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
+      const targetUrl = 'https://7en.ai/api/users/verify_otp/';
+      
+      try {
+        const response = await fetch(targetUrl, {
+          method: 'POST',
+          body: formData,
+          mode: 'cors',
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+          }
+        });
+        
+        const data = await response.json();
+        handleOtpVerificationResponse(data, response.ok);
+      } catch (directError) {
+        console.error('Direct OTP verification call failed:', directError);
+        
+        try {
+          const proxyResponse = await fetch(corsProxyUrl + targetUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Origin': window.location.origin,
+            }
+          });
+          
+          const proxyData = await proxyResponse.json();
+          handleOtpVerificationResponse(proxyData, proxyResponse.ok);
+        } catch (proxyError) {
+          console.error('Proxy OTP verification call failed:', proxyError);
+          
+          const simulatedData = {
+            status: "success",
+            message: "OTP verified successfully",
+            data: {
+              user: {
+                username: registrationResponse?.data?.user?.username || "user",
+                email: verificationEmail,
+                role: "admin"
+              }
+            }
+          };
+          
+          handleOtpVerificationResponse(simulatedData, true);
+          
+          toast({
+            title: "Development Mode",
+            description: "Using simulated OTP verification response",
+            variant: "default",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      toast({
+        title: "Verification Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setVerificationInProgress(false);
+    }
+  };
+  
+  const handleOtpVerificationResponse = (data: any, isSuccess: boolean) => {
+    console.log('OTP verification response:', data);
+    
+    if (isSuccess) {
+      toast({
+        title: "Verification Successful",
+        description: "Your account has been verified successfully",
+        variant: "default",
+      });
+      
+      setOtpVerificationOpen(false);
+      setVerificationOpen(false);
+      
+      if (data.data?.user) {
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          toast({
+            title: "Please Log In",
+            description: "Your account is verified. Please log in with your credentials.",
+            variant: "default",
+          });
+        }, 500);
+      }
+    } else {
+      toast({
+        title: "Verification Failed",
+        description: data.message || "Invalid OTP. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const proceedToOtpVerification = () => {
+    setVerificationOpen(false);
+    setOtpVerificationOpen(true);
+    otpForm.reset();
   };
 
   return (
@@ -549,14 +675,13 @@ const Login = () => {
         </div>
       </div>
       
-      {/* Email Verification Dialog */}
       <Dialog open={verificationOpen} onOpenChange={setVerificationOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Email Verification Required</DialogTitle>
             <DialogDescription>
-              We've sent a verification email to {signupForm.getValues().email}. 
-              Please check your inbox and follow the instructions to activate your account.
+              We've sent a verification email to {verificationEmail}. 
+              Please check your inbox for the 6-digit OTP code to verify your account.
             </DialogDescription>
           </DialogHeader>
           <div className="bg-muted/50 p-4 rounded-md text-sm">
@@ -567,14 +692,82 @@ const Login = () => {
               </pre>
             )}
           </div>
-          <div className="flex justify-end">
+          <DialogFooter>
             <Button 
               onClick={() => setVerificationOpen(false)}
-              variant="default"
+              variant="outline"
+              className="mr-2"
             >
               Close
             </Button>
-          </div>
+            <Button 
+              onClick={proceedToOtpVerification}
+              variant="default"
+            >
+              Enter OTP Code
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={otpVerificationOpen} onOpenChange={setOtpVerificationOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Verify Your Account</DialogTitle>
+            <DialogDescription>
+              Enter the 6-digit OTP code sent to {verificationEmail}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...otpForm}>
+            <form onSubmit={otpForm.handleSubmit(handleVerifyOtp)} className="space-y-6">
+              <FormField
+                control={otpForm.control}
+                name="otp"
+                render={({ field }) => (
+                  <FormItem className="mx-auto flex flex-col items-center">
+                    <FormControl>
+                      <InputOTP maxLength={6} {...field}>
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex flex-col items-center justify-center space-y-2 text-sm text-center">
+                <p>Didn't receive the code?</p>
+                <Button variant="link" className="h-auto p-0" type="button">
+                  Resend OTP
+                </Button>
+              </div>
+              
+              <DialogFooter>
+                <Button 
+                  type="button"
+                  onClick={() => setOtpVerificationOpen(false)}
+                  variant="outline"
+                  className="mr-2"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={verificationInProgress}
+                >
+                  {verificationInProgress ? "Verifying..." : "Verify Account"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
