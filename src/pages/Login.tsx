@@ -101,13 +101,17 @@ const Login = () => {
       formData.append('address', values.address);
       formData.append('username', values.username);
 
+      console.log('Sending signup data:', Object.fromEntries(formData));
+      
       const response = await fetch('https://7en.ai/api/users/register/', {
         method: 'POST',
-        body: formData
+        body: formData,
+        // Remove any headers that might interfere with FormData
       });
 
       const data = await response.json();
       setRegistrationResponse(data);
+      console.log('Registration response:', data);
       
       if (response.ok) {
         setVerificationOpen(true);
@@ -124,6 +128,7 @@ const Login = () => {
         });
       }
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration Error",
         description: "An unexpected error occurred. Please try again.",
