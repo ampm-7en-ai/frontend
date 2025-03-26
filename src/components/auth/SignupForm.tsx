@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,26 +57,33 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
     setIsLoading(true);
     
     try {
-      const formData = new FormData();
-      formData.append('bussiness_name', values.business_name);
-      formData.append('email', values.email);
-      formData.append('password', values.password);
-      formData.append('phone_number', values.phone_number);
-      formData.append('website', values.website || '');
-      formData.append('address', values.address);
-      formData.append('username', values.username);
+      // Create JSON payload instead of FormData
+      const payload = {
+        bussiness_name: values.business_name,
+        email: values.email,
+        password: values.password,
+        phone_number: values.phone_number,
+        website: values.website || '',
+        address: values.address,
+        username: values.username
+      };
 
-      console.log('Sending signup data:', Object.fromEntries(formData));
+      console.log('Sending signup data:', payload);
       
       const targetUrl = 'https://7en.ai/api/users/register/';
       
       try {
         const response = await fetch(targetUrl, {
           method: 'POST',
-          body: formData,
-          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          // Don't set mode to cors, let the browser handle it
         });
         
+        // Handle responses regardless of status
         const data = await response.json();
         handleRegistrationResponse(data, response.ok, values.email);
       } catch (error) {

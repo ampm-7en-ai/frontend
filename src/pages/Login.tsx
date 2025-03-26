@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -33,19 +34,25 @@ const Login = () => {
   const handleVerifyOtp = async (values: OtpFormValues) => {
     setVerificationInProgress(true);
     try {
-      const formData = new FormData();
-      formData.append('email', verificationEmail);
-      formData.append('otp', values.otp);
+      // Create JSON payload instead of FormData
+      const payload = {
+        email: verificationEmail,
+        otp: values.otp
+      };
       
-      console.log('Sending OTP verification data:', Object.fromEntries(formData));
+      console.log('Sending OTP verification data:', payload);
       
       const targetUrl = 'https://7en.ai/api/users/verify_otp/';
       
       try {
         const response = await fetch(targetUrl, {
           method: 'POST',
-          body: formData,
-          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          // Don't set mode to cors, let the browser handle it
         });
         
         const data = await response.json();
