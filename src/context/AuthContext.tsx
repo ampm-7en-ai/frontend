@@ -67,9 +67,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (parsedUser.email) {
           setPendingVerificationEmail(parsedUser.email);
         }
+        // Redirect to verification page if user is not verified
+        navigate('/verify');
       }
     }
-  }, []);
+  }, [navigate]);
 
   const login = async (username: string, password: string, authData?: AuthData) => {
     setIsLoading(true);
@@ -96,6 +98,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsAuthenticated(true);
         localStorage.setItem('user', JSON.stringify(userData));
         
+        // Always check verification before allowing access to dashboard
         if (!isVerified) {
           setNeedsVerification(true);
           setPendingVerificationEmail(`${username}@example.com`);

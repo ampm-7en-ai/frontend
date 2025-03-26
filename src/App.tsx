@@ -44,11 +44,13 @@ import { Toaster } from "@/components/ui/toaster";
 const ProtectedRoutes = () => {
   const { user, needsVerification } = useAuth();
   
+  // If no user is authenticated, redirect to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
   
-  if (needsVerification) {
+  // If user needs verification, always redirect to verify page
+  if (needsVerification || user.isVerified === false) {
     return <Navigate to="/verify" replace />;
   }
   
