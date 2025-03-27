@@ -5,14 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   ChevronLeft, 
   Save,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
+import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
 
 const AgentCreate = () => {
   const { toast } = useToast();
@@ -21,6 +22,7 @@ const AgentCreate = () => {
   // Form state
   const [agentName, setAgentName] = useState('');
   const [agentDescription, setAgentDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form validation
   const [nameError, setNameError] = useState(false);
@@ -60,20 +62,63 @@ const AgentCreate = () => {
     return isValid;
   };
   
-  const handleSaveAgent = () => {
+  const handleSaveAgent = async () => {
     if (!validateForm()) {
       return;
     }
     
-    // Save agent logic would go here
-    toast({
-      title: "Agent Created",
-      description: `${agentName} has been successfully created.`,
-      variant: "default"
-    });
+    // Get access token
+    const token = getAccessToken();
+    if (!token) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create an agent.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
     
-    // Navigate back to agent list
-    navigate('/agents');
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: agentName,
+          description: agentDescription,
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create agent');
+      }
+      
+      // Show success toast with message from response
+      toast({
+        title: "Agent Created Successfully",
+        description: data.message || `${agentName} has been successfully created.`,
+        variant: "default"
+      });
+      
+      // Navigate back to agent list
+      navigate('/agents');
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      toast({
+        title: "Creation Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred while creating the agent.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
@@ -107,6 +152,7 @@ const AgentCreate = () => {
                 value={agentName}
                 onChange={handleAgentNameChange}
                 className={nameError ? "border-destructive" : ""}
+                disabled={isSubmitting}
               />
               {nameError && (
                 <p className="text-destructive text-sm flex items-center">
@@ -126,6 +172,7 @@ const AgentCreate = () => {
                 className={`min-h-[100px] ${descriptionError ? "border-destructive" : ""}`}
                 value={agentDescription}
                 onChange={handleAgentDescriptionChange}
+                disabled={isSubmitting}
               />
               {descriptionError && (
                 <p className="text-destructive text-sm flex items-center">
@@ -140,9 +187,21 @@ const AgentCreate = () => {
           <p className="text-sm text-muted-foreground flex items-center">
             <span className="text-destructive mr-1">*</span> Required fields
           </p>
-          <Button onClick={handleSaveAgent} disabled={!agentName || !agentDescription}>
-            <Save className="mr-2 h-4 w-4" />
-            Create Agent
+          <Button 
+            onClick={handleSaveAgent} 
+            disabled={isSubmitting || !agentName || !agentDescription}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Create Agent
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Home,
@@ -18,6 +17,8 @@ import {
   Palette,
   Plus,
   ChevronLeft,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -32,6 +33,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
+import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -55,6 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [newAgentName, setNewAgentName] = useState('');
   const [agentNameError, setAgentNameError] = useState(false);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
 
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
@@ -64,21 +67,63 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     }
   };
 
-  const handleCreateAgent = () => {
+  const handleCreateAgent = async () => {
     if (!newAgentName.trim()) {
       setAgentNameError(true);
       return;
     }
     
     setAgentNameError(false);
-    toast({
-      title: "Agent Created",
-      description: `${newAgentName} has been successfully created.`,
-      variant: "default"
-    });
+    setIsCreatingAgent(true);
     
-    setNewAgentName('');
-    navigate('/agents');
+    const token = getAccessToken();
+    if (!token) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create an agent.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newAgentName,
+          description: `Quick agent created from sidebar: ${newAgentName}`,
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create agent');
+      }
+      
+      toast({
+        title: "Agent Created",
+        description: data.message || `${newAgentName} has been successfully created.`,
+        variant: "default"
+      });
+      
+      setNewAgentName('');
+      navigate('/agents');
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      toast({
+        title: "Creation Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingAgent(false);
+    }
   };
 
   const commonItems: SidebarItem[] = [
@@ -146,7 +191,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
   return (
     <div className="relative flex">
-      {/* Sidebar toggle button - positioned outside the sidebar */}
       <div className="absolute -right-3 top-6 z-20">
         <Button
           variant="ghost"
@@ -308,13 +352,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       setAgentNameError(false);
                     }}
                     className={agentNameError ? "border-red-500" : ""}
+                    disabled={isCreatingAgent}
                   />
                   {agentNameError && (
-                    <p className="text-sm text-red-500">Please enter an agent name</p>
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      Please enter an agent name
+                    </p>
                   )}
                 </div>
-                <Button onClick={handleCreateAgent} className="w-full rounded-lg shadow-sm">
-                  Create Agent
+                <Button 
+                  onClick={handleCreateAgent} 
+                  className="w-full rounded-lg shadow-sm"
+                  disabled={isCreatingAgent}
+                >
+                  {isCreatingAgent ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Agent"
+                  )}
                 </Button>
               </div>
             </DropdownMenuContent>

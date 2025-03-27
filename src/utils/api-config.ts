@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -11,7 +10,8 @@ export const API_ENDPOINTS = {
   REGISTER: "users/register/",
   VERIFY_OTP: "users/verify_otp/",
   LOGIN: "users/login/",
-  RESEND_OTP: "users/resend-otp/"
+  RESEND_OTP: "users/resend-otp/",
+  AGENTS: "agents/"
 };
 
 // Utility function to get full API URL
