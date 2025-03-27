@@ -63,7 +63,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       if (!response.ok) {
         if (data.non_field_errors) {
           if (data.non_field_errors.includes("Please verify your account first")) {
-            const email = `${values.username}@example.com`;
+            // Get email from response if available, otherwise construct it
+            const email = data.email || `${values.username}@example.com`;
             
             // Set verification status in auth context
             setPendingVerificationEmail(email);
