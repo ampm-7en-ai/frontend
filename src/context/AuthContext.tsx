@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getApiUrl, getAuthHeaders } from '@/utils/api-config';
 
 // Define user role types
 export type UserRole = 'user' | 'admin' | 'superadmin';
@@ -30,11 +31,12 @@ interface AuthContextType {
   setNeedsVerification: (value: boolean) => void;
   pendingVerificationEmail: string | null;
   setPendingVerificationEmail: (email: string | null) => void;
+  getToken: () => string | null;
 }
 
 interface AuthData {
   accessToken: string;
-  refreshToken: string;
+  refreshToken: string | null;
   userId: number;
   role: UserRole;
   isVerified?: boolean;
@@ -46,32 +48,77 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Auth provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [needsVerification, setNeedsVerification] = useState<boolean>(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Function to get token
+  const getToken = (): string | null => {
+    return user?.accessToken || null;
+  };
 
   // Check if user is already logged in on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      setIsAuthenticated(true);
+    const checkAuth = async () => {
+      const storedUser = localStorage.getItem('user');
       
-      // Check if stored user needs verification
-      if (parsedUser.isVerified === false) {
-        setNeedsVerification(true);
-        if (parsedUser.email) {
-          setPendingVerificationEmail(parsedUser.email);
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          
+          // Check if accessToken exists
+          if (parsedUser.accessToken) {
+            setUser(parsedUser);
+            setIsAuthenticated(true);
+            
+            // Check if stored user needs verification
+            if (parsedUser.isVerified === false) {
+              setNeedsVerification(true);
+              if (parsedUser.email) {
+                setPendingVerificationEmail(parsedUser.email);
+              }
+              // Redirect to verification page if user is not verified
+              navigate('/verify');
+            }
+            // Don't redirect if we're already on the correct page
+            else if (location.pathname === '/login') {
+              // Redirect based on role
+              if (parsedUser.role === 'superadmin') {
+                navigate('/dashboard/superadmin');
+              } else if (parsedUser.role === 'admin') {
+                navigate('/dashboard/admin');
+              } else {
+                navigate('/dashboard');
+              }
+            }
+          } else {
+            // Token is missing, clear storage and redirect to login
+            localStorage.removeItem('user');
+            if (location.pathname !== '/login' && location.pathname !== '/verify') {
+              navigate('/login');
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing stored user data:", error);
+          localStorage.removeItem('user');
+          if (location.pathname !== '/login' && location.pathname !== '/verify') {
+            navigate('/login');
+          }
         }
-        // Redirect to verification page if user is not verified
-        navigate('/verify');
+      } else if (location.pathname !== '/login' && location.pathname !== '/verify') {
+        // No stored user data and not on login or verify page, redirect to login
+        navigate('/login');
       }
-    }
-  }, [navigate]);
+      
+      setIsLoading(false);
+    };
+    
+    checkAuth();
+  }, [navigate, location.pathname]);
 
   const login = async (username: string, password: string, authData?: AuthData) => {
     setIsLoading(true);
@@ -103,8 +150,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setNeedsVerification(true);
           setPendingVerificationEmail(`${username}@example.com`);
           navigate('/verify');
-        } else {
-          navigate('/');
         }
         return;
       }
@@ -124,7 +169,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(superAdminUser);
         setIsAuthenticated(true);
         localStorage.setItem('user', JSON.stringify(superAdminUser));
-        navigate('/');
+        navigate('/dashboard/superadmin');
       } else if (username === 'admin' && password === '123456') {
         const adminUser = {
           id: '2',
@@ -140,7 +185,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(adminUser);
         setIsAuthenticated(true);
         localStorage.setItem('user', JSON.stringify(adminUser));
-        navigate('/');
+        navigate('/dashboard/admin');
       } else {
         throw new Error('Invalid username or password');
       }
@@ -170,7 +215,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     needsVerification,
     setNeedsVerification,
     pendingVerificationEmail,
-    setPendingVerificationEmail
+    setPendingVerificationEmail,
+    getToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

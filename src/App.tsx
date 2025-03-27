@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import Login from './pages/Login';
@@ -42,11 +42,17 @@ import { Toaster } from "@/components/ui/toaster";
 
 // Create a separate component for protected routes that uses the AuthContext
 const ProtectedRoutes = () => {
-  const { user, needsVerification } = useAuth();
+  const { user, needsVerification, isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+  
+  // Show loading state if auth is still being checked
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
   
   // If no user is authenticated, redirect to login
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
   
   // If user needs verification, always redirect to verify page

@@ -59,11 +59,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       });
       
       const data = await response.json();
+      console.log("Login response:", data);
       
       // Check if the response indicates the user is not verified
       if (data.error && data.error.includes("User not verified")) {
         // Extract email from the response
-        const email = data.email || `${values.username}@example.com`;
+        const email = data.email || values.username;
         
         // Set verification status in auth context
         setPendingVerificationEmail(email);
@@ -81,11 +82,41 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
+      // If response is successful and contains access token, handle login
+      if (response.ok && data.access) {
+        const userRole = data.user_type === "business" ? "admin" : data.user_type;
+        
+        await login(values.username, values.password, {
+          accessToken: data.access,
+          refreshToken: data.refresh || null,
+          userId: data.user_id,
+          role: userRole,
+          isVerified: true
+        });
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+          variant: "default",
+        });
+        
+        // Redirect based on user role
+        if (userRole === 'superadmin') {
+          navigate('/dashboard/superadmin');
+        } else if (userRole === 'admin') {
+          navigate('/dashboard/admin');
+        } else {
+          navigate('/dashboard');
+        }
+        return;
+      }
+      
+      // Handle error response
       if (!response.ok) {
         if (data.non_field_errors) {
           if (data.non_field_errors.includes("Please verify your account first")) {
-            // Get email from response if available, otherwise construct it
-            const email = data.email || `${values.username}@example.com`;
+            // Get email from response if available
+            const email = data.email || values.username;
             
             // Set verification status in auth context
             setPendingVerificationEmail(email);
@@ -130,32 +161,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
-      // Successful login with access token
-      if (data.access && data.user_type) {
-        const userRole = data.user_type === "business" ? "admin" : data.user_type;
-        
-        await login(values.username, values.password, {
-          accessToken: data.access,
-          refreshToken: data.refresh,
-          userId: data.user_id,
-          role: userRole,
-          isVerified: true
-        });
-        
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-          variant: "default",
-        });
-        
-        navigate('/dashboard');
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "Invalid response from server",
-          variant: "destructive",
-        });
-      }
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -164,6 +169,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         variant: "destructive",
       });
       
+      // Only in development mode, allow mock login
       if (process.env.NODE_ENV === 'development') {
         if (values.username === 'admin' || values.username === 'superadmin') {
           const role = values.username === 'admin' ? 'admin' : 'superadmin';
@@ -182,7 +188,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             variant: "default",
           });
           
-          navigate('/dashboard');
+          // Redirect based on role
+          if (role === 'superadmin') {
+            navigate('/dashboard/superadmin');
+          } else {
+            navigate('/dashboard/admin');
+          }
         }
       }
     } finally {
