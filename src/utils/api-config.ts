@@ -53,7 +53,8 @@ export const isUserVerified = (): boolean => {
   
   try {
     const userData = JSON.parse(user);
-    // Only return false if explicitly set to false, otherwise assume verified
+    // Return true unless explicitly set to false
+    // This helps prevent redirection loops
     return userData.isVerified !== false;
   } catch (error) {
     return false;

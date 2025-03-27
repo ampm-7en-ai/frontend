@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
@@ -74,28 +75,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(parsedUser);
             setIsAuthenticated(true);
             
-            // Explicitly check isVerified status
-            if (parsedUser.isVerified === false) {
-              setNeedsVerification(true);
+            // Set verification state from stored user data
+            const userNeedsVerification = parsedUser.isVerified === false;
+            setNeedsVerification(userNeedsVerification);
+            
+            if (userNeedsVerification) {
               if (parsedUser.email) {
                 setPendingVerificationEmail(parsedUser.email);
               }
               
-              // Only redirect to verify if not already there
-              if (location.pathname !== '/verify') {
+              // Only redirect to verify if not already there and not a protected route
+              if (location.pathname !== '/verify' && 
+                  location.pathname !== '/login') {
                 navigate('/verify');
               }
             } 
-            // If user is verified and on login or verify page, redirect to appropriate dashboard
+            // If user is verified and on login or verify page, redirect to dashboard
             else if (location.pathname === '/login' || location.pathname === '/verify') {
               // Redirect based on role
-              if (parsedUser.role === 'superadmin') {
-                navigate('/dashboard/superadmin');
-              } else if (parsedUser.role === 'admin') {
-                navigate('/dashboard/admin');
-              } else {
-                navigate('/dashboard');
-              }
+              const dashboardPath = parsedUser.role === 'superadmin' ? 
+                '/dashboard/superadmin' : 
+                (parsedUser.role === 'admin' ? '/dashboard/admin' : '/dashboard');
+              navigate(dashboardPath);
             }
           } else {
             // Token is missing, clear storage and redirect to login
