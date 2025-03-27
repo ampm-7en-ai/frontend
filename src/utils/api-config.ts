@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -72,4 +73,34 @@ export const getAccessToken = (): string | null => {
   } catch (error) {
     return null;
   }
+};
+
+// Function to create a new agent
+export const createAgent = async (name: string, description: string): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  console.log('Creating agent with token:', token);
+  console.log('Agent data:', { name, description });
+  
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
+    method: 'POST',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify({
+      name,
+      description,
+    })
+  });
+  
+  console.log('Create agent response status:', response.status);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    console.error('Error creating agent:', errorData);
+    throw new Error(errorData.message || `Failed to create agent: ${response.status}`);
+  }
+  
+  return response.json();
 };

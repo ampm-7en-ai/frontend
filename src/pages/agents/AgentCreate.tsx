@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -13,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
-import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { createAgent } from '@/utils/api-config';
 
 const AgentCreate = () => {
   const { toast } = useToast();
@@ -67,38 +66,14 @@ const AgentCreate = () => {
       return;
     }
     
-    // Get access token
-    const token = getAccessToken();
-    if (!token) {
-      toast({
-        title: "Authentication Error",
-        description: "You must be logged in to create an agent.",
-        variant: "destructive"
-      });
-      navigate('/login');
-      return;
-    }
-    
     setIsSubmitting(true);
+    console.log("Starting agent creation...");
     
     try {
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: agentName,
-          description: agentDescription,
-        })
-      });
+      console.log("Sending agent creation request with:", { agentName, agentDescription });
+      const data = await createAgent(agentName, agentDescription);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create agent');
-      }
+      console.log("Agent creation successful:", data);
       
       // Show success toast with message from response
       toast({
