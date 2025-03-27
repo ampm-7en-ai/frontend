@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getApiUrl, getAuthHeaders } from '@/utils/api-config';
+import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
 
 // Define user role types
 export type UserRole = 'user' | 'admin' | 'superadmin';
@@ -75,17 +74,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(parsedUser);
             setIsAuthenticated(true);
             
-            // Check if stored user needs verification
+            // Explicitly check isVerified status
             if (parsedUser.isVerified === false) {
               setNeedsVerification(true);
               if (parsedUser.email) {
                 setPendingVerificationEmail(parsedUser.email);
               }
-              // Redirect to verification page if user is not verified
-              navigate('/verify');
-            }
-            // Don't redirect if we're already on the correct page
-            else if (location.pathname === '/login') {
+              
+              // Only redirect to verify if not already there
+              if (location.pathname !== '/verify') {
+                navigate('/verify');
+              }
+            } 
+            // If user is verified and on login or verify page, redirect to appropriate dashboard
+            else if (location.pathname === '/login' || location.pathname === '/verify') {
               // Redirect based on role
               if (parsedUser.role === 'superadmin') {
                 navigate('/dashboard/superadmin');

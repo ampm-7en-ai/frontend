@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -40,23 +39,26 @@ import CustomizationSettings from './pages/settings/platform/CustomizationSettin
 
 import { Toaster } from "@/components/ui/toaster";
 
-// Create a separate component for protected routes that uses the AuthContext
 const ProtectedRoutes = () => {
   const { user, needsVerification, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   
-  // Show loading state if auth is still being checked
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
   
-  // If no user is authenticated, redirect to login
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
   
-  // If user needs verification, always redirect to verify page
   if (needsVerification || user.isVerified === false) {
+    if (location.pathname === '/verify') {
+      return (
+        <Routes>
+          <Route path="/verify" element={<Verify />} />
+        </Routes>
+      );
+    }
     return <Navigate to="/verify" replace />;
   }
   
@@ -119,9 +121,7 @@ const ProtectedRoutes = () => {
         <Route path="/help/documentation" element={<Documentation />} />
         <Route path="/help/support" element={<SupportTicket />} />
         
-        {/* Settings Routes */}
         <Route path="/settings" element={<SettingsLayout />}>
-          {/* Business Settings Routes */}
           <Route path="/settings/business/profile" element={<BusinessProfile />} />
           <Route path="/settings/business/team" element={<TeamSettings />} />
           <Route path="/settings/business/agents" element={<AgentSettings />} />
@@ -129,7 +129,6 @@ const ProtectedRoutes = () => {
           <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
           <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
           
-          {/* Platform Settings Routes */}
           <Route path="/settings/platform/general" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
               <GeneralSettings />

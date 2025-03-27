@@ -46,6 +46,20 @@ export const isAuthenticated = (): boolean => {
   }
 };
 
+// Function to check if user is verified
+export const isUserVerified = (): boolean => {
+  const user = localStorage.getItem('user');
+  if (!user) return false;
+  
+  try {
+    const userData = JSON.parse(user);
+    // Only return false if explicitly set to false, otherwise assume verified
+    return userData.isVerified !== false;
+  } catch (error) {
+    return false;
+  }
+};
+
 // Function to get the current access token
 export const getAccessToken = (): string | null => {
   const user = localStorage.getItem('user');
