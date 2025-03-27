@@ -20,6 +20,7 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 
 const Verify = () => {
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
   const { 
     user, 
@@ -160,28 +161,76 @@ const Verify = () => {
   };
   
   const handleResendOtp = async () => {
-    try {
-      toast({
-        title: "Sending OTP",
-        description: "A new verification code will be sent to your email",
-        variant: "default",
-      });
-      
-      // Here you would add the API call to resend OTP
-      // For now, we'll just show a success message
-      setTimeout(() => {
-        toast({
-          title: "OTP Sent",
-          description: "A new verification code has been sent to your email",
-          variant: "default",
-        });
-      }, 1000);
-    } catch (error) {
+    if (!email && !user?.email) {
       toast({
         title: "Error",
-        description: "Failed to resend verification code",
+        description: "No email address available for OTP resend",
         variant: "destructive",
       });
+      return;
+    }
+    
+    setIsResendingOtp(true);
+    try {
+      const payload = {
+        email: email || user?.email
+      };
+      
+      console.log('Sending OTP resend request for:', payload);
+      
+      const targetUrl = getApiUrl(API_ENDPOINTS.RESEND_OTP);
+      
+      try {
+        const response = await fetch(targetUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          toast({
+            title: "OTP Sent",
+            description: data.message || "A new verification code has been sent to your email",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.message || "Failed to resend verification code",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('OTP resend call failed:', error);
+        
+        if (process.env.NODE_ENV === 'development') {
+          toast({
+            title: "Development Mode",
+            description: "OTP resend simulation: A new code would be sent to your email",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not connect to verification service. Please try again later.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('OTP resend error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResendingOtp(false);
     }
   };
 
@@ -248,8 +297,14 @@ const Verify = () => {
               
               <div className="flex flex-col items-center justify-center space-y-2 text-sm text-center">
                 <p>Didn't receive the code?</p>
-                <Button variant="link" className="h-auto p-0" type="button" onClick={handleResendOtp}>
-                  Resend OTP
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0" 
+                  type="button" 
+                  onClick={handleResendOtp}
+                  disabled={isResendingOtp}
+                >
+                  {isResendingOtp ? "Sending..." : "Resend OTP"}
                 </Button>
               </div>
               
