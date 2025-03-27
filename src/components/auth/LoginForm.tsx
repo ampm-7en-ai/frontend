@@ -60,6 +60,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       
       const data = await response.json();
       
+      // Check if the response indicates the user is not verified
+      if (data.error && data.error.includes("User not verified")) {
+        // Extract email from the response
+        const email = data.email || `${values.username}@example.com`;
+        
+        // Set verification status in auth context
+        setPendingVerificationEmail(email);
+        setNeedsVerification(true);
+        
+        // Show error toast with the verification message
+        toast({
+          title: "Account Not Verified",
+          description: data.error,
+          variant: "destructive",
+        });
+        
+        // Navigate to verification page
+        navigate('/verify', { state: { email } });
+        return;
+      }
+      
       if (!response.ok) {
         if (data.non_field_errors) {
           if (data.non_field_errors.includes("Please verify your account first")) {
@@ -76,7 +97,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             toast({
               title: "Account Verification Required",
               description: "Please verify your account first",
-              variant: "default",
+              variant: "destructive",
             });
             return;
           } else if (data.non_field_errors.includes("Invalid login credentials")) {
@@ -88,6 +109,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               message: data.non_field_errors[0] 
             });
           }
+        } else if (data.error) {
+          // Handle generic error messages
+          form.setError("root", { 
+            message: data.error 
+          });
+          
+          toast({
+            title: "Login Failed",
+            description: data.error,
+            variant: "destructive",
+          });
         } else {
           toast({
             title: "Login Failed",
@@ -98,6 +130,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
+      // Successful login with access token
       if (data.access && data.user_type) {
         const userRole = data.user_type === "business" ? "admin" : data.user_type;
         
@@ -106,7 +139,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           refreshToken: data.refresh,
           userId: data.user_id,
           role: userRole,
-          // Assume verification is handled separately
           isVerified: true
         });
         
