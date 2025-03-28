@@ -50,7 +50,6 @@ const predefinedAvatars = [
   }
 ];
 
-// Updated integration options to be more focused and detailed
 const integrationOptions = [
   { 
     id: 'slack', 
@@ -765,4 +764,443 @@ const AgentEdit = () => {
       case 'mail':
         return (
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06
+            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+        );
+      case 'message-square':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        );
+      case 'microsoft':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="8" height="8" rx="1"/>
+            <rect x="13" y="3" width="8" height="8" rx="1"/>
+            <rect x="3" y="13" width="8" height="8" rx="1"/>
+            <rect x="13" y="13" width="8" height="8" rx="1"/>
+          </svg>
+        );
+      default:
+        return <Bot className="h-6 w-6" style={{ color }} />;
+    }
+  };
+
+  const renderIntegrationsContent = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div className="space-y-1">
+              <CardTitle>Integration Channels</CardTitle>
+              <CardDescription>Connect this agent to other platforms</CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className={viewMode === 'list' ? 'bg-muted' : ''}
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setViewMode('grid')} 
+                className={viewMode === 'grid' ? 'bg-muted' : ''}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-2">Connected Channels</h3>
+            {activeIntegrations.filter(i => i.connected).length === 0 ? (
+              <div className="text-sm text-muted-foreground">No channels connected yet</div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {activeIntegrations.filter(i => i.connected).map(integration => (
+                  <Badge 
+                    key={integration.id} 
+                    variant="outline"
+                    className="flex items-center gap-1 px-3 py-1"
+                  >
+                    {getIntegrationIconElement(integration.icon, integration.color)}
+                    <span>{integration.name}</span>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <h3 className="text-sm font-medium mb-4">Available Channels</h3>
+          
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeIntegrations.map(integration => (
+                <Card key={integration.id} className={`border overflow-hidden ${integration.connected ? 'border-primary/50 bg-primary/5' : ''}`}>
+                  <CardHeader className="p-4 pb-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-md flex items-center justify-center" style={{ backgroundColor: `${integration.color}20` }}>
+                        {getIntegrationIconElement(integration.icon, integration.color)}
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{integration.name}</h3>
+                        {integration.connected && <Badge variant="outline" className="text-xs">Connected</Badge>}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-2">
+                    <p className="text-sm text-muted-foreground mb-4">{integration.description}</p>
+                    <Button 
+                      size="sm" 
+                      variant={integration.connected ? "outline" : "default"}
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedIntegration(integration);
+                        setIsIntegrationDialogOpen(true);
+                      }}
+                    >
+                      {integration.connected ? 'Configure' : 'Connect'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="border rounded-md">
+              {activeIntegrations.map((integration, index) => (
+                <div key={integration.id} className={`flex items-center justify-between p-4 ${index !== activeIntegrations.length - 1 ? 'border-b' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-md flex items-center justify-center" style={{ backgroundColor: `${integration.color}20` }}>
+                      {getIntegrationIconElement(integration.icon, integration.color)}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{integration.name}</h3>
+                      <p className="text-sm text-muted-foreground">{integration.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {integration.connected && (
+                      <Badge variant="outline" className="mr-2">Connected</Badge>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant={integration.connected ? "outline" : "default"}
+                      onClick={() => {
+                        setSelectedIntegration(integration);
+                        setIsIntegrationDialogOpen(true);
+                      }}
+                    >
+                      {integration.connected ? 'Configure' : 'Connect'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            {selectedIntegration && (
+              <>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-md flex items-center justify-center" style={{ backgroundColor: `${selectedIntegration.color}20` }}>
+                    {getIntegrationIconElement(selectedIntegration.icon, selectedIntegration.color)}
+                  </div>
+                  <DialogTitle>{selectedIntegration.name} Integration</DialogTitle>
+                </div>
+                <DialogDescription>
+                  {selectedIntegration.setupInstructions}
+                </DialogDescription>
+              </>
+            )}
+          </DialogHeader>
+          
+          {selectedIntegration && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Features</h4>
+                <ul className="grid gap-2">
+                  {selectedIntegration.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 text-primary">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium">Configuration</h4>
+                
+                {selectedIntegration.id === 'slack' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="slack-api-key">API Key</Label>
+                      <Input 
+                        id="slack-api-key" 
+                        value={integrationFormData.apiKey} 
+                        onChange={(e) => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="slack-bot-username">Bot Username</Label>
+                      <Input 
+                        id="slack-bot-username" 
+                        value={integrationFormData.botUsername} 
+                        onChange={(e) => setIntegrationFormData({...integrationFormData, botUsername: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="channel-mentions">Listen to Channel Mentions</Label>
+                        <Switch id="channel-mentions" defaultChecked />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Respond when the bot is mentioned in channels
+                      </p>
+                    </div>
+                  </>
+                )}
+                
+                {selectedIntegration.id === 'whatsapp' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="whatsapp-phone">WhatsApp Phone Number</Label>
+                      <Input 
+                        id="whatsapp-phone" 
+                        value={integrationFormData.phoneNumber} 
+                        onChange={(e) => setIntegrationFormData({...integrationFormData, phoneNumber: e.target.value})}
+                        placeholder="+1234567890"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="whatsapp-api-key">API Key</Label>
+                      <Input 
+                        id="whatsapp-api-key" 
+                        value={integrationFormData.apiKey} 
+                        onChange={(e) => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                        type="password"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="auto-reply">Auto-Reply to Messages</Label>
+                        <Switch id="auto-reply" defaultChecked />
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {selectedIntegration.id === 'website' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="website-code">Embed Code</Label>
+                      <div className="relative">
+                        <Textarea 
+                          id="website-code" 
+                          className="font-mono text-xs h-24"
+                          value={`<script src="https://ai-service.example.com/widget/${agentId}"></script>`}
+                          readOnly
+                        />
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`<script src="https://ai-service.example.com/widget/${agentId}"></script>`);
+                            toast({
+                              title: "Code copied",
+                              description: "The widget code has been copied to your clipboard."
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Add this script to your website to enable the chat widget
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="website-domains">Allowed Domains</Label>
+                        <Button variant="outline" size="sm">Add Domain</Button>
+                      </div>
+                      <div className="border rounded-md p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm">example.com</span>
+                          <Button variant="ghost" size="sm">Remove</Button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {selectedIntegration.id === 'email' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-address">Email Address</Label>
+                      <Input 
+                        id="email-address" 
+                        value={integrationFormData.email} 
+                        onChange={(e) => setIntegrationFormData({...integrationFormData, email: e.target.value})}
+                        placeholder="support@example.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="email-auto-reply">Auto-Reply to Emails</Label>
+                        <Switch id="email-auto-reply" defaultChecked />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-signature">Email Signature</Label>
+                      <Textarea 
+                        id="email-signature" 
+                        placeholder="Best regards,&#10;AI Support Team"
+                      />
+                    </div>
+                  </>
+                )}
+                
+                {(selectedIntegration.id !== 'slack' && 
+                  selectedIntegration.id !== 'whatsapp' && 
+                  selectedIntegration.id !== 'website' && 
+                  selectedIntegration.id !== 'email') && (
+                  <div className="text-sm">
+                    To connect this integration, please provide the required credentials and settings.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsIntegrationDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (selectedIntegration) {
+                  const updatedIntegrations = activeIntegrations.map(i => 
+                    i.id === selectedIntegration.id ? {...i, connected: !i.connected} : i
+                  );
+                  setActiveIntegrations(updatedIntegrations);
+                  
+                  setIsIntegrationDialogOpen(false);
+                  
+                  toast({
+                    title: selectedIntegration.connected 
+                      ? `${selectedIntegration.name} settings updated` 
+                      : `${selectedIntegration.name} connected`,
+                    description: selectedIntegration.connected 
+                      ? "Your integration settings have been updated." 
+                      : "Your agent is now connected to this platform."
+                  });
+                }
+              }}
+            >
+              {selectedIntegration?.connected ? 'Save Changes' : 'Connect'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+
+  return (
+    <div className="container py-6 max-w-5xl">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" onClick={goBack} className="mr-4">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">{agent.name}</h1>
+            <p className="text-muted-foreground">{agent.description}</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={goToTestPage}>
+            Test Agent <ExternalLink className="ml-2 h-4 w-4" />
+          </Button>
+          <Button onClick={handleSaveChanges}>
+            <Save className="mr-2 h-4 w-4" /> Save Changes
+          </Button>
+        </div>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="general" className="flex items-center">
+            <Settings className="mr-2 h-4 w-4" /> General
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center">
+            <Palette className="mr-2 h-4 w-4" /> Appearance
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="flex items-center">
+            <BrainCircuit className="mr-2 h-4 w-4" /> Advanced
+          </TabsTrigger>
+          <TabsTrigger value="integrations" className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Integrations
+          </TabsTrigger>
+        </TabsList>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-6">
+            <TabsContent value="general">
+              {renderGeneralContent()}
+            </TabsContent>
+            
+            <TabsContent value="appearance">
+              {renderAppearanceContent()}
+            </TabsContent>
+            
+            <TabsContent value="advanced">
+              {renderAdvancedContent()}
+            </TabsContent>
+            
+            <TabsContent value="integrations">
+              {renderIntegrationsContent()}
+            </TabsContent>
+          </div>
+          
+          <div className="md:col-span-1 h-[600px]">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Preview</CardTitle>
+                <CardDescription>See how your agent will look to users</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 h-[calc(100%-5rem)]">
+                {renderChatPreview()}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </Tabs>
+    </div>
+  );
+};
+
+export default AgentEdit;
