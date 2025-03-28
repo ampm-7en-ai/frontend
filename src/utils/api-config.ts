@@ -193,3 +193,22 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
   
   return response.json();
 };
+
+// Function to get source metadata information based on source type
+export const getSourceMetadataInfo = (source: any): { count: string, size: string } => {
+  const metadata = source.metadata || {};
+  let count = '';
+  
+  if (source.type === 'plain_text' && metadata.no_of_chars) {
+    count = `${metadata.no_of_chars} characters`;
+  } else if (source.type === 'csv' && metadata.no_of_rows) {
+    count = `${metadata.no_of_rows} rows`;
+  } else if ((source.type === 'docs' || source.type === 'website' || source.type === 'pdf') && metadata.no_of_pages) {
+    count = `${metadata.no_of_pages} pages`;
+  }
+  
+  const size = metadata.file_size ? formatFileSizeToMB(metadata.file_size) : 'N/A';
+  
+  return { count, size };
+};
+

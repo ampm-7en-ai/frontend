@@ -7,7 +7,7 @@ import KnowledgeSourceTable from './KnowledgeSourceTable';
 import { KnowledgeSource } from './types';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 
 interface KnowledgeTrainingStatusProps {
@@ -38,7 +38,6 @@ const KnowledgeTrainingStatus = ({
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   
-  // Fetch available knowledge bases
   const fetchKnowledgeBases = async () => {
     try {
       const token = getAccessToken();
@@ -62,13 +61,11 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  // Query to fetch available knowledge bases
   const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
   });
 
-  // Transform external knowledge bases into the format expected by ImportSourcesDialog
   const formatExternalSources = (data) => {
     if (!data) return [];
     
@@ -77,42 +74,33 @@ const KnowledgeTrainingStatus = ({
         ? kb.knowledge_sources[0] 
         : null;
 
-      const fileType = firstSource && firstSource.metadata && firstSource.metadata.file_type 
-        ? firstSource.metadata.file_type 
-        : 'N/A';
+      const metadataInfo = firstSource ? getSourceMetadataInfo({
+        type: kb.type,
+        metadata: firstSource.metadata
+      }) : { count: '', size: 'N/A' };
         
       const uploadDate = firstSource && firstSource.metadata && firstSource.metadata.upload_date 
         ? formatDate(firstSource.metadata.upload_date) 
         : formatDate(kb.last_updated);
 
-      let pages = '';
-      if (firstSource && firstSource.metadata) {
-        if (kb.type === 'csv' && firstSource.metadata.no_of_rows) {
-          pages = `${firstSource.metadata.no_of_rows} rows`;
-        } else if (firstSource.metadata.no_of_pages) {
-          pages = `${firstSource.metadata.no_of_pages} pages`;
-        }
-      }
-
-      const size = firstSource && firstSource.metadata && firstSource.metadata.file_size 
-        ? firstSource.metadata.file_size 
-        : 'N/A';
+      const format = firstSource && firstSource.metadata && firstSource.metadata.format 
+        ? firstSource.metadata.format 
+        : getMimeTypeForFormat(kb.type);
 
       return {
         id: kb.id,
         name: kb.name,
         type: kb.type,
-        format: getMimeTypeForFormat(kb.type, fileType),
-        size: size,
-        pages: pages,
+        format: format,
+        size: metadataInfo.size,
+        pages: metadataInfo.count,
         lastUpdated: uploadDate,
         linkBroken: false
       };
     });
   };
 
-  // Helper to get appropriate MIME type
-  const getMimeTypeForFormat = (type, fileType) => {
+  const getMimeTypeForFormat = (type) => {
     switch(type) {
       case 'pdf':
         return 'application/pdf';
@@ -125,12 +113,13 @@ const KnowledgeTrainingStatus = ({
       case 'website':
       case 'url':
         return 'text/html';
+      case 'plain_text':
+        return 'text/plain';
       default:
-        return fileType || 'application/octet-stream';
+        return 'application/octet-stream';
     }
   };
   
-  // Helper to format date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     
@@ -138,12 +127,10 @@ const KnowledgeTrainingStatus = ({
     return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
   };
 
-  // Format agent's knowledge sources
   const transformAgentKnowledgeSources = (data) => {
     if (!data) return [];
     
     return data.map(source => {
-      // Ensure trainingStatus is one of the allowed values
       let trainingStatus: 'idle' | 'training' | 'success' | 'error' = 'idle';
       const status = source.training_status || 'idle';
       
@@ -153,11 +140,17 @@ const KnowledgeTrainingStatus = ({
       
       const progress = trainingStatus === 'success' ? 100 : (trainingStatus === 'error' ? 100 : (trainingStatus === 'training' ? 50 : 0));
       
+      const metadataInfo = getSourceMetadataInfo({
+        type: source.type || 'document',
+        metadata: source.metadata || {}
+      });
+      
       return {
         id: source.id,
         name: source.name || 'Unnamed source',
         type: source.type || 'document',
-        size: source.metadata?.file_size || 'N/A',
+        size: metadataInfo.size,
+        pages: metadataInfo.count,
         lastUpdated: formatDate(source.metadata?.upload_date || source.updated_at),
         trainingStatus: trainingStatus,
         progress: progress,
@@ -167,7 +160,6 @@ const KnowledgeTrainingStatus = ({
     });
   };
 
-  // Use preloaded knowledge sources if provided
   useEffect(() => {
     if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
       console.log("Using preloaded knowledge sources:", preloadedKnowledgeSources);
@@ -179,7 +171,6 @@ const KnowledgeTrainingStatus = ({
     }
   }, [preloadedKnowledgeSources]);
 
-  // Effect to set error state if isLoading is false and loadError exists
   useEffect(() => {
     if (!isLoading && loadError) {
       console.log("Setting fallback UI due to load error:", loadError);
@@ -196,7 +187,6 @@ const KnowledgeTrainingStatus = ({
     
     if (!sourceToRemove) return;
     
-    // Just remove the source from the UI without making API calls
     setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
     
     if (onSourcesChange) {
@@ -213,7 +203,6 @@ const KnowledgeTrainingStatus = ({
   };
 
   const updateSource = async (sourceId: number, data: Partial<KnowledgeSource>) => {
-    // Update the source in the UI without making API calls
     setKnowledgeSources(prev => 
       prev.map(source => 
         source.id === sourceId 
@@ -247,7 +236,6 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    // Create new sources from the selected external sources
     const newSources: KnowledgeSource[] = newSourceIds.map(id => {
       const externalSource = externalSources.find(s => s.id === id);
       if (!externalSource) return null;
@@ -258,24 +246,21 @@ const KnowledgeTrainingStatus = ({
         type: externalSource.type,
         size: externalSource.size,
         lastUpdated: externalSource.lastUpdated,
-        trainingStatus: 'idle' as const, // Explicitly type as a literal
+        trainingStatus: 'idle' as const,
         progress: 0,
         linkBroken: false
       };
     }).filter(Boolean) as KnowledgeSource[];
     
-    // Add the new sources to the existing sources
     setKnowledgeSources(prev => [...prev, ...newSources]);
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // Update parent component if callback exists
     if (onSourcesChange) {
       const updatedSourceIds = [...knowledgeSources, ...newSources].map(s => s.id);
       onSourcesChange(updatedSourceIds);
     }
     
-    // Show toast notification
     if (newSourceIds.length === 1) {
       const sourceId = newSourceIds[0];
       const source = externalSources.find(s => s.id === sourceId);
@@ -297,7 +282,6 @@ const KnowledgeTrainingStatus = ({
     
     const sourceName = knowledgeSources[sourceIndex].name;
     
-    // Update the source status to 'training' in the UI
     setKnowledgeSources(prev => 
       prev.map(source => 
         source.id === sourceId 
@@ -308,7 +292,6 @@ const KnowledgeTrainingStatus = ({
     
     toast(getTrainingStatusToast('start', sourceName));
     
-    // Simulate training progress
     let progress = 10;
     const progressInterval = setInterval(() => {
       progress += 10;
@@ -324,7 +307,6 @@ const KnowledgeTrainingStatus = ({
       if (progress >= 100) {
         clearInterval(progressInterval);
         
-        // Set the source to 'success' status after "training" is complete
         setKnowledgeSources(prev => 
           prev.map(source => 
             source.id === sourceId 
@@ -356,7 +338,6 @@ const KnowledgeTrainingStatus = ({
       description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`,
     });
 
-    // Update all sources to training status
     setKnowledgeSources(prev => 
       prev.map(source => ({ 
         ...source, 
@@ -365,7 +346,6 @@ const KnowledgeTrainingStatus = ({
       }))
     );
 
-    // Simulate training progress for all sources
     let progress = 10;
     const progressInterval = setInterval(() => {
       progress += 10;
@@ -380,7 +360,6 @@ const KnowledgeTrainingStatus = ({
       if (progress >= 100) {
         clearInterval(progressInterval);
         
-        // Set all sources to 'success' status after "training" is complete
         setKnowledgeSources(prev => 
           prev.map(source => ({ 
             ...source, 

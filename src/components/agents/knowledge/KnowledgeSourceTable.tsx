@@ -373,6 +373,11 @@ const KnowledgeSourceTable = ({
                         </span>
                       )}
                     </div>
+                    {source.pages && (
+                      <div className="text-xs text-muted-foreground ml-7 mt-0.5">
+                        {source.pages}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="py-2">{formatFileSizeToMB(source.size)}</TableCell>
                   <TableCell className="py-2">{source.lastUpdated}</TableCell>

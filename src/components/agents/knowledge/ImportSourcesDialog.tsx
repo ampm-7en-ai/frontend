@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -14,7 +13,7 @@ import { Link2Off, FileText, Globe, FileSpreadsheet, File } from 'lucide-react';
 import { getSourceTypeIcon } from './knowledgeUtils';
 import { KnowledgeSource } from './types';
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 
 interface ExternalSource {
@@ -98,35 +97,28 @@ const ImportSourcesDialog = ({
         const firstSource = kb.knowledge_sources && kb.knowledge_sources.length > 0 
           ? kb.knowledge_sources[0] 
           : null;
-
-        const fileType = firstSource && firstSource.metadata && firstSource.metadata.file_type 
-          ? firstSource.metadata.file_type 
-          : 'N/A';
           
+        const metadataInfo = firstSource ? getSourceMetadataInfo({
+          type: kb.type,
+          metadata: firstSource.metadata
+        }) : { count: '', size: 'N/A' };
+        
         const uploadDate = firstSource && firstSource.metadata && firstSource.metadata.upload_date 
           ? formatDate(firstSource.metadata.upload_date) 
           : formatDate(kb.last_updated);
 
-        let pages = '';
-        if (firstSource && firstSource.metadata) {
-          if (kb.type === 'csv' && firstSource.metadata.no_of_rows) {
-            pages = `${firstSource.metadata.no_of_rows} rows`;
-          } else if (firstSource.metadata.no_of_pages) {
-            pages = `${firstSource.metadata.no_of_pages} pages`;
-          }
-        }
-
-        const size = firstSource && firstSource.metadata && firstSource.metadata.file_size 
-          ? firstSource.metadata.file_size 
-          : 'N/A';
+        // Get file format from metadata
+        const format = firstSource && firstSource.metadata && firstSource.metadata.format 
+          ? firstSource.metadata.format 
+          : getMimeTypeForFormat(kb.type);
 
         return {
           id: kb.id,
           name: kb.name,
           type: kb.type,
-          format: fileType,
-          size: size,
-          pages: pages,
+          format: format,
+          size: metadataInfo.size,
+          pages: metadataInfo.count,
           lastUpdated: uploadDate,
           linkBroken: false
         };
@@ -141,6 +133,26 @@ const ImportSourcesDialog = ({
     
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+  };
+
+  const getMimeTypeForFormat = (type) => {
+    switch(type) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'xlsx':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'csv':
+        return 'text/csv';
+      case 'website':
+      case 'url':
+        return 'text/html';
+      case 'plain_text':
+        return 'text/plain';
+      default:
+        return 'application/octet-stream';
+    }
   };
 
   const toggleImportSelection = (sourceId: number) => {

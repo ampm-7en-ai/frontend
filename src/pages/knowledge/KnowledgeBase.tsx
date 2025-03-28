@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 
 const KnowledgeBase = () => {
@@ -82,26 +81,18 @@ const KnowledgeBase = () => {
         ? kb.knowledge_sources[0] 
         : null;
 
-      const fileType = firstSource && firstSource.metadata && firstSource.metadata.file_type 
-        ? firstSource.metadata.file_type 
-        : 'N/A';
-        
+      const metadataInfo = firstSource ? getSourceMetadataInfo({
+        type: kb.type,
+        metadata: firstSource.metadata
+      }) : { count: '', size: 'N/A' };
+      
       const uploadDate = firstSource && firstSource.metadata && firstSource.metadata.upload_date 
         ? formatDate(firstSource.metadata.upload_date) 
         : formatDate(kb.last_updated);
 
-      let pages = '';
-      if (firstSource && firstSource.metadata) {
-        if (kb.type === 'csv' && firstSource.metadata.no_of_rows) {
-          pages = `${firstSource.metadata.no_of_rows} rows`;
-        } else if (firstSource.metadata.no_of_pages) {
-          pages = `${firstSource.metadata.no_of_pages} pages`;
-        }
-      }
-
-      // Format file size to MB
-      const fileSize = firstSource && firstSource.metadata && firstSource.metadata.file_size 
-        ? formatFileSizeToMB(firstSource.metadata.file_size) 
+      // Get file format from metadata
+      const fileFormat = firstSource && firstSource.metadata && firstSource.metadata.format 
+        ? firstSource.metadata.format 
         : 'N/A';
 
       return {
@@ -109,9 +100,9 @@ const KnowledgeBase = () => {
         title: kb.name,
         type: kb.type,
         sourceType: kb.type,
-        fileType: fileType,
-        size: fileSize,
-        pages: pages,
+        fileFormat: fileFormat,
+        size: metadataInfo.size,
+        pages: metadataInfo.count,
         agents: [],
         uploadedAt: uploadDate,
         provider: null,
@@ -362,7 +353,7 @@ const KnowledgeBase = () => {
                           <span className="font-medium">{doc.title}</span>
                           <div className="text-xs text-muted-foreground mt-0.5">
                             {doc.pages} {doc.pages && doc.size ? '•' : ''} {doc.size}
-                            {doc.fileType !== 'N/A' && ` • ${doc.fileType}`}
+                            {doc.fileFormat !== 'N/A' && ` • ${doc.fileFormat}`}
                           </div>
                         </div>
                       </div>
