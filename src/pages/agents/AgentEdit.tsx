@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogBody } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -49,11 +50,88 @@ const predefinedAvatars = [
   }
 ];
 
+// Updated integration options to be more focused and detailed
 const integrationOptions = [
-  { id: 'zapier', name: 'Zapier', icon: 'zapier', description: 'Connect with thousands of apps through Zapier', connected: false, color: '#FF4A00' },
-  { id: 'whatsapp', name: 'WhatsApp', icon: 'whatsapp', description: 'Connect your WhatsApp Business account', connected: false, color: '#25D366' },
-  { id: 'slack', name: 'Slack', icon: 'slack', description: 'Link your Slack workspace', connected: true, color: '#4A154B' },
-  { id: 'instagram', name: 'Instagram', icon: 'instagram', description: 'Connect to Instagram direct messages', connected: false, color: '#E1306C' },
+  { 
+    id: 'slack', 
+    name: 'Slack', 
+    icon: 'slack', 
+    description: 'Connect your agent to Slack to provide support in channels and direct messages', 
+    connected: false, 
+    color: '#4A154B',
+    setupInstructions: 'Add this chatbot to your Slack workspace to answer questions in channels or DMs. Your agent will use the same knowledge and settings you configure here.',
+    features: ['Answer questions in channels', 'Handle direct messages', 'Access to conversation history']
+  },
+  { 
+    id: 'whatsapp', 
+    name: 'WhatsApp', 
+    icon: 'whatsapp', 
+    description: 'Let your agent respond to WhatsApp messages automatically', 
+    connected: false, 
+    color: '#25D366',
+    setupInstructions: 'Connect your WhatsApp Business account to automatically respond to customer messages using this agent.',
+    features: ['Auto-respond to messages', 'Trigger human handoff when needed', 'Use media messaging capabilities']
+  },
+  { 
+    id: 'instagram', 
+    name: 'Instagram', 
+    icon: 'instagram', 
+    description: 'Connect your agent to Instagram direct messages', 
+    connected: false, 
+    color: '#E1306C',
+    setupInstructions: 'Link your Instagram business account to handle direct message inquiries with this agent.',
+    features: ['Answer DM inquiries', 'Schedule responses', 'Tracking and analytics']
+  },
+  { 
+    id: 'website', 
+    name: 'Website Widget', 
+    icon: 'globe', 
+    description: 'Add this agent as a chat widget on your website', 
+    connected: true, 
+    color: '#0ea5e9',
+    setupInstructions: 'Add a JavaScript snippet to your website to display this chatbot to your visitors.',
+    features: ['Customize appearance', 'Control display conditions', 'Visitor insights']
+  },
+  { 
+    id: 'api', 
+    name: 'API Access', 
+    icon: 'code', 
+    description: 'Access this agent through our API for custom integrations', 
+    connected: false, 
+    color: '#64748b',
+    setupInstructions: 'Use our API to integrate this agent with custom applications and systems.',
+    features: ['RESTful API endpoints', 'Webhook support', 'Custom authentication']
+  },
+  { 
+    id: 'email', 
+    name: 'Email', 
+    icon: 'mail', 
+    description: 'Let your agent handle email inquiries', 
+    connected: false, 
+    color: '#ea580c',
+    setupInstructions: 'Connect an email address that this agent will monitor and respond to automatically.',
+    features: ['Auto-respond to emails', 'Smart email routing', 'Attachment handling']
+  },
+  { 
+    id: 'sms', 
+    name: 'SMS', 
+    icon: 'message-square', 
+    description: 'Enable SMS support with your agent', 
+    connected: false, 
+    color: '#16a34a',
+    setupInstructions: 'Connect a phone number to automatically respond to SMS messages using this agent.',
+    features: ['Two-way messaging', 'Group messaging support', 'Automated responses']
+  },
+  { 
+    id: 'microsoft', 
+    name: 'Microsoft Teams', 
+    icon: 'microsoft', 
+    description: 'Add your agent to Microsoft Teams channels', 
+    connected: false, 
+    color: '#4b5cc4',
+    setupInstructions: 'Install this agent as a Teams app to provide assistance in channels and chats.',
+    features: ['Channel monitoring', 'Direct messaging', 'File sharing capabilities']
+  }
 ];
 
 const AgentEdit = () => {
@@ -100,7 +178,15 @@ const AgentEdit = () => {
   const [activeIntegrations, setActiveIntegrations] = useState(integrationOptions);
   const [selectedIntegration, setSelectedIntegration] = useState<null | typeof integrationOptions[0]>(null);
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
-  const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
+  const [integrationFormData, setIntegrationFormData] = useState({ 
+    apiKey: '', 
+    webhookUrl: '', 
+    accountId: '',
+    phoneNumber: '', 
+    email: '',
+    botUsername: ''
+  });
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -654,81 +740,6 @@ const AgentEdit = () => {
     );
   };
 
-  const renderIntegrationsContent = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Integrations</CardTitle>
-          <CardDescription>Connect your agent with other platforms to extend its capabilities</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {integrationOptions.map(integration => (
-              <div
-                key={integration.id}
-                className={`border rounded-lg p-4 transition-all cursor-pointer hover:shadow-md ${integration.connected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'}`}
-                onClick={() => setSelectedIntegration(integration)}
-              >
-                <div className="flex flex-col items-center text-center gap-2 h-full">
-                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-accent/10 mb-2">
-                    {getIntegrationIconElement(integration.icon, integration.color)}
-                  </div>
-                  <span className="font-medium">{integration.name}</span>
-                  <span className="text-xs text-muted-foreground">{integration.description}</span>
-                  {integration.connected && (
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 mt-2">Connected</Badge>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center">
-            <Slack className="h-5 w-5 mr-2 text-[#4A154B]" />
-            Connected Integrations
-          </CardTitle>
-          <CardDescription>Manage your agent's active connections</CardDescription>
-        </CardHeader>
-        <CardContent className="py-6">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 border rounded-lg bg-primary/5">
-              <div className="flex-shrink-0">
-                <Slack className="h-10 w-10 text-[#4A154B]" />
-              </div>
-              <div className="flex-grow">
-                <h4 className="font-medium">Slack</h4>
-                <p className="text-sm text-muted-foreground">Connected to workspace: Team Coco</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">Configure</Button>
-                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">Disconnect</Button>
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <h4 className="font-medium">Connect a New Platform</h4>
-              <p className="text-sm text-muted-foreground mb-2">Select an integration above to connect with more platforms.</p>
-              
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <h5 className="font-medium text-sm mb-2">Integration Benefits</h5>
-                <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5">
-                  <li>Allow your AI agent to communicate through multiple channels</li>
-                  <li>Maintain consistent conversations across platforms</li>
-                  <li>Automate workflows with Zapier integration</li>
-                  <li>Notify your team when the agent needs human support</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   const getIntegrationIconElement = (iconName: string, color: string) => {
     switch (iconName) {
       case 'slack':
@@ -737,227 +748,21 @@ const AgentEdit = () => {
         return <Smartphone className="h-6 w-6" style={{ color }} />;
       case 'instagram':
         return <Instagram className="h-6 w-6" style={{ color }} />;
-      case 'zapier':
+      case 'globe':
         return (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0C5.372 0 0 5.372 0 12C0 18.628 5.372 24 12 24C18.628 24 24 18.628 24 12C24 5.372 18.628 0 12 0ZM5.694 14.538L3.824 17.497H8.135L10.266 14.538H5.694ZM17.761 8.291H14.362L10.932 13.517L14.715 19.206H18.121L14.338 13.517L17.761 8.291ZM15.751 4.794H12.349L5.152 15.782L8.554 15.775L15.751 4.794Z" fill={color} />
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
           </svg>
         );
-      default:
-        return <div className="h-6 w-6 bg-primary/10 rounded-full" />;
-    }
-  };
-
-  const toggleIntegration = (id: string) => {
-    setActiveIntegrations(
-      activeIntegrations.map(integration => 
-        integration.id === id 
-          ? {...integration, connected: !integration.connected} 
-          : integration
-      )
-    );
-  };
-
-  const openIntegrationDialog = (integration: typeof integrationOptions[0]) => {
-    setSelectedIntegration(integration);
-    setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
-    setIsIntegrationDialogOpen(true);
-  };
-
-  const handleIntegrationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setIntegrationFormData({ ...integrationFormData, [id.split('-')[1]]: value });
-  };
-
-  const handleSaveIntegration = () => {
-    if (selectedIntegration) {
-      toggleIntegration(selectedIntegration.id);
-      setIsIntegrationDialogOpen(false);
-      
-      toast({
-        title: `${selectedIntegration.name} ${selectedIntegration.connected ? 'updated' : 'connected'}`,
-        description: `Your agent has been successfully ${selectedIntegration.connected ? 'updated with' : 'connected to'} ${selectedIntegration.name}.`,
-      });
-    }
-  };
-
-  return (
-    <div className="h-full">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={goBack}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
-            <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
-          </div>
-        </div>
-        <Button onClick={handleSaveChanges}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
-        <div className="h-full">
-          {renderChatPreview()}
-        </div>
-        
-        <div className="col-span-2 h-full overflow-y-auto">
-          <Tabs 
-            defaultValue="general" 
-            className="w-full"
-            value={activeTab}
-            onValueChange={setActiveTab}
-          >
-            <div className="flex justify-start mb-6">
-              <TabsList size="xs" className="w-auto">
-                <TabsTrigger value="general" size="xs">
-                  <Bot className="h-4 w-4 mr-2" />
-                  General
-                </TabsTrigger>
-                <TabsTrigger value="appearance" size="xs">
-                  <Palette className="h-4 w-4 mr-2" />
-                  Appearance
-                </TabsTrigger>
-                <TabsTrigger value="advanced" size="xs">
-                  <Sliders className="h-4 w-4 mr-2" />
-                  Advanced Settings
-                </TabsTrigger>
-                <TabsTrigger value="knowledge" size="xs">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Knowledge
-                </TabsTrigger>
-                <TabsTrigger value="integrations" size="xs">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Integrations
-                </TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <TabsContent value="general" className="mt-0">
-              {renderGeneralContent()}
-            </TabsContent>
-            
-            <TabsContent value="appearance" className="mt-0">
-              {renderAppearanceContent()}
-            </TabsContent>
-            
-            <TabsContent value="advanced" className="mt-0">
-              {renderAdvancedContent()}
-            </TabsContent>
-            
-            <TabsContent value="knowledge" className="mt-0">
-              <KnowledgeTrainingStatus 
-                agentId={agentId || ''} 
-                initialSelectedSources={agent.knowledgeSources}
-                onSourcesChange={handleKnowledgeSourcesChange}
-              />
-            </TabsContent>
-
-            <TabsContent value="integrations" className="mt-0">
-              {renderIntegrationsContent()}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-
-      <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
-        {selectedIntegration && (
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Configure {selectedIntegration.name}</DialogTitle>
-              <DialogDescription>
-                Enter your credentials to connect with {selectedIntegration.name}.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              {selectedIntegration.id === 'zapier' && (
-                <div className="space-y-2">
-                  <Label htmlFor="zapier-webhook">Zapier Webhook URL</Label>
-                  <Input 
-                    id="zapier-webhook" 
-                    placeholder="https://hooks.zapier.com/hooks/catch/..."
-                    value={integrationFormData.webhookUrl}
-                    onChange={handleIntegrationInputChange}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Create a Zapier webhook trigger and paste the webhook URL here.
-                  </p>
-                </div>
-              )}
-              
-              {selectedIntegration.id === 'slack' && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="slack-workspace">Slack Workspace Name</Label>
-                    <Input 
-                      id="slack-workspace" 
-                      placeholder="Your Slack Workspace"
-                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="slack-token">Bot Token</Label>
-                    <Input 
-                      id="slack-token" 
-                      type="password"
-                      placeholder="xoxb-..."
-                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      You can find this in your Slack App settings.
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              {(selectedIntegration.id === 'whatsapp' || selectedIntegration.id === 'instagram') && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor={`${selectedIntegration.id}-account`}>Account ID</Label>
-                    <Input 
-                      id={`${selectedIntegration.id}-account`}
-                      placeholder="Enter your account ID"
-                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`${selectedIntegration.id}-token`}>API Token</Label>
-                    <Input 
-                      id={`${selectedIntegration.id}-token`}
-                      type="password"
-                      placeholder="Enter your API token"
-                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`${selectedIntegration.id}-webhook`}>Webhook URL</Label>
-                    <Input 
-                      id={`${selectedIntegration.id}-webhook`}
-                      value="https://api.coco.ai/webhooks/incoming"
-                      readOnly
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Use this URL in your {selectedIntegration.name} webhook settings.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsIntegrationDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleSaveIntegration}>
-                {selectedIntegration.connected ? 'Update' : 'Connect'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
-    </div>
-  );
-};
-
-export default AgentEdit;
+      case 'code':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+        );
+      case 'mail':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06
