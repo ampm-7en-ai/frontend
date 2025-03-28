@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,7 @@ const predefinedAvatars = [
 ];
 
 const integrationOptions = [
-  { id: 'zapier', name: 'Zapier', icon: 'zapier', description: 'Connect with thousands of apps through Zapier', connected: false, color: '#FF4A00' },
+  { id: 'messenger', name: 'Messenger', icon: 'messenger', description: 'Connect with Facebook Messenger', connected: false, color: '#0084FF' },
   { id: 'whatsapp', name: 'WhatsApp', icon: 'whatsapp', description: 'Connect your WhatsApp Business account', connected: false, color: '#25D366' },
   { id: 'slack', name: 'Slack', icon: 'slack', description: 'Link your Slack workspace', connected: true, color: '#4A154B' },
   { id: 'instagram', name: 'Instagram', icon: 'instagram', description: 'Connect to Instagram direct messages', connected: false, color: '#E1306C' },
@@ -195,6 +196,12 @@ const AgentEdit = () => {
       title: "Avatar uploaded",
       description: "Your custom avatar has been uploaded.",
     });
+  };
+  
+  const handleIntegrationCardClick = (integration: typeof integrationOptions[0]) => {
+    setSelectedIntegration(integration);
+    setIsIntegrationDialogOpen(true);
+    setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
   };
 
   const renderGeneralContent = () => (
@@ -667,7 +674,7 @@ const AgentEdit = () => {
               <div
                 key={integration.id}
                 className={`border rounded-lg p-4 transition-all cursor-pointer hover:shadow-md ${integration.connected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'}`}
-                onClick={() => setSelectedIntegration(integration)}
+                onClick={() => handleIntegrationCardClick(integration)}
               >
                 <div className="flex flex-col items-center text-center gap-2 h-full">
                   <div className="w-12 h-12 flex items-center justify-center rounded-full bg-accent/10 mb-2">
@@ -718,7 +725,7 @@ const AgentEdit = () => {
                 <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5">
                   <li>Allow your AI agent to communicate through multiple channels</li>
                   <li>Maintain consistent conversations across platforms</li>
-                  <li>Automate workflows with Zapier integration</li>
+                  <li>Automate workflows with integrations</li>
                   <li>Notify your team when the agent needs human support</li>
                 </ul>
               </div>
@@ -737,10 +744,10 @@ const AgentEdit = () => {
         return <Smartphone className="h-6 w-6" style={{ color }} />;
       case 'instagram':
         return <Instagram className="h-6 w-6" style={{ color }} />;
-      case 'zapier':
+      case 'messenger':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0C5.372 0 0 5.372 0 12C0 18.628 5.372 24 12 24C18.628 24 24 18.628 24 12C24 5.372 18.628 0 12 0ZM5.694 14.538L3.824 17.497H8.135L10.266 14.538H5.694ZM17.761 8.291H14.362L10.932 13.517L14.715 19.206H18.121L14.338 13.517L17.761 8.291ZM15.751 4.794H12.349L5.152 15.782L8.554 15.775L15.751 4.794Z" fill={color} />
+            <path d="M12 2C6.36 2 2 6.13 2 11.7C2 14.6 3.19 17.13 5.14 18.87V23L9.14 20.87C10.03 21.13 11 21.28 12 21.28C17.64 21.28 22 17.15 22 11.58C22 6.13 17.64 2 12 2ZM13.33 15.25L10.5 12.25L5 15.25L11 8.75L13.83 11.75L19.33 8.75L13.33 15.25Z" fill={color} />
           </svg>
         );
       default:
@@ -756,12 +763,6 @@ const AgentEdit = () => {
           : integration
       )
     );
-  };
-
-  const openIntegrationDialog = (integration: typeof integrationOptions[0]) => {
-    setSelectedIntegration(integration);
-    setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
-    setIsIntegrationDialogOpen(true);
   };
 
   const handleIntegrationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -873,18 +874,40 @@ const AgentEdit = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              {selectedIntegration.id === 'zapier' && (
-                <div className="space-y-2">
-                  <Label htmlFor="zapier-webhook">Zapier Webhook URL</Label>
-                  <Input 
-                    id="zapier-webhook" 
-                    placeholder="https://hooks.zapier.com/hooks/catch/..."
-                    value={integrationFormData.webhookUrl}
-                    onChange={handleIntegrationInputChange}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Create a Zapier webhook trigger and paste the webhook URL here.
-                  </p>
+              {selectedIntegration.id === 'messenger' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-pageid">Facebook Page ID</Label>
+                    <Input 
+                      id="messenger-pageid" 
+                      placeholder="Enter your Facebook Page ID"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-token">Page Access Token</Label>
+                    <Input 
+                      id="messenger-token" 
+                      type="password"
+                      placeholder="Enter your Page Access Token"
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      You can find this in your Facebook Developer account.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-callback">Webhook Callback URL</Label>
+                    <Input 
+                      id="messenger-callback"
+                      value="https://api.coco.ai/webhooks/messenger"
+                      readOnly
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use this URL in your Facebook app's webhook settings.
+                    </p>
+                  </div>
                 </div>
               )}
               
@@ -961,3 +984,4 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
+
