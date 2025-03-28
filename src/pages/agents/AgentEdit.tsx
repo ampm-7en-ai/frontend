@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, Rocket, ExternalLink } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, Rocket, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -45,6 +47,13 @@ const predefinedAvatars = [
     id: 'predefined-3',
     src: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=100&h=100'
   }
+];
+
+const integrationOptions = [
+  { id: 'whatsapp', name: 'WhatsApp', icon: Smartphone, description: 'Connect your WhatsApp Business account to interact with customers', connected: false },
+  { id: 'messenger', name: 'Messenger', icon: MessageSquare, description: 'Link your Facebook Messenger to engage with your audience', connected: false },
+  { id: 'slack', name: 'Slack', icon: Slack, description: 'Integrate with Slack to collaborate with your team', connected: true },
+  { id: 'instagram', name: 'Instagram', icon: Instagram, description: 'Connect to Instagram to respond to direct messages', connected: false },
 ];
 
 const AgentEdit = () => {
@@ -88,7 +97,11 @@ const AgentEdit = () => {
   const [newMessage, setNewMessage] = useState('');
   const [customAvatarFile, setCustomAvatarFile] = useState<File | null>(null);
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
-  
+  const [activeIntegrations, setActiveIntegrations] = useState(integrationOptions);
+  const [selectedIntegration, setSelectedIntegration] = useState<null | typeof integrationOptions[0]>(null);
+  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
+  const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
+
   const handleChange = (name: string, value: any) => {
     setAgent({
       ...agent,
@@ -641,6 +654,92 @@ const AgentEdit = () => {
     );
   };
 
+  const renderIntegrationsContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Channel Integrations</CardTitle>
+        <CardDescription>Connect your agent to various messaging platforms</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {activeIntegrations.map(integration => (
+            <Card key={integration.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-primary/10 p-2 rounded-md">
+                      <integration.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{integration.name}</CardTitle>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={integration.connected} 
+                    onCheckedChange={() => {
+                      if (!integration.connected) {
+                        openIntegrationDialog(integration);
+                      } else {
+                        toggleIntegration(integration.id);
+                      }
+                    }}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">{integration.description}</p>
+              </CardContent>
+              <CardFooter className="bg-muted/40 border-t pt-2 pb-2 px-6">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-xs ml-auto"
+                  onClick={() => openIntegrationDialog(integration)}
+                  disabled={!integration.connected}
+                >
+                  Configure
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const toggleIntegration = (id: string) => {
+    setActiveIntegrations(
+      activeIntegrations.map(integration => 
+        integration.id === id 
+          ? {...integration, connected: !integration.connected} 
+          : integration
+      )
+    );
+  };
+
+  const openIntegrationDialog = (integration: typeof integrationOptions[0]) => {
+    setSelectedIntegration(integration);
+    setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
+    setIsIntegrationDialogOpen(true);
+  };
+
+  const handleIntegrationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setIntegrationFormData({ ...integrationFormData, [id.split('-')[1]]: value });
+  };
+
+  const handleSaveIntegration = () => {
+    if (selectedIntegration) {
+      toggleIntegration(selectedIntegration.id);
+      setIsIntegrationDialogOpen(false);
+      
+      toast({
+        title: `${selectedIntegration.name} ${selectedIntegration.connected ? 'updated' : 'connected'}`,
+        description: `Your agent has been successfully ${selectedIntegration.connected ? 'updated with' : 'connected to'} ${selectedIntegration.name}.`,
+      });
+    }
+  };
+
   return (
     <div className="h-full">
       <div className="flex items-center justify-between border-b pb-4">
@@ -689,6 +788,10 @@ const AgentEdit = () => {
                   <FileText className="h-4 w-4 mr-2" />
                   Knowledge
                 </TabsTrigger>
+                <TabsTrigger value="integrations" size="xs">
+                  <Slack className="h-4 w-4 mr-2" />
+                  Integrations
+                </TabsTrigger>
               </TabsList>
             </div>
             
@@ -711,9 +814,66 @@ const AgentEdit = () => {
                 onSourcesChange={handleKnowledgeSourcesChange}
               />
             </TabsContent>
+
+            <TabsContent value="integrations" className="mt-0">
+              {renderIntegrationsContent()}
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
+        {selectedIntegration && (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Configure {selectedIntegration.name}</DialogTitle>
+              <DialogDescription>
+                Enter your credentials to connect with {selectedIntegration.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor={`${selectedIntegration.id}-apiKey`}>API Key</Label>
+                <Input 
+                  id={`${selectedIntegration.id}-apiKey`} 
+                  type="password" 
+                  placeholder="Enter your API key"
+                  value={integrationFormData.apiKey}
+                  onChange={handleIntegrationInputChange}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor={`${selectedIntegration.id}-webhookUrl`}>Webhook URL</Label>
+                <Input 
+                  id={`${selectedIntegration.id}-webhookUrl`} 
+                  placeholder="Enter webhook URL"
+                  value={integrationFormData.webhookUrl}
+                  onChange={handleIntegrationInputChange}
+                />
+              </div>
+
+              {selectedIntegration.id === 'instagram' && (
+                <div className="space-y-2">
+                  <Label htmlFor={`${selectedIntegration.id}-accountId`}>Instagram Account ID</Label>
+                  <Input 
+                    id={`${selectedIntegration.id}-accountId`} 
+                    placeholder="Enter your Instagram account ID"
+                    value={integrationFormData.accountId}
+                    onChange={handleIntegrationInputChange}
+                  />
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsIntegrationDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveIntegration}>
+                {selectedIntegration.connected ? 'Update' : 'Connect'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 };
