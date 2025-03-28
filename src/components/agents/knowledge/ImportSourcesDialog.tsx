@@ -33,13 +33,16 @@ interface ImportSourcesDialogProps {
   onOpenChange: (open: boolean) => void;
   currentSources: KnowledgeSource[];
   onImport: (selectedSourceIds: number[]) => void;
+  // Adding the missing externalSources prop to match how it's used in KnowledgeTrainingStatus
+  externalSources?: ExternalSource[];
 }
 
 const ImportSourcesDialog = ({
   isOpen,
   onOpenChange,
   currentSources,
-  onImport
+  onImport,
+  externalSources: propExternalSources
 }: ImportSourcesDialogProps) => {
   const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
   const { toast } = useToast();
@@ -71,7 +74,7 @@ const ImportSourcesDialog = ({
   const { data, isLoading, error } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
-    enabled: isOpen, // Only fetch when dialog is open
+    enabled: isOpen && !propExternalSources, // Only fetch when dialog is open and no external sources provided
   });
 
   useEffect(() => {
@@ -85,6 +88,12 @@ const ImportSourcesDialog = ({
   }, [error, toast]);
 
   useEffect(() => {
+    // If external sources are provided via props, use those instead of fetching
+    if (propExternalSources) {
+      setExternalSources(propExternalSources);
+      return;
+    }
+    
     if (data) {
       const formattedSources: ExternalSource[] = data.map(kb => {
         const firstSource = kb.knowledge_sources && kb.knowledge_sources.length > 0 
@@ -126,7 +135,7 @@ const ImportSourcesDialog = ({
 
       setExternalSources(formattedSources);
     }
-  }, [data]);
+  }, [data, propExternalSources]);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
