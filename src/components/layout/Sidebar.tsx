@@ -139,14 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       icon: Bot
     },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
-    { id: 'business-settings', label: 'Business Settings', href: '/settings', icon: Settings, children: [
-      { label: 'Business Profile', href: '/settings/business/profile' },
-      { label: 'Team Management', href: '/settings/business/team' },
-      { label: 'Agent Settings', href: '/settings/business/agents' },
-      { label: 'Integrations', href: '/settings/business/integrations' },
-      { label: 'Billing', href: '/settings/business/billing' },
-      { label: 'Preferences', href: '/settings/business/preferences' },
-    ] },
+    { id: 'settings', label: 'Settings', href: '/settings', icon: Settings },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
   ];
 
