@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,117 +11,105 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from '@/hooks/use-toast';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { useQuery } from '@tanstack/react-query';
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
+  const [knowledgeBases, setKnowledgeBases] = useState([]);
 
-  const documents = [
-    {
-      id: 'd1',
-      title: 'Product Features Overview',
-      type: 'pdf',
-      sourceType: 'document',
-      size: '2.4 MB',
-      pages: 24,
-      agents: ['Sales Bot', 'Support Bot', 'Marketing Bot'],
-      uploadedAt: '2023-06-01T10:15:00',
-      provider: null
-    },
-    {
-      id: 'd2',
-      title: 'Pricing Structure',
-      type: 'docx',
-      sourceType: 'document',
-      size: '1.1 MB',
-      pages: 12,
-      agents: ['Sales Bot', 'Support Bot'],
-      uploadedAt: '2023-06-02T14:30:00',
-      provider: null
-    },
-    {
-      id: 'd3',
-      title: 'Technical Specifications',
-      type: 'pdf',
-      sourceType: 'document',
-      size: '3.7 MB',
-      pages: 48,
-      agents: ['Support Bot', 'Technical Bot'],
-      uploadedAt: '2023-06-05T09:45:00',
-      provider: null
-    },
-    {
-      id: 'd4',
-      title: 'Company Website',
-      type: 'url',
-      sourceType: 'website',
-      size: 'N/A',
-      pageCount: 16,
-      agents: ['Sales Bot', 'Marketing Bot'],
-      uploadedAt: '2023-05-28T16:20:00',
-      provider: null
-    },
-    {
-      id: 'd5',
-      title: 'Customer Data',
-      type: 'csv',
-      sourceType: 'spreadsheet',
-      size: '0.8 MB',
-      rowCount: 1250,
-      agents: ['Analytics Bot', 'Sales Bot'],
-      uploadedAt: '2023-05-15T11:30:00',
-      provider: null
-    },
-    {
-      id: 'd6',
-      title: 'Help Documentation',
-      type: 'txt',
-      sourceType: 'plainText',
-      size: '0.3 MB',
-      pages: 8,
-      agents: ['Support Bot', 'Onboarding Bot'],
-      uploadedAt: '2023-06-10T09:20:00',
-      provider: null
-    },
-    {
-      id: 'd7',
-      title: 'Sales Training Documents',
-      type: 'gdrive',
-      sourceType: 'thirdParty',
-      size: '5.2 MB',
-      pages: 45,
-      agents: ['Sales Bot', 'Training Bot'],
-      uploadedAt: '2023-06-15T14:20:00',
-      provider: 'googleDrive'
-    },
-    {
-      id: 'd8',
-      title: 'Customer Support Channels',
-      type: 'slack',
-      sourceType: 'thirdParty',
-      size: 'N/A',
-      messages: 2500,
-      agents: ['Support Bot'],
-      uploadedAt: '2023-06-16T11:30:00',
-      provider: 'slack'
+  const fetchKnowledgeBases = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`, {
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch knowledge bases');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching knowledge bases:', error);
+      throw error;
     }
-  ];
+  };
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['knowledgeBases'],
+    queryFn: fetchKnowledgeBases,
+  });
+
+  useEffect(() => {
+    if (data) {
+      setKnowledgeBases(data);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error loading knowledge bases",
+        description: "There was a problem loading your knowledge bases. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
+  const formatKnowledgeBaseData = (apiData) => {
+    if (!apiData || apiData.length === 0) return [];
+
+    return apiData.map(kb => {
+      const firstSource = kb.knowledge_sources && kb.knowledge_sources.length > 0 
+        ? kb.knowledge_sources[0] 
+        : null;
+
+      return {
+        id: kb.id,
+        title: kb.name,
+        type: kb.type,
+        sourceType: kb.type,
+        size: firstSource && firstSource.metadata && firstSource.metadata.file_size 
+          ? firstSource.metadata.file_size 
+          : 'N/A',
+        pages: firstSource && firstSource.metadata && firstSource.metadata.no_of_pages 
+          ? firstSource.metadata.no_of_pages 
+          : undefined,
+        agents: [],
+        uploadedAt: kb.last_updated,
+        provider: null,
+        status: kb.status,
+        trainingStatus: kb.training_status
+      };
+    });
+  };
+
+  const documents = isLoading ? [] : formatKnowledgeBaseData(knowledgeBases);
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      doc.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.agents.some(agent => agent.toLowerCase().includes(searchQuery.toLowerCase()));
+      doc.type.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesType = sourceTypeFilter === 'all' || doc.sourceType === sourceTypeFilter;
     
     return matchesSearch && matchesType;
   });
 
-  const documentCount = documents.filter(d => d.sourceType === 'document').length;
+  const documentCount = documents.filter(d => d.sourceType === 'docs').length;
   const websiteCount = documents.filter(d => d.sourceType === 'website').length;
-  const spreadsheetCount = documents.filter(d => d.sourceType === 'spreadsheet').length;
-  const plainTextCount = documents.filter(d => d.sourceType === 'plainText').length;
+  const spreadsheetCount = documents.filter(d => d.sourceType === 'csv').length;
+  const plainTextCount = documents.filter(d => d.sourceType === 'plain_text').length;
+  const thirdPartyCount = documents.filter(d => d.sourceType === 'thirdparty').length;
 
   const renderSourceIcon = (doc) => {
     switch (doc.sourceType) {
@@ -233,11 +221,11 @@ const KnowledgeBase = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sources</SelectItem>
-              <SelectItem value="document">Documents</SelectItem>
+              <SelectItem value="docs">Documents</SelectItem>
               <SelectItem value="website">Websites</SelectItem>
-              <SelectItem value="spreadsheet">Spreadsheets</SelectItem>
-              <SelectItem value="plainText">Plain Text</SelectItem>
-              <SelectItem value="thirdParty">Third Party</SelectItem>
+              <SelectItem value="csv">Spreadsheets</SelectItem>
+              <SelectItem value="plain_text">Plain Text</SelectItem>
+              <SelectItem value="thirdparty">Third Party</SelectItem>
             </SelectContent>
           </Select>
           <Button asChild className="flex items-center gap-1">
@@ -258,7 +246,7 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{documentCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : documentCount}</div>
             <div className="text-sm text-muted-foreground">PDF, DOCX, etc.</div>
           </CardContent>
         </Card>
@@ -271,7 +259,7 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{websiteCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : websiteCount}</div>
             <div className="text-sm text-muted-foreground">URLs, Webpages</div>
           </CardContent>
         </Card>
@@ -284,7 +272,7 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{spreadsheetCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : spreadsheetCount}</div>
             <div className="text-sm text-muted-foreground">CSV, Excel files</div>
           </CardContent>
         </Card>
@@ -297,7 +285,7 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{plainTextCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : plainTextCount}</div>
             <div className="text-sm text-muted-foreground">Plain text files</div>
           </CardContent>
         </Card>
@@ -314,7 +302,7 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{documents.filter(d => d.sourceType === 'thirdParty').length}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : thirdPartyCount}</div>
             <div className="text-sm text-muted-foreground">Google Drive, Slack, etc.</div>
           </CardContent>
         </Card>
@@ -322,85 +310,114 @@ const KnowledgeBase = () => {
       
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40%]">Document Name</TableHead>
-                <TableHead>Format</TableHead>
-                <TableHead>Agents</TableHead>
-                <TableHead>Uploaded</TableHead>
-                <TableHead className="w-16 text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDocuments.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
-                        {renderSourceIcon(doc)}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{doc.title}</span>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {renderMetric(doc)} • {doc.size}
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-2">Loading knowledge bases...</span>
+            </div>
+          ) : filteredDocuments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-1">No knowledge sources found</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {searchQuery || sourceTypeFilter !== 'all' ? 
+                  "Try adjusting your search or filter" : 
+                  "Add your first knowledge source to get started"}
+              </p>
+              <Button asChild>
+                <Link to="/knowledge/upload">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Add Source
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40%]">Document Name</TableHead>
+                  <TableHead>Format</TableHead>
+                  <TableHead>Agents</TableHead>
+                  <TableHead>Uploaded</TableHead>
+                  <TableHead className="w-16 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredDocuments.map((doc) => (
+                  <TableRow key={doc.id}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
+                          {renderSourceIcon(doc)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{doc.title}</span>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {renderMetric(doc)} • {doc.size}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-medium">
-                      {doc.type.toUpperCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <div className="flex -space-x-2">
-                        {doc.agents.slice(0, 3).map((agent, index) => (
-                          <TooltipProvider key={`${doc.id}-agent-${index}`}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Avatar className="h-8 w-8 border-2 border-background">
-                                  <AvatarFallback className={`${getAgentColor(agent)} text-white text-xs`}>
-                                    {getAgentInitials(agent)}
-                                  </AvatarFallback>
-                                </Avatar>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{agent}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-medium">
+                        {doc.type.toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {doc.agents && doc.agents.length > 0 ? (
+                          <>
+                            <div className="flex -space-x-2">
+                              {doc.agents.slice(0, 3).map((agent, index) => (
+                                <TooltipProvider key={`${doc.id}-agent-${index}`}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Avatar className="h-8 w-8 border-2 border-background">
+                                        <AvatarFallback className={`${getAgentColor(agent)} text-white text-xs`}>
+                                          {getAgentInitials(agent)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{agent}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ))}
+                            </div>
+                            {doc.agents.length > 3 && (
+                              <Badge variant="secondary" className="ml-1 text-xs font-semibold">
+                                +{doc.agents.length - 3} more
+                              </Badge>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">None</span>
+                        )}
                       </div>
-                      {doc.agents.length > 3 && (
-                        <Badge variant="secondary" className="ml-1 text-xs font-semibold">
-                          +{doc.agents.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(doc.uploadedAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
-                          <Trash className="h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </TableCell>
+                    <TableCell>
+                      {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "Unknown"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
+                            <Trash className="h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
