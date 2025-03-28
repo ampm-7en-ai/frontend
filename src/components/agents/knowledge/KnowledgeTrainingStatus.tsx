@@ -167,8 +167,15 @@ const KnowledgeTrainingStatus = ({
     if (!data) return [];
     
     return data.map(source => {
+      // Ensure trainingStatus is one of the allowed values
+      let trainingStatus: 'idle' | 'training' | 'success' | 'error' = 'idle';
       const status = source.training_status || 'idle';
-      const progress = status === 'success' ? 100 : (status === 'error' ? 100 : (status === 'training' ? 50 : 0));
+      
+      if (status === 'training') trainingStatus = 'training';
+      else if (status === 'success') trainingStatus = 'success';
+      else if (status === 'error') trainingStatus = 'error';
+      
+      const progress = trainingStatus === 'success' ? 100 : (trainingStatus === 'error' ? 100 : (trainingStatus === 'training' ? 50 : 0));
       
       return {
         id: source.id,
@@ -176,7 +183,7 @@ const KnowledgeTrainingStatus = ({
         type: source.type || 'document',
         size: source.metadata?.file_size || 'N/A',
         lastUpdated: formatDate(source.metadata?.upload_date || source.updated_at),
-        trainingStatus: status,
+        trainingStatus: trainingStatus,
         progress: progress,
         linkBroken: source.link_broken || false,
         crawlOptions: source.crawl_options || 'single'
@@ -266,11 +273,11 @@ const KnowledgeTrainingStatus = ({
         type: externalSource.type,
         size: externalSource.size,
         lastUpdated: externalSource.lastUpdated,
-        trainingStatus: 'idle', // Start with idle status
+        trainingStatus: 'idle' as const, // Explicitly type as a literal
         progress: 0,
         linkBroken: false
       };
-    }).filter(Boolean);
+    }).filter(Boolean) as KnowledgeSource[];
     
     // Add the new sources to the existing sources
     setKnowledgeSources(prev => [...prev, ...newSources]);
@@ -309,7 +316,7 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeSources(prev => 
       prev.map(source => 
         source.id === sourceId 
-          ? { ...source, trainingStatus: 'training', progress: 10 } 
+          ? { ...source, trainingStatus: 'training' as const, progress: 10 } 
           : source
       )
     );
@@ -336,7 +343,7 @@ const KnowledgeTrainingStatus = ({
         setKnowledgeSources(prev => 
           prev.map(source => 
             source.id === sourceId 
-              ? { ...source, trainingStatus: 'success', progress: 100 } 
+              ? { ...source, trainingStatus: 'success' as const, progress: 100 } 
               : source
           )
         );
@@ -368,7 +375,7 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeSources(prev => 
       prev.map(source => ({ 
         ...source, 
-        trainingStatus: 'training', 
+        trainingStatus: 'training' as const, 
         progress: 10 
       }))
     );
@@ -392,7 +399,7 @@ const KnowledgeTrainingStatus = ({
         setKnowledgeSources(prev => 
           prev.map(source => ({ 
             ...source, 
-            trainingStatus: 'success', 
+            trainingStatus: 'success' as const, 
             progress: 100 
           }))
         );
