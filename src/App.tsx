@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -11,7 +10,7 @@ import NotFound from './pages/NotFound';
 import AgentList from './pages/agents/AgentList';
 import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
-import Settings from './pages/settings/Settings';
+import BusinessSettings from './pages/settings/business/BusinessSettings';
 import BusinessList from './pages/businesses/BusinessList';
 import BusinessDetail from './pages/businesses/BusinessDetail';
 import UserList from './pages/users/UserList';
@@ -23,7 +22,6 @@ import KnowledgeBase from './pages/knowledge/KnowledgeBase';
 import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
-// Import ProtectedRoute component from routeUtils
 import { ProtectedRoute } from './utils/routeUtils';
 
 import { Toaster } from "@/components/ui/toaster";
@@ -131,7 +129,8 @@ const ProtectedRoutes = () => {
         <Route path="/help/documentation" element={<Documentation />} />
         <Route path="/help/support" element={<SupportTicket />} />
         
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings" element={<BusinessSettings />} />
+        <Route path="/settings/business" element={<BusinessSettings />} />
         <Route path="/settings/*" element={<Navigate to="/settings" replace />} />
         
         <Route path="*" element={<NotFound />} />

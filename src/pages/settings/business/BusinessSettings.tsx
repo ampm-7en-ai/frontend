@@ -19,7 +19,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-const Settings = () => {
+const BusinessSettings = () => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
   
@@ -261,4 +261,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default BusinessSettings;
