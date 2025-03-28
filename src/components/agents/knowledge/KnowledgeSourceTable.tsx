@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
+import { formatFileSizeToMB } from '@/utils/api-config';
 
 interface KnowledgeSourceTableProps {
   sources: KnowledgeSource[];
@@ -62,7 +63,6 @@ const KnowledgeSourceTable = ({
     
     onUpdateSource(sourceId, { insideLinks: updatedLinks });
     
-    // Update selected URL count
     const selectedCount = updatedLinks.filter(link => link.selected).length;
     setSelectedUrlCount(prev => ({
       ...prev,
@@ -108,7 +108,6 @@ const KnowledgeSourceTable = ({
     
     onUpdateSource(sourceId, { insideLinks: updatedLinks });
     
-    // Update selected URL count
     setSelectedUrlCount(prev => ({
       ...prev,
       [sourceId]: selected ? updatedLinks.length : 0
@@ -140,15 +139,12 @@ const KnowledgeSourceTable = ({
   };
 
   const retrainWithSelectedUrls = (sourceId: number) => {
-    // Get the source
     const source = sources.find(s => s.id === sourceId);
     if (!source) return;
     
-    // Count selected URLs or documents
     const selectedUrls = source.insideLinks?.filter(link => link.selected).length || 0;
     const selectedDocs = source.documents?.filter(doc => doc.selected).length || 0;
     
-    // If nothing selected, show warning
     if (selectedUrls === 0 && selectedDocs === 0) {
       toast({
         title: "No items selected",
@@ -158,7 +154,6 @@ const KnowledgeSourceTable = ({
       return;
     }
     
-    // Call train function
     onTrainSource(sourceId);
     
     toast({
@@ -284,7 +279,7 @@ const KnowledgeSourceTable = ({
               />
               <FileText className="h-3 w-3 mr-2 text-blue-500" />
               <span className="truncate flex-1" title={doc.name}>{doc.name}</span>
-              <span className="text-muted-foreground">{doc.size}</span>
+              <span className="text-muted-foreground">{formatFileSizeToMB(doc.size)}</span>
             </div>
           ))}
         </div>
@@ -379,7 +374,7 @@ const KnowledgeSourceTable = ({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="py-2">{source.size}</TableCell>
+                  <TableCell className="py-2">{formatFileSizeToMB(source.size)}</TableCell>
                   <TableCell className="py-2">{source.lastUpdated}</TableCell>
                   <TableCell className="py-2">
                     {source.trainingStatus === 'training' ? (
@@ -425,7 +420,6 @@ const KnowledgeSourceTable = ({
                   </TableCell>
                 </TableRow>
 
-                {/* Expandable row for additional information */}
                 {expandedRows[source.id] && (
                   <TableRow className="bg-muted/30">
                     <TableCell colSpan={6} className="p-0 border-t-0">

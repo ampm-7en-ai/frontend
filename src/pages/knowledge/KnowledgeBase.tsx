@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 
 const KnowledgeBase = () => {
@@ -99,15 +99,18 @@ const KnowledgeBase = () => {
         }
       }
 
+      // Format file size to MB
+      const fileSize = firstSource && firstSource.metadata && firstSource.metadata.file_size 
+        ? formatFileSizeToMB(firstSource.metadata.file_size) 
+        : 'N/A';
+
       return {
         id: kb.id,
         title: kb.name,
         type: kb.type,
         sourceType: kb.type,
         fileType: fileType,
-        size: firstSource && firstSource.metadata && firstSource.metadata.file_size 
-          ? firstSource.metadata.file_size 
-          : 'N/A',
+        size: fileSize,
         pages: pages,
         agents: [],
         uploadedAt: uploadDate,

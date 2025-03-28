@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -72,6 +73,51 @@ export const getAccessToken = (): string | null => {
     return userData.accessToken || null;
   } catch (error) {
     return null;
+  }
+};
+
+// Function to convert file size to MB format
+export const formatFileSizeToMB = (size: string | number): string => {
+  if (!size) return 'N/A';
+  
+  // If size is already a string that ends with MB, return it as is
+  if (typeof size === 'string' && size.toUpperCase().endsWith('MB')) {
+    return size;
+  }
+  
+  // Convert string to number if needed
+  let sizeInBytes: number;
+  if (typeof size === 'string') {
+    // Handle strings like "1.5 KB" or "500 B"
+    const match = size.match(/^([\d.]+)\s*([KMG]?B)$/i);
+    if (match) {
+      const value = parseFloat(match[1]);
+      const unit = match[2].toUpperCase();
+      
+      switch (unit) {
+        case 'B': sizeInBytes = value; break;
+        case 'KB': sizeInBytes = value * 1024; break;
+        case 'MB': return `${value} MB`; // Already in MB
+        case 'GB': sizeInBytes = value * 1024 * 1024 * 1024; break;
+        default: sizeInBytes = 0;
+      }
+    } else {
+      // Try to parse as a number
+      sizeInBytes = parseFloat(size);
+      if (isNaN(sizeInBytes)) return 'N/A';
+    }
+  } else {
+    sizeInBytes = size;
+  }
+  
+  // Convert to MB with 2 decimal places
+  const sizeInMB = sizeInBytes / (1024 * 1024);
+  
+  // Format the output
+  if (sizeInMB < 0.01) {
+    return '< 0.01 MB';
+  } else {
+    return `${sizeInMB.toFixed(2)} MB`;
   }
 };
 
