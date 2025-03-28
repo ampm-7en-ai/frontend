@@ -223,7 +223,7 @@ const AgentTest = () => {
               <ChevronLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold">Model Comparison Lab</h1>
+          <h1 className="text-2xl font-bold">AI Playground</h1>
         </div>
         <div className="flex items-center gap-2">
           <Select 

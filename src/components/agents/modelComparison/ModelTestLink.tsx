@@ -16,7 +16,7 @@ const ModelTestLink: React.FC<ModelTestLinkProps> = ({
   agentId = "1",
   className = "" 
 }) => {
-  const { model, label = "Try in Model Lab", openInNewTab = true } = modelInfo;
+  const { model, label = "Try in Playground", openInNewTab = true } = modelInfo;
   
   return (
     <Button 
