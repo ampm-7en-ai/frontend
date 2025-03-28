@@ -6,13 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ChevronLeft, FileText, Upload, X, Globe, Table, AlignLeft, ExternalLink } from 'lucide-react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
+import { createKnowledgeBase } from '@/utils/api-config';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -36,6 +37,7 @@ interface ThirdPartyConfig {
 const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [files, setFiles] = useState<File[]>([]);
   const [documentName, setDocumentName] = useState('');
   const [sourceType, setSourceType] = useState<SourceType>('url');
@@ -161,7 +163,7 @@ const KnowledgeUpload = () => {
     }, 200);
   };
 
-  const handleUpload = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     let canUpload = false;
@@ -220,19 +222,74 @@ const KnowledgeUpload = () => {
     setIsUploading(true);
     setProgress(0);
     
-    console.log('Uploading:', {
-      sourceType,
-      documentName,
-      files,
-      url,
-      importAllPages,
-      plainText,
-      selectedProvider,
-      selectedFiles,
-      metadata
-    });
-    
-    simulateProgress();
+    try {
+      const formData = new FormData();
+      
+      const name = documentName || `New ${sourceType.charAt(0).toUpperCase() + sourceType.slice(1)} Source`;
+      formData.append('name', name);
+      
+      switch(sourceType) {
+        case 'url':
+          formData.append('type', 'url');
+          break;
+        case 'document':
+          formData.append('type', 'document');
+          break;
+        case 'csv':
+          formData.append('type', 'csv');
+          break;
+        case 'plainText':
+          formData.append('type', 'text');
+          break;
+        case 'thirdParty':
+          formData.append('type', 'thirdparty');
+          formData.append('provider', selectedProvider || '');
+          break;
+      }
+      
+      formData.append('metadata', metadata);
+      
+      if (sourceType === 'document' || sourceType === 'csv') {
+        files.forEach(file => {
+          formData.append('files', file);
+        });
+      }
+      
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+      
+      const response = await createKnowledgeBase(formData);
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      toast({
+        title: "Success",
+        description: "Your knowledge source has been added successfully.",
+      });
+      
+      navigate('/knowledge');
+    } catch (error) {
+      setIsUploading(false);
+      
+      let errorMessage = "Failed to add knowledge source.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
   };
 
   const handleQuickConnect = (provider: ThirdPartyProvider) => {
@@ -519,7 +576,7 @@ const KnowledgeUpload = () => {
         </CardHeader>
         
         <CardContent>
-          <form onSubmit={handleUpload} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="document-name">Source Name (Optional)</Label>
               <Input 
@@ -571,7 +628,7 @@ const KnowledgeUpload = () => {
             
             {renderSourceTypeContent()}
             
-            <div className="space-y-2">
+            <div className="hidden">
               <Label htmlFor="metadata">Metadata</Label>
               <Textarea 
                 id="metadata"
@@ -579,9 +636,6 @@ const KnowledgeUpload = () => {
                 onChange={(e) => setMetadata(e.target.value)}
                 className="font-mono text-xs"
               />
-              <p className="text-xs text-muted-foreground">
-                JSON metadata for the knowledge source
-              </p>
             </div>
             
             {isUploading && (
