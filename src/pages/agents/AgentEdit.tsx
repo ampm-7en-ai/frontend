@@ -50,10 +50,10 @@ const predefinedAvatars = [
 ];
 
 const integrationOptions = [
-  { id: 'whatsapp', name: 'WhatsApp', icon: Smartphone, description: 'Connect your WhatsApp Business account to interact with customers', connected: false },
-  { id: 'messenger', name: 'Messenger', icon: MessageSquare, description: 'Link your Facebook Messenger to engage with your audience', connected: false },
-  { id: 'slack', name: 'Slack', icon: Slack, description: 'Integrate with Slack to collaborate with your team', connected: true },
-  { id: 'instagram', name: 'Instagram', icon: Instagram, description: 'Connect to Instagram to respond to direct messages', connected: false },
+  { id: 'zapier', name: 'Zapier', icon: 'zapier', description: 'Automate workflows with Zapier integrations', connected: false, color: '#FF4A00' },
+  { id: 'whatsapp', name: 'WhatsApp', icon: 'whatsapp', description: 'Connect your WhatsApp Business account', connected: false, color: '#25D366' },
+  { id: 'slack', name: 'Slack', icon: 'slack', description: 'Link your Slack workspace', connected: false, color: '#4A154B' },
+  { id: 'instagram', name: 'Instagram', icon: 'instagram', description: 'Connect to Instagram direct messages', connected: false, color: '#E1306C' },
 ];
 
 const AgentEdit = () => {
@@ -256,7 +256,7 @@ const AgentEdit = () => {
       <CardContent className="space-y-4">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Chat Avatar</Label>
+            <Label htmlFor="chat-avatar">Chat Avatar</Label>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
               <div 
                 className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all ${agent.avatar.type === 'default' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
@@ -655,57 +655,66 @@ const AgentEdit = () => {
   };
 
   const renderIntegrationsContent = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Channel Integrations</CardTitle>
-        <CardDescription>Connect your agent to various messaging platforms</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {activeIntegrations.map(integration => (
-            <Card key={integration.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-2">
-                    <div className="bg-primary/10 p-2 rounded-md">
-                      <integration.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{integration.name}</CardTitle>
-                    </div>
-                  </div>
-                  <Switch 
-                    checked={integration.connected} 
-                    onCheckedChange={() => {
-                      if (!integration.connected) {
-                        openIntegrationDialog(integration);
-                      } else {
-                        toggleIntegration(integration.id);
-                      }
-                    }}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">{integration.description}</p>
-              </CardContent>
-              <CardFooter className="bg-muted/40 border-t pt-2 pb-2 px-6">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 text-xs ml-auto"
-                  onClick={() => openIntegrationDialog(integration)}
-                  disabled={!integration.connected}
-                >
-                  Configure
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="grid grid-cols-4 gap-4">
+        {activeIntegrations.map(integration => (
+          <div
+            key={integration.id}
+            className={`border rounded-lg p-4 transition-all cursor-pointer ${integration.id === 'slack' ? 'bg-muted border-primary' : 'hover:bg-muted/50'}`}
+            onClick={() => setSelectedIntegration(integration)}
+          >
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="w-10 h-10 flex items-center justify-center">
+                {getIntegrationIconElement(integration.icon, integration.color)}
+              </div>
+              <span className="font-medium">{integration.name}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <Card className="mt-8">
+        <CardHeader className="border-b">
+          <CardTitle>Slack Integration</CardTitle>
+          <CardDescription>Install Coco 2 to your Slack workspace and start chatting with it within Slack!</CardDescription>
+        </CardHeader>
+        <CardContent className="py-6">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0">
+              <Slack className="h-10 w-10 text-[#4A154B]" />
+            </div>
+            <div>
+              <Button className="flex items-center gap-2">
+                <span>Add to your Slack workspace</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 0L6.59 1.41L12.17 7H0V9H12.17L6.59 14.59L8 16L16 8L8 0Z" />
+                </svg>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
+
+  const getIntegrationIconElement = (iconName: string, color: string) => {
+    switch (iconName) {
+      case 'slack':
+        return <Slack className="h-6 w-6" style={{ color }} />;
+      case 'whatsapp':
+        return <Smartphone className="h-6 w-6" style={{ color }} />;
+      case 'instagram':
+        return <Instagram className="h-6 w-6" style={{ color }} />;
+      case 'zapier':
+        return (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0C5.372 0 0 5.372 0 12C0 18.628 5.372 24 12 24C18.628 24 24 18.628 24 12C24 5.372 18.628 0 12 0ZM5.694 14.538L3.824 17.497H8.135L10.266 14.538H5.694ZM17.761 8.291H14.362L10.932 13.517L14.715 19.206H18.121L14.338 13.517L17.761 8.291ZM15.751 4.794H12.349L5.152 15.782L8.554 15.775L15.751 4.794Z" fill={color} />
+          </svg>
+        );
+      default:
+        return <div className="h-6 w-6 bg-primary/10 rounded-full" />;
+    }
+  };
 
   const toggleIntegration = (id: string) => {
     setActiveIntegrations(
@@ -789,7 +798,7 @@ const AgentEdit = () => {
                   Knowledge
                 </TabsTrigger>
                 <TabsTrigger value="integrations" size="xs">
-                  <Slack className="h-4 w-4 mr-2" />
+                  <Rocket className="h-4 w-4 mr-2" />
                   Integrations
                 </TabsTrigger>
               </TabsList>
