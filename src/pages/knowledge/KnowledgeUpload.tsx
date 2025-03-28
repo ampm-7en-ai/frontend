@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -42,10 +42,12 @@ const KnowledgeUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [url, setUrl] = useState('');
+  const [importAllPages, setImportAllPages] = useState(true);
   const [plainText, setPlainText] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [metadata, setMetadata] = useState('{}');
   
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -116,6 +118,21 @@ const KnowledgeUpload = () => {
     setFiles([]);
   }, [sourceType]);
 
+  useEffect(() => {
+    let metadataObj = {};
+    
+    if (sourceType === 'url' && url) {
+      metadataObj = { website: url };
+      if (importAllPages) {
+        metadataObj = { ...metadataObj, crawl_more: "true" };
+      }
+    } else if (sourceType === 'plainText' && plainText) {
+      metadataObj = { text_content: plainText };
+    }
+    
+    setMetadata(JSON.stringify(metadataObj, null, 2));
+  }, [sourceType, url, importAllPages, plainText]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
@@ -185,7 +202,6 @@ const KnowledgeUpload = () => {
         break;
         
       case 'thirdParty':
-        // If provider selected but no files, prompt selection
         if (selectedProvider && selectedFiles.length === 0) {
           handleQuickConnect(selectedProvider);
           return;
@@ -193,7 +209,6 @@ const KnowledgeUpload = () => {
         
         canUpload = selectedFiles.length > 0;
         if (!canUpload && !selectedProvider) {
-          // Quick connect to first provider if none selected
           handleQuickConnect('googleDrive');
           return;
         }
@@ -210,20 +225,20 @@ const KnowledgeUpload = () => {
       documentName,
       files,
       url,
+      importAllPages,
       plainText,
       selectedProvider,
-      selectedFiles
+      selectedFiles,
+      metadata
     });
     
     simulateProgress();
   };
 
-  // Quick connect function - 2-click process
   const handleQuickConnect = (provider: ThirdPartyProvider) => {
     setSelectedProvider(provider);
     setIsConnecting(true);
     
-    // Simulate quick connection process
     setTimeout(() => {
       setIsConnecting(false);
       
@@ -232,7 +247,6 @@ const KnowledgeUpload = () => {
         description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
       });
       
-      // Auto-select default files based on provider
       if (provider === 'googleDrive') {
         setSelectedFiles([
           'Recent Documents/Quarterly Report Q1 2023.pdf',
@@ -288,6 +302,17 @@ const KnowledgeUpload = () => {
               <p className="text-xs text-muted-foreground">
                 Enter the URL of the webpage you want to crawl. For multiple pages, we'll automatically explore linked pages.
               </p>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="import-all" 
+                checked={importAllPages} 
+                onCheckedChange={(checked) => setImportAllPages(checked === true)}
+              />
+              <Label htmlFor="import-all" className="text-sm font-medium">
+                Import all pages
+              </Label>
             </div>
           </div>
         );
@@ -545,6 +570,19 @@ const KnowledgeUpload = () => {
             <Separator />
             
             {renderSourceTypeContent()}
+            
+            <div className="space-y-2">
+              <Label htmlFor="metadata">Metadata</Label>
+              <Textarea 
+                id="metadata"
+                value={metadata}
+                onChange={(e) => setMetadata(e.target.value)}
+                className="font-mono text-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                JSON metadata for the knowledge source
+              </p>
+            </div>
             
             {isUploading && (
               <div className="space-y-2">
