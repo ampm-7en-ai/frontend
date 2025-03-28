@@ -12,7 +12,8 @@ export const API_ENDPOINTS = {
   VERIFY_OTP: "users/verify_otp/",
   LOGIN: "users/login/",
   RESEND_OTP: "users/resend-otp/",
-  AGENTS: "agents/"
+  AGENTS: "agents/",
+  KNOWLEDGEBASE: "knowledgebase/"
 };
 
 // Utility function to get full API URL
@@ -100,6 +101,30 @@ export const createAgent = async (name: string, description: string): Promise<an
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
     console.error('Error creating agent:', errorData);
     throw new Error(errorData.message || `Failed to create agent: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
+// Function to create a new knowledge base
+export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      // Note: Do not set 'Content-Type': 'application/json' for FormData
+    },
+    body: formData
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    throw new Error(errorData.message || `Failed to create knowledge base: ${response.status}`);
   }
   
   return response.json();
