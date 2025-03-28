@@ -9,9 +9,10 @@ const Tabs = TabsPrimitive.Root
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
-    size?: "default" | "sm" | "xs"
+    size?: "default" | "sm" | "xs";
+    orientation?: "horizontal" | "vertical";
   }
->(({ className, size = "default", ...props }, ref) => {
+>(({ className, size = "default", orientation = "horizontal", ...props }, ref) => {
   const sizeClasses = {
     default: "h-10",
     sm: "h-8",
@@ -23,6 +24,7 @@ const TabsList = React.forwardRef<
       ref={ref}
       className={cn(
         "inline-flex items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+        orientation === "vertical" && "flex-col",
         sizeClasses[size],
         className
       )}
