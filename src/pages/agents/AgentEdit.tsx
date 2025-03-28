@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,6 +19,8 @@ import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrai
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { useQuery } from '@tanstack/react-query';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -102,6 +103,71 @@ const AgentEdit = () => {
   const [selectedIntegration, setSelectedIntegration] = useState<null | typeof integrationOptions[0]>(null);
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
   const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
+  const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
+  const [isLoadingAgentData, setIsLoadingAgentData] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAgentData = async () => {
+      setIsLoadingAgentData(true);
+      setLoadError(null);
+      
+      try {
+        const token = getAccessToken();
+        if (!token) {
+          throw new Error("Authentication required");
+        }
+        
+        const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId || '1'}`, {
+          headers: getAuthHeaders(token),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch agent data: ${response.status}`);
+        }
+        
+        const agentData = await response.json();
+        console.log("Fetched agent data:", agentData);
+        
+        if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
+          setAgentKnowledgeSources(agentData.knowledge_bases);
+          console.log("Knowledge bases:", agentData.knowledge_bases);
+        }
+        
+        setAgent({
+          ...agent,
+          name: agentData.name || agent.name,
+          description: agentData.description || agent.description,
+          primaryColor: agentData.primaryColor || agent.primaryColor,
+          secondaryColor: agentData.secondaryColor || agent.secondaryColor,
+          fontFamily: agentData.fontFamily || agent.fontFamily,
+          chatbotName: agentData.chatbotName || agent.chatbotName,
+          welcomeMessage: agentData.welcomeMessage || agent.welcomeMessage,
+          buttonText: agentData.buttonText || agent.buttonText,
+          position: agentData.position || agent.position,
+          showOnMobile: agentData.showOnMobile || agent.showOnMobile,
+          collectVisitorData: agentData.collectVisitorData || agent.collectVisitorData,
+          autoShowAfter: agentData.autoShowAfter || agent.autoShowAfter,
+          knowledgeSources: agentData.knowledgeSources || agent.knowledgeSources,
+          selectedModel: agentData.selectedModel || agent.selectedModel,
+          temperature: agentData.temperature || agent.temperature,
+          maxResponseLength: agentData.maxResponseLength || agent.maxResponseLength,
+          suggestions: agentData.suggestions || agent.suggestions,
+          avatar: agentData.avatar || agent.avatar,
+          agentType: agentData.agentType || agent.agentType,
+          systemPrompt: agentData.systemPrompt || agent.systemPrompt
+        });
+        
+      } catch (error) {
+        console.error("Error fetching agent data:", error);
+        setLoadError(error instanceof Error ? error.message : "Unknown error");
+      } finally {
+        setIsLoadingAgentData(false);
+      }
+    };
+    
+    fetchAgentData();
+  }, [agentId]);
 
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -640,6 +706,17 @@ const AgentEdit = () => {
     </div>
   );
 
+  const renderKnowledgeContent = () => (
+    <KnowledgeTrainingStatus 
+      agentId={agentId || '1'} 
+      initialSelectedSources={agent.knowledgeSources}
+      onSourcesChange={handleKnowledgeSourcesChange}
+      preloadedKnowledgeSources={agentKnowledgeSources}
+      isLoading={isLoadingAgentData}
+      loadError={loadError}
+    />
+  );
+
   const renderChatPreview = () => {
     return (
       <div className="h-full flex flex-col">
@@ -850,11 +927,7 @@ const AgentEdit = () => {
             </TabsContent>
             
             <TabsContent value="knowledge" className="mt-0">
-              <KnowledgeTrainingStatus 
-                agentId={agentId || ''} 
-                initialSelectedSources={agent.knowledgeSources}
-                onSourcesChange={handleKnowledgeSourcesChange}
-              />
+              {renderKnowledgeContent()}
             </TabsContent>
 
             <TabsContent value="integrations" className="mt-0">
@@ -984,4 +1057,3 @@ const AgentEdit = () => {
 };
 
 export default AgentEdit;
-

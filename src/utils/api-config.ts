@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -74,6 +73,25 @@ export const getAccessToken = (): string | null => {
   } catch (error) {
     return null;
   }
+};
+
+// Function to fetch agent details (including knowledge bases)
+export const fetchAgentDetails = async (agentId: string): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}`, {
+    headers: getAuthHeaders(token),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    throw new Error(errorData.message || `Failed to fetch agent details: ${response.status}`);
+  }
+  
+  return response.json();
 };
 
 // Function to create a new agent

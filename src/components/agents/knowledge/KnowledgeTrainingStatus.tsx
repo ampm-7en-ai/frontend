@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,12 +14,18 @@ interface KnowledgeTrainingStatusProps {
   agentId: string;
   initialSelectedSources?: number[];
   onSourcesChange?: (selectedSourceIds: number[]) => void;
+  preloadedKnowledgeSources?: any[];  // Add this prop to accept preloaded knowledge sources
+  isLoading?: boolean;                // Add loading state prop
+  loadError?: string | null;          // Add error state prop
 }
 
 const KnowledgeTrainingStatus = ({ 
   agentId, 
   initialSelectedSources = [], 
-  onSourcesChange 
+  onSourcesChange,
+  preloadedKnowledgeSources = [],     // Default to empty array
+  isLoading = false,                  // Default to false
+  loadError = null                    // Default to null
 }: KnowledgeTrainingStatusProps) => {
   const { toast } = useToast();
   
@@ -57,55 +62,11 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  // Fetch agent knowledge sources
-  const fetchAgentKnowledgeSources = async () => {
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge`, {
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch agent knowledge sources');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching agent knowledge sources:', error);
-      throw error;
-    }
-  };
-
   // Query to fetch available knowledge bases
   const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
   });
-
-  // Query to fetch agent knowledge sources
-  const { 
-    data: agentKnowledgeSources, 
-    isLoading: isLoadingAgentSources, 
-    error: agentSourcesError,
-    refetch: refetchAgentSources
-  } = useQuery({
-    queryKey: ['agentKnowledgeSources', agentId],
-    queryFn: fetchAgentKnowledgeSources,
-    retry: 1, // Only retry once to avoid too many failed requests
-  });
-
-  // Effect to handle API errors and enable fallback UI
-  useEffect(() => {
-    if (agentSourcesError) {
-      console.log("Enabling fallback UI due to agent sources error");
-      setShowFallbackUI(true);
-    }
-  }, [agentSourcesError]);
 
   // Transform external knowledge bases into the format expected by ImportSourcesDialog
   const formatExternalSources = (data) => {
@@ -206,32 +167,28 @@ const KnowledgeTrainingStatus = ({
     });
   };
 
-  // Load agent knowledge sources when data is available
+  // Use preloaded knowledge sources if provided
   useEffect(() => {
-    if (agentKnowledgeSources) {
-      const formattedSources = transformAgentKnowledgeSources(agentKnowledgeSources);
+    if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
+      console.log("Using preloaded knowledge sources:", preloadedKnowledgeSources);
+      const formattedSources = transformAgentKnowledgeSources(preloadedKnowledgeSources);
       setKnowledgeSources(formattedSources);
       setPrevSourceIds(formattedSources.map(s => s.id));
       setPrevSourcesLength(formattedSources.length);
-      setShowFallbackUI(false); // Reset fallback UI if we got data
+      setShowFallbackUI(false);
     }
-  }, [agentKnowledgeSources]);
+  }, [preloadedKnowledgeSources]);
 
-  // Effect to set retraining status when source list changes
+  // Effect to set error state if isLoading is false and loadError exists
   useEffect(() => {
-    setNeedsRetraining(true);
-    
-    if (prevSourcesLength > 0 && knowledgeSources.length !== prevSourcesLength) {
-      toast(getRetrainingRequiredToast());
+    if (!isLoading && loadError) {
+      console.log("Setting fallback UI due to load error:", loadError);
+      setShowFallbackUI(true);
     }
-    
-    setPrevSourcesLength(knowledgeSources.length);
-    setPrevSourceIds(knowledgeSources.map(source => source.id));
-  }, [knowledgeSources]);
+  }, [isLoading, loadError]);
 
   const handleRetry = () => {
     setShowFallbackUI(false);
-    refetchAgentSources();
   };
 
   const removeSource = async (sourceId: number) => {
@@ -476,12 +433,12 @@ const KnowledgeTrainingStatus = ({
         </div>
       </CardHeader>
       <CardContent>
-        {isLoadingAgentSources && !showFallbackUI ? (
+        {isLoading ? (
           <div className="flex justify-center items-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-2">Loading knowledge sources...</span>
           </div>
-        ) : agentSourcesError || showFallbackUI ? (
+        ) : showFallbackUI || loadError ? (
           <div className="py-6">
             <div className="flex flex-col items-center justify-center text-center mb-6">
               <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
@@ -490,7 +447,7 @@ const KnowledgeTrainingStatus = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={handleRetry}
+                onClick={() => window.location.reload()}
                 className="flex items-center gap-1.5"
               >
                 <RefreshCw className="h-4 w-4" />
