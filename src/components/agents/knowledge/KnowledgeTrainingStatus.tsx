@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off } from 'lucide-react';
+import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
 import { KnowledgeSource } from './types';
@@ -31,6 +31,7 @@ const KnowledgeTrainingStatus = ({
   
   const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
+  const [showFallbackUI, setShowFallbackUI] = useState(false);
   
   // Fetch available knowledge bases
   const fetchKnowledgeBases = async () => {
@@ -87,10 +88,24 @@ const KnowledgeTrainingStatus = ({
   });
 
   // Query to fetch agent knowledge sources
-  const { data: agentKnowledgeSources, isLoading: isLoadingAgentSources, error: agentSourcesError } = useQuery({
+  const { 
+    data: agentKnowledgeSources, 
+    isLoading: isLoadingAgentSources, 
+    error: agentSourcesError,
+    refetch: refetchAgentSources
+  } = useQuery({
     queryKey: ['agentKnowledgeSources', agentId],
     queryFn: fetchAgentKnowledgeSources,
+    retry: 1, // Only retry once to avoid too many failed requests
   });
+
+  // Effect to handle API errors and enable fallback UI
+  useEffect(() => {
+    if (agentSourcesError) {
+      console.log("Enabling fallback UI due to agent sources error");
+      setShowFallbackUI(true);
+    }
+  }, [agentSourcesError]);
 
   // Transform external knowledge bases into the format expected by ImportSourcesDialog
   const formatExternalSources = (data) => {
@@ -198,6 +213,7 @@ const KnowledgeTrainingStatus = ({
       setKnowledgeSources(formattedSources);
       setPrevSourceIds(formattedSources.map(s => s.id));
       setPrevSourcesLength(formattedSources.length);
+      setShowFallbackUI(false); // Reset fallback UI if we got data
     }
   }, [agentKnowledgeSources]);
 
@@ -212,6 +228,11 @@ const KnowledgeTrainingStatus = ({
     setPrevSourcesLength(knowledgeSources.length);
     setPrevSourceIds(knowledgeSources.map(source => source.id));
   }, [knowledgeSources]);
+
+  const handleRetry = () => {
+    setShowFallbackUI(false);
+    refetchAgentSources();
+  };
 
   const removeSource = async (sourceId: number) => {
     const sourceToRemove = knowledgeSources.find(source => source.id === sourceId);
@@ -248,7 +269,14 @@ const KnowledgeTrainingStatus = ({
   };
 
   const importSelectedSources = (sourceIds: number[]) => {
-    if (!availableKnowledgeBases) return;
+    if (!availableKnowledgeBases && !showFallbackUI) {
+      toast({
+        title: "Cannot import sources",
+        description: "Knowledge base data is unavailable. Please try again later.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const externalSources = formatExternalSources(availableKnowledgeBases);
     const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
@@ -448,15 +476,57 @@ const KnowledgeTrainingStatus = ({
         </div>
       </CardHeader>
       <CardContent>
-        {isLoadingAgentSources ? (
+        {isLoadingAgentSources && !showFallbackUI ? (
           <div className="flex justify-center items-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-2">Loading knowledge sources...</span>
           </div>
-        ) : agentSourcesError ? (
-          <div className="p-4 text-center text-red-500">
-            <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-            <p>Failed to load knowledge sources. Please try again later.</p>
+        ) : agentSourcesError || showFallbackUI ? (
+          <div className="py-6">
+            <div className="flex flex-col items-center justify-center text-center mb-6">
+              <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
+              <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
+              <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base. You can still import and manage sources.</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRetry}
+                className="flex items-center gap-1.5"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry Connection
+              </Button>
+            </div>
+            
+            {knowledgeSources.length > 0 ? (
+              <>
+                <KnowledgeSourceTable 
+                  sources={knowledgeSources} 
+                  onTrainSource={trainSource}
+                  onRemoveSource={removeSource}
+                  onUpdateSource={updateSource}
+                />
+                
+                {needsRetraining && knowledgeSources.length > 0 && (
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="border rounded-md p-8 text-center">
+                <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsImportDialogOpen(true)}
+                  className="flex items-center gap-1"
+                >
+                  <Import className="h-4 w-4" />
+                  Import Sources
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <>
