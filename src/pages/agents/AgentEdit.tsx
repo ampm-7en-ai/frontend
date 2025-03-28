@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -654,80 +655,295 @@ const AgentEdit = () => {
     );
   };
 
-  const renderIntegrationsContent = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Integrations</CardTitle>
-          <CardDescription>Connect your agent with other platforms to extend its capabilities</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {integrationOptions.map(integration => (
-              <div
-                key={integration.id}
-                className={`border rounded-lg p-4 transition-all cursor-pointer hover:shadow-md ${integration.connected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'}`}
-                onClick={() => setSelectedIntegration(integration)}
-              >
-                <div className="flex flex-col items-center text-center gap-2 h-full">
-                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-accent/10 mb-2">
-                    {getIntegrationIconElement(integration.icon, integration.color)}
-                  </div>
-                  <span className="font-medium">{integration.name}</span>
-                  <span className="text-xs text-muted-foreground">{integration.description}</span>
-                  {integration.connected && (
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 mt-2">Connected</Badge>
-                  )}
+  const renderIntegrationsContent = () => {
+    // Filter connected integrations
+    const connectedIntegrations = activeIntegrations.filter(i => i.connected);
+    const [selectedAppId, setSelectedAppId] = useState(connectedIntegrations.length > 0 ? connectedIntegrations[0].id : 'slack');
+    const selectedApp = activeIntegrations.find(i => i.id === selectedAppId) || activeIntegrations[0];
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+        {/* Left column - Integration list */}
+        <div className="lg:col-span-2">
+          <Card className="h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Apps</CardTitle>
+              <Input placeholder="Search apps..." className="mt-2" />
+            </CardHeader>
+            <CardContent className="pb-1 px-3">
+              <div className="space-y-1">
+                <div className="pt-1 pb-2">
+                  <p className="text-xs font-medium text-muted-foreground pl-3 py-1">ALL APPS</p>
                 </div>
+                {activeIntegrations.map(integration => (
+                  <Button 
+                    key={integration.id}
+                    variant={selectedAppId === integration.id ? "default" : "ghost"} 
+                    className="justify-start w-full text-sm font-normal"
+                    onClick={() => setSelectedAppId(integration.id)}
+                  >
+                    <div className="flex items-center">
+                      <div className="bg-primary/10 p-1 rounded-md mr-2">
+                        <integration.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      {integration.name}
+                      {integration.connected && (
+                        <Badge className="ml-auto h-5 text-[10px] bg-primary/20 text-primary hover:bg-primary/30 border-none">
+                          Connected
+                        </Badge>
+                      )}
+                    </div>
+                  </Button>
+                ))}
+                
+                <div className="pt-4 pb-2">
+                  <p className="text-xs font-medium text-muted-foreground pl-3 py-1">CUSTOM</p>
+                </div>
+                <Button 
+                  variant={selectedAppId === 'custom' ? "default" : "ghost"} 
+                  className="justify-start w-full text-sm font-normal"
+                  onClick={() => setSelectedAppId('custom')}
+                >
+                  <div className="flex items-center">
+                    <div className="bg-primary/10 p-1 rounded-md mr-2">
+                      <Box className="h-4 w-4 text-primary" />
+                    </div>
+                    Custom Webhook
+                  </div>
+                </Button>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center">
-            <Slack className="h-5 w-5 mr-2 text-[#4A154B]" />
-            Connected Integrations
-          </CardTitle>
-          <CardDescription>Manage your agent's active connections</CardDescription>
-        </CardHeader>
-        <CardContent className="py-6">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 border rounded-lg bg-primary/5">
-              <div className="flex-shrink-0">
-                <Slack className="h-10 w-10 text-[#4A154B]" />
-              </div>
-              <div className="flex-grow">
-                <h4 className="font-medium">Slack</h4>
-                <p className="text-sm text-muted-foreground">Connected to workspace: Team Coco</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">Configure</Button>
-                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">Disconnect</Button>
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <h4 className="font-medium">Connect a New Platform</h4>
-              <p className="text-sm text-muted-foreground mb-2">Select an integration above to connect with more platforms.</p>
-              
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <h5 className="font-medium text-sm mb-2">Integration Benefits</h5>
-                <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5">
-                  <li>Allow your AI agent to communicate through multiple channels</li>
-                  <li>Maintain consistent conversations across platforms</li>
-                  <li>Automate workflows with Zapier integration</li>
-                  <li>Notify your team when the agent needs human support</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right column - Integration details */}
+        <div className="lg:col-span-5">
+          {selectedApp && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center">
+                    <div className="bg-primary/10 p-2 rounded-md mr-3">
+                      <selectedApp.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle>{selectedApp.name}</CardTitle>
+                      <CardDescription>{selectedApp.description}</CardDescription>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={selectedApp.connected} 
+                    onCheckedChange={() => {
+                      if (!selectedApp.connected) {
+                        openIntegrationDialog(selectedApp);
+                      } else {
+                        toggleIntegration(selectedApp.id);
+                      }
+                    }}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {selectedApp.connected ? (
+                  <>
+                    <div className="bg-muted/40 p-4 rounded-lg border">
+                      <h3 className="font-medium mb-2">Connection Details</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Status</p>
+                          <div className="flex items-center">
+                            <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                            <span className="text-sm">Active</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Connected On</p>
+                          <p className="text-sm">June 15, 2023</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Workspace</p>
+                          <p className="text-sm">{selectedApp.id === 'slack' ? 'Team Coco' : 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Default Channel</p>
+                          <p className="text-sm">{selectedApp.id === 'slack' ? '#support' : 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-3">Settings</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Auto-reply</p>
+                            <p className="text-xs text-muted-foreground">Let the agent respond automatically</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Notification</p>
+                            <p className="text-xs text-muted-foreground">Get notified of new messages</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">User verification</p>
+                            <p className="text-xs text-muted-foreground">Verify user identity before chatting</p>
+                          </div>
+                          <Switch />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => openIntegrationDialog(selectedApp)}
+                      >
+                        Edit Connection
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="ml-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => toggleIntegration(selectedApp.id)}
+                      >
+                        Disconnect
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="bg-muted/50 p-4 rounded-full mb-4">
+                      <selectedApp.icon className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">Connect to {selectedApp.name}</h3>
+                    <p className="text-sm text-muted-foreground max-w-md mb-4">
+                      Integrate your agent with {selectedApp.name} to enhance your customer communication capabilities.
+                    </p>
+                    <Button onClick={() => openIntegrationDialog(selectedApp)}>
+                      Connect {selectedApp.name}
+                    </Button>
+                    {selectedApp.isPremium && (
+                      <Badge className="mt-4 bg-amber-50 text-amber-700 border-amber-200">
+                        Premium Feature
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+              {selectedApp.id === 'slack' && selectedApp.connected && (
+                <CardFooter className="bg-muted/30 border-t px-6 py-4">
+                  <div className="w-full">
+                    <h4 className="font-medium text-sm mb-2">Integration Features</h4>
+                    <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5">
+                      <li>Receive and respond to messages from Slack</li>
+                      <li>Create dedicated support channels</li>
+                      <li>Transfer conversations to human agents</li>
+                      <li>Access conversation history</li>
+                    </ul>
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
+          )}
+          
+          {selectedAppId === 'custom' && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center">
+                  <div className="bg-primary/10 p-2 rounded-md mr-3">
+                    <Box className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Custom Webhook Integration</CardTitle>
+                    <CardDescription>Integrate with any service using webhooks</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-muted/40 p-4 rounded-lg border">
+                  <h3 className="font-medium mb-3">Webhook Configuration</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="webhook-name">Integration Name</Label>
+                      <Input id="webhook-name" placeholder="e.g., My CRM System" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="webhook-url">Webhook URL</Label>
+                      <Input id="webhook-url" placeholder="https://..." />
+                      <p className="text-xs text-muted-foreground">
+                        Enter the URL where we should send webhook events
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="webhook-secret">Secret Key (Optional)</Label>
+                      <Input id="webhook-secret" type="password" placeholder="webhook-secret-key" />
+                      <p className="text-xs text-muted-foreground">
+                        Used to verify webhook requests
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium mb-3">Events to Send</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="event-message" defaultChecked />
+                      <label htmlFor="event-message" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        New message received
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="event-handoff" defaultChecked />
+                      <label htmlFor="event-handoff" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Human handoff requested
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="event-feedback" />
+                      <label htmlFor="event-feedback" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        User feedback received
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="event-session" />
+                      <label htmlFor="event-session" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Session started/ended
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button className="mt-2">
+                  Save Webhook Configuration
+                </Button>
+              </CardContent>
+              <CardFooter className="bg-muted/30 border-t px-6 py-4">
+                <div className="w-full">
+                  <h4 className="font-medium text-sm mb-2">Webhook Documentation</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Learn more about our webhook payload format and event types.
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-1" asChild>
+                    <a href="#" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Documentation
+                    </a>
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const getIntegrationIconElement = (iconName: string, color: string) => {
     switch (iconName) {
@@ -783,23 +999,29 @@ const AgentEdit = () => {
 
   return (
     <div className="h-full">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={goBack}>
+      <div className="flex items-center justify-between border-b pb-4 px-2 bg-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={goBack} className="h-9 w-9">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
-            <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
+            <h2 className="text-xl font-semibold tracking-tight">Edit Agent: {agent.name}</h2>
+            <p className="text-sm text-muted-foreground">Configure your agent's settings and behavior</p>
           </div>
         </div>
-        <Button onClick={handleSaveChanges}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={goToTestPage}>
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Test Agent
+          </Button>
+          <Button size="sm" onClick={handleSaveChanges}>
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
         <div className="h-full">
           {renderChatPreview()}
         </div>
