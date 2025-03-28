@@ -29,6 +29,7 @@ import BusinessProfile from './pages/settings/business/BusinessProfile';
 import TeamSettings from './pages/settings/business/TeamSettings';
 import BusinessBillingSettings from './pages/settings/business/BusinessBillingSettings';
 import PreferencesSettings from './pages/settings/business/PreferencesSettings';
+import GlobalAgentSettings from './pages/settings/business/GlobalAgentSettings';
 import GeneralSettings from './pages/settings/platform/GeneralSettings';
 import SecuritySettings from './pages/settings/platform/SecuritySettings';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
@@ -122,6 +123,7 @@ const ProtectedRoutes = () => {
         <Route path="/settings" element={<SettingsLayout />}>
           <Route path="/settings/business/profile" element={<BusinessProfile />} />
           <Route path="/settings/business/team" element={<TeamSettings />} />
+          <Route path="/settings/business/global-agent-settings" element={<GlobalAgentSettings />} />
           <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
           <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
           

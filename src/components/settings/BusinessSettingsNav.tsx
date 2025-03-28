@@ -5,13 +5,15 @@ import {
   Building, 
   Users, 
   CreditCard, 
-  Settings 
+  Settings,
+  Bot 
 } from 'lucide-react';
 
 const BusinessSettingsNav = () => {
   const navItems = [
     { label: 'Business Profile', href: '/settings/business/profile', icon: Building },
     { label: 'Team Management', href: '/settings/business/team', icon: Users },
+    { label: 'Global Agent Settings', href: '/settings/business/global-agent-settings', icon: Bot },
     { label: 'Billing', href: '/settings/business/billing', icon: CreditCard },
     { label: 'Preferences', href: '/settings/business/preferences', icon: Settings },
   ];
