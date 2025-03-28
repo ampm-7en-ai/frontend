@@ -132,7 +132,7 @@ const Settings = () => {
             <CardContent className="pt-6 space-y-4">
               <div>
                 <h3 className="font-medium">Business Name</h3>
-                <p className="text-muted-foreground">{user?.businessName || 'Your Business'}</p>
+                <p className="text-muted-foreground">{user?.role === 'admin' ? 'Your Business' : 'Platform Admin'}</p>
               </div>
               <div>
                 <h3 className="font-medium">Admin Email</h3>

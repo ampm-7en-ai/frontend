@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -32,6 +33,7 @@ import SecuritySettings from './pages/settings/platform/SecuritySettings';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
 import BillingSettings from './pages/settings/platform/BillingSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+import { ProtectedRoute } from './utils/routeUtils';
 
 import { Toaster } from "@/components/ui/toaster";
 
