@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload } from 'lucide-react';
+import { Book, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, FileIcon, File } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -66,6 +67,13 @@ const KnowledgeBase = () => {
     }
   }, [error, toast]);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+  };
+
   const formatKnowledgeBaseData = (apiData) => {
     if (!apiData || apiData.length === 0) return [];
 
@@ -74,19 +82,35 @@ const KnowledgeBase = () => {
         ? kb.knowledge_sources[0] 
         : null;
 
+      const fileType = firstSource && firstSource.metadata && firstSource.metadata.file_type 
+        ? firstSource.metadata.file_type 
+        : 'N/A';
+        
+      const uploadDate = firstSource && firstSource.metadata && firstSource.metadata.upload_date 
+        ? formatDate(firstSource.metadata.upload_date) 
+        : formatDate(kb.last_updated);
+
+      let pages = '';
+      if (firstSource && firstSource.metadata) {
+        if (kb.type === 'csv' && firstSource.metadata.no_of_rows) {
+          pages = `${firstSource.metadata.no_of_rows} rows`;
+        } else if (firstSource.metadata.no_of_pages) {
+          pages = `${firstSource.metadata.no_of_pages} pages`;
+        }
+      }
+
       return {
         id: kb.id,
         title: kb.name,
         type: kb.type,
         sourceType: kb.type,
+        fileType: fileType,
         size: firstSource && firstSource.metadata && firstSource.metadata.file_size 
           ? firstSource.metadata.file_size 
           : 'N/A',
-        pages: firstSource && firstSource.metadata && firstSource.metadata.no_of_pages 
-          ? firstSource.metadata.no_of_pages 
-          : undefined,
+        pages: pages,
         agents: [],
-        uploadedAt: kb.last_updated,
+        uploadedAt: uploadDate,
         provider: null,
         status: kb.status,
         trainingStatus: kb.training_status
@@ -113,17 +137,15 @@ const KnowledgeBase = () => {
 
   const renderSourceIcon = (doc) => {
     switch (doc.sourceType) {
-      case 'document':
-        return doc.type === 'pdf' ? 
-          <FileText className="h-4 w-4 text-blue-600" /> : 
-          <FileText className="h-4 w-4 text-blue-600" />;
+      case 'docs':
+        return <FileText className="h-4 w-4 text-blue-600" />;
       case 'website':
         return <Globe className="h-4 w-4 text-green-600" />;
-      case 'spreadsheet':
+      case 'csv':
         return <FileSpreadsheet className="h-4 w-4 text-emerald-600" />;
-      case 'plainText':
-        return <Book className="h-4 w-4 text-purple-600" />;
-      case 'thirdParty':
+      case 'plain_text':
+        return <File className="h-4 w-4 text-purple-600" />;
+      case 'thirdparty':
         if (doc.provider === 'googleDrive') {
           return (
             <svg className="h-4 w-4" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
@@ -150,15 +172,15 @@ const KnowledgeBase = () => {
 
   const getIconBackground = (doc) => {
     switch (doc.sourceType) {
-      case 'document':
+      case 'docs':
         return 'bg-blue-100';
       case 'website':
         return 'bg-green-100';
-      case 'spreadsheet':
+      case 'csv':
         return 'bg-emerald-100';
-      case 'plainText':
+      case 'plain_text':
         return 'bg-purple-100';
-      case 'thirdParty':
+      case 'thirdparty':
         switch (doc.provider) {
           case 'googleDrive':
             return 'bg-blue-50';
@@ -180,23 +202,6 @@ const KnowledgeBase = () => {
 
   const getAgentInitials = (agentName) => {
     return agentName.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  const renderMetric = (doc) => {
-    switch (doc.sourceType) {
-      case 'document':
-      case 'plainText':
-        return `${doc.pages} pages`;
-      case 'website':
-        return `${doc.pageCount} pages`;
-      case 'spreadsheet':
-        return `${doc.rowCount} rows`;
-      case 'thirdParty':
-        if (doc.messages) return `${doc.messages} messages`;
-        return `${doc.pages} pages`;
-      default:
-        return doc.size;
-    }
   };
 
   return (
@@ -280,7 +285,7 @@ const KnowledgeBase = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-1">
-              <Book className="h-4 w-4 text-purple-600" />
+              <File className="h-4 w-4 text-purple-600" />
               Plain Text
             </CardTitle>
           </CardHeader>
@@ -336,7 +341,7 @@ const KnowledgeBase = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[40%]">Document Name</TableHead>
-                  <TableHead>Format</TableHead>
+                  <TableHead>Source Type</TableHead>
                   <TableHead>Agents</TableHead>
                   <TableHead>Uploaded</TableHead>
                   <TableHead className="w-16 text-right">Actions</TableHead>
@@ -353,14 +358,15 @@ const KnowledgeBase = () => {
                         <div className="flex flex-col">
                           <span className="font-medium">{doc.title}</span>
                           <div className="text-xs text-muted-foreground mt-0.5">
-                            {renderMetric(doc)} • {doc.size}
+                            {doc.pages} {doc.pages && doc.size ? '•' : ''} {doc.size}
+                            {doc.fileType !== 'N/A' && ` • ${doc.fileType}`}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="font-medium">
-                        {doc.type.toUpperCase()}
+                        {doc.sourceType.toUpperCase()}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -397,7 +403,7 @@ const KnowledgeBase = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "Unknown"}
+                      {doc.uploadedAt}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
