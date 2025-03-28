@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Bot, BarChart2, Settings as SettingsIcon, Clock, MessageSquare, Sparkles, Shield, ExternalLink, Link, Instagram, Slack, Smartphone, WhatsApp } from 'lucide-react';
+import { AlertTriangle, Bot, BarChart2, Settings as SettingsIcon, Clock, MessageSquare, Sparkles, Shield, ExternalLink, Link, Instagram, Slack, Smartphone } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const agentsData = [
@@ -94,7 +95,7 @@ const AgentSettings = () => {
   };
 
   const integrationOptions = [
-    { id: 'whatsapp', name: 'WhatsApp', icon: WhatsApp, description: 'Connect your WhatsApp Business account to interact with customers', connected: false },
+    { id: 'whatsapp', name: 'WhatsApp', icon: Smartphone, description: 'Connect your WhatsApp Business account to interact with customers', connected: false },
     { id: 'messenger', name: 'Messenger', icon: MessageSquare, description: 'Link your Facebook Messenger to engage with your audience', connected: false },
     { id: 'slack', name: 'Slack', icon: Slack, description: 'Integrate with Slack to collaborate with your team', connected: true },
     { id: 'instagram', name: 'Instagram', icon: Instagram, description: 'Connect to Instagram to respond to direct messages', connected: false },
