@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -23,7 +22,21 @@ import KnowledgeBase from './pages/knowledge/KnowledgeBase';
 import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
-// Import ProtectedRoute component from routeUtils
+
+import GeneralSettings from './pages/settings/platform/GeneralSettings';
+import SecuritySettings from './pages/settings/platform/SecuritySettings';
+import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
+import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
+import BillingSettings from './pages/settings/platform/BillingSettings';
+import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+
+import BusinessProfile from './pages/settings/business/BusinessProfile';
+import TeamSettings from './pages/settings/business/TeamSettings';
+import IntegrationsSettings from './pages/settings/business/IntegrationsSettings';
+import ChatboxSettings from './pages/settings/business/ChatboxSettings';
+import AgentSettings from './pages/settings/business/AgentSettings';
+import BusinessBillingSettings from './pages/settings/business/BusinessBillingSettings';
+
 import { ProtectedRoute } from './utils/routeUtils';
 
 import { Toaster } from "@/components/ui/toaster";
@@ -131,8 +144,45 @@ const ProtectedRoutes = () => {
         <Route path="/help/documentation" element={<Documentation />} />
         <Route path="/help/support" element={<SupportTicket />} />
         
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/settings/*" element={<Navigate to="/settings" replace />} />
+        <Route path="/settings" element={<Settings />}>
+          <Route path="business/profile" element={<BusinessProfile />} />
+          <Route path="business/team" element={<TeamSettings />} />
+          <Route path="business/integrations" element={<IntegrationsSettings />} />
+          <Route path="business/chatbox" element={<ChatboxSettings />} />
+          <Route path="business/agent-settings" element={<AgentSettings />} />
+          <Route path="business/billing" element={<BusinessBillingSettings />} />
+          
+          <Route path="platform/general" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <GeneralSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="platform/security" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <SecuritySettings />
+            </ProtectedRoute>
+          } />
+          <Route path="platform/llm-providers" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <LLMProvidersSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="platform/compliance" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <ComplianceSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="platform/billing" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <BillingSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="platform/customization" element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <CustomizationSettings />
+            </ProtectedRoute>
+          } />
+        </Route>
         
         <Route path="*" element={<NotFound />} />
       </Route>
