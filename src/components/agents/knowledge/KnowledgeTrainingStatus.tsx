@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,6 @@ const KnowledgeTrainingStatus = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
   
-  // Enhanced mock data with our new properties
   const mockKnowledgeSources: KnowledgeSource[] = [
     { 
       id: 1, 
@@ -93,11 +91,11 @@ const KnowledgeTrainingStatus = ({
   const [needsRetraining, setNeedsRetraining] = useState(true);
   
   const externalKnowledgeSources = [
-    { id: 101, name: 'Product Features Overview', type: 'pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
-    { id: 102, name: 'Pricing Structure', type: 'docx', size: '1.1 MB', lastUpdated: '2023-06-02' },
-    { id: 103, name: 'Technical Specifications', type: 'pdf', size: '3.7 MB', lastUpdated: '2023-06-05' },
-    { id: 104, name: 'Company Website', type: 'url', size: 'N/A', lastUpdated: '2023-05-28', linkBroken: true },
-    { id: 105, name: 'Customer Data', type: 'csv', size: '0.8 MB', lastUpdated: '2023-05-15' },
+    { id: 101, name: 'Product Features Overview', type: 'pdf', format: 'application/pdf', size: '2.4 MB', lastUpdated: '2023-06-01' },
+    { id: 102, name: 'Pricing Structure', type: 'docx', format: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: '1.1 MB', lastUpdated: '2023-06-02' },
+    { id: 103, name: 'Technical Specifications', type: 'pdf', format: 'application/pdf', size: '3.7 MB', lastUpdated: '2023-06-05' },
+    { id: 104, name: 'Company Website', type: 'url', format: 'text/html', size: 'N/A', lastUpdated: '2023-05-28', linkBroken: true },
+    { id: 105, name: 'Customer Data', type: 'csv', format: 'text/csv', size: '0.8 MB', lastUpdated: '2023-05-15' },
   ];
 
   const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
@@ -162,7 +160,6 @@ const KnowledgeTrainingStatus = ({
       const source = externalKnowledgeSources.find(s => s.id === id);
       const sourceCopy = { ...source };
       
-      // Add additional properties based on source type
       let enhancedSource: KnowledgeSource = {
         id: source!.id,
         name: source!.name,
@@ -174,7 +171,6 @@ const KnowledgeTrainingStatus = ({
         linkBroken: sourceCopy.linkBroken || false
       };
 
-      // Add crawl options for URL sources
       if (source!.type === 'url') {
         enhancedSource.crawlOptions = 'single';
       }
@@ -242,14 +238,12 @@ const KnowledgeTrainingStatus = ({
       
       const success = Math.random() > 0.2;
       
-      // Generate mock inside links for webpage sources on successful training
       let updatedSource: Partial<KnowledgeSource> = {
         trainingStatus: success ? 'success' : 'error',
         progress: 100,
         linkBroken: knowledgeSources[sourceIndex].linkBroken && success ? false : knowledgeSources[sourceIndex].linkBroken
       };
       
-      // For webpages and URLs, generate mock inside links on successful training
       if (success && (sourceType === 'webpage' || (sourceType === 'url' && knowledgeSources[sourceIndex].crawlOptions === 'children'))) {
         updatedSource.insideLinks = [
           { url: 'https://example.com/products/feature1', title: 'Feature 1', status: 'success' },
@@ -320,14 +314,12 @@ const KnowledgeTrainingStatus = ({
           clearInterval(intervalId);
           const success = Math.random() > 0.2;
           
-          // Generate mock inside links for webpage sources on successful training
           let updatedSource: Partial<KnowledgeSource> = {
             trainingStatus: success ? 'success' : 'error',
             progress: 100,
             linkBroken: source.linkBroken && success ? false : source.linkBroken
           };
           
-          // For webpages and URLs, generate mock inside links on successful training
           if (success && (source.type === 'webpage' || (source.type === 'url' && source.crawlOptions === 'children'))) {
             updatedSource.insideLinks = [
               { url: 'https://example.com/products/feature1', title: 'Feature 1', status: 'success' },
