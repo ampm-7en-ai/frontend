@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, ExternalLink, Smartphone, Slack, Instagram, Package, SquareCode } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -684,7 +683,17 @@ const AgentEdit = () => {
                   >
                     <div className="flex items-center">
                       <div className="bg-primary/10 p-1 rounded-md mr-2">
-                        <integration.icon className="h-4 w-4 text-primary" />
+                        {integration.icon === 'slack' ? (
+                          <Slack className="h-4 w-4 text-primary" />
+                        ) : integration.icon === 'whatsapp' ? (
+                          <Smartphone className="h-4 w-4 text-primary" />
+                        ) : integration.icon === 'instagram' ? (
+                          <Instagram className="h-4 w-4 text-primary" />
+                        ) : integration.icon === 'zapier' ? (
+                          <Package className="h-4 w-4 text-primary" />
+                        ) : (
+                          <MessageSquare className="h-4 w-4 text-primary" />
+                        )}
                       </div>
                       {integration.name}
                       {integration.connected && (
@@ -706,7 +715,7 @@ const AgentEdit = () => {
                 >
                   <div className="flex items-center">
                     <div className="bg-primary/10 p-1 rounded-md mr-2">
-                      <Box className="h-4 w-4 text-primary" />
+                      <Package className="h-4 w-4 text-primary" />
                     </div>
                     Custom Webhook
                   </div>
@@ -724,7 +733,17 @@ const AgentEdit = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center">
                     <div className="bg-primary/10 p-2 rounded-md mr-3">
-                      <selectedApp.icon className="h-6 w-6 text-primary" />
+                      {selectedApp.icon === 'slack' ? (
+                        <Slack className="h-6 w-6 text-primary" />
+                      ) : selectedApp.icon === 'whatsapp' ? (
+                        <Smartphone className="h-6 w-6 text-primary" />
+                      ) : selectedApp.icon === 'instagram' ? (
+                        <Instagram className="h-6 w-6 text-primary" />
+                      ) : selectedApp.icon === 'zapier' ? (
+                        <Package className="h-6 w-6 text-primary" />
+                      ) : (
+                        <MessageSquare className="h-6 w-6 text-primary" />
+                      )}
                     </div>
                     <div>
                       <CardTitle>{selectedApp.name}</CardTitle>
@@ -819,7 +838,17 @@ const AgentEdit = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <div className="bg-muted/50 p-4 rounded-full mb-4">
-                      <selectedApp.icon className="h-10 w-10 text-muted-foreground" />
+                      {selectedApp.icon === 'slack' ? (
+                        <Slack className="h-10 w-10 text-muted-foreground" />
+                      ) : selectedApp.icon === 'whatsapp' ? (
+                        <Smartphone className="h-10 w-10 text-muted-foreground" />
+                      ) : selectedApp.icon === 'instagram' ? (
+                        <Instagram className="h-10 w-10 text-muted-foreground" />
+                      ) : selectedApp.icon === 'zapier' ? (
+                        <Package className="h-10 w-10 text-muted-foreground" />
+                      ) : (
+                        <MessageSquare className="h-10 w-10 text-muted-foreground" />
+                      )}
                     </div>
                     <h3 className="text-lg font-medium mb-2">Connect to {selectedApp.name}</h3>
                     <p className="text-sm text-muted-foreground max-w-md mb-4">
@@ -828,11 +857,6 @@ const AgentEdit = () => {
                     <Button onClick={() => openIntegrationDialog(selectedApp)}>
                       Connect {selectedApp.name}
                     </Button>
-                    {selectedApp.isPremium && (
-                      <Badge className="mt-4 bg-amber-50 text-amber-700 border-amber-200">
-                        Premium Feature
-                      </Badge>
-                    )}
                   </div>
                 )}
               </CardContent>
@@ -857,7 +881,7 @@ const AgentEdit = () => {
               <CardHeader>
                 <div className="flex items-center">
                   <div className="bg-primary/10 p-2 rounded-md mr-3">
-                    <Box className="h-6 w-6 text-primary" />
+                    <SquareCode className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <CardTitle>Custom Webhook Integration</CardTitle>
@@ -954,13 +978,9 @@ const AgentEdit = () => {
       case 'instagram':
         return <Instagram className="h-6 w-6" style={{ color }} />;
       case 'zapier':
-        return (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0C5.372 0 0 5.372 0 12C0 18.628 5.372 24 12 24C18.628 24 24 18.628 24 12C24 5.372 18.628 0 12 0ZM5.694 14.538L3.824 17.497H8.135L10.266 14.538H5.694ZM17.761 8.291H14.362L10.932 13.517L14.715 19.206H18.121L14.338 13.517L17.761 8.291ZM15.751 4.794H12.349L5.152 15.782L8.554 15.775L15.751 4.794Z" fill={color} />
-          </svg>
-        );
+        return <Package className="h-6 w-6" style={{ color }} />;
       default:
-        return <div className="h-6 w-6 bg-primary/10 rounded-full" />;
+        return <MessageSquare className="h-6 w-6" style={{ color }} />;
     }
   };
 
