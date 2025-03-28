@@ -10,10 +10,7 @@ import NotFound from './pages/NotFound';
 import AgentList from './pages/agents/AgentList';
 import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
-import SettingsLayout from './pages/settings/SettingsLayout';
-import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
-import { ProtectedRoute, getDashboardPath } from './utils/routeUtils';
-
+import Settings from './pages/settings/Settings';
 import BusinessList from './pages/businesses/BusinessList';
 import BusinessDetail from './pages/businesses/BusinessDetail';
 import UserList from './pages/users/UserList';
@@ -120,44 +117,8 @@ const ProtectedRoutes = () => {
         <Route path="/help/documentation" element={<Documentation />} />
         <Route path="/help/support" element={<SupportTicket />} />
         
-        <Route path="/settings" element={<SettingsLayout />}>
-          <Route path="/settings/business/profile" element={<BusinessProfile />} />
-          <Route path="/settings/business/team" element={<TeamSettings />} />
-          <Route path="/settings/business/global-agent-settings" element={<GlobalAgentSettings />} />
-          <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
-          <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
-          
-          <Route path="/settings/platform/general" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <GeneralSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/security" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <SecuritySettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/llm-providers" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <LLMProvidersSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/compliance" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <ComplianceSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/billing" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <BillingSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/platform/customization" element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <CustomizationSettings />
-            </ProtectedRoute>
-          } />
-        </Route>
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings/*" element={<Navigate to="/settings" replace />} />
         
         <Route path="*" element={<NotFound />} />
       </Route>
