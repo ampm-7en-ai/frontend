@@ -230,16 +230,16 @@ const KnowledgeUpload = () => {
       
       switch(sourceType) {
         case 'url':
-          formData.append('type', 'url');
+          formData.append('type', 'website');
           break;
         case 'document':
-          formData.append('type', 'document');
+          formData.append('type', 'docs');
           break;
         case 'csv':
           formData.append('type', 'csv');
           break;
         case 'plainText':
-          formData.append('type', 'text');
+          formData.append('type', 'plain_text');
           break;
         case 'thirdParty':
           formData.append('type', 'thirdparty');
