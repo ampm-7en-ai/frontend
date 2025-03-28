@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -22,14 +23,7 @@ import KnowledgeBase from './pages/knowledge/KnowledgeBase';
 import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
-
-import GeneralSettings from './pages/settings/platform/GeneralSettings';
-import SecuritySettings from './pages/settings/platform/SecuritySettings';
-import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
-import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
-import BillingSettings from './pages/settings/platform/BillingSettings';
-import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
-
+// Import ProtectedRoute component from routeUtils
 import { ProtectedRoute } from './utils/routeUtils';
 
 import { Toaster } from "@/components/ui/toaster";
@@ -138,55 +132,7 @@ const ProtectedRoutes = () => {
         <Route path="/help/support" element={<SupportTicket />} />
         
         <Route path="/settings" element={<Settings />} />
-        
-        <Route 
-          path="/settings/platform/general" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
-              <GeneralSettings />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings/platform/security" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
-              <SecuritySettings />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings/platform/llm-providers" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
-              <LLMProvidersSettings />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings/platform/compliance" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
-              <ComplianceSettings />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings/platform/billing" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
-              <BillingSettings />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings/platform/customization" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
-              <CustomizationSettings />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/settings/*" element={<Navigate to="/settings" replace />} />
         
         <Route path="*" element={<NotFound />} />
       </Route>
