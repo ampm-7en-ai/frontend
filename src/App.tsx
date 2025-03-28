@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
@@ -23,16 +23,7 @@ import KnowledgeBase from './pages/knowledge/KnowledgeBase';
 import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
-import BusinessProfile from './pages/settings/business/BusinessProfile';
-import TeamSettings from './pages/settings/business/TeamSettings';
-import BusinessBillingSettings from './pages/settings/business/BusinessBillingSettings';
-import PreferencesSettings from './pages/settings/business/PreferencesSettings';
-import GlobalAgentSettings from './pages/settings/business/GlobalAgentSettings';
-import GeneralSettings from './pages/settings/platform/GeneralSettings';
-import SecuritySettings from './pages/settings/platform/SecuritySettings';
-import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
-import BillingSettings from './pages/settings/platform/BillingSettings';
-import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+// Import ProtectedRoute component from routeUtils
 import { ProtectedRoute } from './utils/routeUtils';
 
 import { Toaster } from "@/components/ui/toaster";
@@ -67,48 +58,69 @@ const ProtectedRoutes = () => {
         <Route path="/dashboard" element={
           user.role === 'superadmin' ? <SuperAdminDashboard /> : <AdminDashboard />
         } />
-        <Route path="/dashboard/superadmin" element={
-          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-            <SuperAdminDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard/admin" element={
-          <ProtectedRoute allowedRoles={['admin']} userRole={user?.role} fallbackPath="/dashboard">
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
+        <Route 
+          path="/dashboard/superadmin" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard/admin" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']} userRole={user?.role} fallbackPath="/dashboard">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
         
         <Route path="/agents" element={<AgentList />} />
         <Route path="/agents/:agentId/test" element={<AgentTest />} />
         <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
         
-        <Route path="/businesses" element={
-          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-            <BusinessList />
-          </ProtectedRoute>
-        } />
-        <Route path="/businesses/:businessId" element={
-          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-            <BusinessDetail />
-          </ProtectedRoute>
-        } />
+        <Route 
+          path="/businesses" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <BusinessList />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/businesses/:businessId" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <BusinessDetail />
+            </ProtectedRoute>
+          } 
+        />
         
-        <Route path="/users" element={
-          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-            <UserList />
-          </ProtectedRoute>
-        } />
-        <Route path="/users/:userId" element={
-          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-            <UserDetail />
-          </ProtectedRoute>
-        } />
+        <Route 
+          path="/users" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <UserList />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/users/:userId" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <UserDetail />
+            </ProtectedRoute>
+          } 
+        />
         
-        <Route path="/analytics" element={
-          <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-            <PlatformAnalytics />
-          </ProtectedRoute>
-        } />
+        <Route 
+          path="/analytics" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+              <PlatformAnalytics />
+            </ProtectedRoute>
+          } 
+        />
         
         <Route path="/conversations" element={<ConversationList />} />
         <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
