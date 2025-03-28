@@ -33,7 +33,6 @@ interface ImportSourcesDialogProps {
   onOpenChange: (open: boolean) => void;
   currentSources: KnowledgeSource[];
   onImport: (selectedSourceIds: number[]) => void;
-  // Adding the missing externalSources prop to match how it's used in KnowledgeTrainingStatus
   externalSources?: ExternalSource[];
 }
 
@@ -167,6 +166,27 @@ const ImportSourcesDialog = ({
     }
   };
 
+  const handleImport = () => {
+    if (selectedImportSources.length === 0) {
+      toast({
+        title: "No sources selected",
+        description: "Please select at least one knowledge source to import.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Close the dialog
+    onOpenChange(false);
+    
+    // Clear selected sources for next time
+    const sourcesToImport = selectedImportSources;
+    setSelectedImportSources([]);
+    
+    // Call the onImport callback with selected sources
+    onImport(sourcesToImport);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
@@ -246,7 +266,7 @@ const ImportSourcesDialog = ({
             Cancel
           </Button>
           <Button 
-            onClick={() => onImport(selectedImportSources)}
+            onClick={handleImport}
             disabled={selectedImportSources.length === 0}
           >
             Import Selected ({selectedImportSources.length})

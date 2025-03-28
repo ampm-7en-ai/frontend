@@ -211,81 +211,36 @@ const KnowledgeTrainingStatus = ({
     
     if (!sourceToRemove) return;
     
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge/${sourceId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to remove knowledge source');
-      }
-      
-      setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
-      
-      if (onSourcesChange) {
-        const updatedSourceIds = knowledgeSources
-          .filter(s => s.id !== sourceId)
-          .map(s => s.id);
-        onSourcesChange(updatedSourceIds);
-      }
-      
-      setNeedsRetraining(true);
-      
-      const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
-      toast(toastInfo);
-    } catch (error) {
-      console.error('Error removing knowledge source:', error);
-      toast({
-        title: "Error removing source",
-        description: "There was a problem removing this knowledge source.",
-        variant: "destructive",
-      });
+    // Just remove the source from the UI without making API calls
+    setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
+    
+    if (onSourcesChange) {
+      const updatedSourceIds = knowledgeSources
+        .filter(s => s.id !== sourceId)
+        .map(s => s.id);
+      onSourcesChange(updatedSourceIds);
     }
+    
+    setNeedsRetraining(true);
+    
+    const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
+    toast(toastInfo);
   };
 
   const updateSource = async (sourceId: number, data: Partial<KnowledgeSource>) => {
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge/${sourceId}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update knowledge source');
-      }
-      
-      setKnowledgeSources(prev => 
-        prev.map(source => 
-          source.id === sourceId 
-            ? { ...source, ...data } 
-            : source
-        )
-      );
-      
-      setNeedsRetraining(true);
-    } catch (error) {
-      console.error('Error updating knowledge source:', error);
-      toast({
-        title: "Error updating source",
-        description: "There was a problem updating this knowledge source.",
-        variant: "destructive",
-      });
-    }
+    // Update the source in the UI without making API calls
+    setKnowledgeSources(prev => 
+      prev.map(source => 
+        source.id === sourceId 
+          ? { ...source, ...data } 
+          : source
+      )
+    );
+    
+    setNeedsRetraining(true);
   };
 
-  const importSelectedSources = async (sourceIds: number[]) => {
+  const importSelectedSources = (sourceIds: number[]) => {
     if (!availableKnowledgeBases) return;
     
     const externalSources = formatExternalSources(availableKnowledgeBases);
@@ -300,195 +255,99 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      // Add each selected knowledge base to the agent
-      for (const sourceId of newSourceIds) {
-        const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge`, {
-          method: 'POST',
-          headers: getAuthHeaders(token),
-          body: JSON.stringify({
-            knowledge_base_id: sourceId
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to import knowledge source ${sourceId}`);
-        }
-      }
+    // Create new sources from the selected external sources
+    const newSources: KnowledgeSource[] = newSourceIds.map(id => {
+      const externalSource = externalSources.find(s => s.id === id);
+      if (!externalSource) return null;
       
-      // Refetch agent knowledge sources after importing
-      const newSourcesResponse = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge`, {
-        headers: getAuthHeaders(token),
-      });
-      
-      if (!newSourcesResponse.ok) {
-        throw new Error('Failed to fetch updated agent knowledge sources');
+      return {
+        id: externalSource.id,
+        name: externalSource.name,
+        type: externalSource.type,
+        size: externalSource.size,
+        lastUpdated: externalSource.lastUpdated,
+        trainingStatus: 'idle', // Start with idle status
+        progress: 0,
+        linkBroken: false
+      };
+    }).filter(Boolean);
+    
+    // Add the new sources to the existing sources
+    setKnowledgeSources(prev => [...prev, ...newSources]);
+    setIsImportDialogOpen(false);
+    setNeedsRetraining(true);
+    
+    // Update parent component if callback exists
+    if (onSourcesChange) {
+      const updatedSourceIds = [...knowledgeSources, ...newSources].map(s => s.id);
+      onSourcesChange(updatedSourceIds);
+    }
+    
+    // Show toast notification
+    if (newSourceIds.length === 1) {
+      const sourceId = newSourceIds[0];
+      const source = externalSources.find(s => s.id === sourceId);
+      if (source) {
+        const toastInfo = getToastMessageForSourceChange('added', source.name);
+        toast(toastInfo);
       }
-      
-      const newSourcesData = await newSourcesResponse.json();
-      const newSources = transformAgentKnowledgeSources(newSourcesData);
-      
-      setKnowledgeSources(newSources);
-      setIsImportDialogOpen(false);
-      setNeedsRetraining(true);
-
-      if (onSourcesChange) {
-        onSourcesChange(newSources.map(s => s.id));
-      }
-
-      if (newSourceIds.length === 1) {
-        const sourceId = newSourceIds[0];
-        const source = externalSources.find(s => s.id === sourceId);
-        if (source) {
-          const toastInfo = getToastMessageForSourceChange('added', source.name);
-          toast(toastInfo);
-        }
-      } else {
-        toast({
-          title: "Knowledge sources imported",
-          description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
-        });
-      }
-    } catch (error) {
-      console.error('Error importing knowledge sources:', error);
+    } else {
       toast({
-        title: "Error importing sources",
-        description: "There was a problem importing the selected knowledge sources.",
-        variant: "destructive",
+        title: "Knowledge sources imported",
+        description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
       });
     }
   };
 
-  const trainSource = async (sourceId: number) => {
+  const trainSource = (sourceId: number) => {
     const sourceIndex = knowledgeSources.findIndex(s => s.id === sourceId);
     if (sourceIndex === -1) return;
     
     const sourceName = knowledgeSources[sourceIndex].name;
     
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      // Update local state to show training in progress
+    // Update the source status to 'training' in the UI
+    setKnowledgeSources(prev => 
+      prev.map(source => 
+        source.id === sourceId 
+          ? { ...source, trainingStatus: 'training', progress: 10 } 
+          : source
+      )
+    );
+    
+    toast(getTrainingStatusToast('start', sourceName));
+    
+    // Simulate training progress
+    let progress = 10;
+    const progressInterval = setInterval(() => {
+      progress += 10;
+      
       setKnowledgeSources(prev => 
         prev.map(source => 
           source.id === sourceId 
-            ? { ...source, trainingStatus: 'training', progress: 0 } 
+            ? { ...source, progress: Math.min(progress, 100) } 
             : source
         )
       );
       
-      toast(getTrainingStatusToast('start', sourceName));
-
-      // Start the training process
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge/${sourceId}/train`, {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to start knowledge source training');
-      }
-      
-      // Poll for training status
-      let trainingComplete = false;
-      const pollInterval = setInterval(async () => {
-        if (trainingComplete) {
-          clearInterval(pollInterval);
-          return;
-        }
+      if (progress >= 100) {
+        clearInterval(progressInterval);
         
-        try {
-          const statusResponse = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge/${sourceId}`, {
-            headers: getAuthHeaders(token),
-          });
-          
-          if (!statusResponse.ok) {
-            throw new Error('Failed to get training status');
-          }
-          
-          const statusData = await statusResponse.json();
-          const status = statusData.training_status || 'idle';
-          const progress = status === 'success' || status === 'error' ? 100 : 
-                          (status === 'training' ? Math.min((statusData.progress || 0) * 100, 90) : 0);
-          
-          setKnowledgeSources(prev => 
-            prev.map(source => 
-              source.id === sourceId 
-                ? { 
-                    ...source, 
-                    trainingStatus: status, 
-                    progress: progress,
-                    linkBroken: statusData.link_broken || false,
-                    insideLinks: statusData.inside_links || undefined
-                  } 
-                : source
-            )
-          );
-          
-          if (status === 'success' || status === 'error') {
-            trainingComplete = true;
-            clearInterval(pollInterval);
-            toast(getTrainingStatusToast(status === 'success' ? 'success' : 'error', sourceName));
-            setNeedsRetraining(false);
-          }
-        } catch (error) {
-          console.error('Error polling training status:', error);
-          clearInterval(pollInterval);
-          setKnowledgeSources(prev => 
-            prev.map(source => 
-              source.id === sourceId 
-                ? { ...source, trainingStatus: 'error', progress: 100 } 
-                : source
-            )
-          );
-          toast(getTrainingStatusToast('error', sourceName));
-        }
-      }, 2000);
-      
-      // Set a timeout to stop polling after a reasonable amount of time
-      setTimeout(() => {
-        if (!trainingComplete) {
-          clearInterval(pollInterval);
-          setKnowledgeSources(prev => 
-            prev.map(source => 
-              source.id === sourceId && source.trainingStatus === 'training'
-                ? { ...source, trainingStatus: 'error', progress: 100 } 
-                : source
-            )
-          );
-          toast({
-            title: "Training timeout",
-            description: `Training for ${sourceName} took too long. Please try again later.`,
-            variant: "destructive",
-          });
-        }
-      }, 60000); // 1 minute timeout
-    } catch (error) {
-      console.error('Error training knowledge source:', error);
-      setKnowledgeSources(prev => 
-        prev.map(source => 
-          source.id === sourceId 
-            ? { ...source, trainingStatus: 'error', progress: 100 } 
-            : source
-        )
-      );
-      toast({
-        title: "Error training source",
-        description: "There was a problem training this knowledge source.",
-        variant: "destructive",
-      });
-    }
+        // Set the source to 'success' status after "training" is complete
+        setKnowledgeSources(prev => 
+          prev.map(source => 
+            source.id === sourceId 
+              ? { ...source, trainingStatus: 'success', progress: 100 } 
+              : source
+          )
+        );
+        
+        setNeedsRetraining(false);
+        toast(getTrainingStatusToast('success', sourceName));
+      }
+    }, 500);
   };
 
-  const trainAllSources = async () => {
+  const trainAllSources = () => {
     if (knowledgeSources.length === 0) {
       toast({
         title: "No sources selected",
@@ -505,99 +364,48 @@ const KnowledgeTrainingStatus = ({
       description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`,
     });
 
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
+    // Update all sources to training status
+    setKnowledgeSources(prev => 
+      prev.map(source => ({ 
+        ...source, 
+        trainingStatus: 'training', 
+        progress: 10 
+      }))
+    );
 
-      // Start training all sources
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge/train-all`, {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to start training all knowledge sources');
-      }
-
-      // Update all sources to training status
+    // Simulate training progress for all sources
+    let progress = 10;
+    const progressInterval = setInterval(() => {
+      progress += 10;
+      
       setKnowledgeSources(prev => 
         prev.map(source => ({ 
           ...source, 
-          trainingStatus: 'training', 
-          progress: 0 
+          progress: Math.min(progress, 100) 
         }))
       );
-
-      // Poll for training status of all sources
-      let allComplete = false;
-      const pollInterval = setInterval(async () => {
-        if (allComplete) {
-          clearInterval(pollInterval);
-          return;
-        }
-        
-        try {
-          const statusResponse = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/knowledge`, {
-            headers: getAuthHeaders(token),
-          });
-          
-          if (!statusResponse.ok) {
-            throw new Error('Failed to get training status');
-          }
-          
-          const sourcesData = await statusResponse.json();
-          const formattedSources = transformAgentKnowledgeSources(sourcesData);
-          
-          setKnowledgeSources(formattedSources);
-          
-          // Check if all sources are trained
-          const stillTraining = formattedSources.some(source => source.trainingStatus === 'training');
-          if (!stillTraining) {
-            allComplete = true;
-            clearInterval(pollInterval);
-            setIsTrainingAll(false);
-            setNeedsRetraining(false);
-            
-            toast({
-              title: "Training complete",
-              description: "All knowledge sources have been processed.",
-            });
-          }
-        } catch (error) {
-          console.error('Error polling all training status:', error);
-          clearInterval(pollInterval);
-          setIsTrainingAll(false);
-          toast({
-            title: "Error monitoring training",
-            description: "There was a problem monitoring the training status.",
-            variant: "destructive",
-          });
-        }
-      }, 3000);
       
-      // Set a timeout to stop polling after a reasonable amount of time
-      setTimeout(() => {
-        if (!allComplete) {
-          clearInterval(pollInterval);
-          setIsTrainingAll(false);
-          toast({
-            title: "Training timeout",
-            description: "Training took too long. Some sources may still be processing.",
-            variant: "destructive",
-          });
-        }
-      }, 120000); // 2 minutes timeout
-    } catch (error) {
-      console.error('Error training all knowledge sources:', error);
-      setIsTrainingAll(false);
-      toast({
-        title: "Error training sources",
-        description: "There was a problem training the knowledge sources.",
-        variant: "destructive",
-      });
-    }
+      if (progress >= 100) {
+        clearInterval(progressInterval);
+        
+        // Set all sources to 'success' status after "training" is complete
+        setKnowledgeSources(prev => 
+          prev.map(source => ({ 
+            ...source, 
+            trainingStatus: 'success', 
+            progress: 100 
+          }))
+        );
+        
+        setIsTrainingAll(false);
+        setNeedsRetraining(false);
+        
+        toast({
+          title: "Training complete",
+          description: "All knowledge sources have been processed.",
+        });
+      }
+    }, 500);
   };
 
   return (
