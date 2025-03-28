@@ -11,7 +11,6 @@ import AgentList from './pages/agents/AgentList';
 import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
 import SettingsLayout from './pages/settings/SettingsLayout';
-import AgentSettings from './pages/settings/business/AgentSettings';
 import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import { ProtectedRoute, getDashboardPath } from './utils/routeUtils';
 
@@ -28,7 +27,6 @@ import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
 import BusinessProfile from './pages/settings/business/BusinessProfile';
 import TeamSettings from './pages/settings/business/TeamSettings';
-import IntegrationsSettings from './pages/settings/business/IntegrationsSettings';
 import BusinessBillingSettings from './pages/settings/business/BusinessBillingSettings';
 import PreferencesSettings from './pages/settings/business/PreferencesSettings';
 import GeneralSettings from './pages/settings/platform/GeneralSettings';
@@ -124,8 +122,6 @@ const ProtectedRoutes = () => {
         <Route path="/settings" element={<SettingsLayout />}>
           <Route path="/settings/business/profile" element={<BusinessProfile />} />
           <Route path="/settings/business/team" element={<TeamSettings />} />
-          <Route path="/settings/business/agents" element={<AgentSettings />} />
-          <Route path="/settings/business/integrations" element={<IntegrationsSettings />} />
           <Route path="/settings/business/billing" element={<BusinessBillingSettings />} />
           <Route path="/settings/business/preferences" element={<PreferencesSettings />} />
           

@@ -4,8 +4,6 @@ import { NavLink } from 'react-router-dom';
 import { 
   Building, 
   Users, 
-  Bot, 
-  Link, 
   CreditCard, 
   Settings 
 } from 'lucide-react';
@@ -14,8 +12,6 @@ const BusinessSettingsNav = () => {
   const navItems = [
     { label: 'Business Profile', href: '/settings/business/profile', icon: Building },
     { label: 'Team Management', href: '/settings/business/team', icon: Users },
-    { label: 'Agent Settings', href: '/settings/business/agents', icon: Bot },
-    { label: 'Integrations', href: '/settings/business/integrations', icon: Link },
     { label: 'Billing', href: '/settings/business/billing', icon: CreditCard },
     { label: 'Preferences', href: '/settings/business/preferences', icon: Settings },
   ];
