@@ -137,38 +137,56 @@ const ProtectedRoutes = () => {
         <Route path="/help/documentation" element={<Documentation />} />
         <Route path="/help/support" element={<SupportTicket />} />
         
-        <Route path="/settings" element={<Settings />}>
-          <Route path="platform/general" element={
+        <Route path="/settings" element={<Settings />} />
+        
+        <Route 
+          path="/settings/platform/general" 
+          element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <GeneralSettings />
             </ProtectedRoute>
-          } />
-          <Route path="platform/security" element={
+          } 
+        />
+        <Route 
+          path="/settings/platform/security" 
+          element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <SecuritySettings />
             </ProtectedRoute>
-          } />
-          <Route path="platform/llm-providers" element={
+          } 
+        />
+        <Route 
+          path="/settings/platform/llm-providers" 
+          element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <LLMProvidersSettings />
             </ProtectedRoute>
-          } />
-          <Route path="platform/compliance" element={
+          } 
+        />
+        <Route 
+          path="/settings/platform/compliance" 
+          element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <ComplianceSettings />
             </ProtectedRoute>
-          } />
-          <Route path="platform/billing" element={
+          } 
+        />
+        <Route 
+          path="/settings/platform/billing" 
+          element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <BillingSettings />
             </ProtectedRoute>
-          } />
-          <Route path="platform/customization" element={
+          } 
+        />
+        <Route 
+          path="/settings/platform/customization" 
+          element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <CustomizationSettings />
             </ProtectedRoute>
-          } />
-        </Route>
+          } 
+        />
         
         <Route path="*" element={<NotFound />} />
       </Route>
