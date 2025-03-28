@@ -30,13 +30,6 @@ import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import BillingSettings from './pages/settings/platform/BillingSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
 
-import BusinessProfile from './pages/settings/business/BusinessProfile';
-import TeamSettings from './pages/settings/business/TeamSettings';
-import IntegrationsSettings from './pages/settings/business/IntegrationsSettings';
-import ChatboxSettings from './pages/settings/business/ChatboxSettings';
-import AgentSettings from './pages/settings/business/AgentSettings';
-import BusinessBillingSettings from './pages/settings/business/BusinessBillingSettings';
-
 import { ProtectedRoute } from './utils/routeUtils';
 
 import { Toaster } from "@/components/ui/toaster";
@@ -145,13 +138,6 @@ const ProtectedRoutes = () => {
         <Route path="/help/support" element={<SupportTicket />} />
         
         <Route path="/settings" element={<Settings />}>
-          <Route path="business/profile" element={<BusinessProfile />} />
-          <Route path="business/team" element={<TeamSettings />} />
-          <Route path="business/integrations" element={<IntegrationsSettings />} />
-          <Route path="business/chatbox" element={<ChatboxSettings />} />
-          <Route path="business/agent-settings" element={<AgentSettings />} />
-          <Route path="business/billing" element={<BusinessBillingSettings />} />
-          
           <Route path="platform/general" element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <GeneralSettings />
