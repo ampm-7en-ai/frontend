@@ -338,7 +338,7 @@ const KnowledgeSourceTable = ({
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
                 <p className="mb-2">No knowledge sources selected</p>
-                <p className="text-sm text-muted-foreground">Click "Import Sources" to add knowledge sources to your agent</p>
+                <p className="text-sm text-muted-foreground mb-4">Click "Import Sources" to add knowledge sources to your agent</p>
               </TableCell>
             </TableRow>
           ) : (
@@ -373,9 +373,9 @@ const KnowledgeSourceTable = ({
                         </span>
                       )}
                     </div>
-                    {source.pages && (
+                    {source.metadata?.count && (
                       <div className="text-xs text-muted-foreground ml-7 mt-0.5">
-                        {source.pages}
+                        {source.metadata.count}
                       </div>
                     )}
                   </TableCell>
