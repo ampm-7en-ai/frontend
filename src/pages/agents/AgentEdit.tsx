@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, Rocket, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
@@ -50,9 +50,9 @@ const predefinedAvatars = [
 ];
 
 const integrationOptions = [
-  { id: 'zapier', name: 'Zapier', icon: 'zapier', description: 'Automate workflows with Zapier integrations', connected: false, color: '#FF4A00' },
+  { id: 'zapier', name: 'Zapier', icon: 'zapier', description: 'Connect with thousands of apps through Zapier', connected: false, color: '#FF4A00' },
   { id: 'whatsapp', name: 'WhatsApp', icon: 'whatsapp', description: 'Connect your WhatsApp Business account', connected: false, color: '#25D366' },
-  { id: 'slack', name: 'Slack', icon: 'slack', description: 'Link your Slack workspace', connected: false, color: '#4A154B' },
+  { id: 'slack', name: 'Slack', icon: 'slack', description: 'Link your Slack workspace', connected: true, color: '#4A154B' },
   { id: 'instagram', name: 'Instagram', icon: 'instagram', description: 'Connect to Instagram direct messages', connected: false, color: '#E1306C' },
 ];
 
@@ -656,40 +656,72 @@ const AgentEdit = () => {
 
   const renderIntegrationsContent = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-4">
-        {activeIntegrations.map(integration => (
-          <div
-            key={integration.id}
-            className={`border rounded-lg p-4 transition-all cursor-pointer ${integration.id === 'slack' ? 'bg-muted border-primary' : 'hover:bg-muted/50'}`}
-            onClick={() => setSelectedIntegration(integration)}
-          >
-            <div className="flex flex-col items-center text-center gap-2">
-              <div className="w-10 h-10 flex items-center justify-center">
-                {getIntegrationIconElement(integration.icon, integration.color)}
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Integrations</CardTitle>
+          <CardDescription>Connect your agent with other platforms to extend its capabilities</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {integrationOptions.map(integration => (
+              <div
+                key={integration.id}
+                className={`border rounded-lg p-4 transition-all cursor-pointer hover:shadow-md ${integration.connected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                onClick={() => setSelectedIntegration(integration)}
+              >
+                <div className="flex flex-col items-center text-center gap-2 h-full">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-accent/10 mb-2">
+                    {getIntegrationIconElement(integration.icon, integration.color)}
+                  </div>
+                  <span className="font-medium">{integration.name}</span>
+                  <span className="text-xs text-muted-foreground">{integration.description}</span>
+                  {integration.connected && (
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 mt-2">Connected</Badge>
+                  )}
+                </div>
               </div>
-              <span className="font-medium">{integration.name}</span>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </CardContent>
+      </Card>
       
-      <Card className="mt-8">
+      <Card>
         <CardHeader className="border-b">
-          <CardTitle>Slack Integration</CardTitle>
-          <CardDescription>Install Coco 2 to your Slack workspace and start chatting with it within Slack!</CardDescription>
+          <CardTitle className="flex items-center">
+            <Slack className="h-5 w-5 mr-2 text-[#4A154B]" />
+            Connected Integrations
+          </CardTitle>
+          <CardDescription>Manage your agent's active connections</CardDescription>
         </CardHeader>
         <CardContent className="py-6">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0">
-              <Slack className="h-10 w-10 text-[#4A154B]" />
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 p-4 border rounded-lg bg-primary/5">
+              <div className="flex-shrink-0">
+                <Slack className="h-10 w-10 text-[#4A154B]" />
+              </div>
+              <div className="flex-grow">
+                <h4 className="font-medium">Slack</h4>
+                <p className="text-sm text-muted-foreground">Connected to workspace: Team Coco</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Configure</Button>
+                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">Disconnect</Button>
+              </div>
             </div>
-            <div>
-              <Button className="flex items-center gap-2">
-                <span>Add to your Slack workspace</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 0L6.59 1.41L12.17 7H0V9H12.17L6.59 14.59L8 16L16 8L8 0Z" />
-                </svg>
-              </Button>
+            
+            <div className="flex flex-col gap-2">
+              <h4 className="font-medium">Connect a New Platform</h4>
+              <p className="text-sm text-muted-foreground mb-2">Select an integration above to connect with more platforms.</p>
+              
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <h5 className="font-medium text-sm mb-2">Integration Benefits</h5>
+                <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5">
+                  <li>Allow your AI agent to communicate through multiple channels</li>
+                  <li>Maintain consistent conversations across platforms</li>
+                  <li>Automate workflows with Zapier integration</li>
+                  <li>Notify your team when the agent needs human support</li>
+                </ul>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -798,7 +830,7 @@ const AgentEdit = () => {
                   Knowledge
                 </TabsTrigger>
                 <TabsTrigger value="integrations" size="xs">
-                  <Rocket className="h-4 w-4 mr-2" />
+                  <MessageSquare className="h-4 w-4 mr-2" />
                   Integrations
                 </TabsTrigger>
               </TabsList>
@@ -841,36 +873,77 @@ const AgentEdit = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor={`${selectedIntegration.id}-apiKey`}>API Key</Label>
-                <Input 
-                  id={`${selectedIntegration.id}-apiKey`} 
-                  type="password" 
-                  placeholder="Enter your API key"
-                  value={integrationFormData.apiKey}
-                  onChange={handleIntegrationInputChange}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor={`${selectedIntegration.id}-webhookUrl`}>Webhook URL</Label>
-                <Input 
-                  id={`${selectedIntegration.id}-webhookUrl`} 
-                  placeholder="Enter webhook URL"
-                  value={integrationFormData.webhookUrl}
-                  onChange={handleIntegrationInputChange}
-                />
-              </div>
-
-              {selectedIntegration.id === 'instagram' && (
+              {selectedIntegration.id === 'zapier' && (
                 <div className="space-y-2">
-                  <Label htmlFor={`${selectedIntegration.id}-accountId`}>Instagram Account ID</Label>
+                  <Label htmlFor="zapier-webhook">Zapier Webhook URL</Label>
                   <Input 
-                    id={`${selectedIntegration.id}-accountId`} 
-                    placeholder="Enter your Instagram account ID"
-                    value={integrationFormData.accountId}
+                    id="zapier-webhook" 
+                    placeholder="https://hooks.zapier.com/hooks/catch/..."
+                    value={integrationFormData.webhookUrl}
                     onChange={handleIntegrationInputChange}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Create a Zapier webhook trigger and paste the webhook URL here.
+                  </p>
+                </div>
+              )}
+              
+              {selectedIntegration.id === 'slack' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="slack-workspace">Slack Workspace Name</Label>
+                    <Input 
+                      id="slack-workspace" 
+                      placeholder="Your Slack Workspace"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="slack-token">Bot Token</Label>
+                    <Input 
+                      id="slack-token" 
+                      type="password"
+                      placeholder="xoxb-..."
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      You can find this in your Slack App settings.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {(selectedIntegration.id === 'whatsapp' || selectedIntegration.id === 'instagram') && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-account`}>Account ID</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-account`}
+                      placeholder="Enter your account ID"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-token`}>API Token</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-token`}
+                      type="password"
+                      placeholder="Enter your API token"
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-webhook`}>Webhook URL</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-webhook`}
+                      value="https://api.coco.ai/webhooks/incoming"
+                      readOnly
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use this URL in your {selectedIntegration.name} webhook settings.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
