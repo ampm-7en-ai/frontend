@@ -126,37 +126,40 @@ const AgentEdit = () => {
       }
       
       return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.knowledge_bases && Array.isArray(data.knowledge_bases)) {
-        setAgentKnowledgeSources(data.knowledge_bases);
+    }
+  });
+
+  React.useEffect(() => {
+    if (agentData) {
+      if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
+        setAgentKnowledgeSources(agentData.knowledge_bases);
       }
       
       setAgent({
         ...agent,
-        name: data.name || agent.name,
-        description: data.description || agent.description,
-        primaryColor: data.primaryColor || agent.primaryColor,
-        secondaryColor: data.secondaryColor || agent.secondaryColor,
-        fontFamily: data.fontFamily || agent.fontFamily,
-        chatbotName: data.chatbotName || agent.chatbotName,
-        welcomeMessage: data.welcomeMessage || agent.welcomeMessage,
-        buttonText: data.buttonText || agent.buttonText,
-        position: data.position || agent.position,
-        showOnMobile: data.showOnMobile || agent.showOnMobile,
-        collectVisitorData: data.collectVisitorData || agent.collectVisitorData,
-        autoShowAfter: data.autoShowAfter || agent.autoShowAfter,
-        knowledgeSources: data.knowledgeSources || agent.knowledgeSources,
-        selectedModel: data.selectedModel || agent.selectedModel,
-        temperature: data.temperature || agent.temperature,
-        maxResponseLength: data.maxResponseLength || agent.maxResponseLength,
-        suggestions: data.suggestions || agent.suggestions,
-        avatar: data.avatar || agent.avatar,
-        agentType: data.agentType || agent.agentType,
-        systemPrompt: data.systemPrompt || agent.systemPrompt
+        name: agentData.name || agent.name,
+        description: agentData.description || agent.description,
+        primaryColor: agentData.primaryColor || agent.primaryColor,
+        secondaryColor: agentData.secondaryColor || agent.secondaryColor,
+        fontFamily: agentData.fontFamily || agent.fontFamily,
+        chatbotName: agentData.chatbotName || agent.chatbotName,
+        welcomeMessage: agentData.welcomeMessage || agent.welcomeMessage,
+        buttonText: agentData.buttonText || agent.buttonText,
+        position: agentData.position || agent.position,
+        showOnMobile: agentData.showOnMobile || agent.showOnMobile,
+        collectVisitorData: agentData.collectVisitorData || agent.collectVisitorData,
+        autoShowAfter: agentData.autoShowAfter || agent.autoShowAfter,
+        knowledgeSources: agentData.knowledgeSources || agent.knowledgeSources,
+        selectedModel: agentData.selectedModel || agent.selectedModel,
+        temperature: agentData.temperature || agent.temperature,
+        maxResponseLength: agentData.maxResponseLength || agent.maxResponseLength,
+        suggestions: agentData.suggestions || agent.suggestions,
+        avatar: agentData.avatar || agent.avatar,
+        agentType: agentData.agentType || agent.agentType,
+        systemPrompt: agentData.systemPrompt || agent.systemPrompt
       });
     }
-  });
+  }, [agentData]);
 
   const handleChange = (name: string, value: any) => {
     setAgent({

@@ -14,7 +14,7 @@ import {
   Code, Copy, Check, X, Bookmark
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { KnowledgeSource } from '@/hooks/useAgentFiltering';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 

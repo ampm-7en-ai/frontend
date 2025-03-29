@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
 import KnowledgeSourceModal from './KnowledgeSourceModal';
-import { KnowledgeSource } from '@/hooks/useAgentFiltering';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { Button } from '@/components/ui/button';
 
 interface AgentKnowledgeSectionProps {
