@@ -47,30 +47,30 @@ export const useAgentFiltering = ({
   }, [agents, searchQuery, modelFilter]);
   
   const getModelBadgeColor = (model: string) => {
-    switch (model.toLowerCase()) {
-      case 'gpt-4':
-        return 'indigo';
-      case 'gpt-3.5':
-        return 'green';
-      case 'claude-3':
-        return 'purple';
-      default:
-        return 'blue';
+    const modelLower = model.toLowerCase();
+    if (modelLower.includes('gpt-4')) {
+      return 'indigo';
+    } else if (modelLower.includes('gpt-3.5')) {
+      return 'green';
+    } else if (modelLower.includes('claude')) {
+      return 'purple';
+    } else {
+      return 'blue';
     }
   };
 
   const getStatusBadgeColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'live':
-        return 'green';
-      case 'training':
-        return 'blue';
-      case 'error':
-        return 'red';
-      case 'pending':
-        return 'yellow';
-      default:
-        return 'gray';
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'live') {
+      return 'bg-green-50 text-green-700 border-green-200';
+    } else if (statusLower === 'training') {
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+    } else if (statusLower === 'error') {
+      return 'bg-red-50 text-red-700 border-red-200';
+    } else if (statusLower === 'pending') {
+      return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+    } else {
+      return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
   

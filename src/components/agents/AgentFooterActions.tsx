@@ -5,6 +5,12 @@ import { Play, Rocket, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeploymentDialog from './DeploymentDialog';
 import { Agent } from '@/hooks/useAgentFiltering';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 
 interface AgentFooterActionsProps {
   agent: Agent;
@@ -23,6 +29,16 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
   const canDeploy = agent.status !== 'Training' && agent.status !== 'Error';
   const isDeployed = agent.isDeployed || agent.status === 'Live';
   
+  // Get the reason why deployment is disabled
+  const getDeployDisabledReason = () => {
+    if (agent.status === 'Training') {
+      return 'Agent is currently training. Please wait until training is complete.';
+    } else if (agent.status === 'Error') {
+      return 'Agent has errors that need to be resolved before deployment.';
+    }
+    return '';
+  };
+  
   return (
     <>
       <div className="flex flex-col gap-2 w-full">
@@ -32,25 +48,39 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
             Playground
           </Link>
         </Button>
-        <Button 
-          variant={isDeployed ? "secondary" : "default"} 
-          size="sm" 
-          className="w-full"
-          onClick={() => setDeploymentDialogOpen(true)}
-          disabled={!canDeploy}
-        >
-          {isDeployed ? (
-            <>
-              <Check className="h-3.5 w-3.5 mr-1" />
-              Deployed
-            </>
-          ) : (
-            <>
-              <Rocket className="h-3.5 w-3.5 mr-1" />
-              Deploy
-            </>
-          )}
-        </Button>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="w-full">
+                <Button 
+                  variant={isDeployed ? "secondary" : "default"} 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setDeploymentDialogOpen(true)}
+                  disabled={!canDeploy}
+                >
+                  {isDeployed ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 mr-1" />
+                      Deployed
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="h-3.5 w-3.5 mr-1" />
+                      Deploy
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TooltipTrigger>
+            {!canDeploy && (
+              <TooltipContent side="top">
+                <p>{getDeployDisabledReason()}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <DeploymentDialog 
