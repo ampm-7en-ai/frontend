@@ -5,10 +5,11 @@ export interface KnowledgeSource {
   id: number;
   name: string;
   type: string;
-  icon?: string; // Make icon optional
+  icon?: string;
   hasError: boolean;
-  linkBroken?: boolean; // Add linkBroken property
-  content?: string; // Add content property
+  linkBroken?: boolean;
+  content?: string;
+  status?: string;
 }
 
 export interface Agent {
@@ -21,6 +22,8 @@ export interface Agent {
   knowledgeSources: KnowledgeSource[];
   model: string;
   isDeployed: boolean;
+  systemPrompt?: string;
+  status?: string;
 }
 
 interface UseAgentFilteringResult {

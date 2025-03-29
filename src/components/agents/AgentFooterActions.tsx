@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Play, Rocket, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeploymentDialog from './DeploymentDialog';
-import { Agent } from '@/components/agents/modelComparison/types';
+import { Agent } from '@/hooks/useAgentFiltering';
 import ModelTestLink from './modelComparison/ModelTestLink';
 
 interface AgentFooterActionsProps {
@@ -14,18 +14,21 @@ interface AgentFooterActionsProps {
 const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
   
+  // Create a minimal agent object for the deployment dialog
+  const agentForDialog = {
+    id: agent.id,
+    name: agent.name
+  };
+  
   return (
     <>
       <div className="flex flex-col gap-2 w-full">
-        <ModelTestLink 
-          modelInfo={{ 
-            model: agent.model,
-            label: "Playground",
-            openInNewTab: false
-          }}
-          agentId={agent.id}
-          className="w-full"
-        />
+        <Button variant="outline" size="sm" className="w-full" asChild>
+          <Link to={`/agents/${agent.id}/test`} className="flex items-center justify-center">
+            <Play className="h-3.5 w-3.5 mr-1" />
+            Playground
+          </Link>
+        </Button>
         <Button 
           variant={agent.isDeployed ? "secondary" : "default"} 
           size="sm" 
@@ -49,7 +52,7 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
       <DeploymentDialog 
         open={deploymentDialogOpen} 
         onOpenChange={setDeploymentDialogOpen}
-        agent={agent}
+        agent={agentForDialog}
       />
     </>
   );

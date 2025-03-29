@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CalendarClock, MessageSquare } from 'lucide-react';
 import { 
@@ -13,6 +14,7 @@ import AgentModelBadge from './AgentModelBadge';
 import AgentKnowledgeSection from './knowledge/AgentKnowledgeSection';
 import AgentFooterActions from './AgentFooterActions';
 import { Agent } from '@/hooks/useAgentFiltering';
+import { format } from 'date-fns';
 
 interface AgentCardProps {
   agent: Agent;
@@ -20,11 +22,10 @@ interface AgentCardProps {
 }
 
 const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
-  const formattedDate = new Date(agent.lastModified).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+  // Format the date to be more readable (Dec 10, 2023)
+  const formattedDate = agent.lastModified ? 
+    format(new Date(agent.lastModified), 'MMM d, yyyy') : 
+    'Unknown date';
   
   return (
     <Card className="overflow-hidden border flex flex-col h-full">
