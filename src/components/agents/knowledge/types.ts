@@ -22,4 +22,11 @@ export interface KnowledgeSource {
     selected?: boolean;
   }[];
   crawlOptions?: 'single' | 'children' | null;
+  metadata?: {
+    count?: string;
+    file_size?: string | number;
+    no_of_chars?: number;
+    no_of_rows?: number;
+    no_of_pages?: number;
+  };
 }
