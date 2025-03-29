@@ -33,6 +33,7 @@ interface UseAgentFilteringResult {
   setModelFilter: (filter: string) => void;
   filteredAgents: Agent[];
   getModelBadgeColor: (model: string) => string;
+  getStatusBadgeColor: (status: string) => string;
 }
 
 export const useAgentFiltering = (agents: Agent[]): UseAgentFilteringResult => {
@@ -56,6 +57,16 @@ export const useAgentFiltering = (agents: Agent[]): UseAgentFilteringResult => {
       default: return "bg-blue-100 text-blue-800 hover:bg-blue-200";
     }
   };
+  
+  const getStatusBadgeColor = (status: string) => {
+    switch(status?.toLowerCase()) {
+      case 'live': return "bg-green-100 text-green-800";
+      case 'training': return "bg-blue-100 text-blue-800";
+      case 'error': return "bg-red-100 text-red-800";
+      case 'pending': return "bg-yellow-100 text-yellow-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
 
   return {
     searchQuery,
@@ -64,5 +75,6 @@ export const useAgentFiltering = (agents: Agent[]): UseAgentFilteringResult => {
     setModelFilter,
     filteredAgents,
     getModelBadgeColor,
+    getStatusBadgeColor,
   };
 };

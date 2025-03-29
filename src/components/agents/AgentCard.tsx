@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CalendarClock, MessageSquare } from 'lucide-react';
+import { CalendarClock, MessageSquare, ActivitySquare } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -9,6 +9,7 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
 import AgentKnowledgeSection from './knowledge/AgentKnowledgeSection';
@@ -19,9 +20,10 @@ import { format } from 'date-fns';
 interface AgentCardProps {
   agent: Agent;
   getModelBadgeColor: (model: string) => string;
+  getStatusBadgeColor: (status: string) => string;
 }
 
-const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
+const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor }: AgentCardProps) => {
   // Format the date to be more readable (Dec 10, 2023)
   const formattedDate = agent.lastModified ? 
     format(new Date(agent.lastModified), 'MMM d, yyyy') : 
@@ -53,6 +55,15 @@ const AgentCard = ({ agent, getModelBadgeColor }: AgentCardProps) => {
             <AgentModelBadge model={agent.model} getModelBadgeColor={getModelBadgeColor} />
           </div>
         </div>
+        
+        {agent.status && (
+          <div className="mb-3">
+            <Badge variant="outline" className={`text-xs font-medium py-0 h-4 px-1.5 ${getStatusBadgeColor(agent.status)}`}>
+              <ActivitySquare className="h-2.5 w-2.5 mr-0.5" />
+              {agent.status}
+            </Badge>
+          </div>
+        )}
         
         <AgentKnowledgeSection 
           agentId={agent.id} 

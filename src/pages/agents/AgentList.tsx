@@ -10,6 +10,26 @@ import AgentCard from '@/components/agents/AgentCard';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useToast } from '@/hooks/use-toast';
 
+interface ApiResponse {
+  agents: any[];
+  combined_satisfaction: number;
+  metadata: {
+    total: number;
+    page: number;
+    perPage: number;
+    totalPages: number;
+    filters: {
+      model: string;
+      status: string;
+      role: string;
+    };
+    sort: {
+      field: string;
+      direction: string;
+    };
+  };
+}
+
 const AgentList = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,10 +47,10 @@ const AgentList = () => {
         throw new Error(`Failed to fetch agents: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
       
       // Transform API response to match our Agent interface
-      const transformedAgents: Agent[] = data.map((agent: any) => ({
+      const transformedAgents: Agent[] = data.agents.map((agent: any) => ({
         id: agent.id.toString(), // Convert to string to match existing interface
         name: agent.name,
         description: agent.description || '',
@@ -45,7 +65,8 @@ const AgentList = () => {
           hasError: kb.status === 'error'
         })) || [],
         model: agent.model?.name || 'gpt-3.5',
-        isDeployed: agent.status === 'Live'
+        isDeployed: agent.status === 'Live',
+        status: agent.status || 'Draft'
       }));
 
       setAgents(transformedAgents);
@@ -73,7 +94,8 @@ const AgentList = () => {
     modelFilter, 
     setModelFilter, 
     filteredAgents, 
-    getModelBadgeColor 
+    getModelBadgeColor,
+    getStatusBadgeColor
   } = useAgentFiltering(agents);
 
   return (
@@ -152,6 +174,7 @@ const AgentList = () => {
                       key={agent.id} 
                       agent={agent}
                       getModelBadgeColor={getModelBadgeColor}
+                      getStatusBadgeColor={getStatusBadgeColor}
                     />
                   ))}
                 </div>
@@ -174,6 +197,7 @@ const AgentList = () => {
                       key={agent.id} 
                       agent={agent}
                       getModelBadgeColor={getModelBadgeColor}
+                      getStatusBadgeColor={getStatusBadgeColor}
                     />
                   ))}
                 </div>

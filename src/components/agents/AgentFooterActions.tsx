@@ -5,7 +5,6 @@ import { Play, Rocket, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeploymentDialog from './DeploymentDialog';
 import { Agent } from '@/hooks/useAgentFiltering';
-import ModelTestLink from './modelComparison/ModelTestLink';
 
 interface AgentFooterActionsProps {
   agent: Agent;
@@ -20,6 +19,10 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
     name: agent.name
   };
   
+  // Check if the agent is in a state where deployment actions can be performed
+  const canDeploy = agent.status !== 'Training' && agent.status !== 'Error';
+  const isDeployed = agent.isDeployed || agent.status === 'Live';
+  
   return (
     <>
       <div className="flex flex-col gap-2 w-full">
@@ -30,12 +33,13 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
           </Link>
         </Button>
         <Button 
-          variant={agent.isDeployed ? "secondary" : "default"} 
+          variant={isDeployed ? "secondary" : "default"} 
           size="sm" 
           className="w-full"
           onClick={() => setDeploymentDialogOpen(true)}
+          disabled={!canDeploy}
         >
-          {agent.isDeployed ? (
+          {isDeployed ? (
             <>
               <Check className="h-3.5 w-3.5 mr-1" />
               Deployed
