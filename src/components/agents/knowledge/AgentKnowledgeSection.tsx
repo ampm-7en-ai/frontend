@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ChevronRight, RefreshCw, FileText } from 'lucide-react';
+import { AlertCircle, ChevronRight, RefreshCw, FileText, BookOpen, Bot } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -32,6 +32,7 @@ const AgentKnowledgeSection = ({
   const displayedSources = knowledgeSources.slice(0, 3);
   const remainingSources = knowledgeSources.length - 3;
   const hasErrorSources = knowledgeSources.some(source => source.hasError);
+  const isEmpty = knowledgeSources.length === 0;
   
   const handleSourceClick = (source: KnowledgeSource) => {
     setSelectedSourceId(source.id);
@@ -66,7 +67,32 @@ const AgentKnowledgeSection = ({
     );
   }
   
-  // For regular inline display
+  // Empty state with a creative display
+  if (isEmpty) {
+    return (
+      <div>
+        <div className="text-sm font-medium mb-1.5 text-muted-foreground">Knowledge Sources</div>
+        <div className="border border-dashed border-muted-foreground/30 rounded-md p-3 bg-muted/20 text-center">
+          <div className="flex justify-center items-center mb-2">
+            <div className="relative">
+              <BookOpen className="h-6 w-6 text-muted-foreground/50" />
+              <Bot className="h-4 w-4 absolute -bottom-1 -right-1 text-primary/70" />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mb-1">No knowledge sources yet</p>
+          <Link 
+            to={`/agents/${agentId}/edit?tab=knowledge`}
+            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+          >
+            <span>Add knowledge</span>
+            <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
+  // For regular inline display with sources
   return (
     <div>
       <div className="text-sm font-medium mb-1.5 text-muted-foreground">Knowledge Sources</div>
