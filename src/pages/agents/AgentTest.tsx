@@ -9,6 +9,7 @@ import { Agent, ChatConfig, Message } from '@/components/agents/modelComparison/
 import { ModelComparisonCard } from '@/components/agents/modelComparison/ModelComparisonCard';
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 const MODELS = {
   'gpt4': { name: 'GPT-4', provider: 'OpenAI' },

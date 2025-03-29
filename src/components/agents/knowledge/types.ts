@@ -8,6 +8,8 @@ export interface KnowledgeSource {
   trainingStatus: 'idle' | 'training' | 'success' | 'error';
   progress?: number;
   linkBroken?: boolean;
+  hasError?: boolean;
+  content?: string;
   insideLinks?: {
     url: string;
     title: string;
@@ -29,4 +31,5 @@ export interface KnowledgeSource {
     no_of_rows?: number;
     no_of_pages?: number;
   };
+  icon?: string;
 }

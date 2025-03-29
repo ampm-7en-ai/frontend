@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 interface AgentTableProps {
   agents: Array<{
@@ -40,13 +41,7 @@ interface AgentTableProps {
     conversations: number;
     lastModified: string;
     averageRating: number;
-    knowledgeSources: Array<{
-      id: number;
-      name: string;
-      type: string;
-      icon: string;
-      hasError: boolean;
-    }>;
+    knowledgeSources: KnowledgeSource[];
     model: string;
     isDeployed: boolean;
   }>;
