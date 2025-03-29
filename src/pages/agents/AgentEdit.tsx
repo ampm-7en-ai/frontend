@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from '@/components/ui/badge';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -107,67 +109,54 @@ const AgentEdit = () => {
   const [isLoadingAgentData, setIsLoadingAgentData] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAgentData = async () => {
-      setIsLoadingAgentData(true);
-      setLoadError(null);
-      
-      try {
-        const token = getAccessToken();
-        if (!token) {
-          throw new Error("Authentication required");
-        }
-        
-        const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId || '1'}`, {
-          headers: getAuthHeaders(token),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch agent data: ${response.status}`);
-        }
-        
-        const agentData = await response.json();
-        console.log("Fetched agent data:", agentData);
-        
-        if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
-          setAgentKnowledgeSources(agentData.knowledge_bases);
-          console.log("Knowledge bases:", agentData.knowledge_bases);
-        }
-        
-        setAgent({
-          ...agent,
-          name: agentData.name || agent.name,
-          description: agentData.description || agent.description,
-          primaryColor: agentData.primaryColor || agent.primaryColor,
-          secondaryColor: agentData.secondaryColor || agent.secondaryColor,
-          fontFamily: agentData.fontFamily || agent.fontFamily,
-          chatbotName: agentData.chatbotName || agent.chatbotName,
-          welcomeMessage: agentData.welcomeMessage || agent.welcomeMessage,
-          buttonText: agentData.buttonText || agent.buttonText,
-          position: agentData.position || agent.position,
-          showOnMobile: agentData.showOnMobile || agent.showOnMobile,
-          collectVisitorData: agentData.collectVisitorData || agent.collectVisitorData,
-          autoShowAfter: agentData.autoShowAfter || agent.autoShowAfter,
-          knowledgeSources: agentData.knowledgeSources || agent.knowledgeSources,
-          selectedModel: agentData.selectedModel || agent.selectedModel,
-          temperature: agentData.temperature || agent.temperature,
-          maxResponseLength: agentData.maxResponseLength || agent.maxResponseLength,
-          suggestions: agentData.suggestions || agent.suggestions,
-          avatar: agentData.avatar || agent.avatar,
-          agentType: agentData.agentType || agent.agentType,
-          systemPrompt: agentData.systemPrompt || agent.systemPrompt
-        });
-        
-      } catch (error) {
-        console.error("Error fetching agent data:", error);
-        setLoadError(error instanceof Error ? error.message : "Unknown error");
-      } finally {
-        setIsLoadingAgentData(false);
+  const { data: agentData, isLoading, isError, error } = useQuery({
+    queryKey: ['agent', agentId],
+    queryFn: async () => {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
       }
-    };
-    
-    fetchAgentData();
-  }, [agentId]);
+      
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId || '1'}`, {
+        headers: getAuthHeaders(token),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent data: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.knowledge_bases && Array.isArray(data.knowledge_bases)) {
+        setAgentKnowledgeSources(data.knowledge_bases);
+      }
+      
+      setAgent({
+        ...agent,
+        name: data.name || agent.name,
+        description: data.description || agent.description,
+        primaryColor: data.primaryColor || agent.primaryColor,
+        secondaryColor: data.secondaryColor || agent.secondaryColor,
+        fontFamily: data.fontFamily || agent.fontFamily,
+        chatbotName: data.chatbotName || agent.chatbotName,
+        welcomeMessage: data.welcomeMessage || agent.welcomeMessage,
+        buttonText: data.buttonText || agent.buttonText,
+        position: data.position || agent.position,
+        showOnMobile: data.showOnMobile || agent.showOnMobile,
+        collectVisitorData: data.collectVisitorData || agent.collectVisitorData,
+        autoShowAfter: data.autoShowAfter || agent.autoShowAfter,
+        knowledgeSources: data.knowledgeSources || agent.knowledgeSources,
+        selectedModel: data.selectedModel || agent.selectedModel,
+        temperature: data.temperature || agent.temperature,
+        maxResponseLength: data.maxResponseLength || agent.maxResponseLength,
+        suggestions: data.suggestions || agent.suggestions,
+        avatar: data.avatar || agent.avatar,
+        agentType: data.agentType || agent.agentType,
+        systemPrompt: data.systemPrompt || agent.systemPrompt
+      });
+    }
+  });
 
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -859,6 +848,49 @@ const AgentEdit = () => {
     }
   };
 
+  const renderTabContentSkeleton = () => (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[200px]" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[180px]" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[150px]" />
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-4 w-[100px]" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderChatPreviewSkeleton = () => (
+    <div className="flex flex-col h-full items-center justify-center rounded-lg border-2 border-dashed p-10">
+      <Skeleton className="h-12 w-12 rounded-full" />
+      <Skeleton className="h-4 w-[180px] mt-4" />
+      <Skeleton className="h-20 w-full mt-6" />
+    </div>
+  );
+
+  if (isError) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-xl font-bold mb-2">Error Loading Agent</h2>
+        <p className="text-muted-foreground mb-6">
+          {error instanceof Error ? error.message : "Failed to load agent data"}
+        </p>
+        <Button onClick={goBack} variant="outline">Go Back to Agents</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full">
       <div className="flex items-center justify-between border-b pb-4">
@@ -867,75 +899,104 @@ const AgentEdit = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
-            <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-8 w-[200px] mb-1" />
+                <Skeleton className="h-4 w-[300px]" />
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
+                <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
+              </>
+            )}
           </div>
         </div>
-        <Button onClick={handleSaveChanges}>
+        <Button onClick={handleSaveChanges} disabled={isLoading}>
           <Save className="h-4 w-4 mr-2" />
           Save Changes
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
-        <div className="h-full">
-          {renderChatPreview()}
-        </div>
-        
-        <div className="col-span-2 h-full overflow-y-auto">
-          <Tabs 
-            defaultValue="general" 
-            className="w-full"
-            value={activeTab}
-            onValueChange={setActiveTab}
-          >
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
+          <div className="h-full">
+            {renderChatPreviewSkeleton()}
+          </div>
+          
+          <div className="col-span-2 h-full overflow-y-auto">
             <div className="flex justify-start mb-6">
-              <TabsList size="xs" className="w-auto">
-                <TabsTrigger value="general" size="xs">
-                  <Bot className="h-4 w-4 mr-2" />
-                  General
-                </TabsTrigger>
-                <TabsTrigger value="appearance" size="xs">
-                  <Palette className="h-4 w-4 mr-2" />
-                  Appearance
-                </TabsTrigger>
-                <TabsTrigger value="advanced" size="xs">
-                  <Sliders className="h-4 w-4 mr-2" />
-                  Advanced Settings
-                </TabsTrigger>
-                <TabsTrigger value="knowledge" size="xs">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Knowledge
-                </TabsTrigger>
-                <TabsTrigger value="integrations" size="xs">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Integrations
-                </TabsTrigger>
-              </TabsList>
+              <div className="bg-muted rounded-lg p-1 flex items-center">
+                {["general", "appearance", "advanced", "knowledge", "integrations"].map((tab) => (
+                  <Skeleton key={tab} className="h-8 w-24 mx-1 rounded-md" />
+                ))}
+              </div>
             </div>
             
-            <TabsContent value="general" className="mt-0">
-              {renderGeneralContent()}
-            </TabsContent>
-            
-            <TabsContent value="appearance" className="mt-0">
-              {renderAppearanceContent()}
-            </TabsContent>
-            
-            <TabsContent value="advanced" className="mt-0">
-              {renderAdvancedContent()}
-            </TabsContent>
-            
-            <TabsContent value="knowledge" className="mt-0">
-              {renderKnowledgeContent()}
-            </TabsContent>
-
-            <TabsContent value="integrations" className="mt-0">
-              {renderIntegrationsContent()}
-            </TabsContent>
-          </Tabs>
+            {renderTabContentSkeleton()}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
+          <div className="h-full">
+            {renderChatPreview()}
+          </div>
+          
+          <div className="col-span-2 h-full overflow-y-auto">
+            <Tabs 
+              defaultValue="general" 
+              className="w-full"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
+              <div className="flex justify-start mb-6">
+                <TabsList size="xs" className="w-auto">
+                  <TabsTrigger value="general" size="xs">
+                    <Bot className="h-4 w-4 mr-2" />
+                    General
+                  </TabsTrigger>
+                  <TabsTrigger value="appearance" size="xs">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Appearance
+                  </TabsTrigger>
+                  <TabsTrigger value="advanced" size="xs">
+                    <Sliders className="h-4 w-4 mr-2" />
+                    Advanced Settings
+                  </TabsTrigger>
+                  <TabsTrigger value="knowledge" size="xs">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Knowledge
+                  </TabsTrigger>
+                  <TabsTrigger value="integrations" size="xs">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Integrations
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="general" className="mt-0">
+                {renderGeneralContent()}
+              </TabsContent>
+              
+              <TabsContent value="appearance" className="mt-0">
+                {renderAppearanceContent()}
+              </TabsContent>
+              
+              <TabsContent value="advanced" className="mt-0">
+                {renderAdvancedContent()}
+              </TabsContent>
+              
+              <TabsContent value="knowledge" className="mt-0">
+                {renderKnowledgeContent()}
+              </TabsContent>
+
+              <TabsContent value="integrations" className="mt-0">
+                {renderIntegrationsContent()}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      )}
 
       <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
         {selectedIntegration && (

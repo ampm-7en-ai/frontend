@@ -1,13 +1,15 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, Search, Loader2 } from 'lucide-react';
+import { Bot, Search } from 'lucide-react';
 import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ApiResponse {
   agents: any[];
@@ -30,72 +32,73 @@ interface ApiResponse {
 }
 
 const AgentList = () => {
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [modelFilter, setModelFilter] = useState('all');
   const { toast } = useToast();
 
-  const fetchAgents = async () => {
-    try {
-      setIsLoading(true);
-      const token = getAccessToken();
-      const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
-        headers: getAuthHeaders(token || '')
-      });
+  const fetchAgents = async (): Promise<Agent[]> => {
+    const token = getAccessToken();
+    const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
+      headers: getAuthHeaders(token || '')
+    });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch agents: ${response.status}`);
-      }
-
-      const data: ApiResponse = await response.json();
-      
-      // Transform API response to match our Agent interface
-      const transformedAgents: Agent[] = data.agents.map((agent: any) => ({
-        id: agent.id.toString(), // Convert to string to match existing interface
-        name: agent.name,
-        description: agent.description || '',
-        conversations: agent.conversations || 0,
-        lastModified: agent.last_modified,
-        averageRating: agent.average_rating || 0,
-        knowledgeSources: agent.knowledge_bases?.map((kb: any, index: number) => ({
-          id: kb.id || index,
-          name: kb.name || `Source ${index + 1}`,
-          type: kb.type || 'document',
-          icon: 'BookOpen',
-          hasError: kb.status === 'error'
-        })) || [],
-        model: agent.model?.name || 'gpt-3.5',
-        isDeployed: agent.status === 'Live',
-        status: agent.status || 'Draft'
-      }));
-
-      setAgents(transformedAgents);
-    } catch (error) {
-      console.error('Error fetching agents:', error);
-      toast({
-        title: "Error fetching agents",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive"
-      });
-      // Set to empty array in case of error
-      setAgents([]);
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch agents: ${response.status}`);
     }
+
+    const data: ApiResponse = await response.json();
+    
+    // Transform API response to match our Agent interface
+    return data.agents.map((agent: any) => ({
+      id: agent.id.toString(),
+      name: agent.name,
+      description: agent.description || '',
+      conversations: agent.conversations || 0,
+      lastModified: agent.last_modified,
+      averageRating: agent.average_rating || 0,
+      knowledgeSources: agent.knowledge_bases?.map((kb: any, index: number) => ({
+        id: kb.id || index,
+        name: kb.name || `Source ${index + 1}`,
+        type: kb.type || 'document',
+        icon: 'BookOpen',
+        hasError: kb.status === 'error'
+      })) || [],
+      model: agent.model?.name || 'gpt-3.5',
+      isDeployed: agent.status === 'Live',
+      status: agent.status || 'Draft'
+    }));
   };
 
-  useEffect(() => {
-    fetchAgents();
-  }, []);
+  const { 
+    data: agents = [],
+    isLoading, 
+    error 
+  } = useQuery({
+    queryKey: ['agents'],
+    queryFn: fetchAgents,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false
+  });
 
   const { 
-    searchQuery, 
-    setSearchQuery, 
-    modelFilter, 
-    setModelFilter, 
     filteredAgents, 
     getModelBadgeColor,
     getStatusBadgeColor
-  } = useAgentFiltering(agents);
+  } = useAgentFiltering({
+    agents,
+    searchQuery,
+    modelFilter,
+    setSearchQuery,
+    setModelFilter
+  });
+
+  if (error) {
+    toast({
+      title: "Error fetching agents",
+      description: error instanceof Error ? error.message : "Unknown error occurred",
+      variant: "destructive"
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -139,8 +142,7 @@ const AgentList = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-muted-foreground">Loading agents...</span>
+          <LoadingSpinner text="Loading agents..." />
         </div>
       ) : (
         <>

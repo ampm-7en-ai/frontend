@@ -1,73 +1,79 @@
 
 import { useState, useMemo } from 'react';
-
-export interface KnowledgeSource {
-  id: number;
-  name: string;
-  type: string;
-  icon?: string;
-  hasError: boolean;
-  linkBroken?: boolean;
-  content?: string;
-  status?: string;
-}
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 export interface Agent {
   id: string;
   name: string;
   description: string;
-  conversations: number;
-  lastModified: string;
-  averageRating: number;
+  conversations?: number;
+  lastModified?: string;
+  averageRating?: number;
   knowledgeSources: KnowledgeSource[];
   model: string;
   isDeployed: boolean;
-  systemPrompt?: string;
-  status?: string;
+  status: string;
 }
 
-interface UseAgentFilteringResult {
+interface UseAgentFilteringProps {
+  agents: Agent[];
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
   modelFilter: string;
-  setModelFilter: (filter: string) => void;
-  filteredAgents: Agent[];
-  getModelBadgeColor: (model: string) => string;
-  getStatusBadgeColor: (status: string) => string;
+  setSearchQuery: (query: string) => void;
+  setModelFilter: (model: string) => void;
 }
 
-export const useAgentFiltering = (agents: Agent[]): UseAgentFilteringResult => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [modelFilter, setModelFilter] = useState('all');
-
+export const useAgentFiltering = ({
+  agents,
+  searchQuery,
+  modelFilter,
+  setSearchQuery,
+  setModelFilter
+}: UseAgentFilteringProps) => {
+  
   const filteredAgents = useMemo(() => {
-    return agents
-      .filter(agent => 
-        agent.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        agent.description.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .filter(agent => modelFilter === 'all' || agent.model === modelFilter);
+    return agents.filter((agent) => {
+      // Filter by search query
+      const matchesSearch = searchQuery === '' || 
+        agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        agent.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Filter by model
+      const matchesModel = modelFilter === 'all' || 
+        agent.model.toLowerCase().includes(modelFilter.toLowerCase());
+      
+      return matchesSearch && matchesModel;
+    });
   }, [agents, searchQuery, modelFilter]);
-
+  
   const getModelBadgeColor = (model: string) => {
-    switch(model) {
-      case 'gpt-4': return "bg-purple-100 text-purple-800 hover:bg-purple-200";
-      case 'gpt-3.5': return "bg-green-100 text-green-800 hover:bg-green-200";
-      case 'claude-3': return "bg-orange-100 text-orange-800 hover:bg-orange-200";
-      default: return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+    switch (model.toLowerCase()) {
+      case 'gpt-4':
+        return 'indigo';
+      case 'gpt-3.5':
+        return 'green';
+      case 'claude-3':
+        return 'purple';
+      default:
+        return 'blue';
+    }
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'live':
+        return 'green';
+      case 'training':
+        return 'blue';
+      case 'error':
+        return 'red';
+      case 'pending':
+        return 'yellow';
+      default:
+        return 'gray';
     }
   };
   
-  const getStatusBadgeColor = (status: string) => {
-    switch(status?.toLowerCase()) {
-      case 'live': return "bg-green-100 text-green-800";
-      case 'training': return "bg-blue-100 text-blue-800";
-      case 'error': return "bg-red-100 text-red-800";
-      case 'pending': return "bg-yellow-100 text-yellow-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
   return {
     searchQuery,
     setSearchQuery,
@@ -75,6 +81,8 @@ export const useAgentFiltering = (agents: Agent[]): UseAgentFilteringResult => {
     setModelFilter,
     filteredAgents,
     getModelBadgeColor,
-    getStatusBadgeColor,
+    getStatusBadgeColor
   };
 };
+
+export default useAgentFiltering;
