@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -31,10 +32,28 @@ const mockAgents: Agent[] = [
     lastModified: new Date().toISOString(),
     averageRating: 4.8,
     knowledgeSources: [
-      { id: 1, name: "Product Docs", type: "document", icon: "BookOpen", hasError: false, 
-        content: "# Product Documentation\n\nOur product is a cloud-based solution that helps businesses automate customer support workflows. Key features include:\n\n- AI-powered response suggestions\n- Integration with popular CRM systems\n- Analytics dashboard\n- Multi-channel support (email, chat, social media)" },
-      { id: 2, name: "FAQ", type: "webpage", icon: "Globe", hasError: false,
-        content: "## Frequently Asked Questions\n\n**Q: How do I reset my password?**\nA: Click on the 'Forgot Password' link on the login page and follow the instructions sent to your email.\n\n**Q: How do I upgrade my subscription?**\nA: Go to Settings > Billing and select your desired plan.\n\n**Q: Can I integrate with Salesforce?**\nA: Yes, we offer native integration with Salesforce and other popular CRM systems." }
+      { 
+        id: 1, 
+        name: "Product Docs", 
+        type: "document", 
+        icon: "BookOpen", 
+        size: "250KB",
+        lastUpdated: "2023-09-15",
+        trainingStatus: "success",
+        hasError: false, 
+        content: "# Product Documentation\n\nOur product is a cloud-based solution that helps businesses automate customer support workflows. Key features include:\n\n- AI-powered response suggestions\n- Integration with popular CRM systems\n- Analytics dashboard\n- Multi-channel support (email, chat, social media)" 
+      },
+      { 
+        id: 2, 
+        name: "FAQ", 
+        type: "webpage", 
+        icon: "Globe", 
+        size: "120KB",
+        lastUpdated: "2023-10-05",
+        trainingStatus: "success",
+        hasError: false,
+        content: "## Frequently Asked Questions\n\n**Q: How do I reset my password?**\nA: Click on the 'Forgot Password' link on the login page and follow the instructions sent to your email.\n\n**Q: How do I upgrade my subscription?**\nA: Go to Settings > Billing and select your desired plan.\n\n**Q: Can I integrate with Salesforce?**\nA: Yes, we offer native integration with Salesforce and other popular CRM systems." 
+      }
     ],
     model: "gpt4",
     isDeployed: false,
@@ -48,8 +67,17 @@ const mockAgents: Agent[] = [
     lastModified: new Date().toISOString(),
     averageRating: 4.6,
     knowledgeSources: [
-      { id: 3, name: "Pricing Guide", type: "document", icon: "DollarSign", hasError: false,
-        content: "# Pricing Guide\n\n## Basic Plan - $9.99/month\n- Up to 5 users\n- Core features\n- Email support\n\n## Pro Plan - $29.99/month\n- Unlimited users\n- All core features plus advanced analytics\n- Priority email & chat support\n- API access\n\n## Enterprise Plan - Custom pricing\n- All Pro features\n- Dedicated account manager\n- Custom integrations\n- 24/7 phone support" }
+      { 
+        id: 3, 
+        name: "Pricing Guide", 
+        type: "document", 
+        icon: "DollarSign", 
+        size: "180KB",
+        lastUpdated: "2023-11-20",
+        trainingStatus: "success",
+        hasError: false,
+        content: "# Pricing Guide\n\n## Basic Plan - $9.99/month\n- Up to 5 users\n- Core features\n- Email support\n\n## Pro Plan - $29.99/month\n- Unlimited users\n- All core features plus advanced analytics\n- Priority email & chat support\n- API access\n\n## Enterprise Plan - Custom pricing\n- All Pro features\n- Dedicated account manager\n- Custom integrations\n- 24/7 phone support" 
+      }
     ],
     model: "gpt35",
     isDeployed: true,
@@ -63,10 +91,28 @@ const mockAgents: Agent[] = [
     lastModified: new Date().toISOString(),
     averageRating: 4.9,
     knowledgeSources: [
-      { id: 4, name: "Technical Manual", type: "document", icon: "FileText", hasError: false,
-        content: "# Technical Manual\n\n## System Requirements\n- Operating System: Windows 10/11, macOS 10.14+, Linux\n- RAM: 8GB minimum, 16GB recommended\n- Disk Space: 250MB\n- Internet: Broadband connection\n\n## Installation Guide\n1. Download the installer from your account dashboard\n2. Run the installer and follow on-screen instructions\n3. Launch the application and sign in with your credentials" },
-      { id: 5, name: "Troubleshooting Guide", type: "document", icon: "Tool", hasError: false,
-        content: "# Troubleshooting Guide\n\n## Common Issues\n\n### Application Won't Start\n- Verify system requirements\n- Check for conflicting software\n- Try reinstalling the application\n\n### Connection Problems\n- Check your internet connection\n- Verify firewall settings\n- Ensure the server is not down for maintenance" }
+      { 
+        id: 4, 
+        name: "Technical Manual", 
+        type: "document", 
+        icon: "FileText", 
+        size: "350KB",
+        lastUpdated: "2023-08-10",
+        trainingStatus: "success",
+        hasError: false,
+        content: "# Technical Manual\n\n## System Requirements\n- Operating System: Windows 10/11, macOS 10.14+, Linux\n- RAM: 8GB minimum, 16GB recommended\n- Disk Space: 250MB\n- Internet: Broadband connection\n\n## Installation Guide\n1. Download the installer from your account dashboard\n2. Run the installer and follow on-screen instructions\n3. Launch the application and sign in with your credentials" 
+      },
+      { 
+        id: 5, 
+        name: "Troubleshooting Guide", 
+        type: "document", 
+        icon: "Tool", 
+        size: "200KB",
+        lastUpdated: "2023-12-01",
+        trainingStatus: "success",
+        hasError: false,
+        content: "# Troubleshooting Guide\n\n## Common Issues\n\n### Application Won't Start\n- Verify system requirements\n- Check for conflicting software\n- Try reinstalling the application\n\n### Connection Problems\n- Check your internet connection\n- Verify firewall settings\n- Ensure the server is not down for maintenance" 
+      }
     ],
     model: "anthropic",
     isDeployed: true,

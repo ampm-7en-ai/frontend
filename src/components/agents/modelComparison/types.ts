@@ -27,14 +27,11 @@ export type Agent = {
   systemPrompt?: string;
 };
 
-export type KnowledgeSource = {
-  id: number;
-  name: string;
-  type: string;
-  icon?: string;
-  hasError: boolean;
-  content?: string;
-};
+// Import the full KnowledgeSource type from the central definition
+import { KnowledgeSource } from '../knowledge/types';
+
+// Re-export the type for backward compatibility
+export type { KnowledgeSource };
 
 export type ModelTestLink = {
   model: string;
