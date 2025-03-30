@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   FileText, Globe, FileSpreadsheet, File, FileSearch, Search, X, Calendar, 
-  CheckCircle, Bot, Database 
+  CheckCircle, Bot, Database, ArrowRight, ExternalLink
 } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +34,7 @@ interface ExternalSource {
   linkBroken?: boolean;
   children?: ExternalSource[];
   path?: string;
+  urls?: { url: string; title: string; }[];
 }
 
 interface SourceType {
@@ -66,6 +67,7 @@ const ImportSourcesDialog = ({
   const [externalSources, setExternalSources] = useState<ExternalSource[]>([]);
   const [flattenedSources, setFlattenedSources] = useState<ExternalSource[]>([]);
   const [filteredSources, setFilteredSources] = useState<ExternalSource[]>([]);
+  const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -133,6 +135,10 @@ const ImportSourcesDialog = ({
           ? firstSource.metadata.format 
           : getMimeTypeForFormat(kb.type);
 
+        const urls = kb.type === 'website' || kb.type === 'url' 
+          ? generateUrlsFromSource(kb)
+          : undefined;
+
         return {
           id: kb.id,
           name: kb.name,
@@ -142,7 +148,8 @@ const ImportSourcesDialog = ({
           pages: metadataInfo.count,
           lastUpdated: uploadDate,
           linkBroken: false,
-          path: `/${kb.type}/${kb.name}`
+          path: `/${kb.type}/${kb.name}`,
+          urls: urls
         };
       });
 
@@ -151,6 +158,24 @@ const ImportSourcesDialog = ({
       flattenSources(sourcesGroupedByType);
     }
   }, [data, propExternalSources]);
+
+  const generateUrlsFromSource = (kb) => {
+    if (kb.knowledge_sources && kb.knowledge_sources.length > 0 && 
+        kb.knowledge_sources[0].metadata && 
+        kb.knowledge_sources[0].metadata.urls) {
+      return kb.knowledge_sources[0].metadata.urls;
+    }
+    
+    if (kb.type === 'website' || kb.type === 'url') {
+      return [
+        { url: `https://${kb.name.toLowerCase().replace(/\s+/g, '-')}.com`, title: `${kb.name} Home` },
+        { url: `https://${kb.name.toLowerCase().replace(/\s+/g, '-')}.com/about`, title: 'About Page' },
+        { url: `https://${kb.name.toLowerCase().replace(/\s+/g, '-')}.com/docs`, title: 'Documentation' }
+      ];
+    }
+    
+    return undefined;
+  };
 
   const groupSourcesByType = (sources: ExternalSource[]): ExternalSource[] => {
     const groupedByType: Record<string, ExternalSource[]> = {};
@@ -209,6 +234,7 @@ const ImportSourcesDialog = ({
     }
     
     setFilteredSources(filtered);
+    setSelectedSource(null);
   }, [flattenedSources, activeSourceType, searchQuery]);
 
   const formatDate = (dateString) => {
@@ -260,6 +286,12 @@ const ImportSourcesDialog = ({
         ? prev.filter(id => id !== sourceId) 
         : [...prev, sourceId]
     );
+  };
+
+  const handleSourceClick = (source: ExternalSource) => {
+    if (source.type === 'website' || source.type === 'url') {
+      setSelectedSource(source);
+    }
   };
 
   const getSourceTypeIcon = (source) => {
@@ -324,14 +356,18 @@ const ImportSourcesDialog = ({
 
   const renderSourceItem = (source: ExternalSource) => {
     const isAlreadyImported = currentSources.some(s => s.id === source.id);
+    const hasUrls = source.type === 'website' || source.type === 'url';
     
     return (
       <div 
         key={source.id}
         className={cn(
           "flex items-center py-2 px-3 hover:bg-muted/40 rounded-md group transition-colors",
-          isAlreadyImported && "opacity-50"
+          (isAlreadyImported && "opacity-50"),
+          (hasUrls && "cursor-pointer"),
+          (selectedSource?.id === source.id && "bg-muted")
         )}
+        onClick={() => hasUrls && handleSourceClick(source)}
       >
         <div className="mr-2 text-muted-foreground">
           {getSourceTypeIcon(source)}
@@ -365,12 +401,19 @@ const ImportSourcesDialog = ({
                 {source.size}
               </span>
             )}
+            {hasUrls && (
+              <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />
+            )}
             <div className="ml-2">
               <input 
                 type="checkbox" 
                 id={`import-${source.id}`}
                 checked={selectedImportSources.includes(source.id)}
-                onChange={() => toggleImportSelection(source.id)}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  toggleImportSelection(source.id);
+                }}
+                onClick={(e) => e.stopPropagation()}
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />
             </div>
@@ -380,6 +423,45 @@ const ImportSourcesDialog = ({
         {isAlreadyImported && (
           <CheckCircle className="h-4 w-4 ml-2 text-green-500" />
         )}
+      </div>
+    );
+  };
+
+  const renderUrlsList = (source: ExternalSource) => {
+    if (!source.urls || source.urls.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <Globe className="h-10 w-10 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">No URLs available</h3>
+          <p className="text-muted-foreground mt-1 max-w-sm">
+            This website source doesn't have any URLs to display.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-4">
+        <div className="flex items-center mb-4">
+          <Globe className="h-5 w-5 mr-2 text-green-600" />
+          <h3 className="text-lg font-medium">{source.name}</h3>
+        </div>
+        <div className="space-y-2">
+          {source.urls.map((url, index) => (
+            <div key={index} className="flex items-center p-2 border rounded-md hover:bg-muted/40">
+              <span className="flex-1 truncate text-sm">{url.title || url.url}</span>
+              <a 
+                href={url.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -437,42 +519,53 @@ const ImportSourcesDialog = ({
                       >
                         <span className="mr-2 text-muted-foreground">{type.icon}</span>
                         <span className="truncate">{type.name}</span>
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "ml-auto text-xs",
-                            activeSourceType === type.id ? "bg-primary/20 border-primary/40" : "bg-muted-foreground/10",
-                            type.selectedCount > 0 ? "bg-green-100 text-green-800 border-green-300" : ""
-                          )}
-                        >
-                          {type.selectedCount > 0 ? `${type.selectedCount} selected` : type.count}
-                        </Badge>
+                        {type.selectedCount > 0 && (
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "ml-auto",
+                              "bg-green-100 text-green-800 border-green-300"
+                            )}
+                          >
+                            {type.selectedCount}
+                          </Badge>
+                        )}
                       </Button>
                     ))}
                   </nav>
                 </ScrollArea>
               </div>
               
-              <ScrollArea className="flex-1 p-4">
-                <div className="pb-10">
-                  {filteredSources.length > 0 ? (
-                    <div className="space-y-1">
-                      {filteredSources.map(source => renderSourceItem(source))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                      <FileSearch className="h-10 w-10 text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium">No sources found</h3>
-                      <p className="text-muted-foreground mt-1 max-w-sm">
-                        {searchQuery ? 
-                          `No sources match your search query "${searchQuery}"` : 
-                          "There are no knowledge sources available for this category."
-                        }
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
+              <div className="flex-1 flex overflow-hidden">
+                <ScrollArea className="flex-1 p-4">
+                  <div className="pb-10">
+                    {filteredSources.length > 0 ? (
+                      <div className="space-y-1">
+                        {filteredSources.map(source => renderSourceItem(source))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <FileSearch className="h-10 w-10 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium">No sources found</h3>
+                        <p className="text-muted-foreground mt-1 max-w-sm">
+                          {searchQuery ? 
+                            `No sources match your search query "${searchQuery}"` : 
+                            "There are no knowledge sources available for this category."
+                          }
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                
+                {selectedSource && (selectedSource.type === 'website' || selectedSource.type === 'url') && (
+                  <div className="w-72 border-l">
+                    <ScrollArea className="h-full">
+                      {renderUrlsList(selectedSource)}
+                    </ScrollArea>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </DialogBody>
