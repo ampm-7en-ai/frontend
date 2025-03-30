@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  FileText, Globe, FileSpreadsheet, File, ChevronRight, ChevronDown, 
-  Folder, Database, FolderOpen, FileSearch, Search, X, Calendar, CheckCircle 
+  FileText, Globe, FileSpreadsheet, File, FileSearch, Search, X, Calendar, 
+  CheckCircle, Bot, Database 
 } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +34,6 @@ interface ExternalSource {
   lastUpdated: string;
   linkBroken?: boolean;
   children?: ExternalSource[];
-  isExpanded?: boolean;
   path?: string;
 }
 
@@ -65,7 +64,7 @@ const ImportSourcesDialog = ({
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const [externalSources, setExternalSources] = useState<ExternalSource[]>([]);
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+  const [flattenedSources, setFlattenedSources] = useState<ExternalSource[]>([]);
   const [filteredSources, setFilteredSources] = useState<ExternalSource[]>([]);
 
   const fetchKnowledgeBases = async () => {
@@ -110,7 +109,9 @@ const ImportSourcesDialog = ({
   useEffect(() => {
     // If external sources are provided via props, use those instead of fetching
     if (propExternalSources) {
-      setExternalSources(organizeSourcesIntoTree(propExternalSources));
+      const sourcesGroupedByType = groupSourcesByType(propExternalSources);
+      setExternalSources(sourcesGroupedByType);
+      flattenSources(sourcesGroupedByType);
       return;
     }
     
@@ -147,53 +148,14 @@ const ImportSourcesDialog = ({
         };
       });
 
-      setExternalSources(organizeSourcesIntoTree(formattedSources));
+      const sourcesGroupedByType = groupSourcesByType(formattedSources);
+      setExternalSources(sourcesGroupedByType);
+      flattenSources(sourcesGroupedByType);
     }
   }, [data, propExternalSources]);
 
-  useEffect(() => {
-    let filtered = [...externalSources];
-    
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const searchInSources = (sources: ExternalSource[]): ExternalSource[] => {
-        return sources.filter(source => {
-          const nameMatch = source.name.toLowerCase().includes(query);
-          let childrenMatch: ExternalSource[] = [];
-          
-          if (source.children) {
-            childrenMatch = searchInSources(source.children);
-          }
-          
-          if (childrenMatch.length > 0) {
-            return true; // Keep parent if any children match
-          }
-          
-          return nameMatch;
-        }).map(source => {
-          if (source.children) {
-            return {
-              ...source,
-              children: searchInSources(source.children)
-            };
-          }
-          return source;
-        });
-      };
-      
-      filtered = searchInSources(filtered);
-    }
-    
-    // Filter by active source type
-    if (activeSourceType !== 'all') {
-      filtered = filtered.filter(source => source.type === activeSourceType);
-    }
-    
-    setFilteredSources(filtered);
-  }, [externalSources, activeSourceType, searchQuery]);
-
-  const organizeSourcesIntoTree = (sources: ExternalSource[]): ExternalSource[] => {
+  // Group sources by their type
+  const groupSourcesByType = (sources: ExternalSource[]): ExternalSource[] => {
     // Group sources by type
     const groupedByType: Record<string, ExternalSource[]> = {};
     
@@ -225,6 +187,38 @@ const ImportSourcesDialog = ({
     
     return tree;
   };
+
+  // Create a flattened list of sources for easier filtering and display
+  const flattenSources = (sourcesTree: ExternalSource[]) => {
+    let flatList: ExternalSource[] = [];
+    
+    sourcesTree.forEach(typeFolder => {
+      if (typeFolder.children) {
+        flatList = [...flatList, ...typeFolder.children];
+      }
+    });
+    
+    setFlattenedSources(flatList);
+  };
+
+  useEffect(() => {
+    let filtered = [...flattenedSources];
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(source => 
+        source.name.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply type filter
+    if (activeSourceType !== 'all') {
+      filtered = filtered.filter(source => source.type === activeSourceType);
+    }
+    
+    setFilteredSources(filtered);
+  }, [flattenedSources, activeSourceType, searchQuery]);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -278,11 +272,6 @@ const ImportSourcesDialog = ({
   };
 
   const getSourceTypeIcon = (source) => {
-    if (!source.id && source.children) {
-      // This is a folder/category
-      return <Folder className="h-4 w-4" />;
-    }
-    
     switch (source.type) {
       case 'docs':
         return <FileText className="h-4 w-4 text-blue-600" />;
@@ -295,6 +284,8 @@ const ImportSourcesDialog = ({
         return <File className="h-4 w-4 text-purple-600" />;
       case 'database':
         return <Database className="h-4 w-4 text-amber-600" />;
+      case 'ai':
+        return <Bot className="h-4 w-4 text-pink-600" />;
       default:
         return <FileText className="h-4 w-4 text-gray-600" />;
     }
@@ -321,21 +312,14 @@ const ImportSourcesDialog = ({
     onImport(sourcesToImport);
   };
 
-  const toggleExpandPath = (path: string) => {
-    setExpandedPaths(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(path)) {
-        newSet.delete(path);
-      } else {
-        newSet.add(path);
-      }
-      return newSet;
-    });
-  };
-
   // Calculate source types for the sidebar
   const sourceTypes: SourceType[] = [
-    { id: 'all', name: 'All Sources', icon: <FileSearch className="h-4 w-4" />, count: externalSources.reduce((acc, src) => acc + (src.children?.length || 0), 0) },
+    { 
+      id: 'all', 
+      name: 'All Sources', 
+      icon: <FileSearch className="h-4 w-4" />, 
+      count: flattenedSources.length 
+    },
     ...externalSources.map(type => ({
       id: type.type,
       name: getSourceTypeName(type.type),
@@ -344,101 +328,63 @@ const ImportSourcesDialog = ({
     }))
   ];
 
-  const renderFileItem = (source: ExternalSource, depth = 0, path = '') => {
-    // Skip rendering for empty folders
-    if (source.children && source.children.length === 0) {
-      return null;
-    }
-    
-    const isFolder = source.children && source.children.length > 0;
-    const currentPath = `${path}/${source.name}`;
-    const isExpanded = expandedPaths.has(currentPath);
-    const isAlreadyImported = source.id > 0 && currentSources.some(s => s.id === source.id);
-    const isSelectable = source.id > 0 && !isAlreadyImported;
+  const renderSourceItem = (source: ExternalSource) => {
+    const isAlreadyImported = currentSources.some(s => s.id === source.id);
     
     return (
-      <div key={`${source.id}-${currentPath}`}>
-        <div 
-          className={cn(
-            "flex items-center py-1.5 px-2 hover:bg-muted/40 rounded-md group transition-colors",
-            depth > 0 && "ml-4",
-            isAlreadyImported && "opacity-50"
-          )}
-        >
-          {isFolder ? (
-            <button 
-              className="mr-1 text-muted-foreground transition-colors hover:text-primary"
-              onClick={() => toggleExpandPath(currentPath)}
-            >
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-          ) : (
-            <span className="w-5" /> // Spacer for alignment
-          )}
-          
-          <div className="mr-2 text-muted-foreground">
-            {isFolder ? 
-              (isExpanded ? <FolderOpen className="h-4 w-4" /> : <Folder className="h-4 w-4" />) : 
-              getSourceTypeIcon(source)
-            }
-          </div>
-          
-          <span 
-            className={cn(
-              "flex-1 truncate text-sm",
-              isAlreadyImported && "line-through"
-            )}
-            onClick={
-              isFolder 
-                ? () => toggleExpandPath(currentPath)
-                : undefined
-            }
-          >
-            {source.name}
-          </span>
-          
-          {source.linkBroken && (
-            <Badge variant="outline" className="ml-2 text-xs bg-orange-100 text-orange-700 border-orange-300">
-              Broken Link
-            </Badge>
-          )}
-          
-          {isSelectable && !isFolder && (
-            <div className="ml-auto flex items-center">
-              {source.lastUpdated && (
-                <span className="text-xs text-muted-foreground mr-2 flex items-center">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {source.lastUpdated}
-                </span>
-              )}
-              {source.size && (
-                <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                  {source.size}
-                </span>
-              )}
-              <div className="ml-2">
-                <input 
-                  type="checkbox" 
-                  id={`import-${source.id}`}
-                  checked={selectedImportSources.includes(source.id)}
-                  onChange={() => toggleImportSelection(source.id)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-              </div>
-            </div>
-          )}
-          
-          {isAlreadyImported && (
-            <CheckCircle className="h-4 w-4 ml-2 text-green-500" />
-          )}
+      <div 
+        key={source.id}
+        className={cn(
+          "flex items-center py-2 px-3 hover:bg-muted/40 rounded-md group transition-colors",
+          isAlreadyImported && "opacity-50"
+        )}
+      >
+        <div className="mr-2 text-muted-foreground">
+          {getSourceTypeIcon(source)}
         </div>
         
-        {isFolder && isExpanded && source.children && (
-          <div className="ml-4 border-l border-muted pl-2 mt-1">
-            {source.children.map(child => 
-              renderFileItem(child, depth + 1, currentPath)
+        <span 
+          className={cn(
+            "flex-1 truncate text-sm",
+            isAlreadyImported && "line-through"
+          )}
+        >
+          {source.name}
+        </span>
+        
+        {source.linkBroken && (
+          <Badge variant="outline" className="ml-2 text-xs bg-orange-100 text-orange-700 border-orange-300">
+            Broken Link
+          </Badge>
+        )}
+        
+        {!isAlreadyImported && (
+          <div className="ml-auto flex items-center">
+            {source.lastUpdated && (
+              <span className="text-xs text-muted-foreground mr-2 flex items-center">
+                <Calendar className="h-3 w-3 mr-1" />
+                {source.lastUpdated}
+              </span>
             )}
+            {source.size && (
+              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                {source.size}
+              </span>
+            )}
+            <div className="ml-2">
+              <input 
+                type="checkbox" 
+                id={`import-${source.id}`}
+                checked={selectedImportSources.includes(source.id)}
+                onChange={() => toggleImportSelection(source.id)}
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+            </div>
           </div>
+        )}
+        
+        {isAlreadyImported && (
+          <CheckCircle className="h-4 w-4 ml-2 text-green-500" />
         )}
       </div>
     );
@@ -513,11 +459,13 @@ const ImportSourcesDialog = ({
                 </ScrollArea>
               </div>
               
-              {/* Main content area */}
+              {/* Main content area - flat list of sources */}
               <ScrollArea className="flex-1 p-4">
                 <div className="pb-10">
                   {filteredSources.length > 0 ? (
-                    filteredSources.map(source => renderFileItem(source))
+                    <div className="space-y-1">
+                      {filteredSources.map(source => renderSourceItem(source))}
+                    </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <FileSearch className="h-10 w-10 text-muted-foreground mb-4" />
@@ -525,7 +473,7 @@ const ImportSourcesDialog = ({
                       <p className="text-muted-foreground mt-1 max-w-sm">
                         {searchQuery ? 
                           `No sources match your search query "${searchQuery}"` : 
-                          "There are no knowledge sources available."
+                          "There are no knowledge sources available for this category."
                         }
                       </p>
                     </div>
