@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { ThemeProvider } from './components/theme/ThemeProvider';
+import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
 // Import all your route components here
@@ -64,67 +65,69 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/verify" element={<Verify />} />
-          
-          {/* Protected routes with MainLayout */}
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Index />} />
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/verify" element={<Verify />} />
             
-            {/* Dashboard routes */}
-            <Route path="dashboard/admin" element={<AdminDashboard />} />
-            <Route path="dashboard/super-admin" element={<SuperAdminDashboard />} />
+            {/* Protected routes with MainLayout */}
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Index />} />
+              
+              {/* Dashboard routes */}
+              <Route path="dashboard/admin" element={<AdminDashboard />} />
+              <Route path="dashboard/super-admin" element={<SuperAdminDashboard />} />
+              
+              {/* Agent routes */}
+              <Route path="agents" element={<AgentList />} />
+              <Route path="agents/create" element={<AgentCreate />} />
+              <Route path="agents/:id/edit" element={<AgentEdit />} />
+              <Route path="agents/:id/test" element={<AgentTest />} />
+              <Route path="agents/playground" element={<AgentPlayground />} />
+              
+              {/* Conversation routes */}
+              <Route path="conversations" element={<ConversationList />} />
+              <Route path="conversations/:id" element={<ConversationDetail />} />
+              
+              {/* Analytics routes */}
+              <Route path="analytics" element={<PlatformAnalytics />} />
+              
+              {/* Knowledge routes */}
+              <Route path="knowledge" element={<KnowledgeBase />} />
+              <Route path="knowledge/upload" element={<KnowledgeUpload />} />
+              
+              {/* Settings routes */}
+              <Route path="settings/platform/general" element={<GeneralSettings />} />
+              <Route path="settings/platform/security" element={<SecuritySettings />} />
+              <Route path="settings/platform/llm-providers" element={<LLMProvidersSettings />} />
+              <Route path="settings/platform/compliance" element={<ComplianceSettings />} />
+              <Route path="settings/platform/billing" element={<BillingSettings />} />
+              <Route path="settings/platform/customization" element={<CustomizationSettings />} />
+              
+              {/* Business settings routes */}
+              <Route path="settings/business" element={<BusinessSettings />} />
+              <Route path="settings/business/agents" element={<AgentSettings />} />
+              
+              {/* User routes */}
+              <Route path="users" element={<UserList />} />
+              <Route path="users/:id" element={<UserDetail />} />
+              
+              {/* Business routes */}
+              <Route path="businesses" element={<BusinessList />} />
+              <Route path="businesses/:id" element={<BusinessDetail />} />
+              
+              {/* Template routes */}
+              <Route path="templates" element={<GlobalTemplates />} />
+              
+              {/* Help routes */}
+              <Route path="help/documentation" element={<Documentation />} />
+              <Route path="help/support" element={<SupportTicket />} />
+            </Route>
             
-            {/* Agent routes */}
-            <Route path="agents" element={<AgentList />} />
-            <Route path="agents/create" element={<AgentCreate />} />
-            <Route path="agents/:id/edit" element={<AgentEdit />} />
-            <Route path="agents/:id/test" element={<AgentTest />} />
-            <Route path="agents/playground" element={<AgentPlayground />} />
-            
-            {/* Conversation routes */}
-            <Route path="conversations" element={<ConversationList />} />
-            <Route path="conversations/:id" element={<ConversationDetail />} />
-            
-            {/* Analytics routes */}
-            <Route path="analytics" element={<PlatformAnalytics />} />
-            
-            {/* Knowledge routes */}
-            <Route path="knowledge" element={<KnowledgeBase />} />
-            <Route path="knowledge/upload" element={<KnowledgeUpload />} />
-            
-            {/* Settings routes */}
-            <Route path="settings/platform/general" element={<GeneralSettings />} />
-            <Route path="settings/platform/security" element={<SecuritySettings />} />
-            <Route path="settings/platform/llm-providers" element={<LLMProvidersSettings />} />
-            <Route path="settings/platform/compliance" element={<ComplianceSettings />} />
-            <Route path="settings/platform/billing" element={<BillingSettings />} />
-            <Route path="settings/platform/customization" element={<CustomizationSettings />} />
-            
-            {/* Business settings routes */}
-            <Route path="settings/business" element={<BusinessSettings />} />
-            <Route path="settings/business/agents" element={<AgentSettings />} />
-            
-            {/* User routes */}
-            <Route path="users" element={<UserList />} />
-            <Route path="users/:id" element={<UserDetail />} />
-            
-            {/* Business routes */}
-            <Route path="businesses" element={<BusinessList />} />
-            <Route path="businesses/:id" element={<BusinessDetail />} />
-            
-            {/* Template routes */}
-            <Route path="templates" element={<GlobalTemplates />} />
-            
-            {/* Help routes */}
-            <Route path="help/documentation" element={<Documentation />} />
-            <Route path="help/support" element={<SupportTicket />} />
-          </Route>
-          
-          {/* 404 - Not Found */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* 404 - Not Found */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </Router>
     </ThemeProvider>
   );
