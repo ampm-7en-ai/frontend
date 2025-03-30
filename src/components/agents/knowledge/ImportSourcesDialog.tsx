@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -42,6 +41,7 @@ interface SourceType {
   name: string;
   icon: React.ReactNode;
   count: number;
+  selectedCount: number;
 }
 
 interface ImportSourcesDialogProps {
@@ -93,7 +93,7 @@ const ImportSourcesDialog = ({
   const { data, isLoading, error } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
-    enabled: isOpen && !propExternalSources, // Only fetch when dialog is open and no external sources provided
+    enabled: isOpen && !propExternalSources,
   });
 
   useEffect(() => {
@@ -107,7 +107,6 @@ const ImportSourcesDialog = ({
   }, [error, toast]);
 
   useEffect(() => {
-    // If external sources are provided via props, use those instead of fetching
     if (propExternalSources) {
       const sourcesGroupedByType = groupSourcesByType(propExternalSources);
       setExternalSources(sourcesGroupedByType);
@@ -130,7 +129,6 @@ const ImportSourcesDialog = ({
           ? formatDate(firstSource.metadata.upload_date) 
           : formatDate(kb.last_updated);
 
-        // Get file format from metadata
         const format = firstSource && firstSource.metadata && firstSource.metadata.format 
           ? firstSource.metadata.format 
           : getMimeTypeForFormat(kb.type);
@@ -154,9 +152,7 @@ const ImportSourcesDialog = ({
     }
   }, [data, propExternalSources]);
 
-  // Group sources by their type
   const groupSourcesByType = (sources: ExternalSource[]): ExternalSource[] => {
-    // Group sources by type
     const groupedByType: Record<string, ExternalSource[]> = {};
     
     sources.forEach(source => {
@@ -166,13 +162,11 @@ const ImportSourcesDialog = ({
       groupedByType[source.type].push(source);
     });
     
-    // Create a tree structure
     const tree: ExternalSource[] = [];
     
     Object.entries(groupedByType).forEach(([type, typeSources]) => {
-      // Create a folder for each type
       const typeFolder: ExternalSource = {
-        id: -1, // Not a real source
+        id: -1,
         name: getSourceTypeName(type),
         type: type,
         format: "",
@@ -188,7 +182,6 @@ const ImportSourcesDialog = ({
     return tree;
   };
 
-  // Create a flattened list of sources for easier filtering and display
   const flattenSources = (sourcesTree: ExternalSource[]) => {
     let flatList: ExternalSource[] = [];
     
@@ -204,7 +197,6 @@ const ImportSourcesDialog = ({
   useEffect(() => {
     let filtered = [...flattenedSources];
     
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(source => 
@@ -212,7 +204,6 @@ const ImportSourcesDialog = ({
       );
     }
     
-    // Apply type filter
     if (activeSourceType !== 'all') {
       filtered = filtered.filter(source => source.type === activeSourceType);
     }
@@ -224,7 +215,7 @@ const ImportSourcesDialog = ({
     if (!dateString) return 'N/A';
     
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+    return date.toLocaleDateString('en-GB');
   };
 
   const getMimeTypeForFormat = (type) => {
@@ -246,7 +237,7 @@ const ImportSourcesDialog = ({
         return 'application/octet-stream';
     }
   };
-  
+
   const getSourceTypeName = (type: string): string => {
     switch(type) {
       case 'docs':
@@ -301,31 +292,34 @@ const ImportSourcesDialog = ({
       return;
     }
     
-    // Close the dialog
     onOpenChange(false);
-    
-    // Clear selected sources for next time
     const sourcesToImport = selectedImportSources;
     setSelectedImportSources([]);
-    
-    // Call the onImport callback with selected sources
     onImport(sourcesToImport);
   };
 
-  // Calculate source types for the sidebar
   const sourceTypes: SourceType[] = [
     { 
       id: 'all', 
       name: 'All Sources', 
       icon: <FileSearch className="h-4 w-4" />, 
-      count: flattenedSources.length 
+      count: flattenedSources.length,
+      selectedCount: selectedImportSources.length
     },
-    ...externalSources.map(type => ({
-      id: type.type,
-      name: getSourceTypeName(type.type),
-      icon: getSourceTypeIcon({ type: type.type }),
-      count: type.children?.length || 0
-    }))
+    ...externalSources.map(type => {
+      const typeSourceIds = type.children?.map(source => source.id) || [];
+      const selectedCountForType = selectedImportSources.filter(id => 
+        typeSourceIds.includes(id)
+      ).length;
+      
+      return {
+        id: type.type,
+        name: getSourceTypeName(type.type),
+        icon: getSourceTypeIcon({ type: type.type }),
+        count: type.children?.length || 0,
+        selectedCount: selectedCountForType
+      };
+    })
   ];
 
   const renderSourceItem = (source: ExternalSource) => {
@@ -428,7 +422,6 @@ const ImportSourcesDialog = ({
             </div>
           ) : (
             <>
-              {/* Sidebar with source types */}
               <div className="w-52 border-r p-2 bg-muted/20">
                 <ScrollArea className="h-full">
                   <nav className="grid gap-1 px-2 pb-10">
@@ -448,10 +441,11 @@ const ImportSourcesDialog = ({
                           variant="outline" 
                           className={cn(
                             "ml-auto text-xs",
-                            activeSourceType === type.id ? "bg-primary/20 border-primary/40" : "bg-muted-foreground/10"
+                            activeSourceType === type.id ? "bg-primary/20 border-primary/40" : "bg-muted-foreground/10",
+                            type.selectedCount > 0 ? "bg-green-100 text-green-800 border-green-300" : ""
                           )}
                         >
-                          {type.count}
+                          {type.selectedCount > 0 ? `${type.selectedCount} selected` : type.count}
                         </Badge>
                       </Button>
                     ))}
@@ -459,7 +453,6 @@ const ImportSourcesDialog = ({
                 </ScrollArea>
               </div>
               
-              {/* Main content area - flat list of sources */}
               <ScrollArea className="flex-1 p-4">
                 <div className="pb-10">
                   {filteredSources.length > 0 ? (
