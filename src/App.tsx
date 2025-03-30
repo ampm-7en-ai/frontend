@@ -12,6 +12,8 @@ import AgentList from './pages/agents/AgentList';
 import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
 import BusinessSettings from './pages/settings/business/BusinessSettings';
+import BillingSettings from './pages/settings/platform/BillingSettings';
+import GeneralSettings from './pages/settings/platform/GeneralSettings';
 import BusinessList from './pages/businesses/BusinessList';
 import BusinessDetail from './pages/businesses/BusinessDetail';
 import UserList from './pages/users/UserList';
@@ -136,6 +138,24 @@ const ProtectedRoutes = () => {
         
         <Route path="/settings" element={<BusinessSettings />} />
         <Route path="/settings/business" element={<BusinessSettings />} />
+        
+        {/* Platform settings routes */}
+        <Route 
+          path="/settings/platform/billing" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <BillingSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/general" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <GeneralSettings />
+            </ProtectedRoute>
+          } 
+        />
         <Route path="/settings/*" element={<Navigate to="/settings" replace />} />
         
         <Route path="*" element={<NotFound />} />
