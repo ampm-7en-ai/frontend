@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,100 +6,26 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Palette, Upload, Mail, Layers, Sun, Moon, MonitorSmartphone } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { useToast } from "@/hooks/use-toast";
+import { Palette, Upload, Mail, Layers } from 'lucide-react';
 
-const ColorPicker = ({ label, color, onChange }: { label: string; color: string; onChange: (value: string) => void }) => (
+const ColorPicker = ({ label, color }: { label: string; color: string }) => (
   <div className="space-y-2">
     <Label htmlFor={`color-${label}`}>{label}</Label>
     <div className="flex gap-2 items-center">
       <div 
         className="w-10 h-10 rounded-md border cursor-pointer" 
         style={{ backgroundColor: color }}
-        onClick={() => {
-          const input = document.getElementById(`color-${label}-picker`);
-          if (input) input.click();
-        }}
       ></div>
       <Input 
         id={`color-${label}`} 
         value={color} 
-        onChange={(e) => onChange(e.target.value)}
         className="font-mono"
-      />
-      <input
-        type="color"
-        id={`color-${label}-picker`}
-        value={color}
-        onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
       />
     </div>
   </div>
 );
 
 const CustomizationSettings = () => {
-  const { theme, setTheme } = useTheme();
-  const { toast } = useToast();
-  
-  const [brandName, setBrandName] = useState("7en.ai");
-  const [brandSlogan, setBrandSlogan] = useState("European-compliant AI platform");
-  const [copyright, setCopyright] = useState("© 2024 7en Technologies GmbH. All rights reserved.");
-  const [enableDarkMode, setEnableDarkMode] = useState(true);
-  
-  const [colors, setColors] = useState({
-    primary: "#2563EB",
-    secondary: "#1E40AF",
-    accent: "#3B82F6",
-    background: "#FFFFFF",
-    success: "#10B981",
-    warning: "#F59E0B",
-    error: "#EF4444",
-    info: "#3B82F6",
-  });
-
-  const updateColor = (key: keyof typeof colors, value: string) => {
-    setColors(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-
-  const applyColorTheme = () => {
-    toast({
-      title: "Brand colors updated",
-      description: "Your custom color theme has been applied."
-    });
-    
-    console.log("Applied colors:", colors);
-  };
-
-  const resetColors = () => {
-    setColors({
-      primary: "#2563EB",
-      secondary: "#1E40AF",
-      accent: "#3B82F6",
-      background: "#FFFFFF",
-      success: "#10B981",
-      warning: "#F59E0B",
-      error: "#EF4444",
-      info: "#3B82F6",
-    });
-    
-    toast({
-      title: "Colors reset",
-      description: "Color settings have been reset to default values."
-    });
-  };
-
-  const saveBrandInfo = () => {
-    toast({
-      title: "Brand information saved",
-      description: "Your brand details have been updated successfully."
-    });
-  };
-
   return (
     <div className="space-y-6">
       <h2 className="text-heading-3 bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Customization Settings</h2>
@@ -162,13 +88,7 @@ const CustomizationSettings = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="brand-name">Brand Name</Label>
-                <Input 
-                  id="brand-name" 
-                  placeholder="7en.ai" 
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  className="border-blue-100 focus:border-blue-300" 
-                />
+                <Input id="brand-name" placeholder="7en.ai" defaultValue="7en.ai" className="border-blue-100 focus:border-blue-300" />
               </div>
               
               <div className="space-y-2">
@@ -176,8 +96,7 @@ const CustomizationSettings = () => {
                 <Input 
                   id="brand-slogan" 
                   placeholder="European-compliant AI platform" 
-                  value={brandSlogan}
-                  onChange={(e) => setBrandSlogan(e.target.value)}
+                  defaultValue="European-compliant multi-agent AI platform" 
                   className="border-blue-100 focus:border-blue-300"
                 />
               </div>
@@ -187,16 +106,9 @@ const CustomizationSettings = () => {
                 <Input 
                   id="copyright" 
                   placeholder="© 2024 7en.ai. All rights reserved." 
-                  value={copyright}
-                  onChange={(e) => setCopyright(e.target.value)}
+                  defaultValue="© 2024 7en Technologies GmbH. All rights reserved." 
                   className="border-blue-100 focus:border-blue-300"
                 />
-              </div>
-              
-              <div className="pt-2">
-                <Button onClick={saveBrandInfo} className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary-hover hover:to-blue-500">
-                  Save Brand Information
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -214,46 +126,14 @@ const CustomizationSettings = () => {
             <CardContent>
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ColorPicker 
-                    label="Primary" 
-                    color={colors.primary} 
-                    onChange={(value) => updateColor('primary', value)} 
-                  />
-                  <ColorPicker 
-                    label="Secondary" 
-                    color={colors.secondary} 
-                    onChange={(value) => updateColor('secondary', value)} 
-                  />
-                  <ColorPicker 
-                    label="Accent" 
-                    color={colors.accent} 
-                    onChange={(value) => updateColor('accent', value)} 
-                  />
-                  <ColorPicker 
-                    label="Background" 
-                    color={colors.background} 
-                    onChange={(value) => updateColor('background', value)} 
-                  />
-                  <ColorPicker 
-                    label="Success" 
-                    color={colors.success} 
-                    onChange={(value) => updateColor('success', value)} 
-                  />
-                  <ColorPicker 
-                    label="Warning" 
-                    color={colors.warning} 
-                    onChange={(value) => updateColor('warning', value)} 
-                  />
-                  <ColorPicker 
-                    label="Error" 
-                    color={colors.error} 
-                    onChange={(value) => updateColor('error', value)} 
-                  />
-                  <ColorPicker 
-                    label="Info" 
-                    color={colors.info} 
-                    onChange={(value) => updateColor('info', value)} 
-                  />
+                  <ColorPicker label="Primary" color="#2563EB" />
+                  <ColorPicker label="Secondary" color="#1E40AF" />
+                  <ColorPicker label="Accent" color="#3B82F6" />
+                  <ColorPicker label="Background" color="#FFFFFF" />
+                  <ColorPicker label="Success" color="#10B981" />
+                  <ColorPicker label="Warning" color="#F59E0B" />
+                  <ColorPicker label="Error" color="#EF4444" />
+                  <ColorPicker label="Info" color="#3B82F6" />
                 </div>
                 
                 <div className="flex justify-between items-center pt-4 border-t border-blue-100">
@@ -263,59 +143,12 @@ const CustomizationSettings = () => {
                       Allow users to switch to dark mode
                     </p>
                   </div>
-                  <Switch 
-                    id="dark-mode"
-                    checked={enableDarkMode}
-                    onCheckedChange={setEnableDarkMode} 
-                  />
-                </div>
-                
-                <div className="pt-4 border-t border-blue-100">
-                  <div className="flex flex-col space-y-2">
-                    <Label>Theme Mode</Label>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant={theme === 'light' ? 'default' : 'outline'} 
-                        className="flex-1 gap-2"
-                        onClick={() => setTheme('light')}
-                      >
-                        <Sun className="h-4 w-4" />
-                        Light
-                      </Button>
-                      <Button 
-                        variant={theme === 'dark' ? 'default' : 'outline'} 
-                        className="flex-1 gap-2"
-                        onClick={() => setTheme('dark')}
-                      >
-                        <Moon className="h-4 w-4" />
-                        Dark
-                      </Button>
-                      <Button 
-                        variant={theme === 'system' ? 'default' : 'outline'} 
-                        className="flex-1 gap-2"
-                        onClick={() => setTheme('system')}
-                      >
-                        <MonitorSmartphone className="h-4 w-4" />
-                        System
-                      </Button>
-                    </div>
-                  </div>
+                  <Switch id="dark-mode" />
                 </div>
                 
                 <div className="pt-4">
-                  <Button 
-                    variant="outline" 
-                    className="mr-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                    onClick={resetColors}
-                  >
-                    Reset to Default
-                  </Button>
-                  <Button 
-                    className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary-hover hover:to-blue-500"
-                    onClick={applyColorTheme}
-                  >
-                    Apply Theme
-                  </Button>
+                  <Button variant="outline" className="mr-2 border-blue-200 text-blue-700 hover:bg-blue-50">Reset to Default</Button>
+                  <Button className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary-hover hover:to-blue-500">Preview Theme</Button>
                 </div>
               </div>
             </CardContent>
