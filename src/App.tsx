@@ -62,8 +62,15 @@ import GlobalTemplates from './pages/templates/GlobalTemplates';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
 
-// Create a client
-const queryClient = new QueryClient();
+// Create a query client with default settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
