@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -51,6 +50,8 @@ const paymentFormSchema = z.object({
 const preferencesFormSchema = z.object({
   emailNotifications: z.boolean(),
   timezone: z.string(),
+  language: z.string(),
+  defaultExportFormat: z.string()
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -62,7 +63,6 @@ const BusinessSettings = () => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
   
-  // State for editable sections
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
@@ -70,7 +70,6 @@ const BusinessSettings = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   
-  // Form for business profile
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -79,7 +78,6 @@ const BusinessSettings = () => {
     },
   });
 
-  // Form for team member invitation
   const inviteForm = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
@@ -88,7 +86,6 @@ const BusinessSettings = () => {
     },
   });
 
-  // Form for payment method
   const paymentForm = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
@@ -99,23 +96,22 @@ const BusinessSettings = () => {
     },
   });
 
-  // Form for preferences
   const preferencesForm = useForm<PreferencesFormValues>({
     resolver: zodResolver(preferencesFormSchema),
     defaultValues: {
       emailNotifications: true,
       timezone: 'UTC-8',
+      language: 'en-US',
+      defaultExportFormat: 'json'
     },
   });
 
-  // Form for global settings
   const [globalSettings, setGlobalSettings] = useState({
     defaultModel: 'GPT-4',
     maxContextLength: 8000,
     defaultTemperature: 0.7,
   });
 
-  // Handle profile form submission
   const onProfileSubmit = (data: ProfileFormValues) => {
     toast({
       title: "Profile updated",
@@ -124,7 +120,6 @@ const BusinessSettings = () => {
     setIsEditingProfile(false);
   };
 
-  // Handle invitation form submission
   const onInviteSubmit = (data: InviteFormValues) => {
     toast({
       title: "Invitation sent",
@@ -134,7 +129,6 @@ const BusinessSettings = () => {
     inviteForm.reset();
   };
 
-  // Handle payment form submission
   const onPaymentSubmit = (data: PaymentFormValues) => {
     toast({
       title: "Payment method added",
@@ -144,7 +138,6 @@ const BusinessSettings = () => {
     paymentForm.reset();
   };
 
-  // Handle preferences form submission
   const onPreferencesSubmit = (data: PreferencesFormValues) => {
     toast({
       title: "Preferences updated",
@@ -153,7 +146,6 @@ const BusinessSettings = () => {
     setIsEditingPreferences(false);
   };
 
-  // Handle global settings form submission
   const saveGlobalSettings = () => {
     toast({
       title: "Global settings updated",
@@ -162,7 +154,6 @@ const BusinessSettings = () => {
     setIsEditingGlobalSettings(false);
   };
 
-  // Handle upgrade plan
   const handleUpgradePlan = () => {
     toast({
       title: "Plan upgraded",
@@ -181,7 +172,6 @@ const BusinessSettings = () => {
       </div>
 
       <div className="space-y-8">
-        {/* Usage Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Usage</h2>
           <div className="space-y-4">
@@ -237,7 +227,6 @@ const BusinessSettings = () => {
           </div>
         </section>
 
-        {/* Connected Accounts Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Connected accounts</h2>
           <Card>
@@ -258,7 +247,6 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-        {/* API Keys Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Your 7en.ai API Keys</h2>
           <Card>
@@ -273,7 +261,6 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-        {/* Business Profile Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
             <span>Business Profile</span>
@@ -359,7 +346,6 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-        {/* Team Management Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Team Management</h2>
           <Card>
@@ -442,7 +428,6 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-        {/* Global Agent Settings Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
             <span>Global Agent Settings</span>
@@ -547,7 +532,6 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-        {/* Billing Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Billing</h2>
           <Card>
@@ -720,7 +704,6 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-        {/* Preferences Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
             <span>Preferences</span>
@@ -796,6 +779,64 @@ const BusinessSettings = () => {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Language</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select language" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="en-US">English (US)</SelectItem>
+                              <SelectItem value="en-GB">English (UK)</SelectItem>
+                              <SelectItem value="es">Spanish</SelectItem>
+                              <SelectItem value="fr">French</SelectItem>
+                              <SelectItem value="de">German</SelectItem>
+                              <SelectItem value="zh">Chinese</SelectItem>
+                              <SelectItem value="ja">Japanese</SelectItem>
+                              <SelectItem value="ko">Korean</SelectItem>
+                              <SelectItem value="pt">Portuguese</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Set your preferred interface language
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="defaultExportFormat"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Default Export Format</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select export format" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="json">JSON</SelectItem>
+                              <SelectItem value="csv">CSV</SelectItem>
+                              <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
+                              <SelectItem value="txt">Plain Text</SelectItem>
+                              <SelectItem value="pdf">PDF</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Choose your preferred format for data exports
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <div className="flex justify-end pt-2">
                       <Button type="submit" className="flex items-center gap-1">
                         <Save className="h-4 w-4" /> Save Preferences
@@ -815,13 +856,33 @@ const BusinessSettings = () => {
                     <h3 className="font-medium">Timezone</h3>
                     <p className="text-muted-foreground mt-1">{preferencesForm.getValues().timezone} (Pacific Standard Time)</p>
                   </div>
+                  <div>
+                    <h3 className="font-medium">Language</h3>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().language === 'en-US' ? 'English (US)' : 
+                       preferencesForm.getValues().language === 'en-GB' ? 'English (UK)' :
+                       preferencesForm.getValues().language === 'es' ? 'Spanish' :
+                       preferencesForm.getValues().language === 'fr' ? 'French' :
+                       preferencesForm.getValues().language === 'de' ? 'German' :
+                       preferencesForm.getValues().language === 'zh' ? 'Chinese' :
+                       preferencesForm.getValues().language === 'ja' ? 'Japanese' :
+                       preferencesForm.getValues().language === 'ko' ? 'Korean' :
+                       preferencesForm.getValues().language === 'pt' ? 'Portuguese' : 
+                       preferencesForm.getValues().language}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Default Export Format</h3>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().defaultExportFormat.toUpperCase()}
+                    </p>
+                  </div>
                 </>
               )}
             </CardContent>
           </Card>
         </section>
 
-        {/* Platform Settings (Super Admin only) */}
         {isSuperAdmin && (
           <>
             <section>
