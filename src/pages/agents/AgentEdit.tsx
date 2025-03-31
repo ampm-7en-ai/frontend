@@ -19,7 +19,7 @@ import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrai
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, updateAgent } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -162,25 +162,38 @@ const AgentEdit = () => {
   }, [agentData]);
 
   const handleChange = (name: string, value: any) => {
-    setAgent({
-      ...agent,
+    setAgent(prevAgent => ({
+      ...prevAgent,
       [name]: value
-    });
+    }));
   };
 
   const handleSuggestionChange = (index: number, value: string) => {
-    const updatedSuggestions = [...agent.suggestions];
-    updatedSuggestions[index] = value;
-    handleChange('suggestions', updatedSuggestions);
+    setAgent(prevAgent => {
+      const updatedSuggestions = [...prevAgent.suggestions];
+      updatedSuggestions[index] = value;
+      return {
+        ...prevAgent,
+        suggestions: updatedSuggestions
+      };
+    });
   };
 
   const toggleKnowledgeSource = (id: number) => {
-    const currentSources = [...agent.knowledgeSources];
-    if (currentSources.includes(id)) {
-      handleChange('knowledgeSources', currentSources.filter(sourceId => sourceId !== id));
-    } else {
-      handleChange('knowledgeSources', [...currentSources, id]);
-    }
+    setAgent(prevAgent => {
+      const currentSources = [...prevAgent.knowledgeSources];
+      if (currentSources.includes(id)) {
+        return {
+          ...prevAgent,
+          knowledgeSources: currentSources.filter(sourceId => sourceId !== id)
+        };
+      } else {
+        return {
+          ...prevAgent,
+          knowledgeSources: [...currentSources, id]
+        };
+      }
+    });
   };
   
   const handleRetrainAI = () => {
@@ -253,16 +266,18 @@ const AgentEdit = () => {
   };
 
   const handleAgentTypeChange = (type: string) => {
-    const systemPrompt = type === 'custom' ? agent.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
-    setAgent({
-      ...agent,
+    setAgent(prevAgent => ({
+      ...prevAgent,
       agentType: type,
-      systemPrompt
-    });
+      systemPrompt: type === 'custom' ? prevAgent.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts]
+    }));
   };
 
   const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
-    handleChange('knowledgeSources', selectedSourceIds);
+    setAgent(prevAgent => ({
+      ...prevAgent,
+      knowledgeSources: selectedSourceIds
+    }));
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -1004,7 +1019,7 @@ const AgentEdit = () => {
               onValueChange={setActiveTab}
             >
               <div className="flex justify-start mb-6">
-                <TabsList className="w-auto">
+                <TabsList>
                   <TabsTrigger value="general">
                     <Bot className="h-4 w-4 mr-2" />
                     General
