@@ -14,12 +14,11 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, updateAgent } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -108,6 +107,7 @@ const AgentEdit = () => {
   const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
   const [isLoadingAgentData, setIsLoadingAgentData] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { data: agentData, isLoading, isError, error } = useQuery({
     queryKey: ['agent', agentId],
@@ -195,11 +195,55 @@ const AgentEdit = () => {
     }, 2000);
   };
 
-  const handleSaveChanges = () => {
-    toast({
-      title: "Changes saved",
-      description: "Your agent settings have been updated successfully.",
-    });
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    
+    try {
+      const payload = {
+        name: agent.name,
+        description: agent.description,
+        appearance: {
+          primaryColor: agent.primaryColor,
+          secondaryColor: agent.secondaryColor,
+          fontFamily: agent.fontFamily,
+          chatbotName: agent.chatbotName,
+          welcomeMessage: agent.welcomeMessage,
+          buttonText: agent.buttonText,
+          position: agent.position,
+          avatar: agent.avatar
+        },
+        behavior: {
+          showOnMobile: agent.showOnMobile,
+          collectVisitorData: agent.collectVisitorData,
+          autoShowAfter: agent.autoShowAfter,
+          suggestions: agent.suggestions
+        },
+        model: {
+          selectedModel: agent.selectedModel,
+          temperature: agent.temperature,
+          maxResponseLength: agent.maxResponseLength
+        },
+        agentType: agent.agentType,
+        systemPrompt: agent.systemPrompt,
+        knowledgeSources: agent.knowledgeSources
+      };
+
+      await updateAgent(agentId || '', payload);
+      
+      toast({
+        title: "Changes saved",
+        description: "Your agent settings have been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving agent:', error);
+      toast({
+        title: "Error saving changes",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const goBack = () => {
@@ -915,9 +959,18 @@ const AgentEdit = () => {
             )}
           </div>
         </div>
-        <Button onClick={handleSaveChanges} disabled={isLoading}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Changes
+        <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
+          {isSaving ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
         </Button>
       </div>
 

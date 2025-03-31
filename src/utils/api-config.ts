@@ -212,3 +212,30 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
   
   return response.json();
 };
+
+// Function to update an agent
+export const updateAgent = async (agentId: string, agentData: any): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  console.log('Updating agent with ID:', agentId);
+  console.log('Agent data:', agentData);
+  
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
+    method: 'PUT',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(agentData)
+  });
+  
+  console.log('Update agent response status:', response.status);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    console.error('Error updating agent:', errorData);
+    throw new Error(errorData.message || `Failed to update agent: ${response.status}`);
+  }
+  
+  return response.json();
+};
