@@ -212,3 +212,32 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
   
   return response.json();
 };
+
+// Function to update an agent
+export const updateAgent = async (agentId: string, agentData: any) => {
+  try {
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}`, {
+      method: 'PUT',
+      headers: {
+        ...getAuthHeaders(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(agentData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to update agent: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating agent:', error);
+    throw error;
+  }
+};

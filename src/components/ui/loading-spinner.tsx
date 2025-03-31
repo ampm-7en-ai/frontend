@@ -20,9 +20,9 @@ export function LoadingSpinner({
   };
 
   return (
-    <div className={cn("flex flex-col items-center justify-center", className)}>
+    <div className={cn("flex items-center justify-center", className)}>
       <Loader2 className={cn(sizeClasses[size], "animate-spin text-primary")} />
-      {text && <p className="mt-2 text-sm text-muted-foreground">{text}</p>}
+      {text && <p className="ml-2 text-sm text-muted-foreground">{text}</p>}
     </div>
   );
 }

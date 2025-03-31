@@ -107,6 +107,7 @@ const AgentEdit = () => {
   const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
   const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { data: agentData, isLoading, isError, error } = useQuery({
     queryKey: ['agent', agentId],
@@ -194,11 +195,53 @@ const AgentEdit = () => {
     }, 2000);
   };
 
-  const handleSaveChanges = () => {
-    toast({
-      title: "Changes saved",
-      description: "Your agent settings have been updated successfully.",
-    });
+  const handleSaveChanges = async () => {
+    try {
+      setIsSaving(true);
+      
+      const agentPayload = {
+        name: agent.name,
+        description: agent.description,
+        primaryColor: agent.primaryColor,
+        secondaryColor: agent.secondaryColor,
+        fontFamily: agent.fontFamily,
+        chatbotName: agent.chatbotName,
+        welcomeMessage: agent.welcomeMessage,
+        buttonText: agent.buttonText,
+        position: agent.position,
+        showOnMobile: agent.showOnMobile,
+        collectVisitorData: agent.collectVisitorData,
+        autoShowAfter: agent.autoShowAfter,
+        knowledgeSources: agent.knowledgeSources,
+        selectedModel: agent.selectedModel,
+        temperature: agent.temperature,
+        maxResponseLength: agent.maxResponseLength,
+        suggestions: agent.suggestions,
+        avatar: agent.avatar,
+        agentType: agent.agentType,
+        systemPrompt: agent.systemPrompt
+      };
+      
+      const updatedAgent = await updateAgent(agentId || '1', agentPayload);
+      
+      toast({
+        title: "Changes saved",
+        description: "Your agent settings have been updated successfully.",
+      });
+      
+      if (updatedAgent) {
+        console.log("Agent updated successfully:", updatedAgent);
+      }
+    } catch (error) {
+      console.error("Error saving agent:", error);
+      toast({
+        title: "Error saving changes",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const goBack = () => {
@@ -914,9 +957,18 @@ const AgentEdit = () => {
             )}
           </div>
         </div>
-        <Button onClick={handleSaveChanges} disabled={isLoading}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Changes
+        <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
+          {isSaving ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
         </Button>
       </div>
 
