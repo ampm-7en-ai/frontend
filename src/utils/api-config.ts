@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -221,7 +222,10 @@ export const updateAgent = async (agentId: string, agentData: any) => {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}`, {
+    console.log(`Updating agent with ID: ${agentId}`);
+    console.log('Update payload:', agentData);
+
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
       method: 'PUT',
       headers: {
         ...getAuthHeaders(token),
@@ -230,12 +234,17 @@ export const updateAgent = async (agentId: string, agentData: any) => {
       body: JSON.stringify(agentData),
     });
 
+    console.log('Update response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Error response:', errorData);
       throw new Error(errorData.message || `Failed to update agent: ${response.status}`);
     }
 
-    return await response.json();
+    const responseData = await response.json();
+    console.log('Update successful:', responseData);
+    return responseData;
   } catch (error) {
     console.error('Error updating agent:', error);
     throw error;
