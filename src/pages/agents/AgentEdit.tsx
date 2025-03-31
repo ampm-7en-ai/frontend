@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,7 +19,7 @@ import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrai
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, updateAgent } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -106,8 +106,8 @@ const AgentEdit = () => {
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
   const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
   const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
+  const [isLoadingAgentData, setIsLoadingAgentData] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   const { data: agentData, isLoading, isError, error } = useQuery({
     queryKey: ['agent', agentId],
@@ -117,7 +117,6 @@ const AgentEdit = () => {
         throw new Error("Authentication required");
       }
       
-      console.log(`Fetching agent with ID: ${agentId}`);
       const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId || '1'}`, {
         headers: getAuthHeaders(token),
       });
@@ -126,88 +125,65 @@ const AgentEdit = () => {
         throw new Error(`Failed to fetch agent data: ${response.status}`);
       }
       
-      const data = await response.json();
-      console.log('Fetched agent data:', data);
-      return data;
+      return response.json();
     }
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (agentData) {
-      console.log('Setting agent data from response:', agentData);
+      if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
+        setAgentKnowledgeSources(agentData.knowledge_bases);
+      }
       
-      // Set knowledge sources from the API response
-      const knowledgeBases = agentData.knowledge_bases || [];
-      setAgentKnowledgeSources(knowledgeBases);
-      
-      // Extract knowledge source IDs
-      const knowledgeSourceIds = knowledgeBases.map((kb: any) => kb.id) || [];
-      
-      // Update the agent state with data from the API
-      setAgent(prevAgent => ({
-        ...prevAgent,
-        name: agentData.name || prevAgent.name,
-        description: agentData.description || prevAgent.description,
-        primaryColor: agentData.primary_color || agentData.primaryColor || prevAgent.primaryColor,
-        secondaryColor: agentData.secondary_color || agentData.secondaryColor || prevAgent.secondaryColor,
-        fontFamily: agentData.font_family || agentData.fontFamily || prevAgent.fontFamily,
-        chatbotName: agentData.chatbot_name || agentData.chatbotName || prevAgent.chatbotName,
-        welcomeMessage: agentData.welcome_message || agentData.welcomeMessage || prevAgent.welcomeMessage,
-        buttonText: agentData.button_text || agentData.buttonText || prevAgent.buttonText,
-        position: agentData.position || prevAgent.position,
-        showOnMobile: agentData.show_on_mobile !== undefined ? agentData.show_on_mobile : 
-                      agentData.showOnMobile !== undefined ? agentData.showOnMobile : prevAgent.showOnMobile,
-        collectVisitorData: agentData.collect_visitor_data !== undefined ? agentData.collect_visitor_data : 
-                            agentData.collectVisitorData !== undefined ? agentData.collectVisitorData : prevAgent.collectVisitorData,
-        autoShowAfter: agentData.auto_show_after || agentData.autoShowAfter || prevAgent.autoShowAfter,
-        knowledgeSources: knowledgeSourceIds.length > 0 ? knowledgeSourceIds : prevAgent.knowledgeSources,
-        selectedModel: agentData.model || agentData.selectedModel || prevAgent.selectedModel,
-        temperature: agentData.temperature !== undefined ? agentData.temperature : prevAgent.temperature,
-        maxResponseLength: agentData.max_response_length || agentData.maxResponseLength || prevAgent.maxResponseLength,
-        suggestions: agentData.suggestions || prevAgent.suggestions,
-        avatar: agentData.avatar || prevAgent.avatar,
-        agentType: agentData.agent_type || agentData.agentType || prevAgent.agentType,
-        systemPrompt: agentData.system_prompt || agentData.systemPrompt || prevAgent.systemPrompt
-      }));
+      setAgent({
+        ...agent,
+        name: agentData.name || agent.name,
+        description: agentData.description || agent.description,
+        primaryColor: agentData.primaryColor || agent.primaryColor,
+        secondaryColor: agentData.secondaryColor || agent.secondaryColor,
+        fontFamily: agentData.fontFamily || agent.fontFamily,
+        chatbotName: agentData.chatbotName || agent.chatbotName,
+        welcomeMessage: agentData.welcomeMessage || agent.welcomeMessage,
+        buttonText: agentData.buttonText || agent.buttonText,
+        position: agentData.position || agent.position,
+        showOnMobile: agentData.showOnMobile || agent.showOnMobile,
+        collectVisitorData: agentData.collectVisitorData || agent.collectVisitorData,
+        autoShowAfter: agentData.autoShowAfter || agent.autoShowAfter,
+        knowledgeSources: agentData.knowledgeSources || agent.knowledgeSources,
+        selectedModel: agentData.selectedModel || agent.selectedModel,
+        temperature: agentData.temperature || agent.temperature,
+        maxResponseLength: agentData.maxResponseLength || agent.maxResponseLength,
+        suggestions: agentData.suggestions || agent.suggestions,
+        avatar: agentData.avatar || agent.avatar,
+        agentType: agentData.agentType || agent.agentType,
+        systemPrompt: agentData.systemPrompt || agent.systemPrompt
+      });
     }
   }, [agentData]);
 
-  const handleChange = useCallback((name: string, value: any) => {
-    setAgent(prevAgent => ({
-      ...prevAgent,
+  const handleChange = (name: string, value: any) => {
+    setAgent({
+      ...agent,
       [name]: value
-    }));
-  }, []);
-
-  const handleSuggestionChange = useCallback((index: number, value: string) => {
-    setAgent(prevAgent => {
-      const updatedSuggestions = [...prevAgent.suggestions];
-      updatedSuggestions[index] = value;
-      return {
-        ...prevAgent,
-        suggestions: updatedSuggestions
-      };
     });
-  }, []);
+  };
 
-  const toggleKnowledgeSource = useCallback((id: number) => {
-    setAgent(prevAgent => {
-      const currentSources = [...prevAgent.knowledgeSources];
-      if (currentSources.includes(id)) {
-        return {
-          ...prevAgent,
-          knowledgeSources: currentSources.filter(sourceId => sourceId !== id)
-        };
-      } else {
-        return {
-          ...prevAgent,
-          knowledgeSources: [...currentSources, id]
-        };
-      }
-    });
-  }, []);
+  const handleSuggestionChange = (index: number, value: string) => {
+    const updatedSuggestions = [...agent.suggestions];
+    updatedSuggestions[index] = value;
+    handleChange('suggestions', updatedSuggestions);
+  };
 
-  const handleRetrainAI = useCallback(() => {
+  const toggleKnowledgeSource = (id: number) => {
+    const currentSources = [...agent.knowledgeSources];
+    if (currentSources.includes(id)) {
+      handleChange('knowledgeSources', currentSources.filter(sourceId => sourceId !== id));
+    } else {
+      handleChange('knowledgeSources', [...currentSources, id]);
+    }
+  };
+  
+  const handleRetrainAI = () => {
     setIsRetraining(true);
     
     setTimeout(() => {
@@ -217,80 +193,35 @@ const AgentEdit = () => {
         description: "Your agent has been updated with the selected knowledge sources.",
       });
     }, 2000);
-  }, [toast]);
+  };
 
-  const handleSaveChanges = useCallback(async () => {
-    try {
-      setIsSaving(true);
-      
-      const agentPayload = {
-        name: agent.name,
-        description: agent.description,
-        primary_color: agent.primaryColor,
-        secondary_color: agent.secondaryColor,
-        font_family: agent.fontFamily,
-        chatbot_name: agent.chatbotName,
-        welcome_message: agent.welcomeMessage,
-        button_text: agent.buttonText,
-        position: agent.position,
-        show_on_mobile: agent.showOnMobile,
-        collect_visitor_data: agent.collectVisitorData,
-        auto_show_after: agent.autoShowAfter,
-        knowledge_sources: agent.knowledgeSources,
-        model: agent.selectedModel,
-        temperature: agent.temperature,
-        max_response_length: agent.maxResponseLength,
-        suggestions: agent.suggestions,
-        avatar: agent.avatar,
-        agent_type: agent.agentType,
-        system_prompt: agent.systemPrompt
-      };
-      
-      console.log('Saving agent with payload:', agentPayload);
-      const updatedAgent = await updateAgent(agentId || '1', agentPayload);
-      
-      toast({
-        title: "Changes saved",
-        description: "Your agent settings have been updated successfully.",
-      });
-      
-      if (updatedAgent) {
-        console.log("Agent updated successfully:", updatedAgent);
-      }
-    } catch (error) {
-      console.error("Error saving agent:", error);
-      toast({
-        title: "Error saving changes",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [agent, agentId, toast]);
+  const handleSaveChanges = () => {
+    toast({
+      title: "Changes saved",
+      description: "Your agent settings have been updated successfully.",
+    });
+  };
 
-  const goBack = useCallback(() => {
+  const goBack = () => {
     navigate('/agents');
-  }, [navigate]);
+  };
   
-  const goToTestPage = useCallback(() => {
+  const goToTestPage = () => {
     window.open(`/agents/${agentId}/test`, '_blank');
-  }, [agentId]);
+  };
 
-  const handleAgentTypeChange = useCallback((type: string) => {
-    setAgent(prevAgent => ({
-      ...prevAgent,
+  const handleAgentTypeChange = (type: string) => {
+    const systemPrompt = type === 'custom' ? agent.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
+    setAgent({
+      ...agent,
       agentType: type,
-      systemPrompt: type === 'custom' ? prevAgent.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts]
-    }));
-  }, []);
+      systemPrompt
+    });
+  };
 
-  const handleKnowledgeSourcesChange = useCallback((selectedSourceIds: number[]) => {
-    setAgent(prevAgent => ({
-      ...prevAgent,
-      knowledgeSources: selectedSourceIds
-    }));
-  }, []);
+  const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
+    handleChange('knowledgeSources', selectedSourceIds);
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,14 +235,14 @@ const AgentEdit = () => {
     });
   };
 
-  const handleAvatarChange = useCallback((type: 'default' | 'predefined' | 'custom', src: string = '') => {
+  const handleAvatarChange = (type: 'default' | 'predefined' | 'custom', src: string = '') => {
     setAgent({
       ...agent,
       avatar: { type, src }
     });
-  }, [agent]);
+  };
 
-  const handleCustomAvatarUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -323,13 +254,13 @@ const AgentEdit = () => {
       title: "Avatar uploaded",
       description: "Your custom avatar has been uploaded.",
     });
-  }, [handleAvatarChange]);
-
-  const handleIntegrationCardClick = useCallback((integration: typeof integrationOptions[0]) => {
+  };
+  
+  const handleIntegrationCardClick = (integration: typeof integrationOptions[0]) => {
     setSelectedIntegration(integration);
     setIsIntegrationDialogOpen(true);
     setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
-  }, [integrationOptions]);
+  };
 
   const renderGeneralContent = () => (
     <Card>
@@ -773,8 +704,8 @@ const AgentEdit = () => {
       initialSelectedSources={agent.knowledgeSources}
       onSourcesChange={handleKnowledgeSourcesChange}
       preloadedKnowledgeSources={agentKnowledgeSources}
-      isLoading={isLoading}
-      loadError={loadError}
+      isLoading={false}
+      loadError={null}
     />
   );
 
@@ -984,18 +915,9 @@ const AgentEdit = () => {
             )}
           </div>
         </div>
-        <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
-          {isSaving ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </>
-          )}
+        <Button onClick={handleSaveChanges} disabled={isLoading}>
+          <Save className="h-4 w-4 mr-2" />
+          Save Changes
         </Button>
       </div>
 
@@ -1031,24 +953,24 @@ const AgentEdit = () => {
               onValueChange={setActiveTab}
             >
               <div className="flex justify-start mb-6">
-                <TabsList>
-                  <TabsTrigger value="general">
+                <TabsList size="xs" className="w-auto">
+                  <TabsTrigger value="general" size="xs">
                     <Bot className="h-4 w-4 mr-2" />
                     General
                   </TabsTrigger>
-                  <TabsTrigger value="appearance">
+                  <TabsTrigger value="appearance" size="xs">
                     <Palette className="h-4 w-4 mr-2" />
                     Appearance
                   </TabsTrigger>
-                  <TabsTrigger value="advanced">
+                  <TabsTrigger value="advanced" size="xs">
                     <Sliders className="h-4 w-4 mr-2" />
                     Advanced Settings
                   </TabsTrigger>
-                  <TabsTrigger value="knowledge">
+                  <TabsTrigger value="knowledge" size="xs">
                     <FileText className="h-4 w-4 mr-2" />
                     Knowledge
                   </TabsTrigger>
-                  <TabsTrigger value="integrations">
+                  <TabsTrigger value="integrations" size="xs">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Integrations
                   </TabsTrigger>

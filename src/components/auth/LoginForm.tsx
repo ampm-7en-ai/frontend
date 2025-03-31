@@ -1,235 +1,330 @@
 
-import React, { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { register, login } from "@/lib/auth";
-import { useNavigate } from "react-router-dom";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, User, Lock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 
-const FormSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
-  }),
-  name: z.string().optional(),
-  terms: z.boolean().optional(),
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional()
 });
 
-export interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {
-  onOtpVerificationNeeded?: (email: string) => void;
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+interface LoginFormProps {
+  onOtpVerificationNeeded: (email: string) => void;
 }
 
-export const LoginForm = React.forwardRef<HTMLDivElement, LoginFormProps>(
-  ({ className, onOtpVerificationNeeded, ...props }, ref) => {
-    const [formMode, setFormMode] = useState<"login" | "signup">("login");
-    const navigate = useNavigate();
+const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { login, setPendingVerificationEmail, setNeedsVerification } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-    const form = useForm<z.infer<typeof FormSchema>>({
-      resolver: zodResolver(FormSchema),
-      defaultValues: {
-        email: "",
-        password: "",
-      },
-    });
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+      rememberMe: false
+    }
+  });
 
-    async function onSubmit(values: z.infer<typeof FormSchema>) {
-      if (formMode === "signup") {
-        try {
-          await register({
-            name: values.name,
-            email: values.email,
-            password: values.password,
-          });
-          toast({
-            title: "Registration successful!",
-            description: "Please check your email to verify your account.",
-          });
-          if (onOtpVerificationNeeded) {
-            onOtpVerificationNeeded(values.email);
+  const handleLogin = async (values: LoginFormValues) => {
+    setIsLoggingIn(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('username', values.username);
+      formData.append('password', values.password);
+      
+      const apiUrl = getApiUrl(API_ENDPOINTS.LOGIN);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      console.log("Login response:", data);
+      
+      // Check if the response indicates the user is not verified
+      if (data.error && data.error.includes("User not verified")) {
+        // Extract email from the response
+        const email = data.email || values.username;
+        
+        // Set verification status in auth context
+        setPendingVerificationEmail(email);
+        setNeedsVerification(true);
+        
+        // Show error toast with the verification message
+        toast({
+          title: "Account Not Verified",
+          description: data.error,
+          variant: "destructive",
+        });
+        
+        // Navigate to verification page
+        navigate('/verify', { state: { email } });
+        return;
+      }
+      
+      // If response is successful and contains access token, handle login
+      if (response.ok && data.access) {
+        const userRole = data.user_type === "business" ? "admin" : data.user_type;
+        
+        await login(values.username, values.password, {
+          accessToken: data.access,
+          refreshToken: data.refresh || null,
+          userId: data.user_id,
+          role: userRole,
+          isVerified: true
+        });
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+          variant: "default",
+        });
+        
+        // Redirect based on user role
+        if (userRole === 'superadmin') {
+          navigate('/dashboard/superadmin');
+        } else if (userRole === 'admin') {
+          navigate('/dashboard/admin');
+        } else {
+          navigate('/dashboard');
+        }
+        return;
+      }
+      
+      // Handle error response
+      if (!response.ok) {
+        if (data.non_field_errors) {
+          if (data.non_field_errors.includes("Please verify your account first")) {
+            // Get email from response if available
+            const email = data.email || values.username;
+            
+            // Set verification status in auth context
+            setPendingVerificationEmail(email);
+            setNeedsVerification(true);
+            
+            // Navigate to verification page
+            navigate('/verify', { state: { email } });
+            
+            toast({
+              title: "Account Verification Required",
+              description: "Please verify your account first",
+              variant: "destructive",
+            });
+            return;
+          } else if (data.non_field_errors.includes("Invalid login credentials")) {
+            form.setError("root", { 
+              message: "Invalid username or password" 
+            });
           } else {
-            navigate("/verify", { state: { email: values.email } });
+            form.setError("root", { 
+              message: data.non_field_errors[0] 
+            });
           }
-        } catch (error) {
+        } else if (data.error) {
+          // Handle generic error messages
+          form.setError("root", { 
+            message: data.error 
+          });
+          
           toast({
-            title: "Something went wrong.",
-            description: "There was an error registering your account.",
+            title: "Login Failed",
+            description: data.error,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Login Failed",
+            description: "An unexpected error occurred. Please try again.",
             variant: "destructive",
           });
         }
-      } else {
-        try {
-          const response = await login({
-            email: values.email,
-            password: values.password,
+        return;
+      }
+      
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login Failed",
+        description: "Could not connect to the server. Please try again later.",
+        variant: "destructive",
+      });
+      
+      // Only in development mode, allow mock login
+      if (process.env.NODE_ENV === 'development') {
+        if (values.username === 'admin' || values.username === 'superadmin') {
+          const role = values.username === 'admin' ? 'admin' : 'superadmin';
+          
+          await login(values.username, values.password, {
+            accessToken: 'mock-token',
+            refreshToken: 'mock-refresh-token',
+            userId: role === 'admin' ? 2 : 1,
+            role: role,
+            isVerified: true
           });
           
-          if (response.isVerified === false && onOtpVerificationNeeded) {
-            onOtpVerificationNeeded(values.email);
-            return;
+          toast({
+            title: "Development Mode Login",
+            description: `Logged in as ${role}`,
+            variant: "default",
+          });
+          
+          // Redirect based on role
+          if (role === 'superadmin') {
+            navigate('/dashboard/superadmin');
+          } else {
+            navigate('/dashboard/admin');
           }
-          
-          toast({
-            title: "Login successful!",
-            description: "You have successfully logged in.",
-          });
-          navigate("/dashboard");
-        } catch (error) {
-          toast({
-            title: "Authentication failed.",
-            description: "Please check your credentials.",
-            variant: "destructive",
-          });
         }
       }
+    } finally {
+      setIsLoggingIn(false);
     }
+  };
 
-    return (
-      <div className={cn("grid gap-6", className)} {...props} ref={ref}>
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="login" onClick={() => setFormMode("login")}>
-              Log in
-            </TabsTrigger>
-            <TabsTrigger value="signup" onClick={() => setFormMode("signup")}>
-              Sign up
-            </TabsTrigger>
+  return (
+    <>
+      <h1 className="text-2xl font-semibold text-center mb-6">Log in to your account</h1>
+      
+      <div className="flex justify-center mb-6">
+        <Tabs defaultValue="admin" className="w-auto">
+          <TabsList size="xs" className="w-auto">
+            <TabsTrigger value="admin" size="xs" onClick={() => form.setValue('username', 'admin')}>Business Admin</TabsTrigger>
+            <TabsTrigger value="superadmin" size="xs" onClick={() => form.setValue('username', 'superadmin')}>Platform Admin</TabsTrigger>
           </TabsList>
-          <TabsContent value="login" className="space-y-4">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="mail@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button className="w-full" type="submit">
-                  Log In
-                </Button>
-              </form>
-            </Form>
-          </TabsContent>
-          <TabsContent value="signup" className="space-y-4">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="mail@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="terms"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Accept terms and conditions
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <Button className="w-full" type="submit">
-                  Sign Up
-                </Button>
-              </form>
-            </Form>
-          </TabsContent>
         </Tabs>
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
-        <Button variant="outline" type="button" disabled>
-          Google
-        </Button>
       </div>
-    );
-  }
-);
+      
+      <Form {...form}>
+        <form className="space-y-5" onSubmit={form.handleSubmit(handleLogin)}>
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Username</FormLabel>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter your username" 
+                      className="h-11 pl-9 pr-4" 
+                      {...field}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <div className="flex justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <a href="/forgot-password" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </a>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                  <FormControl>
+                    <Input 
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••" 
+                      className="h-11 pl-9 pr-10" 
+                      {...field}
+                    />
+                  </FormControl>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-gray hover:text-black"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {form.formState.errors.root && (
+            <div className="text-sm font-medium text-destructive">
+              {form.formState.errors.root.message}
+            </div>
+          )}
+          
+          <div className="text-xs text-dark-gray">
+            Demo credentials: 
+            <ul className="mt-1 ml-4 list-disc">
+              <li>Admin: username "admin" / password "123456"</li>
+              <li>Platform Admin: username "superadmin" / password "123456"</li>
+            </ul>
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox 
+                    checked={field.value} 
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="text-sm font-medium text-dark-gray cursor-pointer">
+                  Remember me
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+          
+          <Button 
+            type="submit" 
+            className="w-full py-2 h-12"
+            disabled={isLoggingIn}
+          >
+            {isLoggingIn ? "Signing in..." : "Sign in"}
+          </Button>
+        </form>
+      </Form>
+      
+      <div className="relative my-6">
+        <Separator />
+        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-medium-gray">
+          or
+        </span>
+      </div>
+      
+      <Button variant="outline" className="w-full">
+        Sign in with SSO
+      </Button>
+    </>
+  );
+};
 
-LoginForm.displayName = "LoginForm";
+export default LoginForm;

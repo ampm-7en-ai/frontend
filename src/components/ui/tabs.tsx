@@ -8,32 +8,56 @@ const Tabs = TabsPrimitive.Root
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      className
-    )}
-    {...props}
-  />
-))
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
+    size?: "default" | "sm" | "xs";
+    orientation?: "horizontal" | "vertical";
+  }
+>(({ className, size = "default", orientation = "horizontal", ...props }, ref) => {
+  const sizeClasses = {
+    default: "h-10",
+    sm: "h-8",
+    xs: "h-7"
+  }
+  
+  return (
+    <TabsPrimitive.List
+      ref={ref}
+      className={cn(
+        "inline-flex items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+        orientation === "vertical" && "flex-col",
+        sizeClasses[size],
+        className
+      )}
+      {...props}
+    />
+  )
+})
 TabsList.displayName = TabsPrimitive.List.displayName
 
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & {
+    size?: "default" | "sm" | "xs"
+  }
+>(({ className, size = "default", ...props }, ref) => {
+  const sizeClasses = {
+    default: "px-3 py-1.5 text-sm",
+    sm: "px-2.5 py-1 text-xs",
+    xs: "px-2 py-0.5 text-xs"
+  }
+  
+  return (
+    <TabsPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "inline-flex items-center justify-center whitespace-nowrap rounded-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+        sizeClasses[size],
+        className
+      )}
+      {...props}
+    />
+  )
+})
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
 const TabsContent = React.forwardRef<
