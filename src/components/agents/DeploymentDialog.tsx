@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -16,14 +17,73 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { toast } from "@/components/ui/use-toast"
+import { deployAgent } from "@/utils/api-config"
 
 interface DeploymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  agent?: {
+    id: string;
+    name: string;
+  };
 }
 
-const DeploymentDialog: React.FC<DeploymentDialogProps> = ({ open, onOpenChange }) => {
+const DeploymentDialog: React.FC<DeploymentDialogProps> = ({ open, onOpenChange, agent }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [allowedDomain, setAllowedDomain] = useState('');
+  const [callbackUrl, setCallbackUrl] = useState('');
+  const [isDeploying, setIsDeploying] = useState(false);
+
+  // Use useCallback for the event handler to prevent infinite loop
+  const handleShowAdvancedChange = useCallback((checked: boolean) => {
+    setShowAdvanced(checked);
+  }, []);
+
+  const handleDeploy = async () => {
+    if (!agent) return;
+    
+    try {
+      setIsDeploying(true);
+      
+      const deploymentConfig = {
+        allowedDomain: allowedDomain.trim() || undefined,
+        callbackUrl: callbackUrl.trim() || undefined,
+      };
+      
+      await deployAgent(agent.id, deploymentConfig);
+      
+      toast({
+        title: "Deployment successful",
+        description: `${agent.name} has been successfully deployed`,
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Deployment error:', error);
+      toast({
+        title: "Deployment failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeploying(false);
+    }
+  };
+
+  // Generate the integration code for the agent
+  const integrationCode = agent ? `
+<!-- Add this code to the <body> section of your website -->
+<script src="https://cdn.7en.ai/agent.js"></script>
+<script>
+  window.addEventListener('load', function() {
+    new Agent({
+      agentId: '${agent.id}',
+      primaryColor: '#007BFF',
+      greeting: 'Hello! How can I help you?',
+    }).render();
+  });
+</script>` : '';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -50,24 +110,16 @@ const DeploymentDialog: React.FC<DeploymentDialogProps> = ({ open, onOpenChange 
                 id="code"
                 className="font-mono text-sm"
                 readOnly
-                value={`
-<!-- Add this code to the <body> section of your website -->
-<script src="https://cdn.example.com/agent.js"></script>
-<script>
-  window.addEventListener('load', function() {
-    new Agent({
-      agentId: 'YOUR_AGENT_ID',
-      primaryColor: '#007BFF',
-      greeting: 'Hello! How can I help you?',
-    }).render();
-  });
-</script>
-                `}
+                value={integrationCode}
               />
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="advanced" onCheckedChange={setShowAdvanced} />
+              <Checkbox 
+                id="advanced" 
+                checked={showAdvanced}
+                onCheckedChange={handleShowAdvancedChange}
+              />
               <Label htmlFor="advanced">Show Advanced Options</Label>
             </div>
 
@@ -79,6 +131,8 @@ const DeploymentDialog: React.FC<DeploymentDialogProps> = ({ open, onOpenChange 
                     id="domain"
                     className="font-mono text-sm"
                     placeholder="yourdomain.com"
+                    value={allowedDomain}
+                    onChange={(e) => setAllowedDomain(e.target.value)}
                   />
                 </div>
 
@@ -88,6 +142,8 @@ const DeploymentDialog: React.FC<DeploymentDialogProps> = ({ open, onOpenChange 
                     id="callback"
                     className="font-mono text-sm"
                     placeholder="https://yourdomain.com/callback"
+                    value={callbackUrl}
+                    onChange={(e) => setCallbackUrl(e.target.value)}
                   />
                 </div>
               </div>
@@ -104,9 +160,15 @@ const DeploymentDialog: React.FC<DeploymentDialogProps> = ({ open, onOpenChange 
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end pt-6">
+        <div className="flex justify-end space-x-2 pt-6">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeploy} 
+            disabled={isDeploying || !agent}
+          >
+            {isDeploying ? "Deploying..." : "Deploy Agent"}
           </Button>
         </div>
       </DialogContent>

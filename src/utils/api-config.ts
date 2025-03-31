@@ -21,6 +21,11 @@ export const getApiUrl = (endpoint: string): string => {
   return `${BASE_URL}${endpoint}`;
 };
 
+// Utility function to ensure URL ends with a trailing slash
+export const ensureTrailingSlash = (url: string): string => {
+  return url.endsWith('/') ? url : `${url}/`;
+};
+
 // Function to get auth headers with token
 export const getAuthHeaders = (token?: string): HeadersInit => {
   const headers: HeadersInit = {
@@ -148,7 +153,10 @@ export const fetchAgentDetails = async (agentId: string): Promise<any> => {
     throw new Error("Authentication required");
   }
   
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}`, {
+  // Ensure the URL has a trailing slash
+  const url = ensureTrailingSlash(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}`);
+  
+  const response = await fetch(url, {
     headers: getAuthHeaders(token),
   });
   
@@ -170,7 +178,10 @@ export const createAgent = async (name: string, description: string): Promise<an
   console.log('Creating agent with token:', token);
   console.log('Agent data:', { name, description });
   
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
+  // Ensure the URL has a trailing slash
+  const url = ensureTrailingSlash(`${BASE_URL}${API_ENDPOINTS.AGENTS}`);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: getAuthHeaders(token),
     body: JSON.stringify({
@@ -197,7 +208,10 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
     throw new Error("Authentication required");
   }
   
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
+  // Ensure the URL has a trailing slash
+  const url = ensureTrailingSlash(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -225,7 +239,11 @@ export const updateAgent = async (agentId: string, agentData: any) => {
     console.log(`Updating agent with ID: ${agentId}`);
     console.log('Update payload:', agentData);
 
-    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
+    // Ensure the URL has a trailing slash
+    const url = ensureTrailingSlash(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}`);
+    console.log('Making request to URL:', url);
+
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         ...getAuthHeaders(token),
@@ -247,6 +265,35 @@ export const updateAgent = async (agentId: string, agentData: any) => {
     return responseData;
   } catch (error) {
     console.error('Error updating agent:', error);
+    throw error;
+  }
+};
+
+// Fix the build errors for DeploymentDialog.tsx
+export const deployAgent = async (agentId: string, deploymentConfig: any) => {
+  try {
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    // Ensure the URL has a trailing slash
+    const url = ensureTrailingSlash(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/deploy`);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(deploymentConfig)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(errorData.message || `Failed to deploy agent: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error deploying agent:', error);
     throw error;
   }
 };
