@@ -20,9 +20,10 @@ const Login = () => {
   }, [setPendingVerificationEmail]);
   
   const handleOtpVerificationNeeded = useCallback((email: string) => {
-    // Just handle setting the email, navigation happens in the LoginForm
+    // Set the pending verification email and navigate to verification page
     setPendingVerificationEmail(email);
-  }, [setPendingVerificationEmail]);
+    navigate('/verify', { state: { email: email } });
+  }, [setPendingVerificationEmail, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">

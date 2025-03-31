@@ -1,6 +1,6 @@
 
-import { useToast } from "@/hooks/use-toast";
-import { API_ENDPOINTS, getApiUrl, getAuthHeaders, ensureTrailingSlash } from "@/utils/api-config";
+import { AuthResponse } from "@/context/AuthContext";
+import { API_ENDPOINTS, getApiUrl, ensureTrailingSlash } from "@/utils/api-config";
 
 interface RegisterParams {
   name?: string;
@@ -11,14 +11,6 @@ interface RegisterParams {
 interface LoginParams {
   email: string;
   password: string;
-}
-
-interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  userId: number;
-  role: string;
-  isVerified?: boolean;
 }
 
 /**

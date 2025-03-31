@@ -1,10 +1,10 @@
-import React, { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,14 +12,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { toast } from "@/components/ui/use-toast"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { register, login } from "@/lib/auth"
-import { useNavigate } from "react-router-dom"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { register, login } from "@/lib/auth";
+import { useNavigate } from "react-router-dom";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -30,14 +30,16 @@ const FormSchema = z.object({
   }),
   name: z.string().optional(),
   terms: z.boolean().optional(),
-})
+});
 
-interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {
+  onOtpVerificationNeeded?: (email: string) => void;
+}
 
 export const LoginForm = React.forwardRef<HTMLDivElement, LoginFormProps>(
-  ({ className, ...props }, ref) => {
-    const [formMode, setFormMode] = useState<"login" | "signup">("login")
-    const navigate = useNavigate()
+  ({ className, onOtpVerificationNeeded, ...props }, ref) => {
+    const [formMode, setFormMode] = useState<"login" | "signup">("login");
+    const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof FormSchema>>({
       resolver: zodResolver(FormSchema),
@@ -45,7 +47,7 @@ export const LoginForm = React.forwardRef<HTMLDivElement, LoginFormProps>(
         email: "",
         password: "",
       },
-    })
+    });
 
     async function onSubmit(values: z.infer<typeof FormSchema>) {
       if (formMode === "signup") {
@@ -54,36 +56,46 @@ export const LoginForm = React.forwardRef<HTMLDivElement, LoginFormProps>(
             name: values.name,
             email: values.email,
             password: values.password,
-          })
+          });
           toast({
             title: "Registration successful!",
             description: "Please check your email to verify your account.",
-          })
-          navigate("/auth/verify-email", { state: { email: values.email } })
+          });
+          if (onOtpVerificationNeeded) {
+            onOtpVerificationNeeded(values.email);
+          } else {
+            navigate("/verify", { state: { email: values.email } });
+          }
         } catch (error) {
           toast({
             title: "Something went wrong.",
             description: "There was an error registering your account.",
             variant: "destructive",
-          })
+          });
         }
       } else {
         try {
-          await login({
+          const response = await login({
             email: values.email,
             password: values.password,
-          })
+          });
+          
+          if (response.isVerified === false && onOtpVerificationNeeded) {
+            onOtpVerificationNeeded(values.email);
+            return;
+          }
+          
           toast({
             title: "Login successful!",
             description: "You have successfully logged in.",
-          })
-          navigate("/dashboard")
+          });
+          navigate("/dashboard");
         } catch (error) {
           toast({
             title: "Authentication failed.",
             description: "Please check your credentials.",
             variant: "destructive",
-          })
+          });
         }
       }
     }
@@ -216,9 +228,8 @@ export const LoginForm = React.forwardRef<HTMLDivElement, LoginFormProps>(
           Google
         </Button>
       </div>
-    )
+    );
   }
-)
-LoginForm.displayName = "LoginForm"
+);
 
-export { LoginForm }
+LoginForm.displayName = "LoginForm";

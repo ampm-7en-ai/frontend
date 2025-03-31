@@ -1,9 +1,20 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
 
 // Define user role types
 export type UserRole = 'user' | 'admin' | 'superadmin';
+
+// Define AuthResponse type for API responses
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string | null;
+  userId: number;
+  role: UserRole;
+  isVerified?: boolean;
+  name?: string;
+}
 
 // Define user interface
 export interface User {
@@ -21,7 +32,7 @@ export interface User {
 // Define auth context interface
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string, authData?: AuthData) => Promise<void>;
+  login: (username: string, password: string, authData?: AuthResponse) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -31,14 +42,6 @@ interface AuthContextType {
   pendingVerificationEmail: string | null;
   setPendingVerificationEmail: (email: string | null) => void;
   getToken: () => string | null;
-}
-
-interface AuthData {
-  accessToken: string;
-  refreshToken: string | null;
-  userId: number;
-  role: UserRole;
-  isVerified?: boolean;
 }
 
 // Create the context with a default value

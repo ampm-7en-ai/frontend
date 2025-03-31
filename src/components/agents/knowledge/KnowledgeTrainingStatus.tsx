@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { mockKnowledgeSources } from "@/data/mockKnowledgeSources";
 import { Button } from '@/components/ui/button';
@@ -8,15 +9,29 @@ import ImportSourcesDialog from './ImportSourcesDialog';
 import { PlusCircle, RefreshCw } from 'lucide-react';
 import { formatFileSizeToMB } from '@/utils/api-config';
 
-interface KnowledgeTrainingStatusProps {
+export interface KnowledgeTrainingStatusProps {
   agentId?: string;
   sources?: any[];
   isLoading?: boolean;
   onAddSource?: () => void;
   onRefreshSources?: () => void;
+  preloadedKnowledgeSources?: any[];
+  initialSelectedSources?: number[];
+  onSourcesChange?: (selectedSourceIds: number[]) => void;
+  loadError?: string;
 }
 
-const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agentId, sources = mockKnowledgeSources, isLoading, onAddSource, onRefreshSources }) => {
+const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ 
+  agentId, 
+  sources = mockKnowledgeSources, 
+  isLoading, 
+  onAddSource, 
+  onRefreshSources,
+  preloadedKnowledgeSources,
+  initialSelectedSources,
+  onSourcesChange,
+  loadError
+}) => {
   const [activeTab, setActiveTab] = useState('all');
   const [progress, setProgress] = useState(65);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -50,13 +65,23 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
     }
   };
 
+  // Mock handlers for KnowledgeSourceTable props
+  const handleTrainSource = (sourceId: number) => {
+    console.log(`Training source ${sourceId}`);
+  };
+
+  const handleRemoveSource = (sourceId: number) => {
+    console.log(`Removing source ${sourceId}`);
+  };
+
   const getFilteredSources = () => {
+    const sourcesToUse = preloadedKnowledgeSources || sources;
     if (activeTab === 'all') {
-      return sources;
+      return sourcesToUse;
     } else if (activeTab === 'active') {
-      return sources.filter(source => source.status === 'active');
+      return sourcesToUse.filter(source => source.status === 'active');
     } else {
-      return sources.filter(source => source.status === 'inactive');
+      return sourcesToUse.filter(source => source.status === 'inactive');
     }
   };
 
@@ -93,9 +118,18 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
         <Progress value={progress} className="h-2" />
       </div>
 
-      <KnowledgeSourceTable sources={filteredSources} />
+      <KnowledgeSourceTable 
+        sources={filteredSources} 
+        onTrainSource={handleTrainSource} 
+        onRemoveSource={handleRemoveSource} 
+      />
 
-      <ImportSourcesDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} />
+      {isImportDialogOpen && (
+        <ImportSourcesDialog 
+          isOpen={isImportDialogOpen} 
+          onClose={handleCloseImportDialog} 
+        />
+      )}
     </div>
   );
 };
