@@ -223,6 +223,20 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   console.log('Updating agent with ID:', agentId);
   console.log('Agent data:', agentData);
   
+  // Format the knowledge source filters if needed
+  if (agentData.knowledgeSources && Array.isArray(agentData.knowledgeSources)) {
+    // The expected format is { "kb_id": [source_id, source_id, ...] }
+    // For simplicity, we'll put all sources under a default knowledge base ID for now
+    // This might need adjustment based on your actual requirements
+    const kbId = agentData.knowledge_bases?.[0]?.id || "default";
+    agentData.settings = {
+      ...(agentData.settings || {}),
+      knowledge_source_filters: {
+        [kbId]: agentData.knowledgeSources
+      }
+    };
+  }
+  
   const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
     method: 'PUT',
     headers: getAuthHeaders(token),

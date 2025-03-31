@@ -135,28 +135,44 @@ const AgentEdit = () => {
         setAgentKnowledgeSources(agentData.knowledge_bases);
       }
       
+      const knowledgeSourceIds = [];
+      if (agentData.settings && agentData.settings.knowledge_source_filters) {
+        Object.values(agentData.settings.knowledge_source_filters).forEach(sources => {
+          if (Array.isArray(sources)) {
+            knowledgeSourceIds.push(...sources);
+          }
+        });
+      }
+      
       setAgent({
         ...agent,
         name: agentData.name || agent.name,
         description: agentData.description || agent.description,
-        primaryColor: agentData.primaryColor || agent.primaryColor,
-        secondaryColor: agentData.secondaryColor || agent.secondaryColor,
-        fontFamily: agentData.fontFamily || agent.fontFamily,
-        chatbotName: agentData.chatbotName || agent.chatbotName,
-        welcomeMessage: agentData.welcomeMessage || agent.welcomeMessage,
-        buttonText: agentData.buttonText || agent.buttonText,
-        position: agentData.position || agent.position,
-        showOnMobile: agentData.showOnMobile || agent.showOnMobile,
-        collectVisitorData: agentData.collectVisitorData || agent.collectVisitorData,
-        autoShowAfter: agentData.autoShowAfter || agent.autoShowAfter,
-        knowledgeSources: agentData.knowledgeSources || agent.knowledgeSources,
-        selectedModel: agentData.selectedModel || agent.selectedModel,
-        temperature: agentData.temperature || agent.temperature,
-        maxResponseLength: agentData.maxResponseLength || agent.maxResponseLength,
-        suggestions: agentData.suggestions || agent.suggestions,
-        avatar: agentData.avatar || agent.avatar,
+        
+        primaryColor: agentData.appearance?.primaryColor || agent.primaryColor,
+        secondaryColor: agentData.appearance?.secondaryColor || agent.secondaryColor,
+        fontFamily: agentData.appearance?.fontFamily || agent.fontFamily,
+        chatbotName: agentData.appearance?.chatbotName || agent.chatbotName,
+        welcomeMessage: agentData.appearance?.welcomeMessage || agent.welcomeMessage,
+        buttonText: agentData.appearance?.buttonText || agent.buttonText,
+        position: agentData.appearance?.position || agent.position,
+        avatar: agentData.appearance?.avatar || agent.avatar,
+        
+        showOnMobile: agentData.behavior?.showOnMobile ?? agent.showOnMobile,
+        collectVisitorData: agentData.behavior?.collectVisitorData ?? agent.collectVisitorData,
+        autoShowAfter: agentData.behavior?.autoShowAfter ?? agent.autoShowAfter,
+        suggestions: agentData.behavior?.suggestions || agent.suggestions,
+        
+        selectedModel: agentData.model?.selectedModel || agent.selectedModel,
+        temperature: agentData.model?.temperature ?? agent.temperature,
+        maxResponseLength: agentData.model?.maxResponseLength || agent.maxResponseLength,
+        
         agentType: agentData.agentType || agent.agentType,
-        systemPrompt: agentData.systemPrompt || agent.systemPrompt
+        systemPrompt: agentData.systemPrompt || agent.systemPrompt,
+        
+        knowledgeSources: knowledgeSourceIds.length > 0 
+          ? knowledgeSourceIds 
+          : agentData.knowledge_bases?.map(kb => kb.id) || agent.knowledgeSources
       });
     }
   }, [agentData]);
