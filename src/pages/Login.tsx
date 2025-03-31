@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,15 +13,16 @@ const Login = () => {
   const { toast } = useToast();
   const { setPendingVerificationEmail } = useAuth();
 
-  const handleSignupSuccess = (data: any, email: string) => {
+  // Use useCallback to memoize these handlers and prevent unnecessary re-renders
+  const handleSignupSuccess = useCallback((data: any, email: string) => {
     // Just handle setting the email, navigation happens in the SignupForm
     setPendingVerificationEmail(email);
-  };
+  }, [setPendingVerificationEmail]);
   
-  const handleOtpVerificationNeeded = (email: string) => {
+  const handleOtpVerificationNeeded = useCallback((email: string) => {
     // Just handle setting the email, navigation happens in the LoginForm
     setPendingVerificationEmail(email);
-  };
+  }, [setPendingVerificationEmail]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">

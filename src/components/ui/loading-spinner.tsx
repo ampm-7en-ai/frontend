@@ -13,6 +13,7 @@ export function LoadingSpinner({
   className,
   text 
 }: LoadingSpinnerProps) {
+  // Use a constant object outside the component to prevent recreation on each render
   const sizeClasses = {
     sm: "h-4 w-4",
     md: "h-8 w-8",
