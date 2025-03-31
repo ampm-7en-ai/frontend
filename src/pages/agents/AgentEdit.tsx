@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -241,7 +241,8 @@ const AgentEdit = () => {
         },
         agentType: agent.agentType,
         systemPrompt: agent.systemPrompt,
-        knowledgeSources: agent.knowledgeSources
+        knowledgeSources: agent.knowledgeSources,
+        knowledge_bases: agentKnowledgeSources
       };
 
       await updateAgent(agentId || '', payload);

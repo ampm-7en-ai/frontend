@@ -223,14 +223,29 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   console.log('Updating agent with ID:', agentId);
   console.log('Agent data:', agentData);
   
+  // Format the payload according to the API structure
+  const payload = {
+    name: agentData.name,
+    description: agentData.description,
+    appearance: agentData.appearance,
+    behavior: agentData.behavior,
+    model: agentData.model,
+    agentType: agentData.agentType,
+    systemPrompt: agentData.systemPrompt,
+    settings: {
+      ...(agentData.settings || {}),
+    }
+  };
+  
   // Format the knowledge source filters if needed
   if (agentData.knowledgeSources && Array.isArray(agentData.knowledgeSources)) {
-    // The expected format is { "kb_id": [source_id, source_id, ...] }
-    // For simplicity, we'll put all sources under a default knowledge base ID for now
-    // This might need adjustment based on your actual requirements
-    const kbId = agentData.knowledge_bases?.[0]?.id || "default";
-    agentData.settings = {
-      ...(agentData.settings || {}),
+    // Check if we have any knowledge bases to use as the key
+    const kbId = agentData.knowledge_bases && agentData.knowledge_bases.length > 0
+      ? agentData.knowledge_bases[0].id
+      : "20"; // Use a default ID if no knowledge bases available
+      
+    payload.settings = {
+      ...payload.settings,
       knowledge_source_filters: {
         [kbId]: agentData.knowledgeSources
       }
@@ -240,7 +255,7 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
     method: 'PUT',
     headers: getAuthHeaders(token),
-    body: JSON.stringify(agentData)
+    body: JSON.stringify(payload)
   });
   
   console.log('Update agent response status:', response.status);
