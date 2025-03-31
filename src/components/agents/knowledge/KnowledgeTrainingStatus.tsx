@@ -14,9 +14,9 @@ interface KnowledgeTrainingStatusProps {
   agentId: string;
   initialSelectedSources?: number[];
   onSourcesChange?: (selectedSourceIds: number[]) => void;
-  preloadedKnowledgeSources?: any[];  // Add this prop to accept preloaded knowledge sources
-  isLoading?: boolean;                // Add loading state prop
-  loadError?: string | null;          // Add error state prop
+  preloadedKnowledgeSources?: any[];  // Preloaded knowledge sources from agent query
+  isLoading?: boolean;                // Loading state from agent query
+  loadError?: string | null;          // Error state from agent query
 }
 
 const KnowledgeTrainingStatus = ({ 
@@ -38,7 +38,13 @@ const KnowledgeTrainingStatus = ({
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   
-  const fetchKnowledgeBases = async () => {
+  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases } = useQuery({
+    queryKey: ['knowledgeBases'],
+    queryFn: fetchKnowledgeBases,
+    enabled: isImportDialogOpen
+  });
+
+  async function fetchKnowledgeBases() {
     try {
       const token = getAccessToken();
       if (!token) {
@@ -59,12 +65,7 @@ const KnowledgeTrainingStatus = ({
       console.error('Error fetching knowledge bases:', error);
       throw error;
     }
-  };
-
-  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError } = useQuery({
-    queryKey: ['knowledgeBases'],
-    queryFn: fetchKnowledgeBases,
-  });
+  }
 
   const formatExternalSources = (data) => {
     if (!data) return [];
