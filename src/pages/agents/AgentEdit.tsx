@@ -106,7 +106,6 @@ const AgentEdit = () => {
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
   const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
   const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
-  const [isLoadingAgentData, setIsLoadingAgentData] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const { data: agentData, isLoading, isError, error } = useQuery({
@@ -129,35 +128,35 @@ const AgentEdit = () => {
     }
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (agentData) {
       if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
         setAgentKnowledgeSources(agentData.knowledge_bases);
       }
       
-      setAgent({
-        ...agent,
-        name: agentData.name || agent.name,
-        description: agentData.description || agent.description,
-        primaryColor: agentData.primaryColor || agent.primaryColor,
-        secondaryColor: agentData.secondaryColor || agent.secondaryColor,
-        fontFamily: agentData.fontFamily || agent.fontFamily,
-        chatbotName: agentData.chatbotName || agent.chatbotName,
-        welcomeMessage: agentData.welcomeMessage || agent.welcomeMessage,
-        buttonText: agentData.buttonText || agent.buttonText,
-        position: agentData.position || agent.position,
-        showOnMobile: agentData.showOnMobile || agent.showOnMobile,
-        collectVisitorData: agentData.collectVisitorData || agent.collectVisitorData,
-        autoShowAfter: agentData.autoShowAfter || agent.autoShowAfter,
-        knowledgeSources: agentData.knowledgeSources || agent.knowledgeSources,
-        selectedModel: agentData.selectedModel || agent.selectedModel,
-        temperature: agentData.temperature || agent.temperature,
-        maxResponseLength: agentData.maxResponseLength || agent.maxResponseLength,
-        suggestions: agentData.suggestions || agent.suggestions,
-        avatar: agentData.avatar || agent.avatar,
-        agentType: agentData.agentType || agent.agentType,
-        systemPrompt: agentData.systemPrompt || agent.systemPrompt
-      });
+      setAgent(prevAgent => ({
+        ...prevAgent,
+        name: agentData.name || prevAgent.name,
+        description: agentData.description || prevAgent.description,
+        primaryColor: agentData.primaryColor || prevAgent.primaryColor,
+        secondaryColor: agentData.secondaryColor || prevAgent.secondaryColor,
+        fontFamily: agentData.fontFamily || prevAgent.fontFamily,
+        chatbotName: agentData.chatbotName || prevAgent.chatbotName,
+        welcomeMessage: agentData.welcomeMessage || prevAgent.welcomeMessage,
+        buttonText: agentData.buttonText || prevAgent.buttonText,
+        position: agentData.position || prevAgent.position,
+        showOnMobile: agentData.showOnMobile || prevAgent.showOnMobile,
+        collectVisitorData: agentData.collectVisitorData || prevAgent.collectVisitorData,
+        autoShowAfter: agentData.autoShowAfter || prevAgent.autoShowAfter,
+        knowledgeSources: agentData.knowledgeSources || prevAgent.knowledgeSources,
+        selectedModel: agentData.selectedModel || prevAgent.selectedModel,
+        temperature: agentData.temperature || prevAgent.temperature,
+        maxResponseLength: agentData.maxResponseLength || prevAgent.maxResponseLength,
+        suggestions: agentData.suggestions || prevAgent.suggestions,
+        avatar: agentData.avatar || prevAgent.avatar,
+        agentType: agentData.agentType || prevAgent.agentType,
+        systemPrompt: agentData.systemPrompt || prevAgent.systemPrompt
+      }));
     }
   }, [agentData]);
 
@@ -953,24 +952,24 @@ const AgentEdit = () => {
               onValueChange={setActiveTab}
             >
               <div className="flex justify-start mb-6">
-                <TabsList size="xs" className="w-auto">
-                  <TabsTrigger value="general" size="xs">
+                <TabsList className="w-auto">
+                  <TabsTrigger value="general">
                     <Bot className="h-4 w-4 mr-2" />
                     General
                   </TabsTrigger>
-                  <TabsTrigger value="appearance" size="xs">
+                  <TabsTrigger value="appearance">
                     <Palette className="h-4 w-4 mr-2" />
                     Appearance
                   </TabsTrigger>
-                  <TabsTrigger value="advanced" size="xs">
+                  <TabsTrigger value="advanced">
                     <Sliders className="h-4 w-4 mr-2" />
                     Advanced Settings
                   </TabsTrigger>
-                  <TabsTrigger value="knowledge" size="xs">
+                  <TabsTrigger value="knowledge">
                     <FileText className="h-4 w-4 mr-2" />
                     Knowledge
                   </TabsTrigger>
-                  <TabsTrigger value="integrations" size="xs">
+                  <TabsTrigger value="integrations">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Integrations
                   </TabsTrigger>
