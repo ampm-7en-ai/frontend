@@ -106,7 +106,7 @@ const AgentEdit = () => {
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
   const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
   const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
-  const [isLoadingAgentData, setIsLoadingAgentData] = useState(true);
+  const [isLoadingAgentData, setIsLoadingAgentData] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const { data: agentData, isLoading, isError, error } = useQuery({
@@ -704,8 +704,8 @@ const AgentEdit = () => {
       initialSelectedSources={agent.knowledgeSources}
       onSourcesChange={handleKnowledgeSourcesChange}
       preloadedKnowledgeSources={agentKnowledgeSources}
-      isLoading={isLoadingAgentData}
-      loadError={loadError}
+      isLoading={false}
+      loadError={null}
     />
   );
 
