@@ -34,7 +34,7 @@ const FormSchema = z.object({
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-const LoginForm = React.forwardRef<HTMLDivElement, LoginFormProps>(
+export const LoginForm = React.forwardRef<HTMLDivElement, LoginFormProps>(
   ({ className, ...props }, ref) => {
     const [formMode, setFormMode] = useState<"login" | "signup">("login")
     const navigate = useNavigate()
