@@ -62,6 +62,7 @@ interface ImportSourcesDialogProps {
   currentSources: KnowledgeSource[];
   onImport: (selectedSourceIds: number[]) => void;
   externalSources?: ExternalSource[];
+  initialSourceId?: number | null;
 }
 
 interface UrlNode {
@@ -78,7 +79,8 @@ const ImportSourcesDialog = ({
   onOpenChange,
   currentSources,
   onImport,
-  externalSources: propExternalSources
+  externalSources: propExternalSources,
+  initialSourceId
 }: ImportSourcesDialogProps) => {
   const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
   const [activeSourceType, setActiveSourceType] = useState<string>('all');
@@ -134,7 +136,22 @@ const ImportSourcesDialog = ({
     if (propExternalSources) {
       const sourcesGroupedByType = groupSourcesByType(propExternalSources);
       setExternalSources(sourcesGroupedByType);
-      flattenSources(sourcesGroupedByType);
+      const flatSources = [];
+      sourcesGroupedByType.forEach(typeFolder => {
+        if (typeFolder.children) {
+          flatSources.push(...typeFolder.children);
+        }
+      });
+      setFlattenedSources(flatSources);
+      setFilteredSources(flatSources);
+
+      if (initialSourceId) {
+        const initialSource = flatSources.find(s => s.id === initialSourceId);
+        if (initialSource) {
+          console.log("Auto-selecting source with ID:", initialSourceId);
+          handleSourceClick(initialSource);
+        }
+      }
       return;
     }
     
@@ -182,8 +199,16 @@ const ImportSourcesDialog = ({
       const sourcesGroupedByType = groupSourcesByType(formattedSources);
       setExternalSources(sourcesGroupedByType);
       flattenSources(sourcesGroupedByType);
+      
+      if (initialSourceId) {
+        const initialSource = formattedSources.find(s => s.id === initialSourceId);
+        if (initialSource) {
+          console.log("Auto-selecting source with ID:", initialSourceId);
+          handleSourceClick(initialSource);
+        }
+      }
     }
-  }, [data, propExternalSources]);
+  }, [data, propExternalSources, initialSourceId]);
 
   const groupSourcesByType = (sources: ExternalSource[]): ExternalSource[] => {
     const groupedByType: Record<string, ExternalSource[]> = {};
@@ -372,6 +397,17 @@ const ImportSourcesDialog = ({
   };
 
   const buildUrlNodeRecursively = (node: any): UrlNode => {
+    if (!node || !node.url) {
+      console.warn("Invalid node in buildUrlNodeRecursively:", node);
+      return {
+        id: `node-${Math.random().toString(36).substring(2, 11)}`,
+        url: "unknown",
+        title: "Unknown URL",
+        selected: false,
+        isExpanded: false
+      };
+    }
+    
     const urlTitle = node.title || extractPathFromUrl(node.url);
     
     const urlNode: UrlNode = {
@@ -379,11 +415,14 @@ const ImportSourcesDialog = ({
       url: node.url,
       title: urlTitle,
       selected: node.selected !== false,
-      isExpanded: false
+      isExpanded: true
     };
 
     if (node.children && node.children.length > 0) {
-      urlNode.children = node.children.map(child => buildUrlNodeRecursively(child));
+      console.log(`Processing ${node.children.length} children for node ${urlNode.title}`);
+      urlNode.children = node.children
+        .filter(child => child && child.url)
+        .map(child => buildUrlNodeRecursively(child));
     }
 
     return urlNode;
@@ -576,7 +615,12 @@ const ImportSourcesDialog = ({
   };
 
   const renderUrlTree = (nodes: UrlNode[], level = 0) => {
-    if (!nodes || nodes.length === 0) return null;
+    if (!nodes || nodes.length === 0) {
+      console.log("No nodes to render in tree at level", level);
+      return null;
+    }
+    
+    console.log(`Rendering ${nodes.length} nodes at level ${level}`);
     
     return (
       <div className={cn("space-y-1", level > 0 && "ml-4 mt-1 border-l pl-2")}>
