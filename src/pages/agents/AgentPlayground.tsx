@@ -36,7 +36,8 @@ const AgentPlayground = () => {
     appearance: {
       primaryColor: '#9b87f5',
       secondaryColor: '#ffffff',
-      avatar: { src: '', type: 'default' }
+      avatar: { src: '', type: 'default' },
+      welcomeMessage: "Hello! I'm an AI assistant. How can I help you today?"
     },
   });
   
@@ -54,7 +55,7 @@ const AgentPlayground = () => {
           const agentData = await fetchAgentDetails(agentId);
           setAgent(agentData);
           
-          // Initialize with welcome message if available
+          // Initialize with welcome message from agent appearance data
           const welcomeMessage = agentData.appearance?.welcomeMessage || 
             "Hello! I'm an AI assistant. How can I help you today?";
             

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,11 @@ export const ChatboxPreview = ({
   const [inputValue, setInputValue] = useState('');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Update welcome message when prop changes
+  useEffect(() => {
+    setMessages([{ type: 'bot', text: welcomeMessage }]);
+  }, [welcomeMessage]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
