@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource, UrlNode } from './types';
 
@@ -17,6 +17,16 @@ const KnowledgeSourceModal = ({
   sources, 
   initialSourceId 
 }: KnowledgeSourceModalProps) => {
+  // Store the selected source ID to help find the data
+  const [selectedSourceId, setSelectedSourceId] = useState<number | null>(initialSourceId || null);
+  
+  // Update selectedSourceId when initialSourceId changes
+  useEffect(() => {
+    if (initialSourceId) {
+      setSelectedSourceId(initialSourceId);
+    }
+  }, [initialSourceId]);
+
   // Process domain links to ensure they're in the correct format
   const processedSources = sources.map(source => {
     // Get domain_links directly from source.metadata
@@ -24,6 +34,7 @@ const KnowledgeSourceModal = ({
     
     // Log source structure for debugging
     console.log(`Processing source: ${source.name}`, {
+      id: source.id,
       type: source.type,
       hasDomainLinks: !!domainLinks,
       domainLinksType: domainLinks ? typeof domainLinks : 'undefined',
@@ -50,6 +61,12 @@ const KnowledgeSourceModal = ({
     };
   });
   
+  // Find the selected source to access its children
+  const handleSourceSelect = (id: number) => {
+    console.log("Source selected:", id);
+    setSelectedSourceId(id);
+  };
+  
   // The ImportSourcesDialog expects isOpen, but we receive open
   return (
     <ImportSourcesDialog
@@ -58,7 +75,10 @@ const KnowledgeSourceModal = ({
       currentSources={sources}
       onImport={() => {}} // Provide an empty handler for the onImport prop
       externalSources={processedSources}
-      initialSourceId={initialSourceId}
+      initialSourceId={selectedSourceId}
+      onSourceSelect={handleSourceSelect}
+      selectedSourceData={selectedSourceId ? 
+        sources.find(source => source.id === selectedSourceId) : undefined}
     />
   );
 };

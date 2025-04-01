@@ -48,3 +48,10 @@ export interface UrlNode {
   selected?: boolean;
   children?: Array<UrlNode>;
 }
+
+// Interface for the processed source data expected by ImportSourcesDialog
+export interface ProcessedSource extends KnowledgeSource {
+  format: string;
+  pages?: string;
+  domain_links?: UrlNode | UrlNode[];
+}
