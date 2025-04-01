@@ -48,14 +48,15 @@ const KnowledgeSourceModal = ({
         }
 
         // Create the transformed source with properly formatted domain_links
+        // Here we need to ensure we're matching the expected structure in ImportSourcesDialog
         return {
           ...source,
           format: source.type,
           pages: source.metadata?.no_of_pages?.toString(),
           children: undefined,
-          // Preserve the original domain_links structure for website/url type sources
+          // Make domain_links match the expected format in ImportSourcesDialog
           domain_links: (source.type === 'website' || source.type === 'url') 
-            ? domainLinks
+            ? domainLinks 
             : undefined,
           // Ensure knowledge_sources exists for website/url type sources
           knowledge_sources: (source.type === 'website' || source.type === 'url') 
