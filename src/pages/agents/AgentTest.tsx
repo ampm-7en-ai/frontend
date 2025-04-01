@@ -53,67 +53,6 @@ const mockAgents: Agent[] = [
         trainingStatus: "success",
         hasError: false,
         content: "## Frequently Asked Questions\n\n**Q: How do I reset my password?**\nA: Click on the 'Forgot Password' link on the login page and follow the instructions sent to your email.\n\n**Q: How do I upgrade my subscription?**\nA: Go to Settings > Billing and select your desired plan.\n\n**Q: Can I integrate with Salesforce?**\nA: Yes, we offer native integration with Salesforce and other popular CRM systems." 
-      },
-      { 
-        id: 3, 
-        name: "Stripe Use Case", 
-        type: "website", 
-        icon: "Globe", 
-        size: "180KB",
-        lastUpdated: "2023-11-25",
-        trainingStatus: "success",
-        hasError: false,
-        metadata: {
-          domain_links: {
-            url: "https://stripe.com/use-cases/finance-automation",
-            children: [
-              {
-                url: "https://stripe.com/ae",
-                title: "Stripe UAE",
-                children: [
-                  {
-                    url: "https://stripe.com/ae/authorization",
-                    title: "Authorization",
-                    children: []
-                  },
-                  {
-                    url: "https://stripe.com/ae/climate",
-                    title: "Climate",
-                    children: []
-                  },
-                  {
-                    url: "https://stripe.com/ae/legal",
-                    title: "Legal",
-                    children: [
-                      {
-                        url: "https://stripe.com/ae/legal/restricted-businesses",
-                        title: "Restricted Businesses",
-                        children: []
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                url: "https://stripe.com/at",
-                title: "Stripe Austria",
-                children: [
-                  {
-                    url: "https://stripe.com/at/authorization",
-                    title: "Authorization",
-                    children: []
-                  },
-                  {
-                    url: "https://stripe.com/at/climate",
-                    title: "Climate",
-                    children: []
-                  }
-                ]
-              }
-            ]
-          },
-          no_of_pages: 15
-        }
       }
     ],
     model: "gpt4",
