@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   FileText, Globe, FileSpreadsheet, File, FileSearch, Search, X, Calendar, 
-  CheckCircle, Bot, Database, ArrowRight, ExternalLink
+  CheckCircle, Bot, Database, ArrowRight, ExternalLink, ChevronRight, ChevronDown
 } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +37,13 @@ interface ExternalSource {
   path?: string;
   urls?: { url: string; title: string; id?: string; selected?: boolean; }[];
   knowledge_sources?: any[];
+  domain_links?: {
+    url: string;
+    children?: {
+      url: string;
+      children?: any[];
+    }[];
+  };
 }
 
 interface SourceType {
@@ -55,6 +62,15 @@ interface ImportSourcesDialogProps {
   externalSources?: ExternalSource[];
 }
 
+interface UrlNode {
+  id: string;
+  url: string;
+  title: string;
+  selected?: boolean;
+  children?: UrlNode[];
+  isExpanded?: boolean;
+}
+
 const ImportSourcesDialog = ({
   isOpen,
   onOpenChange,
@@ -71,6 +87,7 @@ const ImportSourcesDialog = ({
   const [filteredSources, setFilteredSources] = useState<ExternalSource[]>([]);
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
   const [selectedUrlIds, setSelectedUrlIds] = useState<string[]>([]);
+  const [urlTree, setUrlTree] = useState<UrlNode[]>([]);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -278,13 +295,175 @@ const ImportSourcesDialog = ({
     );
   };
 
-  const handleSourceClick = (source: ExternalSource) => {
-    if (source.type === 'website' || source.type === 'url') {
-      setSelectedSource(source);
-      
-      if (!selectedImportSources.includes(source.id)) {
-        toggleImportSelection(source.id);
+  const buildUrlTree = (source: ExternalSource) => {
+    if (!source || (source.type !== 'website' && source.type !== 'url')) {
+      setUrlTree([]);
+      return;
+    }
+
+    let tree: UrlNode[] = [];
+
+    // Check if source has domain_links
+    if (source.domain_links) {
+      const rootUrl = source.domain_links.url;
+      const rootNode: UrlNode = {
+        id: `node-${rootUrl.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        url: rootUrl,
+        title: extractDomainFromUrl(rootUrl),
+        selected: true,
+        children: [],
+        isExpanded: true
+      };
+
+      // Add children to root node
+      if (source.domain_links.children && source.domain_links.children.length > 0) {
+        rootNode.children = source.domain_links.children.map(child => {
+          return buildUrlNode(child);
+        });
       }
+
+      tree.push(rootNode);
+    } 
+    // Fallback to knowledge_sources if domain_links is not available
+    else if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+      // Group by domain first
+      const domains = new Map<string, UrlNode>();
+      
+      source.knowledge_sources.forEach(ks => {
+        const url = ks.url;
+        const domain = extractDomainFromUrl(url);
+        const id = ks.id.toString();
+        const isSelected = selectedUrlIds.includes(id);
+        
+        if (!domains.has(domain)) {
+          domains.set(domain, {
+            id: `domain-${domain.replace(/[^a-zA-Z0-9]/g, '-')}`,
+            url: domain,
+            title: domain,
+            selected: true,
+            children: [],
+            isExpanded: true
+          });
+        }
+        
+        const domainNode = domains.get(domain);
+        if (domainNode && domainNode.children) {
+          domainNode.children.push({
+            id: id,
+            url: url,
+            title: ks.title || url,
+            selected: isSelected
+          });
+        }
+      });
+      
+      tree = Array.from(domains.values());
+    }
+
+    setUrlTree(tree);
+  };
+
+  const buildUrlNode = (node: any): UrlNode => {
+    const urlNode: UrlNode = {
+      id: `node-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`,
+      url: node.url,
+      title: extractPathFromUrl(node.url),
+      selected: true,
+      isExpanded: true
+    };
+
+    if (node.children && node.children.length > 0) {
+      urlNode.children = node.children.map(child => buildUrlNode(child));
+    }
+
+    return urlNode;
+  };
+
+  const extractDomainFromUrl = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname;
+    } catch (e) {
+      return url;
+    }
+  };
+
+  const extractPathFromUrl = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.pathname || urlObj.hostname;
+    } catch (e) {
+      return url;
+    }
+  };
+
+  const toggleNodeExpansion = (nodeId: string) => {
+    setUrlTree(prevTree => {
+      const updateNode = (nodes: UrlNode[]): UrlNode[] => {
+        return nodes.map(node => {
+          if (node.id === nodeId) {
+            return { ...node, isExpanded: !node.isExpanded };
+          }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: updateNode(node.children) };
+          }
+          return node;
+        });
+      };
+      
+      return updateNode(prevTree);
+    });
+  };
+
+  const toggleUrlNodeSelection = (nodeId: string, selected: boolean) => {
+    setUrlTree(prevTree => {
+      const updateNodeSelection = (nodes: UrlNode[]): UrlNode[] => {
+        return nodes.map(node => {
+          if (node.id === nodeId) {
+            // Update this node
+            const updatedNode = { ...node, selected };
+            
+            // If this node has children, update them too
+            if (updatedNode.children && updatedNode.children.length > 0) {
+              updatedNode.children = updateNodeSelection(updatedNode.children);
+            }
+            
+            return updatedNode;
+          }
+          
+          // Check children recursively
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: updateNodeSelection(node.children) };
+          }
+          
+          return node;
+        });
+      };
+      
+      return updateNodeSelection(prevTree);
+    });
+    
+    // Update selectedUrlIds based on the tree
+    if (nodeId.startsWith('node-') || nodeId.startsWith('domain-')) {
+      return; // Don't update selectedUrlIds for parent nodes
+    }
+    
+    if (selected) {
+      setSelectedUrlIds(prev => [...prev, nodeId]);
+    } else {
+      setSelectedUrlIds(prev => prev.filter(id => id !== nodeId));
+    }
+  };
+
+  const handleSourceClick = (source: ExternalSource) => {
+    setSelectedSource(source);
+    
+    if (!selectedImportSources.includes(source.id)) {
+      toggleImportSelection(source.id);
+    }
+    
+    if (source.type === 'website' || source.type === 'url') {
+      buildUrlTree(source);
       
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
         const initialSelectedIds = source.knowledge_sources
@@ -379,6 +558,59 @@ const ImportSourcesDialog = ({
     onOpenChange(false);
     setSelectedImportSources([]);
     onImport(selectedImportSources);
+  };
+
+  const renderUrlTree = (nodes: UrlNode[], level = 0) => {
+    if (!nodes || nodes.length === 0) return null;
+    
+    return (
+      <div className={cn("space-y-1", level > 0 && "ml-4 mt-1 border-l pl-2")}>
+        {nodes.map(node => (
+          <div key={node.id} className="space-y-1">
+            <div className="flex items-center py-1 hover:bg-muted/30 rounded">
+              {node.children && node.children.length > 0 ? (
+                <button 
+                  onClick={() => toggleNodeExpansion(node.id)}
+                  className="p-1 rounded-sm hover:bg-muted"
+                >
+                  {node.isExpanded ? (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              ) : (
+                <div className="w-5" />
+              )}
+              
+              <Checkbox 
+                checked={node.selected}
+                onCheckedChange={(checked) => toggleUrlNodeSelection(node.id, !!checked)}
+                className="mr-2"
+              />
+              
+              <div className="truncate text-sm font-medium" title={node.url}>
+                {node.title || extractPathFromUrl(node.url)}
+              </div>
+              
+              <a 
+                href={node.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+            
+            {node.children && node.children.length > 0 && node.isExpanded && (
+              renderUrlTree(node.children, level + 1)
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const sourceTypes: SourceType[] = [
@@ -506,40 +738,46 @@ const ImportSourcesDialog = ({
           </p>
         </div>
         
-        <div className="space-y-2">
-          {source.knowledge_sources.map((ks) => {
-            const urlId = ks.id.toString();
-            const isSelected = selectedUrlIds.includes(urlId);
-            
-            return (
-              <div 
-                key={urlId} 
-                className="flex items-center p-2 border rounded-md hover:bg-muted/40"
-              >
-                <Checkbox 
-                  checked={isSelected}
-                  onCheckedChange={() => toggleUrlSelection(urlId)}
-                  className="mr-2"
-                />
+        <ScrollArea className="h-[calc(100vh-300px)]">
+          {urlTree && urlTree.length > 0 ? (
+            renderUrlTree(urlTree)
+          ) : (
+            <div className="space-y-2">
+              {source.knowledge_sources.map((ks) => {
+                const urlId = ks.id.toString();
+                const isSelected = selectedUrlIds.includes(urlId);
                 
-                <div className="flex-1 space-y-1">
-                  <div className="font-medium text-sm truncate">{ks.title || "Untitled"}</div>
-                  <div className="text-xs text-muted-foreground truncate">{ks.url}</div>
-                </div>
-                
-                <a 
-                  href={ks.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            );
-          })}
-        </div>
+                return (
+                  <div 
+                    key={urlId} 
+                    className="flex items-center p-2 border rounded-md hover:bg-muted/40"
+                  >
+                    <Checkbox 
+                      checked={isSelected}
+                      onCheckedChange={() => toggleUrlSelection(urlId)}
+                      className="mr-2"
+                    />
+                    
+                    <div className="flex-1 space-y-1">
+                      <div className="font-medium text-sm truncate">{ks.title || "Untitled"}</div>
+                      <div className="text-xs text-muted-foreground truncate">{ks.url}</div>
+                    </div>
+                    
+                    <a 
+                      href={ks.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </ScrollArea>
       </div>
     );
   };
@@ -582,6 +820,7 @@ const ImportSourcesDialog = ({
             </div>
           ) : (
             <>
+              {/* First panel - Source Types */}
               <div className="w-52 border-r p-2 bg-muted/20">
                 <ScrollArea className="h-full">
                   <nav className="grid gap-1 px-2 pb-10">
@@ -614,8 +853,9 @@ const ImportSourcesDialog = ({
                 </ScrollArea>
               </div>
               
-              <div className="flex-1 flex overflow-hidden">
-                <ScrollArea className="flex-1 p-4">
+              {/* Second panel - Source List */}
+              <div className="w-64 border-r">
+                <ScrollArea className="h-full p-4">
                   <div className="pb-10">
                     {filteredSources.length > 0 ? (
                       <div className="space-y-1">
@@ -635,14 +875,23 @@ const ImportSourcesDialog = ({
                     )}
                   </div>
                 </ScrollArea>
-                
-                {selectedSource && (selectedSource.type === 'website' || selectedSource.type === 'url') && (
-                  <div className="w-72 border-l">
-                    <ScrollArea className="h-full">
-                      {renderKnowledgeSourcesList(selectedSource)}
-                    </ScrollArea>
-                  </div>
-                )}
+              </div>
+              
+              {/* Third panel - URL Tree */}
+              <div className="flex-1">
+                <ScrollArea className="h-full">
+                  {selectedSource && (selectedSource.type === 'website' || selectedSource.type === 'url') ? (
+                    renderKnowledgeSourcesList(selectedSource)
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full py-10 text-center">
+                      <Globe className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No website selected</h3>
+                      <p className="text-muted-foreground mt-1 max-w-sm">
+                        Select a website source to view its URL structure.
+                      </p>
+                    </div>
+                  )}
+                </ScrollArea>
               </div>
             </>
           )}
