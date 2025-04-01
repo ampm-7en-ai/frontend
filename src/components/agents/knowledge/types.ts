@@ -15,6 +15,7 @@ export interface KnowledgeSource {
     title: string;
     status: 'success' | 'error' | 'pending';
     selected?: boolean;
+    children?: any[]; // Add the children property to support nested URL structures
   }[];
   documents?: {
     id: string;

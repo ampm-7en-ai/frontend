@@ -38,8 +38,8 @@ const KnowledgeSourceModal = ({
                 url: link.url,
                 title: link.title,
                 selected: link.selected !== false,
-                // Preserve any nested children from the original structure
-                children: link.children || []
+                // Since 'children' doesn't exist on the link type, we need to handle it differently
+                children: Array.isArray((link as any).children) ? (link as any).children : []
               })) || []
             }
           : undefined,
