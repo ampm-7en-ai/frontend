@@ -32,4 +32,10 @@ export interface KnowledgeSource {
     no_of_pages?: number;
   };
   icon?: string;
+  knowledge_sources?: {
+    id: number;
+    url: string;
+    title: string;
+    selected?: boolean;
+  }[];
 }
