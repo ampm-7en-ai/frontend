@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -11,11 +11,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BookOpen, Database, Globe, FileText, 
-  Code, Copy, Check, X, Bookmark
+  Code, Copy, Check, X, Bookmark,
+  ExternalLink, CheckSquare, Square
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
 interface KnowledgeSourceModalProps {
@@ -34,6 +36,7 @@ const KnowledgeSourceModal = ({
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(initialSourceId || null);
   const [viewMode, setViewMode] = useState<'markdown' | 'text'>('markdown');
   const [copied, setCopied] = useState(false);
+  const [selectedSubSourceIds, setSelectedSubSourceIds] = useState<string[]>([]);
   const { toast } = useToast();
 
   const selectedSource = sources.find(s => s.id === selectedSourceId);
@@ -42,10 +45,27 @@ const KnowledgeSourceModal = ({
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       // Small delay to prevent flickering during closing animation
-      setTimeout(() => setSelectedSourceId(null), 300);
+      setTimeout(() => {
+        setSelectedSourceId(null);
+        setSelectedSubSourceIds([]);
+      }, 300);
     }
     onOpenChange(newOpen);
   };
+
+  // Initialize sub-source selections when a source is selected
+  useEffect(() => {
+    if (selectedSource?.type === 'webpage' && selectedSource.knowledge_sources?.length) {
+      // Pre-select sub-sources that have selected=true if that property exists
+      const preSelectedIds = selectedSource.knowledge_sources
+        .filter(ks => ks.selected)
+        .map(ks => `ks-${ks.id || ks.url}`);
+      
+      setSelectedSubSourceIds(preSelectedIds);
+    } else {
+      setSelectedSubSourceIds([]);
+    }
+  }, [selectedSource]);
 
   const copyToClipboard = () => {
     if (selectedSource?.content) {
@@ -80,6 +100,16 @@ const KnowledgeSourceModal = ({
     return "border-gray-200 hover:border-primary/20";
   };
 
+  const toggleSubSourceSelection = (subSourceId: string) => {
+    setSelectedSubSourceIds(prev => {
+      if (prev.includes(subSourceId)) {
+        return prev.filter(id => id !== subSourceId);
+      } else {
+        return [...prev, subSourceId];
+      }
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden flex flex-col">
@@ -90,7 +120,7 @@ const KnowledgeSourceModal = ({
         
         <div className="flex flex-1 overflow-hidden">
           {/* Sources Panel */}
-          <div className="w-1/3 border-r flex flex-col">
+          <div className="w-1/4 border-r flex flex-col">
             <div className="p-3 border-b bg-muted/30">
               <h3 className="text-sm font-medium">Available Sources ({sources.length})</h3>
             </div>
@@ -125,7 +155,7 @@ const KnowledgeSourceModal = ({
           </div>
           
           {/* Content Panel */}
-          <div className="flex-1 flex flex-col">
+          <div className="w-2/5 flex flex-col border-r">
             {selectedSource ? (
               <>
                 <div className="p-3 border-b flex items-center justify-between bg-muted/30">
@@ -201,6 +231,80 @@ const KnowledgeSourceModal = ({
                 </div>
               </div>
             )}
+          </div>
+          
+          {/* Sub-sources Panel (Knowledge Sources) */}
+          <div className="w-1/3 flex flex-col">
+            <div className="p-3 border-b bg-muted/30">
+              <h3 className="text-sm font-medium">
+                {selectedSource?.type === 'webpage' 
+                  ? `URLs (${selectedSource?.knowledge_sources?.length || 0})` 
+                  : 'Knowledge Sources'}
+              </h3>
+            </div>
+            <ScrollArea className="flex-1">
+              {selectedSource?.type === 'webpage' && selectedSource?.knowledge_sources?.length > 0 ? (
+                <div className="p-3 space-y-2">
+                  {selectedSource.knowledge_sources.map((ks, index) => (
+                    <div 
+                      key={`ks-${ks.id || index}`}
+                      className="flex items-center p-2 border rounded-md hover:bg-muted/20"
+                    >
+                      <Checkbox 
+                        id={`subSource-${ks.id || index}`}
+                        checked={selectedSubSourceIds.includes(`ks-${ks.id || ks.url}`)}
+                        onCheckedChange={() => toggleSubSourceSelection(`ks-${ks.id || ks.url}`)}
+                        className="mr-3"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <label 
+                          htmlFor={`subSource-${ks.id || index}`} 
+                          className="text-sm font-medium cursor-pointer truncate block"
+                        >
+                          {ks.title || 'Unnamed Source'}
+                        </label>
+                        {ks.url && (
+                          <span className="text-xs text-muted-foreground truncate block">
+                            {ks.url}
+                          </span>
+                        )}
+                      </div>
+                      {ks.url && (
+                        <a 
+                          href={ks.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-muted-foreground hover:text-primary"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 space-y-4">
+                  <Globe className="h-10 w-10 text-muted-foreground/40" />
+                  <div className="text-center max-w-md">
+                    <h3 className="text-base font-medium mb-2">
+                      {selectedSource ? 
+                        'No knowledge sources available' : 
+                        'Select a website source to view URLs'
+                      }
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedSource?.type === 'webpage' 
+                        ? 'This source does not contain any URLs' 
+                        : selectedSource 
+                          ? 'Only website sources have associated URLs' 
+                          : 'Please select a website source from the left panel'
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
+            </ScrollArea>
           </div>
         </div>
       </DialogContent>
