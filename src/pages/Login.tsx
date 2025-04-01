@@ -11,7 +11,7 @@ const Login = () => {
   const [activeTab, setActiveTab] = useState("login");
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setPendingVerificationEmail } = useAuth();
+  const { setPendingVerificationEmail, login } = useAuth();
 
   const handleSignupSuccess = (data: any, email: string) => {
     // Just handle setting the email, navigation happens in the SignupForm
@@ -22,6 +22,24 @@ const Login = () => {
     // Just handle setting the email, navigation happens in the LoginForm
     setPendingVerificationEmail(email);
   };
+
+  // Added for automatic login in dev environment
+  React.useEffect(() => {
+    // Auto-login for development
+    const autoLogin = async () => {
+      try {
+        await login('superadmin', '123456');
+        navigate('/dashboard');
+      } catch (err) {
+        console.error('Auto-login failed:', err);
+      }
+    };
+
+    // Comment out this line if you don't want auto-login
+    if (process.env.NODE_ENV !== 'production') {
+      autoLogin();
+    }
+  }, [login, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">

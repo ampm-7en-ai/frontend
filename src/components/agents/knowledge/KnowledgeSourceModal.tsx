@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource } from './types';
@@ -46,6 +47,7 @@ const KnowledgeSourceModal = ({
         
         // First check if metadata has domain_links (this is the new API structure)
         if (source.metadata && source.metadata.domain_links) {
+          console.log("Using metadata.domain_links:", source.metadata.domain_links);
           domainLinks = source.metadata.domain_links;
         }
         // Otherwise build domain_links from insideLinks or children properties
