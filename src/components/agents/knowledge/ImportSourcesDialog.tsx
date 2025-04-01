@@ -259,8 +259,30 @@ export const ImportSourcesDialog = ({
   const buildUrlTree = (source: ExternalSource): UrlNodeDisplay[] => {
     console.log('Building URL tree for source:', source.name);
     
+    if (source.domain_links) {
+      console.log('Using domain_links directly from source:', source.domain_links);
+      if (Array.isArray(source.domain_links)) {
+        return source.domain_links.map(link => buildUrlNodeRecursively(link));
+      } else {
+        return [buildUrlNodeRecursively(source.domain_links)];
+      }
+    }
+    
     if (!source.metadata || !source.metadata.domain_links) {
       console.log('No domain links found in metadata');
+      
+      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        console.log(`Using ${source.knowledge_sources.length} knowledge_sources to build tree`);
+        return source.knowledge_sources.map(link => ({
+          id: `url-${String(link.id)}`,
+          url: link.url,
+          title: link.title || link.url,
+          selected: link.selected !== false,
+          children: [],
+          isExpanded: false
+        }));
+      }
+      
       return [];
     }
     
