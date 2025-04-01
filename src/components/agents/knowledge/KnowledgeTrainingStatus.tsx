@@ -5,7 +5,7 @@ import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off, 
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
 import { KnowledgeSource } from './types';
-import ImportSourcesDialog from './ImportSourcesDialog';
+import KnowledgeSourceModal from './KnowledgeSourceModal';
 import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
@@ -483,7 +483,7 @@ const KnowledgeTrainingStatus = ({
         )}
       </CardContent>
 
-      <ImportSourcesDialog
+      <KnowledgeSourceModal
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         externalSources={formatExternalSources(availableKnowledgeBases)}
