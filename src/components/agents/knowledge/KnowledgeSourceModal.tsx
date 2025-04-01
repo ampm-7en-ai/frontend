@@ -27,27 +27,19 @@ const KnowledgeSourceModal = ({
       externalSources={sources.map(source => {
         console.log('Source in KnowledgeSourceModal:', source);
 
-        // Check if we have domain_links in metadata (preferred structure)
+        // Get domain_links directly from source.metadata
         const domainLinks = source.metadata?.domain_links;
         console.log('Domain links from metadata:', domainLinks);
 
+        // Create the transformed source with properly formatted domain_links
         return {
           ...source,
           format: source.type,
           pages: source.metadata?.no_of_pages?.toString(),
           children: undefined,
-          // Map domain_links for website/url type sources to create tree structure
+          // Preserve the original domain_links structure for website/url type sources
           domain_links: (source.type === 'website' || source.type === 'url') 
-            ? (domainLinks || {
-                url: source.insideLinks?.[0]?.url || '', 
-                children: source.insideLinks?.map(link => ({
-                  url: link.url,
-                  title: link.title,
-                  selected: link.selected !== false,
-                  // Preserve any nested children from the original structure
-                  children: []
-                })) || []
-              })
+            ? domainLinks
             : undefined,
           // Ensure knowledge_sources exists for website/url type sources
           knowledge_sources: (source.type === 'website' || source.type === 'url') 

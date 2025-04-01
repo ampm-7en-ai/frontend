@@ -320,24 +320,44 @@ const ImportSourcesDialog = ({
     // Check if source has domain_links
     if (source.domain_links) {
       console.log("Building URL tree from domain_links:", source.domain_links);
-      const rootUrl = source.domain_links.url;
-      const rootNode: UrlNode = {
-        id: `node-${rootUrl.replace(/[^a-zA-Z0-9]/g, '-')}`,
-        url: rootUrl,
-        title: extractDomainFromUrl(rootUrl),
-        selected: true,
-        children: [],
-        isExpanded: true
-      };
-
-      // Add children to root node - use recursive function to handle nested children
-      if (source.domain_links.children && source.domain_links.children.length > 0) {
-        rootNode.children = source.domain_links.children.map(child => {
-          return buildUrlNodeRecursively(child);
+      
+      // Handle both direct domain_links objects and array of domain_links
+      if (Array.isArray(source.domain_links)) {
+        // Handle array format
+        tree = source.domain_links.map(domainLink => {
+          const rootUrl = domainLink.url || '';
+          return {
+            id: `node-${rootUrl.replace(/[^a-zA-Z0-9]/g, '-')}`,
+            url: rootUrl,
+            title: extractDomainFromUrl(rootUrl),
+            selected: true,
+            children: domainLink.children?.map(child => buildUrlNodeRecursively(child)) || [],
+            isExpanded: true
+          };
         });
-      }
+      } else {
+        // Handle direct object format
+        const rootUrl = source.domain_links.url || '';
+        const rootNode: UrlNode = {
+          id: `node-${rootUrl.replace(/[^a-zA-Z0-9]/g, '-')}`,
+          url: rootUrl,
+          title: extractDomainFromUrl(rootUrl),
+          selected: true,
+          children: [],
+          isExpanded: true
+        };
 
-      tree.push(rootNode);
+        // Add children to root node - use recursive function to handle nested children
+        if (source.domain_links.children && source.domain_links.children.length > 0) {
+          rootNode.children = source.domain_links.children.map(child => {
+            return buildUrlNodeRecursively(child);
+          });
+        }
+
+        tree.push(rootNode);
+      }
+      
+      console.log("Generated URL tree:", tree);
     } 
     // Fallback to knowledge_sources if domain_links is not available
     else if (source.knowledge_sources && source.knowledge_sources.length > 0) {
@@ -380,17 +400,32 @@ const ImportSourcesDialog = ({
   };
 
   const buildUrlNodeRecursively = (node: any): UrlNode => {
+    if (!node) {
+      console.warn("Attempted to build URL node from undefined/null node");
+      return {
+        id: `node-${Math.random().toString(36).substring(2, 11)}`,
+        url: '',
+        title: 'Unknown',
+        selected: true,
+        isExpanded: true
+      };
+    }
+
+    console.log("Building node recursively:", node);
+    
     const urlNode: UrlNode = {
-      id: `node-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`,
-      url: node.url,
-      title: node.title || extractPathFromUrl(node.url),
+      id: `node-${node.url?.replace(/[^a-zA-Z0-9]/g, '-') || Math.random().toString(36).substring(2, 11)}`,
+      url: node.url || '',
+      title: node.title || extractPathFromUrl(node.url || ''),
       selected: node.selected !== false, // Default to true if not specified
       isExpanded: true
     };
 
     // Recursively process children if they exist
     if (node.children && node.children.length > 0) {
-      urlNode.children = node.children.map(child => buildUrlNodeRecursively(child));
+      urlNode.children = node.children
+        .filter(child => child) // Filter out null/undefined children
+        .map(child => buildUrlNodeRecursively(child));
     }
 
     return urlNode;
@@ -582,7 +617,10 @@ const ImportSourcesDialog = ({
   };
 
   const renderUrlTree = (nodes: UrlNode[], level = 0) => {
-    if (!nodes || nodes.length === 0) return null;
+    if (!nodes || nodes.length === 0) {
+      console.log("No nodes to render in URL tree");
+      return null;
+    }
     
     return (
       <div className={cn("space-y-1", level > 0 && "ml-4 mt-1 border-l pl-2")}>
@@ -614,15 +652,17 @@ const ImportSourcesDialog = ({
                 {node.title || extractPathFromUrl(node.url)}
               </div>
               
-              <a 
-                href={node.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
+              {node.url && (
+                <a 
+                  href={node.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
             </div>
             
             {node.children && node.children.length > 0 && node.isExpanded && (

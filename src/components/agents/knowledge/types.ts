@@ -36,13 +36,18 @@ export interface KnowledgeSource {
         url: string;
         title: string;
         selected?: boolean;
-        children?: any[];
+        children?: Array<{
+          url: string;
+          title: string;
+          selected?: boolean;
+          children?: any[];
+        }>;
       }[];
     }
   };
   icon?: string;
   knowledge_sources?: {
-    id: number;
+    id: number | string;
     url: string;
     title: string;
     selected?: boolean;
