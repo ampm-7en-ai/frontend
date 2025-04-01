@@ -19,6 +19,7 @@ import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -37,6 +38,8 @@ const KnowledgeSourceModal = ({
   const [viewMode, setViewMode] = useState<'markdown' | 'text'>('markdown');
   const [copied, setCopied] = useState(false);
   const [selectedSubSourceIds, setSelectedSubSourceIds] = useState<string[]>([]);
+  const [knowledgeSources, setKnowledgeSources] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
   const selectedSource = sources.find(s => s.id === selectedSourceId);
@@ -51,6 +54,43 @@ const KnowledgeSourceModal = ({
       }, 300);
     }
     onOpenChange(newOpen);
+  };
+
+  // Fetch knowledge sources from the API when modal opens
+  useEffect(() => {
+    if (open) {
+      fetchKnowledgeSources();
+    }
+  }, [open]);
+
+  const fetchKnowledgeSources = async () => {
+    setIsLoading(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      
+      const response = await fetch(`${getApiUrl(API_ENDPOINTS.KNOWLEDGEBASE)}?status=active`, {
+        headers: getAuthHeaders(token),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch knowledge sources: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setKnowledgeSources(data.results || []);
+    } catch (error) {
+      console.error("Error fetching knowledge sources:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch knowledge sources",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Initialize sub-source selections when a source is selected
@@ -233,35 +273,42 @@ const KnowledgeSourceModal = ({
             )}
           </div>
           
-          {/* Knowledge Sources Panel */}
+          {/* Knowledge Sources Panel - Now populated from the API */}
           <div className="w-1/3 flex flex-col">
             <div className="p-3 border-b bg-muted/30">
               <h3 className="text-sm font-medium">
-                {selectedSource 
-                  ? `Knowledge Sources (${selectedSource.knowledge_sources?.length || 0})` 
-                  : 'Knowledge Sources'}
+                {isLoading 
+                  ? 'Loading knowledge sources...' 
+                  : `Knowledge Sources (${knowledgeSources.length})`}
               </h3>
             </div>
             <ScrollArea className="flex-1">
-              {selectedSource?.knowledge_sources && selectedSource.knowledge_sources.length > 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center h-full p-8">
+                  <svg className="animate-spin h-6 w-6 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              ) : knowledgeSources.length > 0 ? (
                 <div className="p-3 space-y-2">
-                  {selectedSource.knowledge_sources.map((ks, index) => (
+                  {knowledgeSources.map((ks) => (
                     <div 
-                      key={`ks-${ks.id || index}`}
+                      key={`ks-${ks.id || ks.url}`}
                       className="flex items-start p-2 border rounded-md hover:bg-muted/20"
                     >
                       <Checkbox 
-                        id={`subSource-${ks.id || index}`}
+                        id={`subSource-${ks.id}`}
                         checked={selectedSubSourceIds.includes(`ks-${ks.id || ks.url}`)}
                         onCheckedChange={() => toggleSubSourceSelection(`ks-${ks.id || ks.url}`)}
                         className="mt-0.5 mr-3"
                       />
                       <div className="flex-1 min-w-0">
                         <label 
-                          htmlFor={`subSource-${ks.id || index}`} 
+                          htmlFor={`subSource-${ks.id}`} 
                           className="text-sm font-medium cursor-pointer truncate block"
                         >
-                          {ks.title || 'Untitled Source'}
+                          {ks.name || ks.title || 'Untitled Source'}
                         </label>
                         {ks.url && (
                           <span className="text-xs text-muted-foreground truncate block">
@@ -269,7 +316,11 @@ const KnowledgeSourceModal = ({
                           </span>
                         )}
                         {ks.status && (
-                          <span className={`text-xs ${ks.status === 'error' ? 'text-red-500' : ks.status === 'pending' ? 'text-amber-500' : 'text-green-500'} font-medium mt-1 inline-block`}>
+                          <span className={`text-xs ${
+                            ks.status === 'error' ? 'text-red-500' : 
+                            ks.status === 'pending' ? 'text-amber-500' : 
+                            'text-green-500'
+                          } font-medium mt-1 inline-block`}>
                             Status: {ks.status}
                           </span>
                         )}
@@ -278,6 +329,7 @@ const KnowledgeSourceModal = ({
                             {ks.metadata.format && <div>Format: {ks.metadata.format}</div>}
                             {ks.metadata.no_of_pages && <div>Pages: {ks.metadata.no_of_pages}</div>}
                             {ks.metadata.file_size && <div>Size: {ks.metadata.file_size}</div>}
+                            {ks.metadata.count && <div>Items: {ks.metadata.count}</div>}
                           </div>
                         )}
                       </div>
@@ -299,17 +351,9 @@ const KnowledgeSourceModal = ({
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 space-y-4">
                   <Globe className="h-10 w-10 text-muted-foreground/40" />
                   <div className="text-center max-w-md">
-                    <h3 className="text-base font-medium mb-2">
-                      {selectedSource 
-                        ? 'No knowledge sources available' 
-                        : 'Select a source to view knowledge sources'
-                      }
-                    </h3>
+                    <h3 className="text-base font-medium mb-2">No knowledge sources available</h3>
                     <p className="text-sm text-muted-foreground">
-                      {selectedSource
-                        ? 'This source does not contain any knowledge sources' 
-                        : 'Please select a source from the left panel'
-                      }
+                      No knowledge sources were found in the API response
                     </p>
                   </div>
                 </div>
