@@ -326,18 +326,25 @@ const ImportSourcesDialog = ({
         // Handle array format
         tree = source.domain_links.map(domainLink => {
           const rootUrl = domainLink.url || '';
+          
+          console.log(`Processing domain link with url: ${rootUrl}`, domainLink);
+          
           return {
             id: `node-${rootUrl.replace(/[^a-zA-Z0-9]/g, '-')}`,
             url: rootUrl,
             title: extractDomainFromUrl(rootUrl),
             selected: true,
-            children: domainLink.children?.map(child => buildUrlNodeRecursively(child)) || [],
+            children: domainLink.children ? 
+              domainLink.children.map(child => buildUrlNodeRecursively(child)) : 
+              [],
             isExpanded: true
           };
         });
       } else {
         // Handle direct object format
         const rootUrl = source.domain_links.url || '';
+        console.log(`Processing single domain_links object with url: ${rootUrl}`, source.domain_links);
+        
         const rootNode: UrlNode = {
           id: `node-${rootUrl.replace(/[^a-zA-Z0-9]/g, '-')}`,
           url: rootUrl,
@@ -349,6 +356,8 @@ const ImportSourcesDialog = ({
 
         // Add children to root node - use recursive function to handle nested children
         if (source.domain_links.children && source.domain_links.children.length > 0) {
+          console.log(`Root node has ${source.domain_links.children.length} children`);
+          
           rootNode.children = source.domain_links.children.map(child => {
             return buildUrlNodeRecursively(child);
           });
@@ -361,6 +370,7 @@ const ImportSourcesDialog = ({
     } 
     // Fallback to knowledge_sources if domain_links is not available
     else if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+      console.log("Falling back to knowledge_sources for URL tree");
       // Group by domain first
       const domains = new Map<string, UrlNode>();
       
@@ -413,16 +423,25 @@ const ImportSourcesDialog = ({
 
     console.log("Building node recursively:", node);
     
+    // Ensure node has a URL
+    const nodeUrl = node.url || '';
+    
+    // Generate a unique ID for the node
+    const nodeId = `node-${nodeUrl.replace(/[^a-zA-Z0-9]/g, '-') || Math.random().toString(36).substring(2, 11)}`;
+    
+    // Create the URL node
     const urlNode: UrlNode = {
-      id: `node-${node.url?.replace(/[^a-zA-Z0-9]/g, '-') || Math.random().toString(36).substring(2, 11)}`,
-      url: node.url || '',
-      title: node.title || extractPathFromUrl(node.url || ''),
+      id: nodeId,
+      url: nodeUrl,
+      title: node.title || extractPathFromUrl(nodeUrl),
       selected: node.selected !== false, // Default to true if not specified
       isExpanded: true
     };
 
     // Recursively process children if they exist
     if (node.children && node.children.length > 0) {
+      console.log(`Node ${nodeId} has ${node.children.length} children`);
+      
       urlNode.children = node.children
         .filter(child => child) // Filter out null/undefined children
         .map(child => buildUrlNodeRecursively(child));

@@ -32,18 +32,11 @@ export interface KnowledgeSource {
     no_of_pages?: number;
     domain_links?: {
       url: string;
-      children?: {
-        url: string;
-        title: string;
-        selected?: boolean;
-        children?: Array<{
-          url: string;
-          title: string;
-          selected?: boolean;
-          children?: any[];
-        }>;
-      }[];
-    }
+      children?: Array<UrlNode>;
+    } | Array<{
+      url: string;
+      children?: Array<UrlNode>;
+    }>;
   };
   icon?: string;
   knowledge_sources?: {
@@ -52,4 +45,12 @@ export interface KnowledgeSource {
     title: string;
     selected?: boolean;
   }[];
+}
+
+// Define recursive UrlNode interface for nested URL structure
+export interface UrlNode {
+  url: string;
+  title?: string;
+  selected?: boolean;
+  children?: Array<UrlNode>;
 }
