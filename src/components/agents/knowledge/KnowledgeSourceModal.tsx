@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource } from './types';
@@ -45,11 +44,16 @@ const KnowledgeSourceModal = ({
         // For domain_links, we need to preserve the hierarchical structure
         let domainLinks = undefined;
         
-        if ((source.type === 'website' || source.type === 'url')) {
-          if (hasChildren && source.children && source.children[0] && source.children[0].children) {
+        // First check if metadata has domain_links (this is the new API structure)
+        if (source.metadata && source.metadata.domain_links) {
+          domainLinks = source.metadata.domain_links;
+        }
+        // Otherwise build domain_links from insideLinks or children properties
+        else if ((source.type === 'website' || source.type === 'url')) {
+          if (hasChildren && source.children && source.children.length > 0) {
             // Use the hierarchical structure directly if it exists in children
             domainLinks = {
-              url: source.children[0].url || '',
+              url: source.children[0]?.url || '',
               children: source.children
             };
           } else if (hasInsideLinks) {
