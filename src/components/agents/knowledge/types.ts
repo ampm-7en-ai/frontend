@@ -32,9 +32,11 @@ export interface KnowledgeSource {
     no_of_pages?: number;
     domain_links?: {
       url: string;
+      title?: string;
       children?: Array<UrlNode>;
     } | Array<{
       url: string;
+      title?: string;
       children?: Array<UrlNode>;
     }>;
   };

@@ -34,10 +34,8 @@ const KnowledgeSourceModal = ({
           format: source.type,
           pages: source.metadata?.no_of_pages?.toString(),
           children: undefined,
-          // Make domain_links match the expected format in ImportSourcesDialog
-          domain_links: (source.type === 'website' || source.type === 'url') 
-            ? domainLinks 
-            : undefined,
+          // Pass domain_links directly to ensure the website structure is preserved
+          domain_links: domainLinks,
           // Ensure knowledge_sources exists for website/url type sources
           knowledge_sources: (source.type === 'website' || source.type === 'url') 
             ? source.insideLinks?.map(link => ({

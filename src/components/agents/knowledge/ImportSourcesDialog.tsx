@@ -18,7 +18,7 @@ import {
   Calendar, CheckCircle, Database, ArrowRight, ExternalLink, 
   ChevronRight, ChevronDown, Link, ArrowDown
 } from 'lucide-react';
-import { KnowledgeSource } from './types';
+import { KnowledgeSource, UrlNode } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { formatFileSizeToMB } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
@@ -42,12 +42,14 @@ interface ExternalSource {
   knowledge_sources?: any[];
   domain_links?: {
     url: string;
-    children?: {
+    children?: Array<{
       url: string;
+      title?: string;
       children?: any[];
-    }[];
+    }>;
   } | Array<{
     url: string;
+    title?: string;
     children?: any[];
   }>;
 }
@@ -69,12 +71,12 @@ interface ImportSourcesDialogProps {
   initialSourceId?: number | null;
 }
 
-interface UrlNode {
+interface UrlNodeDisplay {
   id: string;
   url: string;
   title: string;
   selected?: boolean;
-  children?: UrlNode[];
+  children?: UrlNodeDisplay[];
   isExpanded?: boolean;
 }
 
@@ -92,7 +94,7 @@ export const ImportSourcesDialog = ({
   const [selectedTab, setSelectedTab] = useState<string>('all');
   const [activeSourceId, setActiveSourceId] = useState<number | null>(initialSourceId || null);
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
-  const [urlTree, setUrlTree] = useState<UrlNode[]>([]);
+  const [urlTree, setUrlTree] = useState<UrlNodeDisplay[]>([]);
   const [expandedUrls, setExpandedUrls] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
 
@@ -126,23 +128,11 @@ export const ImportSourcesDialog = ({
   const getFilteredSources = () => {
     if (!externalSources) return [];
 
-    const currentSourceIds = currentSources.map(s => s.id);
-
     return externalSources.filter(source => {
-      // Filter by search
+      // Filter by search term only
       if (searchTerm && !source.name.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
       }
-
-      // Filter by tab
-      if (selectedTab === 'existing' && !currentSourceIds.includes(source.id)) {
-        return false;
-      } else if (selectedTab === 'new' && currentSourceIds.includes(source.id)) {
-        return false;
-      } else if (selectedTab !== 'all' && source.type !== selectedTab) {
-        return false;
-      }
-
       return true;
     });
   };
@@ -158,22 +148,41 @@ export const ImportSourcesDialog = ({
 
   const getSourceTypes = (): SourceType[] => {
     const filteredSources = getFilteredSources();
-    const types: { [key: string]: { count: number; selectedCount: number; name: string; icon: React.ReactNode } } = {
-      'document': { count: 0, selectedCount: 0, name: 'Documents', icon: <FileText className="h-4 w-4" /> },
-      'website': { count: 0, selectedCount: 0, name: 'Websites', icon: <Globe className="h-4 w-4" /> },
-      'spreadsheet': { count: 0, selectedCount: 0, name: 'Spreadsheets', icon: <FileSpreadsheet className="h-4 w-4" /> },
-      'database': { count: 0, selectedCount: 0, name: 'Databases', icon: <Database className="h-4 w-4" /> },
-    };
+    const types: { [key: string]: { count: number; selectedCount: number; name: string; icon: React.ReactNode } } = {};
 
+    // Get unique types from the external sources
     filteredSources.forEach(source => {
       const type = source.type === 'url' ? 'website' : source.type.toLowerCase();
-      const category = types[type] || types['document'];
-      
-      if (category) {
-        category.count++;
-        if (selectedSourceIds.includes(source.id)) {
-          category.selectedCount++;
+      if (!types[type]) {
+        let icon;
+        switch (type) {
+          case 'document':
+            icon = <FileText className="h-4 w-4" />;
+            break;
+          case 'website':
+            icon = <Globe className="h-4 w-4" />;
+            break;
+          case 'spreadsheet':
+            icon = <FileSpreadsheet className="h-4 w-4" />;
+            break;
+          case 'database':
+            icon = <Database className="h-4 w-4" />;
+            break;
+          default:
+            icon = <File className="h-4 w-4" />;
         }
+        
+        types[type] = {
+          count: 0,
+          selectedCount: 0,
+          name: type.charAt(0).toUpperCase() + type.slice(1) + 's',
+          icon
+        };
+      }
+      
+      types[type].count++;
+      if (selectedSourceIds.includes(source.id)) {
+        types[type].selectedCount++;
       }
     });
 
@@ -183,35 +192,34 @@ export const ImportSourcesDialog = ({
       icon: data.icon,
       count: data.count,
       selectedCount: data.selectedCount
-    })).filter(type => type.count > 0);
+    }));
   };
 
-  const buildUrlTree = (source: ExternalSource): UrlNode[] => {
+  const buildUrlTree = (source: ExternalSource): UrlNodeDisplay[] => {
     if (!source.domain_links) {
       return [];
     }
     
     // Handle both object and array formats for domain_links
     if (Array.isArray(source.domain_links)) {
-      return source.domain_links.map(link => buildUrlNodeRecursively(link, link.url));
+      return source.domain_links.map(link => buildUrlNodeRecursively(link));
     } else if (source.domain_links && typeof source.domain_links === 'object') {
-      return [buildUrlNodeRecursively(source.domain_links, source.domain_links.url)];
+      return [buildUrlNodeRecursively(source.domain_links)];
     }
     
     return [];
   };
 
   const buildUrlNodeRecursively = (
-    node: { url: string; children?: any[] },
-    url: string
-  ): UrlNode => {
-    const id = `url-${url.replace(/[^a-zA-Z0-9]/g, '-')}`;
-    const title = url.split('/').pop() || url;
+    node: { url: string; title?: string; children?: any[] }
+  ): UrlNodeDisplay => {
+    const id = `url-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`;
+    const title = node.title || node.url.split('/').pop() || node.url;
     
     // Create the node
-    const urlNode: UrlNode = {
+    const urlNode: UrlNodeDisplay = {
       id,
-      url,
+      url: node.url,
       title,
       selected: true,
       children: [],
@@ -221,7 +229,7 @@ export const ImportSourcesDialog = ({
     // Process children if they exist
     if (node.children && node.children.length > 0) {
       urlNode.children = node.children.map(child => 
-        buildUrlNodeRecursively(child, child.url)
+        buildUrlNodeRecursively(child)
       );
     }
     
@@ -229,7 +237,7 @@ export const ImportSourcesDialog = ({
   };
 
   const toggleUrlNode = (nodeId: string, selected: boolean) => {
-    const updateNodes = (nodes: UrlNode[]): UrlNode[] => {
+    const updateNodes = (nodes: UrlNodeDisplay[]): UrlNodeDisplay[] => {
       return nodes.map(node => {
         if (node.id === nodeId) {
           const updatedNode = { ...node, selected };
@@ -285,7 +293,7 @@ export const ImportSourcesDialog = ({
     setUrlTree(prev => updateExpandedState(prev, nodeId));
   };
 
-  const updateExpandedState = (nodes: UrlNode[], nodeId: string): UrlNode[] => {
+  const updateExpandedState = (nodes: UrlNodeDisplay[], nodeId: string): UrlNodeDisplay[] => {
     return nodes.map(node => {
       if (node.id === nodeId) {
         return { ...node, isExpanded: !node.isExpanded };
@@ -300,7 +308,7 @@ export const ImportSourcesDialog = ({
     onImport(selectedSourceIds);
   };
 
-  const renderUrlTree = (nodes: UrlNode[], level: number = 0) => {
+  const renderUrlTree = (nodes: UrlNodeDisplay[], level: number = 0) => {
     if (!nodes || nodes.length === 0) return null;
     
     return (
@@ -424,7 +432,7 @@ export const ImportSourcesDialog = ({
     );
   };
 
-  // Render source details with more visual hierarchy
+  // Render source details focusing on website structure
   const renderSourceDetails = () => {
     if (!selectedSource) {
       return (
@@ -503,18 +511,17 @@ export const ImportSourcesDialog = ({
         <ScrollArea className="flex-1">
           {(selectedSource.type === 'website' || selectedSource.type === 'url') ? (
             <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-sm">Website Structure</h4>
+                <div className="text-xs text-muted-foreground">
+                  Select pages to include
+                </div>
+              </div>
+              
               {urlTree.length > 0 ? (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium text-sm">Website Structure</h4>
-                    <div className="text-xs text-muted-foreground">
-                      Select pages to include
-                    </div>
-                  </div>
-                  <div className="border rounded-md overflow-hidden p-2 bg-gray-50/50">
-                    {renderUrlTree(urlTree)}
-                  </div>
-                </>
+                <div className="border rounded-md overflow-hidden p-2 bg-gray-50/50">
+                  {renderUrlTree(urlTree)}
+                </div>
               ) : (
                 <div className="py-6 text-center text-muted-foreground border border-dashed rounded-md">
                   <Globe className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
@@ -622,36 +629,6 @@ export const ImportSourcesDialog = ({
                 </button>
               ))}
             </div>
-            
-            <Separator className="my-4" />
-            
-            <div className="font-medium mb-2 text-sm">Filter</div>
-            <div className="flex gap-1">
-              <Button
-                variant={selectedTab === 'all' ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedTab('all')}
-                className="flex-1"
-              >
-                All
-              </Button>
-              <Button
-                variant={selectedTab === 'new' ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedTab('new')}
-                className="flex-1"
-              >
-                New
-              </Button>
-              <Button
-                variant={selectedTab === 'existing' ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedTab('existing')}
-                className="flex-1"
-              >
-                Existing
-              </Button>
-            </div>
           </div>
           
           {/* Middle Panel - Source List */}
@@ -713,5 +690,4 @@ export const ImportSourcesDialog = ({
   );
 };
 
-// Add default export
 export default ImportSourcesDialog;
