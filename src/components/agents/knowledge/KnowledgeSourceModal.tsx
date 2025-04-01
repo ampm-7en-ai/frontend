@@ -1,6 +1,6 @@
 
 import React from 'react';
-import ImportSourcesDialog from './ImportSourcesDialog';
+import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { KnowledgeSource } from './types';
 
 interface KnowledgeSourceModalProps {
