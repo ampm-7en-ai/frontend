@@ -305,6 +305,7 @@ const ImportSourcesDialog = ({
 
     // Check if source has domain_links
     if (source.domain_links) {
+      console.log("Building URL tree from domain_links:", source.domain_links);
       const rootUrl = source.domain_links.url;
       const rootNode: UrlNode = {
         id: `node-${rootUrl.replace(/[^a-zA-Z0-9]/g, '-')}`,
@@ -315,10 +316,10 @@ const ImportSourcesDialog = ({
         isExpanded: true
       };
 
-      // Add children to root node
+      // Add children to root node - use recursive function to handle nested children
       if (source.domain_links.children && source.domain_links.children.length > 0) {
         rootNode.children = source.domain_links.children.map(child => {
-          return buildUrlNode(child);
+          return buildUrlNodeRecursively(child);
         });
       }
 
@@ -360,20 +361,22 @@ const ImportSourcesDialog = ({
       tree = Array.from(domains.values());
     }
 
+    console.log("Final URL tree:", tree);
     setUrlTree(tree);
   };
 
-  const buildUrlNode = (node: any): UrlNode => {
+  const buildUrlNodeRecursively = (node: any): UrlNode => {
     const urlNode: UrlNode = {
       id: `node-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`,
       url: node.url,
-      title: extractPathFromUrl(node.url),
-      selected: true,
+      title: node.title || extractPathFromUrl(node.url),
+      selected: node.selected !== false, // Default to true if not specified
       isExpanded: true
     };
 
+    // Recursively process children if they exist
     if (node.children && node.children.length > 0) {
-      urlNode.children = node.children.map(child => buildUrlNode(child));
+      urlNode.children = node.children.map(child => buildUrlNodeRecursively(child));
     }
 
     return urlNode;
@@ -423,9 +426,12 @@ const ImportSourcesDialog = ({
             // Update this node
             const updatedNode = { ...node, selected };
             
-            // If this node has children, update them too
+            // If this node has children, update them too (apply selection to all children)
             if (updatedNode.children && updatedNode.children.length > 0) {
-              updatedNode.children = updateNodeSelection(updatedNode.children);
+              updatedNode.children = updateNodeSelection(updatedNode.children).map(child => ({
+                ...child,
+                selected // Apply the same selection to all children
+              }));
             }
             
             return updatedNode;
@@ -444,8 +450,9 @@ const ImportSourcesDialog = ({
     });
     
     // Update selectedUrlIds based on the tree
+    // If it's a non-leaf node, don't directly update selectedUrlIds
     if (nodeId.startsWith('node-') || nodeId.startsWith('domain-')) {
-      return; // Don't update selectedUrlIds for parent nodes
+      return;
     }
     
     if (selected) {

@@ -30,13 +30,16 @@ const KnowledgeSourceModal = ({
         pages: source.metadata?.no_of_pages?.toString(),
         children: undefined,
         // Map domain_links for website/url type sources to create tree structure
+        // Preserve the entire nested structure of domain_links including all children
         domain_links: source.type === 'website' || source.type === 'url' 
           ? { 
               url: source.insideLinks?.[0]?.url || '', 
               children: source.insideLinks?.map(link => ({
                 url: link.url,
                 title: link.title,
-                selected: link.selected !== false
+                selected: link.selected !== false,
+                // Preserve any nested children from the original structure
+                children: link.children || []
               })) || []
             }
           : undefined,
