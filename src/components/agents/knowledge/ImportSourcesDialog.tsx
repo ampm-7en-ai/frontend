@@ -39,15 +39,7 @@ interface ExternalSource {
   path?: string;
   urls?: { url: string; title: string; id?: string; selected?: boolean; }[];
   knowledge_sources?: any[];
-  domain_links?: {
-    url: string;
-    title?: string;
-    children?: Array<UrlNode>;
-  } | Array<{
-    url: string;
-    title?: string;
-    children?: Array<UrlNode>;
-  }>;
+  domain_links?: UrlNode | UrlNode[];
 }
 
 interface SourceType {
@@ -123,14 +115,11 @@ export const ImportSourcesDialog = ({
   }, [isOpen, initialSourceId]);
 
   useEffect(() => {
-    // Filter center panel based on left panel selection
     const filtered = externalSources.filter(source => {
-      // Filter by selected type if not "all"
       if (selectedTab !== 'all' && source.type !== selectedTab) {
         return false;
       }
       
-      // Filter by search term
       if (searchTerm && !source.name.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
       }
@@ -153,7 +142,6 @@ export const ImportSourcesDialog = ({
   const getSourceTypes = (): SourceType[] => {
     const types: { [key: string]: { count: number; selectedCount: number; name: string; icon: React.ReactNode } } = {};
 
-    // Add "All" type
     types['all'] = {
       count: externalSources.length,
       selectedCount: selectedSourceIds.length,
@@ -161,7 +149,6 @@ export const ImportSourcesDialog = ({
       icon: <FileSearch className="h-4 w-4" />
     };
 
-    // Get unique types from the external sources
     externalSources.forEach(source => {
       const type = source.type;
       if (!types[type]) {
@@ -217,45 +204,35 @@ export const ImportSourcesDialog = ({
       return [];
     }
     
-    // Handle both object and array formats for domain_links
     if (Array.isArray(source.domain_links)) {
       console.log('Domain links is an array with', source.domain_links.length, 'items');
-      // Process each domain_links item
       return source.domain_links.map(link => {
-        // Create a root node from the current link
-        const rootNode = buildUrlNodeRecursively(link);
-        return rootNode;
+        return buildUrlNodeRecursively(link);
       });
     } else if (source.domain_links && typeof source.domain_links === 'object') {
       console.log('Domain links is a single object');
-      // Create a single root node from the domain_links object
-      const rootNode = buildUrlNodeRecursively(source.domain_links);
-      return [rootNode];
+      return [buildUrlNodeRecursively(source.domain_links)];
     }
     
     console.log('Unrecognized domain_links format');
     return [];
   };
 
-  const buildUrlNodeRecursively = (
-    node: { url: string; title?: string; children?: Array<UrlNode> }
-  ): UrlNodeDisplay => {
+  const buildUrlNodeRecursively = (node: UrlNode): UrlNodeDisplay => {
     console.log('Building node for URL:', node.url);
     
     const id = `url-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`;
     const title = node.title || node.url.split('/').pop() || node.url;
     
-    // Create the node
     const urlNode: UrlNodeDisplay = {
       id,
       url: node.url,
       title,
-      selected: true,
+      selected: node.selected !== false,
       children: [],
       isExpanded: expandedUrls.has(id)
     };
     
-    // Process children if they exist
     if (node.children && node.children.length > 0) {
       console.log(`Processing ${node.children.length} children for URL ${node.url}`);
       urlNode.children = node.children.map(child => 
@@ -319,7 +296,6 @@ export const ImportSourcesDialog = ({
       return newSet;
     });
     
-    // Also update the tree with the new expanded state
     setUrlTree(prev => updateExpandedState(prev, nodeId));
   };
 
@@ -399,7 +375,6 @@ export const ImportSourcesDialog = ({
   const sourceTypes = getSourceTypes();
   const isSourceSelected = selectedSourceIds.length > 0;
 
-  // Render source card with improved visual design
   const renderSourceCard = (source: ExternalSource) => {
     const isSelected = selectedSourceIds.includes(source.id);
     const isActive = activeSourceId === source.id;
@@ -461,7 +436,6 @@ export const ImportSourcesDialog = ({
     );
   };
 
-  // Render source details focusing on website structure
   const renderSourceDetails = () => {
     if (!selectedSource) {
       return (
@@ -612,7 +586,6 @@ export const ImportSourcesDialog = ({
         </DialogHeader>
         
         <div className="flex flex-col md:flex-row h-[500px]">
-          {/* Left Panel - Source Types */}
           <div className="w-60 border-r p-4 flex flex-col">
             <div className="font-medium mb-3 text-sm">Source Types</div>
             <div className="space-y-1">
@@ -644,7 +617,6 @@ export const ImportSourcesDialog = ({
             </div>
           </div>
           
-          {/* Middle Panel - Source List */}
           <div className="w-72 border-r flex flex-col">
             <div className="p-4 border-b">
               <div className="relative">
@@ -672,7 +644,6 @@ export const ImportSourcesDialog = ({
             </ScrollArea>
           </div>
           
-          {/* Right Panel - Source Details */}
           <div className="flex-1 flex flex-col">
             {renderSourceDetails()}
           </div>

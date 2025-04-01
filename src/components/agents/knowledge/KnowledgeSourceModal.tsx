@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
-import { KnowledgeSource } from './types';
+import { KnowledgeSource, UrlNode } from './types';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -17,6 +17,38 @@ const KnowledgeSourceModal = ({
   sources, 
   initialSourceId 
 }: KnowledgeSourceModalProps) => {
+  // Process domain links to ensure they're in the correct format
+  const processedSources = sources.map(source => {
+    // Get domain_links directly from source.metadata
+    const domainLinks = source.metadata?.domain_links;
+    
+    // Log source structure for debugging
+    console.log(`Processing source: ${source.name}`, {
+      type: source.type,
+      hasDomainLinks: !!domainLinks,
+      domainLinksType: domainLinks ? (Array.isArray(domainLinks) ? 'array' : typeof domainLinks) : 'undefined'
+    });
+    
+    // Create the transformed source with properly formatted domain_links
+    return {
+      ...source,
+      format: source.type,
+      pages: source.metadata?.no_of_pages?.toString(),
+      children: undefined,
+      // Ensure domain_links has the correct structure for the ImportSourcesDialog
+      domain_links: domainLinks,
+      // Ensure knowledge_sources exists for website/url type sources
+      knowledge_sources: (source.type === 'website' || source.type === 'url') 
+        ? source.insideLinks?.map(link => ({
+            id: link.url.split('/').pop() || Math.random().toString(36).substring(2, 11),
+            url: link.url,
+            title: link.title,
+            selected: link.selected !== false
+          })) || []
+        : []
+    };
+  });
+  
   // The ImportSourcesDialog expects isOpen, but we receive open
   return (
     <ImportSourcesDialog
@@ -24,29 +56,7 @@ const KnowledgeSourceModal = ({
       onOpenChange={onOpenChange}
       currentSources={sources}
       onImport={() => {}} // Provide an empty handler for the onImport prop
-      externalSources={sources.map(source => {
-        // Get domain_links directly from source.metadata
-        const domainLinks = source.metadata?.domain_links;
-        
-        // Create the transformed source with properly formatted domain_links
-        return {
-          ...source,
-          format: source.type,
-          pages: source.metadata?.no_of_pages?.toString(),
-          children: undefined,
-          // Pass domain_links directly to ensure the website structure is preserved
-          domain_links: domainLinks,
-          // Ensure knowledge_sources exists for website/url type sources
-          knowledge_sources: (source.type === 'website' || source.type === 'url') 
-            ? source.insideLinks?.map(link => ({
-                id: link.url.split('/').pop() || Math.random().toString(36).substring(2, 11),
-                url: link.url,
-                title: link.title,
-                selected: link.selected !== false
-              })) || []
-            : []
-        };
-      })}
+      externalSources={processedSources}
       initialSourceId={initialSourceId}
     />
   );

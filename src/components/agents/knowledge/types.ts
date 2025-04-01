@@ -30,15 +30,7 @@ export interface KnowledgeSource {
     no_of_chars?: number;
     no_of_rows?: number;
     no_of_pages?: number;
-    domain_links?: {
-      url: string;
-      title?: string;
-      children?: Array<UrlNode>;
-    } | Array<{
-      url: string;
-      title?: string;
-      children?: Array<UrlNode>;
-    }>;
+    domain_links?: UrlNode | UrlNode[];
   };
   icon?: string;
   knowledge_sources?: {
