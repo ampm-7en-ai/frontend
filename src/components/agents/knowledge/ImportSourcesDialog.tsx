@@ -129,10 +129,16 @@ export const ImportSourcesDialog = ({
     if (!externalSources) return [];
 
     return externalSources.filter(source => {
-      // Filter by search term only
+      // Filter by selected type if not "all"
+      if (selectedTab !== 'all' && source.type !== selectedTab) {
+        return false;
+      }
+      
+      // Filter by search term
       if (searchTerm && !source.name.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
       }
+      
       return true;
     });
   };
@@ -147,12 +153,19 @@ export const ImportSourcesDialog = ({
   };
 
   const getSourceTypes = (): SourceType[] => {
-    const filteredSources = getFilteredSources();
     const types: { [key: string]: { count: number; selectedCount: number; name: string; icon: React.ReactNode } } = {};
 
+    // Add "All" type
+    types['all'] = {
+      count: externalSources.length,
+      selectedCount: selectedSourceIds.length,
+      name: "All",
+      icon: <FileSearch className="h-4 w-4" />
+    };
+
     // Get unique types from the external sources
-    filteredSources.forEach(source => {
-      const type = source.type === 'url' ? 'website' : source.type.toLowerCase();
+    externalSources.forEach(source => {
+      const type = source.type;
       if (!types[type]) {
         let icon;
         switch (type) {
@@ -160,9 +173,11 @@ export const ImportSourcesDialog = ({
             icon = <FileText className="h-4 w-4" />;
             break;
           case 'website':
+          case 'url':
             icon = <Globe className="h-4 w-4" />;
             break;
           case 'spreadsheet':
+          case 'csv':
             icon = <FileSpreadsheet className="h-4 w-4" />;
             break;
           case 'database':
@@ -175,7 +190,7 @@ export const ImportSourcesDialog = ({
         types[type] = {
           count: 0,
           selectedCount: 0,
-          name: type.charAt(0).toUpperCase() + type.slice(1) + 's',
+          name: type,
           icon
         };
       }
@@ -587,22 +602,6 @@ export const ImportSourcesDialog = ({
           <div className="w-60 border-r p-4 flex flex-col">
             <div className="font-medium mb-3 text-sm">Source Types</div>
             <div className="space-y-1">
-              <button
-                className={cn(
-                  "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors",
-                  selectedTab === 'all' ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                )}
-                onClick={() => setSelectedTab('all')}
-              >
-                <div className="flex items-center gap-2">
-                  <FileSearch className="h-4 w-4" />
-                  <span>All Sources</span>
-                </div>
-                <Badge variant="outline" className="h-5 px-1.5">
-                  {filteredSources.length}
-                </Badge>
-              </button>
-              
               {sourceTypes.map(type => (
                 <button
                   key={type.id}
@@ -617,7 +616,7 @@ export const ImportSourcesDialog = ({
                     <span>{type.name}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    {type.selectedCount > 0 && (
+                    {type.selectedCount > 0 && type.id !== 'all' && (
                       <Badge className="h-5 px-1.5 bg-primary text-primary-foreground">
                         {type.selectedCount}
                       </Badge>
