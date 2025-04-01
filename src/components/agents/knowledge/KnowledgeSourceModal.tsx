@@ -5,41 +5,54 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogClose
+  DialogClose,
+  DialogFooter
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BookOpen, Database, Globe, FileText, 
   Code, Copy, Check, X, Bookmark,
-  ExternalLink, CheckSquare, Square
+  ExternalLink, Calendar, Search, CheckSquare, Square
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { getApiUrl, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { getApiUrl, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
+import { useQuery } from '@tanstack/react-query';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sources: KnowledgeSource[];
   initialSourceId?: number | null;
+  onImport?: (selectedSourceIds: number[]) => void;
+  isImportMode?: boolean;
 }
 
 const KnowledgeSourceModal = ({ 
   open, 
   onOpenChange, 
   sources, 
-  initialSourceId 
+  initialSourceId,
+  onImport,
+  isImportMode = false
 }: KnowledgeSourceModalProps) => {
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(initialSourceId || null);
   const [viewMode, setViewMode] = useState<'markdown' | 'text'>('markdown');
   const [copied, setCopied] = useState(false);
+  const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
   const [selectedSubSourceIds, setSelectedSubSourceIds] = useState<string[]>([]);
   const [knowledgeSources, setKnowledgeSources] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSourceType, setActiveSourceType] = useState<string>('all');
+  const [filteredSources, setFilteredSources] = useState<KnowledgeSource[]>(sources);
   const { toast } = useToast();
 
   const selectedSource = sources.find(s => s.id === selectedSourceId);
@@ -51,6 +64,7 @@ const KnowledgeSourceModal = ({
       setTimeout(() => {
         setSelectedSourceId(null);
         setSelectedSubSourceIds([]);
+        setSelectedImportSources([]);
       }, 300);
     }
     onOpenChange(newOpen);
@@ -62,6 +76,24 @@ const KnowledgeSourceModal = ({
       fetchKnowledgeSources();
     }
   }, [open]);
+
+  // Filter sources when search query or source type changes
+  useEffect(() => {
+    let filtered = [...sources];
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(source => 
+        source.name.toLowerCase().includes(query)
+      );
+    }
+    
+    if (activeSourceType !== 'all') {
+      filtered = filtered.filter(source => source.type === activeSourceType);
+    }
+    
+    setFilteredSources(filtered);
+  }, [sources, activeSourceType, searchQuery]);
 
   const fetchKnowledgeSources = async () => {
     setIsLoading(true);
@@ -134,6 +166,24 @@ const KnowledgeSourceModal = ({
     }
   };
 
+  const getSourceTypeIcon = (source: { type: string }) => {
+    switch (source.type) {
+      case 'docs':
+        return <FileText className="h-4 w-4 text-blue-600" />;
+      case 'website':
+      case 'url':
+        return <Globe className="h-4 w-4 text-green-600" />;
+      case 'csv':
+        return <Database className="h-4 w-4 text-emerald-600" />;
+      case 'plain_text':
+        return <FileText className="h-4 w-4 text-purple-600" />;
+      case 'database':
+        return <Database className="h-4 w-4 text-amber-600" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
   const getSourceStatusClass = (source: KnowledgeSource) => {
     if (source.linkBroken) return "border-orange-200 bg-orange-50";
     if (source.hasError) return "border-red-200 bg-red-50";
@@ -150,23 +200,134 @@ const KnowledgeSourceModal = ({
     });
   };
 
+  const toggleImportSelection = (sourceId: number) => {
+    setSelectedImportSources(prev => 
+      prev.includes(sourceId) 
+        ? prev.filter(id => id !== sourceId) 
+        : [...prev, sourceId]
+    );
+
+    // Also select the source to view details
+    if (isImportMode) {
+      setSelectedSourceId(sourceId);
+    }
+  };
+
+  const handleImport = () => {
+    if (selectedImportSources.length === 0) {
+      toast({
+        title: "No sources selected",
+        description: "Please select at least one knowledge source to import.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    onOpenChange(false);
+    const sourcesToImport = selectedImportSources;
+    setSelectedImportSources([]);
+
+    if (onImport) {
+      onImport(sourcesToImport);
+    }
+  };
+
+  // Check if a source is already imported
+  const isSourceAlreadyImported = (sourceId: number) => {
+    return sources.some(s => s.id === sourceId);
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB');
+  };
+
+  // Source type categories for filtering
+  const sourceTypes = [
+    { id: 'all', name: 'All Sources', icon: <FileText className="h-4 w-4" /> },
+    { id: 'document', name: 'Documents', icon: <FileText className="h-4 w-4 text-blue-600" /> },
+    { id: 'webpage', name: 'Websites', icon: <Globe className="h-4 w-4 text-green-600" /> },
+    { id: 'database', name: 'Databases', icon: <Database className="h-4 w-4 text-purple-600" /> }
+  ];
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden flex flex-col">
         <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle className="text-xl">Knowledge Sources</DialogTitle>
+          <DialogTitle className="text-xl">
+            {isImportMode ? 'Import Knowledge Sources' : 'Knowledge Sources'}
+          </DialogTitle>
           <DialogClose className="absolute right-4 top-4 opacity-70 ring-offset-background transition-opacity hover:opacity-100" />
         </DialogHeader>
         
+        {isImportMode && (
+          <div className="p-4 flex items-center border-b">
+            <Search className="h-4 w-4 mr-2 text-muted-foreground" />
+            <Input
+              placeholder="Search knowledge sources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 h-9"
+            />
+            {searchQuery && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={() => setSearchQuery('')}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
+        
         <div className="flex flex-1 overflow-hidden">
           {/* Sources Panel */}
-          <div className="w-1/4 border-r flex flex-col">
+          <div className={isImportMode ? "w-1/4 border-r flex flex-col" : "w-1/3 border-r flex flex-col"}>
+            {isImportMode && (
+              <div className="w-full border-r p-2 bg-muted/20">
+                <ScrollArea className="h-full">
+                  <nav className="grid gap-1 px-2">
+                    {sourceTypes.map((type) => (
+                      <Button
+                        key={type.id}
+                        variant={activeSourceType === type.id ? "secondary" : "ghost"}
+                        className={cn(
+                          "justify-start font-normal h-9",
+                          activeSourceType === type.id ? "bg-muted" : ""
+                        )}
+                        onClick={() => setActiveSourceType(type.id)}
+                      >
+                        <span className="mr-2 text-muted-foreground">{type.icon}</span>
+                        <span className="truncate">{type.name}</span>
+                        {activeSourceType === type.id && selectedImportSources.length > 0 && (
+                          <Badge 
+                            variant="outline" 
+                            className="ml-auto bg-green-100 text-green-800 border-green-300"
+                          >
+                            {selectedImportSources.length}
+                          </Badge>
+                        )}
+                      </Button>
+                    ))}
+                  </nav>
+                </ScrollArea>
+              </div>
+            )}
             <div className="p-3 border-b bg-muted/30">
-              <h3 className="text-sm font-medium">Available Sources ({sources.length})</h3>
+              <h3 className="text-sm font-medium">
+                {isImportMode 
+                  ? `Available Sources (${filteredSources.length})` 
+                  : `Available Sources (${sources.length})`}
+              </h3>
             </div>
             <ScrollArea className="flex-1">
               <div className="p-3 space-y-2">
-                {sources.map(source => (
+                {filteredSources.map(source => (
                   <div 
                     key={source.id}
                     onClick={() => setSelectedSourceId(source.id)}
@@ -181,6 +342,14 @@ const KnowledgeSourceModal = ({
                         {getSourceIcon(source.type)}
                         <span className="font-medium">{source.name}</span>
                       </div>
+                      {isImportMode && (
+                        <Checkbox 
+                          checked={selectedImportSources.includes(source.id)}
+                          onCheckedChange={() => toggleImportSelection(source.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="ml-2"
+                        />
+                      )}
                       {source.hasError && <span className="text-xs text-red-500 font-medium px-1.5 py-0.5 bg-red-50 rounded-full">Error</span>}
                       {source.linkBroken && <span className="text-xs text-orange-500 font-medium px-1.5 py-0.5 bg-orange-50 rounded-full">Link broken</span>}
                     </div>
@@ -190,12 +359,21 @@ const KnowledgeSourceModal = ({
                     </div>
                   </div>
                 ))}
+                
+                {filteredSources.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <FileText className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                    <p className="text-muted-foreground">
+                      {searchQuery ? `No sources match "${searchQuery}"` : "No sources available"}
+                    </p>
+                  </div>
+                )}
               </div>
             </ScrollArea>
           </div>
           
           {/* Content Panel */}
-          <div className="w-2/5 flex flex-col border-r">
+          <div className={isImportMode ? "w-2/5 flex flex-col border-r" : "w-1/3 flex flex-col border-r"}>
             {selectedSource ? (
               <>
                 <div className="p-3 border-b flex items-center justify-between bg-muted/30">
@@ -273,7 +451,7 @@ const KnowledgeSourceModal = ({
             )}
           </div>
           
-          {/* Knowledge Sources Panel - Now populated from the API */}
+          {/* Knowledge Sources Panel - Populated from the API */}
           <div className="w-1/3 flex flex-col">
             <div className="p-3 border-b bg-muted/30">
               <h3 className="text-sm font-medium">
@@ -361,6 +539,30 @@ const KnowledgeSourceModal = ({
             </ScrollArea>
           </div>
         </div>
+        
+        {isImportMode && (
+          <>
+            <Separator />
+            <DialogFooter className="p-4">
+              <div className="flex-1 text-sm text-muted-foreground">
+                {selectedImportSources.length > 0 ? (
+                  <span>{selectedImportSources.length} source{selectedImportSources.length > 1 ? 's' : ''} selected</span>
+                ) : (
+                  <span>Select sources to import</span>
+                )}
+              </div>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleImport}
+                disabled={selectedImportSources.length === 0}
+              >
+                Import Selected
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
