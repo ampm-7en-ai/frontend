@@ -41,6 +41,8 @@ interface ExternalSource {
     url: string;
     children?: {
       url: string;
+      title?: string;
+      selected?: boolean;
       children?: any[];
     }[];
   };
@@ -288,11 +290,20 @@ const ImportSourcesDialog = ({
   };
 
   const toggleImportSelection = (sourceId: number) => {
-    setSelectedImportSources(prev => 
-      prev.includes(sourceId) 
+    setSelectedImportSources(prev => {
+      const newSelection = prev.includes(sourceId) 
         ? prev.filter(id => id !== sourceId) 
-        : [...prev, sourceId]
-    );
+        : [...prev, sourceId];
+      
+      if (!prev.includes(sourceId)) {
+        const selectedSource = flattenedSources.find(s => s.id === sourceId);
+        if (selectedSource && (selectedSource.type === 'website' || selectedSource.type === 'url')) {
+          handleSourceClick(selectedSource);
+        }
+      }
+      
+      return newSelection;
+    });
   };
 
   const buildUrlTree = (source: ExternalSource) => {
@@ -303,7 +314,6 @@ const ImportSourcesDialog = ({
 
     let tree: UrlNode[] = [];
 
-    // Check if source has domain_links
     if (source.domain_links) {
       console.log("Building URL tree from domain_links:", source.domain_links);
       const rootUrl = source.domain_links.url;
@@ -316,7 +326,6 @@ const ImportSourcesDialog = ({
         isExpanded: true
       };
 
-      // Add children to root node - use recursive function to handle nested children
       if (source.domain_links.children && source.domain_links.children.length > 0) {
         rootNode.children = source.domain_links.children.map(child => {
           return buildUrlNodeRecursively(child);
@@ -324,10 +333,7 @@ const ImportSourcesDialog = ({
       }
 
       tree.push(rootNode);
-    } 
-    // Fallback to knowledge_sources if domain_links is not available
-    else if (source.knowledge_sources && source.knowledge_sources.length > 0) {
-      // Group by domain first
+    } else if (source.knowledge_sources && source.knowledge_sources.length > 0) {
       const domains = new Map<string, UrlNode>();
       
       source.knowledge_sources.forEach(ks => {
@@ -370,11 +376,10 @@ const ImportSourcesDialog = ({
       id: `node-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`,
       url: node.url,
       title: node.title || extractPathFromUrl(node.url),
-      selected: node.selected !== false, // Default to true if not specified
+      selected: node.selected !== false,
       isExpanded: true
     };
 
-    // Recursively process children if they exist
     if (node.children && node.children.length > 0) {
       urlNode.children = node.children.map(child => buildUrlNodeRecursively(child));
     }
@@ -423,21 +428,18 @@ const ImportSourcesDialog = ({
       const updateNodeSelection = (nodes: UrlNode[]): UrlNode[] => {
         return nodes.map(node => {
           if (node.id === nodeId) {
-            // Update this node
             const updatedNode = { ...node, selected };
             
-            // If this node has children, update them too (apply selection to all children)
             if (updatedNode.children && updatedNode.children.length > 0) {
               updatedNode.children = updateNodeSelection(updatedNode.children).map(child => ({
                 ...child,
-                selected // Apply the same selection to all children
+                selected
               }));
             }
             
             return updatedNode;
           }
           
-          // Check children recursively
           if (node.children && node.children.length > 0) {
             return { ...node, children: updateNodeSelection(node.children) };
           }
@@ -449,8 +451,6 @@ const ImportSourcesDialog = ({
       return updateNodeSelection(prevTree);
     });
     
-    // Update selectedUrlIds based on the tree
-    // If it's a non-leaf node, don't directly update selectedUrlIds
     if (nodeId.startsWith('node-') || nodeId.startsWith('domain-')) {
       return;
     }
@@ -463,13 +463,15 @@ const ImportSourcesDialog = ({
   };
 
   const handleSourceClick = (source: ExternalSource) => {
+    console.log("Source clicked:", source);
     setSelectedSource(source);
     
     if (!selectedImportSources.includes(source.id)) {
-      toggleImportSelection(source.id);
+      setSelectedImportSources(prev => [...prev, source.id]);
     }
     
     if (source.type === 'website' || source.type === 'url') {
+      console.log("Building URL tree for website source:", source);
       buildUrlTree(source);
       
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
@@ -647,8 +649,7 @@ const ImportSourcesDialog = ({
   const renderSourceItem = (source: ExternalSource) => {
     const isAlreadyImported = currentSources.some(s => s.id === source.id);
     const hasKnowledgeSources = (source.type === 'website' || source.type === 'url') && 
-                               source.knowledge_sources && 
-                               source.knowledge_sources.length > 0;
+                               (source.knowledge_sources?.length > 0 || (source.domain_links && source.domain_links.children?.length > 0));
     
     return (
       <div 
@@ -656,10 +657,10 @@ const ImportSourcesDialog = ({
         className={cn(
           "flex items-center py-2 px-3 hover:bg-muted/40 rounded-md group transition-colors",
           (isAlreadyImported && "opacity-50"),
-          (hasKnowledgeSources && "cursor-pointer"),
+          "cursor-pointer",
           (selectedSource?.id === source.id && "bg-muted")
         )}
-        onClick={() => hasKnowledgeSources && handleSourceClick(source)}
+        onClick={() => handleSourceClick(source)}
       >
         <div className="mr-2 text-muted-foreground">
           {getSourceTypeIcon(source)}
@@ -696,7 +697,7 @@ const ImportSourcesDialog = ({
             {hasKnowledgeSources && (
               <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />
             )}
-            <div className="ml-2">
+            <div className="ml-2" onClick={(e) => e.stopPropagation()}>
               <input 
                 type="checkbox" 
                 id={`import-${source.id}`}
@@ -705,7 +706,6 @@ const ImportSourcesDialog = ({
                   e.stopPropagation();
                   toggleImportSelection(source.id);
                 }}
-                onClick={(e) => e.stopPropagation()}
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />
             </div>
