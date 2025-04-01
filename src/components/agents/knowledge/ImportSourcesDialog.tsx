@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -125,7 +124,6 @@ export const ImportSourcesDialog = ({
           const tree = buildUrlTree(source);
           setUrlTree(tree);
           
-          // Group URLs by domain
           const groups = groupUrlsByDomain(tree);
           setUrlGroups(groups);
         }
@@ -163,7 +161,6 @@ export const ImportSourcesDialog = ({
     setFilteredCenterSources(filtered);
   }, [selectedTab, searchTerm, externalSources]);
 
-  // Group URLs by domain
   const groupUrlsByDomain = (urls: UrlNodeDisplay[]): UrlGroupType[] => {
     const groups: { [key: string]: UrlNodeDisplay[] } = {};
     
@@ -176,7 +173,6 @@ export const ImportSourcesDialog = ({
         groups[domain].push(url);
       } catch (error) {
         console.error("Invalid URL:", url.url);
-        // For invalid URLs, group under "Other"
         if (!groups["Other"]) {
           groups["Other"] = [];
         }
@@ -267,13 +263,25 @@ export const ImportSourcesDialog = ({
     const domainLinks = source.metadata.domain_links;
     console.log('Domain links from metadata:', domainLinks);
     
-    if (typeof domainLinks === 'object' && !Array.isArray(domainLinks)) {
+    if (Array.isArray(domainLinks)) {
+      console.log(`Found array with ${domainLinks.length} domain links`);
+      return domainLinks.map(link => buildUrlNodeRecursively(link));
+    } else if (typeof domainLinks === 'object') {
       console.log('Domain links is a single object');
+      
       if (domainLinks.children && Array.isArray(domainLinks.children)) {
         console.log(`Found ${domainLinks.children.length} children in domain_links`);
         return domainLinks.children.map(child => buildUrlNodeRecursively(child));
-      } else {
+      } 
+      else if (domainLinks.url) {
+        console.log('Domain links is a single URL node');
         return [buildUrlNodeRecursively(domainLinks)];
+      }
+      else {
+        console.log('Trying to extract any URL-like properties from domain_links');
+        return Object.values(domainLinks)
+          .filter(val => typeof val === 'object' && val !== null)
+          .map(val => buildUrlNodeRecursively(val as any));
       }
     }
     
