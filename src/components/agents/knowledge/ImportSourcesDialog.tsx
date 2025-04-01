@@ -89,6 +89,7 @@ const ImportSourcesDialog = ({
       }
 
       const data = await response.json();
+      console.log("Fetched knowledge bases:", data);
       return data;
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
@@ -121,6 +122,7 @@ const ImportSourcesDialog = ({
     }
     
     if (data) {
+      console.log("Processing data for UI:", data);
       const formattedSources: ExternalSource[] = data.map(kb => {
         const hasKnowledgeSources = kb.knowledge_sources && kb.knowledge_sources.length > 0;
         
@@ -177,15 +179,19 @@ const ImportSourcesDialog = ({
     
     knowledgeSources.forEach(source => {
       if (source.url) {
+        // Create a unique ID for this URL
+        const urlId = `url-${source.id || urlsList.length}`;
+        
         urlsList.push({
           url: source.url,
           title: source.title || source.url,
-          id: source.id.toString(), // Ensure id is a string
+          id: urlId,
           selected: true
         });
       }
     });
     
+    console.log("Extracted URLs from knowledge sources:", urlsList);
     return urlsList.length > 0 ? urlsList : undefined;
   };
 
@@ -317,22 +323,37 @@ const ImportSourcesDialog = ({
         toggleImportSelection(source.id);
       }
       
-      if (source.urls) {
-        const initialSelectedIds = source.urls
+      // Extract URLs from knowledge_sources if needed
+      let urlsToDisplay = source.urls || [];
+      
+      // For debugging
+      console.log("Source clicked:", source);
+      console.log("URLs from source:", urlsToDisplay);
+      
+      if (urlsToDisplay.length > 0) {
+        const initialSelectedIds = urlsToDisplay
           .filter(url => url.selected !== false)
           .map(url => url.id || url.url);
         
+        console.log("Setting initially selected URL IDs:", initialSelectedIds);
         setSelectedUrlIds(initialSelectedIds);
+      } else {
+        setSelectedUrlIds([]);
       }
     }
   };
 
   const toggleUrlSelection = (urlIdentifier: string) => {
-    setSelectedUrlIds(prev => 
-      prev.includes(urlIdentifier)
+    console.log("Toggling URL selection for:", urlIdentifier);
+    
+    setSelectedUrlIds(prev => {
+      const newSelection = prev.includes(urlIdentifier)
         ? prev.filter(id => id !== urlIdentifier)
-        : [...prev, urlIdentifier]
-    );
+        : [...prev, urlIdentifier];
+      
+      console.log("New selected URL IDs:", newSelection);
+      return newSelection;
+    });
     
     if (selectedSource && selectedSource.urls) {
       const updatedUrls = selectedSource.urls.map(url => {
@@ -484,8 +505,22 @@ const ImportSourcesDialog = ({
   };
 
   const renderUrlsList = (source: ExternalSource) => {
-    // Determine which URLs to display based on the source type and knowledge_sources
-    let displayUrls = source.urls;
+    // Get URLs from knowledge_sources if available
+    let displayUrls = [];
+    
+    if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+      // Extract URLs directly from knowledge_sources
+      displayUrls = source.knowledge_sources.map((ks, index) => ({
+        url: ks.url || '',
+        title: ks.title || `URL ${index + 1}`,
+        id: `ks-${ks.id || index}`,
+        selected: true
+      }));
+    } else if (source.urls && source.urls.length > 0) {
+      displayUrls = source.urls;
+    }
+    
+    console.log("URLs to display in panel:", displayUrls);
     
     // If no URLs are available, show the empty state
     if (!displayUrls || displayUrls.length === 0) {
@@ -518,7 +553,7 @@ const ImportSourcesDialog = ({
         <div className="space-y-2">
           {displayUrls.map((url, index) => {
             const urlId = url.id || url.url;
-            const isSelected = url.selected !== false && selectedUrlIds.includes(urlId);
+            const isSelected = selectedUrlIds.includes(urlId);
             
             return (
               <div 
