@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   FileText, Globe, FileSpreadsheet, File, FileSearch, Search, X, Calendar, 
   CheckCircle, Bot, Database, ArrowRight, ExternalLink
@@ -34,7 +35,8 @@ interface ExternalSource {
   linkBroken?: boolean;
   children?: ExternalSource[];
   path?: string;
-  urls?: { url: string; title: string; }[];
+  urls?: { url: string; title: string; selected?: boolean; }[];
+  knowledge_sources?: any[];
 }
 
 interface SourceType {
@@ -68,6 +70,7 @@ const ImportSourcesDialog = ({
   const [flattenedSources, setFlattenedSources] = useState<ExternalSource[]>([]);
   const [filteredSources, setFilteredSources] = useState<ExternalSource[]>([]);
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
+  const [selectedUrlIds, setSelectedUrlIds] = useState<string[]>([]);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -118,9 +121,9 @@ const ImportSourcesDialog = ({
     
     if (data) {
       const formattedSources: ExternalSource[] = data.map(kb => {
-        const firstSource = kb.knowledge_sources && kb.knowledge_sources.length > 0 
-          ? kb.knowledge_sources[0] 
-          : null;
+        const hasKnowledgeSources = kb.knowledge_sources && kb.knowledge_sources.length > 0;
+        
+        const firstSource = hasKnowledgeSources ? kb.knowledge_sources[0] : null;
           
         const metadataInfo = firstSource ? getSourceMetadataInfo({
           type: kb.type,
@@ -135,9 +138,15 @@ const ImportSourcesDialog = ({
           ? firstSource.metadata.format 
           : getMimeTypeForFormat(kb.type);
 
-        const urls = kb.type === 'website' || kb.type === 'url' 
-          ? generateUrlsFromSource(kb)
-          : undefined;
+        let urls;
+        
+        if (kb.type === 'website' || kb.type === 'url') {
+          if (hasKnowledgeSources) {
+            urls = extractUrlsFromKnowledgeSources(kb.knowledge_sources);
+          } else {
+            urls = generatePlaceholderUrls(kb.name);
+          }
+        }
 
         return {
           id: kb.id,
@@ -149,7 +158,8 @@ const ImportSourcesDialog = ({
           lastUpdated: uploadDate,
           linkBroken: false,
           path: `/${kb.type}/${kb.name}`,
-          urls: urls
+          urls: urls,
+          knowledge_sources: kb.knowledge_sources
         };
       });
 
@@ -159,22 +169,31 @@ const ImportSourcesDialog = ({
     }
   }, [data, propExternalSources]);
 
-  const generateUrlsFromSource = (kb) => {
-    if (kb.knowledge_sources && kb.knowledge_sources.length > 0 && 
-        kb.knowledge_sources[0].metadata && 
-        kb.knowledge_sources[0].metadata.urls) {
-      return kb.knowledge_sources[0].metadata.urls;
-    }
+  const extractUrlsFromKnowledgeSources = (knowledgeSources) => {
+    if (!knowledgeSources || knowledgeSources.length === 0) return undefined;
     
-    if (kb.type === 'website' || kb.type === 'url') {
-      return [
-        { url: `https://${kb.name.toLowerCase().replace(/\s+/g, '-')}.com`, title: `${kb.name} Home` },
-        { url: `https://${kb.name.toLowerCase().replace(/\s+/g, '-')}.com/about`, title: 'About Page' },
-        { url: `https://${kb.name.toLowerCase().replace(/\s+/g, '-')}.com/docs`, title: 'Documentation' }
-      ];
-    }
+    const urlsList = [];
     
-    return undefined;
+    knowledgeSources.forEach(source => {
+      if (source.url) {
+        urlsList.push({
+          url: source.url,
+          title: source.title || source.url,
+          id: source.id,
+          selected: true
+        });
+      }
+    });
+    
+    return urlsList.length > 0 ? urlsList : undefined;
+  };
+
+  const generatePlaceholderUrls = (siteName) => {
+    return [
+      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com`, title: `${siteName} Home`, selected: true },
+      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/about`, title: 'About Page', selected: true },
+      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/docs`, title: 'Documentation', selected: true }
+    ];
   };
 
   const groupSourcesByType = (sources: ExternalSource[]): ExternalSource[] => {
@@ -291,6 +310,37 @@ const ImportSourcesDialog = ({
   const handleSourceClick = (source: ExternalSource) => {
     if (source.type === 'website' || source.type === 'url') {
       setSelectedSource(source);
+      
+      if (source.urls) {
+        const initialSelectedIds = source.urls
+          .filter(url => url.selected !== false)
+          .map(url => url.id || url.url);
+        
+        setSelectedUrlIds(initialSelectedIds);
+      }
+    }
+  };
+
+  const toggleUrlSelection = (urlId: string) => {
+    setSelectedUrlIds(prev => 
+      prev.includes(urlId)
+        ? prev.filter(id => id !== urlId)
+        : [...prev, urlId]
+    );
+    
+    if (selectedSource && selectedSource.urls) {
+      const updatedUrls = selectedSource.urls.map(url => {
+        const urlIdentifier = url.id || url.url;
+        if (urlIdentifier === urlId) {
+          return { ...url, selected: !selectedUrlIds.includes(urlId) };
+        }
+        return url;
+      });
+      
+      setSelectedSource({
+        ...selectedSource,
+        urls: updatedUrls
+      });
     }
   };
 
@@ -440,27 +490,59 @@ const ImportSourcesDialog = ({
       );
     }
 
+    const displayUrls = source.knowledge_sources && source.type === 'website' 
+      ? source.urls 
+      : source.urls;
+
     return (
       <div className="p-4">
         <div className="flex items-center mb-4">
           <Globe className="h-5 w-5 mr-2 text-green-600" />
           <h3 className="text-lg font-medium">{source.name}</h3>
         </div>
+        
+        {source.type === 'website' && (
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground">
+              Select the subset of URLs you want to include in your knowledge base:
+            </p>
+          </div>
+        )}
+        
         <div className="space-y-2">
-          {source.urls.map((url, index) => (
-            <div key={index} className="flex items-center p-2 border rounded-md hover:bg-muted/40">
-              <span className="flex-1 truncate text-sm">{url.title || url.url}</span>
-              <a 
-                href={url.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
-                onClick={(e) => e.stopPropagation()}
+          {displayUrls.map((url, index) => {
+            const urlId = url.id || url.url;
+            const isSelected = url.selected !== false && (!urlId || selectedUrlIds.includes(urlId));
+            
+            return (
+              <div 
+                key={index} 
+                className="flex items-center p-2 border rounded-md hover:bg-muted/40"
               >
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
-          ))}
+                {source.type === 'website' && (
+                  <Checkbox 
+                    checked={isSelected}
+                    onCheckedChange={() => toggleUrlSelection(urlId)}
+                    className="mr-2"
+                  />
+                )}
+                
+                <span className="flex-1 truncate text-sm">
+                  {url.title || url.url}
+                </span>
+                
+                <a 
+                  href={url.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
