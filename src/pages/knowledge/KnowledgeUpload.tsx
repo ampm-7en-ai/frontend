@@ -128,7 +128,6 @@ const KnowledgeUpload = () => {
       if (importAllPages) {
         metadataObj = { ...metadataObj, crawl_more: "true" };
       }
-      metadataObj = { ...metadataObj, store_links_only: "true" };
     } else if (sourceType === 'plainText' && plainText) {
       metadataObj = { text_content: plainText };
     }
@@ -232,6 +231,7 @@ const KnowledgeUpload = () => {
       switch(sourceType) {
         case 'url':
           formData.append('type', 'website');
+          formData.append('store_links_only', 'true');
           break;
         case 'document':
           formData.append('type', 'docs');
