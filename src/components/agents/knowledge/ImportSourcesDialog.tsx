@@ -46,17 +46,7 @@ interface ExternalSource {
     no_of_chars?: number;
     no_of_rows?: number;
     no_of_pages?: number;
-    domain_links?: UrlNode | {
-      url: string;
-      title?: string;
-      selected?: boolean;
-      children?: Array<{
-        url: string;
-        title?: string;
-        selected?: boolean;
-        children?: Array<any>;
-      }>;
-    };
+    domain_links?: UrlNode | UrlNode[];
   };
 }
 
