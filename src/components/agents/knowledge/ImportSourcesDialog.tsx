@@ -197,7 +197,7 @@ export const ImportSourcesDialog = ({
 
   const buildUrlTree = (source: ExternalSource): UrlNodeDisplay[] => {
     console.log('Building URL tree for source:', source.name);
-    console.log('Domain links structure:', source.domain_links);
+    console.log('Source metadata:', source.domain_links);
     
     if (!source.domain_links) {
       console.log('No domain links found');
@@ -206,9 +206,7 @@ export const ImportSourcesDialog = ({
     
     if (Array.isArray(source.domain_links)) {
       console.log('Domain links is an array with', source.domain_links.length, 'items');
-      return source.domain_links.map(link => {
-        return buildUrlNodeRecursively(link);
-      });
+      return source.domain_links.map(link => buildUrlNodeRecursively(link));
     } else if (source.domain_links && typeof source.domain_links === 'object') {
       console.log('Domain links is a single object');
       return [buildUrlNodeRecursively(source.domain_links)];
@@ -235,9 +233,7 @@ export const ImportSourcesDialog = ({
     
     if (node.children && node.children.length > 0) {
       console.log(`Processing ${node.children.length} children for URL ${node.url}`);
-      urlNode.children = node.children.map(child => 
-        buildUrlNodeRecursively(child)
-      );
+      urlNode.children = node.children.map(child => buildUrlNodeRecursively(child));
     }
     
     return urlNode;
