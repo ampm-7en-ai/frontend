@@ -72,6 +72,7 @@ const ImportSourcesDialog = ({
   const [filteredSources, setFilteredSources] = useState<ExternalSource[]>([]);
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
   const [selectedUrlIds, setSelectedUrlIds] = useState<string[]>([]);
+  const [subSources, setSubSources] = useState<{ id: string; url: string; title: string; selected: boolean }[]>([]);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -141,16 +142,6 @@ const ImportSourcesDialog = ({
           ? firstSource.metadata.format 
           : getMimeTypeForFormat(kb.type);
 
-        let urls;
-        
-        if (kb.type === 'website' || kb.type === 'url') {
-          if (hasKnowledgeSources) {
-            urls = extractUrlsFromKnowledgeSources(kb.knowledge_sources);
-          } else {
-            urls = generatePlaceholderUrls(kb.name);
-          }
-        }
-
         return {
           id: kb.id,
           name: kb.name,
@@ -161,7 +152,6 @@ const ImportSourcesDialog = ({
           lastUpdated: uploadDate,
           linkBroken: false,
           path: `/${kb.type}/${kb.name}`,
-          urls: urls,
           knowledge_sources: kb.knowledge_sources
         };
       });
@@ -172,34 +162,35 @@ const ImportSourcesDialog = ({
     }
   }, [data, propExternalSources]);
 
-  const extractUrlsFromKnowledgeSources = (knowledgeSources) => {
-    if (!knowledgeSources || knowledgeSources.length === 0) return undefined;
+  const extractSubSourcesFromKnowledgeSources = (source: ExternalSource) => {
+    if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
+      return [];
+    }
     
-    const urlsList = [];
+    const subSourcesList: { id: string; url: string; title: string; selected: boolean }[] = [];
     
-    knowledgeSources.forEach(source => {
-      if (source.url) {
-        // Create a unique ID for this URL
-        const urlId = `url-${source.id || urlsList.length}`;
+    source.knowledge_sources.forEach((ks, index) => {
+      if (ks.url) {
+        const subSourceId = `ks-${ks.id || index}`;
         
-        urlsList.push({
-          url: source.url,
-          title: source.title || source.url,
-          id: urlId,
+        subSourcesList.push({
+          id: subSourceId,
+          url: ks.url,
+          title: ks.title || ks.url,
           selected: true
         });
       }
     });
     
-    console.log("Extracted URLs from knowledge sources:", urlsList);
-    return urlsList.length > 0 ? urlsList : undefined;
+    console.log("Extracted sub-sources from knowledge sources:", subSourcesList);
+    return subSourcesList;
   };
 
-  const generatePlaceholderUrls = (siteName) => {
+  const generatePlaceholderUrls = (siteName: string) => {
     return [
-      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com`, title: `${siteName} Home`, id: `${siteName.toLowerCase()}-home`, selected: true },
-      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/about`, title: 'About Page', id: `${siteName.toLowerCase()}-about`, selected: true },
-      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/docs`, title: 'Documentation', id: `${siteName.toLowerCase()}-docs`, selected: true }
+      { id: `${siteName.toLowerCase()}-home`, url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com`, title: `${siteName} Home`, selected: true },
+      { id: `${siteName.toLowerCase()}-about`, url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/about`, title: 'About Page', selected: true },
+      { id: `${siteName.toLowerCase()}-docs`, url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/docs`, title: 'Documentation', selected: true }
     ];
   };
 
@@ -261,16 +252,17 @@ const ImportSourcesDialog = ({
     
     setFilteredSources(filtered);
     setSelectedSource(null);
+    setSubSources([]);
   }, [flattenedSources, activeSourceType, searchQuery]);
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
   };
 
-  const getMimeTypeForFormat = (type) => {
+  const getMimeTypeForFormat = (type: string) => {
     switch(type) {
       case 'pdf':
         return 'application/pdf';
@@ -323,55 +315,55 @@ const ImportSourcesDialog = ({
         toggleImportSelection(source.id);
       }
       
-      // Extract URLs from knowledge_sources if needed
-      let urlsToDisplay = source.urls || [];
+      // Extract sub-sources from knowledge_sources
+      let extractedSubSources: { id: string; url: string; title: string; selected: boolean }[] = [];
+      
+      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        extractedSubSources = extractSubSourcesFromKnowledgeSources(source);
+      } else {
+        extractedSubSources = generatePlaceholderUrls(source.name);
+      }
+      
+      setSubSources(extractedSubSources);
+      
+      // Set initially selected URL IDs
+      const initialSelectedIds = extractedSubSources
+        .filter(subSource => subSource.selected)
+        .map(subSource => subSource.id);
+      
+      console.log("Setting initially selected URL IDs:", initialSelectedIds);
+      setSelectedUrlIds(initialSelectedIds);
       
       // For debugging
       console.log("Source clicked:", source);
-      console.log("URLs from source:", urlsToDisplay);
-      
-      if (urlsToDisplay.length > 0) {
-        const initialSelectedIds = urlsToDisplay
-          .filter(url => url.selected !== false)
-          .map(url => url.id || url.url);
-        
-        console.log("Setting initially selected URL IDs:", initialSelectedIds);
-        setSelectedUrlIds(initialSelectedIds);
-      } else {
-        setSelectedUrlIds([]);
-      }
+      console.log("Sub-sources to display:", extractedSubSources);
     }
   };
 
-  const toggleUrlSelection = (urlIdentifier: string) => {
-    console.log("Toggling URL selection for:", urlIdentifier);
+  const toggleUrlSelection = (urlId: string) => {
+    console.log("Toggling URL selection for:", urlId);
     
     setSelectedUrlIds(prev => {
-      const newSelection = prev.includes(urlIdentifier)
-        ? prev.filter(id => id !== urlIdentifier)
-        : [...prev, urlIdentifier];
+      const newSelection = prev.includes(urlId)
+        ? prev.filter(id => id !== urlId)
+        : [...prev, urlId];
       
       console.log("New selected URL IDs:", newSelection);
       return newSelection;
     });
     
-    if (selectedSource && selectedSource.urls) {
-      const updatedUrls = selectedSource.urls.map(url => {
-        const urlId = url.id || url.url;
-        if (urlId === urlIdentifier) {
-          return { ...url, selected: !selectedUrlIds.includes(urlIdentifier) };
+    // Update the selected state in subSources
+    setSubSources(prev => 
+      prev.map(subSource => {
+        if (subSource.id === urlId) {
+          return { ...subSource, selected: !selectedUrlIds.includes(urlId) };
         }
-        return url;
-      });
-      
-      setSelectedSource({
-        ...selectedSource,
-        urls: updatedUrls
-      });
-    }
+        return subSource;
+      })
+    );
   };
 
-  const getSourceTypeIcon = (source) => {
+  const getSourceTypeIcon = (source: { type: string }) => {
     switch (source.type) {
       case 'docs':
         return <FileText className="h-4 w-4 text-blue-600" />;
@@ -433,7 +425,7 @@ const ImportSourcesDialog = ({
 
   const renderSourceItem = (source: ExternalSource) => {
     const isAlreadyImported = currentSources.some(s => s.id === source.id);
-    const hasUrls = source.type === 'website' || source.type === 'url';
+    const hasSubSources = source.type === 'website' || source.type === 'url';
     
     return (
       <div 
@@ -441,10 +433,10 @@ const ImportSourcesDialog = ({
         className={cn(
           "flex items-center py-2 px-3 hover:bg-muted/40 rounded-md group transition-colors",
           (isAlreadyImported && "opacity-50"),
-          (hasUrls && "cursor-pointer"),
+          (hasSubSources && "cursor-pointer"),
           (selectedSource?.id === source.id && "bg-muted")
         )}
-        onClick={() => hasUrls && handleSourceClick(source)}
+        onClick={() => hasSubSources && handleSourceClick(source)}
       >
         <div className="mr-2 text-muted-foreground">
           {getSourceTypeIcon(source)}
@@ -478,7 +470,7 @@ const ImportSourcesDialog = ({
                 {source.size}
               </span>
             )}
-            {hasUrls && (
+            {hasSubSources && (
               <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />
             )}
             <div className="ml-2">
@@ -505,25 +497,8 @@ const ImportSourcesDialog = ({
   };
 
   const renderUrlsList = (source: ExternalSource) => {
-    // Get URLs from knowledge_sources if available
-    let displayUrls = [];
-    
-    if (source.knowledge_sources && source.knowledge_sources.length > 0) {
-      // Extract URLs directly from knowledge_sources
-      displayUrls = source.knowledge_sources.map((ks, index) => ({
-        url: ks.url || '',
-        title: ks.title || `URL ${index + 1}`,
-        id: `ks-${ks.id || index}`,
-        selected: true
-      }));
-    } else if (source.urls && source.urls.length > 0) {
-      displayUrls = source.urls;
-    }
-    
-    console.log("URLs to display in panel:", displayUrls);
-    
-    // If no URLs are available, show the empty state
-    if (!displayUrls || displayUrls.length === 0) {
+    // If no sub-sources are available, show the empty state
+    if (!subSources || subSources.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <Globe className="h-10 w-10 text-muted-foreground mb-4" />
@@ -551,9 +526,8 @@ const ImportSourcesDialog = ({
         )}
         
         <div className="space-y-2">
-          {displayUrls.map((url, index) => {
-            const urlId = url.id || url.url;
-            const isSelected = selectedUrlIds.includes(urlId);
+          {subSources.map((subSource, index) => {
+            const isSelected = selectedUrlIds.includes(subSource.id);
             
             return (
               <div 
@@ -563,17 +537,17 @@ const ImportSourcesDialog = ({
                 {source.type === 'website' && (
                   <Checkbox 
                     checked={isSelected}
-                    onCheckedChange={() => toggleUrlSelection(urlId)}
+                    onCheckedChange={() => toggleUrlSelection(subSource.id)}
                     className="mr-2"
                   />
                 )}
                 
                 <span className="flex-1 truncate text-sm">
-                  {url.title || url.url}
+                  {subSource.title || subSource.url}
                 </span>
                 
                 <a 
-                  href={url.url} 
+                  href={subSource.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
