@@ -14,16 +14,18 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
-  FileText, Globe, FileSpreadsheet, File, FileSearch, Search, X, Calendar, 
-  CheckCircle, Bot, Database, ArrowRight, ExternalLink, ChevronRight, ChevronDown
+  FileText, Globe, FileSpreadsheet, File, FileSearch, Search, 
+  Calendar, CheckCircle, Database, ArrowRight, ExternalLink, 
+  ChevronRight, ChevronDown, Link, ArrowDown
 } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
-import { useQuery } from '@tanstack/react-query';
+import { formatFileSizeToMB } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 interface ExternalSource {
   id: number;
@@ -76,7 +78,14 @@ interface UrlNode {
   isExpanded?: boolean;
 }
 
-const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, externalSources = [], initialSourceId }: ImportSourcesDialogProps) => {
+export const ImportSourcesDialog = ({ 
+  isOpen, 
+  onOpenChange, 
+  currentSources, 
+  onImport, 
+  externalSources = [], 
+  initialSourceId 
+}: ImportSourcesDialogProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
@@ -96,7 +105,6 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
 
         if (source.type === 'website' || source.type === 'url') {
           const tree = buildUrlTree(source);
-          console.log('Built URL tree:', tree);
           setUrlTree(tree);
         }
       }
@@ -131,6 +139,8 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
         return false;
       } else if (selectedTab === 'new' && currentSourceIds.includes(source.id)) {
         return false;
+      } else if (selectedTab !== 'all' && source.type !== selectedTab) {
+        return false;
       }
 
       return true;
@@ -139,8 +149,10 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
 
   const getFileIcon = (format: string) => {
     if (format.includes('pdf')) return <FileText className="h-4 w-4" />;
-    if (format.includes('spreadsheet') || format.includes('excel') || format.includes('csv')) return <FileSpreadsheet className="h-4 w-4" />;
-    if (format.includes('html') || format.includes('website')) return <Globe className="h-4 w-4" />;
+    if (format.includes('spreadsheet') || format.includes('excel') || format.includes('csv')) 
+      return <FileSpreadsheet className="h-4 w-4" />;
+    if (format.includes('html') || format.includes('website') || format.includes('octet-stream')) 
+      return <Globe className="h-4 w-4" />;
     return <File className="h-4 w-4" />;
   };
 
@@ -175,22 +187,14 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
   };
 
   const buildUrlTree = (source: ExternalSource): UrlNode[] => {
-    console.log("Building URL tree for source:", source);
-    
     if (!source.domain_links) {
-      console.log("No domain_links found in source");
       return [];
     }
-
-    // Log the domain_links structure
-    console.log("Domain links structure:", JSON.stringify(source.domain_links, null, 2));
     
     // Handle both object and array formats for domain_links
     if (Array.isArray(source.domain_links)) {
-      console.log("domain_links is an array with", source.domain_links.length, "items");
       return source.domain_links.map(link => buildUrlNodeRecursively(link, link.url));
     } else if (source.domain_links && typeof source.domain_links === 'object') {
-      console.log("domain_links is an object with url:", source.domain_links.url);
       return [buildUrlNodeRecursively(source.domain_links, source.domain_links.url)];
     }
     
@@ -201,8 +205,6 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
     node: { url: string; children?: any[] },
     url: string
   ): UrlNode => {
-    console.log("Building node for URL:", url);
-    
     const id = `url-${url.replace(/[^a-zA-Z0-9]/g, '-')}`;
     const title = url.split('/').pop() || url;
     
@@ -218,7 +220,6 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
     
     // Process children if they exist
     if (node.children && node.children.length > 0) {
-      console.log(`Found ${node.children.length} children for URL ${url}`);
       urlNode.children = node.children.map(child => 
         buildUrlNodeRecursively(child, child.url)
       );
@@ -265,7 +266,6 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
     
     if (source.type === 'website' || source.type === 'url') {
       const tree = buildUrlTree(source);
-      console.log("URL tree built:", tree);
       setUrlTree(tree);
     }
   };
@@ -362,43 +362,227 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
   const sourceTypes = getSourceTypes();
   const isSourceSelected = selectedSourceIds.length > 0;
 
-  const TabButton = ({ id, label, count }: { id: string, label: string, count: number }) => (
-    <button
-      className={cn(
-        "px-3 py-2 text-sm font-medium rounded-md relative",
-        selectedTab === id 
-          ? "bg-primary text-primary-foreground" 
-          : "text-muted-foreground hover:text-foreground hover:bg-muted"
-      )}
-      onClick={() => setSelectedTab(id)}
-    >
-      {label}
-      {count > 0 && (
-        <Badge variant="secondary" className="ml-2 h-5 px-2 py-0 text-xs">
-          {count}
-        </Badge>
-      )}
-    </button>
-  );
+  // Render source card with improved visual design
+  const renderSourceCard = (source: ExternalSource) => {
+    const isSelected = selectedSourceIds.includes(source.id);
+    const isActive = activeSourceId === source.id;
+    const isExisting = currentSources.some(s => s.id === source.id);
+    
+    return (
+      <div
+        key={source.id}
+        className={cn(
+          "flex flex-col p-3 rounded-lg border cursor-pointer transition-colors",
+          isActive ? "border-primary bg-primary/5" : "hover:bg-muted",
+          isExisting && "border-dashed",
+          isSelected && "ring-1 ring-primary"
+        )}
+        onClick={() => handleViewSourceDetails(source)}
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => toggleSourceSelection(source.id)}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-0.5"
+            />
+            <div>
+              <div className="font-medium text-sm line-clamp-1">{source.name}</div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                {getFileIcon(source.format)}
+                <span>{source.format}</span>
+              </div>
+            </div>
+          </div>
+          
+          {isExisting && (
+            <Badge variant="outline" className="text-xs">Existing</Badge>
+          )}
+          {isSelected && (
+            <Badge className="text-xs bg-primary text-white">Selected</Badge>
+          )}
+        </div>
+        
+        <div className="mt-auto pt-1 text-xs text-muted-foreground ml-6 flex items-center gap-1">
+          <Calendar className="h-3 w-3" />
+          <span>{source.lastUpdated}</span>
+          {source.size && (
+            <>
+              <span className="mx-1">•</span>
+              <span>{source.size}</span>
+            </>
+          )}
+          {source.pages && (
+            <>
+              <span className="mx-1">•</span>
+              <span>{source.pages} {parseInt(source.pages) === 1 ? 'page' : 'pages'}</span>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Render source details with more visual hierarchy
+  const renderSourceDetails = () => {
+    if (!selectedSource) {
+      return (
+        <div className="flex items-center justify-center flex-1 text-muted-foreground">
+          <div className="text-center">
+            <FileSearch className="h-16 w-16 mx-auto text-muted-foreground/50 mb-3" />
+            <p>Select a source to view details</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="font-semibold text-lg">{selectedSource.name}</h3>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1.5">
+                <div className="flex items-center gap-1.5">
+                  {getFileIcon(selectedSource.format)}
+                  <span>{selectedSource.format}</span>
+                </div>
+                
+                {selectedSource.size && (
+                  <div className="flex items-center gap-1.5">
+                    <span>•</span>
+                    <span>{selectedSource.size}</span>
+                  </div>
+                )}
+                
+                {selectedSource.pages && (
+                  <div className="flex items-center gap-1.5">
+                    <span>•</span>
+                    <span>{selectedSource.pages} {parseInt(selectedSource.pages) === 1 ? 'page' : 'pages'}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              {selectedSourceIds.includes(selectedSource.id) ? (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSourceSelection(selectedSource.id);
+                  }}
+                  className="flex items-center gap-1.5"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Selected
+                </Button>
+              ) : (
+                <Button 
+                  size="sm" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSourceSelection(selectedSource.id);
+                  }}
+                  className="flex items-center gap-1.5"
+                >
+                  Select
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          <div className="text-xs text-muted-foreground flex items-center mt-1">
+            <Calendar className="h-3.5 w-3.5 mr-1" />
+            Updated: {selectedSource.lastUpdated}
+          </div>
+        </div>
+        
+        <ScrollArea className="flex-1">
+          {(selectedSource.type === 'website' || selectedSource.type === 'url') ? (
+            <div className="p-4">
+              {urlTree.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-medium text-sm">Website Structure</h4>
+                    <div className="text-xs text-muted-foreground">
+                      Select pages to include
+                    </div>
+                  </div>
+                  <div className="border rounded-md overflow-hidden p-2 bg-gray-50/50">
+                    {renderUrlTree(urlTree)}
+                  </div>
+                </>
+              ) : (
+                <div className="py-6 text-center text-muted-foreground border border-dashed rounded-md">
+                  <Globe className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p>No website structure available</p>
+                  <p className="text-xs mt-1">The structure will be crawled during training</p>
+                </div>
+              )}
+              
+              <div className="mt-6">
+                <h4 className="font-medium text-sm mb-3">Crawl Options</h4>
+                <div className="border rounded-md p-3 bg-gray-50/50">
+                  <RadioGroup 
+                    defaultValue="single" 
+                    className="space-y-3"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="single" id="single" />
+                      <Label htmlFor="single" className="flex items-center cursor-pointer">
+                        <Link className="h-3.5 w-3.5 mr-1.5" />
+                        <span className="text-sm">Single URL</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="children" id="children" />
+                      <Label htmlFor="children" className="flex items-center cursor-pointer">
+                        <ArrowDown className="h-3.5 w-3.5 mr-1.5" />
+                        <span className="text-sm">Crawl children URLs</span>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Select how the agent should extract information from this website
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 text-center my-8">
+              <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="mb-1">Document preview not available</p>
+              <p className="text-xs text-muted-foreground">
+                Document content will be processed during training
+              </p>
+            </div>
+          )}
+        </ScrollArea>
+      </>
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] p-0 gap-0 md:h-[600px]">
-        <DialogHeader className="p-6 pb-2">
+      <DialogContent className="sm:max-w-[900px] p-0 gap-0 max-h-[80vh] overflow-hidden">
+        <DialogHeader className="p-6 pb-3 border-b">
           <DialogTitle>Knowledge Sources</DialogTitle>
           <DialogDescription>
             Import knowledge sources to train your agent
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex flex-col md:flex-row h-full">
+        <div className="flex flex-col md:flex-row h-[500px]">
           {/* Left Panel - Source Types */}
-          <div className="w-full md:w-64 border-r p-4">
-            <div className="font-medium mb-2">Source Types</div>
+          <div className="w-60 border-r p-4 flex flex-col">
+            <div className="font-medium mb-3 text-sm">Source Types</div>
             <div className="space-y-1">
               <button
                 className={cn(
-                  "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md",
+                  "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors",
                   selectedTab === 'all' ? "bg-primary/10 text-primary" : "hover:bg-muted"
                 )}
                 onClick={() => setSelectedTab('all')}
@@ -416,7 +600,7 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
                 <button
                   key={type.id}
                   className={cn(
-                    "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md",
+                    "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors",
                     selectedTab === type.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
                   )}
                   onClick={() => setSelectedTab(type.id)}
@@ -441,17 +625,38 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
             
             <Separator className="my-4" />
             
-            <div className="font-medium mb-2">Filter</div>
-            <div className="flex gap-2">
-              <TabButton id="all" label="All" count={0} />
-              <TabButton id="new" label="New" count={0} />
-              <TabButton id="existing" label="Existing" count={0} />
+            <div className="font-medium mb-2 text-sm">Filter</div>
+            <div className="flex gap-1">
+              <Button
+                variant={selectedTab === 'all' ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedTab('all')}
+                className="flex-1"
+              >
+                All
+              </Button>
+              <Button
+                variant={selectedTab === 'new' ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedTab('new')}
+                className="flex-1"
+              >
+                New
+              </Button>
+              <Button
+                variant={selectedTab === 'existing' ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedTab('existing')}
+                className="flex-1"
+              >
+                Existing
+              </Button>
             </div>
           </div>
           
           {/* Middle Panel - Source List */}
-          <div className="w-full md:w-80 border-r flex flex-col">
-            <div className="p-4">
+          <div className="w-72 border-r flex flex-col">
+            <div className="p-4 border-b">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -465,72 +670,13 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
             </div>
             
             <ScrollArea className="flex-1">
-              <div className="p-4 pt-0 space-y-2">
+              <div className="p-3 pt-2 grid gap-2">
                 {filteredSources.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground text-sm">
                     No sources found
                   </div>
                 ) : (
-                  filteredSources.map(source => {
-                    const isSelected = selectedSourceIds.includes(source.id);
-                    const isActive = activeSourceId === source.id;
-                    const isExisting = currentSources.some(s => s.id === source.id);
-                    
-                    return (
-                      <div
-                        key={source.id}
-                        className={cn(
-                          "p-3 rounded-md border cursor-pointer",
-                          isActive ? "border-primary bg-primary/5" : "hover:bg-muted",
-                          isExisting && "border-dashed"
-                        )}
-                        onClick={() => handleViewSourceDetails(source)}
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              checked={isSelected}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleSourceSelection(source.id);
-                              }}
-                            />
-                            <span className="font-medium text-sm">{source.name}</span>
-                          </div>
-                          
-                          {isExisting && (
-                            <Badge variant="outline" className="text-xs">Existing</Badge>
-                          )}
-                        </div>
-                        
-                        <div className="ml-6 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-2 mt-1">
-                            {getFileIcon(source.format)}
-                            <span>{source.format}</span>
-                            
-                            {source.size && (
-                              <>
-                                <span>•</span>
-                                <span>{source.size}</span>
-                              </>
-                            )}
-                            
-                            {source.pages && (
-                              <>
-                                <span>•</span>
-                                <span>{source.pages} {source.pages === '1' ? 'page' : 'pages'}</span>
-                              </>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-1 mt-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>Updated: {source.lastUpdated}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                  filteredSources.map((source) => renderSourceCard(source))
                 )}
               </div>
             </ScrollArea>
@@ -538,83 +684,7 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
           
           {/* Right Panel - Source Details */}
           <div className="flex-1 flex flex-col">
-            {selectedSource ? (
-              <>
-                <div className="p-4 border-b">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-medium text-lg">{selectedSource.name}</h3>
-                    {selectedSourceIds.includes(selectedSource.id) ? (
-                      <Badge className="bg-green-600">Selected</Badge>
-                    ) : (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => toggleSourceSelection(selectedSource.id)}
-                      >
-                        Select
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1">
-                      {getFileIcon(selectedSource.format)}
-                      <span>{selectedSource.format}</span>
-                    </div>
-                    
-                    {selectedSource.size && (
-                      <div>
-                        <span>Size: {selectedSource.size}</span>
-                      </div>
-                    )}
-                    
-                    {selectedSource.pages && (
-                      <div>
-                        <span>{selectedSource.pages} {parseInt(selectedSource.pages) === 1 ? 'page' : 'pages'}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>Updated: {selectedSource.lastUpdated}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <ScrollArea className="flex-1">
-                  <div className="p-4">
-                    {(selectedSource.type === 'website' || selectedSource.type === 'url') && (
-                      <>
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium">Website Structure</h4>
-                          <div className="text-xs text-muted-foreground">
-                            Select pages to include
-                          </div>
-                        </div>
-                        
-                        {urlTree.length > 0 ? (
-                          renderUrlTree(urlTree)
-                        ) : (
-                          <div className="py-4 text-center text-muted-foreground">
-                            No website structure available
-                          </div>
-                        )}
-                      </>
-                    )}
-                    
-                    {selectedSource.type === 'document' && (
-                      <div className="py-4 text-center text-muted-foreground">
-                        Document preview not available
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </>
-            ) : (
-              <div className="flex items-center justify-center flex-1 text-muted-foreground">
-                Select a source to view details
-              </div>
-            )}
+            {renderSourceDetails()}
           </div>
         </div>
         
@@ -645,5 +715,3 @@ const ImportSourcesDialog = ({ isOpen, onOpenChange, currentSources, onImport, e
 
 // Add default export
 export default ImportSourcesDialog;
-// Add named export as well
-export { ImportSourcesDialog };

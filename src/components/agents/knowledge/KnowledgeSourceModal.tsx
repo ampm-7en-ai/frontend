@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ImportSourcesDialog } from './ImportSourcesDialog';
+import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource } from './types';
 
 interface KnowledgeSourceModalProps {
@@ -25,30 +25,10 @@ const KnowledgeSourceModal = ({
       currentSources={sources}
       onImport={() => {}} // Provide an empty handler for the onImport prop
       externalSources={sources.map(source => {
-        console.log('Source in KnowledgeSourceModal:', source);
-
         // Get domain_links directly from source.metadata
         const domainLinks = source.metadata?.domain_links;
-        console.log('Domain links from metadata:', domainLinks);
         
-        // Log whether domain_links is array or object
-        if (Array.isArray(domainLinks)) {
-          console.log('Domain links is an array with', domainLinks.length, 'items');
-          domainLinks.forEach((item, index) => {
-            console.log(`Domain link ${index}:`, item);
-            if (item.children) {
-              console.log(`Domain link ${index} has ${item.children.length} children`);
-            }
-          });
-        } else if (domainLinks && typeof domainLinks === 'object') {
-          console.log('Domain links is an object with url:', domainLinks.url);
-          if (domainLinks.children) {
-            console.log('Domain links has', domainLinks.children.length, 'children');
-          }
-        }
-
         // Create the transformed source with properly formatted domain_links
-        // Here we need to ensure we're matching the expected structure in ImportSourcesDialog
         return {
           ...source,
           format: source.type,
