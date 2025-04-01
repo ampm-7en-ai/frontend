@@ -123,7 +123,7 @@ const ImportSourcesDialog = ({
     }
     
     if (data) {
-      console.log("Processing data for UI:", data);
+      console.log("Processing API data for UI:", data);
       const formattedSources: ExternalSource[] = data.map(kb => {
         const hasKnowledgeSources = kb.knowledge_sources && kb.knowledge_sources.length > 0;
         
@@ -171,7 +171,8 @@ const ImportSourcesDialog = ({
     
     source.knowledge_sources.forEach((ks, index) => {
       if (ks.url) {
-        const subSourceId = `ks-${ks.id || index}`;
+        // Create a unique ID for each URL using its database ID if available or a generated one
+        const subSourceId = `ks-${ks.id || `${source.id}-${index}`}`;
         
         subSourcesList.push({
           id: subSourceId,
@@ -315,13 +316,11 @@ const ImportSourcesDialog = ({
         toggleImportSelection(source.id);
       }
       
-      // Extract sub-sources from knowledge_sources
+      // Extract URLs from knowledge_sources
       let extractedSubSources: { id: string; url: string; title: string; selected: boolean }[] = [];
       
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
         extractedSubSources = extractSubSourcesFromKnowledgeSources(source);
-      } else {
-        extractedSubSources = generatePlaceholderUrls(source.name);
       }
       
       setSubSources(extractedSubSources);
@@ -531,20 +530,22 @@ const ImportSourcesDialog = ({
             
             return (
               <div 
-                key={index} 
+                key={subSource.id} 
                 className="flex items-center p-2 border rounded-md hover:bg-muted/40"
               >
-                {source.type === 'website' && (
-                  <Checkbox 
-                    checked={isSelected}
-                    onCheckedChange={() => toggleUrlSelection(subSource.id)}
-                    className="mr-2"
-                  />
-                )}
+                <Checkbox 
+                  checked={isSelected}
+                  onCheckedChange={() => toggleUrlSelection(subSource.id)}
+                  className="mr-2"
+                  id={`url-${subSource.id}`}
+                />
                 
-                <span className="flex-1 truncate text-sm">
+                <label 
+                  htmlFor={`url-${subSource.id}`}
+                  className="flex-1 truncate text-sm cursor-pointer"
+                >
                   {subSource.title || subSource.url}
-                </span>
+                </label>
                 
                 <a 
                   href={subSource.url} 
