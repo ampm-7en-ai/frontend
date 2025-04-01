@@ -31,11 +31,11 @@ const KnowledgeSourceModal = ({
         children: undefined,
         // Ensure knowledge_sources exists for website/url type sources
         knowledge_sources: source.type === 'website' || source.type === 'url' 
-          ? source.urls?.map(url => ({
-              id: url.id || Math.random().toString(36).substring(2, 11),
-              url: url.url,
-              title: url.title,
-              selected: url.selected !== false
+          ? source.insideLinks?.map(link => ({
+              id: link.url.split('/').pop() || Math.random().toString(36).substring(2, 11),
+              url: link.url,
+              title: link.title,
+              selected: link.selected !== false
             })) || []
           : []
       }))}
