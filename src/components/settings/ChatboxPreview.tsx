@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -39,7 +38,6 @@ export const ChatboxPreview = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom when new messages are added
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
@@ -48,14 +46,11 @@ export const ChatboxPreview = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      // Add user message
       setMessages([...messages, { type: 'user', text: inputValue }]);
       setInputValue('');
       
-      // Show typing indicator
       setShowTypingIndicator(true);
       
-      // Simulate bot response after a short delay
       setTimeout(() => {
         setShowTypingIndicator(false);
         setMessages(prev => [...prev, { 
@@ -67,13 +62,10 @@ export const ChatboxPreview = ({
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    // Add user message with the suggestion text
     setMessages([...messages, { type: 'user', text: suggestion }]);
     
-    // Show typing indicator
     setShowTypingIndicator(true);
     
-    // Simulate bot response after a short delay
     setTimeout(() => {
       setShowTypingIndicator(false);
       setMessages(prev => [...prev, { 
@@ -163,7 +155,6 @@ export const ChatboxPreview = ({
                 )}
                 style={{ 
                   backgroundColor: message.type === 'bot' ? `${primaryColor}15` : '',
-                  // Removed the border-left style for bot messages
                 }}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.text}</p>
@@ -183,7 +174,6 @@ export const ChatboxPreview = ({
             </div>
           ))}
           
-          {/* Typing indicator */}
           {showTypingIndicator && (
             <div className="flex gap-2 items-start">
               <div className="flex-shrink-0 mt-1">
@@ -216,7 +206,6 @@ export const ChatboxPreview = ({
                 )}
                 style={{ 
                   backgroundColor: `${primaryColor}15`,
-                  // Removed the border-left style for typing indicator
                 }}
               >
                 <div className="flex space-x-1">
@@ -228,7 +217,6 @@ export const ChatboxPreview = ({
             </div>
           )}
           
-          {/* Suggestions - only show if we have messages and no suggestions have been clicked yet */}
           {messages.length === 1 && suggestions && suggestions.length > 0 && (
             <div className="flex flex-col gap-2 mt-3 animate-fade-in">
               <p className="text-xs text-gray-500 mb-1">Suggested questions:</p>
@@ -282,9 +270,19 @@ export const ChatboxPreview = ({
   );
 };
 
-// Helper function to adjust color brightness
 function adjustColor(color: string, amount: number): string {
-  return color;
-  // This is a simplified version - in a real app you'd want to properly
-  // adjust the hex color brightness
+  try {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    const newR = Math.max(0, Math.min(255, r + amount));
+    const newG = Math.max(0, Math.min(255, g + amount));
+    const newB = Math.max(0, Math.min(255, b + amount));
+    
+    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+  } catch (e) {
+    return color;
+  }
 }

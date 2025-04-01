@@ -4,11 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, ArrowLeft, User, SendHorizontal } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAgentDetails } from '@/utils/api-config';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 type Message = {
   id: string;
@@ -23,29 +25,60 @@ const AgentPlayground = () => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(true);
   
-  // Mock data - in a real app, you would fetch this
-  const [agent, setAgent] = useState({
+  const [agent, setAgent] = useState<any>({
     id: agentId,
     name: "Customer Support Agent",
     description: "Handles customer inquiries and support tickets",
     status: "active",
     role: "support",
-    primaryColor: '#9b87f5', // Brand purple
-    secondaryColor: '#ffffff',
+    appearance: {
+      primaryColor: '#9b87f5',
+      secondaryColor: '#ffffff',
+      avatar: { src: '', type: 'default' }
+    },
   });
   
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'agent',
-      text: 'Hello! I\'m the Customer Support Agent. How can I help you today?',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  
+  useEffect(() => {
+    // Fetch agent details when component mounts
+    const getAgentDetails = async () => {
+      try {
+        setLoading(true);
+        if (agentId) {
+          const agentData = await fetchAgentDetails(agentId);
+          setAgent(agentData);
+          
+          // Initialize with welcome message if available
+          const welcomeMessage = agentData.appearance?.welcomeMessage || 
+            "Hello! I'm an AI assistant. How can I help you today?";
+            
+          setMessages([{
+            id: '1',
+            sender: 'agent',
+            text: welcomeMessage,
+            timestamp: new Date(),
+          }]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch agent details:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load agent details. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    getAgentDetails();
+  }, [agentId, toast]);
   
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -101,6 +134,19 @@ const AgentPlayground = () => {
       " This is a simulated response in the test environment.";
   };
   
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoadingSpinner size="lg" text="Loading agent..." />
+      </div>
+    );
+  }
+  
+  // Get the primary color from agent appearance or use default
+  const primaryColor = agent?.appearance?.primaryColor || '#9b87f5';
+  const avatarSrc = agent?.appearance?.avatar?.src || '';
+  const avatarType = agent?.appearance?.avatar?.type || 'default';
+
   return (
     <div className="flex flex-col h-screen max-h-screen">
       <div className="border-b p-4 flex items-center justify-between">
@@ -132,18 +178,36 @@ const AgentPlayground = () => {
                 <div 
                   className={`flex gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <Avatar className={`h-8 w-8 ${message.sender === 'agent' ? `bg-[${agent.primaryColor}]` : 'bg-gray-200'}`}>
-                    {message.sender === 'agent' ? 
-                      <Bot className="h-4 w-4 text-white" /> : 
-                      <User className="h-4 w-4" />
-                    }
-                  </Avatar>
+                  {message.sender === 'agent' ? (
+                    <Avatar className="h-8 w-8" style={{
+                      backgroundColor: avatarType === 'default' ? primaryColor : 'transparent'
+                    }}>
+                      {avatarSrc && avatarType === 'custom' ? (
+                        <AvatarImage src={avatarSrc} alt={agent.name} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback style={{
+                        backgroundColor: primaryColor
+                      }}>
+                        <Bot className="h-4 w-4 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <Avatar className="h-8 w-8 bg-gray-200">
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  
                   <div 
                     className={`rounded-lg p-3 ${
                       message.sender === 'agent' 
-                        ? `bg-[${agent.primaryColor}] bg-opacity-10 text-gray-800` 
+                        ? `bg-opacity-10 text-gray-800` 
                         : 'bg-gray-100 text-gray-800'
                     }`}
+                    style={{
+                      backgroundColor: message.sender === 'agent' ? `${primaryColor}20` : ''
+                    }}
                   >
                     <div className="text-sm">{message.text}</div>
                     <div className="text-xs text-muted-foreground mt-1">
@@ -156,10 +220,21 @@ const AgentPlayground = () => {
             {isTyping && (
               <div className="flex justify-start">
                 <div className="flex gap-3 max-w-[80%]">
-                  <Avatar className="h-8 w-8 bg-[#9b87f5]">
-                    <Bot className="h-4 w-4 text-white" />
+                  <Avatar className="h-8 w-8" style={{
+                    backgroundColor: avatarType === 'default' ? primaryColor : 'transparent'
+                  }}>
+                    {avatarSrc && avatarType === 'custom' ? (
+                      <AvatarImage src={avatarSrc} alt={agent.name} className="object-cover" />
+                    ) : null}
+                    <AvatarFallback style={{
+                      backgroundColor: primaryColor
+                    }}>
+                      <Bot className="h-4 w-4 text-white" />
+                    </AvatarFallback>
                   </Avatar>
-                  <div className="rounded-lg p-3 bg-[#9b87f5] bg-opacity-10">
+                  <div className="rounded-lg p-3" style={{
+                    backgroundColor: `${primaryColor}20`
+                  }}>
                     <div className="flex gap-1">
                       <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce"></div>
                       <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]"></div>
@@ -190,7 +265,7 @@ const AgentPlayground = () => {
               <Button 
                 type="submit" 
                 disabled={!inputValue.trim() || isTyping}
-                style={{ backgroundColor: '#9b87f5' }}
+                style={{ backgroundColor: primaryColor }}
               >
                 <SendHorizontal className="h-4 w-4 mr-2" />
                 Send
@@ -213,8 +288,8 @@ const AgentPlayground = () => {
                   <span className="font-medium">{agent.status === 'active' ? 'Active' : 'Inactive'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Role:</span>
-                  <span className="font-medium capitalize">{agent.role}</span>
+                  <span className="text-muted-foreground">Type:</span>
+                  <span className="font-medium capitalize">{agent.agentType || 'Standard'}</span>
                 </div>
               </div>
             </CardContent>
