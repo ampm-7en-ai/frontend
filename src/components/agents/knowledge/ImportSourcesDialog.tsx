@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -40,6 +41,24 @@ interface ExternalSource {
   urls?: { url: string; title: string; id?: string; selected?: boolean; }[];
   knowledge_sources?: any[];
   domain_links?: UrlNode | UrlNode[];
+  metadata?: {
+    count?: string;
+    file_size?: string | number;
+    no_of_chars?: number;
+    no_of_rows?: number;
+    no_of_pages?: number;
+    domain_links?: UrlNode | {
+      url: string;
+      title?: string;
+      selected?: boolean;
+      children?: Array<{
+        url: string;
+        title?: string;
+        selected?: boolean;
+        children?: Array<any>;
+      }>;
+    };
+  };
 }
 
 interface SourceType {
@@ -68,6 +87,12 @@ interface UrlNodeDisplay {
   isExpanded?: boolean;
 }
 
+interface UrlGroupType {
+  domain: string;
+  urls: UrlNodeDisplay[];
+  isExpanded: boolean;
+}
+
 export const ImportSourcesDialog = ({ 
   isOpen, 
   onOpenChange, 
@@ -83,7 +108,9 @@ export const ImportSourcesDialog = ({
   const [activeSourceId, setActiveSourceId] = useState<number | null>(initialSourceId || null);
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
   const [urlTree, setUrlTree] = useState<UrlNodeDisplay[]>([]);
+  const [urlGroups, setUrlGroups] = useState<UrlGroupType[]>([]);
   const [expandedUrls, setExpandedUrls] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [filteredCenterSources, setFilteredCenterSources] = useState<ExternalSource[]>([]);
 
@@ -97,6 +124,10 @@ export const ImportSourcesDialog = ({
         if (source.type === 'website' || source.type === 'url') {
           const tree = buildUrlTree(source);
           setUrlTree(tree);
+          
+          // Group URLs by domain
+          const groups = groupUrlsByDomain(tree);
+          setUrlGroups(groups);
         }
       }
     }
@@ -110,7 +141,9 @@ export const ImportSourcesDialog = ({
       setActiveSourceId(initialSourceId || null);
       setSelectedSource(null);
       setUrlTree([]);
+      setUrlGroups([]);
       setExpandedUrls(new Set());
+      setExpandedGroups(new Set());
     }
   }, [isOpen, initialSourceId]);
 
@@ -129,6 +162,34 @@ export const ImportSourcesDialog = ({
 
     setFilteredCenterSources(filtered);
   }, [selectedTab, searchTerm, externalSources]);
+
+  // Group URLs by domain
+  const groupUrlsByDomain = (urls: UrlNodeDisplay[]): UrlGroupType[] => {
+    const groups: { [key: string]: UrlNodeDisplay[] } = {};
+    
+    urls.forEach(url => {
+      try {
+        const domain = new URL(url.url).hostname;
+        if (!groups[domain]) {
+          groups[domain] = [];
+        }
+        groups[domain].push(url);
+      } catch (error) {
+        console.error("Invalid URL:", url.url);
+        // For invalid URLs, group under "Other"
+        if (!groups["Other"]) {
+          groups["Other"] = [];
+        }
+        groups["Other"].push(url);
+      }
+    });
+    
+    return Object.entries(groups).map(([domain, urls]) => ({
+      domain,
+      urls,
+      isExpanded: expandedGroups.has(domain)
+    }));
+  };
 
   const getFileIcon = (format: string) => {
     if (format.includes('pdf')) return <FileText className="h-4 w-4" />;
@@ -273,7 +334,9 @@ export const ImportSourcesDialog = ({
       });
     };
     
-    setUrlTree(updateNodes(urlTree));
+    const updatedTree = updateNodes(urlTree);
+    setUrlTree(updatedTree);
+    setUrlGroups(groupUrlsByDomain(updatedTree));
   };
 
   const toggleSourceSelection = (sourceId: number) => {
@@ -293,6 +356,7 @@ export const ImportSourcesDialog = ({
     if (source.type === 'website' || source.type === 'url') {
       const tree = buildUrlTree(source);
       setUrlTree(tree);
+      setUrlGroups(groupUrlsByDomain(tree));
     }
   };
 
@@ -308,6 +372,26 @@ export const ImportSourcesDialog = ({
     });
     
     setUrlTree(prev => updateExpandedState(prev, nodeId));
+  };
+
+  const toggleExpandGroup = (domain: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(domain)) {
+        newSet.delete(domain);
+      } else {
+        newSet.add(domain);
+      }
+      return newSet;
+    });
+    
+    setUrlGroups(prev => 
+      prev.map(group => 
+        group.domain === domain 
+          ? { ...group, isExpanded: !group.isExpanded }
+          : group
+      )
+    );
   };
 
   const updateExpandedState = (nodes: UrlNodeDisplay[], nodeId: string): UrlNodeDisplay[] => {
@@ -376,6 +460,43 @@ export const ImportSourcesDialog = ({
             
             {node.isExpanded && node.children && node.children.length > 0 && (
               renderUrlTree(node.children, level + 1)
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderUrlGroups = () => {
+    if (!urlGroups || urlGroups.length === 0) return null;
+    
+    return (
+      <div className="space-y-3">
+        {urlGroups.map((group) => (
+          <div key={group.domain} className="border rounded-md overflow-hidden">
+            <div 
+              className="flex items-center justify-between bg-gray-50 p-2 cursor-pointer"
+              onClick={() => toggleExpandGroup(group.domain)}
+            >
+              <div className="flex items-center gap-2">
+                <button className="focus:outline-none">
+                  {group.isExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+                <span className="font-medium text-sm">{group.domain}</span>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                {group.urls.length}
+              </Badge>
+            </div>
+            
+            {group.isExpanded && (
+              <div className="p-2 bg-white border-t">
+                {renderUrlTree(group.urls)}
+              </div>
             )}
           </div>
         ))}
@@ -532,10 +653,8 @@ export const ImportSourcesDialog = ({
                 </div>
               </div>
               
-              {urlTree.length > 0 ? (
-                <div className="border rounded-md overflow-hidden p-2 bg-gray-50/50">
-                  {renderUrlTree(urlTree)}
-                </div>
+              {urlGroups.length > 0 ? (
+                renderUrlGroups()
               ) : (
                 <div className="py-6 text-center text-muted-foreground border border-dashed rounded-md">
                   <Globe className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
