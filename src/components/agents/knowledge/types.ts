@@ -30,27 +30,6 @@ export interface KnowledgeSource {
     no_of_chars?: number;
     no_of_rows?: number;
     no_of_pages?: number;
-    format?: string;
-    upload_date?: string;
   };
   icon?: string;
-  knowledge_sources?: {
-    id: number | string;
-    url?: string;
-    title?: string;
-    status?: string;
-    metadata?: {
-      format?: string;
-      no_of_pages?: number;
-      file_size?: string | number;
-      count?: string;
-      upload_date?: string;
-    };
-    selected?: boolean;
-    file?: string | null;
-    knowledge_base?: number;
-    parent_knowledge_source?: number | null;
-    owner?: number;
-    sub_knowledge_sources?: any[];
-  }[];
 }
