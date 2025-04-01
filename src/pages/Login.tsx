@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,42 +11,7 @@ const Login = () => {
   const [activeTab, setActiveTab] = useState("login");
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setPendingVerificationEmail, setUser } = useAuth();
-  
-  // For development environment, auto-login
-  useEffect(() => {
-    const autoLogin = async () => {
-      // Check if we're in development mode and auto-login is enabled
-      if (import.meta.env.DEV && localStorage.getItem('devAutoLogin') !== 'false') {
-        console.log('DEV: Auto-login enabled');
-        
-        // This is a mock login - in real app, this would be a proper authentication call
-        try {
-          setUser({
-            id: 'dev-user-id',
-            email: 'dev@example.com',
-            name: 'Development User',
-            role: 'admin',
-            avatar: null,
-          });
-          
-          // Delay navigation slightly to let contexts initialize
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 100);
-          
-          toast({
-            title: "DEV: Auto-login successful",
-            description: "Automatically logged in for development",
-          });
-        } catch (error) {
-          console.error('DEV: Auto-login failed', error);
-        }
-      }
-    };
-    
-    autoLogin();
-  }, [navigate, setUser, toast]);
+  const { setPendingVerificationEmail } = useAuth();
 
   const handleSignupSuccess = (data: any, email: string) => {
     // Just handle setting the email, navigation happens in the SignupForm

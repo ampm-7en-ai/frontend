@@ -15,14 +15,6 @@ export interface KnowledgeSource {
     title: string;
     status: 'success' | 'error' | 'pending';
     selected?: boolean;
-    children?: any[]; // Add the children property to support nested URL structures
-  }[];
-  children?: {
-    url: string;
-    title: string;
-    status: 'success' | 'error' | 'pending';
-    selected?: boolean;
-    children?: any[]; // Top-level children property for compatibility with new API structure
   }[];
   documents?: {
     id: string;
@@ -38,15 +30,6 @@ export interface KnowledgeSource {
     no_of_chars?: number;
     no_of_rows?: number;
     no_of_pages?: number;
-    domain_links?: {
-      url: string;
-      children: {
-        url: string;
-        title?: string;
-        selected?: boolean;
-        children?: any[];
-      }[];
-    };
   };
   icon?: string;
   knowledge_sources?: {

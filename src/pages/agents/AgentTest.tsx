@@ -53,57 +53,6 @@ const mockAgents: Agent[] = [
         trainingStatus: "success",
         hasError: false,
         content: "## Frequently Asked Questions\n\n**Q: How do I reset my password?**\nA: Click on the 'Forgot Password' link on the login page and follow the instructions sent to your email.\n\n**Q: How do I upgrade my subscription?**\nA: Go to Settings > Billing and select your desired plan.\n\n**Q: Can I integrate with Salesforce?**\nA: Yes, we offer native integration with Salesforce and other popular CRM systems." 
-      },
-      {
-        id: 31,
-        name: "Company Website",
-        type: "website",
-        icon: "Globe",
-        size: "1.2MB",
-        lastUpdated: "2023-11-10",
-        trainingStatus: "success",
-        hasError: false,
-        metadata: {
-          domain_links: {
-            url: "https://example.com",
-            children: [
-              {
-                url: "https://example.com/products",
-                title: "Products Page",
-                selected: true,
-                children: [
-                  {
-                    url: "https://example.com/products/feature-1",
-                    title: "Feature 1",
-                    selected: true
-                  },
-                  {
-                    url: "https://example.com/products/feature-2",
-                    title: "Feature 2",
-                    selected: true
-                  }
-                ]
-              },
-              {
-                url: "https://example.com/support",
-                title: "Support Center",
-                selected: true,
-                children: [
-                  {
-                    url: "https://example.com/support/faq",
-                    title: "FAQ",
-                    selected: true
-                  },
-                  {
-                    url: "https://example.com/support/contact",
-                    title: "Contact Us",
-                    selected: true
-                  }
-                ]
-              }
-            ]
-          }
-        }
       }
     ],
     model: "gpt4",
