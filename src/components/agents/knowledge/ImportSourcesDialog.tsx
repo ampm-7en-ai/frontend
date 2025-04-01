@@ -42,15 +42,12 @@ interface ExternalSource {
   knowledge_sources?: any[];
   domain_links?: {
     url: string;
-    children?: Array<{
-      url: string;
-      title?: string;
-      children?: any[];
-    }>;
+    title?: string;
+    children?: Array<UrlNode>;
   } | Array<{
     url: string;
     title?: string;
-    children?: any[];
+    children?: Array<UrlNode>;
   }>;
 }
 
@@ -97,6 +94,7 @@ export const ImportSourcesDialog = ({
   const [urlTree, setUrlTree] = useState<UrlNodeDisplay[]>([]);
   const [expandedUrls, setExpandedUrls] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [filteredCenterSources, setFilteredCenterSources] = useState<ExternalSource[]>([]);
 
   useEffect(() => {
     if (isOpen && externalSources.length > 0 && initialSourceId) {
@@ -125,10 +123,9 @@ export const ImportSourcesDialog = ({
     }
   }, [isOpen, initialSourceId]);
 
-  const getFilteredSources = () => {
-    if (!externalSources) return [];
-
-    return externalSources.filter(source => {
+  useEffect(() => {
+    // Filter center panel based on left panel selection
+    const filtered = externalSources.filter(source => {
       // Filter by selected type if not "all"
       if (selectedTab !== 'all' && source.type !== selectedTab) {
         return false;
@@ -141,7 +138,9 @@ export const ImportSourcesDialog = ({
       
       return true;
     });
-  };
+
+    setFilteredCenterSources(filtered);
+  }, [selectedTab, searchTerm, externalSources]);
 
   const getFileIcon = (format: string) => {
     if (format.includes('pdf')) return <FileText className="h-4 w-4" />;
@@ -381,7 +380,6 @@ export const ImportSourcesDialog = ({
     );
   };
 
-  const filteredSources = getFilteredSources();
   const sourceTypes = getSourceTypes();
   const isSourceSelected = selectedSourceIds.length > 0;
 
@@ -647,12 +645,12 @@ export const ImportSourcesDialog = ({
             
             <ScrollArea className="flex-1">
               <div className="p-3 pt-2 grid gap-2">
-                {filteredSources.length === 0 ? (
+                {filteredCenterSources.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground text-sm">
                     No sources found
                   </div>
                 ) : (
-                  filteredSources.map((source) => renderSourceCard(source))
+                  filteredCenterSources.map((source) => renderSourceCard(source))
                 )}
               </div>
             </ScrollArea>
