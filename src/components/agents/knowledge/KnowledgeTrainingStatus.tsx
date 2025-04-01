@@ -484,11 +484,12 @@ const KnowledgeTrainingStatus = ({
       </CardContent>
 
       <KnowledgeSourceModal
-        isOpen={isImportDialogOpen}
+        open={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
-        externalSources={formatExternalSources(availableKnowledgeBases)}
-        currentSources={knowledgeSources}
+        sources={formatExternalSources(availableKnowledgeBases)}
+        initialSourceId={null}
         onImport={importSelectedSources}
+        isImportMode={true}
       />
     </Card>
   );
