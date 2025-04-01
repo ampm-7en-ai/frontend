@@ -134,6 +134,47 @@ export const ImportSourcesDialog = ({
     setFilteredCenterSources(filtered);
   }, [selectedTab, searchTerm, externalSources]);
 
+  // Helper function to extract children URLs from domain_links
+  const getChildrenUrls = (source: ExternalSource): { url: string; title: string }[] => {
+    if (source.type !== 'website' && source.type !== 'url') {
+      return [];
+    }
+
+    // Get domain_links from the source or its metadata
+    const domainLinks = source.domain_links || source.metadata?.domain_links;
+    
+    if (!domainLinks) {
+      console.log('No domain_links found for', source.name);
+      return [];
+    }
+
+    // Log domain links structure for debugging
+    console.log('Domain links structure for', source.name, ':', domainLinks);
+    
+    // Handle both single node and array of nodes
+    if (Array.isArray(domainLinks)) {
+      // If it's an array, collect all children from all nodes
+      let allChildren: { url: string; title: string }[] = [];
+      domainLinks.forEach(node => {
+        if (node.children && Array.isArray(node.children)) {
+          allChildren = [...allChildren, ...node.children.map(child => ({ 
+            url: child.url,
+            title: child.title || new URL(child.url).pathname.split('/').pop() || child.url 
+          }))];
+        }
+      });
+      return allChildren;
+    } else if (domainLinks.children && Array.isArray(domainLinks.children)) {
+      // If it's a single node with children
+      return domainLinks.children.map(child => ({ 
+        url: child.url,
+        title: child.title || new URL(child.url).pathname.split('/').pop() || child.url 
+      }));
+    }
+    
+    return [];
+  };
+
   const getFileIcon = (format: string) => {
     if (format.includes('pdf')) return <FileText className="h-4 w-4" />;
     if (format.includes('spreadsheet') || format.includes('excel') || format.includes('csv')) 
@@ -362,24 +403,51 @@ export const ImportSourcesDialog = ({
         <ScrollArea className="flex-1">
           <div className="p-4">
             {selectedSource.type === 'website' || selectedSource.type === 'url' ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-6 text-center">
                 <Globe className="h-16 w-16 text-muted-foreground/40 mb-4" />
                 <h4 className="text-lg font-medium mb-2">Website Source</h4>
-                <p className="text-muted-foreground max-w-sm">
+                
+                {/* Main domain link */}
+                <p className="text-muted-foreground mb-4">
                   This website will be processed during training.
                 </p>
-                {selectedSource.domain_links && (
-                  <div className="mt-4">
+                
+                {/* Display the main URL */}
+                {(selectedSource.domain_links && typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links) && (
+                  <div className="mb-4">
                     <a 
-                      href={typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links 
-                        ? selectedSource.domain_links.url 
-                        : ''}
+                      href={selectedSource.domain_links.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-primary flex items-center gap-1"
                     >
                       View Website <ExternalLink className="h-3.5 w-3.5" />
                     </a>
+                  </div>
+                )}
+                
+                {/* Display children URLs */}
+                {getChildrenUrls(selectedSource).length > 0 && (
+                  <div className="w-full max-w-md">
+                    <Separator className="my-4" />
+                    <h5 className="font-medium text-sm mb-3">Included URLs:</h5>
+                    <div className="space-y-2 text-left">
+                      {getChildrenUrls(selectedSource).map((child, index) => (
+                        <div key={index} className="p-2 rounded-md border bg-muted/20">
+                          <a 
+                            href={child.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary flex items-center gap-1 hover:underline truncate"
+                            title={child.url}
+                          >
+                            <Globe className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{child.title || child.url}</span>
+                            <ExternalLink className="h-3 w-3 shrink-0 ml-auto" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
