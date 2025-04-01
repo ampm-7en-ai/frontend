@@ -312,6 +312,11 @@ const ImportSourcesDialog = ({
     if (source.type === 'website' || source.type === 'url') {
       setSelectedSource(source);
       
+      // When selecting a source, also automatically add it to selected sources
+      if (!selectedImportSources.includes(source.id)) {
+        toggleImportSelection(source.id);
+      }
+      
       if (source.urls) {
         const initialSelectedIds = source.urls
           .filter(url => url.selected !== false)
@@ -333,7 +338,7 @@ const ImportSourcesDialog = ({
       const updatedUrls = selectedSource.urls.map(url => {
         const urlId = url.id || url.url;
         if (urlId === urlIdentifier) {
-          return { ...url, selected: !selectedUrlIds.includes(urlId) };
+          return { ...url, selected: !selectedUrlIds.includes(urlIdentifier) };
         }
         return url;
       });
@@ -479,7 +484,11 @@ const ImportSourcesDialog = ({
   };
 
   const renderUrlsList = (source: ExternalSource) => {
-    if (!source.urls || source.urls.length === 0) {
+    // Determine which URLs to display based on the source type and knowledge_sources
+    let displayUrls = source.urls;
+    
+    // If no URLs are available, show the empty state
+    if (!displayUrls || displayUrls.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <Globe className="h-10 w-10 text-muted-foreground mb-4" />
@@ -490,10 +499,6 @@ const ImportSourcesDialog = ({
         </div>
       );
     }
-
-    const displayUrls = source.knowledge_sources && source.type === 'website' 
-      ? source.urls 
-      : source.urls;
 
     return (
       <div className="p-4">
@@ -513,7 +518,7 @@ const ImportSourcesDialog = ({
         <div className="space-y-2">
           {displayUrls.map((url, index) => {
             const urlId = url.id || url.url;
-            const isSelected = url.selected !== false && (!urlId || selectedUrlIds.includes(urlId));
+            const isSelected = url.selected !== false && selectedUrlIds.includes(urlId);
             
             return (
               <div 
