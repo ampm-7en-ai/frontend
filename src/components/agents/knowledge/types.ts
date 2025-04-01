@@ -17,6 +17,13 @@ export interface KnowledgeSource {
     selected?: boolean;
     children?: any[]; // Add the children property to support nested URL structures
   }[];
+  children?: {
+    url: string;
+    title: string;
+    status: 'success' | 'error' | 'pending';
+    selected?: boolean;
+    children?: any[]; // Top-level children property for compatibility with new API structure
+  }[];
   documents?: {
     id: string;
     name: string;
