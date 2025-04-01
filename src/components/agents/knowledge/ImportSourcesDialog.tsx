@@ -197,26 +197,41 @@ export const ImportSourcesDialog = ({
 
   const buildUrlTree = (source: ExternalSource): UrlNodeDisplay[] => {
     console.log('Building URL tree for source:', source.name);
-    console.log('Source metadata:', source.domain_links);
     
-    if (!source.domain_links) {
-      console.log('No domain links found');
+    if (!source.metadata || !source.metadata.domain_links) {
+      console.log('No domain links found in metadata');
       return [];
     }
     
-    if (Array.isArray(source.domain_links)) {
-      console.log('Domain links is an array with', source.domain_links.length, 'items');
-      return source.domain_links.map(link => buildUrlNodeRecursively(link));
-    } else if (source.domain_links && typeof source.domain_links === 'object') {
+    const domainLinks = source.metadata.domain_links;
+    console.log('Domain links from metadata:', domainLinks);
+    
+    if (typeof domainLinks === 'object' && !Array.isArray(domainLinks)) {
       console.log('Domain links is a single object');
-      return [buildUrlNodeRecursively(source.domain_links)];
+      if (domainLinks.children && Array.isArray(domainLinks.children)) {
+        console.log(`Found ${domainLinks.children.length} children in domain_links`);
+        return domainLinks.children.map(child => buildUrlNodeRecursively(child));
+      } else {
+        return [buildUrlNodeRecursively(domainLinks)];
+      }
     }
     
-    console.log('Unrecognized domain_links format');
     return [];
   };
 
-  const buildUrlNodeRecursively = (node: UrlNode): UrlNodeDisplay => {
+  const buildUrlNodeRecursively = (node: any): UrlNodeDisplay => {
+    if (!node || !node.url) {
+      console.log('Invalid node:', node);
+      return {
+        id: `url-${Math.random().toString(36).substring(2, 11)}`,
+        url: 'unknown-url',
+        title: 'Unknown Page',
+        selected: false,
+        children: [],
+        isExpanded: false
+      };
+    }
+    
     console.log('Building node for URL:', node.url);
     
     const id = `url-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`;
@@ -231,7 +246,7 @@ export const ImportSourcesDialog = ({
       isExpanded: expandedUrls.has(id)
     };
     
-    if (node.children && node.children.length > 0) {
+    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
       console.log(`Processing ${node.children.length} children for URL ${node.url}`);
       urlNode.children = node.children.map(child => buildUrlNodeRecursively(child));
     }

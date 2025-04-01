@@ -26,7 +26,8 @@ const KnowledgeSourceModal = ({
     console.log(`Processing source: ${source.name}`, {
       type: source.type,
       hasDomainLinks: !!domainLinks,
-      domainLinksType: domainLinks ? (Array.isArray(domainLinks) ? 'array' : typeof domainLinks) : 'undefined'
+      domainLinksType: domainLinks ? typeof domainLinks : 'undefined',
+      metadata: source.metadata
     });
     
     // Create the transformed source with properly formatted domain_links
