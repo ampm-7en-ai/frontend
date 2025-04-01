@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -139,6 +138,14 @@ const ImportSourcesDialog = ({
           ? firstSource.metadata.format 
           : getMimeTypeForFormat(kb.type);
 
+        const processedKnowledgeSources = kb.knowledge_sources 
+          ? kb.knowledge_sources.map(ks => ({
+              ...ks,
+              id: ks.id || Math.random().toString(36).substring(2, 11),
+              selected: ks.selected !== false
+            }))
+          : [];
+
         return {
           id: kb.id,
           name: kb.name,
@@ -149,7 +156,7 @@ const ImportSourcesDialog = ({
           lastUpdated: uploadDate,
           linkBroken: false,
           path: `/${kb.type}/${kb.name}`,
-          knowledge_sources: kb.knowledge_sources || []
+          knowledge_sources: processedKnowledgeSources
         };
       });
 
@@ -217,6 +224,7 @@ const ImportSourcesDialog = ({
     
     setFilteredSources(filtered);
     setSelectedSource(null);
+    setSelectedUrlIds([]);
   }, [flattenedSources, activeSourceType, searchQuery]);
 
   const formatDate = (dateString) => {
@@ -274,12 +282,10 @@ const ImportSourcesDialog = ({
     if (source.type === 'website' || source.type === 'url') {
       setSelectedSource(source);
       
-      // When selecting a source, also automatically add it to selected sources
       if (!selectedImportSources.includes(source.id)) {
         toggleImportSelection(source.id);
       }
       
-      // Initialize selected URLs based on knowledge_sources
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
         const initialSelectedIds = source.knowledge_sources
           .filter(ks => ks.selected !== false)
@@ -310,6 +316,20 @@ const ImportSourcesDialog = ({
         ...selectedSource,
         knowledge_sources: updatedKnowledgeSources
       });
+
+      const updatedFlattenedSources = flattenedSources.map(source => 
+        source.id === selectedSource.id 
+          ? { ...source, knowledge_sources: updatedKnowledgeSources } 
+          : source
+      );
+      setFlattenedSources(updatedFlattenedSources);
+      
+      const updatedFilteredSources = filteredSources.map(source => 
+        source.id === selectedSource.id 
+          ? { ...source, knowledge_sources: updatedKnowledgeSources } 
+          : source
+      );
+      setFilteredSources(updatedFilteredSources);
     }
   };
 
@@ -343,10 +363,22 @@ const ImportSourcesDialog = ({
       return;
     }
     
+    const sourcesToImport = selectedImportSources.map(sourceId => {
+      const source = flattenedSources.find(s => s.id === sourceId);
+      if (source && (source.type === 'website' || source.type === 'url') && source.knowledge_sources) {
+        return {
+          ...source,
+          knowledge_sources: source.knowledge_sources.filter(ks => 
+            selectedUrlIds.includes(ks.id.toString())
+          )
+        };
+      }
+      return source;
+    }).filter(Boolean);
+    
     onOpenChange(false);
-    const sourcesToImport = selectedImportSources;
     setSelectedImportSources([]);
-    onImport(sourcesToImport);
+    onImport(selectedImportSources);
   };
 
   const sourceTypes: SourceType[] = [
@@ -449,7 +481,6 @@ const ImportSourcesDialog = ({
   };
 
   const renderKnowledgeSourcesList = (source: ExternalSource) => {
-    // Use knowledge_sources for displaying URLs
     if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-10 text-center">
