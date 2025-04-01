@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -210,23 +209,39 @@ export const ImportSourcesDialog = ({
   };
 
   const buildUrlTree = (source: ExternalSource): UrlNodeDisplay[] => {
+    console.log('Building URL tree for source:', source.name);
+    console.log('Domain links structure:', source.domain_links);
+    
     if (!source.domain_links) {
+      console.log('No domain links found');
       return [];
     }
     
     // Handle both object and array formats for domain_links
     if (Array.isArray(source.domain_links)) {
-      return source.domain_links.map(link => buildUrlNodeRecursively(link));
+      console.log('Domain links is an array with', source.domain_links.length, 'items');
+      // Process each domain_links item
+      return source.domain_links.map(link => {
+        // Create a root node from the current link
+        const rootNode = buildUrlNodeRecursively(link);
+        return rootNode;
+      });
     } else if (source.domain_links && typeof source.domain_links === 'object') {
-      return [buildUrlNodeRecursively(source.domain_links)];
+      console.log('Domain links is a single object');
+      // Create a single root node from the domain_links object
+      const rootNode = buildUrlNodeRecursively(source.domain_links);
+      return [rootNode];
     }
     
+    console.log('Unrecognized domain_links format');
     return [];
   };
 
   const buildUrlNodeRecursively = (
-    node: { url: string; title?: string; children?: any[] }
+    node: { url: string; title?: string; children?: Array<UrlNode> }
   ): UrlNodeDisplay => {
+    console.log('Building node for URL:', node.url);
+    
     const id = `url-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`;
     const title = node.title || node.url.split('/').pop() || node.url;
     
@@ -242,6 +257,7 @@ export const ImportSourcesDialog = ({
     
     // Process children if they exist
     if (node.children && node.children.length > 0) {
+      console.log(`Processing ${node.children.length} children for URL ${node.url}`);
       urlNode.children = node.children.map(child => 
         buildUrlNodeRecursively(child)
       );
