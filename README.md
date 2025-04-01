@@ -1,19 +1,9 @@
 
 # Welcome to 7en.ai
 
-## Project info
-
-**URL**: https://lovable.dev/projects/74664acb-3655-4ac1-b1f7-951e91ead0fb
-
 ## How can I edit this code?
 
 There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/74664acb-3655-4ac1-b1f7-951e91ead0fb) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
@@ -60,10 +50,6 @@ This project is built with .
 - React
 - shadcn-ui
 - Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/74664acb-3655-4ac1-b1f7-951e91ead0fb) and click on Share -> Publish.
 
 ## I want to use a custom domain - is that possible?
 
