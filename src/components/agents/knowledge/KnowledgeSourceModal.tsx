@@ -65,6 +65,22 @@ const KnowledgeSourceModal = ({
   const handleSourceSelect = (id: number) => {
     console.log("Source selected:", id);
     setSelectedSourceId(id);
+    
+    // Find the source with the selected ID and log it
+    const selectedSource = sources.find(source => source.id === id);
+    if (selectedSource) {
+      console.log("Selected Source Full Data:", selectedSource);
+      
+      // If it's a URL/website source, log domain_links if available
+      if ((selectedSource.type === 'website' || selectedSource.type === 'url') && 
+          selectedSource.metadata?.domain_links) {
+        console.log("Domain Links Structure:", {
+          type: typeof selectedSource.metadata.domain_links,
+          isArray: Array.isArray(selectedSource.metadata.domain_links),
+          value: selectedSource.metadata.domain_links
+        });
+      }
+    }
   };
   
   // The ImportSourcesDialog expects isOpen, but we receive open

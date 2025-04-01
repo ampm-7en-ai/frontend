@@ -65,6 +65,8 @@ interface ImportSourcesDialogProps {
   onImport: (selectedSourceIds: number[]) => void;
   externalSources?: ExternalSource[];
   initialSourceId?: number | null;
+  onSourceSelect?: (id: number) => void;
+  selectedSourceData?: KnowledgeSource;
 }
 
 interface UrlNodeDisplay {
@@ -88,7 +90,9 @@ export const ImportSourcesDialog = ({
   currentSources, 
   onImport, 
   externalSources = [], 
-  initialSourceId 
+  initialSourceId,
+  onSourceSelect,
+  selectedSourceData
 }: ImportSourcesDialogProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -120,6 +124,16 @@ export const ImportSourcesDialog = ({
       }
     }
   }, [isOpen, externalSources, initialSourceId]);
+
+  useEffect(() => {
+    if (selectedSourceData) {
+      console.log("Selected Source Data:", selectedSourceData);
+      
+      if (selectedSourceData.metadata?.domain_links) {
+        console.log("Domain Links:", selectedSourceData.metadata.domain_links);
+      }
+    }
+  }, [selectedSourceData]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -350,6 +364,11 @@ export const ImportSourcesDialog = ({
   const handleViewSourceDetails = (source: ExternalSource) => {
     setSelectedSource(source);
     setActiveSourceId(source.id);
+    
+    if (onSourceSelect && source.id) {
+      console.log("Calling onSourceSelect with id:", source.id);
+      onSourceSelect(source.id);
+    }
     
     if (source.type === 'website' || source.type === 'url') {
       const tree = buildUrlTree(source);
