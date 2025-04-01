@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -14,8 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   FileText, Globe, FileSpreadsheet, File, FileSearch, Search, 
-  Calendar, CheckCircle, Database, ArrowRight, ExternalLink, 
-  ChevronRight, ChevronDown, Link, ArrowDown
+  Calendar, CheckCircle, Database, ArrowRight, ExternalLink
 } from 'lucide-react';
 import { KnowledgeSource, UrlNode } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -69,21 +69,6 @@ interface ImportSourcesDialogProps {
   selectedSourceData?: KnowledgeSource;
 }
 
-interface UrlNodeDisplay {
-  id: string;
-  url: string;
-  title: string;
-  selected?: boolean;
-  children?: UrlNodeDisplay[];
-  isExpanded?: boolean;
-}
-
-interface UrlGroupType {
-  domain: string;
-  urls: UrlNodeDisplay[];
-  isExpanded: boolean;
-}
-
 export const ImportSourcesDialog = ({ 
   isOpen, 
   onOpenChange, 
@@ -100,10 +85,6 @@ export const ImportSourcesDialog = ({
   const [selectedTab, setSelectedTab] = useState<string>('all');
   const [activeSourceId, setActiveSourceId] = useState<number | null>(initialSourceId || null);
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
-  const [urlTree, setUrlTree] = useState<UrlNodeDisplay[]>([]);
-  const [urlGroups, setUrlGroups] = useState<UrlGroupType[]>([]);
-  const [expandedUrls, setExpandedUrls] = useState<Set<string>>(new Set());
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [filteredCenterSources, setFilteredCenterSources] = useState<ExternalSource[]>([]);
 
@@ -113,14 +94,6 @@ export const ImportSourcesDialog = ({
       if (source) {
         setActiveSourceId(initialSourceId);
         setSelectedSource(source);
-
-        if (source.type === 'website' || source.type === 'url') {
-          const tree = buildUrlTree(source);
-          setUrlTree(tree);
-          
-          const groups = groupUrlsByDomain(tree);
-          setUrlGroups(groups);
-        }
       }
     }
   }, [isOpen, externalSources, initialSourceId]);
@@ -142,10 +115,6 @@ export const ImportSourcesDialog = ({
       setSelectedTab('all');
       setActiveSourceId(initialSourceId || null);
       setSelectedSource(null);
-      setUrlTree([]);
-      setUrlGroups([]);
-      setExpandedUrls(new Set());
-      setExpandedGroups(new Set());
     }
   }, [isOpen, initialSourceId]);
 
@@ -164,32 +133,6 @@ export const ImportSourcesDialog = ({
 
     setFilteredCenterSources(filtered);
   }, [selectedTab, searchTerm, externalSources]);
-
-  const groupUrlsByDomain = (urls: UrlNodeDisplay[]): UrlGroupType[] => {
-    const groups: { [key: string]: UrlNodeDisplay[] } = {};
-    
-    urls.forEach(url => {
-      try {
-        const domain = new URL(url.url).hostname;
-        if (!groups[domain]) {
-          groups[domain] = [];
-        }
-        groups[domain].push(url);
-      } catch (error) {
-        console.error("Invalid URL:", url.url);
-        if (!groups["Other"]) {
-          groups["Other"] = [];
-        }
-        groups["Other"].push(url);
-      }
-    });
-    
-    return Object.entries(groups).map(([domain, urls]) => ({
-      domain,
-      urls,
-      isExpanded: expandedGroups.has(domain)
-    }));
-  };
 
   const getFileIcon = (format: string) => {
     if (format.includes('pdf')) return <FileText className="h-4 w-4" />;
@@ -256,123 +199,6 @@ export const ImportSourcesDialog = ({
     }));
   };
 
-  const buildUrlTree = (source: ExternalSource): UrlNodeDisplay[] => {
-    console.log('Building URL tree for source:', source.name);
-    
-    if (source.domain_links) {
-      console.log('Using domain_links directly from source:', source.domain_links);
-      if (Array.isArray(source.domain_links)) {
-        return source.domain_links.map(link => buildUrlNodeRecursively(link));
-      } else {
-        return [buildUrlNodeRecursively(source.domain_links)];
-      }
-    }
-    
-    if (!source.metadata || !source.metadata.domain_links) {
-      console.log('No domain links found in metadata');
-      
-      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
-        console.log(`Using ${source.knowledge_sources.length} knowledge_sources to build tree`);
-        return source.knowledge_sources.map(link => ({
-          id: `url-${String(link.id)}`,
-          url: link.url,
-          title: link.title || link.url,
-          selected: link.selected !== false,
-          children: [],
-          isExpanded: false
-        }));
-      }
-      
-      return [];
-    }
-    
-    const domainLinks = source.metadata.domain_links;
-    console.log('Domain links from metadata:', domainLinks);
-    
-    if (Array.isArray(domainLinks)) {
-      console.log(`Found array with ${domainLinks.length} domain links`);
-      return domainLinks.map(link => buildUrlNodeRecursively(link));
-    } else if (typeof domainLinks === 'object') {
-      console.log('Domain links is a single object');
-      
-      if (domainLinks.children && Array.isArray(domainLinks.children)) {
-        console.log(`Found ${domainLinks.children.length} children in domain_links`);
-        return domainLinks.children.map(child => buildUrlNodeRecursively(child));
-      } 
-      else if (domainLinks.url) {
-        console.log('Domain links is a single URL node');
-        return [buildUrlNodeRecursively(domainLinks)];
-      }
-      else {
-        console.log('Trying to extract any URL-like properties from domain_links');
-        return Object.values(domainLinks)
-          .filter(val => typeof val === 'object' && val !== null)
-          .map(val => buildUrlNodeRecursively(val as any));
-      }
-    }
-    
-    return [];
-  };
-
-  const buildUrlNodeRecursively = (node: any): UrlNodeDisplay => {
-    if (!node || !node.url) {
-      console.log('Invalid node:', node);
-      return {
-        id: `url-${Math.random().toString(36).substring(2, 11)}`,
-        url: 'unknown-url',
-        title: 'Unknown Page',
-        selected: false,
-        children: [],
-        isExpanded: false
-      };
-    }
-    
-    console.log('Building node for URL:', node.url);
-    
-    const id = `url-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`;
-    const title = node.title || node.url.split('/').pop() || node.url;
-    
-    const urlNode: UrlNodeDisplay = {
-      id,
-      url: node.url,
-      title,
-      selected: node.selected !== false,
-      children: [],
-      isExpanded: expandedUrls.has(id)
-    };
-    
-    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
-      console.log(`Processing ${node.children.length} children for URL ${node.url}`);
-      urlNode.children = node.children.map(child => buildUrlNodeRecursively(child));
-    }
-    
-    return urlNode;
-  };
-
-  const toggleUrlNode = (nodeId: string, selected: boolean) => {
-    const updateNodes = (nodes: UrlNodeDisplay[]): UrlNodeDisplay[] => {
-      return nodes.map(node => {
-        if (node.id === nodeId) {
-          const updatedNode = { ...node, selected };
-          
-          if (node.children && node.children.length > 0) {
-            updatedNode.children = updateNodes(node.children).map(child => ({ ...child, selected }));
-          }
-          
-          return updatedNode;
-        } else if (node.children && node.children.length > 0) {
-          return { ...node, children: updateNodes(node.children) };
-        }
-        
-        return node;
-      });
-    };
-    
-    const updatedTree = updateNodes(urlTree);
-    setUrlTree(updatedTree);
-    setUrlGroups(groupUrlsByDomain(updatedTree));
-  };
-
   const toggleSourceSelection = (sourceId: number) => {
     setSelectedSourceIds(prev => {
       if (prev.includes(sourceId)) {
@@ -391,160 +217,11 @@ export const ImportSourcesDialog = ({
       console.log("Calling onSourceSelect with id:", source.id);
       onSourceSelect(source.id);
     }
-    
-    if (source.type === 'website' || source.type === 'url') {
-      const tree = buildUrlTree(source);
-      setUrlTree(tree);
-      setUrlGroups(groupUrlsByDomain(tree));
-    }
-  };
-
-  const toggleExpandUrl = (nodeId: string) => {
-    setExpandedUrls(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(nodeId)) {
-        newSet.delete(nodeId);
-      } else {
-        newSet.add(nodeId);
-      }
-      return newSet;
-    });
-    
-    setUrlTree(prev => updateExpandedState(prev, nodeId));
-  };
-
-  const toggleExpandGroup = (domain: string) => {
-    setExpandedGroups(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(domain)) {
-        newSet.delete(domain);
-      } else {
-        newSet.add(domain);
-      }
-      return newSet;
-    });
-    
-    setUrlGroups(prev => 
-      prev.map(group => 
-        group.domain === domain 
-          ? { ...group, isExpanded: !group.isExpanded }
-          : group
-      )
-    );
-  };
-
-  const updateExpandedState = (nodes: UrlNodeDisplay[], nodeId: string): UrlNodeDisplay[] => {
-    return nodes.map(node => {
-      if (node.id === nodeId) {
-        return { ...node, isExpanded: !node.isExpanded };
-      } else if (node.children && node.children.length > 0) {
-        return { ...node, children: updateExpandedState(node.children, nodeId) };
-      }
-      return node;
-    });
   };
 
   const handleImport = () => {
     onImport(selectedSourceIds);
   };
-
-  const renderUrlTree = (nodes: UrlNodeDisplay[], level: number = 0) => {
-    if (!nodes || nodes.length === 0) return null;
-    
-    return (
-      <div className="pl-2">
-        {nodes.map((node) => (
-          <div key={node.id} className="mb-1">
-            <div 
-              className="flex items-center pl-2 hover:bg-gray-50 rounded"
-              style={{ marginLeft: `${level * 12}px` }}
-            >
-              {node.children && node.children.length > 0 ? (
-                <button 
-                  className="p-1 focus:outline-none" 
-                  onClick={() => toggleExpandUrl(node.id)}
-                >
-                  {node.isExpanded ? (
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-gray-500" />
-                  )}
-                </button>
-              ) : (
-                <span className="w-6" />
-              )}
-              
-              <div className="flex items-center gap-2 py-1 flex-1">
-                <Checkbox
-                  checked={node.selected}
-                  onCheckedChange={(checked) => toggleUrlNode(node.id, Boolean(checked))}
-                  id={`url-node-${node.id}`}
-                />
-                
-                <div className="flex items-center gap-1 text-sm">
-                  <Globe className="h-4 w-4 text-gray-600" />
-                  <span className="truncate max-w-[300px]">{node.title}</span>
-                </div>
-              </div>
-              
-              <a 
-                href={node.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="p-1 text-gray-500 hover:text-gray-700"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
-            
-            {node.isExpanded && node.children && node.children.length > 0 && (
-              renderUrlTree(node.children, level + 1)
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderUrlGroups = () => {
-    if (!urlGroups || urlGroups.length === 0) return null;
-    
-    return (
-      <div className="space-y-3">
-        {urlGroups.map((group) => (
-          <div key={group.domain} className="border rounded-md overflow-hidden">
-            <div 
-              className="flex items-center justify-between bg-gray-50 p-2 cursor-pointer"
-              onClick={() => toggleExpandGroup(group.domain)}
-            >
-              <div className="flex items-center gap-2">
-                <button className="focus:outline-none">
-                  {group.isExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </button>
-                <span className="font-medium text-sm">{group.domain}</span>
-              </div>
-              <Badge variant="outline" className="text-xs">
-                {group.urls.length}
-              </Badge>
-            </div>
-            
-            {group.isExpanded && (
-              <div className="p-2 bg-white border-t">
-                {renderUrlTree(group.urls)}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const sourceTypes = getSourceTypes();
-  const isSourceSelected = selectedSourceIds.length > 0;
 
   const renderSourceCard = (source: ExternalSource) => {
     const isSelected = selectedSourceIds.includes(source.id);
@@ -683,66 +360,46 @@ export const ImportSourcesDialog = ({
         </div>
         
         <ScrollArea className="flex-1">
-          {(selectedSource.type === 'website' || selectedSource.type === 'url') ? (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-medium text-sm">Website Structure</h4>
-                <div className="text-xs text-muted-foreground">
-                  Select pages to include
-                </div>
-              </div>
-              
-              {urlGroups.length > 0 ? (
-                renderUrlGroups()
-              ) : (
-                <div className="py-6 text-center text-muted-foreground border border-dashed rounded-md">
-                  <Globe className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-                  <p>No website structure available</p>
-                  <p className="text-xs mt-1">The structure will be crawled during training</p>
-                </div>
-              )}
-              
-              <div className="mt-6">
-                <h4 className="font-medium text-sm mb-3">Crawl Options</h4>
-                <div className="border rounded-md p-3 bg-gray-50/50">
-                  <RadioGroup 
-                    defaultValue="single" 
-                    className="space-y-3"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="single" id="single" />
-                      <Label htmlFor="single" className="flex items-center cursor-pointer">
-                        <Link className="h-3.5 w-3.5 mr-1.5" />
-                        <span className="text-sm">Single URL</span>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="children" id="children" />
-                      <Label htmlFor="children" className="flex items-center cursor-pointer">
-                        <ArrowDown className="h-3.5 w-3.5 mr-1.5" />
-                        <span className="text-sm">Crawl children URLs</span>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    Select how the agent should extract information from this website
+          <div className="p-4">
+            {selectedSource.type === 'website' || selectedSource.type === 'url' ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Globe className="h-16 w-16 text-muted-foreground/40 mb-4" />
+                <h4 className="text-lg font-medium mb-2">Website Source</h4>
+                <p className="text-muted-foreground max-w-sm">
+                  This website will be processed during training.
+                </p>
+                {selectedSource.domain_links && (
+                  <div className="mt-4">
+                    <a 
+                      href={typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links 
+                        ? selectedSource.domain_links.url 
+                        : ''}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary flex items-center gap-1"
+                    >
+                      View Website <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
                   </div>
-                </div>
+                )}
               </div>
-            </div>
-          ) : (
-            <div className="p-4 text-center my-8">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="mb-1">Document preview not available</p>
-              <p className="text-xs text-muted-foreground">
-                Document content will be processed during training
-              </p>
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText className="h-16 w-16 text-muted-foreground/40 mb-4" />
+                <h4 className="text-lg font-medium mb-2">Document Preview</h4>
+                <p className="text-muted-foreground max-w-sm">
+                  Document content will be processed during training
+                </p>
+              </div>
+            )}
+          </div>
         </ScrollArea>
       </>
     );
   };
+
+  const sourceTypes = getSourceTypes();
+  const isSourceSelected = selectedSourceIds.length > 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
