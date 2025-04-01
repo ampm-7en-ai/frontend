@@ -60,6 +60,7 @@ interface ImportSourcesDialogProps {
   currentSources: KnowledgeSource[];
   onImport: (selectedSourceIds: number[]) => void;
   externalSources?: ExternalSource[];
+  initialSourceId?: number | null;
 }
 
 interface UrlNode {
@@ -76,7 +77,8 @@ const ImportSourcesDialog = ({
   onOpenChange,
   currentSources,
   onImport,
-  externalSources: propExternalSources
+  externalSources: propExternalSources,
+  initialSourceId
 }: ImportSourcesDialogProps) => {
   const [selectedImportSources, setSelectedImportSources] = useState<number[]>([]);
   const [activeSourceType, setActiveSourceType] = useState<string>('all');
@@ -88,6 +90,18 @@ const ImportSourcesDialog = ({
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
   const [selectedUrlIds, setSelectedUrlIds] = useState<string[]>([]);
   const [urlTree, setUrlTree] = useState<UrlNode[]>([]);
+
+  useEffect(() => {
+    if (initialSourceId && flattenedSources.length > 0) {
+      const source = flattenedSources.find(s => s.id === initialSourceId);
+      if (source) {
+        handleSourceClick(source);
+        setSelectedImportSources(prev => 
+          prev.includes(source.id) ? prev : [...prev, source.id]
+        );
+      }
+    }
+  }, [initialSourceId, flattenedSources]);
 
   const fetchKnowledgeBases = async () => {
     try {
