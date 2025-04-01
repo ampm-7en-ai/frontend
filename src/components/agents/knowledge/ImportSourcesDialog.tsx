@@ -372,12 +372,14 @@ const ImportSourcesDialog = ({
   };
 
   const buildUrlNodeRecursively = (node: any): UrlNode => {
+    const urlTitle = node.title || extractPathFromUrl(node.url);
+    
     const urlNode: UrlNode = {
       id: `node-${node.url.replace(/[^a-zA-Z0-9]/g, '-')}`,
       url: node.url,
-      title: node.title || extractPathFromUrl(node.url),
+      title: urlTitle,
       selected: node.selected !== false,
-      isExpanded: true
+      isExpanded: false
     };
 
     if (node.children && node.children.length > 0) {
@@ -399,7 +401,11 @@ const ImportSourcesDialog = ({
   const extractPathFromUrl = (url: string): string => {
     try {
       const urlObj = new URL(url);
-      return urlObj.pathname || urlObj.hostname;
+      const pathSegments = urlObj.pathname.split('/').filter(Boolean);
+      if (pathSegments.length > 0) {
+        return pathSegments[pathSegments.length - 1].replace(/-/g, ' ').replace(/^[a-z]/, c => c.toUpperCase());
+      }
+      return urlObj.hostname;
     } catch (e) {
       return url;
     }

@@ -42,24 +42,37 @@ const KnowledgeSourceModal = ({
         // Combine URLs from both sources, prioritizing insideLinks if both exist
         const combinedUrls = hasInsideLinks ? urlsFromInsideLinks : urlsFromChildren;
         
+        // For domain_links, we need to preserve the hierarchical structure
+        let domainLinks = undefined;
+        
+        if ((source.type === 'website' || source.type === 'url')) {
+          if (hasChildren && source.children && source.children[0] && source.children[0].children) {
+            // Use the hierarchical structure directly if it exists in children
+            domainLinks = {
+              url: source.children[0].url || '',
+              children: source.children
+            };
+          } else if (hasInsideLinks) {
+            // Fall back to insideLinks if no hierarchical structure in children
+            domainLinks = {
+              url: source.insideLinks[0]?.url || '',
+              children: source.insideLinks.map(link => ({
+                url: link.url,
+                title: link.title,
+                selected: link.selected !== false,
+                children: link.children || []
+              }))
+            };
+          }
+        }
+        
         return {
           ...source,
           format: source.type,
           pages: source.metadata?.no_of_pages?.toString(),
           children: undefined, // Clear direct children to avoid confusion
           // Map domain_links for website/url type sources to create tree structure
-          domain_links: (source.type === 'website' || source.type === 'url') && (hasInsideLinks || hasChildren)
-            ? { 
-                url: combinedUrls[0]?.url || '', 
-                children: combinedUrls.map(link => ({
-                  url: link.url,
-                  title: link.title,
-                  selected: link.selected !== false,
-                  // Handle nested children if they exist
-                  children: Array.isArray(link.children) ? link.children : []
-                }))
-              }
-            : undefined,
+          domain_links: domainLinks,
           // Ensure knowledge_sources exists for website/url type sources
           knowledge_sources: (source.type === 'website' || source.type === 'url') && (hasInsideLinks || hasChildren)
             ? combinedUrls.map(link => ({
