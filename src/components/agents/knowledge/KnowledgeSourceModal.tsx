@@ -55,7 +55,7 @@ const KnowledgeSourceModal = ({
 
   // Initialize sub-source selections when a source is selected
   useEffect(() => {
-    if (selectedSource?.type === 'webpage' && selectedSource.knowledge_sources?.length) {
+    if (selectedSource?.knowledge_sources?.length) {
       // Pre-select sub-sources that have selected=true if that property exists
       const preSelectedIds = selectedSource.knowledge_sources
         .filter(ks => ks.selected)
@@ -233,40 +233,52 @@ const KnowledgeSourceModal = ({
             )}
           </div>
           
-          {/* Sub-sources Panel (Knowledge Sources) */}
+          {/* Knowledge Sources Panel */}
           <div className="w-1/3 flex flex-col">
             <div className="p-3 border-b bg-muted/30">
               <h3 className="text-sm font-medium">
-                {selectedSource?.type === 'webpage' 
-                  ? `URLs (${selectedSource?.knowledge_sources?.length || 0})` 
+                {selectedSource 
+                  ? `Knowledge Sources (${selectedSource.knowledge_sources?.length || 0})` 
                   : 'Knowledge Sources'}
               </h3>
             </div>
             <ScrollArea className="flex-1">
-              {selectedSource?.type === 'webpage' && selectedSource?.knowledge_sources?.length > 0 ? (
+              {selectedSource?.knowledge_sources && selectedSource.knowledge_sources.length > 0 ? (
                 <div className="p-3 space-y-2">
                   {selectedSource.knowledge_sources.map((ks, index) => (
                     <div 
                       key={`ks-${ks.id || index}`}
-                      className="flex items-center p-2 border rounded-md hover:bg-muted/20"
+                      className="flex items-start p-2 border rounded-md hover:bg-muted/20"
                     >
                       <Checkbox 
                         id={`subSource-${ks.id || index}`}
                         checked={selectedSubSourceIds.includes(`ks-${ks.id || ks.url}`)}
                         onCheckedChange={() => toggleSubSourceSelection(`ks-${ks.id || ks.url}`)}
-                        className="mr-3"
+                        className="mt-0.5 mr-3"
                       />
                       <div className="flex-1 min-w-0">
                         <label 
                           htmlFor={`subSource-${ks.id || index}`} 
                           className="text-sm font-medium cursor-pointer truncate block"
                         >
-                          {ks.title || 'Unnamed Source'}
+                          {ks.title || 'Untitled Source'}
                         </label>
                         {ks.url && (
                           <span className="text-xs text-muted-foreground truncate block">
                             {ks.url}
                           </span>
+                        )}
+                        {ks.status && (
+                          <span className={`text-xs ${ks.status === 'error' ? 'text-red-500' : ks.status === 'pending' ? 'text-amber-500' : 'text-green-500'} font-medium mt-1 inline-block`}>
+                            Status: {ks.status}
+                          </span>
+                        )}
+                        {ks.metadata && (
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {ks.metadata.format && <div>Format: {ks.metadata.format}</div>}
+                            {ks.metadata.no_of_pages && <div>Pages: {ks.metadata.no_of_pages}</div>}
+                            {ks.metadata.file_size && <div>Size: {ks.metadata.file_size}</div>}
+                          </div>
                         )}
                       </div>
                       {ks.url && (
@@ -288,17 +300,15 @@ const KnowledgeSourceModal = ({
                   <Globe className="h-10 w-10 text-muted-foreground/40" />
                   <div className="text-center max-w-md">
                     <h3 className="text-base font-medium mb-2">
-                      {selectedSource ? 
-                        'No knowledge sources available' : 
-                        'Select a website source to view URLs'
+                      {selectedSource 
+                        ? 'No knowledge sources available' 
+                        : 'Select a source to view knowledge sources'
                       }
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {selectedSource?.type === 'webpage' 
-                        ? 'This source does not contain any URLs' 
-                        : selectedSource 
-                          ? 'Only website sources have associated URLs' 
-                          : 'Please select a website source from the left panel'
+                      {selectedSource
+                        ? 'This source does not contain any knowledge sources' 
+                        : 'Please select a source from the left panel'
                       }
                     </p>
                   </div>

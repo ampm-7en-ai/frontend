@@ -39,5 +39,10 @@ export interface KnowledgeSource {
     status?: string;
     metadata?: any;
     selected?: boolean;
+    file?: string | null;
+    knowledge_base?: number;
+    parent_knowledge_source?: number | null;
+    owner?: number;
+    sub_knowledge_sources?: any[];
   }[];
 }
