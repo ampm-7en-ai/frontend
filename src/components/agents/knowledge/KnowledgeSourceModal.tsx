@@ -1,10 +1,37 @@
 
 import React from 'react';
-import { Dialog } from '@/components/ui/dialog';
 import ImportSourcesDialog from './ImportSourcesDialog';
+import { KnowledgeSource } from './types';
 
-// This is a compatibility component to avoid breaking imports
-// It simply re-exports ImportSourcesDialog
-const KnowledgeSourceModal = ImportSourcesDialog;
+interface KnowledgeSourceModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  sources: KnowledgeSource[];
+  initialSourceId?: number | null;
+}
+
+// This is a compatibility component that adapts the new prop names to the old ones
+const KnowledgeSourceModal = ({ 
+  open, 
+  onOpenChange, 
+  sources, 
+  initialSourceId 
+}: KnowledgeSourceModalProps) => {
+  // The ImportSourcesDialog expects isOpen, but we receive open
+  return (
+    <ImportSourcesDialog
+      isOpen={open}
+      onOpenChange={onOpenChange}
+      currentSources={sources}
+      onImport={() => {}} // Provide an empty handler for the onImport prop
+      externalSources={sources.map(source => ({
+        ...source,
+        format: source.type,
+        pages: source.metadata?.no_of_pages?.toString(),
+        children: undefined
+      }))}
+    />
+  );
+};
 
 export default KnowledgeSourceModal;
