@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -35,7 +36,7 @@ interface ExternalSource {
   linkBroken?: boolean;
   children?: ExternalSource[];
   path?: string;
-  urls?: { url: string; title: string; selected?: boolean; }[];
+  urls?: { url: string; title: string; id?: string; selected?: boolean; }[];
   knowledge_sources?: any[];
 }
 
@@ -179,7 +180,7 @@ const ImportSourcesDialog = ({
         urlsList.push({
           url: source.url,
           title: source.title || source.url,
-          id: source.id,
+          id: source.id.toString(), // Ensure id is a string
           selected: true
         });
       }
@@ -190,9 +191,9 @@ const ImportSourcesDialog = ({
 
   const generatePlaceholderUrls = (siteName) => {
     return [
-      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com`, title: `${siteName} Home`, selected: true },
-      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/about`, title: 'About Page', selected: true },
-      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/docs`, title: 'Documentation', selected: true }
+      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com`, title: `${siteName} Home`, id: `${siteName.toLowerCase()}-home`, selected: true },
+      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/about`, title: 'About Page', id: `${siteName.toLowerCase()}-about`, selected: true },
+      { url: `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.com/docs`, title: 'Documentation', id: `${siteName.toLowerCase()}-docs`, selected: true }
     ];
   };
 
@@ -321,17 +322,17 @@ const ImportSourcesDialog = ({
     }
   };
 
-  const toggleUrlSelection = (urlId: string) => {
+  const toggleUrlSelection = (urlIdentifier: string) => {
     setSelectedUrlIds(prev => 
-      prev.includes(urlId)
-        ? prev.filter(id => id !== urlId)
-        : [...prev, urlId]
+      prev.includes(urlIdentifier)
+        ? prev.filter(id => id !== urlIdentifier)
+        : [...prev, urlIdentifier]
     );
     
     if (selectedSource && selectedSource.urls) {
       const updatedUrls = selectedSource.urls.map(url => {
-        const urlIdentifier = url.id || url.url;
-        if (urlIdentifier === urlId) {
+        const urlId = url.id || url.url;
+        if (urlId === urlIdentifier) {
           return { ...url, selected: !selectedUrlIds.includes(urlId) };
         }
         return url;
