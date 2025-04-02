@@ -47,33 +47,25 @@ const KnowledgeSourceModal = ({
         hasChildren = !!(domainLinks.children && domainLinks.children.length > 0);
         childrenCount = domainLinks.children?.length || 0;
       }
-    } else if (source.domain_links) {
-      // Direct domain_links property (not in metadata)
+    } else if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+      // If no domain_links in metadata, check for knowledge_sources
       domainLinksSource = 'direct';
-      const directLinks = source.domain_links;
-      
-      if (Array.isArray(directLinks)) {
-        hasChildren = directLinks.some(node => node.children && node.children.length > 0);
-        childrenCount = directLinks.reduce((count, node) => 
-          count + (node.children?.length || 0), 0);
-      } else if (directLinks && typeof directLinks === 'object') {
-        hasChildren = !!(directLinks.children && directLinks.children.length > 0);
-        childrenCount = directLinks.children?.length || 0;
-      }
+      hasChildren = true;
+      childrenCount = source.knowledge_sources.length;
     }
     
     return {
       id: source.id,
       name: source.name,
       type: source.type,
-      hasDomainLinks: hasDomainLinksInMetadata || !!source.domain_links,
+      hasDomainLinks: hasDomainLinksInMetadata,
       domainLinksSource,
       hasChildren,
       childrenCount,
       structure: JSON.stringify(
         hasDomainLinksInMetadata 
           ? domainLinks 
-          : (source.domain_links || null)
+          : (source.knowledge_sources || null)
       ).substring(0, 100) + '...'
     };
   };
