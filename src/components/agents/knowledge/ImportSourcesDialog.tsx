@@ -1000,3 +1000,5 @@ export const ImportSourcesDialog = ({
   );
 };
 
+// Add default export to fix the import issue in KnowledgeSourceModal.tsx
+export default ImportSourcesDialog;
