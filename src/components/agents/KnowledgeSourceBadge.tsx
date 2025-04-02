@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Database, Globe, AlertTriangle, Link2Off } from 'lucide-react';
+import { BookOpen, Database, Globe, AlertTriangle, Link2Off, FileText } from 'lucide-react';
 import { 
   Tooltip, 
   TooltipContent, 
@@ -18,10 +18,13 @@ const KnowledgeSourceBadge = ({ source, onClick }: KnowledgeSourceBadgeProps) =>
   const getIcon = () => {
     switch (source.type) {
       case 'document':
-        return <BookOpen className="h-3 w-3" />;
+      case 'pdf':
+        return <FileText className="h-3 w-3" />;
       case 'database':
         return <Database className="h-3 w-3" />;
       case 'webpage':
+      case 'website':
+      case 'url':
         return <Globe className="h-3 w-3" />;
       default:
         return <BookOpen className="h-3 w-3" />;

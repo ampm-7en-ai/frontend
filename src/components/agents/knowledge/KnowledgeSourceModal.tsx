@@ -29,13 +29,16 @@ const KnowledgeSourceModal = ({
 
   // Process domain links to ensure they're in the correct format with proper nesting
   const processedSources = sources.map(source => {
-    // Get domain_links directly from source.metadata
-    const domainLinks = source.metadata?.domain_links;
+    // Log entire source for debugging
+    console.log(`Full source object for ${source.name}:`, source);
     
-    // Log source structure for debugging
+    // Extract domain_links from metadata with proper path navigation
+    const domainLinks = source.metadata?.domain_links;
+    const sourceType = source.type; // Extract type directly from source
+    
     console.log(`Processing source: ${source.name}`, {
       id: source.id,
-      type: source.type,
+      type: sourceType,
       hasDomainLinks: !!domainLinks,
       domainLinksType: domainLinks ? typeof domainLinks : 'undefined',
       metadata: source.metadata
@@ -44,10 +47,9 @@ const KnowledgeSourceModal = ({
     // Create processed domain links with proper nesting levels
     let processedDomainLinks = domainLinks;
     
-    // If it's a website/url type but no domain links, create a placeholder
-    if ((source.type === 'website' || source.type === 'url') && !domainLinks) {
-      // Create a synthetic domain link based on the source properties
-      console.log(`Creating placeholder domain links for ${source.name}`);
+    // Handle website/url type sources without domain_links
+    if ((sourceType === 'website' || sourceType === 'url') && !domainLinks) {
+      console.log(`Creating placeholder domain links for ${source.name} (source type: ${sourceType})`);
       
       // Build a hierarchical structure from insideLinks if available
       const mainDomainUrl = source.name.startsWith('http') ? source.name : `https://${source.name}`;
@@ -109,9 +111,6 @@ const KnowledgeSourceModal = ({
           .flatMap(path => urlMap[path]);
         
         childNodes = topLevelPaths;
-      } else {
-        // If no insideLinks, create an empty children array
-        childNodes = [];
       }
       
       processedDomainLinks = {
@@ -121,18 +120,29 @@ const KnowledgeSourceModal = ({
         children: childNodes
       };
     } else if (domainLinks) {
-      // If we have domain_links, ensure children arrays exist
+      // We have domain_links, log its structure to debug
+      console.log(`Domain links structure for ${source.name}:`, domainLinks);
+      
+      // Ensure children arrays exist and recursively process the structure
       if (Array.isArray(domainLinks)) {
-        processedDomainLinks = domainLinks.map(node => {
-          return {
-            ...node,
-            children: node.children || []
-          };
-        });
-      } else {
+        processedDomainLinks = domainLinks.map(node => ({
+          ...node,
+          children: node.children || []
+        }));
+      } else if (typeof domainLinks === 'object' && domainLinks !== null) {
+        // Handle single node with potentially nested children
         processedDomainLinks = {
           ...domainLinks,
           children: domainLinks.children || []
+        };
+      } else {
+        console.error(`Invalid domain_links format for ${source.name}:`, domainLinks);
+        // Fallback to create a basic structure if format is unexpected
+        processedDomainLinks = {
+          url: source.name.startsWith('http') ? source.name : `https://${source.name}`,
+          title: source.name,
+          selected: true,
+          children: []
         };
       }
     }
@@ -140,13 +150,13 @@ const KnowledgeSourceModal = ({
     // Create the transformed source with properly formatted domain_links
     return {
       ...source,
-      format: source.type,
+      format: sourceType,
       pages: source.metadata?.no_of_pages?.toString(),
       children: undefined,
       // Ensure domain_links is properly passed through
       domain_links: processedDomainLinks,
       // Ensure knowledge_sources exists for website/url type sources
-      knowledge_sources: (source.type === 'website' || source.type === 'url') 
+      knowledge_sources: (sourceType === 'website' || sourceType === 'url') 
         ? source.insideLinks?.map(link => ({
             id: link.url.split('/').pop() || Math.random().toString(36).substring(2, 11),
             url: link.url,
@@ -165,22 +175,37 @@ const KnowledgeSourceModal = ({
     // Find the source with the selected ID and log it
     const selectedSource = sources.find(source => source.id === id);
     if (selectedSource) {
+      // Log detailed source information for debugging
       console.log("Selected Source Full Data:", selectedSource);
+      console.log("Selected Source Type:", selectedSource.type);
       
-      // If it's a URL/website source, log domain_links if available
+      // Log domain_links and metadata structure
+      if (selectedSource.metadata) {
+        console.log("Selected Source Metadata:", selectedSource.metadata);
+        
+        // Check specifically for domain_links in metadata
+        if (selectedSource.metadata.domain_links) {
+          console.log("Domain Links from metadata:", selectedSource.metadata.domain_links);
+          
+          // Log children structure if available
+          if (selectedSource.metadata.domain_links.children) {
+            console.log("Domain Links children:", selectedSource.metadata.domain_links.children);
+          }
+        } else {
+          console.log("No domain_links found for", selectedSource.name);
+        }
+      }
+      
+      // If it's a URL/website source, log additional information
       if ((selectedSource.type === 'website' || selectedSource.type === 'url')) {
-        console.log("Domain Links Structure:", {
-          hasDomainLinks: !!selectedSource.metadata?.domain_links,
-          type: selectedSource.metadata?.domain_links ? typeof selectedSource.metadata.domain_links : 'undefined',
-          isArray: selectedSource.metadata?.domain_links ? Array.isArray(selectedSource.metadata.domain_links) : false,
-          value: selectedSource.metadata?.domain_links || "No domain_links found"
-        });
+        console.log("Source is website/url type");
         
         // If we have insideLinks but no domain_links, log that info
         if (selectedSource.insideLinks && (!selectedSource.metadata?.domain_links)) {
           console.log("No domain_links in metadata, but insideLinks are available:", 
             selectedSource.insideLinks.length, 
             "links available");
+          console.log("Sample insideLinks:", selectedSource.insideLinks.slice(0, 3));
         }
       }
     }

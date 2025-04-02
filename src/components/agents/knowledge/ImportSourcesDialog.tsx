@@ -103,10 +103,14 @@ export const ImportSourcesDialog = ({
 
   useEffect(() => {
     if (selectedSourceData) {
-      console.log("Selected Source Data:", selectedSourceData);
+      console.log("Selected Source Data in ImportSourcesDialog:", selectedSourceData);
       
       if (selectedSourceData.metadata?.domain_links) {
-        console.log("Domain Links:", selectedSourceData.metadata.domain_links);
+        console.log("Domain Links Structure:", {
+          type: typeof selectedSourceData.metadata.domain_links,
+          hasChildren: selectedSourceData.metadata.domain_links.children ? true : false,
+          structure: selectedSourceData.metadata.domain_links
+        });
       }
     }
   }, [selectedSourceData]);
@@ -124,7 +128,6 @@ export const ImportSourcesDialog = ({
   }, [isOpen, initialSourceId]);
 
   useEffect(() => {
-    // Filter sources based on type selected in left panel and search term
     const filtered = externalSources.filter(source => {
       if (selectedTab !== 'all' && source.type !== selectedTab) {
         return false;
@@ -140,59 +143,79 @@ export const ImportSourcesDialog = ({
     setFilteredCenterSources(filtered);
   }, [selectedTab, searchTerm, externalSources]);
 
-  // Recursive function to extract all child URLs from domain_links structure
-  const getAllChildUrls = (node: UrlNode, level: number = 0, path: string = ''): FlattenedUrlNode[] => {
-    const currentPath = path ? `${path} > ${node.title || new URL(node.url).pathname || node.url}` : (node.title || new URL(node.url).pathname || node.url);
+  const getAllChildUrls = (node: UrlNode, level: number = 0, path: string = '', parentUrl?: string): FlattenedUrlNode[] => {
+    if (!node || !node.url) {
+      console.log("Warning: Invalid node in getAllChildUrls", node);
+      return [];
+    }
     
-    // Create the current node
+    const nodeTitle = node.title || (node.url ? new URL(node.url).pathname || node.url : "Unknown");
+    
+    const currentPath = path ? `${path} > ${nodeTitle}` : nodeTitle;
+    
     const currentNode: FlattenedUrlNode = {
       url: node.url,
-      title: node.title || new URL(node.url).pathname || node.url,
+      title: nodeTitle,
       level,
-      path: currentPath
+      path: currentPath,
+      parentUrl
     };
     
-    // If there are no children, return just this node
     if (!node.children || node.children.length === 0) {
       return [currentNode];
     }
     
-    // Otherwise, get all children nodes recursively and prepend the current node
+    console.log(`Processing ${node.children.length} children for node: ${nodeTitle}`);
+    
     const childrenNodes = node.children.flatMap(child => 
-      getAllChildUrls(child, level + 1, currentPath)
+      getAllChildUrls(child, level + 1, currentPath, node.url)
     );
     
     return [currentNode, ...childrenNodes];
   };
 
-  // Helper function to extract children URLs from domain_links
   const getChildrenUrls = (source: ExternalSource): FlattenedUrlNode[] => {
+    if (!source) return [];
+    
+    console.log(`Getting children URLs for ${source.name}, type: ${source.type}`);
+    
     if (source.type !== 'website' && source.type !== 'url') {
+      console.log(`Source ${source.name} is not a website/url type, skipping domain_links extraction`);
       return [];
     }
 
-    // Get domain_links from the source or its metadata
-    const domainLinks = source.domain_links || source.metadata?.domain_links;
+    const domainLinks = source.domain_links || (source.metadata && source.metadata.domain_links);
     
     if (!domainLinks) {
-      console.log('No domain_links found for', source.name);
+      console.log(`No domain_links found for ${source.name}`);
       return [];
     }
 
-    // Log domain links structure for debugging
-    console.log('Domain links structure for', source.name, ':', domainLinks);
+    console.log(`Domain links structure for ${source.name}:`, domainLinks);
     
-    // Handle both single node and array of nodes
-    if (Array.isArray(domainLinks)) {
-      // If it's an array, collect all children from all nodes
-      let allUrls: FlattenedUrlNode[] = [];
-      domainLinks.forEach(node => {
-        allUrls = [...allUrls, ...getAllChildUrls(node)];
-      });
-      return allUrls;
-    } else {
-      // If it's a single node
-      return getAllChildUrls(domainLinks);
+    try {
+      if (Array.isArray(domainLinks)) {
+        console.log(`Processing array of domain_links with ${domainLinks.length} items`);
+        let allUrls: FlattenedUrlNode[] = [];
+        domainLinks.forEach((node, index) => {
+          console.log(`Processing domain_links[${index}]:`, node);
+          if (node && typeof node === 'object') {
+            allUrls = [...allUrls, ...getAllChildUrls(node)];
+          } else {
+            console.log(`Invalid node at index ${index}:`, node);
+          }
+        });
+        return allUrls;
+      } else if (typeof domainLinks === 'object' && domainLinks !== null) {
+        console.log(`Processing single domain_links object:`, domainLinks);
+        return getAllChildUrls(domainLinks);
+      } else {
+        console.log(`Unexpected domain_links format:`, domainLinks);
+        return [];
+      }
+    } catch (error) {
+      console.error(`Error processing domain_links for ${source.name}:`, error);
+      return [];
     }
   };
 
@@ -280,6 +303,14 @@ export const ImportSourcesDialog = ({
       console.log("Calling onSourceSelect with id:", source.id);
       onSourceSelect(source.id);
     }
+    
+    console.log("Selected source details:", {
+      name: source.name,
+      type: source.type,
+      hasDomainLinks: !!(source.domain_links || (source.metadata && source.metadata.domain_links)),
+      domainLinksSource: source.domain_links ? "direct" : 
+                         (source.metadata && source.metadata.domain_links ? "metadata" : "none")
+    });
   };
 
   const handleSelectChildUrl = (url: string) => {
@@ -373,7 +404,6 @@ export const ImportSourcesDialog = ({
       );
     }
 
-    // Display header with source info
     return (
       <>
         <div className="p-4 border-b">
@@ -437,7 +467,6 @@ export const ImportSourcesDialog = ({
           </div>
         </div>
         
-        {/* Content section */}
         <ScrollArea className="flex-1">
           {renderSourceContent()}
         </ScrollArea>
@@ -448,34 +477,31 @@ export const ImportSourcesDialog = ({
   const renderSourceContent = () => {
     if (!selectedSource) return null;
 
-    // For website type sources, show the list of child URLs
     if (selectedSource.type === 'website' || selectedSource.type === 'url') {
+      console.log("Rendering website/URL content for:", selectedSource.name);
+      
       const childUrls = getChildrenUrls(selectedSource);
       const hasChildUrls = childUrls.length > 0;
       
-      // Group URLs by level for hierarchical display
+      console.log(`Found ${childUrls.length} child URLs for ${selectedSource.name}`);
+      
       const urlsByParent: Record<string, FlattenedUrlNode[]> = {};
       childUrls.forEach(node => {
-        if (node.level === 0) {
-          if (!urlsByParent['root']) {
-            urlsByParent['root'] = [];
-          }
-          urlsByParent['root'].push(node);
-        } else {
-          const parentPath = node.path.split(' > ').slice(0, -1).join(' > ');
-          if (!urlsByParent[parentPath]) {
-            urlsByParent[parentPath] = [];
-          }
-          urlsByParent[parentPath].push(node);
+        const groupKey = node.parentUrl || (node.level === 0 ? 'root' : node.path.split(' > ').slice(0, -1).join(' > '));
+        
+        if (!urlsByParent[groupKey]) {
+          urlsByParent[groupKey] = [];
         }
+        urlsByParent[groupKey].push(node);
       });
+      
+      console.log("URL grouping:", Object.keys(urlsByParent));
       
       return (
         <div className="p-4">
           <div className="mb-4">
             <h4 className="font-medium text-sm mb-2">Website Content</h4>
             
-            {/* Main domain link */}
             {(selectedSource.domain_links && typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links) && (
               <div className="p-2 rounded-md border bg-muted/20 mb-4">
                 <a 
@@ -491,17 +517,27 @@ export const ImportSourcesDialog = ({
               </div>
             )}
             
-            {/* Child URLs */}
             {hasChildUrls ? (
               <div>
                 <h5 className="text-sm font-medium mb-2">URLs to be processed ({childUrls.length})</h5>
                 <div className="space-y-2 max-h-[400px]">
-                  {/* Display root level URLs */}
                   {urlsByParent['root']?.map((node, index) => (
                     <div key={`${node.url}-${index}`}>
                       {renderUrlNode(node, urlsByParent)}
                     </div>
                   ))}
+                  
+                  {!urlsByParent['root'] && Object.keys(urlsByParent).length > 0 && 
+                    Object.keys(urlsByParent).map(parentKey => {
+                      if (parentKey === 'root' || parentKey.includes(' > ')) return null;
+                      
+                      return urlsByParent[parentKey].map((node, index) => (
+                        <div key={`${node.url}-${index}`}>
+                          {renderUrlNode(node, urlsByParent)}
+                        </div>
+                      ));
+                    })
+                  }
                 </div>
               </div>
             ) : (
@@ -514,7 +550,6 @@ export const ImportSourcesDialog = ({
       );
     }
     
-    // For document type sources
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center p-4">
         <FileText className="h-16 w-16 text-muted-foreground/40 mb-4" />
@@ -526,9 +561,17 @@ export const ImportSourcesDialog = ({
     );
   };
 
-  // Render an individual URL node with its children
   const renderUrlNode = (node: FlattenedUrlNode, urlsByParent: Record<string, FlattenedUrlNode[]>) => {
-    const hasChildren = urlsByParent[node.path] && urlsByParent[node.path].length > 0;
+    if (!node || !node.url) {
+      console.log("Warning: Attempted to render invalid node:", node);
+      return null;
+    }
+    
+    const childrenByParentUrl = urlsByParent[node.url] || [];
+    const childrenByPath = urlsByParent[node.path] || [];
+    const children = [...childrenByParentUrl, ...childrenByPath];
+    const hasChildren = children.length > 0;
+    
     const isExpanded = expandedUrls.includes(node.url);
     const paddingLeft = node.level * 12;
     
@@ -583,10 +626,9 @@ export const ImportSourcesDialog = ({
           )}
         </div>
         
-        {/* Render children if this node is expanded */}
         {hasChildren && isExpanded && (
           <div className="ml-4 space-y-2 mt-2">
-            {urlsByParent[node.path]?.map((childNode, childIndex) => (
+            {children.map((childNode, childIndex) => (
               <div key={`${childNode.url}-${childIndex}`}>
                 {renderUrlNode(childNode, urlsByParent)}
               </div>
@@ -611,7 +653,6 @@ export const ImportSourcesDialog = ({
         </DialogHeader>
         
         <div className="flex flex-col md:flex-row h-[500px]">
-          {/* Left panel - Source Types */}
           <div className="w-60 border-r p-4 flex flex-col">
             <div className="font-medium mb-3 text-sm">Source Types</div>
             <div className="space-y-1">
@@ -643,7 +684,6 @@ export const ImportSourcesDialog = ({
             </div>
           </div>
           
-          {/* Center panel - Source List */}
           <div className="w-72 border-r flex flex-col">
             <div className="p-4 border-b">
               <div className="relative">
@@ -671,7 +711,6 @@ export const ImportSourcesDialog = ({
             </ScrollArea>
           </div>
           
-          {/* Right panel - Source Details */}
           <div className="flex-1 flex flex-col">
             {renderSourceDetails()}
           </div>
