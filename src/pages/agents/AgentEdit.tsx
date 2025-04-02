@@ -270,7 +270,7 @@ const AgentEdit: React.FC = () => {
         throw new Error('No access token available');
       }
 
-      await updateAgent(agentId, updatedAgentData, accessToken);
+      await updateAgent(agentId, updatedAgentData);
 
       toast({
         title: "Agent updated",
@@ -799,5 +799,4 @@ const AgentEdit: React.FC = () => {
   );
 };
 
-// Make sure to export the component as default
 export default AgentEdit;

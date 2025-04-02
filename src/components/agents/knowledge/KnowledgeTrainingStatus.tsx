@@ -3,20 +3,23 @@ import React, { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { KnowledgeSource } from './types';
+import { useKnowledgeTraining } from '@/hooks/useKnowledgeTraining';
 
 interface KnowledgeTrainingStatusProps {
-  source: KnowledgeSource;
+  source?: KnowledgeSource;
   apiStatus?: 'pending' | 'training' | 'success' | 'error';
   progress?: number;
+  agentId?: string; // Added agentId prop
 }
 
 export const KnowledgeTrainingStatus = ({ 
   source, 
   apiStatus, 
-  progress = 0 
+  progress = 0,
+  agentId 
 }: KnowledgeTrainingStatusProps) => {
   // If API status is provided, use it instead of the source's trainingStatus
-  const status = apiStatus || source.trainingStatus || 'pending';
+  const status = apiStatus || (source?.trainingStatus ?? 'pending');
   const [displayProgress, setDisplayProgress] = useState(progress);
   
   useEffect(() => {
@@ -26,7 +29,17 @@ export const KnowledgeTrainingStatus = ({
     }
   }, [apiStatus, progress]);
 
-  if (status === 'success') {
+  // If no source is provided but agentId is, use the knowledge training hook
+  const { trainingStatus } = useKnowledgeTraining(agentId || '');
+
+  // Use either the individual source status or the overall training status
+  const effectiveStatus = source ? status : trainingStatus?.status === 'training' ? 'training' : 
+                          trainingStatus?.status === 'complete' ? 'success' : 
+                          trainingStatus?.status === 'error' ? 'error' : 'pending';
+  
+  const effectiveProgress = source ? displayProgress : trainingStatus?.progress || 0;
+
+  if (effectiveStatus === 'success') {
     return (
       <div className="flex items-center text-green-600">
         <CheckCircle className="h-4 w-4 mr-1.5" />
@@ -35,7 +48,7 @@ export const KnowledgeTrainingStatus = ({
     );
   }
 
-  if (status === 'error') {
+  if (effectiveStatus === 'error') {
     return (
       <div className="flex items-center text-red-600">
         <AlertCircle className="h-4 w-4 mr-1.5" />
@@ -44,7 +57,7 @@ export const KnowledgeTrainingStatus = ({
     );
   }
 
-  if (status === 'training') {
+  if (effectiveStatus === 'training') {
     return (
       <div className="w-[150px]">
         <div className="flex justify-between items-center mb-1">
@@ -52,9 +65,9 @@ export const KnowledgeTrainingStatus = ({
             <Clock className="h-3 w-3 mr-1 animate-pulse" />
             Training
           </span>
-          <span className="text-xs font-medium">{Math.round(displayProgress)}%</span>
+          <span className="text-xs font-medium">{Math.round(effectiveProgress)}%</span>
         </div>
-        <Progress value={displayProgress} className="h-1.5" />
+        <Progress value={effectiveProgress} className="h-1.5" />
       </div>
     );
   }
