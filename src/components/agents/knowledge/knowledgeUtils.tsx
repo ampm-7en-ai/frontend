@@ -1,124 +1,22 @@
-
 import React from 'react';
-import { BookOpen, Database, Globe, CheckCircle, AlertCircle, Link2Off } from 'lucide-react';
-import { KnowledgeSource } from './types';
+import { FileText, Globe, FileSpreadsheet, File, Database } from 'lucide-react';
 
-export const getSourceTypeIcon = (type: string) => {
-  switch (type) {
-    case 'document':
+// This function renders the appropriate icon based on source type
+export const renderSourceIcon = (sourceType: string) => {
+  switch (sourceType) {
     case 'pdf':
+      return <FileText className="h-4 w-4 mr-2 text-red-600" />;
     case 'docx':
-      return <BookOpen className="h-4 w-4 text-blue-500" />;
-    case 'database':
+      return <FileText className="h-4 w-4 mr-2 text-blue-600" />;
+    case 'website':
+      return <Globe className="h-4 w-4 mr-2 text-green-600" />;
     case 'csv':
-      return <Database className="h-4 w-4 text-purple-500" />;
-    case 'webpage':
-    case 'url':
-      return <Globe className="h-4 w-4 text-green-500" />;
+      return <FileSpreadsheet className="h-4 w-4 mr-2 text-emerald-600" />;
+    case 'plain_text':
+      return <File className="h-4 w-4 mr-2 text-purple-600" />;
+    case 'database':
+      return <Database className="h-4 w-4 mr-2 text-orange-600" />;
     default:
-      return <BookOpen className="h-4 w-4 text-blue-500" />;
+      return <File className="h-4 w-4 mr-2 text-gray-600" />;
   }
-};
-
-export const getStatusIndicator = (source: KnowledgeSource) => {
-  if (source.linkBroken) {
-    return (
-      <div className="flex items-center gap-1 text-orange-500 font-medium text-xs">
-        <Link2Off className="h-4 w-4" />
-        <span>Link broken</span>
-      </div>
-    );
-  }
-  
-  switch (source.trainingStatus) {
-    case 'success':
-      return (
-        <div className="flex items-center gap-1 text-green-500 font-medium text-xs">
-          <CheckCircle className="h-4 w-4" />
-          <span>Trained</span>
-        </div>
-      );
-    case 'error':
-      return (
-        <div className="flex items-center gap-1 text-red-500 font-medium text-xs">
-          <AlertCircle className="h-4 w-4" />
-          <span>Failed</span>
-        </div>
-      );
-    case 'idle':
-      return (
-        <div className="flex items-center gap-1 text-amber-500 font-medium text-xs">
-          <AlertCircle className="h-4 w-4" />
-          <span>Needs training</span>
-        </div>
-      );
-    default:
-      return null;
-  }
-};
-
-export const getToastMessageForSourceChange = (action: 'removed' | 'added' | 'modified', sourceName: string) => {
-  switch (action) {
-    case 'removed':
-      return {
-        title: "Knowledge source removed",
-        description: `${sourceName} has been removed. Your agent needs retraining to update its knowledge.`,
-        variant: "destructive" as const,
-      };
-    case 'added':
-      return {
-        title: "Knowledge source added",
-        description: `${sourceName} has been added. Training is required for the agent to use this knowledge.`,
-        variant: "default" as const,
-      };
-    case 'modified':
-      return {
-        title: "Knowledge source modified",
-        description: `${sourceName} has been modified. Your agent needs retraining to update its knowledge.`,
-        variant: "default" as const,
-      };
-    default:
-      return {
-        title: "Knowledge source updated",
-        description: "Consider retraining your agent to update its knowledge.",
-        variant: "default" as const,
-      };
-  }
-};
-
-export const getTrainingStatusToast = (status: 'start' | 'success' | 'error', sourceName: string) => {
-  switch (status) {
-    case 'start':
-      return {
-        title: "Training started",
-        description: `${sourceName} is now being processed. This may take a few moments.`,
-        variant: "default" as const,
-      };
-    case 'success':
-      return {
-        title: "Training complete",
-        description: `${sourceName} has been trained successfully and is ready to use.`,
-        variant: "default" as const,
-      };
-    case 'error':
-      return {
-        title: "Training failed",
-        description: `Failed to train ${sourceName}. Please try again or check your source.`,
-        variant: "destructive" as const,
-      };
-    default:
-      return {
-        title: "Training status update",
-        description: `${sourceName} training status has changed.`,
-        variant: "default" as const,
-      };
-  }
-};
-
-export const getRetrainingRequiredToast = () => {
-  return {
-    title: "Retraining required",
-    description: "Your knowledge sources have changed. Please retrain your agent to apply these changes.",
-    variant: "destructive" as const,
-  };
 };

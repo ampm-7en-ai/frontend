@@ -8,6 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { renderSourceIcon } from './knowledgeUtils';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -52,7 +54,7 @@ export const ImportSourcesDialog = ({
         if (!selectedSubUrls[sourceId]) {
           setSelectedSubUrls(prev => ({
             ...prev,
-            [sourceId]: new Set<string>([rootNode.url])
+            [sourceId]: new Set<string>()
           }));
         }
         
@@ -265,25 +267,6 @@ export const ImportSourcesDialog = ({
     return currentSources.some(source => source.id === sourceId);
   };
 
-  // Render source icon based on type
-  const renderSourceIcon = (sourceType: string) => {
-    switch (sourceType) {
-      case 'pdf':
-        return <FileText className="h-4 w-4 mr-2 text-red-600" />;
-      case 'docx':
-      case 'docs':
-        return <FileText className="h-4 w-4 mr-2 text-blue-600" />;
-      case 'website':
-        return <Globe className="h-4 w-4 mr-2 text-green-600" />;
-      case 'csv':
-        return <FileSpreadsheet className="h-4 w-4 mr-2 text-emerald-600" />;
-      case 'plain_text':
-        return <File className="h-4 w-4 mr-2 text-purple-600" />;
-      default:
-        return <File className="h-4 w-4 mr-2 text-gray-600" />;
-    }
-  };
-
   // Recursively render website URLs (tree structure)
   const renderWebsiteUrls = (source: KnowledgeSource, urlNode?: UrlNode | null, level: number = 0, parentPath: string = '') => {
     if (!urlNode) {
@@ -359,143 +342,153 @@ export const ImportSourcesDialog = ({
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
         
-        <div className="grid grid-cols-[200px_1fr_300px] gap-4 h-full">
+        <ResizablePanelGroup direction="horizontal" className="h-[400px]">
           {/* Left panel - Source types */}
-          <div className="border rounded-md overflow-hidden">
-            <ScrollArea className="h-[400px]">
-              <div className="p-2 space-y-1">
-                {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
-                  count > 0 && (
-                    <button
-                      key={type}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
-                        selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                      )}
-                      onClick={() => setSelectedType(type)}
-                    >
-                      <span className="flex items-center">
-                        {icon}
-                        <span className="ml-2">{label}</span>
-                      </span>
-                      <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
-                        {count}
-                      </span>
-                    </button>
-                  )
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
+          <ResizablePanel minSize={15} defaultSize={20}>
+            <div className="border rounded-md overflow-hidden h-full">
+              <ScrollArea className="h-full">
+                <div className="p-2 space-y-1">
+                  {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
+                    count > 0 && (
+                      <button
+                        key={type}
+                        className={cn(
+                          "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
+                          selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                        )}
+                        onClick={() => setSelectedType(type)}
+                      >
+                        <span className="flex items-center">
+                          {icon}
+                          <span className="ml-2">{label}</span>
+                        </span>
+                        <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
           
           {/* Middle panel - Source list */}
-          <div className="border rounded-md overflow-hidden">
-            <ScrollArea className="h-[400px]">
-              <div className="p-2 space-y-2">
-                {filteredSources.length === 0 ? (
-                  <div className="flex items-center justify-center h-full py-20">
-                    <p className="text-muted-foreground">No {selectedType === 'all' ? '' : selectedType} sources found</p>
-                  </div>
-                ) : (
-                  filteredSources.map((source) => {
-                    const firstKnowledgeSource = source.knowledge_sources?.[0];
-                    const alreadyImported = isSourceAlreadyImported(source.id);
-                    const isSelected = selectedSources.has(source.id);
-                    
-                    return (
-                      <div 
-                        key={source.id} 
-                        className={cn(
-                          "border rounded-md overflow-hidden cursor-pointer transition",
-                          isSelected && "border-primary",
-                          source === selectedSource && "ring-2 ring-primary"
-                        )}
-                        onClick={() => {
-                          if (!selectedSources.has(source.id)) {
-                            toggleSourceSelection(source);
-                          } else if (hasUrlStructure(source)) {
-                            setSelectedSource(source);
-                          }
-                        }}
-                      >
-                        <div className="flex items-center p-3 bg-white">
-                          <Checkbox 
-                            id={`source-${source.id}`}
-                            checked={selectedSources.has(source.id)}
-                            onCheckedChange={() => toggleSourceSelection(source)}
-                            className="mr-2"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div className="flex-1">
-                            <label 
-                              htmlFor={`source-${source.id}`}
-                              className="flex items-center cursor-pointer"
-                            >
-                              {renderSourceIcon(source.type)}
-                              <span className="font-medium">
-                                {source.name}
-                                {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(already imported)</span>}
-                              </span>
-                            </label>
-                            
-                            <div className="text-xs text-muted-foreground mt-1 flex items-center flex-wrap">
-                              <span className="mr-3">Type: {source.type}</span>
-                              
-                              {firstKnowledgeSource?.metadata?.no_of_pages && (
-                                <span className="mr-3">{firstKnowledgeSource.metadata.no_of_pages} pages</span>
-                              )}
-                              
-                              {firstKnowledgeSource?.metadata?.no_of_rows && (
-                                <span className="mr-3">{firstKnowledgeSource.metadata.no_of_rows} rows</span>
-                              )}
-                              
-                              {firstKnowledgeSource?.metadata?.file_size && (
-                                <span className="mr-3">
-                                  Size: {formatFileSizeToMB(firstKnowledgeSource.metadata.file_size)}
+          <ResizablePanel minSize={30} defaultSize={50}>
+            <div className="border rounded-md overflow-hidden h-full">
+              <ScrollArea className="h-full">
+                <div className="p-2 space-y-2">
+                  {filteredSources.length === 0 ? (
+                    <div className="flex items-center justify-center h-full py-20">
+                      <p className="text-muted-foreground">No {selectedType === 'all' ? '' : selectedType} sources found</p>
+                    </div>
+                  ) : (
+                    filteredSources.map((source) => {
+                      const firstKnowledgeSource = source.knowledge_sources?.[0];
+                      const alreadyImported = isSourceAlreadyImported(source.id);
+                      const isSelected = selectedSources.has(source.id);
+                      
+                      return (
+                        <div 
+                          key={source.id} 
+                          className={cn(
+                            "border rounded-md overflow-hidden cursor-pointer transition",
+                            isSelected && "border-primary",
+                            source === selectedSource && "ring-2 ring-primary"
+                          )}
+                          onClick={() => {
+                            if (!selectedSources.has(source.id)) {
+                              toggleSourceSelection(source);
+                            } else if (hasUrlStructure(source)) {
+                              setSelectedSource(source);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center p-3 bg-white">
+                            <Checkbox 
+                              id={`source-${source.id}`}
+                              checked={selectedSources.has(source.id)}
+                              onCheckedChange={() => toggleSourceSelection(source)}
+                              className="mr-2"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex-1">
+                              <label 
+                                htmlFor={`source-${source.id}`}
+                                className="flex items-center cursor-pointer"
+                              >
+                                {renderSourceIcon(source.type)}
+                                <span className="font-medium">
+                                  {source.name}
+                                  {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(already imported)</span>}
                                 </span>
-                              )}
+                              </label>
                               
-                              {firstKnowledgeSource?.metadata?.upload_date && (
-                                <span>
-                                  Uploaded: {new Date(firstKnowledgeSource.metadata.upload_date).toLocaleDateString()}
-                                </span>
-                              )}
+                              <div className="text-xs text-muted-foreground mt-1 flex items-center flex-wrap">
+                                <span className="mr-3">Type: {source.type}</span>
+                                
+                                {firstKnowledgeSource?.metadata?.no_of_pages && (
+                                  <span className="mr-3">{firstKnowledgeSource.metadata.no_of_pages} pages</span>
+                                )}
+                                
+                                {firstKnowledgeSource?.metadata?.no_of_rows && (
+                                  <span className="mr-3">{firstKnowledgeSource.metadata.no_of_rows} rows</span>
+                                )}
+                                
+                                {firstKnowledgeSource?.metadata?.file_size && (
+                                  <span className="mr-3">
+                                    Size: {formatFileSizeToMB(firstKnowledgeSource.metadata.file_size)}
+                                  </span>
+                                )}
+                                
+                                {firstKnowledgeSource?.metadata?.upload_date && (
+                                  <span>
+                                    Uploaded: {new Date(firstKnowledgeSource.metadata.upload_date).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </ScrollArea>
-          </div>
+                      );
+                    })
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
           
           {/* Right panel - URLs for website sources */}
-          <div className="border rounded-md overflow-hidden">
-            <ScrollArea className="h-[400px]">
-              <div className="p-2">
-                {selectedSource && hasUrlStructure(selectedSource) ? (
-                  <div className="space-y-1">
-                    <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
-                      URLs for {selectedSource.name}
+          <ResizablePanel minSize={15} defaultSize={30}>
+            <div className="border rounded-md overflow-hidden h-full">
+              <ScrollArea className="h-full">
+                <div className="p-2">
+                  {selectedSource && hasUrlStructure(selectedSource) ? (
+                    <div className="space-y-1">
+                      <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
+                        URLs for {selectedSource.name}
+                      </div>
+                      {renderWebsiteUrls(selectedSource)}
                     </div>
-                    {renderWebsiteUrls(selectedSource)}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                    <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                    <p className="text-muted-foreground text-sm">
-                      {selectedSources.size > 0 
-                        ? "Select a website source to view and select specific URLs" 
-                        : "Select a source from the list"}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-        </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                      <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                      <p className="text-muted-foreground text-sm">
+                        {selectedSources.size > 0 
+                          ? "Select a website source to view and select specific URLs" 
+                          : "Select a source from the list"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
         
         <DialogFooter fixed className="border-t p-4">
           <div className="flex-1 text-sm text-muted-foreground">
