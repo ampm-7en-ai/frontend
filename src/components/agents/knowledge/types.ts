@@ -46,7 +46,7 @@ export interface UrlNode {
   url: string;
   title?: string;
   selected?: boolean;
-  children?: Array<UrlNode>;
+  children?: UrlNode[];
   // Add nesting level for UI display purposes
   level?: number;
   path?: string;
