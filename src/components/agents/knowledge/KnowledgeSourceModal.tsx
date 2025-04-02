@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource, UrlNode, ProcessedSource, SourceAnalysis } from './types';
@@ -56,15 +55,30 @@ const KnowledgeSourceModal = ({
         ks.metadata && ks.metadata.sub_urls);
       
       if (hasSubUrls) {
-        const subUrlsChildrenCount = source.knowledge_sources.reduce((count, ks) => {
-          if (ks.metadata?.sub_urls?.children) {
-            return count + ks.metadata.sub_urls.children.length;
+        // Count both direct children and their sub-children
+        childrenCount = 0;
+        source.knowledge_sources.forEach(ks => {
+          if (ks.metadata?.sub_urls) {
+            // Count the main URL as 1
+            childrenCount += 1;
+            
+            // Count direct children
+            const directChildren = ks.metadata.sub_urls.children || [];
+            childrenCount += directChildren.length;
+            
+            // Count nested children in each direct child
+            directChildren.forEach(child => {
+              if (child.children && Array.isArray(child.children)) {
+                childrenCount += child.children.length;
+              }
+            });
+          } else {
+            // Count each knowledge source without sub_urls as 1 page
+            childrenCount += 1;
           }
-          return count;
-        }, 0);
+        });
         
-        hasChildren = subUrlsChildrenCount > 0;
-        childrenCount = subUrlsChildrenCount;
+        hasChildren = childrenCount > source.knowledge_sources.length;
       } else {
         // Fallback to using knowledge_sources directly
         hasChildren = true;
@@ -101,6 +115,9 @@ const KnowledgeSourceModal = ({
     // Extract nested domain_links structure for proper display
     let processedDomainLinks = domainLinks;
     
+    // Calculate total pages based on children and sub-children
+    let totalPages = 0;
+    
     // Handle website/url type sources without domain_links
     if ((sourceType === 'website' || sourceType === 'url')) {
       if (!domainLinks) {
@@ -117,10 +134,14 @@ const KnowledgeSourceModal = ({
             
             // Create a tree structure from sub_urls
             const childNodes: UrlNode[] = [];
+            totalPages = 0;
             
             source.knowledge_sources.forEach(ks => {
               if (ks.metadata?.sub_urls) {
                 const subUrls = ks.metadata.sub_urls;
+                
+                // Count the main URL
+                totalPages += 1;
                 
                 // Add the main URL
                 const mainNode: UrlNode = {
@@ -132,17 +153,36 @@ const KnowledgeSourceModal = ({
                 
                 // Add children if they exist
                 if (subUrls.children && subUrls.children.length > 0) {
-                  mainNode.children = subUrls.children.map(child => ({
-                    url: child.url,
-                    title: child.key,
-                    selected: true,
-                    children: child.children || []
-                  }));
+                  // Count direct children
+                  totalPages += subUrls.children.length;
+                  
+                  mainNode.children = subUrls.children.map(child => {
+                    const childNode: UrlNode = {
+                      url: child.url,
+                      title: child.key,
+                      selected: true,
+                      children: []
+                    };
+                    
+                    // Add and count nested children if they exist
+                    if (child.children && Array.isArray(child.children)) {
+                      totalPages += child.children.length;
+                      childNode.children = child.children.map(subChild => ({
+                        url: subChild.url,
+                        title: subChild.key,
+                        selected: true,
+                        children: []
+                      }));
+                    }
+                    
+                    return childNode;
+                  });
                 }
                 
                 childNodes.push(mainNode);
               } else {
                 // Fallback for knowledge_sources without sub_urls
+                totalPages += 1;
                 childNodes.push({
                   url: ks.url,
                   title: ks.title,
@@ -155,6 +195,7 @@ const KnowledgeSourceModal = ({
             processedDomainLinks = childNodes;
           } else {
             // Fallback to using knowledge_sources directly
+            totalPages = source.knowledge_sources.length;
             const childNodes = source.knowledge_sources.map(ks => ({
               url: ks.url,
               title: ks.title,
@@ -165,6 +206,9 @@ const KnowledgeSourceModal = ({
             processedDomainLinks = childNodes;
           }
         } else if (source.insideLinks && source.insideLinks.length > 0) {
+          // Count insideLinks
+          totalPages = source.insideLinks.length;
+          
           // Create a tree structure from insideLinks
           const mainDomainUrl = source.name.startsWith('http') ? source.name : `https://${source.name}`;
           
@@ -184,6 +228,7 @@ const KnowledgeSourceModal = ({
           };
         } else {
           // Default case if no sub-resources are available
+          totalPages = 1;
           const mainDomainUrl = source.name.startsWith('http') ? source.name : `https://${source.name}`;
           
           processedDomainLinks = {
@@ -194,40 +239,63 @@ const KnowledgeSourceModal = ({
           };
         }
       } else {
-        // We have domain_links, log its structure to debug
-        console.log(`Domain links structure for ${source.name}:`, {
-          isArray: Array.isArray(domainLinks),
-          hasUrl: Array.isArray(domainLinks) 
-            ? domainLinks.length > 0 && 'url' in domainLinks[0]
-            : domainLinks && 'url' in domainLinks,
-          hasChildren: Array.isArray(domainLinks)
-            ? domainLinks.length > 0 && 'children' in domainLinks[0] && domainLinks[0].children?.length > 0
-            : domainLinks && 'children' in domainLinks && domainLinks.children?.length > 0,
-          childrenCount: Array.isArray(domainLinks)
-            ? domainLinks.reduce((count, node) => count + (node.children?.length || 0), 0)
-            : domainLinks?.children?.length || 0
-        });
-        
-        // Ensure it has the proper structure for rendering
+        // We have domain_links, calculate pages based on its structure
         if (Array.isArray(domainLinks)) {
+          // Count top level items
+          totalPages = domainLinks.length;
+          
+          // Count children
+          domainLinks.forEach(node => {
+            if (node.children && Array.isArray(node.children)) {
+              totalPages += node.children.length;
+              
+              // Count nested children if they exist
+              node.children.forEach(child => {
+                if (child.children && Array.isArray(child.children)) {
+                  totalPages += child.children.length;
+                }
+              });
+            }
+          });
+          
           processedDomainLinks = domainLinks.map(node => ({
             ...node,
             children: node.children || []
           }));
         } else if (typeof domainLinks === 'object' && domainLinks !== null) {
+          // Count the root node
+          totalPages = 1;
+          
+          // Count children
+          if (domainLinks.children && Array.isArray(domainLinks.children)) {
+            totalPages += domainLinks.children.length;
+            
+            // Count nested children if they exist
+            domainLinks.children.forEach(child => {
+              if (child.children && Array.isArray(child.children)) {
+                totalPages += child.children.length;
+              }
+            });
+          }
+          
           processedDomainLinks = {
             ...domainLinks,
             children: domainLinks.children || []
           };
         }
       }
+    } else {
+      // For non-website sources, use metadata page count or default to 1
+      totalPages = source.metadata?.no_of_pages ? Number(source.metadata.no_of_pages) : 1;
     }
+    
+    console.log(`Total pages calculated for ${source.name}: ${totalPages}`);
     
     // Create the transformed source with properly formatted domain_links
     const processedSource: ProcessedSource = {
       ...source,
       format: sourceType,
-      pages: source.metadata?.no_of_pages?.toString(),
+      pages: totalPages.toString(),
       domain_links: processedDomainLinks,
       // Ensure knowledge_sources exists for website/url type sources
       knowledge_sources: (sourceType === 'website' || sourceType === 'url') 
