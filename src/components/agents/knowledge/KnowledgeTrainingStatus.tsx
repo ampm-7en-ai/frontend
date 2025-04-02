@@ -41,7 +41,6 @@ const KnowledgeTrainingStatus = ({
   const cachedKnowledgeBases = useRef<any[]>([]);
   
   const fetchKnowledgeBases = async () => {
-    // If we already have cached data, return it
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
       console.log("Using cached knowledge bases instead of fetching");
       return cachedKnowledgeBases.current;
@@ -64,7 +63,6 @@ const KnowledgeTrainingStatus = ({
 
       const data = await response.json();
       
-      // Cache the fetched data
       cachedKnowledgeBases.current = data;
       setKnowledgeBasesLoaded(true);
       
@@ -177,7 +175,7 @@ const KnowledgeTrainingStatus = ({
         progress: progress,
         linkBroken: source.link_broken || false,
         crawlOptions: source.crawl_options || 'single',
-        insideLinks: source.insideLinks || [], // Make sure to include insideLinks
+        insideLinks: source.insideLinks || [],
         metadata: source.metadata || {}
       };
     });
@@ -188,7 +186,7 @@ const KnowledgeTrainingStatus = ({
       const selectedNode: UrlNode = { 
         ...urlNode,
         selected: true,
-        children: [] // We'll add selected children separately
+        children: [] 
       };
       result.push(selectedNode);
     }
@@ -214,15 +212,12 @@ const KnowledgeTrainingStatus = ({
     
     const externalSourcesData = formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current);
     
-    // Find new sources and existing sources that need updating
     const existingSourcesMap = new Map(knowledgeSources.map(s => [s.id, s]));
     const newSourceIds = sourceIds.filter(id => !existingSourcesMap.has(id));
     const existingSourceIds = sourceIds.filter(id => existingSourcesMap.has(id));
     
-    // Create array to hold all sources to be added or updated
     const sourcesToAdd: KnowledgeSource[] = [];
     
-    // Process new sources
     newSourceIds.forEach(id => {
       const externalSource = externalSourcesData.find(s => s.id === id);
       if (!externalSource) return;
@@ -233,20 +228,18 @@ const KnowledgeTrainingStatus = ({
       }
     });
     
-    // Process existing sources for updates (e.g., new selected URLs)
     existingSourceIds.forEach(id => {
       if (!selectedSubUrls?.[id] || selectedSubUrls[id].size === 0) return;
       
       const existingSource = existingSourcesMap.get(id);
-      const externalSource = externalSourcesData.find(s => s.id === id);\n      
+      const externalSource = externalSourcesData.find(s => s.id === id);
+      
       if (existingSource && externalSource) {
-        // Update the existing source with new selected URLs
         const updatedSource = {
           ...existingSource,
           insideLinks: processSelectedUrlsForSource(externalSource, selectedSubUrls[id], existingSource.insideLinks || [])
         };
         
-        // Replace the existing source in the sources array
         setKnowledgeSources(prev => 
           prev.map(source => source.id === id ? updatedSource : source)
         );
@@ -258,7 +251,6 @@ const KnowledgeTrainingStatus = ({
       }
     });
     
-    // Add new sources if any
     if (sourcesToAdd.length > 0) {
       setKnowledgeSources(prev => [...prev, ...sourcesToAdd]);
       
@@ -275,7 +267,6 @@ const KnowledgeTrainingStatus = ({
       }
     }
     
-    // If no sources were added or updated, show a message
     if (sourcesToAdd.length === 0 && existingSourceIds.length === 0) {
       toast({
         title: "No sources imported",
@@ -292,11 +283,9 @@ const KnowledgeTrainingStatus = ({
     }
   };
   
-  // Helper function to process a source for import
   const processSourceForImport = (externalSource, selectedUrls?: Set<string>): KnowledgeSource | null => {
     if (!externalSource) return null;
     
-    // Create a copy of the source to modify
     const newSource: KnowledgeSource = {
       id: externalSource.id,
       name: externalSource.name,
@@ -311,7 +300,6 @@ const KnowledgeTrainingStatus = ({
       insideLinks: []
     };
     
-    // Process selected URLs for website sources
     if (externalSource.type === 'website' && selectedUrls && selectedUrls.size > 0) {
       newSource.insideLinks = processSelectedUrlsForSource(externalSource, selectedUrls);
     }
@@ -319,7 +307,6 @@ const KnowledgeTrainingStatus = ({
     return newSource;
   };
   
-  // Helper function to process selected URLs for a source
   const processSelectedUrlsForSource = (
     externalSource, 
     selectedUrls: Set<string>, 
@@ -342,17 +329,12 @@ const KnowledgeTrainingStatus = ({
     
     if (!rootNode) return existingLinks;
     
-    // Process the selected URLs
     const selectedNodes = processSelectedSubUrls(rootNode, selectedUrls);
     
-    // Create an array to hold all inside links
     const newInsideLinks = [...existingLinks];
     
-    // Add new selected URLs, avoiding duplicates
-    const existingUrls = new Set(existingLinks.map(link => link.url));
-    
     selectedNodes.forEach(node => {
-      if (node.url !== 'root' && !existingUrls.has(node.url)) {
+      if (node.url !== 'root' && !existingLinks.map(link => link.url).includes(node.url)) {
         newInsideLinks.push({
           url: node.url,
           title: node.title || node.url,
@@ -385,9 +367,9 @@ const KnowledgeTrainingStatus = ({
 
   const refreshKnowledgeBases = () => {
     console.log("Manually refreshing knowledge bases");
-    setKnowledgeBasesLoaded(false); // Reset the loaded flag
-    cachedKnowledgeBases.current = []; // Clear the cache
-    refetch(); // Trigger a refetch
+    setKnowledgeBasesLoaded(false);
+    cachedKnowledgeBases.current = [];
+    refetch();
   };
 
   const removeSource = async (sourceId: number) => {
