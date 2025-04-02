@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ExternalSource {
   id: number;
@@ -48,6 +49,9 @@ interface ExternalSource {
     no_of_rows?: number;
     no_of_pages?: number;
     domain_links?: UrlNode | UrlNode[];
+    website?: string;
+    crawl_more?: boolean;
+    last_updated?: string;
   };
 }
 
@@ -105,12 +109,23 @@ export const ImportSourcesDialog = ({
     if (selectedSourceData) {
       console.log("Selected Source Data in ImportSourcesDialog:", selectedSourceData);
       
-      if (selectedSourceData.metadata?.domain_links) {
-        console.log("Domain Links Structure:", {
-          type: typeof selectedSourceData.metadata.domain_links,
-          hasChildren: selectedSourceData.metadata.domain_links.children ? true : false,
-          structure: selectedSourceData.metadata.domain_links
-        });
+      if (selectedSourceData.metadata) {
+        console.log("Source metadata:", selectedSourceData.metadata);
+        
+        if (selectedSourceData.metadata.domain_links) {
+          const domainLinks = selectedSourceData.metadata.domain_links;
+          console.log("Domain Links Structure:", {
+            type: typeof domainLinks,
+            isArray: Array.isArray(domainLinks),
+            hasUrl: Array.isArray(domainLinks) 
+              ? domainLinks.length > 0 && 'url' in domainLinks[0] 
+              : 'url' in domainLinks,
+            hasChildren: Array.isArray(domainLinks)
+              ? domainLinks.length > 0 && 'children' in domainLinks[0]
+              : 'children' in domainLinks,
+            structure: domainLinks
+          });
+        }
       }
     }
   }, [selectedSourceData]);
@@ -149,7 +164,9 @@ export const ImportSourcesDialog = ({
       return [];
     }
     
-    const nodeTitle = node.title || (node.url ? new URL(node.url).pathname || node.url : "Unknown");
+    const urlObj = new URL(node.url);
+    const pathname = urlObj.pathname;
+    const nodeTitle = node.title || pathname.split('/').filter(Boolean).pop() || urlObj.hostname;
     
     const currentPath = path ? `${path} > ${nodeTitle}` : nodeTitle;
     
@@ -184,7 +201,11 @@ export const ImportSourcesDialog = ({
       return [];
     }
 
-    const domainLinks = source.domain_links || (source.metadata && source.metadata.domain_links);
+    let domainLinks = source.domain_links;
+    
+    if (!domainLinks && source.metadata) {
+      domainLinks = source.metadata.domain_links;
+    }
     
     if (!domainLinks) {
       console.log(`No domain_links found for ${source.name}`);
@@ -305,12 +326,19 @@ export const ImportSourcesDialog = ({
     }
     
     console.log("Selected source details:", {
+      id: source.id,
       name: source.name,
       type: source.type,
       hasDomainLinks: !!(source.domain_links || (source.metadata && source.metadata.domain_links)),
       domainLinksSource: source.domain_links ? "direct" : 
                          (source.metadata && source.metadata.domain_links ? "metadata" : "none")
     });
+    
+    if (source.metadata?.domain_links) {
+      console.log("Domain links structure from metadata:", source.metadata.domain_links);
+    } else if (source.domain_links) {
+      console.log("Domain links structure from source:", source.domain_links);
+    }
   };
 
   const handleSelectChildUrl = (url: string) => {
@@ -497,21 +525,37 @@ export const ImportSourcesDialog = ({
       
       console.log("URL grouping:", Object.keys(urlsByParent));
       
+      let mainDomainUrl = "";
+      
+      if (selectedSource.domain_links && !Array.isArray(selectedSource.domain_links) && 
+          typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links) {
+        mainDomainUrl = selectedSource.domain_links.url;
+      } else if (selectedSource.metadata && selectedSource.metadata.domain_links && 
+                !Array.isArray(selectedSource.metadata.domain_links) && 
+                typeof selectedSource.metadata.domain_links === 'object' && 
+                'url' in selectedSource.metadata.domain_links) {
+        mainDomainUrl = selectedSource.metadata.domain_links.url;
+      } else if (selectedSource.metadata && selectedSource.metadata.website) {
+        mainDomainUrl = selectedSource.metadata.website;
+      } else if (selectedSource.name.includes('http')) {
+        mainDomainUrl = selectedSource.name;
+      }
+      
       return (
         <div className="p-4">
           <div className="mb-4">
             <h4 className="font-medium text-sm mb-2">Website Content</h4>
             
-            {(selectedSource.domain_links && typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links) && (
+            {mainDomainUrl && (
               <div className="p-2 rounded-md border bg-muted/20 mb-4">
                 <a 
-                  href={selectedSource.domain_links.url}
+                  href={mainDomainUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-primary flex items-center gap-1 hover:underline"
                 >
                   <Globe className="h-3.5 w-3.5" />
-                  <span>Main Domain</span>
+                  <span>Main Domain: {new URL(mainDomainUrl).hostname}</span>
                   <ExternalLink className="h-3 w-3 ml-auto" />
                 </a>
               </div>
@@ -577,64 +621,74 @@ export const ImportSourcesDialog = ({
     
     return (
       <>
-        <div 
+        <Collapsible
+          open={isExpanded}
+          onOpenChange={(newOpen) => {
+            if (newOpen !== isExpanded) {
+              toggleUrlExpansion(node.url);
+            }
+          }}
           className={cn(
-            "p-2 rounded-md border transition-colors cursor-pointer",
+            "rounded-md border transition-colors",
             selectedChild === node.url ? "border-primary bg-primary/5" : "bg-muted/20 hover:bg-muted/30"
           )}
-          onClick={() => handleSelectChildUrl(node.url)}
-          style={{ paddingLeft: paddingLeft + 8 }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 truncate">
-              {hasChildren && (
-                <button
-                  type="button"
-                  className="p-0.5 rounded-sm hover:bg-muted/30"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleUrlExpansion(node.url);
-                  }}
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  ) : (
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  )}
-                </button>
-              )}
-              <Globe className="h-3.5 w-3.5 shrink-0" />
-              <span className="text-sm truncate" title={node.title}>
-                {node.title}
-              </span>
-            </div>
-            <a 
-              href={node.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 text-primary hover:text-primary/80"
-              onClick={(e) => e.stopPropagation()}
+          <CollapsibleTrigger asChild>
+            <div 
+              className="p-2 cursor-pointer"
+              style={{ paddingLeft: paddingLeft + 8 }}
+              onClick={(e) => {
+                e.preventDefault();
+                handleSelectChildUrl(node.url);
+              }}
             >
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-          
-          {node.path && node.level > 0 && (
-            <div className="mt-1 text-xs text-muted-foreground truncate" title={node.path}>
-              {node.path}
-            </div>
-          )}
-        </div>
-        
-        {hasChildren && isExpanded && (
-          <div className="ml-4 space-y-2 mt-2">
-            {children.map((childNode, childIndex) => (
-              <div key={`${childNode.url}-${childIndex}`}>
-                {renderUrlNode(childNode, urlsByParent)}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 truncate">
+                  {hasChildren && (
+                    <span className="p-0.5 rounded-sm hover:bg-muted/30">
+                      {isExpanded ? (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      )}
+                    </span>
+                  )}
+                  <Globe className="h-3.5 w-3.5 shrink-0" />
+                  <span className="text-sm truncate" title={node.url}>
+                    {node.title || new URL(node.url).pathname.split('/').pop() || new URL(node.url).hostname}
+                  </span>
+                </div>
+                <a 
+                  href={node.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 text-primary hover:text-primary/80"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
               </div>
-            ))}
-          </div>
-        )}
+              
+              {node.path && node.level > 0 && (
+                <div className="mt-1 text-xs text-muted-foreground truncate" title={node.path}>
+                  {node.path}
+                </div>
+              )}
+            </div>
+          </CollapsibleTrigger>
+          
+          {hasChildren && (
+            <CollapsibleContent>
+              <div className="ml-4 space-y-2 mt-2 mb-2">
+                {children.map((childNode, childIndex) => (
+                  <div key={`${childNode.url}-${childIndex}`}>
+                    {renderUrlNode(childNode, urlsByParent)}
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          )}
+        </Collapsible>
       </>
     );
   };

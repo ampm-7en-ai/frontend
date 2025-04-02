@@ -31,6 +31,9 @@ export interface KnowledgeSource {
     no_of_rows?: number;
     no_of_pages?: number;
     domain_links?: UrlNode | UrlNode[];
+    website?: string;
+    crawl_more?: boolean;
+    last_updated?: string;
   };
   icon?: string;
   knowledge_sources?: {
