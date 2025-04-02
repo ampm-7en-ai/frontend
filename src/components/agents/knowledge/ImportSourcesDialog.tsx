@@ -4,10 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
 import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB } from '@/utils/api-config';
+import { cn } from '@/lib/utils';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -24,10 +24,11 @@ export const ImportSourcesDialog = ({
   currentSources,
   onImport,
 }: ImportSourcesDialogProps) => {
-  const [selectedTab, setSelectedTab] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedSources, setSelectedSources] = useState<Set<number>>(new Set());
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
+  const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
   
   // Reset selections when dialog opens or external sources change
   useEffect(() => {
@@ -35,26 +36,45 @@ export const ImportSourcesDialog = ({
       setSelectedSources(new Set());
       setExpandedNodes(new Set());
       setSelectedSubUrls({});
+      setSelectedSource(null);
+      setSelectedType('all');
     }
   }, [isOpen, externalSources]);
 
   // Count sources by type
-  const countByType = {
-    all: externalSources.length,
-    docs: externalSources.filter(s => s.type === 'pdf' || s.type === 'docx' || s.type === 'docs').length,
-    website: externalSources.filter(s => s.type === 'website').length,
-    csv: externalSources.filter(s => s.type === 'csv').length,
-    plain_text: externalSources.filter(s => s.type === 'plain_text').length
+  const sourceTypes = {
+    all: { count: 0, label: 'All Sources', icon: <FileText className="h-4 w-4" /> },
+    docs: { count: 0, label: 'Documents', icon: <FileText className="h-4 w-4 text-blue-600" /> },
+    pdf: { count: 0, label: 'PDF', icon: <FileText className="h-4 w-4 text-red-600" /> },
+    docx: { count: 0, label: 'DOCX', icon: <FileText className="h-4 w-4 text-blue-600" /> },
+    website: { count: 0, label: 'Websites', icon: <Globe className="h-4 w-4 text-green-600" /> },
+    csv: { count: 0, label: 'Spreadsheets', icon: <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> },
+    plain_text: { count: 0, label: 'Plain Text', icon: <File className="h-4 w-4 text-purple-600" /> }
   };
+  
+  // Count by type
+  externalSources.forEach(source => {
+    sourceTypes.all.count++;
+    if (sourceTypes[source.type]) {
+      sourceTypes[source.type].count++;
+    }
+    if (source.type === 'pdf' || source.type === 'docx') {
+      sourceTypes.docs.count++;
+    }
+  });
 
-  // Filter sources by selected tab
-  const filteredSources = selectedTab === 'all' 
+  // Filter sources by selected type
+  const filteredSources = selectedType === 'all' 
     ? externalSources 
-    : externalSources.filter(source => source.type === selectedTab);
+    : selectedType === 'docs'
+      ? externalSources.filter(source => source.type === 'pdf' || source.type === 'docx')
+      : externalSources.filter(source => source.type === selectedType);
 
   // Toggle source selection
-  const toggleSourceSelection = (sourceId: number) => {
+  const toggleSourceSelection = (source: KnowledgeSource) => {
+    const sourceId = source.id;
     const newSelectedSources = new Set(selectedSources);
+    
     if (newSelectedSources.has(sourceId)) {
       newSelectedSources.delete(sourceId);
       
@@ -62,10 +82,30 @@ export const ImportSourcesDialog = ({
       const newSelectedSubUrls = { ...selectedSubUrls };
       delete newSelectedSubUrls[sourceId];
       setSelectedSubUrls(newSelectedSubUrls);
+      
+      // If this was the selected source for URL view, clear it
+      if (selectedSource && selectedSource.id === sourceId) {
+        setSelectedSource(null);
+      }
     } else {
       newSelectedSources.add(sourceId);
+      
+      // If it's a website and has URL structure, select it for the URL view
+      if (source.type === 'website' && hasUrlStructure(source)) {
+        setSelectedSource(source);
+      }
     }
+    
     setSelectedSources(newSelectedSources);
+  };
+
+  // Check if a source has URL structure
+  const hasUrlStructure = (source: KnowledgeSource) => {
+    const firstKnowledgeSource = source.knowledge_sources?.[0];
+    return (
+      source.type === 'website' && 
+      (firstKnowledgeSource?.metadata?.sub_urls || source.metadata?.domain_links)
+    );
   };
 
   // Toggle node expansion
@@ -113,6 +153,7 @@ export const ImportSourcesDialog = ({
   const renderSourceIcon = (sourceType: string) => {
     switch (sourceType) {
       case 'pdf':
+        return <FileText className="h-4 w-4 mr-2 text-red-600" />;
       case 'docx':
       case 'docs':
         return <FileText className="h-4 w-4 mr-2 text-blue-600" />;
@@ -155,8 +196,11 @@ export const ImportSourcesDialog = ({
     const isSelected = selectedSubUrls[source.id]?.has(urlNode.url);
     
     return (
-      <div key={currentPath} style={{ paddingLeft: `${level * 16}px` }}>
-        <div className="flex items-center py-1 hover:bg-gray-100 rounded px-2 cursor-pointer">
+      <div key={currentPath} className="py-1">
+        <div className={cn(
+          "flex items-center hover:bg-gray-100 rounded px-2 py-1 cursor-pointer", 
+          isSelected && "bg-gray-100"
+        )}>
           {hasChildren ? (
             <span 
               onClick={() => toggleNodeExpansion(currentPath)}
@@ -187,14 +231,14 @@ export const ImportSourcesDialog = ({
                 {urlNode.title || urlNode.url}
               </span>
               {urlNode.url && urlNode.url !== 'root' && (
-                <span className="text-xs text-muted-foreground ml-6">{urlNode.url}</span>
+                <span className="text-xs text-muted-foreground ml-6 truncate max-w-[300px]">{urlNode.url}</span>
               )}
             </div>
           )}
         </div>
         
         {isExpanded && hasChildren && (
-          <div>
+          <div className="ml-5 border-l pl-2 mt-1">
             {urlNode.children?.map(child => 
               renderWebsiteUrls(source, child, level + 1, currentPath)
             )}
@@ -206,55 +250,78 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[80vh] overflow-hidden" fixedFooter>
+      <DialogContent className="sm:max-w-[1000px] max-h-[80vh] overflow-hidden" fixedFooter>
         <DialogHeader>
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab} className="w-full h-full">
-          <TabsList className="grid grid-cols-5 mb-4">
-            <TabsTrigger value="all">
-              All Sources ({countByType.all})
-            </TabsTrigger>
-            <TabsTrigger value="docs">
-              Documents ({countByType.docs})
-            </TabsTrigger>
-            <TabsTrigger value="website">
-              Websites ({countByType.website})
-            </TabsTrigger>
-            <TabsTrigger value="csv">
-              Spreadsheets ({countByType.csv})
-            </TabsTrigger>
-            <TabsTrigger value="plain_text">
-              Plain Text ({countByType.plain_text})
-            </TabsTrigger>
-          </TabsList>
+        <div className="grid grid-cols-[200px_1fr_300px] gap-4 h-full">
+          {/* Left panel - Source types */}
+          <div className="border rounded-md overflow-hidden">
+            <ScrollArea className="h-[400px]">
+              <div className="p-2 space-y-1">
+                {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
+                  count > 0 && (
+                    <button
+                      key={type}
+                      className={cn(
+                        "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
+                        selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                      )}
+                      onClick={() => setSelectedType(type)}
+                    >
+                      <span className="flex items-center">
+                        {icon}
+                        <span className="ml-2">{label}</span>
+                      </span>
+                      <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
+                        {count}
+                      </span>
+                    </button>
+                  )
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
           
-          <TabsContent value={selectedTab} className="h-full">
-            <ScrollArea className="h-[400px] border rounded-md">
-              {filteredSources.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">No {selectedTab === 'all' ? '' : selectedTab} sources found</p>
-                </div>
-              ) : (
-                <div className="p-4 space-y-4">
-                  {filteredSources.map((source) => {
+          {/* Middle panel - Source list */}
+          <div className="border rounded-md overflow-hidden">
+            <ScrollArea className="h-[400px]">
+              <div className="p-2 space-y-2">
+                {filteredSources.length === 0 ? (
+                  <div className="flex items-center justify-center h-full py-20">
+                    <p className="text-muted-foreground">No {selectedType === 'all' ? '' : selectedType} sources found</p>
+                  </div>
+                ) : (
+                  filteredSources.map((source) => {
                     const firstKnowledgeSource = source.knowledge_sources?.[0];
-                    const isWebsite = source.type === 'website';
                     const alreadyImported = isSourceAlreadyImported(source.id);
-                    const hasUrlStructure = isWebsite && (
-                      (firstKnowledgeSource?.metadata?.sub_urls) || 
-                      (source.metadata?.domain_links)
-                    );
+                    const isSelected = selectedSources.has(source.id);
                     
                     return (
-                      <div key={source.id} className="border rounded-md overflow-hidden">
-                        <div className="flex items-center p-3 bg-white border-b">
+                      <div 
+                        key={source.id} 
+                        className={cn(
+                          "border rounded-md overflow-hidden cursor-pointer transition",
+                          isSelected && "border-primary",
+                          source === selectedSource && "ring-2 ring-primary"
+                        )}
+                        onClick={() => {
+                          if (hasUrlStructure(source)) {
+                            setSelectedSource(source);
+                          }
+                          if (!selectedSources.has(source.id)) {
+                            toggleSourceSelection(source);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center p-3 bg-white">
                           <Checkbox 
                             id={`source-${source.id}`}
                             checked={selectedSources.has(source.id)}
-                            onCheckedChange={() => toggleSourceSelection(source.id)}
+                            onCheckedChange={() => toggleSourceSelection(source)}
                             className="mr-2"
+                            onClick={(e) => e.stopPropagation()}
                           />
                           <div className="flex-1">
                             <label 
@@ -264,11 +331,11 @@ export const ImportSourcesDialog = ({
                               {renderSourceIcon(source.type)}
                               <span className="font-medium">
                                 {source.name}
-                                {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(Already in your knowledge base)</span>}
+                                {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(already imported)</span>}
                               </span>
                             </label>
                             
-                            <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                            <div className="text-xs text-muted-foreground mt-1 flex items-center flex-wrap">
                               <span className="mr-3">Type: {source.type}</span>
                               
                               {firstKnowledgeSource?.metadata?.no_of_pages && (
@@ -293,22 +360,39 @@ export const ImportSourcesDialog = ({
                             </div>
                           </div>
                         </div>
-                        
-                        {hasUrlStructure && selectedSources.has(source.id) && (
-                          <div className="px-3 py-2 bg-gray-50">
-                            <div className="ml-6">
-                              {renderWebsiteUrls(source)}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     );
-                  })}
-                </div>
-              )}
+                  })
+                )}
+              </div>
             </ScrollArea>
-          </TabsContent>
-        </Tabs>
+          </div>
+          
+          {/* Right panel - URLs for website sources */}
+          <div className="border rounded-md overflow-hidden">
+            <ScrollArea className="h-[400px]">
+              <div className="p-2">
+                {selectedSource && hasUrlStructure(selectedSource) ? (
+                  <div className="space-y-1">
+                    <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
+                      URLs for {selectedSource.name}
+                    </div>
+                    {renderWebsiteUrls(selectedSource)}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                    <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                    <p className="text-muted-foreground text-sm">
+                      {selectedSources.size > 0 
+                        ? "Select a website source to view and select specific URLs" 
+                        : "Select a source from the list"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
         
         <DialogFooter fixed className="border-t p-4">
           <div className="flex-1 text-sm text-muted-foreground">
