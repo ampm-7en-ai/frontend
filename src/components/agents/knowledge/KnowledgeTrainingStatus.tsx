@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,10 +91,10 @@ const KnowledgeTrainingStatus = ({
         id: kb.id,
         name: kb.name,
         type: kb.type,
-        format: format,
         size: metadataInfo.size,
-        pages: metadataInfo.count,
         lastUpdated: uploadDate,
+        trainingStatus: 'idle' as const,
+        progress: 0,
         linkBroken: false
       };
     });

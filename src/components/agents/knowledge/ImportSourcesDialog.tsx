@@ -2,13 +2,13 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ProcessedSource } from './types';
+import { KnowledgeSource } from './types';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  externalSources: ProcessedSource[];
-  currentSources: ProcessedSource[];
+  externalSources: KnowledgeSource[];  // Changed from ProcessedSource[] to KnowledgeSource[]
+  currentSources: KnowledgeSource[];   // Changed from ProcessedSource[] to KnowledgeSource[]
   onImport: (sourceIds: number[]) => void;
 }
 
