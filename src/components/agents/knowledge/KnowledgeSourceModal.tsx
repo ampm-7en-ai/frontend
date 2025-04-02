@@ -3,6 +3,7 @@ import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource, UrlNode, ProcessedSource, SourceAnalysis } from './types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
+import WebsiteContentPanel from './WebsiteContentPanel';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -18,13 +19,17 @@ const KnowledgeSourceModal = ({
   initialSourceId 
 }: KnowledgeSourceModalProps) => {
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(initialSourceId || null);
+  const [selectedSource, setSelectedSource] = useState<KnowledgeSource | undefined>(
+    initialSourceId ? sources.find(s => s.id === initialSourceId) : undefined
+  );
   const [pageCountAlert, setPageCountAlert] = useState<{show: boolean, count: number, name: string} | null>(null);
   
   useEffect(() => {
     if (initialSourceId) {
       setSelectedSourceId(initialSourceId);
+      setSelectedSource(sources.find(s => s.id === initialSourceId));
     }
-  }, [initialSourceId]);
+  }, [initialSourceId, sources]);
 
   const analyzeSourceStructure = (source: KnowledgeSource): SourceAnalysis => {
     const domainLinks = source.metadata?.domain_links;
@@ -300,24 +305,26 @@ const KnowledgeSourceModal = ({
     console.log("Source selected:", id);
     setSelectedSourceId(id);
     
-    const selectedSource = sources.find(source => source.id === id);
-    if (selectedSource) {
-      const analysis = analyzeSourceStructure(selectedSource);
+    const source = sources.find(source => source.id === id);
+    setSelectedSource(source);
+    
+    if (source) {
+      const analysis = analyzeSourceStructure(source);
       console.log("Selected Source Analysis:", analysis);
       
       let totalPages = 0;
       
-      if (selectedSource.type === 'website' || selectedSource.type === 'url') {
-        if (selectedSource.metadata?.domain_links) {
-          totalPages = countNestedPages(selectedSource.metadata.domain_links);
-        } else if (selectedSource.knowledge_sources?.length > 0) {
-          const hasSubUrls = selectedSource.knowledge_sources.some(ks => 
+      if (source.type === 'website' || source.type === 'url') {
+        if (source.metadata?.domain_links) {
+          totalPages = countNestedPages(source.metadata.domain_links);
+        } else if (source.knowledge_sources?.length > 0) {
+          const hasSubUrls = source.knowledge_sources.some(ks => 
             ks.metadata && ks.metadata.sub_urls);
           
           if (hasSubUrls) {
             totalPages = 0;
             
-            selectedSource.knowledge_sources.forEach(ks => {
+            source.knowledge_sources.forEach(ks => {
               if (ks.metadata?.sub_urls) {
                 totalPages += 1;
                 
@@ -329,44 +336,44 @@ const KnowledgeSourceModal = ({
               }
             });
           } else {
-            totalPages = selectedSource.knowledge_sources.length;
+            totalPages = source.knowledge_sources.length;
           }
-        } else if (selectedSource.insideLinks?.length > 0) {
-          totalPages = selectedSource.insideLinks.length;
+        } else if (source.insideLinks?.length > 0) {
+          totalPages = source.insideLinks.length;
         } else {
           totalPages = 1;
         }
       } else {
-        totalPages = selectedSource.metadata?.no_of_pages ? Number(selectedSource.metadata.no_of_pages) : 1;
+        totalPages = source.metadata?.no_of_pages ? Number(source.metadata.no_of_pages) : 1;
       }
       
-      console.log(`Total pages calculated (recursive): ${totalPages} for ${selectedSource.name}`);
+      console.log(`Total pages calculated (recursive): ${totalPages} for ${source.name}`);
       
       setPageCountAlert({
         show: true, 
         count: totalPages, 
-        name: selectedSource.name
+        name: source.name
       });
       
       setTimeout(() => {
         setPageCountAlert(null);
       }, 5000);
       
-      console.log("Selected Source Type:", selectedSource.type);
+      console.log("Selected Source Type:", source.type);
       
-      if (selectedSource.metadata) {
+      if (source.metadata) {
         console.log("Selected Source Metadata:", {
-          hasCount: !!selectedSource.metadata.count,
-          hasFileSize: !!selectedSource.metadata.file_size,
-          hasChars: !!selectedSource.metadata.no_of_chars,
-          hasRows: !!selectedSource.metadata.no_of_rows,
-          hasPages: !!selectedSource.metadata.no_of_pages,
-          hasDomainLinks: !!selectedSource.metadata.domain_links,
-          hasWebsite: !!selectedSource.metadata.website
+          hasCount: !!source.metadata.count,
+          hasFileSize: !!source.metadata.file_size,
+          hasChars: !!source.metadata.no_of_chars,
+          hasRows: !!source.metadata.no_of_rows,
+          hasPages: !!source.metadata.no_of_pages,
+          hasDomainLinks: !!source.metadata.domain_links,
+          hasWebsite: !!source.metadata.website
         });
         
-        if (selectedSource.metadata.domain_links) {
-          const domainLinks = selectedSource.metadata.domain_links;
+        if (source.metadata.domain_links) {
+          const domainLinks = source.metadata.domain_links;
           console.log("Domain Links Structure:", {
             type: typeof domainLinks,
             isArray: Array.isArray(domainLinks),
@@ -384,8 +391,8 @@ const KnowledgeSourceModal = ({
         }
       }
       
-      if (selectedSource.knowledge_sources && selectedSource.knowledge_sources.length > 0) {
-        const ksWithSubUrls = selectedSource.knowledge_sources.filter(ks => 
+      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        const ksWithSubUrls = source.knowledge_sources.filter(ks => 
           ks.metadata && ks.metadata.sub_urls);
         
         console.log("Knowledge Sources with sub_urls:", ksWithSubUrls.length);
@@ -431,9 +438,12 @@ const KnowledgeSourceModal = ({
         externalSources={processedSources}
         initialSourceId={selectedSourceId}
         onSourceSelect={handleSourceSelect}
-        selectedSourceData={selectedSourceId ? 
-          sources.find(source => source.id === selectedSourceId) : undefined}
+        selectedSourceData={selectedSource}
       />
+      
+      {selectedSource && selectedSource.type === 'website' && (
+        <WebsiteContentPanel source={selectedSource} />
+      )}
     </>
   );
 };
