@@ -36,12 +36,29 @@ export interface KnowledgeSource {
     last_updated?: string;
   };
   icon?: string;
-  knowledge_sources?: {
-    id: number | string;
-    url: string;
-    title: string;
-    selected?: boolean;
-  }[];
+  knowledge_sources?: KnowledgeSourceItem[];
+}
+
+export interface KnowledgeSourceItem {
+  id: number | string;
+  url: string;
+  title: string;
+  status?: string;
+  selected?: boolean;
+  knowledge_base?: number;
+  parent_knowledge_source?: number | null;
+  metadata?: {
+    format?: string;
+    sub_urls?: {
+      key: string;
+      url: string;
+      children?: {
+        key: string;
+        url: string;
+        children?: any[];
+      }[];
+    };
+  };
 }
 
 // Define recursive UrlNode interface for nested URL structure

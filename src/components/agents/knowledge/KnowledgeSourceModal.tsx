@@ -50,8 +50,26 @@ const KnowledgeSourceModal = ({
     } else if (source.knowledge_sources && source.knowledge_sources.length > 0) {
       // If no domain_links in metadata, check for knowledge_sources
       domainLinksSource = 'direct';
-      hasChildren = true;
-      childrenCount = source.knowledge_sources.length;
+      
+      // Check for sub_urls in knowledge_sources metadata (new API structure)
+      const hasSubUrls = source.knowledge_sources.some(ks => 
+        ks.metadata && ks.metadata.sub_urls);
+      
+      if (hasSubUrls) {
+        const subUrlsChildrenCount = source.knowledge_sources.reduce((count, ks) => {
+          if (ks.metadata?.sub_urls?.children) {
+            return count + ks.metadata.sub_urls.children.length;
+          }
+          return count;
+        }, 0);
+        
+        hasChildren = subUrlsChildrenCount > 0;
+        childrenCount = subUrlsChildrenCount;
+      } else {
+        // Fallback to using knowledge_sources directly
+        hasChildren = true;
+        childrenCount = source.knowledge_sources.length;
+      }
     }
     
     return {
@@ -86,13 +104,71 @@ const KnowledgeSourceModal = ({
     // Handle website/url type sources without domain_links
     if ((sourceType === 'website' || sourceType === 'url')) {
       if (!domainLinks) {
-        console.log(`Creating placeholder domain links for ${source.name} (source type: ${sourceType})`);
+        console.log(`Creating domain links for ${source.name} (source type: ${sourceType})`);
       
-        // Build a hierarchical structure from insideLinks if available
-        const mainDomainUrl = source.name.startsWith('http') ? source.name : `https://${source.name}`;
-        
-        if (source.insideLinks && source.insideLinks.length > 0) {
+        // Build a hierarchical structure from knowledge_sources
+        if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+          // Check for the new sub_urls structure in knowledge_sources
+          const hasSubUrls = source.knowledge_sources.some(ks => 
+            ks.metadata && ks.metadata.sub_urls);
+          
+          if (hasSubUrls) {
+            console.log(`Found sub_urls in knowledge_sources for ${source.name}`);
+            
+            // Create a tree structure from sub_urls
+            const childNodes: UrlNode[] = [];
+            
+            source.knowledge_sources.forEach(ks => {
+              if (ks.metadata?.sub_urls) {
+                const subUrls = ks.metadata.sub_urls;
+                
+                // Add the main URL
+                const mainNode: UrlNode = {
+                  url: subUrls.url || ks.url,
+                  title: ks.title || subUrls.key,
+                  selected: ks.selected !== false,
+                  children: []
+                };
+                
+                // Add children if they exist
+                if (subUrls.children && subUrls.children.length > 0) {
+                  mainNode.children = subUrls.children.map(child => ({
+                    url: child.url,
+                    title: child.key,
+                    selected: true,
+                    children: child.children || []
+                  }));
+                }
+                
+                childNodes.push(mainNode);
+              } else {
+                // Fallback for knowledge_sources without sub_urls
+                childNodes.push({
+                  url: ks.url,
+                  title: ks.title,
+                  selected: ks.selected !== false,
+                  children: []
+                });
+              }
+            });
+            
+            processedDomainLinks = childNodes;
+          } else {
+            // Fallback to using knowledge_sources directly
+            const childNodes = source.knowledge_sources.map(ks => ({
+              url: ks.url,
+              title: ks.title,
+              selected: ks.selected !== false,
+              children: []
+            }));
+            
+            processedDomainLinks = childNodes;
+          }
+        } else if (source.insideLinks && source.insideLinks.length > 0) {
           // Create a tree structure from insideLinks
+          const mainDomainUrl = source.name.startsWith('http') ? source.name : `https://${source.name}`;
+          
+          // Create tree from insideLinks as fallback
           const childNodes = source.insideLinks.map(link => ({
             url: link.url,
             title: link.title,
@@ -107,6 +183,9 @@ const KnowledgeSourceModal = ({
             children: childNodes
           };
         } else {
+          // Default case if no sub-resources are available
+          const mainDomainUrl = source.name.startsWith('http') ? source.name : `https://${source.name}`;
+          
           processedDomainLinks = {
             url: mainDomainUrl,
             title: source.name,
@@ -152,7 +231,7 @@ const KnowledgeSourceModal = ({
       domain_links: processedDomainLinks,
       // Ensure knowledge_sources exists for website/url type sources
       knowledge_sources: (sourceType === 'website' || sourceType === 'url') 
-        ? source.insideLinks?.map(link => ({
+        ? source.knowledge_sources || source.insideLinks?.map(link => ({
             id: link.url.split('/').pop() || Math.random().toString(36).substring(2, 11),
             url: link.url,
             title: link.title,
@@ -205,6 +284,26 @@ const KnowledgeSourceModal = ({
               : domainLinks.children?.length || 0,
             structure: domainLinks
           });
+        }
+      }
+      
+      // Check for sub_urls in knowledge_sources
+      if (selectedSource.knowledge_sources && selectedSource.knowledge_sources.length > 0) {
+        const ksWithSubUrls = selectedSource.knowledge_sources.filter(ks => 
+          ks.metadata && ks.metadata.sub_urls);
+        
+        console.log("Knowledge Sources with sub_urls:", ksWithSubUrls.length);
+        
+        if (ksWithSubUrls.length > 0) {
+          const firstWithSubUrls = ksWithSubUrls[0];
+          console.log("Sample sub_urls structure:", firstWithSubUrls.metadata?.sub_urls);
+          
+          const childrenCount = firstWithSubUrls.metadata?.sub_urls?.children?.length || 0;
+          console.log("Children count in first sub_urls:", childrenCount);
+          
+          if (childrenCount > 0) {
+            console.log("First child in sub_urls:", firstWithSubUrls.metadata?.sub_urls?.children?.[0]);
+          }
         }
       }
     }
