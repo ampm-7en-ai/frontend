@@ -249,14 +249,11 @@ export const ImportSourcesDialog = ({
                     
                     return (
                       <div key={source.id} className="border rounded-md overflow-hidden">
-                        <div 
-                          className={`flex items-center p-3 ${alreadyImported ? 'bg-gray-50' : 'bg-white'} border-b`}
-                        >
+                        <div className="flex items-center p-3 bg-white border-b">
                           <Checkbox 
                             id={`source-${source.id}`}
                             checked={selectedSources.has(source.id)}
                             onCheckedChange={() => toggleSourceSelection(source.id)}
-                            disabled={alreadyImported}
                             className="mr-2"
                           />
                           <div className="flex-1">
@@ -267,7 +264,7 @@ export const ImportSourcesDialog = ({
                               {renderSourceIcon(source.type)}
                               <span className="font-medium">
                                 {source.name}
-                                {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(Already imported)</span>}
+                                {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(Already in your knowledge base)</span>}
                               </span>
                             </label>
                             

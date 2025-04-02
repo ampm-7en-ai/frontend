@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off, RefreshCw } from 'lucide-react';
@@ -37,14 +38,23 @@ const KnowledgeTrainingStatus = ({
   const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
   const [showFallbackUI, setShowFallbackUI] = useState(false);
+  const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
+  const cachedKnowledgeBases = useRef<any[]>([]);
   
   const fetchKnowledgeBases = async () => {
+    // If we already have cached data, return it
+    if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
+      console.log("Using cached knowledge bases instead of fetching");
+      return cachedKnowledgeBases.current;
+    }
+
     try {
       const token = getAccessToken();
       if (!token) {
         throw new Error('Authentication required');
       }
 
+      console.log("Fetching knowledge bases from API");
       const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`, {
         headers: getAuthHeaders(token),
       });
@@ -54,6 +64,11 @@ const KnowledgeTrainingStatus = ({
       }
 
       const data = await response.json();
+      
+      // Cache the fetched data
+      cachedKnowledgeBases.current = data;
+      setKnowledgeBasesLoaded(true);
+      
       return data;
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
@@ -61,9 +76,11 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError } = useQuery({
+  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError, refetch } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    enabled: !knowledgeBasesLoaded // Only run the query if we haven't loaded knowledge bases yet
   });
 
   const formatExternalSources = (data) => {
@@ -160,7 +177,9 @@ const KnowledgeTrainingStatus = ({
         trainingStatus: trainingStatus,
         progress: progress,
         linkBroken: source.link_broken || false,
-        crawlOptions: source.crawl_options || 'single'
+        crawlOptions: source.crawl_options || 'single',
+        insideLinks: source.insideLinks || [], // Make sure to include insideLinks
+        metadata: source.metadata || {}
       };
     });
   };
@@ -185,7 +204,7 @@ const KnowledgeTrainingStatus = ({
   };
 
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
-    if (!availableKnowledgeBases && !showFallbackUI) {
+    if (!availableKnowledgeBases && !showFallbackUI && !cachedKnowledgeBases.current.length) {
       toast({
         title: "Cannot import sources",
         description: "Knowledge base data is unavailable. Please try again later.",
@@ -194,95 +213,158 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    const externalSourcesData = formatExternalSources(availableKnowledgeBases);
-    const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
+    const externalSourcesData = formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current);
     
-    if (newSourceIds.length === 0) {
-      toast({
-        title: "No new sources selected",
-        description: "All selected sources are already imported.",
-      });
-      setIsImportDialogOpen(false);
-      return;
+    // Find new sources and existing sources that need updating
+    const existingSourcesMap = new Map(knowledgeSources.map(s => [s.id, s]));
+    const newSourceIds = sourceIds.filter(id => !existingSourcesMap.has(id));
+    const existingSourceIds = sourceIds.filter(id => existingSourcesMap.has(id));
+    
+    // Create array to hold all sources to be added or updated
+    const sourcesToAdd: KnowledgeSource[] = [];
+    
+    // Process new sources
+    newSourceIds.forEach(id => {
+      const externalSource = externalSourcesData.find(s => s.id === id);
+      if (!externalSource) return;
+      
+      const newSource = processSourceForImport(externalSource, selectedSubUrls?.[id]);
+      if (newSource) {
+        sourcesToAdd.push(newSource);
+      }
+    });
+    
+    // Process existing sources for updates (e.g., new selected URLs)
+    existingSourceIds.forEach(id => {
+      if (!selectedSubUrls?.[id] || selectedSubUrls[id].size === 0) return;
+      
+      const existingSource = existingSourcesMap.get(id);
+      const externalSource = externalSourcesData.find(s => s.id === id);
+      
+      if (existingSource && externalSource) {
+        // Update the existing source with new selected URLs
+        const updatedSource = {
+          ...existingSource,
+          insideLinks: processSelectedUrlsForSource(externalSource, selectedSubUrls[id], existingSource.insideLinks || [])
+        };
+        
+        // Replace the existing source in the sources array
+        setKnowledgeSources(prev => 
+          prev.map(source => source.id === id ? updatedSource : source)
+        );
+        
+        toast({
+          title: "Knowledge source updated",
+          description: `Updated selected URLs for "${existingSource.name}".`
+        });
+      }
+    });
+    
+    // Add new sources if any
+    if (sourcesToAdd.length > 0) {
+      setKnowledgeSources(prev => [...prev, ...sourcesToAdd]);
+      
+      if (sourcesToAdd.length === 1) {
+        toast({
+          title: "Knowledge source imported",
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
+        });
+      } else {
+        toast({
+          title: "Knowledge sources imported",
+          description: `${sourcesToAdd.length} sources have been added to your knowledge base.`
+        });
+      }
     }
     
-    const newSources: KnowledgeSource[] = newSourceIds.map(id => {
-      const externalSource = externalSourcesData.find(s => s.id === id);
-      if (!externalSource) return null;
-      
-      if (externalSource.type === 'website' && selectedSubUrls && selectedSubUrls[id]) {
-        const selectedUrls = selectedSubUrls[id];
-        const knowledgeSource = externalSource.knowledge_sources?.[0];
-        
-        if (knowledgeSource) {
-          let rootNode: UrlNode | null = null;
-          
-          if (knowledgeSource.metadata?.sub_urls) {
-            rootNode = knowledgeSource.metadata.sub_urls as UrlNode;
-          } else if (externalSource.metadata?.domain_links) {
-            rootNode = Array.isArray(externalSource.metadata.domain_links) 
-              ? externalSource.metadata.domain_links[0] 
-              : externalSource.metadata.domain_links;
-          }
-          
-          if (rootNode) {
-            const selectedNodes = processSelectedSubUrls(rootNode, selectedUrls);
-            
-            if (!externalSource.insideLinks) {
-              externalSource.insideLinks = [];
-            }
-
-            selectedNodes.forEach(node => {
-              if (node.url !== 'root') {
-                externalSource.insideLinks.push({
-                  url: node.url,
-                  title: node.title || node.url,
-                  status: 'pending',
-                  selected: true
-                });
-              }
-            });
-          }
-        }
-      }
-      
-      return {
-        id: externalSource.id,
-        name: externalSource.name,
-        type: externalSource.type,
-        size: externalSource.size,
-        lastUpdated: externalSource.lastUpdated,
-        trainingStatus: 'idle' as const,
-        progress: 0,
-        linkBroken: false,
-        knowledge_sources: externalSource.knowledge_sources,
-        metadata: externalSource.metadata,
-        insideLinks: externalSource.insideLinks
-      };
-    }).filter(Boolean) as KnowledgeSource[];
+    // If no sources were added or updated, show a message
+    if (sourcesToAdd.length === 0 && existingSourceIds.length === 0) {
+      toast({
+        title: "No sources imported",
+        description: "No changes were made to your knowledge base."
+      });
+    }
     
-    setKnowledgeSources(prev => [...prev, ...newSources]);
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
     if (onSourcesChange) {
-      const updatedSourceIds = [...knowledgeSources, ...newSources].map(s => s.id);
+      const updatedSourceIds = [...knowledgeSources, ...sourcesToAdd].map(s => s.id);
       onSourcesChange(updatedSourceIds);
     }
+  };
+  
+  // Helper function to process a source for import
+  const processSourceForImport = (externalSource, selectedUrls?: Set<string>): KnowledgeSource | null => {
+    if (!externalSource) return null;
     
-    if (newSourceIds.length === 1) {
-      const sourceId = newSourceIds[0];
-      const source = externalSourcesData.find(s => s.id === sourceId);
-      if (source) {
-        const toastInfo = getToastMessageForSourceChange('added', source.name);
-        toast(toastInfo);
-      }
-    } else {
-      toast({
-        title: "Knowledge sources imported",
-        description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
-      });
+    // Create a copy of the source to modify
+    const newSource: KnowledgeSource = {
+      id: externalSource.id,
+      name: externalSource.name,
+      type: externalSource.type,
+      size: externalSource.size,
+      lastUpdated: externalSource.lastUpdated,
+      trainingStatus: 'idle' as const,
+      progress: 0,
+      linkBroken: false,
+      knowledge_sources: externalSource.knowledge_sources,
+      metadata: externalSource.metadata,
+      insideLinks: []
+    };
+    
+    // Process selected URLs for website sources
+    if (externalSource.type === 'website' && selectedUrls && selectedUrls.size > 0) {
+      newSource.insideLinks = processSelectedUrlsForSource(externalSource, selectedUrls);
     }
+    
+    return newSource;
+  };
+  
+  // Helper function to process selected URLs for a source
+  const processSelectedUrlsForSource = (
+    externalSource, 
+    selectedUrls: Set<string>, 
+    existingLinks: Array<{url: string, title?: string, status: string, selected: boolean}> = []
+  ) => {
+    if (!selectedUrls || selectedUrls.size === 0) return existingLinks;
+    
+    const knowledgeSource = externalSource.knowledge_sources?.[0];
+    if (!knowledgeSource) return existingLinks;
+    
+    let rootNode: UrlNode | null = null;
+    
+    if (knowledgeSource.metadata?.sub_urls) {
+      rootNode = knowledgeSource.metadata.sub_urls as UrlNode;
+    } else if (externalSource.metadata?.domain_links) {
+      rootNode = Array.isArray(externalSource.metadata.domain_links) 
+        ? externalSource.metadata.domain_links[0] 
+        : externalSource.metadata.domain_links;
+    }
+    
+    if (!rootNode) return existingLinks;
+    
+    // Process the selected URLs
+    const selectedNodes = processSelectedSubUrls(rootNode, selectedUrls);
+    
+    // Create an array to hold all inside links
+    const newInsideLinks = [...existingLinks];
+    
+    // Add new selected URLs, avoiding duplicates
+    const existingUrls = new Set(existingLinks.map(link => link.url));
+    
+    selectedNodes.forEach(node => {
+      if (node.url !== 'root' && !existingUrls.has(node.url)) {
+        newInsideLinks.push({
+          url: node.url,
+          title: node.title || node.url,
+          status: 'pending',
+          selected: true
+        });
+      }
+    });
+    
+    return newInsideLinks;
   };
 
   useEffect(() => {
@@ -303,8 +385,11 @@ const KnowledgeTrainingStatus = ({
     }
   }, [isLoading, loadError]);
 
-  const handleRetry = () => {
-    setShowFallbackUI(false);
+  const refreshKnowledgeBases = () => {
+    console.log("Manually refreshing knowledge bases");
+    setKnowledgeBasesLoaded(false); // Reset the loaded flag
+    cachedKnowledgeBases.current = []; // Clear the cache
+    refetch(); // Trigger a refetch
   };
 
   const removeSource = async (sourceId: number) => {
@@ -453,7 +538,10 @@ const KnowledgeTrainingStatus = ({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => setIsImportDialogOpen(true)}
+            onClick={() => {
+              refreshKnowledgeBases();
+              setIsImportDialogOpen(true);
+            }}
             className="flex items-center gap-1"
           >
             <Import className="h-4 w-4" />
@@ -489,7 +577,7 @@ const KnowledgeTrainingStatus = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => window.location.reload()}
+                onClick={refreshKnowledgeBases}
                 className="flex items-center gap-1.5"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -518,7 +606,10 @@ const KnowledgeTrainingStatus = ({
                 <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
                 <Button
                   variant="outline"
-                  onClick={() => setIsImportDialogOpen(true)}
+                  onClick={() => {
+                    refreshKnowledgeBases();
+                    setIsImportDialogOpen(true);
+                  }}
                   className="flex items-center gap-1"
                 >
                   <Import className="h-4 w-4" />
@@ -549,7 +640,7 @@ const KnowledgeTrainingStatus = ({
       <ImportSourcesDialog
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
-        externalSources={formatExternalSources(availableKnowledgeBases)}
+        externalSources={formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current)}
         currentSources={knowledgeSources}
         onImport={importSelectedSources}
       />
