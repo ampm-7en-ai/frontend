@@ -27,7 +27,7 @@ const KnowledgeSourceModal = ({
     }
   }, [initialSourceId]);
 
-  // Process domain links to ensure they're in the correct format
+  // Process domain links to ensure they're in the correct format with proper nesting
   const processedSources = sources.map(source => {
     // Get domain_links directly from source.metadata
     const domainLinks = source.metadata?.domain_links;
@@ -41,23 +41,100 @@ const KnowledgeSourceModal = ({
       metadata: source.metadata
     });
     
-    // Create dummy domain links for testing if needed
+    // Create processed domain links with proper nesting levels
     let processedDomainLinks = domainLinks;
     
     // If it's a website/url type but no domain links, create a placeholder
     if ((source.type === 'website' || source.type === 'url') && !domainLinks) {
       // Create a synthetic domain link based on the source properties
       console.log(`Creating placeholder domain links for ${source.name}`);
+      
+      // Build a hierarchical structure from insideLinks if available
+      const mainDomainUrl = source.name.startsWith('http') ? source.name : `https://${source.name}`;
+      
+      let childNodes: UrlNode[] = [];
+      if (source.insideLinks && source.insideLinks.length > 0) {
+        // Group URLs by path segments to create a tree
+        const urlMap: Record<string, UrlNode[]> = {};
+        
+        source.insideLinks.forEach(link => {
+          try {
+            const url = new URL(link.url);
+            const pathSegments = url.pathname.split('/').filter(Boolean);
+            
+            // Create nodes for each path segment
+            let currentPath = '';
+            let parentPath = '';
+            
+            pathSegments.forEach((segment, index) => {
+              currentPath = currentPath ? `${currentPath}/${segment}` : segment;
+              const fullUrl = `${url.origin}/${currentPath}`;
+              
+              if (!urlMap[currentPath]) {
+                urlMap[currentPath] = [];
+              }
+              
+              // Add this segment as a node
+              const node: UrlNode = {
+                url: fullUrl,
+                title: segment,
+                selected: link.selected !== false,
+                children: []
+              };
+              
+              urlMap[currentPath].push(node);
+              
+              // Add this node as a child to its parent
+              if (index > 0) {
+                if (parentPath && urlMap[parentPath]) {
+                  urlMap[parentPath].forEach(parentNode => {
+                    if (!parentNode.children) {
+                      parentNode.children = [];
+                    }
+                    parentNode.children.push(node);
+                  });
+                }
+              }
+              
+              parentPath = currentPath;
+            });
+          } catch (e) {
+            console.error("Error processing URL:", link.url, e);
+          }
+        });
+        
+        // Use top-level paths as children of main domain
+        const topLevelPaths = Object.keys(urlMap)
+          .filter(path => !path.includes('/'))
+          .flatMap(path => urlMap[path]);
+        
+        childNodes = topLevelPaths;
+      } else {
+        // If no insideLinks, create an empty children array
+        childNodes = [];
+      }
+      
       processedDomainLinks = {
-        url: source.name,
+        url: mainDomainUrl,
         title: source.name,
         selected: true,
-        children: source.insideLinks?.map(link => ({
-          url: link.url,
-          title: link.title || link.url.split('/').pop() || link.url,
-          selected: link.selected !== false
-        })) || []
+        children: childNodes
       };
+    } else if (domainLinks) {
+      // If we have domain_links, ensure children arrays exist
+      if (Array.isArray(domainLinks)) {
+        processedDomainLinks = domainLinks.map(node => {
+          return {
+            ...node,
+            children: node.children || []
+          };
+        });
+      } else {
+        processedDomainLinks = {
+          ...domainLinks,
+          children: domainLinks.children || []
+        };
+      }
     }
     
     // Create the transformed source with properly formatted domain_links

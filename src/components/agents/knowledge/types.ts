@@ -47,6 +47,9 @@ export interface UrlNode {
   title?: string;
   selected?: boolean;
   children?: Array<UrlNode>;
+  // Add nesting level for UI display purposes
+  level?: number;
+  path?: string;
 }
 
 // Interface for the processed source data expected by ImportSourcesDialog
@@ -54,4 +57,13 @@ export interface ProcessedSource extends KnowledgeSource {
   format: string;
   pages?: string;
   domain_links?: UrlNode | UrlNode[];
+}
+
+// Interface for flattened URL structure with nesting information
+export interface FlattenedUrlNode {
+  url: string;
+  title: string;
+  level: number;
+  path: string;
+  parentUrl?: string;
 }

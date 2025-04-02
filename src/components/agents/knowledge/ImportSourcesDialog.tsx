@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -15,9 +14,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   FileText, Globe, FileSpreadsheet, File, FileSearch, Search, 
-  Calendar, CheckCircle, Database, ArrowRight, ExternalLink
+  Calendar, CheckCircle, Database, ArrowRight, ExternalLink,
+  ChevronRight, ChevronDown
 } from 'lucide-react';
-import { KnowledgeSource, UrlNode } from './types';
+import { KnowledgeSource, UrlNode, FlattenedUrlNode } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { formatFileSizeToMB } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface ExternalSource {
   id: number;
@@ -88,6 +89,7 @@ export const ImportSourcesDialog = ({
   const [isLoading, setIsLoading] = useState(false);
   const [filteredCenterSources, setFilteredCenterSources] = useState<ExternalSource[]>([]);
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
+  const [expandedUrls, setExpandedUrls] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen && externalSources.length > 0 && initialSourceId) {
@@ -117,6 +119,7 @@ export const ImportSourcesDialog = ({
       setActiveSourceId(initialSourceId || null);
       setSelectedSource(null);
       setSelectedChild(null);
+      setExpandedUrls([]);
     }
   }, [isOpen, initialSourceId]);
 
@@ -137,8 +140,33 @@ export const ImportSourcesDialog = ({
     setFilteredCenterSources(filtered);
   }, [selectedTab, searchTerm, externalSources]);
 
+  // Recursive function to extract all child URLs from domain_links structure
+  const getAllChildUrls = (node: UrlNode, level: number = 0, path: string = ''): FlattenedUrlNode[] => {
+    const currentPath = path ? `${path} > ${node.title || new URL(node.url).pathname || node.url}` : (node.title || new URL(node.url).pathname || node.url);
+    
+    // Create the current node
+    const currentNode: FlattenedUrlNode = {
+      url: node.url,
+      title: node.title || new URL(node.url).pathname || node.url,
+      level,
+      path: currentPath
+    };
+    
+    // If there are no children, return just this node
+    if (!node.children || node.children.length === 0) {
+      return [currentNode];
+    }
+    
+    // Otherwise, get all children nodes recursively and prepend the current node
+    const childrenNodes = node.children.flatMap(child => 
+      getAllChildUrls(child, level + 1, currentPath)
+    );
+    
+    return [currentNode, ...childrenNodes];
+  };
+
   // Helper function to extract children URLs from domain_links
-  const getChildrenUrls = (source: ExternalSource): { url: string; title: string }[] => {
+  const getChildrenUrls = (source: ExternalSource): FlattenedUrlNode[] => {
     if (source.type !== 'website' && source.type !== 'url') {
       return [];
     }
@@ -157,25 +185,15 @@ export const ImportSourcesDialog = ({
     // Handle both single node and array of nodes
     if (Array.isArray(domainLinks)) {
       // If it's an array, collect all children from all nodes
-      let allChildren: { url: string; title: string }[] = [];
+      let allUrls: FlattenedUrlNode[] = [];
       domainLinks.forEach(node => {
-        if (node.children && Array.isArray(node.children)) {
-          allChildren = [...allChildren, ...node.children.map(child => ({ 
-            url: child.url,
-            title: child.title || new URL(child.url).pathname.split('/').pop() || child.url 
-          }))];
-        }
+        allUrls = [...allUrls, ...getAllChildUrls(node)];
       });
-      return allChildren;
-    } else if (domainLinks.children && Array.isArray(domainLinks.children)) {
-      // If it's a single node with children
-      return domainLinks.children.map(child => ({ 
-        url: child.url,
-        title: child.title || new URL(child.url).pathname.split('/').pop() || child.url 
-      }));
+      return allUrls;
+    } else {
+      // If it's a single node
+      return getAllChildUrls(domainLinks);
     }
-    
-    return [];
   };
 
   const getFileIcon = (format: string) => {
@@ -266,6 +284,16 @@ export const ImportSourcesDialog = ({
 
   const handleSelectChildUrl = (url: string) => {
     setSelectedChild(url);
+  };
+
+  const toggleUrlExpansion = (url: string) => {
+    setExpandedUrls(prev => {
+      if (prev.includes(url)) {
+        return prev.filter(u => u !== url);
+      } else {
+        return [...prev, url];
+      }
+    });
   };
 
   const handleImport = () => {
@@ -423,6 +451,24 @@ export const ImportSourcesDialog = ({
     // For website type sources, show the list of child URLs
     if (selectedSource.type === 'website' || selectedSource.type === 'url') {
       const childUrls = getChildrenUrls(selectedSource);
+      const hasChildUrls = childUrls.length > 0;
+      
+      // Group URLs by level for hierarchical display
+      const urlsByParent: Record<string, FlattenedUrlNode[]> = {};
+      childUrls.forEach(node => {
+        if (node.level === 0) {
+          if (!urlsByParent['root']) {
+            urlsByParent['root'] = [];
+          }
+          urlsByParent['root'].push(node);
+        } else {
+          const parentPath = node.path.split(' > ').slice(0, -1).join(' > ');
+          if (!urlsByParent[parentPath]) {
+            urlsByParent[parentPath] = [];
+          }
+          urlsByParent[parentPath].push(node);
+        }
+      });
       
       return (
         <div className="p-4">
@@ -446,43 +492,21 @@ export const ImportSourcesDialog = ({
             )}
             
             {/* Child URLs */}
-            {childUrls.length > 0 ? (
+            {hasChildUrls ? (
               <div>
                 <h5 className="text-sm font-medium mb-2">URLs to be processed ({childUrls.length})</h5>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {childUrls.map((child, index) => (
-                    <div 
-                      key={index} 
-                      className={cn(
-                        "p-2 rounded-md border transition-colors cursor-pointer",
-                        selectedChild === child.url ? "border-primary bg-primary/5" : "bg-muted/20 hover:bg-muted/30"
-                      )}
-                      onClick={() => handleSelectChildUrl(child.url)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 truncate">
-                          <Globe className="h-3.5 w-3.5 shrink-0" />
-                          <span className="text-sm truncate" title={child.title || child.url}>
-                            {child.title || new URL(child.url).pathname || child.url}
-                          </span>
-                        </div>
-                        <a 
-                          href={child.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="shrink-0 text-primary hover:text-primary/80"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </div>
+                <div className="space-y-2 max-h-[400px]">
+                  {/* Display root level URLs */}
+                  {urlsByParent['root']?.map((node, index) => (
+                    <div key={`${node.url}-${index}`}>
+                      {renderUrlNode(node, urlsByParent)}
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
-                <p>No child URLs found for this website</p>
+                <p>No URLs found for this website</p>
               </div>
             )}
           </div>
@@ -499,6 +523,77 @@ export const ImportSourcesDialog = ({
           Document content will be processed during training
         </p>
       </div>
+    );
+  };
+
+  // Render an individual URL node with its children
+  const renderUrlNode = (node: FlattenedUrlNode, urlsByParent: Record<string, FlattenedUrlNode[]>) => {
+    const hasChildren = urlsByParent[node.path] && urlsByParent[node.path].length > 0;
+    const isExpanded = expandedUrls.includes(node.url);
+    const paddingLeft = node.level * 12;
+    
+    return (
+      <>
+        <div 
+          className={cn(
+            "p-2 rounded-md border transition-colors cursor-pointer",
+            selectedChild === node.url ? "border-primary bg-primary/5" : "bg-muted/20 hover:bg-muted/30"
+          )}
+          onClick={() => handleSelectChildUrl(node.url)}
+          style={{ paddingLeft: paddingLeft + 8 }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 truncate">
+              {hasChildren && (
+                <button
+                  type="button"
+                  className="p-0.5 rounded-sm hover:bg-muted/30"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleUrlExpansion(node.url);
+                  }}
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
+              <Globe className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-sm truncate" title={node.title}>
+                {node.title}
+              </span>
+            </div>
+            <a 
+              href={node.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 text-primary hover:text-primary/80"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+          
+          {node.path && node.level > 0 && (
+            <div className="mt-1 text-xs text-muted-foreground truncate" title={node.path}>
+              {node.path}
+            </div>
+          )}
+        </div>
+        
+        {/* Render children if this node is expanded */}
+        {hasChildren && isExpanded && (
+          <div className="ml-4 space-y-2 mt-2">
+            {urlsByParent[node.path]?.map((childNode, childIndex) => (
+              <div key={`${childNode.url}-${childIndex}`}>
+                {renderUrlNode(childNode, urlsByParent)}
+              </div>
+            ))}
+          </div>
+        )}
+      </>
     );
   };
 
