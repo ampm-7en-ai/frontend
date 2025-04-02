@@ -44,6 +44,7 @@ const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
 
   useEffect(() => {
     if (source && source.type === 'website') {
+      console.info(`Rendering website/URL content for: ${source.name}`);
       const urls = extractCrawledUrls(source);
       setCrawledUrls(urls);
     }
@@ -52,7 +53,10 @@ const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
   const extractCrawledUrls = (source: KnowledgeSource): CrawledUrl[] => {
     const result: CrawledUrl[] = [];
     
+    console.info(`Getting children URLs for ${source.name}, type: ${source.type}`);
+    
     if (!source.knowledge_sources || !source.knowledge_sources.length) {
+      console.info(`No knowledge_sources found for ${source.name}`);
       return result;
     }
 
@@ -83,6 +87,9 @@ const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
       }
     });
 
+    console.info(`Found ${result.length} child URLs for ${source.name}`);
+    console.info(`URL grouping:`, result);
+    
     return result;
   };
 

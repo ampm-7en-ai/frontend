@@ -159,6 +159,25 @@ export const fetchAgentDetails = async (agentId: string): Promise<any> => {
   return response.json();
 };
 
+// Function to fetch knowledge source details
+export const fetchKnowledgeSourceDetails = async (sourceId: number): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${sourceId}/`, {
+    headers: getAuthHeaders(token),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    throw new Error(errorData.message || `Failed to fetch knowledge source details: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
 // Function to create a new agent
 export const createAgent = async (name: string, description: string): Promise<any> => {
   const token = getAccessToken();
