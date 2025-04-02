@@ -66,7 +66,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor }: AgentCard
         
         <AgentKnowledgeSection 
           agentId={agent.id} 
-          knowledgeSources={agent.knowledgeSources} 
+          knowledgeSources={agent.knowledgeSources || []} 
         />
       </CardContent>
       

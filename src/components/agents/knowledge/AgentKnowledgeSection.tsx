@@ -24,7 +24,7 @@ import { useKnowledgeTraining } from '@/hooks/useKnowledgeTraining';
 interface AgentKnowledgeSectionProps {
   agentId: string;
   knowledgeSources: KnowledgeSource[];
-  onSourcesChange: (sources: KnowledgeSource[]) => void;
+  onSourcesChange?: (sources: KnowledgeSource[]) => void;
   onTrainAllSources?: () => void;
   onRemoveSource?: (sourceId: number) => void;
   externalSources?: KnowledgeSource[];
@@ -56,8 +56,10 @@ export const AgentKnowledgeSection = ({
 
   const handleRemoveSource = () => {
     if (selectedSourceId !== null) {
-      const updatedSources = knowledgeSources.filter((source) => source.id !== selectedSourceId);
-      onSourcesChange(updatedSources);
+      if (onSourcesChange) {
+        const updatedSources = knowledgeSources.filter((source) => source.id !== selectedSourceId);
+        onSourcesChange(updatedSources);
+      }
       
       const removedSource = knowledgeSources.find((source) => source.id === selectedSourceId);
       if (removedSource) {
@@ -79,6 +81,8 @@ export const AgentKnowledgeSection = ({
   };
 
   const handleImportSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
+    if (!onSourcesChange) return;
+    
     const sourcesToImport = sourceIds.map((id) => {
       const source = externalSources.find((s) => s.id === id);
       if (!source) return null;
@@ -135,62 +139,98 @@ export const AgentKnowledgeSection = ({
     }
   };
 
+  const handleSourceCreated = (source: KnowledgeSource) => {
+    if (onSourcesChange) {
+      const updatedSources = [...knowledgeSources, source];
+      onSourcesChange(updatedSources);
+      toast(getToastMessageForSourceChange('added', source.name));
+    }
+  };
+
+  // Simple view-only implementation when onSourcesChange is not provided
+  const renderSourcesDisplay = () => {
+    if (knowledgeSources.length === 0) {
+      return (
+        <div className="text-center py-4 text-muted-foreground">
+          No knowledge sources available
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-2">
+        {knowledgeSources.map((source) => (
+          <div key={source.id} className="text-sm border rounded p-2">
+            <div className="font-medium">{source.name}</div>
+            <div className="text-xs text-muted-foreground">
+              {source.type} • {source.size}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium">Knowledge Sources</h3>
-        <div className="flex space-x-2">
-          <Button size="sm" variant="outline" onClick={() => setIsImportDialogOpen(true)}>
-            <Import className="h-4 w-4 mr-1" />
-            Import
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add Source
-          </Button>
-          <Button 
-            size="sm" 
-            onClick={handleTrainAll}
-            disabled={knowledgeSources.length === 0 || trainingStatus.status === 'training'}
-          >
-            <RotateCw className={`h-4 w-4 mr-1 ${trainingStatus.status === 'training' ? 'animate-spin' : ''}`} />
-            Train All
-          </Button>
-        </div>
-      </div>
+      {onSourcesChange ? (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium">Knowledge Sources</h3>
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline" onClick={() => setIsImportDialogOpen(true)}>
+                <Import className="h-4 w-4 mr-1" />
+                Import
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add Source
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleTrainAll}
+                disabled={knowledgeSources.length === 0 || trainingStatus.status === 'training'}
+              >
+                <RotateCw className={`h-4 w-4 mr-1 ${trainingStatus.status === 'training' ? 'animate-spin' : ''}`} />
+                Train All
+              </Button>
+            </div>
+          </div>
 
-      {trainingStatus.status !== 'idle' && (
-        <TrainingProgressIndicator
-          status={trainingStatus.status}
-          progress={trainingStatus.progress}
-          count={{
-            total: trainingStatus.count.total,
-            completed: trainingStatus.count.completed,
-            failed: trainingStatus.count.failed,
-          }}
-        />
+          {trainingStatus.status !== 'idle' && (
+            <TrainingProgressIndicator
+              status={trainingStatus.status}
+              progress={trainingStatus.progress}
+              count={{
+                total: trainingStatus.count.total,
+                completed: trainingStatus.count.completed,
+                failed: trainingStatus.count.failed,
+              }}
+            />
+          )}
+          
+          <KnowledgeSourceTable
+            sources={knowledgeSources}
+            onRemoveSource={handleConfirmRemoval}
+            trainingStatuses={trainingStatus.sources}
+            onTrainSource={(sourceId) => {
+              const sourceToTrain = knowledgeSources.find(source => source.id === sourceId);
+              if (sourceToTrain) {
+                startTraining([sourceToTrain]);
+              }
+            }}
+          />
+        </>
+      ) : (
+        renderSourcesDisplay()
       )}
-      
-      <KnowledgeSourceTable
-        sources={knowledgeSources}
-        onRemoveSource={handleConfirmRemoval}
-        trainingStatuses={trainingStatus.sources}
-        onTrainSource={(sourceId) => {
-          const sourceToTrain = knowledgeSources.find(source => source.id === sourceId);
-          if (sourceToTrain) {
-            startTraining([sourceToTrain]);
-          }
-        }}
-      />
 
       <KnowledgeSourceModal
-        isOpen={isCreateModalOpen}
+        open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        onSourceCreated={(source) => {
-          const updatedSources = [...knowledgeSources, source];
-          onSourcesChange(updatedSources);
-          toast(getToastMessageForSourceChange('added', source.name));
-        }}
+        sources={knowledgeSources}
+        initialSourceId={null}
+        onSourceCreated={handleSourceCreated}
       />
 
       <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
@@ -214,13 +254,15 @@ export const AgentKnowledgeSection = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      <ImportSourcesDialog
-        isOpen={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        externalSources={filteredExternalSources}
-        currentSources={knowledgeSources}
-        onImport={handleImportSources}
-      />
+      {onSourcesChange && (
+        <ImportSourcesDialog
+          isOpen={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+          externalSources={filteredExternalSources}
+          currentSources={knowledgeSources}
+          onImport={handleImportSources}
+        />
+      )}
     </div>
   );
 };

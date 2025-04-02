@@ -8,13 +8,15 @@ interface KnowledgeSourceModalProps {
   onOpenChange: (open: boolean) => void;
   sources: KnowledgeSource[];
   initialSourceId: number | null;
+  onSourceCreated?: (source: KnowledgeSource) => void;
 }
 
 const KnowledgeSourceModal = ({
   open,
   onOpenChange,
   sources,
-  initialSourceId
+  initialSourceId,
+  onSourceCreated
 }: KnowledgeSourceModalProps) => {
   // Simple placeholder implementation
   const currentSource = initialSourceId !== null 
