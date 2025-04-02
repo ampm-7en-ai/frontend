@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
 import { KnowledgeSource, UrlNode } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
@@ -14,18 +15,18 @@ interface KnowledgeTrainingStatusProps {
   agentId: string;
   initialSelectedSources?: number[];
   onSourcesChange?: (selectedSourceIds: number[]) => void;
-  preloadedKnowledgeSources?: any[];  // Add this prop to accept preloaded knowledge sources
-  isLoading?: boolean;                // Add loading state prop
-  loadError?: string | null;          // Add error state prop
+  preloadedKnowledgeSources?: any[];  
+  isLoading?: boolean;
+  loadError?: string | null;
 }
 
 const KnowledgeTrainingStatus = ({ 
   agentId, 
   initialSelectedSources = [], 
   onSourcesChange,
-  preloadedKnowledgeSources = [],     // Default to empty array
-  isLoading = false,                  // Default to false
-  loadError = null                    // Default to null
+  preloadedKnowledgeSources = [],
+  isLoading = false,
+  loadError = null
 }: KnowledgeTrainingStatusProps) => {
   const { toast } = useToast();
   
@@ -33,6 +34,7 @@ const KnowledgeTrainingStatus = ({
   const [isTrainingAll, setIsTrainingAll] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
   const [needsRetraining, setNeedsRetraining] = useState(true);
+  const [showTrainingAlert, setShowTrainingAlert] = useState(false);
   
   const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
@@ -76,8 +78,8 @@ const KnowledgeTrainingStatus = ({
   const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError, refetch } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    enabled: !knowledgeBasesLoaded // Only run the query if we haven't loaded knowledge bases yet
+    staleTime: 5 * 60 * 1000,
+    enabled: !knowledgeBasesLoaded
   });
 
   const formatExternalSources = (data) => {
@@ -143,7 +145,7 @@ const KnowledgeTrainingStatus = ({
     if (!dateString) return 'N/A';
     
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+    return date.toLocaleDateString('en-GB');
   };
 
   const transformAgentKnowledgeSources = (data) => {
@@ -257,7 +259,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
         });
       } else {
         toast({
@@ -461,6 +463,7 @@ const KnowledgeTrainingStatus = ({
     }
 
     setIsTrainingAll(true);
+    setShowTrainingAlert(true);
     
     toast({
       title: "Training all sources",
@@ -499,6 +502,7 @@ const KnowledgeTrainingStatus = ({
         
         setIsTrainingAll(false);
         setNeedsRetraining(false);
+        setShowTrainingAlert(false);
         
         toast({
           title: "Training complete",
@@ -544,6 +548,15 @@ const KnowledgeTrainingStatus = ({
         </div>
       </CardHeader>
       <CardContent>
+        {showTrainingAlert && (
+          <div className="mb-4">
+            <AlertBanner 
+              message="Training started! It will just take a minute or so, depending on the number of pages."
+              variant="info"
+            />
+          </div>
+        )}
+        
         {isLoading ? (
           <div className="flex justify-center items-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
