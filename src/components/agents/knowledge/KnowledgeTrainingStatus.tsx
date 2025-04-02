@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -259,7 +260,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
         });
       } else {
         toast({
@@ -457,7 +458,7 @@ const KnowledgeTrainingStatus = ({
       toast({
         title: "No sources selected",
         description: "Please import at least one knowledge source to train.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -467,7 +468,7 @@ const KnowledgeTrainingStatus = ({
     
     toast({
       title: "Training all sources",
-      description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`,
+      description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`
     });
 
     setKnowledgeSources(prev => 
@@ -506,7 +507,7 @@ const KnowledgeTrainingStatus = ({
         
         toast({
           title: "Training complete",
-          description: "All knowledge sources have been processed.",
+          description: "All knowledge sources have been processed."
         });
       }
     }, 500);
