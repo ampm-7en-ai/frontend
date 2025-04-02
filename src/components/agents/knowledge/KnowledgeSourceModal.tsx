@@ -1,8 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import { KnowledgeSource, ProcessedSource, SourceAnalysis } from './types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
-import WebsiteContentPanel from './WebsiteContentPanel';
 import { fetchKnowledgeSourceDetails } from '@/utils/api-config';
 import { useToast } from '@/hooks/use-toast';
 
@@ -171,10 +171,6 @@ const KnowledgeSourceModal = ({
             </AlertDescription>
           </Alert>
         </div>
-      )}
-      
-      {selectedSource && selectedSource.type === 'website' && (
-        <WebsiteContentPanel source={selectedSource} />
       )}
     </>
   );
