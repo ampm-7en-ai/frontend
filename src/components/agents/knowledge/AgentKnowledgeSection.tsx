@@ -1,268 +1,143 @@
 
-import React, { useState, useEffect } from 'react';
-import { KnowledgeSourceTable } from './KnowledgeSourceTable';
-import KnowledgeSourceModal from './KnowledgeSourceModal';
-import { KnowledgeSource } from './types';
-import { ImportSourcesDialog } from './ImportSourcesDialog';
-import { Button } from '@/components/ui/button';
-import { Plus, Import, Trash2, RotateCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AlertCircle, ChevronRight, RefreshCw, FileText, BookOpen, Bot } from 'lucide-react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { getToastMessageForSourceChange } from './knowledgeUtils';
-import { TrainingProgressIndicator } from './TrainingProgressIndicator';
-import { useKnowledgeTraining } from '@/hooks/useKnowledgeTraining';
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { Button } from '@/components/ui/button';
 
 interface AgentKnowledgeSectionProps {
   agentId: string;
   knowledgeSources: KnowledgeSource[];
-  onSourcesChange?: (sources: KnowledgeSource[]) => void;
-  onTrainAllSources?: () => void;
-  onRemoveSource?: (sourceId: number) => void;
-  externalSources?: KnowledgeSource[];
+  isCompact?: boolean;
+  onViewSource?: (sourceId: number) => void;
 }
 
-export const AgentKnowledgeSection = ({
-  agentId,
+const AgentKnowledgeSection = ({ 
+  agentId, 
   knowledgeSources,
-  onSourcesChange,
-  onTrainAllSources,
-  onRemoveSource,
-  externalSources = [],
+  isCompact = false,
+  onViewSource
 }: AgentKnowledgeSectionProps) => {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
-  const { toast } = useToast();
-
-  const { 
-    trainingStatus, 
-    startTraining, 
-    resetTrainingStatus 
-  } = useKnowledgeTraining(agentId);
-
-  const filteredExternalSources = externalSources.filter(
-    (source) => !knowledgeSources.some((existing) => existing.id === source.id)
-  );
-
-  const handleRemoveSource = () => {
-    if (selectedSourceId !== null) {
-      if (onSourcesChange) {
-        const updatedSources = knowledgeSources.filter((source) => source.id !== selectedSourceId);
-        onSourcesChange(updatedSources);
-      }
-      
-      const removedSource = knowledgeSources.find((source) => source.id === selectedSourceId);
-      if (removedSource) {
-        toast(getToastMessageForSourceChange('removed', removedSource.name));
-      }
-
-      if (onRemoveSource) {
-        onRemoveSource(selectedSourceId);
-      }
-      
-      setSelectedSourceId(null);
-      setIsRemoveDialogOpen(false);
+  
+  const displayedSources = knowledgeSources.slice(0, 3);
+  const remainingSources = knowledgeSources.length - 3;
+  const hasErrorSources = knowledgeSources.some(source => source.hasError);
+  const isEmpty = knowledgeSources.length === 0;
+  
+  const handleSourceClick = (source: KnowledgeSource) => {
+    setSelectedSourceId(source.id);
+    if (onViewSource) {
+      onViewSource(source.id);
     }
   };
-
-  const handleConfirmRemoval = (sourceId: number) => {
-    setSelectedSourceId(sourceId);
-    setIsRemoveDialogOpen(true);
-  };
-
-  const handleImportSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
-    if (!onSourcesChange) return;
-    
-    const sourcesToImport = sourceIds.map((id) => {
-      const source = externalSources.find((s) => s.id === id);
-      if (!source) return null;
-      
-      // If we have selectedSubUrls for this source, 
-      // we should modify the source to only include those URLs
-      if (selectedSubUrls && selectedSubUrls[id]) {
-        // Deep clone to avoid modifying the original
-        const modifiedSource = JSON.parse(JSON.stringify(source));
-        
-        // Store the selected URLs in the source metadata
-        if (!modifiedSource.metadata) modifiedSource.metadata = {};
-        modifiedSource.metadata.selectedUrls = Array.from(selectedSubUrls[id]);
-        
-        return modifiedSource;
-      }
-      
-      return source;
-    }).filter((s): s is KnowledgeSource => s !== null);
-
-    const updatedSources = [...knowledgeSources, ...sourcesToImport];
-    onSourcesChange(updatedSources);
-    
-    if (sourcesToImport.length === 1) {
-      toast(getToastMessageForSourceChange('added', sourcesToImport[0].name));
-    } else {
-      toast({
-        title: "Knowledge sources added",
-        description: `${sourcesToImport.length} sources have been added to your knowledge base.`,
-      });
-    }
-    
-    setIsImportDialogOpen(false);
-  };
-
-  const handleTrainAll = async () => {
-    if (knowledgeSources.length === 0) {
-      toast({
-        title: "No sources to train",
-        description: "Please add knowledge sources before training.",
-      });
-      return;
-    }
-    
-    // Reset previous training status
-    resetTrainingStatus();
-    
-    // Start training through API
-    await startTraining(knowledgeSources);
-    
-    // Also call the provided onTrainAllSources if available
-    if (onTrainAllSources) {
-      onTrainAllSources();
-    }
-  };
-
-  const handleSourceCreated = (source: KnowledgeSource) => {
-    if (onSourcesChange) {
-      const updatedSources = [...knowledgeSources, source];
-      onSourcesChange(updatedSources);
-      toast(getToastMessageForSourceChange('added', source.name));
-    }
-  };
-
-  // Simple view-only implementation when onSourcesChange is not provided
-  const renderSourcesDisplay = () => {
-    if (knowledgeSources.length === 0) {
-      return (
-        <div className="text-center py-4 text-muted-foreground">
-          No knowledge sources available
-        </div>
-      );
-    }
-    
+  
+  // For compact view (button only)
+  if (isCompact) {
     return (
-      <div className="space-y-2">
-        {knowledgeSources.map((source) => (
-          <div key={source.id} className="text-sm border rounded p-2">
-            <div className="font-medium">{source.name}</div>
-            <div className="text-xs text-muted-foreground">
-              {source.type} • {source.size}
-            </div>
-          </div>
-        ))}
+      <div className="w-full">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-2 text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            if (onViewSource && knowledgeSources.length > 0) {
+              onViewSource(knowledgeSources[0].id);
+            }
+          }}
+        >
+          <FileText className="h-4 w-4" />
+          View Knowledge Sources ({knowledgeSources.length})
+        </Button>
       </div>
     );
-  };
-
-  return (
-    <div>
-      {onSourcesChange ? (
-        <>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium">Knowledge Sources</h3>
-            <div className="flex space-x-2">
-              <Button size="sm" variant="outline" onClick={() => setIsImportDialogOpen(true)}>
-                <Import className="h-4 w-4 mr-1" />
-                Import
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Source
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={handleTrainAll}
-                disabled={knowledgeSources.length === 0 || trainingStatus.status === 'training'}
-              >
-                <RotateCw className={`h-4 w-4 mr-1 ${trainingStatus.status === 'training' ? 'animate-spin' : ''}`} />
-                Train All
-              </Button>
+  }
+  
+  // Empty state with a creative display
+  if (isEmpty) {
+    return (
+      <div>
+        <div className="text-sm font-medium mb-1.5 text-muted-foreground">Knowledge Sources</div>
+        <div className="border border-dashed border-muted-foreground/30 rounded-md p-3 bg-muted/20 text-center">
+          <div className="flex justify-center items-center mb-2">
+            <div className="relative">
+              <BookOpen className="h-6 w-6 text-muted-foreground/50" />
+              <Bot className="h-4 w-4 absolute -bottom-1 -right-1 text-primary/70" />
             </div>
           </div>
-
-          {trainingStatus.status !== 'idle' && (
-            <TrainingProgressIndicator
-              status={trainingStatus.status}
-              progress={trainingStatus.progress}
-              count={{
-                total: trainingStatus.count.total,
-                completed: trainingStatus.count.completed,
-                failed: trainingStatus.count.failed,
-              }}
-            />
-          )}
-          
-          <KnowledgeSourceTable
-            sources={knowledgeSources}
-            onRemoveSource={handleConfirmRemoval}
-            trainingStatuses={trainingStatus.sources}
-            onTrainSource={(sourceId) => {
-              const sourceToTrain = knowledgeSources.find(source => source.id === sourceId);
-              if (sourceToTrain) {
-                startTraining([sourceToTrain]);
-              }
-            }}
-          />
-        </>
-      ) : (
-        renderSourcesDisplay()
-      )}
-
-      <KnowledgeSourceModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        sources={knowledgeSources}
-        initialSourceId={null}
-        onSourceCreated={handleSourceCreated}
-      />
-
-      <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Knowledge Source</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this knowledge source? The agent will no longer have access to this information.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleRemoveSource}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {onSourcesChange && (
-        <ImportSourcesDialog
-          isOpen={isImportDialogOpen}
-          onOpenChange={setIsImportDialogOpen}
-          externalSources={filteredExternalSources}
-          currentSources={knowledgeSources}
-          onImport={handleImportSources}
-        />
+          <p className="text-xs text-muted-foreground mb-1">No knowledge sources yet</p>
+          <Link 
+            to={`/agents/${agentId}/edit?tab=knowledge`}
+            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+          >
+            <span>Add knowledge</span>
+            <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
+  // For regular inline display with sources
+  return (
+    <div>
+      <div className="text-sm font-medium mb-1.5 text-muted-foreground">Knowledge Sources</div>
+      <div className="flex flex-wrap gap-1">
+        {displayedSources.map(source => (
+          <div key={source.id} onClick={() => handleSourceClick(source)}>
+            <KnowledgeSourceBadge source={source} />
+          </div>
+        ))}
+        
+        {remainingSources > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-auto px-2 py-0.5 rounded-full bg-muted/50 hover:bg-muted text-xs text-muted-foreground"
+                  onClick={() => {
+                    if (onViewSource && knowledgeSources.length > 3) {
+                      onViewSource(knowledgeSources[3].id);
+                    }
+                  }}
+                >
+                  <span>+{remainingSources} more</span>
+                  <ChevronRight className="h-3 w-3 ml-1" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View all knowledge sources</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+      
+      {hasErrorSources && (
+        <div className="mt-2">
+          <Link 
+            to={`/agents/${agentId}/edit?tab=knowledge`}
+            className="group inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors border border-red-200 text-xs"
+          >
+            <span className="flex items-center gap-1">
+              <AlertCircle className="h-3 w-3 text-red-500" />
+              <span className="font-medium">Some knowledge sources need retraining</span>
+            </span>
+            <RefreshCw className="h-3 w-3 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </Link>
+        </div>
       )}
     </div>
   );
 };
+
+export default AgentKnowledgeSection;

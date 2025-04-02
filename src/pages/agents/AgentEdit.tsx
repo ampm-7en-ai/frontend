@@ -14,7 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { KnowledgeTrainingStatus } from '@/components/agents/knowledge/KnowledgeTrainingStatus';
+import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -23,778 +23,1169 @@ import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface Agent {
-  id: string;
-  name: string;
-  description: string;
-  prompt: string;
-  model: string;
-  temperature: number;
-  maxTokens: number;
-  topP: number;
-  frequencyPenalty: number;
-  presencePenalty: number;
-  streaming: boolean;
-  status: string;
-  avatar: string;
-  knowledgeBaseId: string | null;
-  knowledgeSources: any[];
-  createdAt: string;
-  updatedAt: string;
-  lastModified: string;
-  userId: string;
-  businessId: string;
-  conversations: number;
-  settings: {
-    chatbox: {
-      title: string;
-      subtitle: string;
-      theme: string;
-      primaryColor: string;
-      secondaryColor: string;
-      accentColor: string;
-      borderRadius: string;
-      fontFamily: string;
-      fontSize: string;
-      headerImage: string;
-      agentAvatar: string;
-      welcomeMessage: string;
-      inputPlaceholder: string;
-      sendButtonColor: string;
-      sendButtonShape: string;
-      showPoweredBy: boolean;
-      position: string;
-      horizontalOffset: string;
-      verticalOffset: string;
-      expandOnStart: boolean;
-      agentName: string;
-      agentDescription: string;
-    };
-    integrations: {
-      slack: {
-        enabled: boolean;
-        webhookUrl: string;
-      };
-      instagram: {
-        enabled: boolean;
-      };
-    };
-  };
-}
+const knowledgeSources = [
+  { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
+  { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20' },
+  { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10' },
+  { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25' },
+];
 
-const AgentEdit: React.FC = () => {
-  const { agentId } = useParams<{ agentId: string }>();
+const agentTypeSystemPrompts = {
+  support: "You are a helpful customer support assistant. Your goal is to assist users with their questions and problems related to our products and services. Be friendly, patient, and informative.",
+  sales: "You are a knowledgeable sales assistant. Your goal is to help potential customers understand our products, answer their questions, and guide them towards making a purchase decision. Be enthusiastic but not pushy.",
+  technical: "You are a technical support specialist. Your goal is to help users troubleshoot and resolve technical issues with our products. Be precise, thorough, and explain technical concepts clearly.",
+  custom: ""
+};
+
+const predefinedAvatars = [
+  {
+    id: 'predefined-1',
+    src: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: 'predefined-2',
+    src: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: 'predefined-3',
+    src: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=100&h=100'
+  }
+];
+
+const integrationOptions = [
+  { id: 'messenger', name: 'Messenger', icon: 'messenger', description: 'Connect with Facebook Messenger', connected: false, color: '#0084FF' },
+  { id: 'whatsapp', name: 'WhatsApp', icon: 'whatsapp', description: 'Connect your WhatsApp Business account', connected: false, color: '#25D366' },
+  { id: 'slack', name: 'Slack', icon: 'slack', description: 'Link your Slack workspace', connected: true, color: '#4A154B' },
+  { id: 'instagram', name: 'Instagram', icon: 'instagram', description: 'Connect to Instagram direct messages', connected: false, color: '#E1306C' },
+];
+
+const AgentEdit = () => {
+  const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const [agent, setAgent] = useState<Agent | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("general");
+  
+  const [agent, setAgent] = useState({
+    id: agentId,
+    name: "Customer Support Agent",
+    description: "This agent helps customers with their inquiries and provides support.",
+    primaryColor: '#9b87f5',
+    secondaryColor: '#ffffff',
+    fontFamily: 'Inter',
+    chatbotName: 'Business Assistant',
+    welcomeMessage: 'Hello! How can I help you today?',
+    buttonText: 'Chat with us',
+    position: 'bottom-right' as 'bottom-right' | 'bottom-left',
+    showOnMobile: true,
+    collectVisitorData: true,
+    autoShowAfter: 30,
+    knowledgeSources: [1, 3],
+    selectedModel: 'gpt4',
+    temperature: 0.7,
+    maxResponseLength: 'medium',
+    suggestions: [
+      'How can I get started?',
+      'What features do you offer?',
+      'Tell me about your pricing'
+    ],
+    avatar: {
+      type: 'default',
+      src: ''
+    },
+    agentType: 'support',
+    systemPrompt: agentTypeSystemPrompts.support
+  });
+  
+  const [isRetraining, setIsRetraining] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
+  const [customAvatarFile, setCustomAvatarFile] = useState<File | null>(null);
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const [activeIntegrations, setActiveIntegrations] = useState(integrationOptions);
+  const [selectedIntegration, setSelectedIntegration] = useState<null | typeof integrationOptions[0]>(null);
+  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
+  const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
+  const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
+  const [isLoadingAgentData, setIsLoadingAgentData] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [prompt, setPrompt] = useState('');
-  const [model, setModel] = useState('gpt-3.5-turbo');
-  const [temperature, setTemperature] = useState(0.0);
-  const [maxTokens, setMaxTokens] = useState(2048);
-  const [topP, setTopP] = useState(1.0);
-  const [frequencyPenalty, setFrequencyPenalty] = useState(0.0);
-  const [presencePenalty, setPresencePenalty] = useState(0.0);
-  const [streaming, setStreaming] = useState(false);
-  const [status, setStatus] = useState('active');
-  const [avatar, setAvatar] = useState('');
-
-  const [chatboxTitle, setChatboxTitle] = useState('');
-  const [chatboxSubtitle, setChatboxSubtitle] = useState('');
-  const [chatboxTheme, setChatboxTheme] = useState('modern');
-  const [chatboxPrimaryColor, setChatboxPrimaryColor] = useState('#000000');
-  const [chatboxSecondaryColor, setChatboxSecondaryColor] = useState('#ffffff');
-  const [chatboxAccentColor, setChatboxAccentColor] = useState('#0000ff');
-  const [chatboxBorderRadius, setChatboxBorderRadius] = useState('0.5rem');
-  const [chatboxFontFamily, setChatboxFontFamily] = useState('Arial, sans-serif');
-  const [chatboxFontSize, setChatboxFontSize] = useState('16px');
-  const [chatboxHeaderImage, setChatboxHeaderImage] = useState('');
-  const [chatboxAgentAvatar, setChatboxAgentAvatar] = useState('');
-  const [chatboxWelcomeMessage, setChatboxWelcomeMessage] = useState('Hello! How can I help you today?');
-  const [chatboxInputPlaceholder, setChatboxInputPlaceholder] = useState('Type your message here...');
-  const [chatboxSendButtonColor, setChatboxSendButtonColor] = useState('#007bff');
-  const [chatboxSendButtonShape, setChatboxSendButtonShape] = useState('rounded');
-  const [chatboxShowPoweredBy, setChatboxShowPoweredBy] = useState(true);
-  const [chatboxPosition, setChatboxPosition] = useState('bottom-right');
-  const [chatboxHorizontalOffset, setChatboxHorizontalOffset] = useState('20px');
-  const [chatboxVerticalOffset, setChatboxVerticalOffset] = useState('20px');
-  const [chatboxExpandOnStart, setChatboxExpandOnStart] = useState(false);
-  const [chatboxAgentName, setChatboxAgentName] = useState('');
-  const [chatboxAgentDescription, setChatboxAgentDescription] = useState('');
-
-  const [slackEnabled, setSlackEnabled] = useState(false);
-  const [slackWebhookUrl, setSlackWebhookUrl] = useState('');
-  const [instagramEnabled, setInstagramEnabled] = useState(false);
-
-  const fetchAgent = async () => {
-    setIsLoading(true);
-    try {
-      const accessToken = getAccessToken();
-      if (!accessToken) {
-        throw new Error('No access token available');
+  const { data: agentData, isLoading, isError, error } = useQuery({
+    queryKey: ['agent', agentId],
+    queryFn: async () => {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
       }
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
-        headers: {
-          ...getAuthHeaders(accessToken),
-        },
+      
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId || '1'}`, {
+        headers: getAuthHeaders(token),
       });
-
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Failed to fetch agent data: ${response.status}`);
       }
-
-      const data = await response.json();
-      setAgent(data);
-
-      setName(data.name);
-      setDescription(data.description);
-      setPrompt(data.prompt);
-      setModel(data.model);
-      setTemperature(data.temperature);
-      setMaxTokens(data.maxTokens);
-      setTopP(data.topP);
-      setFrequencyPenalty(data.frequencyPenalty);
-      setPresencePenalty(data.presencePenalty);
-      setStreaming(data.streaming);
-      setStatus(data.status);
-      setAvatar(data.avatar);
-
-      setChatboxTitle(data.settings?.chatbox?.title || '');
-      setChatboxSubtitle(data.settings?.chatbox?.subtitle || '');
-      setChatboxTheme(data.settings?.chatbox?.theme || 'modern');
-      setChatboxPrimaryColor(data.settings?.chatbox?.primaryColor || '#000000');
-      setChatboxSecondaryColor(data.settings?.chatbox?.secondaryColor || '#ffffff');
-      setChatboxAccentColor(data.settings?.chatbox?.accentColor || '#0000ff');
-      setChatboxBorderRadius(data.settings?.chatbox?.borderRadius || '0.5rem');
-      setChatboxFontFamily(data.settings?.chatbox?.fontFamily || 'Arial, sans-serif');
-      setChatboxFontSize(data.settings?.chatbox?.fontSize || '16px');
-      setChatboxHeaderImage(data.settings?.chatbox?.headerImage || '');
-      setChatboxAgentAvatar(data.settings?.chatbox?.agentAvatar || '');
-      setChatboxWelcomeMessage(data.settings?.chatbox?.welcomeMessage || 'Hello! How can I help you today?');
-      setChatboxInputPlaceholder(data.settings?.chatbox?.inputPlaceholder || 'Type your message here...');
-      setChatboxSendButtonColor(data.settings?.chatbox?.sendButtonColor || '#007bff');
-      setChatboxSendButtonShape(data.settings?.chatbox?.sendButtonShape || 'rounded');
-      setChatboxShowPoweredBy(data.settings?.chatbox?.showPoweredBy !== false);
-      setChatboxPosition(data.settings?.chatbox?.position || 'bottom-right');
-      setChatboxHorizontalOffset(data.settings?.chatbox?.horizontalOffset || '20px');
-      setChatboxVerticalOffset(data.settings?.chatbox?.verticalOffset || '20px');
-      setChatboxExpandOnStart(data.settings?.chatbox?.expandOnStart || false);
-      setChatboxAgentName(data.settings?.chatbox?.agentName || '');
-      setChatboxAgentDescription(data.settings?.chatbox?.agentDescription || '');
-
-      setSlackEnabled(data.settings?.integrations?.slack?.enabled || false);
-      setSlackWebhookUrl(data.settings?.integrations?.slack?.webhookUrl || '');
-      setInstagramEnabled(data.settings?.integrations?.instagram?.enabled || false);
-
-    } catch (error: any) {
-      console.error('Failed to fetch agent:', error);
-      toast({
-        title: "Error fetching agent",
-        description: error.message || "Failed to fetch agent details.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      
+      return response.json();
     }
+  });
+
+  React.useEffect(() => {
+    if (agentData) {
+      if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
+        setAgentKnowledgeSources(agentData.knowledge_bases);
+      }
+      
+      const knowledgeSourceIds = [];
+      if (agentData.settings && agentData.settings.knowledge_source_filters) {
+        Object.values(agentData.settings.knowledge_source_filters).forEach(sources => {
+          if (Array.isArray(sources)) {
+            knowledgeSourceIds.push(...sources);
+          }
+        });
+      }
+      
+      setAgent({
+        ...agent,
+        name: agentData.name || agent.name,
+        description: agentData.description || agent.description,
+        
+        primaryColor: agentData.appearance?.primaryColor || agent.primaryColor,
+        secondaryColor: agentData.appearance?.secondaryColor || agent.secondaryColor,
+        fontFamily: agentData.appearance?.fontFamily || agent.fontFamily,
+        chatbotName: agentData.appearance?.chatbotName || agent.chatbotName,
+        welcomeMessage: agentData.appearance?.welcomeMessage || agent.welcomeMessage,
+        buttonText: agentData.appearance?.buttonText || agent.buttonText,
+        position: agentData.appearance?.position || agent.position,
+        avatar: agentData.appearance?.avatar || agent.avatar,
+        
+        showOnMobile: agentData.behavior?.showOnMobile ?? agent.showOnMobile,
+        collectVisitorData: agentData.behavior?.collectVisitorData ?? agent.collectVisitorData,
+        autoShowAfter: agentData.behavior?.autoShowAfter ?? agent.autoShowAfter,
+        suggestions: agentData.behavior?.suggestions || agent.suggestions,
+        
+        selectedModel: agentData.model?.selectedModel || agent.selectedModel,
+        temperature: agentData.model?.temperature ?? agent.temperature,
+        maxResponseLength: agentData.model?.maxResponseLength || agent.maxResponseLength,
+        
+        agentType: agentData.agentType || agent.agentType,
+        systemPrompt: agentData.systemPrompt || agent.systemPrompt,
+        
+        knowledgeSources: knowledgeSourceIds.length > 0 
+          ? knowledgeSourceIds 
+          : agentData.knowledge_bases?.map(kb => kb.id) || agent.knowledgeSources
+      });
+    }
+  }, [agentData]);
+
+  const handleChange = (name: string, value: any) => {
+    setAgent({
+      ...agent,
+      [name]: value
+    });
   };
 
-  useEffect(() => {
-    fetchAgent();
-  }, [agentId]);
+  const handleSuggestionChange = (index: number, value: string) => {
+    const updatedSuggestions = [...agent.suggestions];
+    updatedSuggestions[index] = value;
+    handleChange('suggestions', updatedSuggestions);
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    const updatedAgentData = {
-      name,
-      description,
-      prompt,
-      model,
-      temperature,
-      maxTokens,
-      topP,
-      frequencyPenalty,
-      presencePenalty,
-      streaming,
-      status,
-      avatar,
-      settings: {
-        chatbox: {
-          title: chatboxTitle,
-          subtitle: chatboxSubtitle,
-          theme: chatboxTheme,
-          primaryColor: chatboxPrimaryColor,
-          secondaryColor: chatboxSecondaryColor,
-          accentColor: chatboxAccentColor,
-          borderRadius: chatboxBorderRadius,
-          fontFamily: chatboxFontFamily,
-          fontSize: chatboxFontSize,
-          headerImage: chatboxHeaderImage,
-          agentAvatar: chatboxAgentAvatar,
-          welcomeMessage: chatboxWelcomeMessage,
-          inputPlaceholder: chatboxInputPlaceholder,
-          sendButtonColor: chatboxSendButtonColor,
-          sendButtonShape: chatboxSendButtonShape,
-          showPoweredBy: chatboxShowPoweredBy,
-          position: chatboxPosition,
-          horizontalOffset: chatboxHorizontalOffset,
-          verticalOffset: chatboxVerticalOffset,
-          expandOnStart: chatboxExpandOnStart,
-          agentName: chatboxAgentName,
-          agentDescription: chatboxAgentDescription,
-        },
-        integrations: {
-          slack: {
-            enabled: slackEnabled,
-            webhookUrl: slackWebhookUrl,
-          },
-          instagram: {
-            enabled: instagramEnabled,
-          },
-        },
-      },
-    };
-
-    try {
-      if (!agentId) {
-        throw new Error('Agent ID is missing.');
-      }
-      const accessToken = getAccessToken();
-      if (!accessToken) {
-        throw new Error('No access token available');
-      }
-
-      await updateAgent(agentId, updatedAgentData);
-
+  const toggleKnowledgeSource = (id: number) => {
+    const currentSources = [...agent.knowledgeSources];
+    if (currentSources.includes(id)) {
+      handleChange('knowledgeSources', currentSources.filter(sourceId => sourceId !== id));
+    } else {
+      handleChange('knowledgeSources', [...currentSources, id]);
+    }
+  };
+  
+  const handleRetrainAI = () => {
+    setIsRetraining(true);
+    
+    setTimeout(() => {
+      setIsRetraining(false);
       toast({
-        title: "Agent updated",
-        description: "Agent details have been successfully updated.",
+        title: "AI retrained successfully",
+        description: "Your agent has been updated with the selected knowledge sources.",
       });
-      navigate('/agents');
-    } catch (error: any) {
-      console.error('Failed to update agent:', error);
+    }, 2000);
+  };
+
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    
+    try {
+      const payload = {
+        name: agent.name,
+        description: agent.description,
+        appearance: {
+          primaryColor: agent.primaryColor,
+          secondaryColor: agent.secondaryColor,
+          fontFamily: agent.fontFamily,
+          chatbotName: agent.chatbotName,
+          welcomeMessage: agent.welcomeMessage,
+          buttonText: agent.buttonText,
+          position: agent.position,
+          avatar: agent.avatar
+        },
+        behavior: {
+          showOnMobile: agent.showOnMobile,
+          collectVisitorData: agent.collectVisitorData,
+          autoShowAfter: agent.autoShowAfter,
+          suggestions: agent.suggestions
+        },
+        model: {
+          selectedModel: agent.selectedModel,
+          temperature: agent.temperature,
+          maxResponseLength: agent.maxResponseLength
+        },
+        agentType: agent.agentType,
+        systemPrompt: agent.systemPrompt,
+        knowledgeSources: agent.knowledgeSources,
+        knowledge_bases: agentKnowledgeSources
+      };
+
+      await updateAgent(agentId || '', payload);
+      
       toast({
-        title: "Error updating agent",
-        description: error.message || "Failed to update agent details.",
-        variant: "destructive",
+        title: "Changes saved",
+        description: "Your agent settings have been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving agent:', error);
+      toast({
+        title: "Error saving changes",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        variant: "destructive"
       });
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-4">
-        <Card>
-          <CardHeader>
-            <CardTitle><Skeleton className="h-6 w-80" /></CardTitle>
-            <CardDescription><Skeleton className="h-4 w-[200px]" /></CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              <div className="flex items-center space-x-4">
-                <Avatar>
-                  <AvatarImage><Skeleton className="h-10 w-10 rounded-full" /></AvatarImage>
-                  <AvatarFallback><Skeleton className="h-10 w-10 rounded-full" /></AvatarFallback>
-                </Avatar>
-                <div>
-                  <Skeleton className="h-4 w-40" />
-                  <Skeleton className="h-3 w-24" />
+  const goBack = () => {
+    navigate('/agents');
+  };
+  
+  const goToTestPage = () => {
+    window.open(`/agents/${agentId}/test`, '_blank');
+  };
+
+  const handleAgentTypeChange = (type: string) => {
+    const systemPrompt = type === 'custom' ? agent.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
+    setAgent({
+      ...agent,
+      agentType: type,
+      systemPrompt
+    });
+  };
+
+  const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
+    handleChange('knowledgeSources', selectedSourceIds);
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    
+    setNewMessage('');
+    
+    toast({
+      title: "Message sent",
+      description: "Your message has been sent.",
+    });
+  };
+
+  const handleAvatarChange = (type: 'default' | 'predefined' | 'custom', src: string = '') => {
+    setAgent({
+      ...agent,
+      avatar: { type, src }
+    });
+  };
+
+  const handleCustomAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    setCustomAvatarFile(file);
+    handleAvatarChange('custom', objectUrl);
+
+    toast({
+      title: "Avatar uploaded",
+      description: "Your custom avatar has been uploaded.",
+    });
+  };
+  
+  const handleIntegrationCardClick = (integration: typeof integrationOptions[0]) => {
+    setSelectedIntegration(integration);
+    setIsIntegrationDialogOpen(true);
+    setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
+  };
+
+  const renderGeneralContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Agent Information</CardTitle>
+        <CardDescription>Basic information about your agent</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="agent-name">Agent Name</Label>
+          <Input 
+            id="agent-name" 
+            value={agent.name} 
+            onChange={(e) => handleChange('name', e.target.value)}
+            placeholder="e.g. Customer Support Agent" 
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="agent-description">Description</Label>
+          <Textarea 
+            id="agent-description" 
+            value={agent.description} 
+            onChange={(e) => handleChange('description', e.target.value)}
+            placeholder="Describe what this agent does" 
+            className="min-h-[120px]"
+          />
+        </div>
+        
+        <div className="space-y-4">
+          <Label>Suggested Questions</Label>
+          <p className="text-sm text-muted-foreground">
+            Add up to 3 suggested questions for your users to click on
+          </p>
+          
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="space-y-2">
+              <Label htmlFor={`suggestion-${index + 1}`}>Suggestion {index + 1}</Label>
+              <Input 
+                id={`suggestion-${index + 1}`} 
+                value={agent.suggestions[index] || ''}
+                onChange={(e) => handleSuggestionChange(index, e.target.value)}
+                placeholder={`e.g. Suggestion ${index + 1}`}
+              />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderAppearanceContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Visual Settings</CardTitle>
+        <CardDescription>Customize the look and feel of your chatbot</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="chat-avatar">Chat Avatar</Label>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
+              <div 
+                className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all ${agent.avatar.type === 'default' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+                onClick={() => handleAvatarChange('default')}
+              >
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <Bot size={28} className="text-primary" />
                 </div>
+                <span className="text-xs font-medium">Default</span>
               </div>
-              <Separator />
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Skeleton className="h-20 w-full" />
+
+              {predefinedAvatars.map((avatar) => (
+                <div 
+                  key={avatar.id}
+                  className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all ${agent.avatar.type === 'predefined' && agent.avatar.src === avatar.src ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+                  onClick={() => handleAvatarChange('predefined', avatar.src)}
+                >
+                  <Avatar className="w-14 h-14 mb-2 border">
+                    <AvatarImage src={avatar.src} alt="Predefined avatar" />
+                    <AvatarFallback>
+                      <Bot size={20} />
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-medium">Avatar {predefinedAvatars.indexOf(avatar) + 1}</span>
+                </div>
+              ))}
+
+              <div 
+                className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all relative ${agent.avatar.type === 'custom' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+              >
+                <label htmlFor="custom-avatar-upload" className="cursor-pointer flex flex-col items-center">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2 overflow-hidden border">
+                    {agent.avatar.type === 'custom' && agent.avatar.src ? (
+                      <Avatar className="w-full h-full">
+                        <AvatarImage src={agent.avatar.src} alt="Custom avatar" />
+                        <AvatarFallback>
+                          <Upload size={20} />
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Upload size={20} className="text-primary" />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium">Upload</span>
+                </label>
+                <input 
+                  id="custom-avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleCustomAvatarUpload}
+                />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="primary-color">Primary Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="primary-color-input" 
+                  type="color" 
+                  value={agent.primaryColor} 
+                  onChange={(e) => handleChange('primaryColor', e.target.value)}
+                  className="w-12 h-10 p-1"
+                />
+                <Input 
+                  id="primary-color-value" 
+                  value={agent.primaryColor} 
+                  onChange={(e) => handleChange('primaryColor', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secondary-color">Text Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="secondary-color-input" 
+                  type="color" 
+                  value={agent.secondaryColor} 
+                  onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                  className="w-12 h-10 p-1"
+                />
+                <Input 
+                  id="secondary-color-value" 
+                  value={agent.secondaryColor} 
+                  onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="font-family">Font Family</Label>
+            <Select 
+              value={agent.fontFamily} 
+              onValueChange={(value) => handleChange('fontFamily', value)}
+            >
+              <SelectTrigger id="font-family">
+                <SelectValue placeholder="Select font" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Inter">Inter</SelectItem>
+                <SelectItem value="Arial">Arial</SelectItem>
+                <SelectItem value="Helvetica">Helvetica</SelectItem>
+                <SelectItem value="Georgia">Georgia</SelectItem>
+                <SelectItem value="Verdana">Verdana</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="chatbot-name">Chatbot Name</Label>
+            <Input 
+              id="chatbot-name" 
+              value={agent.chatbotName} 
+              onChange={(e) => handleChange('chatbotName', e.target.value)}
+              placeholder="e.g. Customer Support"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="welcome-message">Welcome Message</Label>
+            <Input 
+              id="welcome-message" 
+              value={agent.welcomeMessage} 
+              onChange={(e) => handleChange('welcomeMessage', e.target.value)}
+              placeholder="Hello! How can I help you today?"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="button-text">Button Text</Label>
+            <Input 
+              id="button-text" 
+              value={agent.buttonText} 
+              onChange={(e) => handleChange('buttonText', e.target.value)}
+              placeholder="Chat with us"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Position</Label>
+            <RadioGroup 
+              value={agent.position} 
+              onValueChange={(value) => handleChange('position', value)}
+              className="grid grid-cols-2 gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="bottom-right" id="position-right" />
+                <Label htmlFor="position-right">Bottom Right</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="bottom-left" id="position-left" />
+                <Label htmlFor="position-left">Bottom Left</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderAdvancedContent = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <CpuIcon className="mr-2 h-5 w-5" />
+            AI Model Configuration
+          </CardTitle>
+          <CardDescription>Configure the underlying AI model</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="model">AI Model</Label>
+            <Select defaultValue="gpt4">
+              <SelectTrigger id="model">
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt4">GPT-4 (OpenAI)</SelectItem>
+                <SelectItem value="gpt35">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                <SelectItem value="claude">Claude 3 (Anthropic)</SelectItem>
+                <SelectItem value="gemini">Gemini Pro (Google)</SelectItem>
+                <SelectItem value="mistral">Mistral Large (Mistral AI)</SelectItem>
+                <SelectItem value="llama">Llama 2 (Meta AI)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="link" 
+              className="text-xs text-muted-foreground mt-1 pl-0"
+              onClick={() => window.open(`/agents/${agentId}/test`, '_blank')}
+            >
+              Test this model in a new tab →
+            </Button>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="temperature">Temperature</Label>
+            <div className="flex items-center space-x-2">
+              <Input 
+                id="temperature" 
+                type="number" 
+                value={agent.temperature}
+                onChange={(e) => handleChange('temperature', parseFloat(e.target.value))}
+                min="0" 
+                max="1" 
+                step="0.1"
+                className="w-24"
+              />
+              <span className="text-xs text-muted-foreground">
+                Higher values make responses more creative but less predictable
+              </span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="max-response-length">Maximum Response Length</Label>
+            <Select 
+              value={agent.maxResponseLength} 
+              onValueChange={(value) => handleChange('maxResponseLength', value)}
+            >
+              <SelectTrigger id="max-response-length">
+                <SelectValue placeholder="Select length" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="short">Short (1-2 sentences)</SelectItem>
+                <SelectItem value="medium">Medium (3-5 sentences)</SelectItem>
+                <SelectItem value="long">Long (6+ sentences)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Controls the typical length of responses from your agent.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BrainCircuit className="mr-2 h-5 w-5" />
+            Agent Type & System Prompt
+          </CardTitle>
+          <CardDescription>Define the agent's role and behavior</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Agent Type</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+                  className="text-xs"
+                >
+                  {showSystemPrompt ? "Hide System Prompt" : "Show System Prompt"}
+                </Button>
+              </div>
+              <RadioGroup 
+                value={agent.agentType} 
+                onValueChange={handleAgentTypeChange}
+                className="grid grid-cols-2 gap-2"
+              >
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="support" id="support" />
+                  <Label htmlFor="support" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Customer Support</span>
+                    <span className="text-xs text-muted-foreground">Assists with user questions and problems</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="sales" id="sales" />
+                  <Label htmlFor="sales" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Sales Assistant</span>
+                    <span className="text-xs text-muted-foreground">Helps convert leads and answer product questions</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="technical" id="technical" />
+                  <Label htmlFor="technical" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Technical Support</span>
+                    <span className="text-xs text-muted-foreground">Helps with technical problems and troubleshooting</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
+                  <RadioGroupItem value="custom" id="custom" />
+                  <Label htmlFor="custom" className="flex flex-col cursor-pointer">
+                    <span className="font-medium">Custom</span>
+                    <span className="text-xs text-muted-foreground">Create a custom agent type</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            {showSystemPrompt && (
+              <div className="space-y-2">
+                <Label htmlFor="system-prompt">System Prompt</Label>
+                <Textarea
+                  id="system-prompt"
+                  value={agent.systemPrompt}
+                  onChange={(e) => handleChange('systemPrompt', e.target.value)}
+                  className="min-h-[150px] font-mono text-sm"
+                  placeholder="Enter instructions for how your AI agent should behave..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  This is the instruction set that guides how your AI agent behaves. It's sent with every conversation to define the agent's role and constraints.
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Sliders className="mr-2 h-5 w-5" />
+            Behavior Settings
+          </CardTitle>
+          <CardDescription>Configure how the agent works and learns</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="memory">Conversation Memory</Label>
+              <Switch id="memory" defaultChecked />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enable conversation history so the agent remembers previous interactions
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="learning">Continuous Learning</Label>
+              <Switch id="learning" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Allow the agent to improve from interactions over time
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="handoff">Expert Handoff</Label>
+              <Switch id="handoff" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Allow the agent to escalate to human domain experts when needed
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="multilingual">Multilingual Support</Label>
+              <Switch id="multilingual" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enable automatic translation for non-primary languages
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderKnowledgeContent = () => (
+    <KnowledgeTrainingStatus 
+      agentId={agentId || '1'} 
+      initialSelectedSources={agent.knowledgeSources}
+      onSourcesChange={handleKnowledgeSourcesChange}
+      preloadedKnowledgeSources={agentKnowledgeSources}
+      isLoading={false}
+      loadError={null}
+    />
+  );
+
+  const renderChatPreview = () => {
+    return (
+      <div className="h-full flex flex-col">
+        <div className="flex-1">
+          <ChatboxPreview
+            primaryColor={agent.primaryColor}
+            secondaryColor={agent.secondaryColor}
+            fontFamily={agent.fontFamily}
+            chatbotName={agent.chatbotName}
+            welcomeMessage={agent.welcomeMessage}
+            buttonText={agent.buttonText}
+            position={agent.position}
+            className="w-full h-full"
+            suggestions={agent.suggestions}
+            avatarSrc={agent.avatar.type !== 'default' ? agent.avatar.src : undefined}
+          />
+        </div>
       </div>
     );
-  }
+  };
 
-  if (!agent) {
+  const renderIntegrationsContent = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Integrations</CardTitle>
+          <CardDescription>Connect your agent with other platforms to extend its capabilities</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {integrationOptions.map(integration => (
+              <div
+                key={integration.id}
+                className={`border rounded-lg p-4 transition-all cursor-pointer hover:shadow-md ${integration.connected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                onClick={() => handleIntegrationCardClick(integration)}
+              >
+                <div className="flex flex-col items-center text-center gap-2 h-full">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-accent/10 mb-2">
+                    {getIntegrationIconElement(integration.icon, integration.color)}
+                  </div>
+                  <span className="font-medium">{integration.name}</span>
+                  <span className="text-xs text-muted-foreground">{integration.description}</span>
+                  {integration.connected && (
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 mt-2">Connected</Badge>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle className="flex items-center">
+            <Slack className="h-5 w-5 mr-2 text-[#4A154B]" />
+            Connected Integrations
+          </CardTitle>
+          <CardDescription>Manage your agent's active connections</CardDescription>
+        </CardHeader>
+        <CardContent className="py-6">
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 p-4 border rounded-lg bg-primary/5">
+              <div className="flex-shrink-0">
+                <Slack className="h-10 w-10 text-[#4A154B]" />
+              </div>
+              <div className="flex-grow">
+                <h4 className="font-medium">Slack</h4>
+                <p className="text-sm text-muted-foreground">Connected to workspace: Team Coco</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Configure</Button>
+                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">Disconnect</Button>
+              </div>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <h4 className="font-medium">Connect a New Platform</h4>
+              <p className="text-sm text-muted-foreground mb-2">Select an integration above to connect with more platforms.</p>
+              
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <h5 className="font-medium text-sm mb-2">Integration Benefits</h5>
+                <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5">
+                  <li>Allow your AI agent to communicate through multiple channels</li>
+                  <li>Maintain consistent conversations across platforms</li>
+                  <li>Automate workflows with integrations</li>
+                  <li>Notify your team when the agent needs human support</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const getIntegrationIconElement = (iconName: string, color: string) => {
+    switch (iconName) {
+      case 'slack':
+        return <Slack className="h-6 w-6" style={{ color }} />;
+      case 'whatsapp':
+        return <Smartphone className="h-6 w-6" style={{ color }} />;
+      case 'instagram':
+        return <Instagram className="h-6 w-6" style={{ color }} />;
+      case 'messenger':
+        return (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.36 2 2 6.13 2 11.7C2 14.6 3.19 17.13 5.14 18.87V23L9.14 20.87C10.03 21.13 11 21.28 12 21.28C17.64 21.28 22 17.15 22 11.58C22 6.13 17.64 2 12 2ZM13.33 15.25L10.5 12.25L5 15.25L11 8.75L13.83 11.75L19.33 8.75L13.33 15.25Z" fill={color} />
+          </svg>
+        );
+      default:
+        return <div className="h-6 w-6 bg-primary/10 rounded-full" />;
+    }
+  };
+
+  const toggleIntegration = (id: string) => {
+    setActiveIntegrations(
+      activeIntegrations.map(integration => 
+        integration.id === id 
+          ? {...integration, connected: !integration.connected} 
+          : integration
+      )
+    );
+  };
+
+  const handleIntegrationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setIntegrationFormData({ ...integrationFormData, [id.split('-')[1]]: value });
+  };
+
+  const handleSaveIntegration = () => {
+    if (selectedIntegration) {
+      toggleIntegration(selectedIntegration.id);
+      setIsIntegrationDialogOpen(false);
+      
+      toast({
+        title: `${selectedIntegration.name} ${selectedIntegration.connected ? 'updated' : 'connected'}`,
+        description: `Your agent has been successfully ${selectedIntegration.connected ? 'updated with' : 'connected to'} ${selectedIntegration.name}.`,
+      });
+    }
+  };
+
+  const renderTabContentSkeleton = () => (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[200px]" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[180px]" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[150px]" />
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-4 w-[100px]" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderChatPreviewSkeleton = () => (
+    <div className="flex flex-col h-full items-center justify-center rounded-lg border-2 border-dashed p-10">
+      <Skeleton className="h-12 w-12 rounded-full" />
+      <Skeleton className="h-4 w-[180px] mt-4" />
+      <Skeleton className="h-20 w-full mt-6" />
+    </div>
+  );
+
+  if (isError) {
     return (
-      <div className="container mx-auto p-4">
-        <Card>
-          <CardContent>
-            Agent not found.
-          </CardContent>
-        </Card>
+      <div className="h-full flex flex-col items-center justify-center">
+        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-xl font-bold mb-2">Error Loading Agent</h2>
+        <p className="text-muted-foreground mb-6">
+          {error instanceof Error ? error.message : "Failed to load agent data"}
+        </p>
+        <Button onClick={goBack} variant="outline">Go Back to Agents</Button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Button variant="ghost" onClick={() => navigate('/agents')} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Agents
-      </Button>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Agent</CardTitle>
-          <CardDescription>Modify agent details and settings.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="general" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="general"><Bot className="mr-2 h-4 w-4" /> General</TabsTrigger>
-              <TabsTrigger value="settings"><Settings className="mr-2 h-4 w-4" /> Settings</TabsTrigger>
-              <TabsTrigger value="knowledge"><Book className="mr-2 h-4 w-4" /> Knowledge</TabsTrigger>
-              <TabsTrigger value="chatbox"><MessageSquare className="mr-2 h-4 w-4" /> Chatbox</TabsTrigger>
-              <TabsTrigger value="integrations"><BrainCircuit className="mr-2 h-4 w-4" /> Integrations</TabsTrigger>
-            </TabsList>
-            <TabsContent value="general" className="space-y-4">
-              <div className="grid gap-4">
-                <div className="flex items-center space-x-4">
-                  <Avatar>
-                    <AvatarImage src={avatar} />
-                    <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h2 className="text-lg font-semibold">{name}</h2>
-                    <p className="text-sm text-muted-foreground">Created: {new Date(agent.createdAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <Separator />
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Agent Name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Agent Description"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="prompt">Prompt</Label>
-                  <Textarea
-                    id="prompt"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Agent Prompt"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="model">Model</Label>
-                  <Select value={model} onValueChange={setModel}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                      <SelectItem value="gpt-4">GPT-4</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="temperature">Temperature</Label>
-                    <Input
-                      id="temperature"
-                      type="number"
-                      value={temperature}
-                      onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                      placeholder="Temperature"
-                      step="0.1"
-                      min="0"
-                      max="1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="maxTokens">Max Tokens</Label>
-                    <Input
-                      id="maxTokens"
-                      type="number"
-                      value={maxTokens}
-                      onChange={(e) => setMaxTokens(parseInt(e.target.value))}
-                      placeholder="Max Tokens"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="topP">Top P</Label>
-                    <Input
-                      id="topP"
-                      type="number"
-                      value={topP}
-                      onChange={(e) => setTopP(parseFloat(e.target.value))}
-                      placeholder="Top P"
-                      step="0.1"
-                      min="0"
-                      max="1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="frequencyPenalty">Frequency Penalty</Label>
-                    <Input
-                      id="frequencyPenalty"
-                      type="number"
-                      value={frequencyPenalty}
-                      onChange={(e) => setFrequencyPenalty(parseFloat(e.target.value))}
-                      placeholder="Frequency Penalty"
-                      step="0.1"
-                      min="-2"
-                      max="2"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="presencePenalty">Presence Penalty</Label>
-                    <Input
-                      id="presencePenalty"
-                      type="number"
-                      value={presencePenalty}
-                      onChange={(e) => setPresencePenalty(parseFloat(e.target.value))}
-                      placeholder="Presence Penalty"
-                      step="0.1"
-                      min="-2"
-                      max="2"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="streaming">Streaming</Label>
-                    <Switch
-                      id="streaming"
-                      checked={streaming}
-                      onCheckedChange={(checked) => setStreaming(checked)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label>Status</Label>
-                  <RadioGroup defaultValue={status} onValueChange={setStatus}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="active" id="active" />
-                      <Label htmlFor="active">Active</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="inactive" id="inactive" />
-                      <Label htmlFor="inactive">Inactive</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="settings">
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="avatar">Avatar URL</Label>
-                  <Input
-                    id="avatar"
-                    type="text"
-                    value={avatar}
-                    onChange={(e) => setAvatar(e.target.value)}
-                    placeholder="Avatar URL"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="knowledge">
-              <KnowledgeTrainingStatus agentId={agentId} />
-            </TabsContent>
-            <TabsContent value="chatbox">
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="chatboxTitle">Title</Label>
-                  <Input
-                    id="chatboxTitle"
-                    type="text"
-                    value={chatboxTitle}
-                    onChange={(e) => setChatboxTitle(e.target.value)}
-                    placeholder="Chatbox Title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="chatboxSubtitle">Subtitle</Label>
-                  <Input
-                    id="chatboxSubtitle"
-                    type="text"
-                    value={chatboxSubtitle}
-                    onChange={(e) => setChatboxSubtitle(e.target.value)}
-                    placeholder="Chatbox Subtitle"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="chatboxTheme">Theme</Label>
-                  <Select value={chatboxTheme} onValueChange={setChatboxTheme}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a theme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="modern">Modern</SelectItem>
-                      <SelectItem value="minimal">Minimal</SelectItem>
-                      <SelectItem value="classic">Classic</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="chatboxPrimaryColor">Primary Color</Label>
-                    <Input
-                      id="chatboxPrimaryColor"
-                      type="color"
-                      value={chatboxPrimaryColor}
-                      onChange={(e) => setChatboxPrimaryColor(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxSecondaryColor">Secondary Color</Label>
-                    <Input
-                      id="chatboxSecondaryColor"
-                      type="color"
-                      value={chatboxSecondaryColor}
-                      onChange={(e) => setChatboxSecondaryColor(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxAccentColor">Accent Color</Label>
-                    <Input
-                      id="chatboxAccentColor"
-                      type="color"
-                      value={chatboxAccentColor}
-                      onChange={(e) => setChatboxAccentColor(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxBorderRadius">Border Radius</Label>
-                    <Input
-                      id="chatboxBorderRadius"
-                      type="text"
-                      value={chatboxBorderRadius}
-                      onChange={(e) => setChatboxBorderRadius(e.target.value)}
-                      placeholder="Border Radius"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxFontFamily">Font Family</Label>
-                    <Input
-                      id="chatboxFontFamily"
-                      type="text"
-                      value={chatboxFontFamily}
-                      onChange={(e) => setChatboxFontFamily(e.target.value)}
-                      placeholder="Font Family"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxFontSize">Font Size</Label>
-                    <Input
-                      id="chatboxFontSize"
-                      type="text"
-                      value={chatboxFontSize}
-                      onChange={(e) => setChatboxFontSize(e.target.value)}
-                      placeholder="Font Size"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="chatboxHeaderImage">Header Image URL</Label>
-                  <Input
-                    id="chatboxHeaderImage"
-                    type="text"
-                    value={chatboxHeaderImage}
-                    onChange={(e) => setChatboxHeaderImage(e.target.value)}
-                    placeholder="Header Image URL"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="chatboxAgentAvatar">Agent Avatar URL</Label>
-                  <Input
-                    id="chatboxAgentAvatar"
-                    type="text"
-                    value={chatboxAgentAvatar}
-                    onChange={(e) => setChatboxAgentAvatar(e.target.value)}
-                    placeholder="Agent Avatar URL"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="chatboxWelcomeMessage">Welcome Message</Label>
-                  <Textarea
-                    id="chatboxWelcomeMessage"
-                    value={chatboxWelcomeMessage}
-                    onChange={(e) => setChatboxWelcomeMessage(e.target.value)}
-                    placeholder="Welcome Message"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="chatboxInputPlaceholder">Input Placeholder</Label>
-                  <Input
-                    id="chatboxInputPlaceholder"
-                    type="text"
-                    value={chatboxInputPlaceholder}
-                    onChange={(e) => setChatboxInputPlaceholder(e.target.value)}
-                    placeholder="Input Placeholder"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="chatboxSendButtonColor">Send Button Color</Label>
-                    <Input
-                      id="chatboxSendButtonColor"
-                      type="color"
-                      value={chatboxSendButtonColor}
-                      onChange={(e) => setChatboxSendButtonColor(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxSendButtonShape">Send Button Shape</Label>
-                    <Select value={chatboxSendButtonShape} onValueChange={setChatboxSendButtonShape}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a shape" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="rounded">Rounded</SelectItem>
-                        <SelectItem value="square">Square</SelectItem>
-                        <SelectItem value="circle">Circle</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="chatboxShowPoweredBy">Show Powered By</Label>
-                  <Switch
-                    id="chatboxShowPoweredBy"
-                    checked={chatboxShowPoweredBy}
-                    onCheckedChange={(checked) => setChatboxShowPoweredBy(checked)}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="chatboxPosition">Position</Label>
-                    <Select value={chatboxPosition} onValueChange={setChatboxPosition}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a position" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                        <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                        <SelectItem value="top-right">Top Right</SelectItem>
-                        <SelectItem value="top-left">Top Left</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxHorizontalOffset">Horizontal Offset</Label>
-                    <Input
-                      id="chatboxHorizontalOffset"
-                      type="text"
-                      value={chatboxHorizontalOffset}
-                      onChange={(e) => setChatboxHorizontalOffset(e.target.value)}
-                      placeholder="Horizontal Offset"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="chatboxVerticalOffset">Vertical Offset</Label>
-                    <Input
-                      id="chatboxVerticalOffset"
-                      type="text"
-                      value={chatboxVerticalOffset}
-                      onChange={(e) => setChatboxVerticalOffset(e.target.value)}
-                      placeholder="Vertical Offset"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="chatboxExpandOnStart">Expand On Start</Label>
-                  <Switch
-                    id="chatboxExpandOnStart"
-                    checked={chatboxExpandOnStart}
-                    onCheckedChange={(checked) => setChatboxExpandOnStart(checked)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="chatboxAgentName">Agent Name</Label>
-                  <Input
-                    id="chatboxAgentName"
-                    type="text"
-                    value={chatboxAgentName}
-                    onChange={(e) => setChatboxAgentName(e.target.value)}
-                    placeholder="Agent Name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="chatboxAgentDescription">Agent Description</Label>
-                  <Textarea
-                    id="chatboxAgentDescription"
-                    value={chatboxAgentDescription}
-                    onChange={(e) => setChatboxAgentDescription(e.target.value)}
-                    placeholder="Agent Description"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="integrations">
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="slackEnabled">Slack Enabled</Label>
-                  <Switch
-                    id="slackEnabled"
-                    checked={slackEnabled}
-                    onCheckedChange={(checked) => setSlackEnabled(checked)}
-                  />
-                </div>
-                {slackEnabled && (
-                  <div>
-                    <Label htmlFor="slackWebhookUrl">Slack Webhook URL</Label>
-                    <Input
-                      id="slackWebhookUrl"
-                      type="text"
-                      value={slackWebhookUrl}
-                      onChange={(e) => setSlackWebhookUrl(e.target.value)}
-                      placeholder="Slack Webhook URL"
-                    />
-                  </div>
-                )}
-                <div>
-                  <Label htmlFor="instagramEnabled">Instagram Enabled</Label>
-                  <Switch
-                    id="instagramEnabled"
-                    checked={instagramEnabled}
-                    onCheckedChange={(checked) => setInstagramEnabled(checked)}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button type="submit" disabled={isSaving} onClick={handleSubmit}>
-            {isSaving ? (
+    <div className="h-full">
+      <div className="flex items-center justify-between border-b pb-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={goBack}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            {isLoading ? (
               <>
-                <LoadingSpinner className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                <Skeleton className="h-8 w-[200px] mb-1" />
+                <Skeleton className="h-4 w-[300px]" />
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
+                <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
+                <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
               </>
             )}
-          </Button>
-        </CardFooter>
-      </Card>
+          </div>
+        </div>
+        <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
+          {isSaving ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
+          <div className="h-full">
+            {renderChatPreviewSkeleton()}
+          </div>
+          
+          <div className="col-span-2 h-full overflow-y-auto">
+            <div className="flex justify-start mb-6">
+              <div className="bg-muted rounded-lg p-1 flex items-center">
+                {["general", "appearance", "advanced", "knowledge", "integrations"].map((tab) => (
+                  <Skeleton key={tab} className="h-8 w-24 mx-1 rounded-md" />
+                ))}
+              </div>
+            </div>
+            
+            {renderTabContentSkeleton()}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
+          <div className="h-full">
+            {renderChatPreview()}
+          </div>
+          
+          <div className="col-span-2 h-full overflow-y-auto">
+            <Tabs 
+              defaultValue="general" 
+              className="w-full"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
+              <div className="flex justify-start mb-6">
+                <TabsList size="xs" className="w-auto">
+                  <TabsTrigger value="general" size="xs">
+                    <Bot className="h-4 w-4 mr-2" />
+                    General
+                  </TabsTrigger>
+                  <TabsTrigger value="appearance" size="xs">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Appearance
+                  </TabsTrigger>
+                  <TabsTrigger value="advanced" size="xs">
+                    <Sliders className="h-4 w-4 mr-2" />
+                    Advanced Settings
+                  </TabsTrigger>
+                  <TabsTrigger value="knowledge" size="xs">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Knowledge
+                  </TabsTrigger>
+                  <TabsTrigger value="integrations" size="xs">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Integrations
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="general" className="mt-0">
+                {renderGeneralContent()}
+              </TabsContent>
+              
+              <TabsContent value="appearance" className="mt-0">
+                {renderAppearanceContent()}
+              </TabsContent>
+              
+              <TabsContent value="advanced" className="mt-0">
+                {renderAdvancedContent()}
+              </TabsContent>
+              
+              <TabsContent value="knowledge" className="mt-0">
+                {renderKnowledgeContent()}
+              </TabsContent>
+
+              <TabsContent value="integrations" className="mt-0">
+                {renderIntegrationsContent()}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      )}
+
+      <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
+        {selectedIntegration && (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Configure {selectedIntegration.name}</DialogTitle>
+              <DialogDescription>
+                Enter your credentials to connect with {selectedIntegration.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              {selectedIntegration.id === 'messenger' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-pageid">Facebook Page ID</Label>
+                    <Input 
+                      id="messenger-pageid" 
+                      placeholder="Enter your Facebook Page ID"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-token">Page Access Token</Label>
+                    <Input 
+                      id="messenger-token" 
+                      type="password"
+                      placeholder="Enter your Page Access Token"
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      You can find this in your Facebook Developer account.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-callback">Webhook Callback URL</Label>
+                    <Input 
+                      id="messenger-callback"
+                      value="https://api.coco.ai/webhooks/messenger"
+                      readOnly
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use this URL in your Facebook app's webhook settings.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {selectedIntegration.id === 'slack' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="slack-workspace">Slack Workspace Name</Label>
+                    <Input 
+                      id="slack-workspace" 
+                      placeholder="Your Slack Workspace"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="slack-token">Bot Token</Label>
+                    <Input 
+                      id="slack-token" 
+                      type="password"
+                      placeholder="xoxb-..."
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      You can find this in your Slack App settings.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {(selectedIntegration.id === 'whatsapp' || selectedIntegration.id === 'instagram') && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-account`}>Account ID</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-account`}
+                      placeholder="Enter your account ID"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-token`}>API Token</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-token`}
+                      type="password"
+                      placeholder="Enter your API token"
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-webhook`}>Webhook URL</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-webhook`}
+                      value="https://api.coco.ai/webhooks/incoming"
+                      readOnly
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use this URL in your {selectedIntegration.name} webhook settings.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsIntegrationDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveIntegration}>
+                {selectedIntegration.connected ? 'Update' : 'Connect'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 };
