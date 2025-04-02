@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
-import { KnowledgeSource, UrlNode, ProcessedSource } from './types';
+import { KnowledgeSource, UrlNode, ProcessedSource, SourceAnalysis } from './types';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -26,15 +26,63 @@ const KnowledgeSourceModal = ({
     }
   }, [initialSourceId]);
 
+  // Analyze source structure for debugging
+  const analyzeSourceStructure = (source: KnowledgeSource): SourceAnalysis => {
+    const domainLinks = source.metadata?.domain_links;
+    const hasDomainLinksInMetadata = !!domainLinks;
+    
+    let hasChildren = false;
+    let childrenCount = 0;
+    let domainLinksSource: 'metadata' | 'direct' | 'none' = 'none';
+    
+    // Check if domainLinks exists and determine its structure
+    if (hasDomainLinksInMetadata) {
+      domainLinksSource = 'metadata';
+      
+      if (Array.isArray(domainLinks)) {
+        hasChildren = domainLinks.some(node => node.children && node.children.length > 0);
+        childrenCount = domainLinks.reduce((count, node) => 
+          count + (node.children?.length || 0), 0);
+      } else if (domainLinks && typeof domainLinks === 'object') {
+        hasChildren = !!(domainLinks.children && domainLinks.children.length > 0);
+        childrenCount = domainLinks.children?.length || 0;
+      }
+    } else if (source.domain_links) {
+      // Direct domain_links property (not in metadata)
+      domainLinksSource = 'direct';
+      const directLinks = source.domain_links;
+      
+      if (Array.isArray(directLinks)) {
+        hasChildren = directLinks.some(node => node.children && node.children.length > 0);
+        childrenCount = directLinks.reduce((count, node) => 
+          count + (node.children?.length || 0), 0);
+      } else if (directLinks && typeof directLinks === 'object') {
+        hasChildren = !!(directLinks.children && directLinks.children.length > 0);
+        childrenCount = directLinks.children?.length || 0;
+      }
+    }
+    
+    return {
+      id: source.id,
+      name: source.name,
+      type: source.type,
+      hasDomainLinks: hasDomainLinksInMetadata || !!source.domain_links,
+      domainLinksSource,
+      hasChildren,
+      childrenCount,
+      structure: JSON.stringify(
+        hasDomainLinksInMetadata 
+          ? domainLinks 
+          : (source.domain_links || null)
+      ).substring(0, 100) + '...'
+    };
+  };
+
   // Process sources to ensure they have the correct format for display
   const processedSources = sources.map(source => {
-    // Log entire source for debugging
-    console.log(`Processing source: ${source.name}`, {
-      id: source.id,
-      type: source.type,
-      hasDomainLinks: !!source.metadata?.domain_links,
-      metadata: source.metadata
-    });
+    // Enhanced logging for source structure
+    const analysis = analyzeSourceStructure(source);
+    console.log(`Processing source: ${source.name}`, analysis);
     
     // Extract domain_links from metadata
     const domainLinks = source.metadata?.domain_links;
@@ -76,7 +124,18 @@ const KnowledgeSourceModal = ({
         }
       } else {
         // We have domain_links, log its structure to debug
-        console.log(`Domain links structure for ${source.name}:`, domainLinks);
+        console.log(`Domain links structure for ${source.name}:`, {
+          isArray: Array.isArray(domainLinks),
+          hasUrl: Array.isArray(domainLinks) 
+            ? domainLinks.length > 0 && 'url' in domainLinks[0]
+            : domainLinks && 'url' in domainLinks,
+          hasChildren: Array.isArray(domainLinks)
+            ? domainLinks.length > 0 && 'children' in domainLinks[0] && domainLinks[0].children?.length > 0
+            : domainLinks && 'children' in domainLinks && domainLinks.children?.length > 0,
+          childrenCount: Array.isArray(domainLinks)
+            ? domainLinks.reduce((count, node) => count + (node.children?.length || 0), 0)
+            : domainLinks?.children?.length || 0
+        });
         
         // Ensure it has the proper structure for rendering
         if (Array.isArray(domainLinks)) {
@@ -113,7 +172,7 @@ const KnowledgeSourceModal = ({
     return processedSource;
   });
   
-  // Handle source selection
+  // Handle source selection with enhanced logging
   const handleSourceSelect = (id: number) => {
     console.log("Source selected:", id);
     setSelectedSourceId(id);
@@ -121,13 +180,22 @@ const KnowledgeSourceModal = ({
     // Find the source with the selected ID
     const selectedSource = sources.find(source => source.id === id);
     if (selectedSource) {
-      console.log("Selected Source Full Data:", selectedSource);
+      const analysis = analyzeSourceStructure(selectedSource);
+      console.log("Selected Source Analysis:", analysis);
       
       // Log detailed source information for debugging
       console.log("Selected Source Type:", selectedSource.type);
       
       if (selectedSource.metadata) {
-        console.log("Selected Source Metadata:", selectedSource.metadata);
+        console.log("Selected Source Metadata:", {
+          hasCount: !!selectedSource.metadata.count,
+          hasFileSize: !!selectedSource.metadata.file_size,
+          hasChars: !!selectedSource.metadata.no_of_chars,
+          hasRows: !!selectedSource.metadata.no_of_rows,
+          hasPages: !!selectedSource.metadata.no_of_pages,
+          hasDomainLinks: !!selectedSource.metadata.domain_links,
+          hasWebsite: !!selectedSource.metadata.website
+        });
         
         if (selectedSource.metadata.domain_links) {
           const domainLinks = selectedSource.metadata.domain_links;
@@ -140,6 +208,9 @@ const KnowledgeSourceModal = ({
             hasChildren: Array.isArray(domainLinks)
               ? domainLinks.length > 0 && 'children' in domainLinks[0]
               : 'children' in domainLinks,
+            childrenCount: Array.isArray(domainLinks)
+              ? domainLinks.reduce((count, node) => count + (node.children?.length || 0), 0)
+              : domainLinks.children?.length || 0,
             structure: domainLinks
           });
         }

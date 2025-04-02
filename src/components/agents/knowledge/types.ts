@@ -70,3 +70,15 @@ export interface FlattenedUrlNode {
   path: string;
   parentUrl?: string;
 }
+
+// Adding helper types for debugging and analysis
+export interface SourceAnalysis {
+  id: number | string;
+  name: string;
+  type: string;
+  hasDomainLinks: boolean;
+  domainLinksSource: 'metadata' | 'direct' | 'none';
+  hasChildren: boolean;
+  childrenCount: number;
+  structure?: string;
+}
