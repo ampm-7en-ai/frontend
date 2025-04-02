@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
-import KnowledgeSourceModal from './KnowledgeSourceModal';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { Button } from '@/components/ui/button';
 
@@ -26,7 +25,6 @@ const AgentKnowledgeSection = ({
   isCompact = false,
   onViewSource
 }: AgentKnowledgeSectionProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   
   const displayedSources = knowledgeSources.slice(0, 3);
@@ -38,8 +36,6 @@ const AgentKnowledgeSection = ({
     setSelectedSourceId(source.id);
     if (onViewSource) {
       onViewSource(source.id);
-    } else {
-      setIsModalOpen(true);
     }
   };
   
@@ -51,18 +47,15 @@ const AgentKnowledgeSection = ({
           variant="outline"
           size="sm"
           className="w-full gap-2 text-muted-foreground hover:text-foreground"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            if (onViewSource && knowledgeSources.length > 0) {
+              onViewSource(knowledgeSources[0].id);
+            }
+          }}
         >
           <FileText className="h-4 w-4" />
           View Knowledge Sources ({knowledgeSources.length})
         </Button>
-        
-        <KnowledgeSourceModal 
-          open={isModalOpen} 
-          onOpenChange={setIsModalOpen} 
-          sources={knowledgeSources} 
-          initialSourceId={selectedSourceId}
-        />
       </div>
     );
   }
@@ -111,7 +104,11 @@ const AgentKnowledgeSection = ({
                   variant="ghost" 
                   size="sm" 
                   className="h-auto px-2 py-0.5 rounded-full bg-muted/50 hover:bg-muted text-xs text-muted-foreground"
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => {
+                    if (onViewSource && knowledgeSources.length > 3) {
+                      onViewSource(knowledgeSources[3].id);
+                    }
+                  }}
                 >
                   <span>+{remainingSources} more</span>
                   <ChevronRight className="h-3 w-3 ml-1" />
@@ -139,13 +136,6 @@ const AgentKnowledgeSection = ({
           </Link>
         </div>
       )}
-      
-      <KnowledgeSourceModal 
-        open={isModalOpen} 
-        onOpenChange={setIsModalOpen} 
-        sources={knowledgeSources} 
-        initialSourceId={selectedSourceId}
-      />
     </div>
   );
 };
