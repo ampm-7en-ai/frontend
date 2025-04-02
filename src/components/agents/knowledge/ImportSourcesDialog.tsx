@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,6 @@ export const ImportSourcesDialog = ({
   const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
   const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
   
-  // Reset selections when dialog opens or external sources change
   useEffect(() => {
     if (isOpen) {
       setSelectedSources(new Set());
@@ -43,14 +41,12 @@ export const ImportSourcesDialog = ({
     }
   }, [isOpen, externalSources]);
 
-  // Find and select root node when a source is selected
   useEffect(() => {
     if (selectedSource && hasUrlStructure(selectedSource)) {
       const sourceId = selectedSource.id;
       const rootNode = findRootUrlNode(selectedSource);
       
       if (rootNode && rootNode.url) {
-        // Initialize the set for this source if it doesn't exist
         if (!selectedSubUrls[sourceId]) {
           setSelectedSubUrls(prev => ({
             ...prev,
@@ -58,10 +54,8 @@ export const ImportSourcesDialog = ({
           }));
         }
         
-        // Expand the root node
         setExpandedNodes(prev => new Set([...prev, rootNode.url]));
         
-        // Select all child URLs under the root node
         if (rootNode.children && rootNode.children.length > 0) {
           selectAllUrlsUnderNode(sourceId, rootNode);
         }
@@ -69,7 +63,6 @@ export const ImportSourcesDialog = ({
     }
   }, [selectedSource]);
 
-  // Memoize source counts for better performance
   const sourceTypes = useMemo(() => {
     const counts = {
       all: { count: 0, label: 'All Sources', icon: <FileText className="h-4 w-4" /> },
@@ -81,7 +74,6 @@ export const ImportSourcesDialog = ({
       plain_text: { count: 0, label: 'Plain Text', icon: <File className="h-4 w-4 text-purple-600" /> }
     };
     
-    // Count sources by type
     externalSources.forEach(source => {
       counts.all.count++;
       if (counts[source.type as keyof typeof counts]) {
@@ -94,8 +86,7 @@ export const ImportSourcesDialog = ({
     
     return counts;
   }, [externalSources]);
-  
-  // Memoize filtered sources for better performance
+
   const filteredSources = useMemo(() => {
     return selectedType === 'all' 
       ? externalSources 
@@ -104,7 +95,6 @@ export const ImportSourcesDialog = ({
         : externalSources.filter(source => source.type === selectedType);
   }, [selectedType, externalSources]);
 
-  // Helper function to find root URL node in a source
   const findRootUrlNode = (source: KnowledgeSource): UrlNode | null => {
     const firstKnowledgeSource = source.knowledge_sources?.[0];
     if (!firstKnowledgeSource) return null;
@@ -120,12 +110,10 @@ export const ImportSourcesDialog = ({
     return null;
   };
 
-  // Check if a source has URL structure
   const hasUrlStructure = (source: KnowledgeSource) => {
     return source.type === 'website' && findRootUrlNode(source) !== null;
   };
 
-  // Toggle source selection
   const toggleSourceSelection = (source: KnowledgeSource) => {
     const sourceId = source.id;
     const newSelectedSources = new Set(selectedSources);
@@ -133,20 +121,16 @@ export const ImportSourcesDialog = ({
     if (newSelectedSources.has(sourceId)) {
       newSelectedSources.delete(sourceId);
       
-      // Remove any selected sub-URLs for this source
       const newSelectedSubUrls = { ...selectedSubUrls };
       delete newSelectedSubUrls[sourceId];
       setSelectedSubUrls(newSelectedSubUrls);
       
-      // Clear the selected source if it was this one
       if (selectedSource && selectedSource.id === sourceId) {
         setSelectedSource(null);
       }
     } else {
       newSelectedSources.add(sourceId);
       
-      // If it's a website with URL structure, select it for the URL view
-      // and automatically select all child URLs
       if (source.type === 'website' && hasUrlStructure(source)) {
         setSelectedSource(source);
       }
@@ -155,7 +139,6 @@ export const ImportSourcesDialog = ({
     setSelectedSources(newSelectedSources);
   };
 
-  // Toggle node expansion
   const toggleNodeExpansion = (nodePath: string) => {
     const newExpandedNodes = new Set(expandedNodes);
     if (newExpandedNodes.has(nodePath)) {
@@ -166,7 +149,6 @@ export const ImportSourcesDialog = ({
     setExpandedNodes(newExpandedNodes);
   };
 
-  // Get all URLs from a node and its children
   const getAllUrlsFromNode = (node: UrlNode): string[] => {
     const urls: string[] = [node.url];
     
@@ -179,7 +161,6 @@ export const ImportSourcesDialog = ({
     return urls;
   };
 
-  // Select all URLs under a node
   const selectAllUrlsUnderNode = (sourceId: number, node: UrlNode) => {
     const allUrls = getAllUrlsFromNode(node);
     
@@ -193,8 +174,7 @@ export const ImportSourcesDialog = ({
       };
     });
   };
-  
-  // Unselect all URLs under a node
+
   const unselectAllUrlsUnderNode = (sourceId: number, node: UrlNode) => {
     const allUrls = getAllUrlsFromNode(node);
     
@@ -211,7 +191,6 @@ export const ImportSourcesDialog = ({
     });
   };
 
-  // Toggle URL selection
   const toggleUrlSelection = (sourceId: number, node: UrlNode, isRoot: boolean = false) => {
     const url = node.url;
     const isSelected = isUrlSelected(sourceId, url);
@@ -239,13 +218,11 @@ export const ImportSourcesDialog = ({
       });
     }
   };
-  
-  // Check if a URL is selected
+
   const isUrlSelected = (sourceId: number, url: string): boolean => {
     return selectedSubUrls[sourceId]?.has(url) || false;
   };
 
-  // Check if all children of a node are selected
   const areAllChildrenSelected = (sourceId: number, node: UrlNode): boolean => {
     if (!node.children || node.children.length === 0) return true;
     
@@ -256,18 +233,15 @@ export const ImportSourcesDialog = ({
     });
   };
 
-  // Import selected sources
   const handleImport = () => {
     const sourceIdsToImport = Array.from(selectedSources);
     onImport(sourceIdsToImport, selectedSubUrls);
   };
 
-  // Check if a source is already imported
   const isSourceAlreadyImported = (sourceId: number) => {
     return currentSources.some(source => source.id === sourceId);
   };
 
-  // Recursively render website URLs (tree structure)
   const renderWebsiteUrls = (source: KnowledgeSource, urlNode?: UrlNode | null, level: number = 0, parentPath: string = '') => {
     if (!urlNode) {
       const rootNode = findRootUrlNode(source);
@@ -337,13 +311,12 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] max-h-[80vh] overflow-hidden" fixedFooter>
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[1000px] h-[756px] p-0 overflow-hidden" fixedFooter>
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
         
-        <ResizablePanelGroup direction="horizontal" className="h-[400px]">
-          {/* Left panel - Source types */}
+        <ResizablePanelGroup direction="horizontal" className="flex-1">
           <ResizablePanel minSize={15} defaultSize={20}>
             <div className="border rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
@@ -375,7 +348,6 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          {/* Middle panel - Source list */}
           <ResizablePanel minSize={30} defaultSize={50}>
             <div className="border rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
@@ -462,7 +434,6 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          {/* Right panel - URLs for website sources */}
           <ResizablePanel minSize={15} defaultSize={30}>
             <div className="border rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
