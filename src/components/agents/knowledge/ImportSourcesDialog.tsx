@@ -41,6 +41,36 @@ export const ImportSourcesDialog = ({
     }
   }, [isOpen, externalSources]);
 
+  // Effect to automatically select root URL when a source is selected
+  useEffect(() => {
+    if (selectedSource && hasUrlStructure(selectedSource)) {
+      const firstKnowledgeSource = selectedSource.knowledge_sources?.[0];
+      let rootNode: UrlNode | null = null;
+      
+      if (firstKnowledgeSource?.metadata?.sub_urls) {
+        rootNode = firstKnowledgeSource.metadata.sub_urls as UrlNode;
+      } else if (selectedSource.metadata?.domain_links) {
+        rootNode = Array.isArray(selectedSource.metadata.domain_links) 
+          ? selectedSource.metadata.domain_links[0] 
+          : selectedSource.metadata.domain_links;
+      }
+
+      if (rootNode && rootNode.url) {
+        // Automatically select the root node for the current selected source
+        const sourceId = selectedSource.id;
+        if (!selectedSubUrls[sourceId]) {
+          selectedSubUrls[sourceId] = new Set<string>();
+        }
+        
+        selectedSubUrls[sourceId].add(rootNode.url);
+        setSelectedSubUrls({...selectedSubUrls});
+        
+        // Also expand the root node
+        setExpandedNodes(prev => new Set([...prev, rootNode?.url || '']));
+      }
+    }
+  }, [selectedSource]);
+
   // Count sources by type
   const sourceTypes = {
     all: { count: 0, label: 'All Sources', icon: <FileText className="h-4 w-4" /> },
@@ -69,6 +99,15 @@ export const ImportSourcesDialog = ({
     : selectedType === 'docs'
       ? externalSources.filter(source => source.type === 'pdf' || source.type === 'docx')
       : externalSources.filter(source => source.type === selectedType);
+
+  // Check if a source has URL structure
+  const hasUrlStructure = (source: KnowledgeSource) => {
+    const firstKnowledgeSource = source.knowledge_sources?.[0];
+    return (
+      source.type === 'website' && 
+      (firstKnowledgeSource?.metadata?.sub_urls || source.metadata?.domain_links)
+    );
+  };
 
   // Toggle source selection
   const toggleSourceSelection = (source: KnowledgeSource) => {
@@ -99,15 +138,6 @@ export const ImportSourcesDialog = ({
     setSelectedSources(newSelectedSources);
   };
 
-  // Check if a source has URL structure
-  const hasUrlStructure = (source: KnowledgeSource) => {
-    const firstKnowledgeSource = source.knowledge_sources?.[0];
-    return (
-      source.type === 'website' && 
-      (firstKnowledgeSource?.metadata?.sub_urls || source.metadata?.domain_links)
-    );
-  };
-
   // Toggle node expansion
   const toggleNodeExpansion = (nodePath: string) => {
     const newExpandedNodes = new Set(expandedNodes);
@@ -120,7 +150,7 @@ export const ImportSourcesDialog = ({
   };
 
   // Toggle sub-URL selection
-  const toggleSubUrlSelection = (sourceId: number, url: string) => {
+  const toggleSubUrlSelection = (sourceId: number, url: string, isRoot: boolean = false) => {
     const newSelectedSubUrls = { ...selectedSubUrls };
     
     if (!newSelectedSubUrls[sourceId]) {
@@ -131,11 +161,29 @@ export const ImportSourcesDialog = ({
     
     if (sourceUrls.has(url)) {
       sourceUrls.delete(url);
+      
+      // If this is the root node, we should also unselect all child URLs
+      if (isRoot) {
+        // Clear all selected URLs for this source
+        newSelectedSubUrls[sourceId] = new Set<string>();
+      }
     } else {
       sourceUrls.add(url);
+      
+      // If this is the root node, we'll handle this differently in the UI rendering
+      // The root node selection implies all URLs are included
     }
     
     setSelectedSubUrls(newSelectedSubUrls);
+  };
+  
+  // Check if a URL is selected (including root logic)
+  const isUrlSelected = (sourceId: number, url: string, isRoot: boolean = false) => {
+    if (!selectedSubUrls[sourceId]) {
+      return false;
+    }
+    
+    return selectedSubUrls[sourceId].has(url);
   };
 
   // Import selected sources
@@ -168,6 +216,43 @@ export const ImportSourcesDialog = ({
     }
   };
 
+  // Get all URLs from a URL node including nested children
+  const getAllUrlsFromNode = (node: UrlNode): string[] => {
+    const urls: string[] = [node.url];
+    
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        urls.push(...getAllUrlsFromNode(child));
+      }
+    }
+    
+    return urls;
+  };
+
+  // Select all URLs under a node
+  const selectAllUrls = (sourceId: number, node: UrlNode) => {
+    const allUrls = getAllUrlsFromNode(node);
+    const newSelectedSubUrls = { ...selectedSubUrls };
+    
+    if (!newSelectedSubUrls[sourceId]) {
+      newSelectedSubUrls[sourceId] = new Set<string>();
+    }
+    
+    allUrls.forEach(url => newSelectedSubUrls[sourceId].add(url));
+    setSelectedSubUrls(newSelectedSubUrls);
+  };
+  
+  // Unselect all URLs under a node
+  const unselectAllUrls = (sourceId: number, node: UrlNode) => {
+    const allUrls = getAllUrlsFromNode(node);
+    const newSelectedSubUrls = { ...selectedSubUrls };
+    
+    if (newSelectedSubUrls[sourceId]) {
+      allUrls.forEach(url => newSelectedSubUrls[sourceId].delete(url));
+      setSelectedSubUrls(newSelectedSubUrls);
+    }
+  };
+
   // Recursively render website URLs (tree structure)
   const renderWebsiteUrls = (source: KnowledgeSource, urlNode?: UrlNode | null, level: number = 0, parentPath: string = '') => {
     if (!urlNode) {
@@ -193,7 +278,19 @@ export const ImportSourcesDialog = ({
     const currentPath = parentPath ? `${parentPath}/${urlNode.url}` : urlNode.url;
     const isExpanded = expandedNodes.has(currentPath);
     const hasChildren = urlNode.children && urlNode.children.length > 0;
-    const isSelected = selectedSubUrls[source.id]?.has(urlNode.url);
+    const isRoot = urlNode.url === 'root';
+    const isSelected = isUrlSelected(source.id, urlNode.url, isRoot);
+    
+    // For root node, check if all child URLs are selected
+    const handleRootToggle = () => {
+      if (isSelected) {
+        // If root is selected, unselect it and all children
+        unselectAllUrls(source.id, urlNode);
+      } else {
+        // If root is not selected, select it and all children
+        selectAllUrls(source.id, urlNode);
+      }
+    };
     
     return (
       <div key={currentPath} className="py-1">
@@ -214,10 +311,16 @@ export const ImportSourcesDialog = ({
             id={`url-${source.id}-${urlNode.url}`}
             className="mr-2"
             checked={isSelected}
-            onCheckedChange={() => toggleSubUrlSelection(source.id, urlNode.url)}
+            onCheckedChange={() => {
+              if (isRoot) {
+                handleRootToggle();
+              } else {
+                toggleSubUrlSelection(source.id, urlNode.url);
+              }
+            }}
           />
           
-          {urlNode.url === 'root' ? (
+          {isRoot ? (
             <div>
               <span className="flex items-center text-sm">
                 <FolderOpen className="h-4 w-4 mr-2 text-amber-500" />
