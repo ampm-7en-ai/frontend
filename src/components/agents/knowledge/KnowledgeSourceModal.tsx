@@ -1,6 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource, UrlNode, ProcessedSource, SourceAnalysis } from './types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ExternalLink } from 'lucide-react';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -17,6 +20,8 @@ const KnowledgeSourceModal = ({
 }: KnowledgeSourceModalProps) => {
   // Store the selected source ID to help find the data
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(initialSourceId || null);
+  // State to display the page count alert
+  const [pageCountAlert, setPageCountAlert] = useState<{show: boolean, count: number, name: string} | null>(null);
   
   // Update selectedSourceId when initialSourceId changes
   useEffect(() => {
@@ -322,6 +327,99 @@ const KnowledgeSourceModal = ({
       const analysis = analyzeSourceStructure(selectedSource);
       console.log("Selected Source Analysis:", analysis);
       
+      // Calculate total pages for the alert
+      let totalPages = 0;
+      
+      if (selectedSource.type === 'website' || selectedSource.type === 'url') {
+        if (selectedSource.metadata?.domain_links) {
+          const domainLinks = selectedSource.metadata.domain_links;
+          
+          if (Array.isArray(domainLinks)) {
+            // Count top level items
+            totalPages = domainLinks.length;
+            
+            // Count children
+            domainLinks.forEach(node => {
+              if (node.children && Array.isArray(node.children)) {
+                totalPages += node.children.length;
+                
+                // Count nested children
+                node.children.forEach(child => {
+                  if (child.children && Array.isArray(child.children)) {
+                    totalPages += child.children.length;
+                  }
+                });
+              }
+            });
+          } else if (typeof domainLinks === 'object' && domainLinks !== null) {
+            // Count root
+            totalPages = 1;
+            
+            // Count children
+            if (domainLinks.children && Array.isArray(domainLinks.children)) {
+              totalPages += domainLinks.children.length;
+              
+              // Count nested children
+              domainLinks.children.forEach(child => {
+                if (child.children && Array.isArray(child.children)) {
+                  totalPages += child.children.length;
+                }
+              });
+            }
+          }
+        } else if (selectedSource.knowledge_sources?.length > 0) {
+          // Check for the new sub_urls structure
+          const hasSubUrls = selectedSource.knowledge_sources.some(ks => 
+            ks.metadata && ks.metadata.sub_urls);
+          
+          if (hasSubUrls) {
+            // Count pages from sub_urls
+            selectedSource.knowledge_sources.forEach(ks => {
+              if (ks.metadata?.sub_urls) {
+                // Count the main URL
+                totalPages++;
+                
+                // Count direct children
+                const directChildren = ks.metadata.sub_urls.children || [];
+                totalPages += directChildren.length;
+                
+                // Count nested children
+                directChildren.forEach(child => {
+                  if (child.children && Array.isArray(child.children)) {
+                    totalPages += child.children.length;
+                  }
+                });
+              } else {
+                // Count as a single page
+                totalPages++;
+              }
+            });
+          } else {
+            // Fallback to knowledge_sources count
+            totalPages = selectedSource.knowledge_sources.length;
+          }
+        } else if (selectedSource.insideLinks?.length > 0) {
+          totalPages = selectedSource.insideLinks.length;
+        } else {
+          totalPages = 1;
+        }
+      } else {
+        // Non-website sources
+        totalPages = selectedSource.metadata?.no_of_pages ? Number(selectedSource.metadata.no_of_pages) : 1;
+      }
+      
+      // Show the alert with the page count
+      setPageCountAlert({
+        show: true, 
+        count: totalPages, 
+        name: selectedSource.name
+      });
+      
+      // Hide the alert after 5 seconds
+      setTimeout(() => {
+        setPageCountAlert(null);
+      }, 5000);
+      
       // Log detailed source information for debugging
       console.log("Selected Source Type:", selectedSource.type);
       
@@ -378,17 +476,35 @@ const KnowledgeSourceModal = ({
   };
   
   return (
-    <ImportSourcesDialog
-      isOpen={open}
-      onOpenChange={onOpenChange}
-      currentSources={sources}
-      onImport={() => {}} // Provide an empty handler for the onImport prop
-      externalSources={processedSources}
-      initialSourceId={selectedSourceId}
-      onSourceSelect={handleSourceSelect}
-      selectedSourceData={selectedSourceId ? 
-        sources.find(source => source.id === selectedSourceId) : undefined}
-    />
+    <>
+      {pageCountAlert && pageCountAlert.show && (
+        <div className="fixed top-4 right-4 z-50 w-80">
+          <Alert variant="default" className="border-2 border-blue-500">
+            <ExternalLink className="h-4 w-4 text-blue-500" />
+            <AlertTitle>Source Pages</AlertTitle>
+            <AlertDescription>
+              <span className="font-bold">{pageCountAlert.name}</span> has 
+              <span className="font-bold text-blue-600 mx-1">
+                {pageCountAlert.count}
+              </span> 
+              total {pageCountAlert.count === 1 ? 'page' : 'pages'}.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
+      <ImportSourcesDialog
+        isOpen={open}
+        onOpenChange={onOpenChange}
+        currentSources={sources}
+        onImport={() => {}} // Provide an empty handler for the onImport prop
+        externalSources={processedSources}
+        initialSourceId={selectedSourceId}
+        onSourceSelect={handleSourceSelect}
+        selectedSourceData={selectedSourceId ? 
+          sources.find(source => source.id === selectedSourceId) : undefined}
+      />
+    </>
   );
 };
 
