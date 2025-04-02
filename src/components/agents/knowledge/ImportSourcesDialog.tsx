@@ -44,6 +44,12 @@ interface ExternalSource {
   urls?: { url: string; title: string; id?: string; selected?: boolean; }[];
   knowledge_sources?: any[];
   domain_links?: UrlNode | UrlNode[];
+  insideLinks?: {
+    url: string;
+    title: string;
+    status: 'success' | 'error' | 'pending';
+    selected?: boolean;
+  }[];
   metadata?: {
     count?: string;
     file_size?: string | number;
@@ -994,4 +1000,3 @@ export const ImportSourcesDialog = ({
   );
 };
 
-export default ImportSourcesDialog;

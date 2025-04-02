@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -51,11 +50,7 @@ export interface KnowledgeSourceItem {
   parent_knowledge_source?: number | null;
   metadata?: {
     format?: string;
-    sub_urls?: {
-      key: string;
-      url: string;
-      children?: SubUrlItem[];
-    };
+    sub_urls?: SubUrlItem;
     crawl_more?: string;
     no_of_pages?: number;
     upload_date?: string;
