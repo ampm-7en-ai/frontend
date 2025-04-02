@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceTable from './KnowledgeSourceTable';
-import { KnowledgeSource } from './types';
+import { KnowledgeSource, UrlNode } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
@@ -165,6 +165,126 @@ const KnowledgeTrainingStatus = ({
     });
   };
 
+  const processSelectedSubUrls = (urlNode: UrlNode, selectedUrls: Set<string>, result: UrlNode[] = []): UrlNode[] => {
+    if (selectedUrls.has(urlNode.url)) {
+      const selectedNode: UrlNode = { 
+        ...urlNode,
+        selected: true,
+        children: [] // We'll add selected children separately
+      };
+      result.push(selectedNode);
+    }
+    
+    if (urlNode.children && urlNode.children.length > 0) {
+      for (const child of urlNode.children) {
+        processSelectedSubUrls(child, selectedUrls, result);
+      }
+    }
+    
+    return result;
+  };
+
+  const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
+    if (!availableKnowledgeBases && !showFallbackUI) {
+      toast({
+        title: "Cannot import sources",
+        description: "Knowledge base data is unavailable. Please try again later.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const externalSourcesData = formatExternalSources(availableKnowledgeBases);
+    const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
+    
+    if (newSourceIds.length === 0) {
+      toast({
+        title: "No new sources selected",
+        description: "All selected sources are already imported.",
+      });
+      setIsImportDialogOpen(false);
+      return;
+    }
+    
+    const newSources: KnowledgeSource[] = newSourceIds.map(id => {
+      const externalSource = externalSourcesData.find(s => s.id === id);
+      if (!externalSource) return null;
+      
+      if (externalSource.type === 'website' && selectedSubUrls && selectedSubUrls[id]) {
+        const selectedUrls = selectedSubUrls[id];
+        const knowledgeSource = externalSource.knowledge_sources?.[0];
+        
+        if (knowledgeSource) {
+          let rootNode: UrlNode | null = null;
+          
+          if (knowledgeSource.metadata?.sub_urls) {
+            rootNode = knowledgeSource.metadata.sub_urls as UrlNode;
+          } else if (externalSource.metadata?.domain_links) {
+            rootNode = Array.isArray(externalSource.metadata.domain_links) 
+              ? externalSource.metadata.domain_links[0] 
+              : externalSource.metadata.domain_links;
+          }
+          
+          if (rootNode) {
+            const selectedNodes = processSelectedSubUrls(rootNode, selectedUrls);
+            
+            if (!externalSource.insideLinks) {
+              externalSource.insideLinks = [];
+            }
+
+            selectedNodes.forEach(node => {
+              if (node.url !== 'root') {
+                externalSource.insideLinks.push({
+                  url: node.url,
+                  title: node.title || node.url,
+                  status: 'pending',
+                  selected: true
+                });
+              }
+            });
+          }
+        }
+      }
+      
+      return {
+        id: externalSource.id,
+        name: externalSource.name,
+        type: externalSource.type,
+        size: externalSource.size,
+        lastUpdated: externalSource.lastUpdated,
+        trainingStatus: 'idle' as const,
+        progress: 0,
+        linkBroken: false,
+        knowledge_sources: externalSource.knowledge_sources,
+        metadata: externalSource.metadata,
+        insideLinks: externalSource.insideLinks
+      };
+    }).filter(Boolean) as KnowledgeSource[];
+    
+    setKnowledgeSources(prev => [...prev, ...newSources]);
+    setIsImportDialogOpen(false);
+    setNeedsRetraining(true);
+    
+    if (onSourcesChange) {
+      const updatedSourceIds = [...knowledgeSources, ...newSources].map(s => s.id);
+      onSourcesChange(updatedSourceIds);
+    }
+    
+    if (newSourceIds.length === 1) {
+      const sourceId = newSourceIds[0];
+      const source = externalSourcesData.find(s => s.id === sourceId);
+      if (source) {
+        const toastInfo = getToastMessageForSourceChange('added', source.name);
+        toast(toastInfo);
+      }
+    } else {
+      toast({
+        title: "Knowledge sources imported",
+        description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
+      });
+    }
+  };
+
   useEffect(() => {
     if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
       console.log("Using preloaded knowledge sources:", preloadedKnowledgeSources);
@@ -217,70 +337,6 @@ const KnowledgeTrainingStatus = ({
     );
     
     setNeedsRetraining(true);
-  };
-
-  const importSelectedSources = (sourceIds: number[]) => {
-    if (!availableKnowledgeBases && !showFallbackUI) {
-      toast({
-        title: "Cannot import sources",
-        description: "Knowledge base data is unavailable. Please try again later.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const externalSourcesData = formatExternalSources(availableKnowledgeBases);
-    const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
-    
-    if (newSourceIds.length === 0) {
-      toast({
-        title: "No new sources selected",
-        description: "All selected sources are already imported.",
-      });
-      setIsImportDialogOpen(false);
-      return;
-    }
-    
-    const newSources: KnowledgeSource[] = newSourceIds.map(id => {
-      const externalSource = externalSourcesData.find(s => s.id === id);
-      if (!externalSource) return null;
-      
-      return {
-        id: externalSource.id,
-        name: externalSource.name,
-        type: externalSource.type,
-        size: externalSource.size,
-        lastUpdated: externalSource.lastUpdated,
-        trainingStatus: 'idle' as const,
-        progress: 0,
-        linkBroken: false,
-        knowledge_sources: externalSource.knowledge_sources,
-        metadata: externalSource.metadata
-      };
-    }).filter(Boolean) as KnowledgeSource[];
-    
-    setKnowledgeSources(prev => [...prev, ...newSources]);
-    setIsImportDialogOpen(false);
-    setNeedsRetraining(true);
-    
-    if (onSourcesChange) {
-      const updatedSourceIds = [...knowledgeSources, ...newSources].map(s => s.id);
-      onSourcesChange(updatedSourceIds);
-    }
-    
-    if (newSourceIds.length === 1) {
-      const sourceId = newSourceIds[0];
-      const source = externalSourcesData.find(s => s.id === sourceId);
-      if (source) {
-        const toastInfo = getToastMessageForSourceChange('added', source.name);
-        toast(toastInfo);
-      }
-    } else {
-      toast({
-        title: "Knowledge sources imported",
-        description: `${newSourceIds.length} sources have been imported. Training is required for the agent to use this knowledge.`,
-      });
-    }
   };
 
   const trainSource = (sourceId: number) => {

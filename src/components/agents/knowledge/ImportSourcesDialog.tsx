@@ -14,7 +14,7 @@ interface ImportSourcesDialogProps {
   onOpenChange: (open: boolean) => void;
   externalSources: KnowledgeSource[];
   currentSources: KnowledgeSource[];
-  onImport: (sourceIds: number[]) => void;
+  onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => void;
 }
 
 export const ImportSourcesDialog = ({
@@ -27,14 +27,14 @@ export const ImportSourcesDialog = ({
   const [selectedTab, setSelectedTab] = useState<string>('all');
   const [selectedSources, setSelectedSources] = useState<Set<number>>(new Set());
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [selectedSubUrls, setSelectedSubUrls] = useState<Set<string>>(new Set());
+  const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
   
   // Reset selections when dialog opens or external sources change
   useEffect(() => {
     if (isOpen) {
       setSelectedSources(new Set());
       setExpandedNodes(new Set());
-      setSelectedSubUrls(new Set());
+      setSelectedSubUrls({});
     }
   }, [isOpen, externalSources]);
 
@@ -57,6 +57,11 @@ export const ImportSourcesDialog = ({
     const newSelectedSources = new Set(selectedSources);
     if (newSelectedSources.has(sourceId)) {
       newSelectedSources.delete(sourceId);
+      
+      // Also remove any selected sub-URLs for this source
+      const newSelectedSubUrls = { ...selectedSubUrls };
+      delete newSelectedSubUrls[sourceId];
+      setSelectedSubUrls(newSelectedSubUrls);
     } else {
       newSelectedSources.add(sourceId);
     }
@@ -75,20 +80,28 @@ export const ImportSourcesDialog = ({
   };
 
   // Toggle sub-URL selection
-  const toggleSubUrlSelection = (url: string) => {
-    const newSelectedSubUrls = new Set(selectedSubUrls);
-    if (newSelectedSubUrls.has(url)) {
-      newSelectedSubUrls.delete(url);
-    } else {
-      newSelectedSubUrls.add(url);
+  const toggleSubUrlSelection = (sourceId: number, url: string) => {
+    const newSelectedSubUrls = { ...selectedSubUrls };
+    
+    if (!newSelectedSubUrls[sourceId]) {
+      newSelectedSubUrls[sourceId] = new Set<string>();
     }
+    
+    const sourceUrls = newSelectedSubUrls[sourceId];
+    
+    if (sourceUrls.has(url)) {
+      sourceUrls.delete(url);
+    } else {
+      sourceUrls.add(url);
+    }
+    
     setSelectedSubUrls(newSelectedSubUrls);
   };
 
   // Import selected sources
   const handleImport = () => {
     const sourceIdsToImport = Array.from(selectedSources);
-    onImport(sourceIdsToImport);
+    onImport(sourceIdsToImport, selectedSubUrls);
   };
 
   // Check if a source is already imported
@@ -139,6 +152,7 @@ export const ImportSourcesDialog = ({
     const currentPath = parentPath ? `${parentPath}/${urlNode.url}` : urlNode.url;
     const isExpanded = expandedNodes.has(currentPath);
     const hasChildren = urlNode.children && urlNode.children.length > 0;
+    const isSelected = selectedSubUrls[source.id]?.has(urlNode.url);
     
     return (
       <div key={currentPath} style={{ paddingLeft: `${level * 16}px` }}>
@@ -153,22 +167,29 @@ export const ImportSourcesDialog = ({
           ) : <span className="w-5" />}
           
           <Checkbox 
-            id={`url-${urlNode.url}`}
+            id={`url-${source.id}-${urlNode.url}`}
             className="mr-2"
-            checked={selectedSubUrls.has(urlNode.url)}
-            onCheckedChange={() => toggleSubUrlSelection(urlNode.url)}
+            checked={isSelected}
+            onCheckedChange={() => toggleSubUrlSelection(source.id, urlNode.url)}
           />
           
           {urlNode.url === 'root' ? (
-            <span className="flex items-center text-sm">
-              <FolderOpen className="h-4 w-4 mr-2 text-amber-500" />
-              Root
-            </span>
+            <div>
+              <span className="flex items-center text-sm">
+                <FolderOpen className="h-4 w-4 mr-2 text-amber-500" />
+                Root
+              </span>
+            </div>
           ) : (
-            <span className="flex items-center text-sm overflow-hidden text-ellipsis">
-              <Globe className="h-4 w-4 mr-2 text-green-600" />
-              {urlNode.title || urlNode.url}
-            </span>
+            <div className="flex flex-col">
+              <span className="flex items-center text-sm overflow-hidden text-ellipsis">
+                <Globe className="h-4 w-4 mr-2 text-green-600" />
+                {urlNode.title || urlNode.url}
+              </span>
+              {urlNode.url && urlNode.url !== 'root' && (
+                <span className="text-xs text-muted-foreground ml-6">{urlNode.url}</span>
+              )}
+            </div>
           )}
         </div>
         
@@ -276,7 +297,7 @@ export const ImportSourcesDialog = ({
                           </div>
                         </div>
                         
-                        {hasUrlStructure && (
+                        {hasUrlStructure && selectedSources.has(source.id) && (
                           <div className="px-3 py-2 bg-gray-50">
                             <div className="ml-6">
                               {renderWebsiteUrls(source)}
