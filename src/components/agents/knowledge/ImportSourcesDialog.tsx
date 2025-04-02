@@ -87,6 +87,7 @@ export const ImportSourcesDialog = ({
   const [selectedSource, setSelectedSource] = useState<ExternalSource | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [filteredCenterSources, setFilteredCenterSources] = useState<ExternalSource[]>([]);
+  const [selectedChild, setSelectedChild] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && externalSources.length > 0 && initialSourceId) {
@@ -115,10 +116,12 @@ export const ImportSourcesDialog = ({
       setSelectedTab('all');
       setActiveSourceId(initialSourceId || null);
       setSelectedSource(null);
+      setSelectedChild(null);
     }
   }, [isOpen, initialSourceId]);
 
   useEffect(() => {
+    // Filter sources based on type selected in left panel and search term
     const filtered = externalSources.filter(source => {
       if (selectedTab !== 'all' && source.type !== selectedTab) {
         return false;
@@ -253,11 +256,16 @@ export const ImportSourcesDialog = ({
   const handleViewSourceDetails = (source: ExternalSource) => {
     setSelectedSource(source);
     setActiveSourceId(source.id);
+    setSelectedChild(null); // Reset selected child when selecting a new source
     
     if (onSourceSelect && source.id) {
       console.log("Calling onSourceSelect with id:", source.id);
       onSourceSelect(source.id);
     }
+  };
+
+  const handleSelectChildUrl = (url: string) => {
+    setSelectedChild(url);
   };
 
   const handleImport = () => {
@@ -337,6 +345,7 @@ export const ImportSourcesDialog = ({
       );
     }
 
+    // Display header with source info
     return (
       <>
         <div className="p-4 border-b">
@@ -400,69 +409,96 @@ export const ImportSourcesDialog = ({
           </div>
         </div>
         
+        {/* Content section */}
         <ScrollArea className="flex-1">
-          <div className="p-4">
-            {selectedSource.type === 'website' || selectedSource.type === 'url' ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <Globe className="h-16 w-16 text-muted-foreground/40 mb-4" />
-                <h4 className="text-lg font-medium mb-2">Website Source</h4>
-                
-                {/* Main domain link */}
-                <p className="text-muted-foreground mb-4">
-                  This website will be processed during training.
-                </p>
-                
-                {/* Display the main URL */}
-                {(selectedSource.domain_links && typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links) && (
-                  <div className="mb-4">
-                    <a 
-                      href={selectedSource.domain_links.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary flex items-center gap-1"
+          {renderSourceContent()}
+        </ScrollArea>
+      </>
+    );
+  };
+
+  const renderSourceContent = () => {
+    if (!selectedSource) return null;
+
+    // For website type sources, show the list of child URLs
+    if (selectedSource.type === 'website' || selectedSource.type === 'url') {
+      const childUrls = getChildrenUrls(selectedSource);
+      
+      return (
+        <div className="p-4">
+          <div className="mb-4">
+            <h4 className="font-medium text-sm mb-2">Website Content</h4>
+            
+            {/* Main domain link */}
+            {(selectedSource.domain_links && typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links) && (
+              <div className="p-2 rounded-md border bg-muted/20 mb-4">
+                <a 
+                  href={selectedSource.domain_links.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary flex items-center gap-1 hover:underline"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                  <span>Main Domain</span>
+                  <ExternalLink className="h-3 w-3 ml-auto" />
+                </a>
+              </div>
+            )}
+            
+            {/* Child URLs */}
+            {childUrls.length > 0 ? (
+              <div>
+                <h5 className="text-sm font-medium mb-2">URLs to be processed ({childUrls.length})</h5>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {childUrls.map((child, index) => (
+                    <div 
+                      key={index} 
+                      className={cn(
+                        "p-2 rounded-md border transition-colors cursor-pointer",
+                        selectedChild === child.url ? "border-primary bg-primary/5" : "bg-muted/20 hover:bg-muted/30"
+                      )}
+                      onClick={() => handleSelectChildUrl(child.url)}
                     >
-                      View Website <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  </div>
-                )}
-                
-                {/* Display children URLs */}
-                {getChildrenUrls(selectedSource).length > 0 && (
-                  <div className="w-full max-w-md">
-                    <Separator className="my-4" />
-                    <h5 className="font-medium text-sm mb-3">Included URLs:</h5>
-                    <div className="space-y-2 text-left">
-                      {getChildrenUrls(selectedSource).map((child, index) => (
-                        <div key={index} className="p-2 rounded-md border bg-muted/20">
-                          <a 
-                            href={child.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary flex items-center gap-1 hover:underline truncate"
-                            title={child.url}
-                          >
-                            <Globe className="h-3.5 w-3.5 shrink-0" />
-                            <span className="truncate">{child.title || child.url}</span>
-                            <ExternalLink className="h-3 w-3 shrink-0 ml-auto" />
-                          </a>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 truncate">
+                          <Globe className="h-3.5 w-3.5 shrink-0" />
+                          <span className="text-sm truncate" title={child.title || child.url}>
+                            {child.title || new URL(child.url).pathname || child.url}
+                          </span>
                         </div>
-                      ))}
+                        <a 
+                          href={child.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 text-primary hover:text-primary/80"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <FileText className="h-16 w-16 text-muted-foreground/40 mb-4" />
-                <h4 className="text-lg font-medium mb-2">Document Preview</h4>
-                <p className="text-muted-foreground max-w-sm">
-                  Document content will be processed during training
-                </p>
+              <div className="text-center py-6 text-muted-foreground">
+                <p>No child URLs found for this website</p>
               </div>
             )}
           </div>
-        </ScrollArea>
-      </>
+        </div>
+      );
+    }
+    
+    // For document type sources
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center p-4">
+        <FileText className="h-16 w-16 text-muted-foreground/40 mb-4" />
+        <h4 className="text-lg font-medium mb-2">Document Preview</h4>
+        <p className="text-muted-foreground max-w-sm">
+          Document content will be processed during training
+        </p>
+      </div>
     );
   };
 
@@ -480,6 +516,7 @@ export const ImportSourcesDialog = ({
         </DialogHeader>
         
         <div className="flex flex-col md:flex-row h-[500px]">
+          {/* Left panel - Source Types */}
           <div className="w-60 border-r p-4 flex flex-col">
             <div className="font-medium mb-3 text-sm">Source Types</div>
             <div className="space-y-1">
@@ -511,6 +548,7 @@ export const ImportSourcesDialog = ({
             </div>
           </div>
           
+          {/* Center panel - Source List */}
           <div className="w-72 border-r flex flex-col">
             <div className="p-4 border-b">
               <div className="relative">
@@ -538,6 +576,7 @@ export const ImportSourcesDialog = ({
             </ScrollArea>
           </div>
           
+          {/* Right panel - Source Details */}
           <div className="flex-1 flex flex-col">
             {renderSourceDetails()}
           </div>
