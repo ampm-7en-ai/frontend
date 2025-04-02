@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +21,8 @@ import {
   Edit, 
   Copy, 
   Trash2,
-  Check
+  Check,
+  Globe
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -32,6 +34,7 @@ import {
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AgentTableProps {
   agents: Array<{
@@ -91,7 +94,39 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
               <TableCell>
                 <div className="flex flex-wrap">
                   {agent.knowledgeSources.map(source => (
-                    <KnowledgeSourceBadge key={source.id} source={source} />
+                    <div key={source.id} className="mr-1 mb-1">
+                      <KnowledgeSourceBadge source={source} />
+                      
+                      {/* Display selected child URLs count for website sources */}
+                      {(source.type === 'website' || source.type === 'url') && 
+                       (source.selectedSubUrls?.size > 0 || source.insideLinks?.some(link => link.selected)) && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="text-xs text-green-700 ml-6 flex items-center">
+                                <Globe className="h-3 w-3 mr-1" />
+                                {source.selectedSubUrls?.size || source.insideLinks?.filter(link => link.selected).length} URLs
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Selected URLs for {source.name}</p>
+                              <ul className="text-xs list-disc pl-4 mt-1">
+                                {source.selectedSubUrls && Array.from(source.selectedSubUrls).slice(0, 5).map((url, i) => (
+                                  <li key={i}>{url}</li>
+                                ))}
+                                {source.insideLinks?.filter(link => link.selected).slice(0, 5).map((link, i) => (
+                                  <li key={i}>{link.title || link.url}</li>
+                                ))}
+                                {(source.selectedSubUrls && source.selectedSubUrls.size > 5) || 
+                                 (source.insideLinks && source.insideLinks.filter(link => link.selected).length > 5) && (
+                                  <li>... and more</li>
+                                )}
+                              </ul>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
                   ))}
                   {agent.knowledgeSources.some(source => source.hasError) && (
                     <div className="w-full mt-1 text-xs text-red-600 flex items-center gap-1">

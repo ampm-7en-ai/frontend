@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown } from 'lucide-react';
+import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown, Globe } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { getSourceTypeIcon, getStatusIndicator } from './knowledgeUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -320,6 +320,36 @@ const KnowledgeSourceTable = ({
     );
   };
 
+  const getSelectedChildUrls = (source: KnowledgeSource) => {
+    const selectedUrls = source.insideLinks?.filter(link => link.selected) || [];
+    
+    if (source.knowledge_sources?.[0]?.metadata?.sub_urls) {
+      // Handle sub_urls from metadata if needed
+    }
+    
+    const selectedSubUrlsArray = source.selectedSubUrls ? 
+      Array.from(source.selectedSubUrls) : [];
+    
+    const allSelectedUrls = [...selectedUrls, ...selectedSubUrlsArray];
+    
+    if (allSelectedUrls.length === 0) {
+      return null;
+    }
+    
+    return (
+      <div className="ml-7 mt-1 space-y-1">
+        <div className="text-xs text-muted-foreground font-medium">Selected URLs:</div>
+        {allSelectedUrls.map((url, index) => (
+          <div key={index} className="flex items-center text-xs text-muted-foreground ml-2">
+            <Globe className="h-3 w-3 mr-1 text-green-600" />
+            <span className="font-medium">{url.title || url}</span>
+            {url.url && <span className="ml-1 text-xs text-muted-foreground">({url.url})</span>}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -346,7 +376,7 @@ const KnowledgeSourceTable = ({
               <React.Fragment key={source.id}>
                 <TableRow>
                   <TableCell className="py-2 w-8">
-                    {(source.type === 'webpage' || source.documents?.length > 0 || source.type === 'url') && (
+                    {(source.type === 'webpage' || source.documents?.length > 0 || source.type === 'url' || source.type === 'website') && (
                       <button 
                         onClick={() => toggleRowExpansion(source.id)}
                         className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-gray-100"
@@ -376,6 +406,15 @@ const KnowledgeSourceTable = ({
                     {source.metadata?.count && (
                       <div className="text-xs text-muted-foreground ml-7 mt-0.5">
                         {source.metadata.count}
+                      </div>
+                    )}
+                    
+                    {!expandedRows[source.id] && (source.type === 'website' || source.type === 'url') && 
+                     (source.selectedSubUrls?.size > 0 || source.insideLinks?.some(link => link.selected)) && (
+                      <div className="ml-7 mt-1">
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {source.selectedSubUrls?.size || source.insideLinks?.filter(link => link.selected).length} URLs selected
+                        </div>
                       </div>
                     )}
                   </TableCell>
@@ -431,6 +470,42 @@ const KnowledgeSourceTable = ({
                       <Collapsible open={true}>
                         <CollapsibleContent>
                           <div className="p-2 bg-muted/30 border-t border-dashed">
+                            {(source.type === 'website' || source.type === 'url') && (
+                              <div className="px-4 py-3">
+                                <div className="text-sm font-medium mb-2">Selected URLs</div>
+                                {source.selectedSubUrls && source.selectedSubUrls.size > 0 ? (
+                                  <div className="space-y-1">
+                                    {Array.from(source.selectedSubUrls).map((url, index) => (
+                                      <div key={index} className="flex items-center text-xs p-1 rounded">
+                                        <Globe className="h-3.5 w-3.5 mr-2 text-green-600" />
+                                        <div className="flex flex-col">
+                                          <span className="text-sm">{url}</span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : source.insideLinks?.some(link => link.selected) ? (
+                                  <div className="space-y-1">
+                                    {source.insideLinks
+                                      .filter(link => link.selected)
+                                      .map((link, index) => (
+                                        <div key={index} className="flex items-center text-xs p-1 rounded">
+                                          <Globe className="h-3.5 w-3.5 mr-2 text-green-600" />
+                                          <div className="flex flex-col">
+                                            <span className="text-sm">{link.title || "URL"}</span>
+                                            <span className="text-xs text-muted-foreground">{link.url}</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-muted-foreground">
+                                    No URLs selected. All content from the website will be imported.
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
                             {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
                             {source.documents?.length > 0 && getDocumentsContent(source)}

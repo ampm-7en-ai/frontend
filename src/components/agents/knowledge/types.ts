@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -13,7 +12,7 @@ export interface KnowledgeSource {
   insideLinks?: {
     url: string;
     title: string;
-    status: 'success' | 'error' | 'pending';
+    status: 'error' | 'success' | 'pending';
     selected?: boolean;
   }[];
   documents?: {
@@ -42,6 +41,7 @@ export interface KnowledgeSource {
   format?: string; // Making format optional in KnowledgeSource
   pages?: string;  // Making pages optional in KnowledgeSource
   selected?: boolean; // Track selection state
+  selectedSubUrls?: Set<string>; // Store selected sub URLs
 }
 
 export interface KnowledgeSourceItem {
@@ -69,32 +69,28 @@ export interface KnowledgeSourceItem {
 }
 
 export interface SubUrlItem {
-  key: string;
   url: string;
   title?: string;
+  key?: string;
   children?: SubUrlItem[];
 }
 
-// Define recursive UrlNode interface for nested URL structure
 export interface UrlNode {
   url: string;
   key?: string;
   title?: string;
   selected?: boolean;
   children?: UrlNode[];
-  // Add nesting level for UI display purposes
   level?: number;
   path?: string;
 }
 
-// Interface for the processed source data expected by ImportSourcesDialog
 export interface ProcessedSource extends KnowledgeSource {
   format: string;
   pages?: string;
   domain_links?: UrlNode | UrlNode[];
 }
 
-// Interface for flattened URL structure with nesting information
 export interface FlattenedUrlNode {
   url: string;
   title: string;
@@ -103,7 +99,6 @@ export interface FlattenedUrlNode {
   parentUrl?: string;
 }
 
-// Adding helper types for debugging and analysis
 export interface SourceAnalysis {
   id: number | string;
   name: string;
