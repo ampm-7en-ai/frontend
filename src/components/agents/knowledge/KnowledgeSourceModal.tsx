@@ -4,6 +4,8 @@ import { KnowledgeSource, UrlNode, ProcessedSource, SourceAnalysis } from './typ
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
 import WebsiteContentPanel from './WebsiteContentPanel';
+import { fetchKnowledgeSourceDetails } from '@/utils/api-config';
+import { useToast } from '@/hooks/use-toast';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -23,13 +25,45 @@ const KnowledgeSourceModal = ({
     initialSourceId ? sources.find(s => s.id === initialSourceId) : undefined
   );
   const [pageCountAlert, setPageCountAlert] = useState<{show: boolean, count: number, name: string} | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   
   useEffect(() => {
     if (initialSourceId) {
       setSelectedSourceId(initialSourceId);
-      setSelectedSource(sources.find(s => s.id === initialSourceId));
+      fetchSourceById(initialSourceId);
     }
   }, [initialSourceId, sources]);
+
+  const fetchSourceById = async (id: number) => {
+    setIsLoading(true);
+    try {
+      console.log(`Fetching source details for ID: ${id}`);
+      const sourceData = await fetchKnowledgeSourceDetails(id);
+      console.log('Fetched source details:', sourceData);
+      
+      if (sourceData) {
+        setSelectedSource(sourceData);
+        const analysis = analyzeSourceStructure(sourceData);
+        console.log("Source structure analysis:", analysis);
+      }
+    } catch (error) {
+      console.error(`Error fetching source with ID ${id}:`, error);
+      toast({
+        title: "Error",
+        description: `Could not load source details for ID: ${id}`,
+        variant: "destructive"
+      });
+      
+      // Fallback to the local source data if API call fails
+      const localSource = sources.find(s => s.id === id);
+      if (localSource) {
+        setSelectedSource(localSource);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const analyzeSourceStructure = (source: KnowledgeSource): SourceAnalysis => {
     const domainLinks = source.metadata?.domain_links;
@@ -305,26 +339,28 @@ const KnowledgeSourceModal = ({
     console.log("Source selected:", id);
     setSelectedSourceId(id);
     
-    const source = sources.find(source => source.id === id);
-    setSelectedSource(source);
+    fetchSourceById(id);
     
-    if (source) {
-      const analysis = analyzeSourceStructure(source);
+    const localSource = sources.find(source => source.id === id);
+    if (localSource) {
+      setSelectedSource(localSource);
+      
+      const analysis = analyzeSourceStructure(localSource);
       console.log("Selected Source Analysis:", analysis);
       
       let totalPages = 0;
       
-      if (source.type === 'website' || source.type === 'url') {
-        if (source.metadata?.domain_links) {
-          totalPages = countNestedPages(source.metadata.domain_links);
-        } else if (source.knowledge_sources?.length > 0) {
-          const hasSubUrls = source.knowledge_sources.some(ks => 
+      if (localSource.type === 'website' || localSource.type === 'url') {
+        if (localSource.metadata?.domain_links) {
+          totalPages = countNestedPages(localSource.metadata.domain_links);
+        } else if (localSource.knowledge_sources?.length > 0) {
+          const hasSubUrls = localSource.knowledge_sources.some(ks => 
             ks.metadata && ks.metadata.sub_urls);
           
           if (hasSubUrls) {
             totalPages = 0;
             
-            source.knowledge_sources.forEach(ks => {
+            localSource.knowledge_sources.forEach(ks => {
               if (ks.metadata?.sub_urls) {
                 totalPages += 1;
                 
@@ -336,79 +372,28 @@ const KnowledgeSourceModal = ({
               }
             });
           } else {
-            totalPages = source.knowledge_sources.length;
+            totalPages = localSource.knowledge_sources.length;
           }
-        } else if (source.insideLinks?.length > 0) {
-          totalPages = source.insideLinks.length;
+        } else if (localSource.insideLinks?.length > 0) {
+          totalPages = localSource.insideLinks.length;
         } else {
           totalPages = 1;
         }
       } else {
-        totalPages = source.metadata?.no_of_pages ? Number(source.metadata.no_of_pages) : 1;
+        totalPages = localSource.metadata?.no_of_pages ? Number(localSource.metadata.no_of_pages) : 1;
       }
       
-      console.log(`Total pages calculated (recursive): ${totalPages} for ${source.name}`);
+      console.log(`Total pages calculated (recursive): ${totalPages} for ${localSource.name}`);
       
       setPageCountAlert({
         show: true, 
         count: totalPages, 
-        name: source.name
+        name: localSource.name
       });
       
       setTimeout(() => {
         setPageCountAlert(null);
       }, 5000);
-      
-      console.log("Selected Source Type:", source.type);
-      
-      if (source.metadata) {
-        console.log("Selected Source Metadata:", {
-          hasCount: !!source.metadata.count,
-          hasFileSize: !!source.metadata.file_size,
-          hasChars: !!source.metadata.no_of_chars,
-          hasRows: !!source.metadata.no_of_rows,
-          hasPages: !!source.metadata.no_of_pages,
-          hasDomainLinks: !!source.metadata.domain_links,
-          hasWebsite: !!source.metadata.website
-        });
-        
-        if (source.metadata.domain_links) {
-          const domainLinks = source.metadata.domain_links;
-          console.log("Domain Links Structure:", {
-            type: typeof domainLinks,
-            isArray: Array.isArray(domainLinks),
-            hasUrl: Array.isArray(domainLinks)
-              ? domainLinks.length > 0 && 'url' in domainLinks[0]
-              : 'url' in domainLinks,
-            hasChildren: Array.isArray(domainLinks)
-              ? domainLinks.length > 0 && 'children' in domainLinks[0]
-              : 'children' in domainLinks,
-            childrenCount: Array.isArray(domainLinks)
-              ? domainLinks.reduce((count, node) => count + (node.children?.length || 0), 0)
-              : domainLinks.children?.length || 0,
-            structure: domainLinks
-          });
-        }
-      }
-      
-      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
-        const ksWithSubUrls = source.knowledge_sources.filter(ks => 
-          ks.metadata && ks.metadata.sub_urls);
-        
-        console.log("Knowledge Sources with sub_urls:", ksWithSubUrls.length);
-        
-        if (ksWithSubUrls.length > 0) {
-          const firstWithSubUrls = ksWithSubUrls[0];
-          console.log("Sample sub_urls structure:", firstWithSubUrls.metadata?.sub_urls);
-          
-          const childrenCount = firstWithSubUrls.metadata?.sub_urls?.children?.length || 0;
-          console.log("Children count in first sub_urls:", childrenCount);
-          
-          if (childrenCount > 0) {
-            console.log("First child in sub_urls:", firstWithSubUrls.metadata?.sub_urls?.children?.[0]);
-          }
-        }
-      }
     }
   };
 

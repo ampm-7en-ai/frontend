@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -25,6 +24,8 @@ import {
 import { KnowledgeSource, KnowledgeSourceItem, SubUrlItem } from './types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { fetchKnowledgeSourceDetails } from '@/utils/api-config';
+import { useToast } from '@/hooks/use-toast';
 
 interface WebsiteContentPanelProps {
   source: KnowledgeSource | undefined;
@@ -44,17 +45,47 @@ const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
   const [crawledUrls, setCrawledUrls] = useState<CrawledUrl[]>([]);
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [pageCount, setPageCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (source && source.type === 'website') {
-      console.info(`Rendering website/URL content for: ${source.name}`);
-      const urls = extractCrawledUrls(source);
-      setCrawledUrls(urls);
+      console.info(`Rendering website/URL content for: ${source.name} (ID: ${source.id})`);
       
-      // Calculate total page count
-      calculateTotalPageCount(source);
+      if (source.id) {
+        fetchSourceDetails(source.id);
+      } else {
+        const urls = extractCrawledUrls(source);
+        setCrawledUrls(urls);
+        calculateTotalPageCount(source);
+      }
     }
   }, [source]);
+
+  const fetchSourceDetails = async (sourceId: number) => {
+    setIsLoading(true);
+    try {
+      console.info(`Fetching source details for ID: ${sourceId}`);
+      const sourceDetails = await fetchKnowledgeSourceDetails(sourceId);
+      console.info(`Source details fetched:`, sourceDetails);
+      
+      if (sourceDetails) {
+        // Extract URLs from the fetched source
+        const urls = extractCrawledUrls(sourceDetails);
+        setCrawledUrls(urls);
+        calculateTotalPageCount(sourceDetails);
+      }
+    } catch (error) {
+      console.error(`Error fetching source details for ID ${sourceId}:`, error);
+      toast({
+        title: "Error",
+        description: `Could not load website content for source ID: ${sourceId}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const calculateTotalPageCount = (source: KnowledgeSource) => {
     let totalPages = 0;
@@ -232,7 +263,7 @@ const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
     });
   };
 
-  if (!source || source.type !== 'website' || !crawledUrls.length) {
+  if (!source || source.type !== 'website') {
     return null;
   }
 
@@ -253,18 +284,28 @@ const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Page Title</TableHead>
-              <TableHead>URL</TableHead>
-              <TableHead>Type</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {renderUrlRows(crawledUrls)}
-          </TableBody>
-        </Table>
+        {isLoading ? (
+          <div className="flex justify-center p-4">
+            <span className="text-sm text-muted-foreground">Loading website content...</span>
+          </div>
+        ) : crawledUrls.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Page Title</TableHead>
+                <TableHead>URL</TableHead>
+                <TableHead>Type</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {renderUrlRows(crawledUrls)}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="text-center py-4">
+            <span className="text-sm text-muted-foreground">No webpage content available</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
