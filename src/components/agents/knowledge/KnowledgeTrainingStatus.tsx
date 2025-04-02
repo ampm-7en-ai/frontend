@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -114,7 +113,6 @@ const KnowledgeTrainingStatus = ({
         size: metadataInfo.size,
         lastUpdated: uploadDate,
         trainingStatus: 'idle' as const,
-        progress: 0,
         linkBroken: false,
         knowledge_sources: kb.knowledge_sources,
         metadata: kb.metadata || {}
@@ -160,8 +158,6 @@ const KnowledgeTrainingStatus = ({
       else if (status === 'success') trainingStatus = 'success';
       else if (status === 'error') trainingStatus = 'error';
       
-      const progress = trainingStatus === 'success' ? 100 : (trainingStatus === 'error' ? 100 : (trainingStatus === 'training' ? 50 : 0));
-      
       const metadataInfo = getSourceMetadataInfo({
         type: source.type || 'document',
         metadata: source.metadata || {}
@@ -175,7 +171,6 @@ const KnowledgeTrainingStatus = ({
         pages: metadataInfo.count,
         lastUpdated: formatDate(source.metadata?.upload_date || source.updated_at),
         trainingStatus: trainingStatus,
-        progress: progress,
         linkBroken: source.link_broken || false,
         crawlOptions: source.crawl_options || 'single',
         insideLinks: source.insideLinks || [],
@@ -260,7 +255,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
         });
       } else {
         toast({
@@ -417,40 +412,25 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeSources(prev => 
       prev.map(source => 
         source.id === sourceId 
-          ? { ...source, trainingStatus: 'training' as const, progress: 10 } 
+          ? { ...source, trainingStatus: 'training' as const } 
           : source
       )
     );
     
     toast(getTrainingStatusToast('start', sourceName));
     
-    let progress = 10;
-    const progressInterval = setInterval(() => {
-      progress += 10;
-      
+    setTimeout(() => {
       setKnowledgeSources(prev => 
         prev.map(source => 
           source.id === sourceId 
-            ? { ...source, progress: Math.min(progress, 100) } 
+            ? { ...source, trainingStatus: 'success' as const } 
             : source
         )
       );
       
-      if (progress >= 100) {
-        clearInterval(progressInterval);
-        
-        setKnowledgeSources(prev => 
-          prev.map(source => 
-            source.id === sourceId 
-              ? { ...source, trainingStatus: 'success' as const, progress: 100 } 
-              : source
-          )
-        );
-        
-        setNeedsRetraining(false);
-        toast(getTrainingStatusToast('success', sourceName));
-      }
-    }, 500);
+      setNeedsRetraining(false);
+      toast(getTrainingStatusToast('success', sourceName));
+    }, 3000);
   };
 
   const trainAllSources = () => {
@@ -474,43 +454,27 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeSources(prev => 
       prev.map(source => ({ 
         ...source, 
-        trainingStatus: 'training' as const, 
-        progress: 10 
+        trainingStatus: 'training' as const
       }))
     );
 
-    let progress = 10;
-    const progressInterval = setInterval(() => {
-      progress += 10;
-      
+    setTimeout(() => {
       setKnowledgeSources(prev => 
         prev.map(source => ({ 
           ...source, 
-          progress: Math.min(progress, 100) 
+          trainingStatus: 'success' as const
         }))
       );
       
-      if (progress >= 100) {
-        clearInterval(progressInterval);
-        
-        setKnowledgeSources(prev => 
-          prev.map(source => ({ 
-            ...source, 
-            trainingStatus: 'success' as const, 
-            progress: 100 
-          }))
-        );
-        
-        setIsTrainingAll(false);
-        setNeedsRetraining(false);
-        setShowTrainingAlert(false);
-        
-        toast({
-          title: "Training complete",
-          description: "All knowledge sources have been processed."
-        });
-      }
-    }, 500);
+      setIsTrainingAll(false);
+      setNeedsRetraining(false);
+      setShowTrainingAlert(false);
+      
+      toast({
+        title: "Training complete",
+        description: "All knowledge sources have been processed."
+      });
+    }, 4000);
   };
 
   return (
