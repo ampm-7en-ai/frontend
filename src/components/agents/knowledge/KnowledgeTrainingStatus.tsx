@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -239,8 +238,7 @@ const KnowledgeTrainingStatus = ({
       if (!selectedSubUrls?.[id] || selectedSubUrls[id].size === 0) return;
       
       const existingSource = existingSourcesMap.get(id);
-      const externalSource = externalSourcesData.find(s => s.id === id);
-      
+      const externalSource = externalSourcesData.find(s => s.id === id);\n      
       if (existingSource && externalSource) {
         // Update the existing source with new selected URLs
         const updatedSource = {
