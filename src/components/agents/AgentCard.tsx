@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import AgentActionsDropdown from './AgentActionsDropdown';
 import AgentModelBadge from './AgentModelBadge';
-import AgentKnowledgeSection from './knowledge/AgentKnowledgeSection';
+import { AgentKnowledgeSection } from './knowledge/AgentKnowledgeSection';
 import AgentFooterActions from './AgentFooterActions';
 import { Agent } from '@/hooks/useAgentFiltering';
 import { format } from 'date-fns';

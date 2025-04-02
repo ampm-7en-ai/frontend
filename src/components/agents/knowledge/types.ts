@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -39,10 +38,11 @@ export interface KnowledgeSource {
   };
   icon?: string;
   knowledge_sources?: KnowledgeSourceItem[];
-  format?: string; // Making format optional in KnowledgeSource
-  pages?: string;  // Making pages optional in KnowledgeSource
-  selected?: boolean; // Track selection state
-  selectedSubUrls?: Set<string>; // Store selected sub URLs
+  format?: string;
+  pages?: string;
+  selected?: boolean;
+  selectedSubUrls?: Set<string>;
+  url?: string;
 }
 
 export interface KnowledgeSourceItem {

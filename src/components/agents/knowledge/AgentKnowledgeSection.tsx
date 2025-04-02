@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { KnowledgeSourceTable } from './KnowledgeSourceTable';
-import { KnowledgeSourceModal } from './KnowledgeSourceModal';
+import KnowledgeSourceModal from './KnowledgeSourceModal';
 import { KnowledgeSource } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { Button } from '@/components/ui/button';
