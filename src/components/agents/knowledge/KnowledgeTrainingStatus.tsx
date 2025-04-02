@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -266,7 +267,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
         });
       } else {
         toast({
