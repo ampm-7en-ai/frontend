@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { KnowledgeSource, UrlNode, ProcessedSource, SourceAnalysis } from './types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, InfoIcon } from 'lucide-react';
+import { toast } from "@/hooks/use-toast";
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -414,6 +415,21 @@ const KnowledgeSourceModal = ({
         count: totalPages, 
         name: selectedSource.name
       });
+
+      // Show toast notification for better visibility
+      toast({
+        title: "Source Pages",
+        description: (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{selectedSource.name}</span> has 
+            <span className="font-bold text-blue-600">
+              {totalPages}
+            </span> 
+            total {totalPages === 1 ? 'page' : 'pages'}
+          </div>
+        ),
+        duration: 5000,
+      });
       
       // Hide the alert after 5 seconds
       setTimeout(() => {
@@ -479,8 +495,8 @@ const KnowledgeSourceModal = ({
     <>
       {pageCountAlert && pageCountAlert.show && (
         <div className="fixed top-4 right-4 z-50 w-80">
-          <Alert variant="default" className="border-2 border-blue-500">
-            <ExternalLink className="h-4 w-4 text-blue-500" />
+          <Alert variant="default" className="border-2 border-blue-500 shadow-lg animate-in fade-in slide-in-from-top-5">
+            <InfoIcon className="h-4 w-4 text-blue-500" />
             <AlertTitle>Source Pages</AlertTitle>
             <AlertDescription>
               <span className="font-bold">{pageCountAlert.name}</span> has 
