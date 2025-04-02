@@ -34,7 +34,7 @@ const SupportTicket = () => {
             </div>
             <h2 className="text-xl font-semibold mb-2">Ask the Community</h2>
             <p className="text-muted-foreground">
-              Get instant help from Lovable users on Discord.
+              Get instant help from 7en users on Discord.
             </p>
           </CardContent>
         </Card>
@@ -45,9 +45,9 @@ const SupportTicket = () => {
             <div className="mb-4">
               <BookOpen className="h-8 w-8" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Lovable Academy</h2>
+            <h2 className="text-xl font-semibold mb-2">7en Academy</h2>
             <p className="text-muted-foreground">
-              Learn how to use Lovable with our documentation, expert tips, and tutorials.
+              Learn how to use 7en with our documentation, expert tips, and tutorials.
             </p>
           </CardContent>
         </Card>
@@ -74,10 +74,10 @@ const SupportTicket = () => {
         <div>
           <h3 className="text-xl font-semibold mb-3">Product Changelog</h3>
           <p className="text-muted-foreground mb-4">
-            News from the Lovable engineering team.
+            News from the 7en engineering team.
           </p>
           <Button variant="outline" className="flex items-center">
-            Lovable Changelog <ArrowRight className="ml-2" />
+            7en Changelog <ArrowRight className="ml-2" />
           </Button>
         </div>
         
@@ -88,7 +88,7 @@ const SupportTicket = () => {
             Have an idea? Share it and let the community vote!
           </p>
           <Button variant="outline" className="flex items-center">
-            Lovable Feedback <ArrowRight className="ml-2" />
+            7en Feedback <ArrowRight className="ml-2" />
           </Button>
         </div>
         
@@ -107,7 +107,7 @@ const SupportTicket = () => {
         <div>
           <h3 className="text-xl font-semibold mb-3">Affiliate program</h3>
           <p className="text-muted-foreground mb-4">
-            Earn commission by referring new customers to Lovable.
+            Earn commission by referring new customers to 7en.
           </p>
           <Button variant="outline" className="flex items-center">
             Join program <ArrowRight className="ml-2" />
