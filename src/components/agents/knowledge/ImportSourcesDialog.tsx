@@ -318,7 +318,7 @@ export const ImportSourcesDialog = ({
         
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           <ResizablePanel minSize={15} defaultSize={20}>
-            <div className="border rounded-md overflow-hidden h-full">
+            <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-1">
                   {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
@@ -349,7 +349,7 @@ export const ImportSourcesDialog = ({
           <ResizableHandle withHandle />
           
           <ResizablePanel minSize={30} defaultSize={50}>
-            <div className="border rounded-md overflow-hidden h-full">
+            <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-2">
                   {filteredSources.length === 0 ? (
@@ -435,7 +435,7 @@ export const ImportSourcesDialog = ({
           <ResizableHandle withHandle />
           
           <ResizablePanel minSize={15} defaultSize={30}>
-            <div className="border rounded-md overflow-hidden h-full">
+            <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2">
                   {selectedSource && hasUrlStructure(selectedSource) ? (
