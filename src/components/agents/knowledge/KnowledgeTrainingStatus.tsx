@@ -159,26 +159,9 @@ const KnowledgeTrainingStatus = ({
       
       const progress = trainingStatus === 'success' ? 100 : (trainingStatus === 'error' ? 100 : (trainingStatus === 'training' ? 50 : 0));
       
-      const metadataInfo = getSourceMetadataInfo({
-        type: source.type || 'document',
-        metadata: source.metadata || {}
-      });
+      const metadataInfo = getSourceMetadataInfo({\n        type: source.type || 'document',\n        metadata: source.metadata || {}\n      });
       
-      return {
-        id: source.id,
-        name: source.name || 'Unnamed source',
-        type: source.type || 'document',
-        size: metadataInfo.size,
-        pages: metadataInfo.count,
-        lastUpdated: formatDate(source.metadata?.upload_date || source.updated_at),
-        trainingStatus: trainingStatus,
-        progress: progress,
-        linkBroken: source.link_broken || false,
-        crawlOptions: source.crawl_options || 'single',
-        insideLinks: source.insideLinks || [],
-        metadata: source.metadata || {}
-      };
-    });
+      return {\n        id: source.id,\n        name: source.name || 'Unnamed source',\n        type: source.type || 'document',\n        size: metadataInfo.size,\n        pages: metadataInfo.count,\n        lastUpdated: formatDate(source.metadata?.upload_date || source.updated_at),\n        trainingStatus: trainingStatus,\n        progress: progress,\n        linkBroken: source.link_broken || false,\n        crawlOptions: source.crawl_options || 'single',\n        insideLinks: source.insideLinks || [],\n        metadata: source.metadata || {}\n      };\n    });
   };
 
   const processSelectedSubUrls = (urlNode: UrlNode, selectedUrls: Set<string>, result: UrlNode[] = []): UrlNode[] => {
@@ -257,7 +240,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
         });
       } else {
         toast({
