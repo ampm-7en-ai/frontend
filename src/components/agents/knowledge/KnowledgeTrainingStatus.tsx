@@ -237,7 +237,7 @@ const KnowledgeTrainingStatus = ({
       if (existingSource && externalSource) {
         const updatedSource = {
           ...existingSource,
-          insideLinks: processSelectedUrlsForSource(externalSource, selectedSubUrls[id], existingSource.insideLinks || [])
+          insideLinks: processSelectedUrlsForSource(externalSource, selectedSubUrls[id], [], true)
         };
         
         setKnowledgeSources(prev => 
@@ -257,7 +257,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
         });
       } else {
         toast({
@@ -301,7 +301,7 @@ const KnowledgeTrainingStatus = ({
     };
     
     if (externalSource.type === 'website' && selectedUrls && selectedUrls.size > 0) {
-      newSource.insideLinks = processSelectedUrlsForSource(externalSource, selectedUrls);
+      newSource.insideLinks = processSelectedUrlsForSource(externalSource, selectedUrls, [], true);
     }
     
     return newSource;
@@ -310,7 +310,8 @@ const KnowledgeTrainingStatus = ({
   const processSelectedUrlsForSource = (
     externalSource, 
     selectedUrls: Set<string>, 
-    existingLinks: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}> = []
+    existingLinks: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}> = [],
+    replaceExisting: boolean = false
   ) => {
     if (!selectedUrls || selectedUrls.size === 0) return existingLinks;
     
@@ -331,7 +332,7 @@ const KnowledgeTrainingStatus = ({
     
     const selectedNodes = processSelectedSubUrls(rootNode, selectedUrls);
     
-    const newInsideLinks = [...existingLinks];
+    const newInsideLinks = replaceExisting ? [] : [...existingLinks];
     
     selectedNodes.forEach(node => {
       if (node.url !== 'root' && !existingLinks.map(link => link.url).includes(node.url)) {
