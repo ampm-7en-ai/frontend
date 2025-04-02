@@ -208,7 +208,7 @@ export const ImportSourcesDialog = ({
         return allUrls;
       } else if (typeof domainLinks === 'object' && domainLinks !== null) {
         console.log(`Processing single domain_links object:`, domainLinks);
-        return getAllChildUrls(domainLinks);
+        return getAllChildUrls(domainLinks as UrlNode);
       } else {
         console.log(`Unexpected domain_links format:`, domainLinks);
         return [];

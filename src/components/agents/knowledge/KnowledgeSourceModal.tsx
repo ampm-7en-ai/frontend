@@ -125,6 +125,7 @@ const KnowledgeSourceModal = ({
       
       // Ensure children arrays exist and recursively process the structure
       if (Array.isArray(domainLinks)) {
+        // Handle array of nodes
         processedDomainLinks = domainLinks.map(node => ({
           ...node,
           children: node.children || []
@@ -188,8 +189,16 @@ const KnowledgeSourceModal = ({
           console.log("Domain Links from metadata:", selectedSource.metadata.domain_links);
           
           // Log children structure if available
-          if (selectedSource.metadata.domain_links.children) {
-            console.log("Domain Links children:", selectedSource.metadata.domain_links.children);
+          const domainLinks = selectedSource.metadata.domain_links;
+          if (Array.isArray(domainLinks)) {
+            // Handle array of domain links
+            console.log("Domain Links is an array with length:", domainLinks.length);
+            if (domainLinks.length > 0 && domainLinks[0].children) {
+              console.log("First domain link has children:", domainLinks[0].children);
+            }
+          } else if (domainLinks && typeof domainLinks === 'object' && domainLinks.children) {
+            // Handle single domain link object
+            console.log("Domain Links children:", domainLinks.children);
           }
         } else {
           console.log("No domain_links found for", selectedSource.name);
