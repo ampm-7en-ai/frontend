@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -267,7 +266,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
         });
       } else {
         toast({
@@ -325,7 +324,7 @@ const KnowledgeTrainingStatus = ({
   const processSelectedUrlsForSource = (
     externalSource, 
     selectedUrls: Set<string>, 
-    existingLinks: Array<{url: string, title?: string, status: string, selected: boolean}> = []
+    existingLinks: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}> = []
   ) => {
     if (!selectedUrls || selectedUrls.size === 0) return existingLinks;
     
@@ -358,7 +357,7 @@ const KnowledgeTrainingStatus = ({
         newInsideLinks.push({
           url: node.url,
           title: node.title || node.url,
-          status: 'pending',
+          status: 'pending' as const,
           selected: true
         });
       }

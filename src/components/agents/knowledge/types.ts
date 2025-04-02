@@ -1,3 +1,4 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -11,7 +12,7 @@ export interface KnowledgeSource {
   content?: string;
   insideLinks?: {
     url: string;
-    title: string;
+    title?: string;
     status: 'error' | 'success' | 'pending';
     selected?: boolean;
   }[];

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -330,7 +331,7 @@ const KnowledgeSourceTable = ({
     const selectedSubUrlsArray = source.selectedSubUrls ? 
       Array.from(source.selectedSubUrls) : [];
     
-    const allSelectedUrls = [...selectedUrls, ...selectedSubUrlsArray];
+    const allSelectedUrls = [...selectedUrls, ...selectedSubUrlsArray.map(url => ({ url, title: url }))] as Array<{url: string, title?: string}>;
     
     if (allSelectedUrls.length === 0) {
       return null;
@@ -339,13 +340,19 @@ const KnowledgeSourceTable = ({
     return (
       <div className="ml-7 mt-1 space-y-1">
         <div className="text-xs text-muted-foreground font-medium">Selected URLs:</div>
-        {allSelectedUrls.map((url, index) => (
-          <div key={index} className="flex items-center text-xs text-muted-foreground ml-2">
-            <Globe className="h-3 w-3 mr-1 text-green-600" />
-            <span className="font-medium">{url.title || url}</span>
-            {url.url && <span className="ml-1 text-xs text-muted-foreground">({url.url})</span>}
-          </div>
-        ))}
+        {allSelectedUrls.map((item, index) => {
+          // Check if it's a string or an object with url/title properties
+          const displayTitle = typeof item === 'string' ? item : item.title || item.url;
+          const displayUrl = typeof item === 'string' ? item : item.url;
+          
+          return (
+            <div key={index} className="flex items-center text-xs text-muted-foreground ml-2">
+              <Globe className="h-3 w-3 mr-1 text-green-600" />
+              <span className="font-medium">{displayTitle}</span>
+              {displayUrl && displayTitle !== displayUrl && <span className="ml-1 text-xs text-muted-foreground">({displayUrl})</span>}
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -492,7 +499,7 @@ const KnowledgeSourceTable = ({
                                         <div key={index} className="flex items-center text-xs p-1 rounded">
                                           <Globe className="h-3.5 w-3.5 mr-2 text-green-600" />
                                           <div className="flex flex-col">
-                                            <span className="text-sm">{link.title || "URL"}</span>
+                                            <span className="text-sm">{link.title || link.url}</span>
                                             <span className="text-xs text-muted-foreground">{link.url}</span>
                                           </div>
                                         </div>
