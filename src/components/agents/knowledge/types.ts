@@ -41,11 +41,13 @@ export interface KnowledgeSource {
   knowledge_sources?: KnowledgeSourceItem[];
   format?: string; // Making format optional in KnowledgeSource
   pages?: string;  // Making pages optional in KnowledgeSource
+  selected?: boolean; // Track selection state
 }
 
 export interface KnowledgeSourceItem {
   id: number | string;
-  url: string;
+  url: string | null;
+  file?: string | null;
   title: string;
   status?: string;
   selected?: boolean;
@@ -53,9 +55,12 @@ export interface KnowledgeSourceItem {
   parent_knowledge_source?: number | null;
   metadata?: {
     format?: string;
-    sub_urls?: SubUrlItem;
-    crawl_more?: string;
+    file_size?: string | number;
+    sub_urls?: UrlNode;
+    crawl_more?: string | boolean;
     no_of_pages?: number;
+    no_of_rows?: number;
+    no_of_chars?: number;
     upload_date?: string;
     last_fetched?: string;
   };
@@ -66,12 +71,14 @@ export interface KnowledgeSourceItem {
 export interface SubUrlItem {
   key: string;
   url: string;
+  title?: string;
   children?: SubUrlItem[];
 }
 
 // Define recursive UrlNode interface for nested URL structure
 export interface UrlNode {
   url: string;
+  key?: string;
   title?: string;
   selected?: boolean;
   children?: UrlNode[];

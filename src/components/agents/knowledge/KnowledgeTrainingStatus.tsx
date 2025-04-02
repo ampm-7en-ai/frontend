@@ -83,9 +83,12 @@ const KnowledgeTrainingStatus = ({
         ? formatDate(firstSource.metadata.upload_date) 
         : formatDate(kb.last_updated);
 
-      const format = firstSource && firstSource.metadata && firstSource.metadata.format 
-        ? firstSource.metadata.format 
-        : getMimeTypeForFormat(kb.type);
+      let urlStructure = null;
+      if (kb.type === 'website' && firstSource && firstSource.metadata) {
+        if (firstSource.metadata.sub_urls) {
+          urlStructure = firstSource.metadata.sub_urls;
+        }
+      }
 
       return {
         id: kb.id,
@@ -95,7 +98,9 @@ const KnowledgeTrainingStatus = ({
         lastUpdated: uploadDate,
         trainingStatus: 'idle' as const,
         progress: 0,
-        linkBroken: false
+        linkBroken: false,
+        knowledge_sources: kb.knowledge_sources,
+        metadata: kb.metadata || {}
       };
     });
   };
@@ -224,7 +229,7 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    const externalSources = formatExternalSources(availableKnowledgeBases);
+    const externalSourcesData = formatExternalSources(availableKnowledgeBases);
     const newSourceIds = sourceIds.filter(id => !knowledgeSources.some(s => s.id === id));
     
     if (newSourceIds.length === 0) {
@@ -237,7 +242,7 @@ const KnowledgeTrainingStatus = ({
     }
     
     const newSources: KnowledgeSource[] = newSourceIds.map(id => {
-      const externalSource = externalSources.find(s => s.id === id);
+      const externalSource = externalSourcesData.find(s => s.id === id);
       if (!externalSource) return null;
       
       return {
@@ -248,7 +253,9 @@ const KnowledgeTrainingStatus = ({
         lastUpdated: externalSource.lastUpdated,
         trainingStatus: 'idle' as const,
         progress: 0,
-        linkBroken: false
+        linkBroken: false,
+        knowledge_sources: externalSource.knowledge_sources,
+        metadata: externalSource.metadata
       };
     }).filter(Boolean) as KnowledgeSource[];
     
@@ -263,7 +270,7 @@ const KnowledgeTrainingStatus = ({
     
     if (newSourceIds.length === 1) {
       const sourceId = newSourceIds[0];
-      const source = externalSources.find(s => s.id === sourceId);
+      const source = externalSourcesData.find(s => s.id === sourceId);
       if (source) {
         const toastInfo = getToastMessageForSourceChange('added', source.name);
         toast(toastInfo);
