@@ -4,7 +4,8 @@ import {
   Card, 
   CardContent, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardDescription 
 } from '@/components/ui/card';
 import { 
   Table,
@@ -18,7 +19,8 @@ import {
   Globe, 
   ChevronDown, 
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  File
 } from 'lucide-react';
 import { KnowledgeSource, KnowledgeSourceItem, SubUrlItem } from './types';
 import { Button } from '@/components/ui/button';
@@ -41,14 +43,49 @@ interface CrawledUrl {
 const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
   const [crawledUrls, setCrawledUrls] = useState<CrawledUrl[]>([]);
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [pageCount, setPageCount] = useState<number>(0);
 
   useEffect(() => {
     if (source && source.type === 'website') {
       console.info(`Rendering website/URL content for: ${source.name}`);
       const urls = extractCrawledUrls(source);
       setCrawledUrls(urls);
+      
+      // Calculate total page count
+      calculateTotalPageCount(source);
     }
   }, [source]);
+
+  const calculateTotalPageCount = (source: KnowledgeSource) => {
+    let totalPages = 0;
+    
+    if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+      source.knowledge_sources.forEach((ks: KnowledgeSourceItem) => {
+        // Count the main URL
+        totalPages++;
+        
+        // Count the children if they exist
+        if (ks.metadata?.sub_urls?.children) {
+          totalPages += countNestedChildren(ks.metadata.sub_urls.children);
+        }
+      });
+    }
+    
+    setPageCount(totalPages);
+    console.info(`Total pages calculated: ${totalPages}`);
+  };
+
+  const countNestedChildren = (children: SubUrlItem[]): number => {
+    let count = children.length;
+    
+    children.forEach(child => {
+      if (child.children && child.children.length > 0) {
+        count += countNestedChildren(child.children);
+      }
+    });
+    
+    return count;
+  };
 
   const extractCrawledUrls = (source: KnowledgeSource): CrawledUrl[] => {
     const result: CrawledUrl[] = [];
@@ -206,6 +243,14 @@ const WebsiteContentPanel = ({ source }: WebsiteContentPanelProps) => {
           <Globe className="h-4 w-4" />
           Website Content
         </CardTitle>
+        <CardDescription>
+          {pageCount > 0 && (
+            <div className="flex items-center gap-2">
+              <File className="h-3 w-3" />
+              <span>Total Pages: <strong>{pageCount}</strong></span>
+            </div>
+          )}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
