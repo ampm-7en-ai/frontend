@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -15,9 +16,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { 
   FileText, Globe, FileSpreadsheet, File, FileSearch, Search, 
   Calendar, CheckCircle, Database, ArrowRight, ExternalLink,
-  ChevronRight, ChevronDown
+  ChevronRight, ChevronDown, AlertCircle
 } from 'lucide-react';
-import { KnowledgeSource, UrlNode, FlattenedUrlNode } from './types';
+import { KnowledgeSource, UrlNode, FlattenedUrlNode, SubUrlItem } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { formatFileSizeToMB } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ExternalSource {
   id: number;
@@ -52,6 +54,8 @@ interface ExternalSource {
     website?: string;
     crawl_more?: boolean;
     last_updated?: string;
+    last_fetched?: string;
+    knowledge_source_ids?: number[];
   };
 }
 
@@ -94,6 +98,7 @@ export const ImportSourcesDialog = ({
   const [filteredCenterSources, setFilteredCenterSources] = useState<ExternalSource[]>([]);
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
   const [expandedUrls, setExpandedUrls] = useState<string[]>([]);
+  const [pageCountAlert, setPageCountAlert] = useState<{show: boolean, count: number, name: string} | null>(null);
 
   useEffect(() => {
     if (isOpen && externalSources.length > 0 && initialSourceId) {
@@ -108,25 +113,6 @@ export const ImportSourcesDialog = ({
   useEffect(() => {
     if (selectedSourceData) {
       console.log("Selected Source Data in ImportSourcesDialog:", selectedSourceData);
-      
-      if (selectedSourceData.metadata) {
-        console.log("Source metadata:", selectedSourceData.metadata);
-        
-        if (selectedSourceData.metadata.domain_links) {
-          const domainLinks = selectedSourceData.metadata.domain_links;
-          console.log("Domain Links Structure:", {
-            type: typeof domainLinks,
-            isArray: Array.isArray(domainLinks),
-            hasUrl: Array.isArray(domainLinks) 
-              ? domainLinks.length > 0 && 'url' in domainLinks[0] 
-              : 'url' in domainLinks,
-            hasChildren: Array.isArray(domainLinks)
-              ? domainLinks.length > 0 && 'children' in domainLinks[0]
-              : 'children' in domainLinks,
-            structure: domainLinks
-          });
-        }
-      }
     }
   }, [selectedSourceData]);
 
@@ -158,6 +144,78 @@ export const ImportSourcesDialog = ({
     setFilteredCenterSources(filtered);
   }, [selectedTab, searchTerm, externalSources]);
 
+  // Convert SubUrlItem to FlattenedUrlNode for tree display
+  const processSubUrlTree = (
+    node: SubUrlItem, 
+    level: number = 0, 
+    path: string = '', 
+    parentUrl?: string
+  ): FlattenedUrlNode[] => {
+    if (!node || !node.url) {
+      console.log("Warning: Invalid node in processSubUrlTree", node);
+      return [];
+    }
+    
+    try {
+      const urlObj = new URL(node.url);
+      const pathname = urlObj.pathname;
+      const nodeTitle = node.key || pathname.split('/').filter(Boolean).pop() || urlObj.hostname;
+      
+      const currentPath = path ? `${path} > ${nodeTitle}` : nodeTitle;
+      
+      const currentNode: FlattenedUrlNode = {
+        url: node.url,
+        title: nodeTitle,
+        level,
+        path: currentPath,
+        parentUrl
+      };
+      
+      if (!node.children || node.children.length === 0) {
+        return [currentNode];
+      }
+      
+      console.log(`Processing ${node.children.length} children for node: ${nodeTitle}`);
+      
+      const childrenNodes = node.children.flatMap(child => 
+        processSubUrlTree(child, level + 1, currentPath, node.url)
+      );
+      
+      return [currentNode, ...childrenNodes];
+    } catch (error) {
+      console.error(`Error processing URL ${node.url}:`, error);
+      return [];
+    }
+  };
+
+  const getChildrenUrlsFromSubUrls = (source: ExternalSource): FlattenedUrlNode[] => {
+    if (!source || !source.knowledge_sources || source.knowledge_sources.length === 0) {
+      return [];
+    }
+    
+    // Find knowledge source with sub_urls structure
+    const sourcesWithSubUrls = source.knowledge_sources.filter(
+      ks => ks.metadata && ks.metadata.sub_urls
+    );
+    
+    if (sourcesWithSubUrls.length === 0) {
+      return [];
+    }
+    
+    let allUrls: FlattenedUrlNode[] = [];
+    
+    for (const ks of sourcesWithSubUrls) {
+      if (ks.metadata?.sub_urls) {
+        const subUrls = ks.metadata.sub_urls;
+        const processedUrls = processSubUrlTree(subUrls);
+        allUrls = [...allUrls, ...processedUrls];
+      }
+    }
+    
+    return allUrls;
+  };
+
+  // Legacy method for backward compatibility
   const getAllChildUrls = (node: UrlNode, level: number = 0, path: string = '', parentUrl?: string): FlattenedUrlNode[] => {
     if (!node || !node.url) {
       console.log("Warning: Invalid node in getAllChildUrls", node);
@@ -196,6 +254,19 @@ export const ImportSourcesDialog = ({
     
     console.log(`Getting children URLs for ${source.name}, type: ${source.type}`);
     
+    // Check for sub_urls structure in knowledge_sources metadata (new structure)
+    if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+      const hasSubUrls = source.knowledge_sources.some(ks => 
+        ks.metadata && ks.metadata.sub_urls
+      );
+      
+      if (hasSubUrls) {
+        console.log(`Found sub_urls structure in knowledge_sources for ${source.name}`);
+        return getChildrenUrlsFromSubUrls(source);
+      }
+    }
+    
+    // Legacy method for backward compatibility
     if (source.type !== 'website' && source.type !== 'url') {
       console.log(`Source ${source.name} is not a website/url type, skipping domain_links extraction`);
       return [];
@@ -315,6 +386,107 @@ export const ImportSourcesDialog = ({
     });
   };
 
+  // Calculate total pages for a source, including all children and nested children
+  const calculateTotalPages = (source: ExternalSource): number => {
+    if (!source) return 0;
+    let totalPages = 0;
+    
+    if (source.type === 'website' || source.type === 'url') {
+      // New structure: Check for sub_urls in knowledge_sources
+      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        const sourcesWithSubUrls = source.knowledge_sources.filter(
+          ks => ks.metadata && ks.metadata.sub_urls
+        );
+        
+        if (sourcesWithSubUrls.length > 0) {
+          // Process each knowledge source with sub_urls
+          for (const ks of sourcesWithSubUrls) {
+            if (ks.metadata?.sub_urls) {
+              // Count the main URL
+              totalPages++;
+              
+              // Function to count all nested children recursively
+              const countNestedChildren = (items?: SubUrlItem[]): number => {
+                if (!items || items.length === 0) return 0;
+                
+                let count = items.length;
+                
+                for (const item of items) {
+                  if (item.children && item.children.length > 0) {
+                    count += countNestedChildren(item.children);
+                  }
+                }
+                
+                return count;
+              };
+              
+              // Count all children at all levels
+              if (ks.metadata.sub_urls.children) {
+                totalPages += countNestedChildren(ks.metadata.sub_urls.children);
+              }
+            }
+          }
+        } else {
+          // Fallback to knowledge_sources count if no sub_urls
+          totalPages = source.knowledge_sources.length;
+        }
+      } else if (source.metadata?.domain_links) {
+        // Legacy structure: Count from domain_links
+        const domainLinks = source.metadata.domain_links;
+        
+        if (Array.isArray(domainLinks)) {
+          // Count top level items
+          totalPages = domainLinks.length;
+          
+          // Count all nested children
+          const countDomainChildren = (nodes?: UrlNode[]): number => {
+            if (!nodes || nodes.length === 0) return 0;
+            
+            let count = 0;
+            
+            for (const node of nodes) {
+              if (node.children && node.children.length > 0) {
+                count += node.children.length;
+                count += countDomainChildren(node.children);
+              }
+            }
+            
+            return count;
+          };
+          
+          totalPages += countDomainChildren(domainLinks as UrlNode[]);
+        } else if (typeof domainLinks === 'object' && domainLinks !== null) {
+          // Count single domain node
+          totalPages = 1;
+          
+          // Count children recursively
+          const countChildren = (node?: UrlNode): number => {
+            if (!node || !node.children || node.children.length === 0) return 0;
+            
+            let count = node.children.length;
+            
+            for (const child of node.children) {
+              count += countChildren(child);
+            }
+            
+            return count;
+          };
+          
+          totalPages += countChildren(domainLinks as UrlNode);
+        }
+      } else if (source.insideLinks && source.insideLinks.length > 0) {
+        totalPages = source.insideLinks.length;
+      } else {
+        totalPages = 1; // Default to 1 if no children found
+      }
+    } else {
+      // Non-website sources, use metadata or default to 1
+      totalPages = source.metadata?.no_of_pages ? Number(source.metadata.no_of_pages) : 1;
+    }
+    
+    return totalPages;
+  };
+
   const handleViewSourceDetails = (source: ExternalSource) => {
     setSelectedSource(source);
     setActiveSourceId(source.id);
@@ -325,20 +497,19 @@ export const ImportSourcesDialog = ({
       onSourceSelect(source.id);
     }
     
-    console.log("Selected source details:", {
-      id: source.id,
-      name: source.name,
-      type: source.type,
-      hasDomainLinks: !!(source.domain_links || (source.metadata && source.metadata.domain_links)),
-      domainLinksSource: source.domain_links ? "direct" : 
-                         (source.metadata && source.metadata.domain_links ? "metadata" : "none")
+    // Calculate and show the page count alert
+    const totalPages = calculateTotalPages(source);
+    
+    setPageCountAlert({
+      show: true,
+      count: totalPages,
+      name: source.name
     });
     
-    if (source.metadata?.domain_links) {
-      console.log("Domain links structure from metadata:", source.metadata.domain_links);
-    } else if (source.domain_links) {
-      console.log("Domain links structure from source:", source.domain_links);
-    }
+    // Hide alert after 5 seconds
+    setTimeout(() => {
+      setPageCountAlert(null);
+    }, 5000);
   };
 
   const handleSelectChildUrl = (url: string) => {
@@ -508,11 +679,13 @@ export const ImportSourcesDialog = ({
     if (selectedSource.type === 'website' || selectedSource.type === 'url') {
       console.log("Rendering website/URL content for:", selectedSource.name);
       
+      // Get all child URLs (should now include sub_urls structure)
       const childUrls = getChildrenUrls(selectedSource);
       const hasChildUrls = childUrls.length > 0;
       
       console.log(`Found ${childUrls.length} child URLs for ${selectedSource.name}`);
       
+      // Group URLs by parent for tree view
       const urlsByParent: Record<string, FlattenedUrlNode[]> = {};
       childUrls.forEach(node => {
         const groupKey = node.parentUrl || (node.level === 0 ? 'root' : node.path.split(' > ').slice(0, -1).join(' > '));
@@ -525,21 +698,20 @@ export const ImportSourcesDialog = ({
       
       console.log("URL grouping:", Object.keys(urlsByParent));
       
+      // Determine main domain URL
       let mainDomainUrl = "";
       
-      if (selectedSource.domain_links && !Array.isArray(selectedSource.domain_links) && 
-          typeof selectedSource.domain_links === 'object' && 'url' in selectedSource.domain_links) {
-        mainDomainUrl = selectedSource.domain_links.url;
-      } else if (selectedSource.metadata && selectedSource.metadata.domain_links && 
-                !Array.isArray(selectedSource.metadata.domain_links) && 
-                typeof selectedSource.metadata.domain_links === 'object' && 
-                'url' in selectedSource.metadata.domain_links) {
-        mainDomainUrl = selectedSource.metadata.domain_links.url;
-      } else if (selectedSource.metadata && selectedSource.metadata.website) {
+      if (selectedSource.metadata && selectedSource.metadata.website) {
         mainDomainUrl = selectedSource.metadata.website;
+      } else if (selectedSource.knowledge_sources && selectedSource.knowledge_sources.length > 0 && 
+                selectedSource.knowledge_sources[0].metadata?.sub_urls) {
+        mainDomainUrl = selectedSource.knowledge_sources[0].metadata.sub_urls.url;
       } else if (selectedSource.name.includes('http')) {
         mainDomainUrl = selectedSource.name;
       }
+      
+      // Calculate total pages
+      const totalPages = calculateTotalPages(selectedSource);
       
       return (
         <div className="p-4">
@@ -560,6 +732,15 @@ export const ImportSourcesDialog = ({
                 </a>
               </div>
             )}
+            
+            {/* Alert to show total pages */}
+            <Alert variant="default" className="mb-4 bg-blue-50 border-blue-200">
+              <AlertCircle className="h-4 w-4 text-blue-500" />
+              <AlertTitle className="text-sm font-medium">Source Pages</AlertTitle>
+              <AlertDescription className="text-xs">
+                This source contains <span className="font-bold text-blue-600">{totalPages}</span> total {totalPages === 1 ? 'page' : 'pages'}.
+              </AlertDescription>
+            </Alert>
             
             {hasChildUrls ? (
               <div>
@@ -697,101 +878,119 @@ export const ImportSourcesDialog = ({
   const isSourceSelected = selectedSourceIds.length > 0;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] p-0 gap-0 max-h-[80vh] overflow-hidden">
-        <DialogHeader className="p-6 pb-3 border-b">
-          <DialogTitle>Knowledge Sources</DialogTitle>
-          <DialogDescription>
-            Import knowledge sources to train your agent
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex flex-col md:flex-row h-[500px]">
-          <div className="w-60 border-r p-4 flex flex-col">
-            <div className="font-medium mb-3 text-sm">Source Types</div>
-            <div className="space-y-1">
-              {sourceTypes.map(type => (
-                <button
-                  key={type.id}
-                  className={cn(
-                    "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors",
-                    selectedTab === type.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                  )}
-                  onClick={() => setSelectedTab(type.id)}
-                >
-                  <div className="flex items-center gap-2">
-                    {type.icon}
-                    <span>{type.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {type.selectedCount > 0 && type.id !== 'all' && (
-                      <Badge className="h-5 px-1.5 bg-primary text-primary-foreground">
-                        {type.selectedCount}
-                      </Badge>
-                    )}
-                    <Badge variant="outline" className="h-5 px-1.5">
-                      {type.count}
-                    </Badge>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+    <>
+      {pageCountAlert && pageCountAlert.show && (
+        <div className="fixed top-4 right-4 z-50 w-80">
+          <Alert variant="default" className="border-2 border-blue-500">
+            <ExternalLink className="h-4 w-4 text-blue-500" />
+            <AlertTitle>Source Pages</AlertTitle>
+            <AlertDescription>
+              <span className="font-bold">{pageCountAlert.name}</span> has 
+              <span className="font-bold text-blue-600 mx-1">
+                {pageCountAlert.count}
+              </span> 
+              total {pageCountAlert.count === 1 ? 'page' : 'pages'}.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[900px] p-0 gap-0 max-h-[80vh] overflow-hidden">
+          <DialogHeader className="p-6 pb-3 border-b">
+            <DialogTitle>Knowledge Sources</DialogTitle>
+            <DialogDescription>
+              Import knowledge sources to train your agent
+            </DialogDescription>
+          </DialogHeader>
           
-          <div className="w-72 border-r flex flex-col">
-            <div className="p-4 border-b">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search sources..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+          <div className="flex flex-col md:flex-row h-[500px]">
+            <div className="w-60 border-r p-4 flex flex-col">
+              <div className="font-medium mb-3 text-sm">Source Types</div>
+              <div className="space-y-1">
+                {sourceTypes.map(type => (
+                  <button
+                    key={type.id}
+                    className={cn(
+                      "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors",
+                      selectedTab === type.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                    )}
+                    onClick={() => setSelectedTab(type.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {type.icon}
+                      <span>{type.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {type.selectedCount > 0 && type.id !== 'all' && (
+                        <Badge className="h-5 px-1.5 bg-primary text-primary-foreground">
+                          {type.selectedCount}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="h-5 px-1.5">
+                        {type.count}
+                      </Badge>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
             
-            <ScrollArea className="flex-1">
-              <div className="p-3 pt-2 grid gap-2">
-                {filteredCenterSources.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    No sources found
-                  </div>
-                ) : (
-                  filteredCenterSources.map((source) => renderSourceCard(source))
-                )}
+            <div className="w-72 border-r flex flex-col">
+              <div className="p-4 border-b">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search sources..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
-            </ScrollArea>
+              
+              <ScrollArea className="flex-1">
+                <div className="p-3 pt-2 grid gap-2">
+                  {filteredCenterSources.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No sources found
+                    </div>
+                  ) : (
+                    filteredCenterSources.map((source) => renderSourceCard(source))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+            
+            <div className="flex-1 flex flex-col">
+              {renderSourceDetails()}
+            </div>
           </div>
           
-          <div className="flex-1 flex flex-col">
-            {renderSourceDetails()}
-          </div>
-        </div>
-        
-        <DialogFooter className="p-4 border-t">
-          <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-muted-foreground">
-              {selectedSourceIds.length} source{selectedSourceIds.length !== 1 && 's'} selected
+          <DialogFooter className="p-4 border-t">
+            <div className="flex items-center justify-between w-full">
+              <div className="text-sm text-muted-foreground">
+                {selectedSourceIds.length} source{selectedSourceIds.length !== 1 && 's'} selected
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleImport} 
+                  disabled={selectedSourceIds.length === 0}
+                  className="gap-1"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  Import Selected
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleImport} 
-                disabled={selectedSourceIds.length === 0}
-                className="gap-1"
-              >
-                <ArrowRight className="h-4 w-4" />
-                Import Selected
-              </Button>
-            </div>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

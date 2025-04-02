@@ -34,6 +34,8 @@ export interface KnowledgeSource {
     website?: string;
     crawl_more?: boolean;
     last_updated?: string;
+    last_fetched?: string;
+    knowledge_source_ids?: number[];
   };
   icon?: string;
   knowledge_sources?: KnowledgeSourceItem[];
@@ -52,13 +54,21 @@ export interface KnowledgeSourceItem {
     sub_urls?: {
       key: string;
       url: string;
-      children?: {
-        key: string;
-        url: string;
-        children?: any[];
-      }[];
+      children?: SubUrlItem[];
     };
+    crawl_more?: string;
+    no_of_pages?: number;
+    upload_date?: string;
+    last_fetched?: string;
   };
+  owner?: number;
+  sub_knowledge_sources?: KnowledgeSourceItem[];
+}
+
+export interface SubUrlItem {
+  key: string;
+  url: string;
+  children?: SubUrlItem[];
 }
 
 // Define recursive UrlNode interface for nested URL structure
