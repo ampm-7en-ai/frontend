@@ -58,10 +58,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
+      console.log("Using redirect URI:", GOOGLE_AUTH_CONFIG.REDIRECT_URI);
+      
       // Configure Google OAuth 2.0 flow with authorization code flow
       const client = googleAuth.initTokenClient({
         client_id: GOOGLE_AUTH_CONFIG.CLIENT_ID,
         scope: GOOGLE_OAUTH_SCOPES,
+        redirect_uri: GOOGLE_AUTH_CONFIG.REDIRECT_URI,
         callback: async (tokenResponse: any) => {
           console.log("Google OAuth token response:", tokenResponse);
           
