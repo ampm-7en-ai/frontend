@@ -96,6 +96,7 @@ const AgentTest = () => {
         onSendMessage={handleSendMessage}
         onViewKnowledgeSources={handleViewKnowledgeSources}
         knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
+        primaryColor={primaryColors[0] || '#9b87f5'}
       />
 
       <SystemPromptDialog 

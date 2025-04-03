@@ -8,12 +8,14 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   onViewKnowledgeSources: () => void;
   knowledgeSourceCount: number;
+  primaryColor?: string;
 }
 
 export const ChatInput = ({ 
   onSendMessage, 
   onViewKnowledgeSources,
-  knowledgeSourceCount
+  knowledgeSourceCount,
+  primaryColor = '#9b87f5'
 }: ChatInputProps) => {
   const [inputMessage, setInputMessage] = useState('');
 
@@ -41,16 +43,16 @@ export const ChatInput = ({
             onKeyDown={handleKeyDown}
             className="pr-12 text-sm border-2 rounded-full pl-4 shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0"
             style={{ 
-              borderColor: '#9b87f530',
+              borderColor: `${primaryColor}30`,
             }}
           />
           <button 
             onClick={handleSendMessage} 
             className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
             style={{ 
-              backgroundColor: '#9b87f5',
+              backgroundColor: primaryColor,
               color: '#FFFFFF',
-              boxShadow: '0 2px 5px #9b87f540'
+              boxShadow: `0 2px 5px ${primaryColor}40`
             }}
           >
             <Send className="h-4 w-4" />
