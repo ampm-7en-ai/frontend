@@ -243,14 +243,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             control={form.control}
             name="rememberMe"
             render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
+              <FormItem className="flex flex-row items-center space-x-2">
                 <FormControl>
                   <Checkbox 
                     checked={field.value} 
                     onCheckedChange={field.onChange}
+                    className="mt-0.5"
                   />
                 </FormControl>
-                <FormLabel className="text-sm font-medium text-dark-gray cursor-pointer">
+                <FormLabel className="text-sm font-medium text-dark-gray cursor-pointer m-0 leading-none">
                   Remember me
                 </FormLabel>
               </FormItem>
