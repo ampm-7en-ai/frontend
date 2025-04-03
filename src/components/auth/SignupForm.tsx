@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Globe, Building, Phone, MapPin, User, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
@@ -25,9 +24,6 @@ const signupSchema = z.object({
   website: z.string().optional(),
   address: z.string().min(1, "Address is required"),
   username: z.string().min(3, "Username must be at least 3 characters"),
-  terms: z.boolean().refine(val => val === true, {
-    message: "You must accept the terms and conditions"
-  })
 });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
@@ -53,7 +49,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
       website: '',
       address: '',
       username: '',
-      terms: false
     }
   });
 
@@ -146,11 +141,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
   const handleRegistrationSuccess = (data: any, email: string) => {
     console.log('Registration success:', data);
     
-    // Set verification status in auth context
     setPendingVerificationEmail(email);
     setNeedsVerification(true);
     
-    // Navigate to verification page
     navigate('/verify', { state: { email } });
     
     toast({
@@ -163,7 +156,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
   const handleRegistrationError = (data: any) => {
     console.log('Registration error response:', data);
     
-    // Handle field-specific errors
     if (data.username) {
       form.setError('username', { 
         type: 'server', 
@@ -178,7 +170,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
       });
     }
     
-    // Handle general error message if no field-specific errors
     if (!data.username && !data.email && data.message) {
       toast({
         title: "Registration Failed",
@@ -364,34 +355,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="terms"
-            render={({ field }) => (
-              <FormItem className="flex items-center space-x-2 py-0 mt-4">
-                <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="grid gap-1">
-                  <FormLabel className="text-sm font-medium text-dark-gray cursor-pointer m-0 flex items-center">
-                    I agree to the 
-                    <a href="/terms" className="text-primary hover:underline ml-1">
-                      Terms of Service
-                    </a> and 
-                    <a href="/privacy" className="text-primary hover:underline ml-1">
-                      Privacy Policy
-                    </a>
-                  </FormLabel>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
+          <p className="text-sm text-center text-dark-gray mt-4">
+            By continuing, you agree to our{" "}
+            <a href="/terms" className="text-primary hover:underline">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </a>
+            .
+          </p>
           
-          <Button type="submit" className="w-full h-12 mt-6" disabled={isLoading}>
+          <Button type="submit" className="w-full h-12 mt-2" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +15,6 @@ import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
-  rememberMe: z.boolean().optional()
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -38,7 +35,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     defaultValues: {
       username: '',
       password: '',
-      rememberMe: false
     }
   });
 
@@ -60,28 +56,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       const data = await response.json();
       console.log("Login response:", data);
       
-      // Check if the response indicates the user is not verified
       if (data.error && data.error.includes("User not verified")) {
-        // Extract email from the response
         const email = data.email || values.username;
         
-        // Set verification status in auth context
         setPendingVerificationEmail(email);
         setNeedsVerification(true);
         
-        // Show error toast with the verification message
         toast({
           title: "Account Not Verified",
           description: data.error,
           variant: "destructive",
         });
         
-        // Navigate to verification page
         navigate('/verify', { state: { email } });
         return;
       }
       
-      // If response is successful and contains access token, handle login
       if (response.ok && data.access) {
         const userRole = data.user_type === "business" ? "admin" : data.user_type;
         
@@ -99,7 +89,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           variant: "default",
         });
         
-        // Redirect based on user role
         if (userRole === 'superadmin') {
           navigate('/dashboard/superadmin');
         } else if (userRole === 'admin') {
@@ -110,18 +99,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
-      // Handle error response
       if (!response.ok) {
         if (data.non_field_errors) {
           if (data.non_field_errors.includes("Please verify your account first")) {
-            // Get email from response if available
             const email = data.email || values.username;
             
-            // Set verification status in auth context
             setPendingVerificationEmail(email);
             setNeedsVerification(true);
             
-            // Navigate to verification page
             navigate('/verify', { state: { email } });
             
             toast({
@@ -140,7 +125,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             });
           }
         } else if (data.error) {
-          // Handle generic error messages
           form.setError("root", { 
             message: data.error 
           });
@@ -242,24 +226,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               {form.formState.errors.root.message}
             </div>
           )}
-          
-          <FormField
-            control={form.control}
-            name="rememberMe"
-            render={({ field }) => (
-              <FormItem className="flex items-center space-x-2 py-0">
-                <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="text-sm font-medium text-dark-gray cursor-pointer m-0 flex items-center">
-                  Remember me
-                </FormLabel>
-              </FormItem>
-            )}
-          />
           
           <Button 
             type="submit" 
