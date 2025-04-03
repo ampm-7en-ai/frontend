@@ -37,7 +37,7 @@ export function QuickActions({ className }: QuickActionsProps) {
     {
       icon: <Bot size={16} />,
       label: 'Test Agent',
-      href: '/agents/test',
+      href: '/agents/1/test', // Use a default agent ID here
       newTab: true
     },
     {

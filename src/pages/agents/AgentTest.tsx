@@ -132,6 +132,14 @@ const AgentTest = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<string>(agentId || "1");
   const [agent, setAgent] = useState<Agent | null>(null);
   
+  // Update selectedAgentId when URL param changes
+  useEffect(() => {
+    if (agentId && agentId !== selectedAgentId) {
+      setSelectedAgentId(agentId);
+      console.log("URL agent ID changed to:", agentId);
+    }
+  }, [agentId]);
+  
   const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>([
     { model: "llama", temperature: 0.6, systemPrompt: "", maxLength: 512 },
     { model: "deepseek", temperature: 0.7, systemPrompt: "", maxLength: 512 },
@@ -174,10 +182,13 @@ const AgentTest = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch specific agent details
-  const { data: agentData, isLoading: isLoadingAgent } = useQuery({
+  // Fetch specific agent details - using agentId from URL params
+  const { data: agentData, isLoading: isLoadingAgent, refetch: refetchAgent } = useQuery({
     queryKey: ['agent', selectedAgentId],
-    queryFn: () => fetchAgentDetails(selectedAgentId),
+    queryFn: () => {
+      console.log("Fetching agent with ID:", selectedAgentId);
+      return fetchAgentDetails(selectedAgentId);
+    },
     enabled: !!selectedAgentId,
     onSuccess: (data) => {
       console.log('Agent details data:', data);
@@ -235,6 +246,13 @@ const AgentTest = () => {
       }
     }
   });
+
+  // Manually refetch when selectedAgentId changes
+  useEffect(() => {
+    if (selectedAgentId) {
+      refetchAgent();
+    }
+  }, [selectedAgentId, refetchAgent]);
 
   const handleAgentChange = (newAgentId: string) => {
     navigate(`/agents/${newAgentId}/test`, { replace: true });
