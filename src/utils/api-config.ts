@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -234,6 +233,21 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
   return response.json();
 };
 
+// Function to convert a File to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+      const base64Data = base64String.split(',')[1];
+      resolve(base64Data);
+    };
+    reader.onerror = error => reject(error);
+  });
+};
+
 // Function to update an agent
 export const updateAgent = async (agentId: string, agentData: any): Promise<any> => {
   const token = getAccessToken();
@@ -258,7 +272,7 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
       position: agentData.appearance?.position,
       avatar: {
         type: agentData.appearance?.avatar?.type,
-        src: null // We'll handle this separately
+        src: agentData.appearance?.avatar?.src // Will be updated with base64 if needed
       }
     },
     behavior: agentData.behavior,
@@ -285,44 +299,28 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
     };
   }
   
-  // For custom avatar with a file, use FormData
+  // Handle custom avatar with file upload by converting to base64
   if (agentData.avatar && agentData.avatar.file && agentData.avatar.type === 'custom') {
-    const formData = new FormData();
-    
-    // Add the file to FormData
-    formData.append('avatar', agentData.avatar.file);
-    
-    // Add the rest of the payload as a JSON string
-    formData.append('data', JSON.stringify(payload));
-    
-    console.log('Sending avatar file in FormData');
-    
-    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`
-        // Don't set Content-Type for FormData
-      },
-      body: formData
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
-      console.error('Error updating agent:', errorData);
-      throw new Error(errorData.message || `Failed to update agent: ${response.status}`);
+    try {
+      // Convert the file to base64
+      const base64Data = await fileToBase64(agentData.avatar.file);
+      
+      // Update the avatar src in the payload with the base64 data
+      payload.appearance.avatar = {
+        type: 'custom',
+        src: base64Data
+      };
+      
+      console.log('Converted avatar file to base64 for JSON payload');
+    } catch (error) {
+      console.error('Error converting file to base64:', error);
+      throw new Error('Failed to process avatar file');
     }
-    
-    return response.json();
-  }
-  
-  // Handle non-file avatars (default, predefined, or no change)
-  if (agentData.appearance?.avatar) {
-    payload.appearance.avatar = agentData.appearance.avatar;
   }
   
   console.log('Sending JSON payload:', payload);
   
-  // For non-file updates, use regular JSON
+  // Send the entire payload as JSON
   const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
     method: 'PUT',
     headers: getAuthHeaders(token),
