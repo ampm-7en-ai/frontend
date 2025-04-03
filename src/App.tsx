@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
+import { TestPageLayout } from './components/layout/TestPageLayout';
 import Login from './pages/Login';
 import Verify from './pages/Verify';
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
@@ -58,6 +59,7 @@ const ProtectedRoutes = () => {
   
   return (
     <Routes>
+      {/* Main Layout Routes */}
       <Route path="/" element={<MainLayout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={
@@ -81,7 +83,6 @@ const ProtectedRoutes = () => {
         />
         
         <Route path="/agents" element={<AgentList />} />
-        <Route path="/agents/:agentId/test" element={<AgentTest />} />
         <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
         
         <Route 
@@ -159,6 +160,11 @@ const ProtectedRoutes = () => {
         <Route path="/settings/*" element={<Navigate to="/settings" replace />} />
         
         <Route path="*" element={<NotFound />} />
+      </Route>
+
+      {/* Test Page Layout - Simplified layout without sidebar and header */}
+      <Route element={<TestPageLayout />}>
+        <Route path="/agents/:agentId/test" element={<AgentTest />} />
       </Route>
     </Routes>
   );

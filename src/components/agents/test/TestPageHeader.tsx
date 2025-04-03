@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Bot } from 'lucide-react';
@@ -23,22 +22,21 @@ export const TestPageHeader = ({
   isLoading
 }: TestPageHeaderProps) => {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-      <div className="flex items-center">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/agents">
-            <ChevronLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <h1 className="text-2xl font-bold">AI Playground</h1>
+    <div className="flex flex-col gap-4 mb-6">
+      <div className="flex justify-center mb-2">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-primary">7en.ai</h1>
+          <h2 className="text-xl font-semibold">AI Playground</h2>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
+      
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <Select 
           value={selectedAgentId} 
           onValueChange={onAgentChange}
           disabled={isLoading}
         >
-          <SelectTrigger className="w-[220px]">
+          <SelectTrigger className="w-full sm:w-[280px]">
             <SelectValue placeholder="Select agent" />
           </SelectTrigger>
           <SelectContent>

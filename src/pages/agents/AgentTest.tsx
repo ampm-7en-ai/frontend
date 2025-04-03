@@ -40,7 +40,7 @@ const AgentTest = () => {
 
   if (isLoadingAgent || isLoadingAgents) {
     return (
-      <div className="max-w-[1400px] mx-auto space-y-4 p-8 text-center">
+      <div className="space-y-4 p-8 text-center">
         <LoadingSpinner text="Loading agent information..." />
       </div>
     );
@@ -48,7 +48,7 @@ const AgentTest = () => {
 
   if (!agent && !isLoadingAgent) {
     return (
-      <div className="max-w-[1400px] mx-auto space-y-4 p-8 text-center">
+      <div className="space-y-4 p-8 text-center">
         <h3 className="text-lg font-medium">Agent not found</h3>
         <p className="text-muted-foreground">The requested agent could not be found or you don't have access to it.</p>
         <Button asChild>
@@ -59,7 +59,7 @@ const AgentTest = () => {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-4 p-4">
+    <div className="space-y-6">
       <TestPageHeader 
         selectedAgentId={selectedAgentId}
         onAgentChange={handleAgentChange}

@@ -43,7 +43,7 @@ export function QuickActions({ className }: QuickActionsProps) {
     }
   });
   
-  // Update defaultAgentId when data is available
+  // Update defaultAgentId when data is available - but only once to prevent re-render loops
   useEffect(() => {
     if (agentsData?.agents && agentsData.agents.length > 0) {
       setDefaultAgentId(agentsData.agents[0].id.toString());
@@ -51,6 +51,7 @@ export function QuickActions({ className }: QuickActionsProps) {
     }
   }, [agentsData]);
 
+  // Define actions here to prevent recreating the array on each render
   const actions = [
     {
       icon: <PlusCircle size={16} />,
@@ -73,7 +74,7 @@ export function QuickActions({ className }: QuickActionsProps) {
     {
       icon: <Bot size={16} />,
       label: 'Test Agent',
-      href: `/agents/${defaultAgentId}/test`, // Use dynamically fetched ID
+      href: `/agents/${defaultAgentId}/test`,
       newTab: true
     },
     {
