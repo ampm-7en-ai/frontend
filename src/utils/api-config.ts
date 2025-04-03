@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -11,6 +12,7 @@ export const API_ENDPOINTS = {
   VERIFY_OTP: "users/verify_otp/",
   LOGIN: "users/login/",
   RESEND_OTP: "users/resend-otp/",
+  SSO_LOGIN: "users/sso_login/",
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/"
 };

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Lock, LogIn } from 'lucide-react';
+import { Eye, EyeOff, User, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { login, setPendingVerificationEmail, setNeedsVerification } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -37,6 +39,144 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       password: '',
     }
   });
+
+  const handleGoogleLogin = async () => {
+    try {
+      setIsGoogleLoading(true);
+      
+      // Initialize Google Sign-In
+      const googleAuth = (window as any).google?.accounts?.oauth2;
+      
+      if (!googleAuth) {
+        toast({
+          title: "Google Sign-In Error",
+          description: "Google authentication is not available. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Configure Google Sign-In
+      const client = googleAuth.initCodeClient({
+        client_id: '407408718192-93udbvkso5eaiio4vl0t79k2nabe27kr.apps.googleusercontent.com',
+        scope: 'email profile',
+        callback: async (response: any) => {
+          if (response.error) {
+            console.error('Google Sign-In error:', response.error);
+            toast({
+              title: "Google Sign-In Failed",
+              description: "There was an error signing in with Google. Please try again.",
+              variant: "destructive",
+            });
+            setIsGoogleLoading(false);
+            return;
+          }
+          
+          try {
+            // Get the credential from the response
+            const ssoToken = response.credential;
+            
+            // Create form data for API request
+            const formData = new FormData();
+            formData.append('sso_token', ssoToken);
+            formData.append('provider', 'google');
+            
+            // Send request to the API
+            const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              body: formData,
+            });
+            
+            const data = await response.json();
+            console.log("Google SSO login response:", data);
+            
+            if (response.ok && data.access) {
+              const userRole = data.user_type === "business" ? "admin" : data.user_type;
+              
+              await login(data.username || data.email || "Google User", "", {
+                accessToken: data.access,
+                refreshToken: data.refresh || null,
+                userId: data.user_id,
+                role: userRole,
+                isVerified: true
+              });
+              
+              toast({
+                title: "Login Successful",
+                description: "Welcome back!",
+                variant: "default",
+              });
+              
+              if (userRole === 'superadmin') {
+                navigate('/dashboard/superadmin');
+              } else if (userRole === 'admin') {
+                navigate('/dashboard/admin');
+              } else {
+                navigate('/dashboard');
+              }
+            } else if (data.error) {
+              toast({
+                title: "Login Failed",
+                description: data.error,
+                variant: "destructive",
+              });
+            } else {
+              toast({
+                title: "Login Failed",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "destructive",
+              });
+            }
+          } catch (error) {
+            console.error("Google SSO login error:", error);
+            toast({
+              title: "Login Failed",
+              description: "Could not complete Google sign-in. Please try again later.",
+              variant: "destructive",
+            });
+          } finally {
+            setIsGoogleLoading(false);
+          }
+        }
+      });
+      
+      // Prompt the user to select a Google account
+      client.requestCode();
+      
+    } catch (error) {
+      console.error("Google Sign-In initialization error:", error);
+      toast({
+        title: "Google Sign-In Error",
+        description: "Could not initialize Google Sign-In. Please try again later.",
+        variant: "destructive",
+      });
+      setIsGoogleLoading(false);
+    }
+  };
+
+  // Load Google Identity Services script
+  useEffect(() => {
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        console.log('Google Identity Services script loaded');
+      };
+      script.onerror = () => {
+        console.error('Error loading Google Identity Services script');
+      };
+      document.head.appendChild(script);
+    };
+    
+    loadGoogleScript();
+    
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
 
   const handleLogin = async (values: LoginFormValues) => {
     setIsLoggingIn(true);
@@ -244,14 +384,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         </span>
       </div>
       
-      <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+      <Button 
+        variant="outline" 
+        className="w-full flex items-center justify-center gap-2"
+        onClick={handleGoogleLogin}
+        disabled={isGoogleLoading}
+      >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4" />
           <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4204 9 14.4204C6.65591 14.4204 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853" />
           <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957273C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957273 13.0418L3.96409 10.71Z" fill="#FBBC05" />
           <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335" />
         </svg>
-        Sign in with Google
+        {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
       </Button>
       
       <Button variant="outline" className="w-full mt-3">
