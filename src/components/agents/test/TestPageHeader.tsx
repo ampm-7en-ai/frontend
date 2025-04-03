@@ -63,7 +63,9 @@ export const TestPageHeader = ({
               ))}
             </SelectContent>
           </Select>
-
+        </div>
+        
+        <div className="flex items-center gap-3">
           {onViewKnowledgeSources && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -87,17 +89,17 @@ export const TestPageHeader = ({
               </TooltipContent>
             </Tooltip>
           )}
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={onClearChat}
+            className="flex items-center gap-1"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Clear Chat
+          </Button>
         </div>
-        
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={onClearChat}
-          className="flex items-center gap-1"
-        >
-          <X className="h-4 w-4 mr-1" />
-          Clear Chat
-        </Button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 
 import React, { useRef } from 'react';
-import { Bot, Sliders, X, Save } from 'lucide-react';
+import { Bot, Sliders, Save } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -101,29 +101,25 @@ export const ModelComparisonCard = ({
               onOpenSystemPrompt={onOpenSystemPrompt}
             />
           </Popover>
-          
-          {onSaveConfig && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8" 
-                  onClick={onSaveConfig}
-                >
-                  <Save className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Save this configuration to the agent</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <X className="h-4 w-4" />
-          </Button>
         </div>
+        
+        {onSaveConfig && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="h-8 flex items-center gap-1" 
+                onClick={onSaveConfig}
+              >
+                <Save className="h-4 w-4 mr-1" />
+                Save Config
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Save this configuration to the agent</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </CardHeader>
                 
       <ScrollArea 
