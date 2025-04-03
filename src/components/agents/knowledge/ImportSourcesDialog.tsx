@@ -77,8 +77,6 @@ export const ImportSourcesDialog = ({
             ...prev,
             [sourceId]: selectedUrls
           }));
-        } else {
-          selectAllUrlsUnderNode(sourceId, rootNode);
         }
       }
     }
@@ -277,11 +275,6 @@ export const ImportSourcesDialog = ({
     const isRoot = level === 0;
     
     let isSelected = isUrlSelected(source.id, urlNode.url);
-    
-    if (urlNode.is_selected && !isSelected && !isRoot) {
-      // We don't modify state directly here, since this is a render function
-      // The initial selection is handled in the useEffect
-    }
     
     return (
       <div key={currentPath} className="py-1">
