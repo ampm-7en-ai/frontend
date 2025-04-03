@@ -43,6 +43,12 @@ export interface KnowledgeSource {
   pages?: string;  // Making pages optional in KnowledgeSource
   selected?: boolean; // Track selection state
   selectedSubUrls?: Set<string>; // Store selected sub URLs
+  agents?: AgentReference[]; // Add agents array to match API structure
+}
+
+export interface AgentReference {
+  agent_id: number;
+  name: string;
 }
 
 export interface KnowledgeSourceItem {
@@ -84,8 +90,8 @@ export interface UrlNode {
   children?: UrlNode[];
   level?: number;
   path?: string;
-  is_selected?: boolean; // New property for API selected state
-  chars?: number; // New property for character count
+  is_selected?: boolean; // Property for API selected state
+  chars?: number; // Property for character count
 }
 
 export interface ProcessedSource extends KnowledgeSource {

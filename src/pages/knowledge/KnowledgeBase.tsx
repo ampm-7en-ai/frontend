@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -95,6 +96,11 @@ const KnowledgeBase = () => {
         ? firstSource.metadata.format 
         : 'N/A';
 
+      // Extract agent names from the agents array
+      const agentNames = kb.agents && kb.agents.length > 0
+        ? kb.agents.map(agent => agent.name)
+        : [];
+
       return {
         id: kb.id,
         title: kb.name,
@@ -103,7 +109,7 @@ const KnowledgeBase = () => {
         fileFormat: fileFormat,
         size: metadataInfo.size,
         pages: metadataInfo.count,
-        agents: [],
+        agents: agentNames,
         uploadedAt: uploadDate,
         provider: null,
         status: kb.status,
@@ -368,18 +374,18 @@ const KnowledgeBase = () => {
                         {doc.agents && doc.agents.length > 0 ? (
                           <>
                             <div className="flex -space-x-2">
-                              {doc.agents.slice(0, 3).map((agent, index) => (
+                              {doc.agents.slice(0, 3).map((agentName, index) => (
                                 <TooltipProvider key={`${doc.id}-agent-${index}`}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Avatar className="h-8 w-8 border-2 border-background">
-                                        <AvatarFallback className={`${getAgentColor(agent)} text-white text-xs`}>
-                                          {getAgentInitials(agent)}
+                                        <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs`}>
+                                          {getAgentInitials(agentName)}
                                         </AvatarFallback>
                                       </Avatar>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      <p>{agent}</p>
+                                      <p>{agentName}</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>

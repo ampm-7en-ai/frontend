@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -219,7 +218,10 @@ const KnowledgeSourceTable = ({
                 link.status === 'error' ? 'bg-red-500' : 'bg-amber-500'
               }`} />
               <ExternalLink className="h-3 w-3 mr-2 text-muted-foreground" />
-              <span className="truncate flex-1" title={link.url}>{link.title || link.url}</span>
+              <div className="flex flex-1 items-center justify-between">
+                <span className="truncate" title={link.url}>{link.title || link.url}</span>
+                {link.chars && <span className="text-xs text-muted-foreground ml-2">{link.chars} chars</span>}
+              </div>
             </div>
           ))}
         </div>
