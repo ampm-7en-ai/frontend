@@ -11,6 +11,7 @@ interface KnowledgeSourceModalProps {
   onOpenChange: (open: boolean) => void;
   sources: KnowledgeSource[];
   initialSourceId: number | null;
+  agentId?: string; // Added agentId prop
   onSourceSelect?: (sourceId: number) => void;
 }
 
@@ -19,6 +20,7 @@ const KnowledgeSourceModal = ({
   onOpenChange,
   sources,
   initialSourceId,
+  agentId, // Include in the destructuring
   onSourceSelect
 }: KnowledgeSourceModalProps) => {
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(initialSourceId);
