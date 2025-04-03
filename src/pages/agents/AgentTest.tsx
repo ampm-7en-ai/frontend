@@ -24,6 +24,7 @@ const AgentTest = () => {
     selectedSourceId,
     numModels,
     allAgents,
+    primaryColors,
     isLoadingAgents,
     isLoadingAgent,
     handleAgentChange,
@@ -70,7 +71,7 @@ const AgentTest = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {Array(numModels).fill(null).map((_, index) => {
-          const primaryColor = index === 0 ? '#9b87f5' : index === 1 ? '#33C3F0' : '#6E59A5';
+          const primaryColor = primaryColors[index] || '#9b87f5';
           
           return (
             <ModelComparisonCard

@@ -44,12 +44,30 @@ export const ModelComparisonCard = ({
   };
 
   const adjustColor = (color: string, amount: number): string => {
-    return color;
+    // Convert hex color to RGB
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Adjust the color
+    const newR = Math.max(0, Math.min(255, r + amount));
+    const newG = Math.max(0, Math.min(255, g + amount));
+    const newB = Math.max(0, Math.min(255, b + amount));
+
+    // Convert back to hex
+    return `#${Math.round(newR).toString(16).padStart(2, '0')}${Math.round(newG).toString(16).padStart(2, '0')}${Math.round(newB).toString(16).padStart(2, '0')}`;
   };
 
   return (
     <Card className="flex flex-col h-[650px] overflow-hidden">
-      <CardHeader className="p-3 flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader 
+        className="p-3 flex flex-row items-center justify-between space-y-0 pb-2"
+        style={{ 
+          background: `linear-gradient(to right, ${primaryColor}15, ${primaryColor}30)`,
+          borderBottom: `2px solid ${primaryColor}` 
+        }}
+      >
         <div className="flex items-center gap-2">
           <Select value={model} onValueChange={onModelChange}>
             <SelectTrigger className="w-[190px] h-8">

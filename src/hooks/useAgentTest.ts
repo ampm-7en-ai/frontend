@@ -121,6 +121,7 @@ export const useAgentTest = (initialAgentId: string) => {
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
+  const [primaryColors, setPrimaryColors] = useState<string[]>(['#9b87f5', '#33C3F0', '#6E59A5']);
 
   // Fetch all agents
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
@@ -215,6 +216,18 @@ export const useAgentTest = (initialAgentId: string) => {
       
       setAgent(transformedAgent);
       
+      // Extract primary color from appearance if available, or use defaults
+      const primaryColor = agentData.appearance?.primaryColor || '#9b87f5';
+      
+      // Create color variations for each model
+      const newPrimaryColors = [
+        primaryColor,
+        adjustColor(primaryColor, 30),
+        adjustColor(primaryColor, -30)
+      ];
+      
+      setPrimaryColors(newPrimaryColors);
+      
       setChatConfigs(prev => prev.map((config, index) => ({
         ...config,
         systemPrompt: transformedAgent.systemPrompt || "",
@@ -225,6 +238,33 @@ export const useAgentTest = (initialAgentId: string) => {
       setMessages(Array(numModels).fill(null).map(() => []));
     }
   }, [agentData, selectedAgentId, numModels]);
+
+  // Helper function to adjust colors
+  const adjustColor = (color: string, amount: number): string => {
+    try {
+      // Default color if input is invalid
+      if (!color || !color.startsWith('#') || color.length !== 7) {
+        return amount > 0 ? '#33C3F0' : '#6E59A5';
+      }
+
+      // Convert hex color to RGB
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+
+      // Adjust the color
+      const newR = Math.max(0, Math.min(255, r + amount));
+      const newG = Math.max(0, Math.min(255, g + amount));
+      const newB = Math.max(0, Math.min(255, b + amount));
+
+      // Convert back to hex
+      return `#${Math.round(newR).toString(16).padStart(2, '0')}${Math.round(newG).toString(16).padStart(2, '0')}${Math.round(newB).toString(16).padStart(2, '0')}`;
+    } catch (error) {
+      console.error("Error adjusting color:", error);
+      return amount > 0 ? '#33C3F0' : '#6E59A5';
+    }
+  };
 
   // Handle errors in fetching agent details
   useEffect(() => {
@@ -367,6 +407,7 @@ export const useAgentTest = (initialAgentId: string) => {
     selectedSourceId,
     numModels,
     allAgents,
+    primaryColors,
     
     // Loading states
     isLoadingAgents,
