@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -56,10 +57,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
-      // Configure Google Sign-In
+      // Configure Google Sign-In with the provided credentials
       const client = googleAuth.initCodeClient({
-        client_id: '407408718192-93udbvkso5eaiio4vl0t79k2nabe27kr.apps.googleusercontent.com',
-        scope: 'email profile',
+        client_id: GOOGLE_AUTH_CONFIG.CLIENT_ID,
+        scope: GOOGLE_OAUTH_SCOPES,
         callback: async (response: any) => {
           if (response.error) {
             console.error('Google Sign-In error:', response.error);
