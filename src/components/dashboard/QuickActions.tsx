@@ -20,31 +20,26 @@ export function QuickActions({ className }: QuickActionsProps) {
       icon: <PlusCircle size={16} />,
       label: 'Create Agent',
       href: '/agents/create',
-      openInNewTab: false,
     },
     {
       icon: <Database size={16} />,
       label: 'Add Knowledge',
       href: '/knowledge/upload',
-      openInNewTab: false,
     },
     {
       icon: <Upload size={16} />,
       label: 'Import Data',
       href: '/knowledge/upload',
-      openInNewTab: false,
     },
     {
       icon: <Bot size={16} />,
       label: 'Test Agent',
       href: '/agents/test',
-      openInNewTab: true,
     },
     {
       icon: <BarChart2 size={16} />,
       label: 'View Reports',
       href: '/analytics',
-      openInNewTab: false,
     },
   ];
 
@@ -60,11 +55,7 @@ export function QuickActions({ className }: QuickActionsProps) {
             className="flex items-center gap-2 px-3 py-2 text-sm"
             asChild
           >
-            <Link 
-              to={action.href}
-              target={action.openInNewTab ? "_blank" : undefined}
-              rel={action.openInNewTab ? "noopener noreferrer" : undefined}
-            >
+            <Link to={action.href}>
               {action.icon}
               {action.label}
             </Link>
