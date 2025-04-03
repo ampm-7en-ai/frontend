@@ -1,5 +1,6 @@
+
 import React, { useRef } from 'react';
-import { Bot, Sliders, X } from 'lucide-react';
+import { Bot, Sliders, X, Save } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,8 @@ import { Message, ChatConfig } from './types';
 import { UserMessage } from './UserMessage';
 import { ModelMessage } from './ModelMessage';
 import { ModelConfigPopover } from './ModelConfigPopover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ModelComparisonCardProps {
   index: number;
@@ -19,6 +22,7 @@ interface ModelComparisonCardProps {
   onModelChange: (value: string) => void;
   onOpenSystemPrompt: () => void;
   onUpdateConfig: (field: keyof ChatConfig, value: any) => void;
+  onSaveConfig?: () => void;
   modelOptions: Record<string, { name: string; provider: string }>;
   primaryColor: string;
   avatarSrc?: string;
@@ -34,6 +38,7 @@ export const ModelComparisonCard = ({
   onModelChange,
   onOpenSystemPrompt,
   onUpdateConfig,
+  onSaveConfig,
   modelOptions,
   primaryColor,
   avatarSrc
@@ -97,45 +102,67 @@ export const ModelComparisonCard = ({
             />
           </Popover>
           
+          {onSaveConfig && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8" 
+                  onClick={onSaveConfig}
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Save this configuration to the agent</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
                 
-      <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white" 
-        ref={messageContainerRef}
+      <ScrollArea 
+        className="flex-1 p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white"
+        style={{
+          '--scrollbar-color': primaryColor + '50',
+        } as React.CSSProperties}
       >
-        {messages.map((message) => {
-          if (message.sender === 'user') {
-            return <UserMessage key={message.id} message={message} />;
-          } else {
-            const messageWithAvatar = message.avatarSrc 
-              ? message 
-              : { ...message, avatarSrc: avatarSrc };
-              
-            return (
-              <ModelMessage 
-                key={message.id} 
-                message={messageWithAvatar} 
-                model={getModelDisplay(message.model || '')}
-                primaryColor={primaryColor}
-                adjustColor={adjustColor}
-              />
-            );
-          }
-        })}
-        
-        {messages.length === 0 && (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center text-gray-500 p-4">
-              <Bot className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-              <p className="text-sm">Send a message to see responses from this model</p>
+        <div className="space-y-4 pr-2">
+          {messages.map((message) => {
+            if (message.sender === 'user') {
+              return <UserMessage key={message.id} message={message} />;
+            } else {
+              const messageWithAvatar = message.avatarSrc 
+                ? message 
+                : { ...message, avatarSrc: avatarSrc };
+                
+              return (
+                <ModelMessage 
+                  key={message.id} 
+                  message={messageWithAvatar} 
+                  model={getModelDisplay(message.model || '')}
+                  primaryColor={primaryColor}
+                  adjustColor={adjustColor}
+                />
+              );
+            }
+          })}
+          
+          {messages.length === 0 && (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center text-gray-500 p-4">
+                <Bot className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                <p className="text-sm">Send a message to see responses from this model</p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </ScrollArea>
     </Card>
   );
 };
