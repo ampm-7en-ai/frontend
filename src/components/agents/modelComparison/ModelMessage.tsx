@@ -34,7 +34,6 @@ export const ModelMessage = ({
         className="rounded-lg p-3 max-w-[80%] shadow-sm"
         style={{ 
           backgroundColor: `${primaryColor}15`,
-          borderLeft: `3px solid ${primaryColor}`,
         }}
       >
         <div className="text-xs font-medium mb-1 text-gray-600">

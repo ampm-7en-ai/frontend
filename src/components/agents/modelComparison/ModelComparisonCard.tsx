@@ -65,7 +65,6 @@ export const ModelComparisonCard = ({
         className="p-3 flex flex-row items-center justify-between space-y-0 pb-2"
         style={{ 
           background: `linear-gradient(to right, ${primaryColor}15, ${primaryColor}30)`,
-          borderBottom: `2px solid ${primaryColor}` 
         }}
       >
         <div className="flex items-center gap-2">
