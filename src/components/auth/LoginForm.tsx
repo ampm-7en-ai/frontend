@@ -54,16 +54,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           description: "Google authentication is not available. Please try again later.",
           variant: "destructive",
         });
+        setIsGoogleLoading(false);
         return;
       }
       
-      // Configure Google Sign-In with the provided credentials
-      const client = googleAuth.initCodeClient({
+      // Configure Google OAuth 2.0 flow with authorization code flow
+      const client = googleAuth.initTokenClient({
         client_id: GOOGLE_AUTH_CONFIG.CLIENT_ID,
         scope: GOOGLE_OAUTH_SCOPES,
-        callback: async (response: any) => {
-          if (response.error) {
-            console.error('Google Sign-In error:', response.error);
+        callback: async (tokenResponse: any) => {
+          console.log("Google OAuth token response:", tokenResponse);
+          
+          if (tokenResponse.error) {
+            console.error('Google Sign-In error:', tokenResponse.error);
             toast({
               title: "Google Sign-In Failed",
               description: "There was an error signing in with Google. Please try again.",
@@ -74,20 +77,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           }
           
           try {
-            // Get the credential from the response
-            const ssoToken = response.credential;
-            
             // Create form data for API request
             const formData = new FormData();
-            formData.append('sso_token', ssoToken);
+            formData.append('sso_token', tokenResponse.access_token);
             formData.append('provider', 'google');
+            
+            console.log("Sending SSO request to endpoint:", API_ENDPOINTS.SSO_LOGIN);
             
             // Send request to the API
             const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
+            console.log("Full API URL:", apiUrl);
+            
             const response = await fetch(apiUrl, {
               method: 'POST',
               body: formData,
             });
+            
+            console.log("SSO login response status:", response.status);
             
             const data = await response.json();
             console.log("Google SSO login response:", data);
@@ -142,8 +148,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         }
       });
       
-      // Prompt the user to select a Google account
-      client.requestCode();
+      // Prompt the user to select a Google account and get token
+      client.requestAccessToken();
       
     } catch (error) {
       console.error("Google Sign-In initialization error:", error);
