@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, X, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +10,9 @@ import { ModelComparisonCard } from '@/components/agents/modelComparison/ModelCo
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
+import { useQuery } from '@tanstack/react-query';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const MODELS = {
   'gpt4': { name: 'GPT-4', provider: 'OpenAI' },
@@ -122,6 +124,7 @@ const mockAgents: Agent[] = [
 
 const AgentTest = () => {
   const { agentId } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   
   const [selectedAgentId, setSelectedAgentId] = useState<string>(agentId || "1");
@@ -142,21 +145,89 @@ const AgentTest = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
 
-  useEffect(() => {
-    const foundAgent = mockAgents.find(a => a.id === selectedAgentId);
-    if (foundAgent) {
-      setAgent(foundAgent);
+  const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
+    queryKey: ['agents'],
+    queryFn: async () => {
+      const token = getAccessToken();
+      const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
+        headers: getAuthHeaders(token || '')
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agents: ${response.status}`);
+      }
+
+      const data = await response.json();
       
-      setChatConfigs(prev => prev.map(config => ({
+      return data.agents?.map((agent: any) => ({
+        id: agent.id.toString(),
+        name: agent.name,
+        model: agent.model?.name || 'gpt-3.5',
+      })) || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const { data: agentData, isLoading: isLoadingAgent } = useQuery({
+    queryKey: ['agent', selectedAgentId],
+    queryFn: () => fetchAgentDetails(selectedAgentId),
+    enabled: !!selectedAgentId,
+    onSuccess: (data) => {
+      const transformedAgent: Agent = {
+        id: data.id?.toString() || selectedAgentId,
+        name: data.name || "Unknown Agent",
+        description: data.description || "",
+        conversations: data.conversations || 0,
+        lastModified: data.last_modified || new Date().toISOString(),
+        averageRating: data.average_rating || 0,
+        knowledgeSources: data.knowledge_bases?.map((kb: any, index: number) => ({
+          id: kb.id || index,
+          name: kb.name || `Source ${index + 1}`,
+          type: kb.type || 'document',
+          icon: 'BookOpen',
+          size: kb.size || '0 KB',
+          lastUpdated: kb.last_updated || new Date().toISOString(),
+          trainingStatus: kb.status || 'success',
+          hasError: kb.status === 'error',
+          content: kb.content || ""
+        })) || [],
+        model: data.model?.name || 'gpt4',
+        isDeployed: data.status === 'Live',
+        systemPrompt: data.systemPrompt || "You are a helpful AI assistant."
+      };
+      
+      setAgent(transformedAgent);
+      
+      setChatConfigs(prev => prev.map((config, index) => ({
         ...config,
-        systemPrompt: foundAgent.systemPrompt || ""
+        systemPrompt: transformedAgent.systemPrompt || "",
+        model: index === 0 ? transformedAgent.model : config.model,
+        temperature: index === 0 ? 0.7 : config.temperature
       })));
       
       setMessages(Array(numModels).fill(null).map(() => []));
+    },
+    onError: (error) => {
+      console.error('Error fetching agent:', error);
+      toast({
+        title: "Error loading agent",
+        description: error instanceof Error ? error.message : "Failed to load agent details",
+        variant: "destructive"
+      });
+      
+      const mockAgent = mockAgents.find(a => a.id === selectedAgentId);
+      if (mockAgent) {
+        setAgent(mockAgent);
+        setChatConfigs(prev => prev.map(config => ({
+          ...config,
+          systemPrompt: mockAgent.systemPrompt || ""
+        })));
+      }
     }
-  }, [selectedAgentId]);
+  });
 
   const handleAgentChange = (newAgentId: string) => {
+    navigate(`/agents/${newAgentId}/test`, { replace: true });
     setSelectedAgentId(newAgentId);
   };
 
@@ -247,25 +318,37 @@ const AgentTest = () => {
     return MODELS[modelKey as keyof typeof MODELS]?.name || modelKey;
   };
 
-  const adjustColor = (color: string, amount: number): string => {
-    return color;
-  };
-
   const handleUpdateSystemPrompt = (value: string) => {
     if (isSystemPromptOpen !== null) {
       handleUpdateChatConfig(isSystemPromptOpen, 'systemPrompt', value);
     }
   };
 
-  if (!agent) {
-    return <div className="p-8 text-center">Loading agent information...</div>;
+  if (isLoadingAgent || isLoadingAgents) {
+    return (
+      <div className="max-w-[1400px] mx-auto space-y-4 p-8 text-center">
+        <LoadingSpinner text="Loading agent information..." />
+      </div>
+    );
+  }
+
+  if (!agent && !isLoadingAgent) {
+    return (
+      <div className="max-w-[1400px] mx-auto space-y-4 p-8 text-center">
+        <h3 className="text-lg font-medium">Agent not found</h3>
+        <p className="text-muted-foreground">The requested agent could not be found or you don't have access to it.</p>
+        <Button asChild>
+          <Link to="/agents">Back to Agents</Link>
+        </Button>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-4 p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div className="flex items-center">
-          <Button variant="ghost" size="icon" asChild className="mr-2">
+          <Button variant="ghost" size="icon" asChild>
             <Link to="/agents">
               <ChevronLeft className="h-4 w-4" />
             </Link>
@@ -281,7 +364,7 @@ const AgentTest = () => {
               <SelectValue placeholder="Select agent" />
             </SelectTrigger>
             <SelectContent>
-              {mockAgents.map(agent => (
+              {allAgents.map((agent: any) => (
                 <SelectItem key={agent.id} value={agent.id}>
                   <div className="flex items-center">
                     <Bot className="mr-2 h-4 w-4 text-primary" />
@@ -330,7 +413,7 @@ const AgentTest = () => {
       <ChatInput 
         onSendMessage={handleSendMessage}
         onViewKnowledgeSources={handleViewKnowledgeSources}
-        knowledgeSourceCount={agent.knowledgeSources.length}
+        knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
       />
 
       <SystemPromptDialog 
@@ -345,7 +428,7 @@ const AgentTest = () => {
       <KnowledgeSourceModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        sources={agent.knowledgeSources}
+        sources={agent?.knowledgeSources || []}
         initialSourceId={selectedSourceId}
       />
     </div>
@@ -353,7 +436,3 @@ const AgentTest = () => {
 };
 
 export default AgentTest;
-
-function getSourceIcon(type: string) {
-  return null;
-}

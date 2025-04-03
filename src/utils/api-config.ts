@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -148,7 +149,7 @@ export const fetchAgentDetails = async (agentId: string): Promise<any> => {
     throw new Error("Authentication required");
   }
   
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}`, {
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
     headers: getAuthHeaders(token),
   });
   
