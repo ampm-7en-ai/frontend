@@ -9,7 +9,6 @@ import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 import { TestPageHeader } from '@/components/agents/test/TestPageHeader';
-import { TestMessageInput } from '@/components/agents/test/TestMessageInput';
 import { MODELS, getModelDisplay } from '@/constants/modelOptions';
 
 const AgentTest = () => {
@@ -59,9 +58,6 @@ const AgentTest = () => {
     );
   }
 
-  // Extract the primary color from the agent data if available
-  const agentPrimaryColor = allAgents.find(a => a.id === selectedAgentId)?.appearance?.primaryColor || '#9b87f5';
-
   return (
     <div className="space-y-6">
       <TestPageHeader 
@@ -74,7 +70,7 @@ const AgentTest = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {Array(numModels).fill(null).map((_, index) => {
-          const primaryColor = index === 0 ? agentPrimaryColor : index === 1 ? '#33C3F0' : '#6E59A5';
+          const primaryColor = index === 0 ? '#9b87f5' : index === 1 ? '#33C3F0' : '#6E59A5';
           
           return (
             <ModelComparisonCard
@@ -95,9 +91,10 @@ const AgentTest = () => {
         })}
       </div>
 
-      <TestMessageInput 
+      <ChatInput 
         onSendMessage={handleSendMessage}
-        primaryColor={agentPrimaryColor}
+        onViewKnowledgeSources={handleViewKnowledgeSources}
+        knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
       />
 
       <SystemPromptDialog 
