@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Agent, Message, ChatConfig } from '@/components/agents/modelComparison/types';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 
 // Mock data for fallback
@@ -23,7 +24,7 @@ const mockAgents = [
         icon: "BookOpen", 
         size: "250KB",
         lastUpdated: "2023-09-15",
-        trainingStatus: "success",
+        trainingStatus: "success" as const,
         hasError: false, 
         content: "# Product Documentation\n\nOur product is a cloud-based solution that helps businesses automate customer support workflows. Key features include:\n\n- AI-powered response suggestions\n- Integration with popular CRM systems\n- Analytics dashboard\n- Multi-channel support (email, chat, social media)" 
       },
@@ -34,7 +35,7 @@ const mockAgents = [
         icon: "Globe", 
         size: "120KB",
         lastUpdated: "2023-10-05",
-        trainingStatus: "success",
+        trainingStatus: "success" as const,
         hasError: false,
         content: "## Frequently Asked Questions\n\n**Q: How do I reset my password?**\nA: Click on the 'Forgot Password' link on the login page and follow the instructions sent to your email.\n\n**Q: How do I upgrade my subscription?**\nA: Go to Settings > Billing and select your desired plan.\n\n**Q: Can I integrate with Salesforce?**\nA: Yes, we offer native integration with Salesforce and other popular CRM systems." 
       }
@@ -58,7 +59,7 @@ const mockAgents = [
         icon: "DollarSign", 
         size: "180KB",
         lastUpdated: "2023-11-20",
-        trainingStatus: "success",
+        trainingStatus: "success" as const,
         hasError: false,
         content: "# Pricing Guide\n\n## Basic Plan - $9.99/month\n- Up to 5 users\n- Core features\n- Email support\n\n## Pro Plan - $29.99/month\n- Unlimited users\n- All core features plus advanced analytics\n- Priority email & chat support\n- API access\n\n## Enterprise Plan - Custom pricing\n- All Pro features\n- Dedicated account manager\n- Custom integrations\n- 24/7 phone support" 
       }
@@ -82,7 +83,7 @@ const mockAgents = [
         icon: "FileText", 
         size: "350KB",
         lastUpdated: "2023-08-10",
-        trainingStatus: "success",
+        trainingStatus: "success" as const,
         hasError: false,
         content: "# Technical Manual\n\n## System Requirements\n- Operating System: Windows 10/11, macOS 10.14+, Linux\n- RAM: 8GB minimum, 16GB recommended\n- Disk Space: 250MB\n- Internet: Broadband connection\n\n## Installation Guide\n1. Download the installer from your account dashboard\n2. Run the installer and follow on-screen instructions\n3. Launch the application and sign in with your credentials" 
       },
@@ -93,7 +94,7 @@ const mockAgents = [
         icon: "Tool", 
         size: "200KB",
         lastUpdated: "2023-12-01",
-        trainingStatus: "success",
+        trainingStatus: "success" as const,
         hasError: false,
         content: "# Troubleshooting Guide\n\n## Common Issues\n\n### Application Won't Start\n- Verify system requirements\n- Check for conflicting software\n- Try reinstalling the application\n\n### Connection Problems\n- Check your internet connection\n- Verify firewall settings\n- Ensure the server is not down for maintenance" 
       }
@@ -178,30 +179,38 @@ export const useAgentTest = (initialAgentId: string) => {
       }
     },
     enabled: !!selectedAgentId,
-    onSuccess: (data) => {
-      console.log('Agent details data received successfully:', data);
+    retry: 1,
+  });
+
+  // Process agent data when available
+  useEffect(() => {
+    if (agentData) {
+      console.log('Agent details data received successfully:', agentData);
+      
+      // Create properly typed knowledge sources
+      const knowledgeSources: KnowledgeSource[] = agentData.knowledge_bases?.map((kb: any, index: number) => ({
+        id: kb.id || index,
+        name: kb.name || `Source ${index + 1}`,
+        type: kb.type || 'document',
+        icon: 'BookOpen',
+        size: kb.size || '0 KB',
+        lastUpdated: kb.last_updated || new Date().toISOString(),
+        trainingStatus: (kb.status || 'success') as 'success' | 'idle' | 'training' | 'error',
+        hasError: kb.status === 'error',
+        content: kb.content || ""
+      })) || [];
       
       const transformedAgent: Agent = {
-        id: data.id?.toString() || selectedAgentId,
-        name: data.name || "Unknown Agent",
-        description: data.description || "",
-        conversations: data.conversations || 0,
-        lastModified: data.last_modified || new Date().toISOString(),
-        averageRating: data.average_rating || 0,
-        knowledgeSources: data.knowledge_bases?.map((kb: any, index: number) => ({
-          id: kb.id || index,
-          name: kb.name || `Source ${index + 1}`,
-          type: kb.type || 'document',
-          icon: 'BookOpen',
-          size: kb.size || '0 KB',
-          lastUpdated: kb.last_updated || new Date().toISOString(),
-          trainingStatus: kb.status || 'success',
-          hasError: kb.status === 'error',
-          content: kb.content || ""
-        })) || [],
-        model: data.model?.selectedModel || data.model?.name || 'gpt4',
-        isDeployed: data.status === 'Live',
-        systemPrompt: data.systemPrompt || "You are a helpful AI assistant."
+        id: agentData.id?.toString() || selectedAgentId,
+        name: agentData.name || "Unknown Agent",
+        description: agentData.description || "",
+        conversations: agentData.conversations || 0,
+        lastModified: agentData.last_modified || new Date().toISOString(),
+        averageRating: agentData.average_rating || 0,
+        knowledgeSources,
+        model: agentData.model?.selectedModel || agentData.model?.name || 'gpt4',
+        isDeployed: agentData.status === 'Live',
+        systemPrompt: agentData.systemPrompt || "You are a helpful AI assistant."
       };
       
       setAgent(transformedAgent);
@@ -210,30 +219,40 @@ export const useAgentTest = (initialAgentId: string) => {
         ...config,
         systemPrompt: transformedAgent.systemPrompt || "",
         model: index === 0 ? transformedAgent.model : config.model,
-        temperature: index === 0 ? (data.model?.temperature || 0.7) : config.temperature
+        temperature: index === 0 ? (agentData.model?.temperature || 0.7) : config.temperature
       })));
       
       setMessages(Array(numModels).fill(null).map(() => []));
-    },
-    onError: (error) => {
-      console.error('Error fetching agent:', error);
+    }
+  }, [agentData, selectedAgentId, numModels]);
+
+  // Handle errors in fetching agent details
+  useEffect(() => {
+    if (agentData === undefined && !isLoadingAgent) {
+      console.error('Error or no data fetching agent');
       toast({
         title: "Error loading agent",
-        description: error instanceof Error ? error.message : "Failed to load agent details",
+        description: "Failed to load agent details",
         variant: "destructive"
       });
       
       const mockAgent = mockAgents.find(a => a.id === selectedAgentId);
       if (mockAgent) {
-        setAgent(mockAgent);
+        // Create properly typed knowledge sources for the mock agent
+        const knowledgeSources: KnowledgeSource[] = mockAgent.knowledgeSources || [];
+        
+        setAgent({
+          ...mockAgent,
+          knowledgeSources
+        });
+        
         setChatConfigs(prev => prev.map(config => ({
           ...config,
           systemPrompt: mockAgent.systemPrompt || ""
         })));
       }
-    },
-    retry: 1,
-  });
+    }
+  }, [agentData, isLoadingAgent, selectedAgentId, toast]);
 
   // Force refetch on mount and when selectedAgentId changes
   useEffect(() => {

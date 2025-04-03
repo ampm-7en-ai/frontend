@@ -40,14 +40,16 @@ export function QuickActions({ className }: QuickActionsProps) {
         console.error("Error fetching agents for QuickActions:", error);
         return null;
       }
-    },
-    onSuccess: (data) => {
-      if (data?.agents && data.agents.length > 0) {
-        setDefaultAgentId(data.agents[0].id.toString());
-        console.log("QuickActions: Setting default agent ID to:", data.agents[0].id);
-      }
     }
   });
+  
+  // Update defaultAgentId when data is available
+  useEffect(() => {
+    if (agentsData?.agents && agentsData.agents.length > 0) {
+      setDefaultAgentId(agentsData.agents[0].id.toString());
+      console.log("QuickActions: Setting default agent ID to:", agentsData.agents[0].id);
+    }
+  }, [agentsData]);
 
   const actions = [
     {
