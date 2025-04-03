@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -174,15 +175,15 @@ export const AgentPerformanceChart = ({
   return (
     <div className={`w-full h-full ${className || ''}`}>
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
+        <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <Pie
             activeIndex={0}
             activeShape={renderActiveShape}
             data={chartData}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={80}
+            innerRadius={50}
+            outerRadius={70}
             paddingAngle={2}
             dataKey="value"
           >

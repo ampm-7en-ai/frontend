@@ -49,7 +49,7 @@ const StatisticsCharts = () => {
               </CardContent>
             </Card>
           </div>
-          <div className="h-[150px]">
+          <div className="h-[200px]">
             <AgentPerformanceChart type="satisfaction" />
           </div>
         </CardContent>
