@@ -12,7 +12,7 @@ export const API_ENDPOINTS = {
   VERIFY_OTP: "users/verify_otp/",
   LOGIN: "users/login/",
   RESEND_OTP: "users/resend-otp/",
-  SSO_LOGIN: "users/sso_login/",
+  SSO_LOGIN: "users/sso_login/", // Verify this is the correct endpoint
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/"
 };

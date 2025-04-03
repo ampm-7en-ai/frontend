@@ -1,3 +1,4 @@
+
 /**
  * Authentication configuration
  */
@@ -9,6 +10,7 @@ export const GOOGLE_AUTH_CONFIG = {
   AUTH_URI: "https://accounts.google.com/o/oauth2/auth",
   TOKEN_URI: "https://oauth2.googleapis.com/token",
   AUTH_PROVIDER_CERT_URL: "https://www.googleapis.com/oauth2/v1/certs",
+  CLIENT_SECRET: "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", // Added client secret
   REDIRECT_URI: "https://7en.lovable.app/index"
 };
 
