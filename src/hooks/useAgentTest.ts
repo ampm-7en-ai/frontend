@@ -201,6 +201,9 @@ export const useAgentTest = (initialAgentId: string) => {
         content: kb.content || ""
       })) || [];
       
+      // Extract avatar source from the agent's appearance if available
+      const avatarSrc = agentData.appearance?.avatar?.src || '';
+      
       const transformedAgent: Agent = {
         id: agentData.id?.toString() || selectedAgentId,
         name: agentData.name || "Unknown Agent",
@@ -211,7 +214,8 @@ export const useAgentTest = (initialAgentId: string) => {
         knowledgeSources,
         model: agentData.model?.selectedModel || agentData.model?.name || 'gpt4',
         isDeployed: agentData.status === 'Live',
-        systemPrompt: agentData.systemPrompt || "You are a helpful AI assistant."
+        systemPrompt: agentData.systemPrompt || "You are a helpful AI assistant.",
+        avatarSrc: avatarSrc
       };
       
       setAgent(transformedAgent);
@@ -368,6 +372,7 @@ export const useAgentTest = (initialAgentId: string) => {
           sender: senderType,
           model: chatConfigs[i].model,
           timestamp: new Date(),
+          avatarSrc: agent?.avatarSrc  // Add the agent's avatar to the message
         };
         
         setMessages(prev => {
