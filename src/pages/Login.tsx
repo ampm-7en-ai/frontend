@@ -26,11 +26,6 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
       <div className="w-full max-w-md">
-        <div className="flex flex-col items-center justify-center mb-6">
-          <div className="text-primary font-bold text-3xl mb-1">7en.ai</div>
-          <p className="text-dark-gray text-sm">European-compliant multi-agent AI platform</p>
-        </div>
-        
         <div className="p-8 bg-white rounded-lg shadow-sm">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-6">

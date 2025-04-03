@@ -196,6 +196,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
 
   return (
     <>
+      <div className="flex justify-center mb-6">
+        <div className="text-primary font-bold text-3xl">7en.ai</div>
+      </div>
+
       <h1 className="text-2xl font-semibold text-center mb-6">Create your account</h1>
       
       <Form {...form}>
@@ -364,15 +368,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             control={form.control}
             name="terms"
             render={({ field }) => (
-              <FormItem className="flex items-start space-x-2 mt-4">
+              <FormItem className="flex items-center space-x-2 py-0 mt-4">
                 <FormControl>
                   <Checkbox 
                     checked={field.value} 
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <div className="grid gap-1 leading-none">
-                  <FormLabel className="text-sm font-medium text-dark-gray cursor-pointer">
+                <div className="grid gap-1">
+                  <FormLabel className="text-sm font-medium text-dark-gray cursor-pointer m-0 flex items-center">
                     I agree to the 
                     <a href="/terms" className="text-primary hover:underline ml-1">
                       Terms of Service
