@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;

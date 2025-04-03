@@ -413,7 +413,7 @@ export const ImportSourcesDialog = ({
                           <div className="flex items-center p-3 bg-white">
                             <Checkbox 
                               id={`source-${source.id}`}
-                              checked={selectedSources.has(source.id) || source.is_selected}
+                              checked={selectedSources.has(source.id) || source.selected}
                               onCheckedChange={() => toggleSourceSelection(source)}
                               className="mr-2"
                               onClick={(e) => e.stopPropagation()}
