@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       setIsGoogleLoading(true);
       
       // Initialize Google Sign-In
-      const googleAuth = (window as any).google?.accounts;
+      const googleAuth = (window as any).google?.accounts?.oauth2;
       
       if (!googleAuth) {
         toast({
@@ -57,14 +58,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
-      // Use the ID services directly to get an ID token instead of an access token
-      googleAuth.id.initialize({
+      console.log("Using redirect URI:", GOOGLE_AUTH_CONFIG.REDIRECT_URI);
+      
+      // Configure Google OAuth 2.0 flow with authorization code flow
+      const client = googleAuth.initTokenClient({
         client_id: GOOGLE_AUTH_CONFIG.CLIENT_ID,
-        callback: async (response: any) => {
-          console.log("Google ID response:", response);
+        scope: GOOGLE_OAUTH_SCOPES,
+        redirect_uri: GOOGLE_AUTH_CONFIG.REDIRECT_URI,
+        callback: async (tokenResponse: any) => {
+          console.log("Google OAuth token response:", tokenResponse);
           
-          if (response.error) {
-            console.error('Google Sign-In error:', response.error);
+          if (tokenResponse.error) {
+            console.error('Google Sign-In error:', tokenResponse.error);
             toast({
               title: "Google Sign-In Failed",
               description: "There was an error signing in with Google. Please try again.",
@@ -75,17 +80,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           }
           
           try {
-            // We now have the ID token from the credential response
-            const idToken = response.credential;
-            console.log("ID Token received:", idToken);
+            // Create form data for API request
+            const formData = new FormData();
+            formData.append('sso_token', tokenResponse.access_token);
+            formData.append('provider', 'google');
             
-            // Send ID token to the backend
+            console.log("Sending SSO request to endpoint:", API_ENDPOINTS.SSO_LOGIN);
+            
+            // Send request to the API
             const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
             console.log("Full API URL:", apiUrl);
-            
-            const formData = new FormData();
-            formData.append('id_token', idToken);  // Using ID token instead of access token
-            formData.append('provider', 'google');
             
             const response = await fetch(apiUrl, {
               method: 'POST',
@@ -144,12 +148,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           } finally {
             setIsGoogleLoading(false);
           }
-        },
-        auto_select: false,
+        }
       });
       
-      // Render the Google Sign In button
-      googleAuth.id.prompt();
+      // Prompt the user to select a Google account and get token
+      client.requestAccessToken();
       
     } catch (error) {
       console.error("Google Sign-In initialization error:", error);
