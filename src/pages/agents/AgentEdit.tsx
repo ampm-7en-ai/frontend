@@ -247,7 +247,7 @@ const AgentEdit = () => {
 
       if (customAvatarFile && agent.avatar.type === 'custom') {
         payload.avatar = {
-          ...agent.avatar,
+          type: 'custom',
           file: customAvatarFile
         };
       }

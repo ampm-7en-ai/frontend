@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -243,12 +244,22 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   console.log('Updating agent with ID:', agentId);
   console.log('Agent data:', agentData);
   
-  // Create payload based on the data structure
+  // Create the complete payload structure as required by the API
   const payload = {
     name: agentData.name,
     description: agentData.description,
     appearance: {
-      ...agentData.appearance
+      primaryColor: agentData.appearance?.primaryColor,
+      secondaryColor: agentData.appearance?.secondaryColor,
+      fontFamily: agentData.appearance?.fontFamily,
+      chatbotName: agentData.appearance?.chatbotName,
+      welcomeMessage: agentData.appearance?.welcomeMessage,
+      buttonText: agentData.appearance?.buttonText,
+      position: agentData.appearance?.position,
+      avatar: {
+        type: agentData.appearance?.avatar?.type,
+        src: null // We'll handle this separately
+      }
     },
     behavior: agentData.behavior,
     model: agentData.model,
@@ -258,16 +269,6 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
       ...(agentData.settings || {}),
     }
   };
-  
-  // Handle avatar separately if it's a File object
-  if (agentData.avatar && agentData.avatar.file) {
-    // Don't include the avatar in the JSON payload
-    // We'll send it in a separate FormData request if needed
-    console.log('Found avatar file to upload');
-  } else if (agentData.appearance && agentData.appearance.avatar) {
-    // Keep the avatar configuration if it's just configuration without a file
-    payload.appearance.avatar = agentData.appearance.avatar;
-  }
   
   // Format the knowledge source filters if needed
   if (agentData.knowledgeSources && Array.isArray(agentData.knowledgeSources)) {
@@ -284,33 +285,49 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
     };
   }
   
-  let response;
-  
-  // Check if we have an avatar file to upload
-  if (agentData.avatar && agentData.avatar.file) {
-    // Send a FormData request
+  // For custom avatar with a file, use FormData
+  if (agentData.avatar && agentData.avatar.file && agentData.avatar.type === 'custom') {
     const formData = new FormData();
+    
+    // Add the file to FormData
     formData.append('avatar', agentData.avatar.file);
+    
+    // Add the rest of the payload as a JSON string
     formData.append('data', JSON.stringify(payload));
     
-    console.log('Sending avatar with form data');
+    console.log('Sending avatar file in FormData');
     
-    response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`
-        // Note: Don't set Content-Type for FormData
+        // Don't set Content-Type for FormData
       },
       body: formData
     });
-  } else {
-    // Send JSON request
-    response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
-      method: 'PUT',
-      headers: getAuthHeaders(token),
-      body: JSON.stringify(payload)
-    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      console.error('Error updating agent:', errorData);
+      throw new Error(errorData.message || `Failed to update agent: ${response.status}`);
+    }
+    
+    return response.json();
   }
+  
+  // Handle non-file avatars (default, predefined, or no change)
+  if (agentData.appearance?.avatar) {
+    payload.appearance.avatar = agentData.appearance.avatar;
+  }
+  
+  console.log('Sending JSON payload:', payload);
+  
+  // For non-file updates, use regular JSON
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
+    method: 'PUT',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(payload)
+  });
   
   console.log('Update agent response status:', response.status);
   
