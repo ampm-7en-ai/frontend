@@ -2,6 +2,7 @@
 import React from 'react';
 import { Bot } from 'lucide-react';
 import { Message } from './types';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface ModelMessageProps {
   message: Message;
@@ -19,16 +20,17 @@ export const ModelMessage = ({
   return (
     <div key={message.id} className="flex gap-2 items-start animate-fade-in">
       <div className="flex-shrink-0 mt-1">
-        <div 
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+        <Avatar 
+          className="h-8 w-8 flex-shrink-0"
           style={{ 
             background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-            color: '#FFFFFF',
             boxShadow: `0 2px 5px ${primaryColor}40`
           }}
         >
-          <Bot size={16} />
-        </div>
+          <AvatarFallback className="text-white bg-transparent flex items-center justify-center">
+            <Bot size={16} />
+          </AvatarFallback>
+        </Avatar>
       </div>
       <div
         className="rounded-lg p-3 max-w-[80%] shadow-sm"
