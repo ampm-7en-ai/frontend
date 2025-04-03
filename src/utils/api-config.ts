@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -144,21 +143,46 @@ export const getSourceMetadataInfo = (source: any): { count: string, size: strin
 
 // Function to fetch agent details (including knowledge bases)
 export const fetchAgentDetails = async (agentId: string): Promise<any> => {
+  console.log(`Starting fetchAgentDetails for agentId: ${agentId}`);
+  
   const token = getAccessToken();
   if (!token) {
+    console.error("No access token available for fetchAgentDetails");
     throw new Error("Authentication required");
   }
   
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
-    headers: getAuthHeaders(token),
-  });
+  const url = `${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`;
+  console.log(`Fetching agent details from URL: ${url}`);
   
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
-    throw new Error(errorData.message || `Failed to fetch agent details: ${response.status}`);
+  try {
+    const response = await fetch(url, {
+      headers: getAuthHeaders(token),
+    });
+    
+    console.log(`Agent details response status: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Error response text: ${errorText}`);
+      
+      let errorMessage = `Failed to fetch agent details: ${response.status}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the original error message
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    const data = await response.json();
+    console.log(`Successfully fetched agent details for ID: ${agentId}`);
+    return data;
+  } catch (error) {
+    console.error(`Error in fetchAgentDetails for ID ${agentId}:`, error);
+    throw error;
   }
-  
-  return response.json();
 };
 
 // Function to fetch knowledge source details

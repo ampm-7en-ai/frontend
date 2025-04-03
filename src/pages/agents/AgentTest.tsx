@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -132,7 +131,8 @@ const AgentTest = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<string>(agentId || "1");
   const [agent, setAgent] = useState<Agent | null>(null);
   
-  // Update selectedAgentId when URL param changes
+  console.log("Component mounted with agentId from URL:", agentId);
+  
   useEffect(() => {
     if (agentId && agentId !== selectedAgentId) {
       setSelectedAgentId(agentId);
@@ -155,43 +155,63 @@ const AgentTest = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
 
-  // Fetch all agents for the dropdown
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
+      console.log("Fetching all agents list");
       const token = getAccessToken();
-      const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
-        headers: getAuthHeaders(token || '')
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch agents: ${response.status}`);
+      if (!token) {
+        console.error("No access token available");
+        return [];
       }
-
-      const data = await response.json();
-      console.log('All agents data:', data);
       
-      // Transform the API response to match our UI needs
-      return data.agents?.map((agent: any) => ({
-        id: agent.id.toString(),
-        name: agent.name,
-        model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
-        avatarSrc: agent.appearance?.avatar?.src || '',
-      })) || [];
+      try {
+        const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
+          headers: getAuthHeaders(token)
+        });
+
+        console.log("All agents response status:", response.status);
+        
+        if (!response.ok) {
+          console.error("Failed to fetch agents list:", response.status);
+          throw new Error(`Failed to fetch agents: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('All agents data received:', data);
+        
+        // Transform the API response to match our UI needs
+        return data.agents?.map((agent: any) => ({
+          id: agent.id.toString(),
+          name: agent.name,
+          model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
+          avatarSrc: agent.appearance?.avatar?.src || '',
+        })) || [];
+      } catch (error) {
+        console.error("Error in fetchAllAgents:", error);
+        return [];
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
 
-  // Fetch specific agent details - using agentId from URL params
   const { data: agentData, isLoading: isLoadingAgent, refetch: refetchAgent } = useQuery({
     queryKey: ['agent', selectedAgentId],
-    queryFn: () => {
-      console.log("Fetching agent with ID:", selectedAgentId);
-      return fetchAgentDetails(selectedAgentId);
+    queryFn: async () => {
+      console.log("Fetching agent details with ID:", selectedAgentId);
+      try {
+        const result = await fetchAgentDetails(selectedAgentId);
+        console.log("Agent details fetch result:", result);
+        return result;
+      } catch (error) {
+        console.error("Error fetching agent details:", error);
+        throw error;
+      }
     },
     enabled: !!selectedAgentId,
     onSuccess: (data) => {
-      console.log('Agent details data:', data);
+      console.log('Agent details data received successfully:', data);
       
       const transformedAgent: Agent = {
         id: data.id?.toString() || selectedAgentId,
@@ -218,7 +238,6 @@ const AgentTest = () => {
       
       setAgent(transformedAgent);
       
-      // Update chat configs with agent data
       setChatConfigs(prev => prev.map((config, index) => ({
         ...config,
         systemPrompt: transformedAgent.systemPrompt || "",
@@ -244,12 +263,18 @@ const AgentTest = () => {
           systemPrompt: mockAgent.systemPrompt || ""
         })));
       }
-    }
+    },
+    retry: 1,
   });
 
-  // Manually refetch when selectedAgentId changes
+  useEffect(() => {
+    console.log("Component mounted, triggering initial data fetch");
+    refetchAgent();
+  }, []);
+
   useEffect(() => {
     if (selectedAgentId) {
+      console.log("Selected agent ID changed, refetching");
       refetchAgent();
     }
   }, [selectedAgentId, refetchAgent]);
