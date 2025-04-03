@@ -5,7 +5,7 @@ import { KnowledgeSource, UrlNode } from './types';
 import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
-import { formatFileSizeToMB } from '@/utils/api-config';
+import { formatFileSizeToMB, getKnowledgeBaseEndpoint } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { renderSourceIcon } from './knowledgeUtils';
@@ -413,7 +413,7 @@ export const ImportSourcesDialog = ({
                           <div className="flex items-center p-3 bg-white">
                             <Checkbox 
                               id={`source-${source.id}`}
-                              checked={selectedSources.has(source.id)}
+                              checked={selectedSources.has(source.id) || source.is_selected}
                               onCheckedChange={() => toggleSourceSelection(source)}
                               className="mr-2"
                               onClick={(e) => e.stopPropagation()}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { KnowledgeSource, UrlNode } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, getKnowledgeBaseEndpoint } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 
 interface KnowledgeTrainingStatusProps {
@@ -55,8 +54,9 @@ const KnowledgeTrainingStatus = ({
         throw new Error('Authentication required');
       }
 
-      console.log("Fetching knowledge bases from API");
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`, {
+      console.log(`Fetching knowledge bases from API with agentId: ${agentId}`);
+      const endpoint = getKnowledgeBaseEndpoint(agentId);
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
         headers: getAuthHeaders(token),
       });
 
@@ -75,13 +75,6 @@ const KnowledgeTrainingStatus = ({
       throw error;
     }
   };
-
-  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError, refetch } = useQuery({
-    queryKey: ['knowledgeBases'],
-    queryFn: fetchKnowledgeBases,
-    staleTime: 5 * 60 * 1000,
-    enabled: !knowledgeBasesLoaded
-  });
 
   const formatExternalSources = (data) => {
     if (!data) return [];
@@ -256,7 +249,7 @@ const KnowledgeTrainingStatus = ({
       if (sourcesToAdd.length === 1) {
         toast({
           title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base.`
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."
         });
       } else {
         toast({
@@ -477,6 +470,13 @@ const KnowledgeTrainingStatus = ({
     }, 4000);
   };
 
+  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError, refetch } = useQuery({
+    queryKey: ['knowledgeBases', agentId],
+    queryFn: fetchKnowledgeBases,
+    staleTime: 5 * 60 * 1000,
+    enabled: !knowledgeBasesLoaded
+  });
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -602,6 +602,7 @@ const KnowledgeTrainingStatus = ({
         externalSources={formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current)}
         currentSources={knowledgeSources}
         onImport={importSelectedSources}
+        agentId={agentId}
       />
     </Card>
   );

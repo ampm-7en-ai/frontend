@@ -118,6 +118,12 @@ const KnowledgeSourceModal = ({
                     <p className="text-muted-foreground">Status:</p>
                     <p>{currentSource.trainingStatus}</p>
                   </div>
+                  {currentSource.metadata?.no_of_chars && (
+                    <div>
+                      <p className="text-muted-foreground">Characters:</p>
+                      <p>{currentSource.metadata.no_of_chars.toLocaleString()}</p>
+                    </div>
+                  )}
                 </div>
                 {currentSource.content && (
                   <div className="mt-4">
