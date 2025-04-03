@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const MODELS = {
   'gpt4': { name: 'GPT-4', provider: 'OpenAI' },
@@ -145,6 +147,7 @@ const AgentTest = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
 
+  // Fetch all agents for the dropdown
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
@@ -158,21 +161,27 @@ const AgentTest = () => {
       }
 
       const data = await response.json();
+      console.log('All agents data:', data);
       
+      // Transform the API response to match our UI needs
       return data.agents?.map((agent: any) => ({
         id: agent.id.toString(),
         name: agent.name,
-        model: agent.model?.name || 'gpt-3.5',
+        model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
+        avatarSrc: agent.appearance?.avatar?.src || '',
       })) || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Fetch specific agent details
   const { data: agentData, isLoading: isLoadingAgent } = useQuery({
     queryKey: ['agent', selectedAgentId],
     queryFn: () => fetchAgentDetails(selectedAgentId),
     enabled: !!selectedAgentId,
     onSuccess: (data) => {
+      console.log('Agent details data:', data);
+      
       const transformedAgent: Agent = {
         id: data.id?.toString() || selectedAgentId,
         name: data.name || "Unknown Agent",
@@ -191,18 +200,19 @@ const AgentTest = () => {
           hasError: kb.status === 'error',
           content: kb.content || ""
         })) || [],
-        model: data.model?.name || 'gpt4',
+        model: data.model?.selectedModel || data.model?.name || 'gpt4',
         isDeployed: data.status === 'Live',
         systemPrompt: data.systemPrompt || "You are a helpful AI assistant."
       };
       
       setAgent(transformedAgent);
       
+      // Update chat configs with agent data
       setChatConfigs(prev => prev.map((config, index) => ({
         ...config,
         systemPrompt: transformedAgent.systemPrompt || "",
         model: index === 0 ? transformedAgent.model : config.model,
-        temperature: index === 0 ? 0.7 : config.temperature
+        temperature: index === 0 ? (data.model?.temperature || 0.7) : config.temperature
       })));
       
       setMessages(Array(numModels).fill(null).map(() => []));
@@ -367,7 +377,14 @@ const AgentTest = () => {
               {allAgents.map((agent: any) => (
                 <SelectItem key={agent.id} value={agent.id}>
                   <div className="flex items-center">
-                    <Bot className="mr-2 h-4 w-4 text-primary" />
+                    {agent.avatarSrc ? (
+                      <Avatar className="h-6 w-6 mr-2">
+                        <AvatarImage src={agent.avatarSrc} alt={agent.name} />
+                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Bot className="mr-2 h-4 w-4 text-primary" />
+                    )}
                     {agent.name}
                   </div>
                 </SelectItem>
