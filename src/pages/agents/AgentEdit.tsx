@@ -245,6 +245,13 @@ const AgentEdit = () => {
         knowledge_bases: agentKnowledgeSources
       };
 
+      if (customAvatarFile && agent.avatar.type === 'custom') {
+        payload.avatar = {
+          ...agent.avatar,
+          file: customAvatarFile
+        };
+      }
+
       await updateAgent(agentId || '', payload);
       
       toast({
@@ -301,19 +308,24 @@ const AgentEdit = () => {
       ...agent,
       avatar: { type, src }
     });
+    
+    if (type !== 'custom') {
+      setCustomAvatarFile(null);
+    }
   };
 
   const handleCustomAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const objectUrl = URL.createObjectURL(file);
     setCustomAvatarFile(file);
+    
+    const objectUrl = URL.createObjectURL(file);
     handleAvatarChange('custom', objectUrl);
 
     toast({
       title: "Avatar uploaded",
-      description: "Your custom avatar has been uploaded.",
+      description: "Your custom avatar has been uploaded. Don't forget to save changes.",
     });
   };
   

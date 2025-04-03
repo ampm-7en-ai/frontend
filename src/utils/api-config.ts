@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -244,11 +243,13 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   console.log('Updating agent with ID:', agentId);
   console.log('Agent data:', agentData);
   
-  // Format the payload according to the API structure
+  // Create payload based on the data structure
   const payload = {
     name: agentData.name,
     description: agentData.description,
-    appearance: agentData.appearance,
+    appearance: {
+      ...agentData.appearance
+    },
     behavior: agentData.behavior,
     model: agentData.model,
     agentType: agentData.agentType,
@@ -257,6 +258,16 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
       ...(agentData.settings || {}),
     }
   };
+  
+  // Handle avatar separately if it's a File object
+  if (agentData.avatar && agentData.avatar.file) {
+    // Don't include the avatar in the JSON payload
+    // We'll send it in a separate FormData request if needed
+    console.log('Found avatar file to upload');
+  } else if (agentData.appearance && agentData.appearance.avatar) {
+    // Keep the avatar configuration if it's just configuration without a file
+    payload.appearance.avatar = agentData.appearance.avatar;
+  }
   
   // Format the knowledge source filters if needed
   if (agentData.knowledgeSources && Array.isArray(agentData.knowledgeSources)) {
@@ -273,11 +284,33 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
     };
   }
   
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
-    method: 'PUT',
-    headers: getAuthHeaders(token),
-    body: JSON.stringify(payload)
-  });
+  let response;
+  
+  // Check if we have an avatar file to upload
+  if (agentData.avatar && agentData.avatar.file) {
+    // Send a FormData request
+    const formData = new FormData();
+    formData.append('avatar', agentData.avatar.file);
+    formData.append('data', JSON.stringify(payload));
+    
+    console.log('Sending avatar with form data');
+    
+    response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+        // Note: Don't set Content-Type for FormData
+      },
+      body: formData
+    });
+  } else {
+    // Send JSON request
+    response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
+      method: 'PUT',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(payload)
+    });
+  }
   
   console.log('Update agent response status:', response.status);
   
