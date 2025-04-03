@@ -233,16 +233,15 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
   return response.json();
 };
 
-// Function to convert a File to base64
-const fileToBase64 = (file: File): Promise<string> => {
+// Function to convert a File to a complete data URL (including prefix)
+const fileToDataURL = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => {
-      const base64String = reader.result as string;
-      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
-      const base64Data = base64String.split(',')[1];
-      resolve(base64Data);
+      // Keep the complete data URL with the prefix
+      const dataURL = reader.result as string;
+      resolve(dataURL);
     };
     reader.onerror = error => reject(error);
   });
@@ -272,7 +271,7 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
       position: agentData.appearance?.position,
       avatar: {
         type: agentData.appearance?.avatar?.type,
-        src: agentData.appearance?.avatar?.src // Will be updated with base64 if needed
+        src: agentData.appearance?.avatar?.src // Will be updated with dataURL if needed
       }
     },
     behavior: agentData.behavior,
@@ -299,21 +298,21 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
     };
   }
   
-  // Handle custom avatar with file upload by converting to base64
+  // Handle custom avatar with file upload by converting to data URL
   if (agentData.avatar && agentData.avatar.file && agentData.avatar.type === 'custom') {
     try {
-      // Convert the file to base64
-      const base64Data = await fileToBase64(agentData.avatar.file);
+      // Convert the file to a complete data URL with the prefix
+      const dataURL = await fileToDataURL(agentData.avatar.file);
       
-      // Update the avatar src in the payload with the base64 data
+      // Update the avatar src in the payload with the complete data URL
       payload.appearance.avatar = {
         type: 'custom',
-        src: base64Data
+        src: dataURL
       };
       
-      console.log('Converted avatar file to base64 for JSON payload');
+      console.log('Converted avatar file to complete data URL for JSON payload');
     } catch (error) {
-      console.error('Error converting file to base64:', error);
+      console.error('Error converting file to data URL:', error);
       throw new Error('Failed to process avatar file');
     }
   }
