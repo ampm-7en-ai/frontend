@@ -84,6 +84,8 @@ export interface UrlNode {
   children?: UrlNode[];
   level?: number;
   path?: string;
+  is_selected?: boolean; // New property for API selected state
+  chars?: number; // New property for character count
 }
 
 export interface ProcessedSource extends KnowledgeSource {

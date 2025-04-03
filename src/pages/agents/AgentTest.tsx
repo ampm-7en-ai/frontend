@@ -128,6 +128,7 @@ const AgentTest = () => {
           onOpenChange={setIsModalOpen}
           sources={agent?.knowledgeSources || []}
           initialSourceId={selectedSourceId}
+          agentId={selectedAgentId}
         />
       </div>
     </TooltipProvider>

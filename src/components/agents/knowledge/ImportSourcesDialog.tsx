@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,7 @@ interface ImportSourcesDialogProps {
   externalSources: KnowledgeSource[];
   currentSources: KnowledgeSource[];
   onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => void;
+  agentId?: string;
 }
 
 export const ImportSourcesDialog = ({
@@ -25,6 +25,7 @@ export const ImportSourcesDialog = ({
   externalSources,
   currentSources,
   onImport,
+  agentId = "",
 }: ImportSourcesDialogProps) => {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedSources, setSelectedSources] = useState<Set<number>>(new Set());
@@ -57,7 +58,26 @@ export const ImportSourcesDialog = ({
         
         setExpandedNodes(prev => new Set([...prev, rootNode.url]));
         
-        if (rootNode.children && rootNode.children.length > 0) {
+        const selectedUrls = new Set<string>();
+        
+        const collectSelectedUrls = (node: UrlNode) => {
+          if (node.is_selected) {
+            selectedUrls.add(node.url);
+          }
+          
+          if (node.children && node.children.length > 0) {
+            node.children.forEach(child => collectSelectedUrls(child));
+          }
+        };
+        
+        collectSelectedUrls(rootNode);
+        
+        if (selectedUrls.size > 0) {
+          setSelectedSubUrls(prev => ({
+            ...prev,
+            [sourceId]: selectedUrls
+          }));
+        } else {
           selectAllUrlsUnderNode(sourceId, rootNode);
         }
       }
@@ -255,7 +275,13 @@ export const ImportSourcesDialog = ({
     const isExpanded = expandedNodes.has(currentPath);
     const hasChildren = urlNode.children && urlNode.children.length > 0;
     const isRoot = level === 0;
-    const isSelected = isUrlSelected(source.id, urlNode.url);
+    
+    let isSelected = isUrlSelected(source.id, urlNode.url);
+    
+    if (urlNode.is_selected && !isSelected && !isRoot) {
+      // We don't modify state directly here, since this is a render function
+      // The initial selection is handled in the useEffect
+    }
     
     return (
       <div key={currentPath} className="py-1">
@@ -294,6 +320,11 @@ export const ImportSourcesDialog = ({
               </span>
               {urlNode.url && (
                 <span className="text-xs text-muted-foreground ml-6 truncate max-w-[300px]">{urlNode.url}</span>
+              )}
+              {urlNode.chars && (
+                <span className="text-xs text-muted-foreground ml-6">
+                  {urlNode.chars.toLocaleString()} characters
+                </span>
               )}
             </div>
           )}

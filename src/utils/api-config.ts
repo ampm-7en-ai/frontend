@@ -16,6 +16,12 @@ export const API_ENDPOINTS = {
   KNOWLEDGEBASE: "knowledgebase/"
 };
 
+// Function to get knowledge base endpoint with optional agent ID
+export const getKnowledgeBaseEndpoint = (agentId?: string): string => {
+  const baseEndpoint = `${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`;
+  return agentId ? `${baseEndpoint}&agent_id=${agentId}` : baseEndpoint;
+};
+
 // Utility function to get full API URL
 export const getApiUrl = (endpoint: string): string => {
   return `${BASE_URL}${endpoint}`;
@@ -199,6 +205,26 @@ export const fetchKnowledgeSourceDetails = async (sourceId: number): Promise<any
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
     throw new Error(errorData.message || `Failed to fetch knowledge source details: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
+// Function to fetch external knowledge sources for an agent
+export const fetchExternalKnowledgeSources = async (agentId?: string): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  const endpoint = getKnowledgeBaseEndpoint(agentId);
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    headers: getAuthHeaders(token),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    throw new Error(errorData.message || `Failed to fetch external knowledge sources: ${response.status}`);
   }
   
   return response.json();
