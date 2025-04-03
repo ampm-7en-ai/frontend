@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -154,6 +153,7 @@ export const useAgentTest = (initialAgentId: string) => {
           name: agent.name,
           model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
           avatarSrc: agent.appearance?.avatar?.src || '',
+          appearance: agent.appearance || { primaryColor: '#9b87f5' }
         })) || [];
       } catch (error) {
         console.error("Error in fetchAllAgents:", error);
