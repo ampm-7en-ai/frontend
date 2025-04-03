@@ -87,6 +87,7 @@ const AgentTest = () => {
               onUpdateConfig={(field, value) => handleUpdateChatConfig(index, field, value)}
               modelOptions={MODELS}
               primaryColor={primaryColor}
+              avatarSrc={agent?.avatarSrc}
             />
           );
         })}

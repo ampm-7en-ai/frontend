@@ -5,6 +5,7 @@ export type Message = {
   sender: 'user' | 'agent1' | 'agent2' | 'agent3';
   model?: string;
   timestamp: Date;
+  avatarSrc?: string;
 };
 
 export type ChatConfig = {
@@ -25,6 +26,7 @@ export type Agent = {
   model: string;
   isDeployed: boolean;
   systemPrompt?: string;
+  avatarSrc?: string;
 };
 
 // Import the full KnowledgeSource type from the central definition

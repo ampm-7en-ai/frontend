@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { Bot, Sliders, X } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
@@ -22,6 +21,7 @@ interface ModelComparisonCardProps {
   onUpdateConfig: (field: keyof ChatConfig, value: any) => void;
   modelOptions: Record<string, { name: string; provider: string }>;
   primaryColor: string;
+  avatarSrc?: string;
 }
 
 export const ModelComparisonCard = ({
@@ -35,7 +35,8 @@ export const ModelComparisonCard = ({
   onOpenSystemPrompt,
   onUpdateConfig,
   modelOptions,
-  primaryColor
+  primaryColor,
+  avatarSrc
 }: ModelComparisonCardProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -110,10 +111,14 @@ export const ModelComparisonCard = ({
           if (message.sender === 'user') {
             return <UserMessage key={message.id} message={message} />;
           } else {
+            const messageWithAvatar = message.avatarSrc 
+              ? message 
+              : { ...message, avatarSrc: avatarSrc };
+              
             return (
               <ModelMessage 
                 key={message.id} 
-                message={message} 
+                message={messageWithAvatar} 
                 model={getModelDisplay(message.model || '')}
                 primaryColor={primaryColor}
                 adjustColor={adjustColor}

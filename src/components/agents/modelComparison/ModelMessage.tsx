@@ -2,7 +2,7 @@
 import React from 'react';
 import { Bot } from 'lucide-react';
 import { Message } from './types';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface ModelMessageProps {
   message: Message;
@@ -27,6 +27,9 @@ export const ModelMessage = ({
             boxShadow: `0 2px 5px ${primaryColor}40`
           }}
         >
+          {message.avatarSrc && (
+            <AvatarImage src={message.avatarSrc} alt={model} />
+          )}
           <AvatarFallback className="text-white bg-transparent flex items-center justify-center">
             <Bot size={16} />
           </AvatarFallback>
