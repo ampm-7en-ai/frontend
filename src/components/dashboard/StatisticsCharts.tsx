@@ -15,7 +15,7 @@ const StatisticsCharts = () => {
           </CardTitle>
           <CardDescription>Customer engagement and conversion metrics</CardDescription>
         </CardHeader>
-        <CardContent className="h-[250px]">
+        <CardContent className="h-[300px]">
           <AgentPerformanceChart type="conversion" />
         </CardContent>
       </Card>
@@ -49,7 +49,7 @@ const StatisticsCharts = () => {
               </CardContent>
             </Card>
           </div>
-          <div className="h-[200px]">
+          <div className="h-[250px]">
             <AgentPerformanceChart type="satisfaction" />
           </div>
         </CardContent>

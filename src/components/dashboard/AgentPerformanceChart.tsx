@@ -175,15 +175,15 @@ export const AgentPerformanceChart = ({
   return (
     <div className={`w-full h-full ${className || ''}`}>
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+        <PieChart margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
           <Pie
             activeIndex={0}
             activeShape={renderActiveShape}
             data={chartData}
             cx="50%"
             cy="50%"
-            innerRadius={50}
-            outerRadius={70}
+            innerRadius={45}
+            outerRadius={65}
             paddingAngle={2}
             dataKey="value"
           >
