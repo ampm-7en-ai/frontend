@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import {
   Breadcrumb,
@@ -301,7 +301,7 @@ const KnowledgeBase = () => {
     });
   };
 
-  const handleDeleteFile = async (sourceId) => {
+  const handleDeleteFile = async (sourceId: number) => {
     if (!sourceId) {
       toast({
         title: "Error",
@@ -336,6 +336,41 @@ const KnowledgeBase = () => {
       toast({
         title: "Delete failed",
         description: error.message || "There was an error deleting the file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // New function to handle deletion of entire knowledge base
+  const handleDeleteKnowledgeBase = async (knowledgeBaseId: number) => {
+    if (!knowledgeBaseId) {
+      toast({
+        title: "Error",
+        description: "Cannot delete knowledge base: Missing ID",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Deleting knowledge base...",
+        description: "Please wait while the knowledge base is being deleted."
+      });
+
+      await deleteKnowledgeBase(knowledgeBaseId);
+      
+      toast({
+        title: "Success",
+        description: "Knowledge base has been successfully deleted."
+      });
+      
+      refetch();
+    } catch (error) {
+      console.error("Error deleting knowledge base:", error);
+      toast({
+        title: "Delete failed",
+        description: error.message || "There was an error deleting the knowledge base. Please try again.",
         variant: "destructive"
       });
     }
@@ -627,7 +662,10 @@ const KnowledgeBase = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
+                            <DropdownMenuItem 
+                              className="flex items-center gap-2 text-destructive cursor-pointer"
+                              onClick={() => handleDeleteKnowledgeBase(doc.id)}
+                            >
                               <Trash className="h-4 w-4" /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -675,135 +713,4 @@ const KnowledgeBase = () => {
               Add New File
             </label>
             <input 
-              id="file-upload" 
-              type="file" 
-              className="hidden" 
-              accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
-              onChange={handleFileUpload}
-            />
-          </Button>
-        </div>
-
-        <Card>
-          <CardContent className="p-0">
-            {selectedKnowledgeBase.knowledge_sources && selectedKnowledgeBase.knowledge_sources.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40%]">File Name</TableHead>
-                    <TableHead>Format</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Content</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <TableHead className="w-24 text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedKnowledgeBase.knowledge_sources.map((source, index) => {
-                    const fileSize = source.metadata?.file_size 
-                      ? formatFileSizeToMB(source.metadata.file_size) 
-                      : "N/A";
-                    
-                    const format = source.metadata?.format || "N/A";
-                    const uploadDate = source.metadata?.upload_date 
-                      ? formatDate(source.metadata.upload_date) 
-                      : "N/A";
-
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className={`p-2 rounded ${getIconBackground({sourceType: format.toLowerCase()})} mr-2 flex-shrink-0`}>
-                              {renderSourceIcon({sourceType: format.toLowerCase()})}
-                            </div>
-                            <div>
-                              <div className="font-medium">{source.title || `File ${index + 1}`}</div>
-                              <div className="text-xs text-muted-foreground">{source.file_name || ''}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {format.toUpperCase()}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{fileSize}</TableCell>
-                        <TableCell>{getContentMeasure(source)}</TableCell>
-                        <TableCell>{uploadDate}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => handleDownloadFile(source)}
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Download</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon"
-                                    onClick={() => handleDeleteFile(source.id)}
-                                  >
-                                    <Trash className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-1">No files found</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Add your first file to this knowledge source
-                </p>
-                <Button>
-                  <label htmlFor="file-upload-empty" className="flex gap-2 items-center cursor-pointer">
-                    <Upload className="h-4 w-4" />
-                    Upload File
-                  </label>
-                  <input 
-                    id="file-upload-empty" 
-                    type="file" 
-                    className="hidden" 
-                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
-                    onChange={handleFileUpload}
-                  />
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      {viewMode === 'main' ? renderMainView() : renderDetailView()}
-    </div>
-  );
-};
-
-export default KnowledgeBase;
+              id="file

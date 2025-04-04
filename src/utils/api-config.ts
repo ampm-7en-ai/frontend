@@ -412,3 +412,28 @@ export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> 
     throw error;
   }
 };
+
+// Function to delete an entire knowledge base
+export const deleteKnowledgeBase = async (knowledgeBaseId: number): Promise<boolean> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  try {
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${knowledgeBaseId}/`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(token),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(errorData.message || `Failed to delete knowledge base: ${response.status}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting knowledge base:', error);
+    throw error;
+  }
+};
