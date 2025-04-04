@@ -11,12 +11,13 @@ const Checkbox = React.forwardRef<
     indeterminate?: boolean
   }
 >(({ className, indeterminate, ...props }, ref) => {
-  // Create a ref for indeterminate state but don't rerender on changes
-  const indeterminateRef = React.useRef(!!indeterminate)
+  // Create a ref for indeterminate state
+  const indeterminateRef = React.useRef<boolean>(!!indeterminate);
   
+  // Update ref when indeterminate prop changes
   React.useEffect(() => {
-    indeterminateRef.current = !!indeterminate
-  }, [indeterminate])
+    indeterminateRef.current = !!indeterminate;
+  }, [indeterminate]);
 
   return (
     <CheckboxPrimitive.Root

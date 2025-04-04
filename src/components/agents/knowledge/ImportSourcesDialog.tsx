@@ -154,34 +154,32 @@ export const ImportSourcesDialog = ({
            source.knowledge_sources.length > 0;
   };
 
-  const toggleSourceSelection = (source: KnowledgeSource, setAsSelectedSource: boolean = true) => {
-    const sourceId = source.id;
-    const newSelectedSources = new Set(selectedSources);
-    
-    if (newSelectedSources.has(sourceId)) {
-      newSelectedSources.delete(sourceId);
+  const toggleSourceSelection = (source: KnowledgeSource) => {
+    if (source.type === 'plain_text') {
+      // For plain_text, toggle selection with checkbox behavior
+      const sourceId = source.id;
+      const newSelectedSources = new Set(selectedSources);
       
-      const newSelectedSubUrls = { ...selectedSubUrls };
-      delete newSelectedSubUrls[sourceId];
-      setSelectedSubUrls(newSelectedSubUrls);
-      
-      const newSelectedFiles = { ...selectedFiles };
-      delete newSelectedFiles[sourceId];
-      setSelectedFiles(newSelectedFiles);
-      
-      if (selectedSource && selectedSource.id === sourceId) {
-        setSelectedSource(null);
+      if (newSelectedSources.has(sourceId)) {
+        newSelectedSources.delete(sourceId);
+        
+        if (selectedSource && selectedSource.id === sourceId) {
+          setSelectedSource(null);
+        }
+      } else {
+        newSelectedSources.add(sourceId);
       }
-    } else {
-      newSelectedSources.add(sourceId);
       
-      if (setAsSelectedSource && ((source.type === 'website' && hasUrlStructure(source)) || 
-          ((source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && hasNestedFiles(source)))) {
-        setSelectedSource(source);
+      setSelectedSources(newSelectedSources);
+    } else {
+      // For other types, just select the source to show in third panel
+      setSelectedSource(source);
+      
+      // If this source has nested content that needs selection, ensure it's in selectedSources
+      if ((hasUrlStructure(source) || hasNestedFiles(source)) && !selectedSources.has(source.id)) {
+        setSelectedSources(prev => new Set([...prev, source.id]));
       }
     }
-    
-    setSelectedSources(newSelectedSources);
   };
 
   const toggleNodeExpansion = (nodePath: string) => {
@@ -515,6 +513,8 @@ export const ImportSourcesDialog = ({
                       const firstKnowledgeSource = source.knowledge_sources?.[0];
                       const alreadyImported = isSourceAlreadyImported(source.id);
                       const isSelected = selectedSources.has(source.id);
+                      const hasExpandableContent = hasUrlStructure(source) || hasNestedFiles(source);
+                      const isPlainText = source.type === 'plain_text';
                       
                       return (
                         <div 
@@ -524,18 +524,25 @@ export const ImportSourcesDialog = ({
                             isSelected && "border-primary",
                             source === selectedSource && "ring-2 ring-primary"
                           )}
-                          onClick={() => toggleSourceSelection(source, true)}
+                          onClick={() => toggleSourceSelection(source)}
                         >
                           <div className="flex items-center p-3 bg-white">
-                            <Checkbox 
-                              id={`source-${source.id}`}
-                              checked={selectedSources.has(source.id) || source.selected}
-                              onCheckedChange={() => {
-                                toggleSourceSelection(source, true);
-                              }}
-                              className="mr-2"
-                              onClick={(e) => e.stopPropagation()}
-                            />
+                            {isPlainText ? (
+                              <Checkbox 
+                                id={`source-${source.id}`}
+                                checked={selectedSources.has(source.id) || source.selected}
+                                onCheckedChange={() => {
+                                  toggleSourceSelection(source);
+                                }}
+                                className="mr-2"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : hasExpandableContent ? (
+                              <ChevronRight className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
+                            ) : (
+                              <div className="w-5 mr-2" />
+                            )}
+                            
                             <div className="flex-1">
                               <div className="flex items-center">
                                 {renderSourceIcon(source.type)}
