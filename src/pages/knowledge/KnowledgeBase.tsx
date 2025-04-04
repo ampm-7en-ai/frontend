@@ -140,7 +140,6 @@ const KnowledgeBase = () => {
     return matchesSearch && matchesType;
   });
 
-  // Calculate stats for knowledge sources
   const knowledgeStats = useMemo(() => {
     if (isLoading || !documents.length) {
       return {
@@ -167,10 +166,8 @@ const KnowledgeBase = () => {
     };
 
     documents.forEach(source => {
-      // Count by source type
       if (source.sourceType === 'docs') {
         stats.documentSources++;
-        // Count nested files for documents
         if (source.knowledge_sources) {
           stats.documentFiles += source.knowledge_sources.length;
         }
@@ -178,7 +175,6 @@ const KnowledgeBase = () => {
         stats.websiteSources++;
       } else if (source.sourceType === 'csv') {
         stats.spreadsheetSources++;
-        // Count total rows across all spreadsheets
         if (source.knowledge_sources) {
           source.knowledge_sources.forEach(ks => {
             if (ks.metadata && ks.metadata.no_of_rows) {
@@ -188,7 +184,6 @@ const KnowledgeBase = () => {
         }
       } else if (source.sourceType === 'plain_text') {
         stats.plainTextSources++;
-        // Count total characters across all plaintext
         if (source.knowledge_sources && source.knowledge_sources[0]?.metadata?.no_of_chars) {
           stats.plainTextChars += parseInt(source.knowledge_sources[0].metadata.no_of_chars) || 0;
         }
@@ -366,7 +361,6 @@ const KnowledgeBase = () => {
         </div>
       );
     } else {
-      // For other source types, display number of files
       return (
         <div className="text-xs text-muted-foreground mt-0.5">
           {doc.fileCount > 0 ? 
@@ -384,17 +378,13 @@ const KnowledgeBase = () => {
     const format = source.metadata.format?.toLowerCase();
     
     if (format === 'csv' || format === 'xlsx' || format === 'xls') {
-      // For spreadsheets, show number of rows
       return source.metadata.no_of_rows ? `${source.metadata.no_of_rows} rows` : "N/A";
     } else if (format === 'txt' || format === 'plain_text') {
-      // For text files, show character count
       return source.metadata.no_of_chars ? `${source.metadata.no_of_chars.toLocaleString()} chars` : "N/A";
     } else if (format === 'pdf' || format === 'docx' || format === 'doc') {
-      // For documents, show page count
       return source.metadata.no_of_pages ? `${source.metadata.no_of_pages} pages` : "N/A";
     }
     
-    // Default fallback
     return source.metadata.no_of_pages || "N/A";
   };
 
@@ -693,4 +683,98 @@ const KnowledgeBase = () => {
                     return (
                       <TableRow key={index}>
                         <TableCell>
-                          <
+                          <div className="flex items-center gap-2">
+                            <div className={`p-2 rounded ${getIconBackground({sourceType: format.toLowerCase()})} mr-2 flex-shrink-0`}>
+                              {renderSourceIcon({sourceType: format.toLowerCase()})}
+                            </div>
+                            <div>
+                              <div className="font-medium">{source.title || `File ${index + 1}`}</div>
+                              <div className="text-xs text-muted-foreground">{source.file_name || ''}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {format.toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{fileSize}</TableCell>
+                        <TableCell>{getContentMeasure(source)}</TableCell>
+                        <TableCell>{uploadDate}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => handleDownloadFile(source)}
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Download</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleDeleteFile(source.id)}
+                                  >
+                                    <Trash className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-1">No files found</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add your first file to this knowledge source
+                </p>
+                <Button>
+                  <label htmlFor="file-upload-empty" className="flex gap-2 items-center cursor-pointer">
+                    <Upload className="h-4 w-4" />
+                    Upload File
+                  </label>
+                  <input 
+                    id="file-upload-empty" 
+                    type="file" 
+                    className="hidden" 
+                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                    onChange={handleFileUpload}
+                  />
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {viewMode === 'main' ? renderMainView() : renderDetailView()}
+    </div>
+  );
+};
+
+export default KnowledgeBase;
