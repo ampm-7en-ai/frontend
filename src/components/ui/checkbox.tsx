@@ -11,11 +11,11 @@ const Checkbox = React.forwardRef<
     indeterminate?: boolean
   }
 >(({ className, indeterminate, ...props }, ref) => {
-  // Use a React ref instead of directly setting the DOM property
-  const [isIndeterminate, setIsIndeterminate] = React.useState(!!indeterminate)
+  // Create a ref for indeterminate state but don't rerender on changes
+  const indeterminateRef = React.useRef(!!indeterminate)
   
   React.useEffect(() => {
-    setIsIndeterminate(!!indeterminate)
+    indeterminateRef.current = !!indeterminate
   }, [indeterminate])
 
   return (
@@ -30,7 +30,7 @@ const Checkbox = React.forwardRef<
       <CheckboxPrimitive.Indicator
         className={cn("flex items-center justify-center text-current")}
       >
-        {isIndeterminate ? (
+        {indeterminateRef.current ? (
           <Minus className="h-4 w-4" />
         ) : (
           <Check className="h-4 w-4" />

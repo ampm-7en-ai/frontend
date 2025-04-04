@@ -113,7 +113,7 @@ export const ImportSourcesDialog = ({
       if (counts[source.type as keyof typeof counts]) {
         counts[source.type as keyof typeof counts].count++;
       }
-      if (source.type === 'pdf' || source.type === 'docx') {
+      if (source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') {
         counts.docs.count++;
       }
     });
@@ -125,7 +125,7 @@ export const ImportSourcesDialog = ({
     return selectedType === 'all' 
       ? externalSources 
       : selectedType === 'docs'
-        ? externalSources.filter(source => source.type === 'pdf' || source.type === 'docx')
+        ? externalSources.filter(source => source.type === 'pdf' || source.type === 'docx' || source.type === 'docs')
         : externalSources.filter(source => source.type === selectedType);
   }, [selectedType, externalSources]);
 
