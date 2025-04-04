@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -342,7 +341,6 @@ const KnowledgeBase = () => {
     }
   };
 
-  // New function to handle deletion of entire knowledge base
   const handleDeleteKnowledgeBase = async (knowledgeBaseId: number) => {
     if (!knowledgeBaseId) {
       toast({
@@ -723,7 +721,6 @@ const KnowledgeBase = () => {
           </Button>
         </div>
 
-        {/* Rest of detail view implementation */}
         <Card>
           <CardContent className="p-0">
             {selectedKnowledgeBase.knowledge_sources?.length > 0 ? (
