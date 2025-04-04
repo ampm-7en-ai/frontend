@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +56,7 @@ const KnowledgeBase = () => {
     }
   };
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
   });
@@ -302,11 +301,44 @@ const KnowledgeBase = () => {
     });
   };
 
-  const handleDeleteFile = (fileId) => {
-    toast({
-      title: "Delete file",
-      description: `File with ID ${fileId} deletion would be implemented here.`
-    });
+  const handleDeleteFile = async (sourceId) => {
+    if (!sourceId) {
+      toast({
+        title: "Error",
+        description: "Cannot delete file: Missing source ID",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Deleting file...",
+        description: "Please wait while the file is being deleted."
+      });
+
+      await deleteKnowledgeSource(sourceId);
+      
+      toast({
+        title: "Success",
+        description: "File has been successfully deleted."
+      });
+      
+      refetch();
+      
+      if (selectedKnowledgeBase && 
+          selectedKnowledgeBase.knowledge_sources && 
+          selectedKnowledgeBase.knowledge_sources.length === 1) {
+        handleBackToMainView();
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      toast({
+        title: "Delete failed",
+        description: error.message || "There was an error deleting the file. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDownloadFile = (file) => {
