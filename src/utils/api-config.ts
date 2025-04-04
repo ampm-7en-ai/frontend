@@ -387,3 +387,28 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   
   return response.json();
 };
+
+// Function to delete a knowledge source
+export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  try {
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${sourceId}/`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(token),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(errorData.message || `Failed to delete knowledge source: ${response.status}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting knowledge source:', error);
+    throw error;
+  }
+};
