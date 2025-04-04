@@ -325,6 +325,26 @@ const KnowledgeBase = () => {
     }
   };
 
+  const getContentMeasure = (source) => {
+    if (!source || !source.metadata) return "N/A";
+    
+    const format = source.metadata.format?.toLowerCase();
+    
+    if (format === 'csv' || format === 'xlsx' || format === 'xls') {
+      // For spreadsheets, show number of rows
+      return source.metadata.no_of_rows ? `${source.metadata.no_of_rows} rows` : "N/A";
+    } else if (format === 'txt' || format === 'plain_text') {
+      // For text files, show character count
+      return source.metadata.no_of_chars ? `${source.metadata.no_of_chars.toLocaleString()} chars` : "N/A";
+    } else if (format === 'pdf' || format === 'docx' || format === 'doc') {
+      // For documents, show page count
+      return source.metadata.no_of_pages ? `${source.metadata.no_of_pages} pages` : "N/A";
+    }
+    
+    // Default fallback
+    return source.metadata.no_of_pages || "N/A";
+  };
+
   const renderMainView = () => {
     return (
       <>
@@ -601,7 +621,7 @@ const KnowledgeBase = () => {
                     <TableHead className="w-[40%]">File Name</TableHead>
                     <TableHead>Format</TableHead>
                     <TableHead>Size</TableHead>
-                    <TableHead>Pages</TableHead>
+                    <TableHead>Content</TableHead>
                     <TableHead>Uploaded</TableHead>
                     <TableHead className="w-24 text-right">Actions</TableHead>
                   </TableRow>
@@ -612,7 +632,6 @@ const KnowledgeBase = () => {
                       ? formatFileSizeToMB(source.metadata.file_size) 
                       : "N/A";
                     
-                    const pages = source.metadata?.no_of_pages || "N/A";
                     const format = source.metadata?.format || "N/A";
                     const uploadDate = source.metadata?.upload_date 
                       ? formatDate(source.metadata.upload_date) 
@@ -630,7 +649,7 @@ const KnowledgeBase = () => {
                         </TableCell>
                         <TableCell>{format}</TableCell>
                         <TableCell>{fileSize}</TableCell>
-                        <TableCell>{pages}</TableCell>
+                        <TableCell>{getContentMeasure(source)}</TableCell>
                         <TableCell>{uploadDate}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
