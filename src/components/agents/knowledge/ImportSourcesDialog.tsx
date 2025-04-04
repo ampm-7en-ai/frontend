@@ -1,21 +1,23 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Download, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { renderSourceIcon } from './knowledgeUtils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   externalSources: KnowledgeSource[];
   currentSources: KnowledgeSource[];
-  onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => void;
+  onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => void;
   agentId?: string;
 }
 
@@ -31,51 +33,65 @@ export const ImportSourcesDialog = ({
   const [selectedSources, setSelectedSources] = useState<Set<number>>(new Set());
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
+  const [selectedFiles, setSelectedFiles] = useState<Record<number, Set<string>>>({});
   const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
+  const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
   
   useEffect(() => {
     if (isOpen) {
       setSelectedSources(new Set());
       setExpandedNodes(new Set());
       setSelectedSubUrls({});
+      setSelectedFiles({});
       setSelectedSource(null);
       setSelectedType('all');
+      setExpandedSources(new Set());
     }
   }, [isOpen, externalSources]);
 
   useEffect(() => {
-    if (selectedSource && hasUrlStructure(selectedSource)) {
-      const sourceId = selectedSource.id;
-      const rootNode = findRootUrlNode(selectedSource);
-      
-      if (rootNode && rootNode.url) {
-        if (!selectedSubUrls[sourceId]) {
-          setSelectedSubUrls(prev => ({
-            ...prev,
-            [sourceId]: new Set<string>()
-          }));
-        }
+    if (selectedSource) {
+      if (hasUrlStructure(selectedSource)) {
+        const sourceId = selectedSource.id;
+        const rootNode = findRootUrlNode(selectedSource);
         
-        setExpandedNodes(prev => new Set([...prev, rootNode.url]));
-        
-        const selectedUrls = new Set<string>();
-        
-        const collectSelectedUrls = (node: UrlNode) => {
-          if (node.is_selected) {
-            selectedUrls.add(node.url);
+        if (rootNode && rootNode.url) {
+          if (!selectedSubUrls[sourceId]) {
+            setSelectedSubUrls(prev => ({
+              ...prev,
+              [sourceId]: new Set<string>()
+            }));
           }
           
-          if (node.children && node.children.length > 0) {
-            node.children.forEach(child => collectSelectedUrls(child));
+          setExpandedNodes(prev => new Set([...prev, rootNode.url]));
+          
+          const selectedUrls = new Set<string>();
+          
+          const collectSelectedUrls = (node: UrlNode) => {
+            if (node.is_selected) {
+              selectedUrls.add(node.url);
+            }
+            
+            if (node.children && node.children.length > 0) {
+              node.children.forEach(child => collectSelectedUrls(child));
+            }
+          };
+          
+          collectSelectedUrls(rootNode);
+          
+          if (selectedUrls.size > 0) {
+            setSelectedSubUrls(prev => ({
+              ...prev,
+              [sourceId]: selectedUrls
+            }));
           }
-        };
-        
-        collectSelectedUrls(rootNode);
-        
-        if (selectedUrls.size > 0) {
-          setSelectedSubUrls(prev => ({
+        }
+      } else if (hasNestedFiles(selectedSource)) {
+        const sourceId = selectedSource.id;
+        if (!selectedFiles[sourceId]) {
+          setSelectedFiles(prev => ({
             ...prev,
-            [sourceId]: selectedUrls
+            [sourceId]: new Set<string>()
           }));
         }
       }
@@ -132,6 +148,12 @@ export const ImportSourcesDialog = ({
   const hasUrlStructure = (source: KnowledgeSource) => {
     return source.type === 'website' && findRootUrlNode(source) !== null;
   };
+  
+  const hasNestedFiles = (source: KnowledgeSource) => {
+    return (source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
+           source.knowledge_sources && 
+           source.knowledge_sources.length > 0;
+  };
 
   const toggleSourceSelection = (source: KnowledgeSource) => {
     const sourceId = source.id;
@@ -144,13 +166,18 @@ export const ImportSourcesDialog = ({
       delete newSelectedSubUrls[sourceId];
       setSelectedSubUrls(newSelectedSubUrls);
       
+      const newSelectedFiles = { ...selectedFiles };
+      delete newSelectedFiles[sourceId];
+      setSelectedFiles(newSelectedFiles);
+      
       if (selectedSource && selectedSource.id === sourceId) {
         setSelectedSource(null);
       }
     } else {
       newSelectedSources.add(sourceId);
       
-      if (source.type === 'website' && hasUrlStructure(source)) {
+      if ((source.type === 'website' && hasUrlStructure(source)) || 
+          ((source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && hasNestedFiles(source))) {
         setSelectedSource(source);
       }
     }
@@ -166,6 +193,16 @@ export const ImportSourcesDialog = ({
       newExpandedNodes.add(nodePath);
     }
     setExpandedNodes(newExpandedNodes);
+  };
+
+  const toggleSourceExpansion = (sourceId: number) => {
+    const newExpandedSources = new Set(expandedSources);
+    if (newExpandedSources.has(sourceId)) {
+      newExpandedSources.delete(sourceId);
+    } else {
+      newExpandedSources.add(sourceId);
+    }
+    setExpandedSources(newExpandedSources);
   };
 
   const getAllUrlsFromNode = (node: UrlNode): string[] => {
@@ -238,8 +275,29 @@ export const ImportSourcesDialog = ({
     }
   };
 
+  const toggleFileSelection = (sourceId: number, fileId: string) => {
+    setSelectedFiles(prev => {
+      const sourceFiles = new Set(prev[sourceId] || []);
+      
+      if (sourceFiles.has(fileId)) {
+        sourceFiles.delete(fileId);
+      } else {
+        sourceFiles.add(fileId);
+      }
+      
+      return {
+        ...prev,
+        [sourceId]: sourceFiles
+      };
+    });
+  };
+
   const isUrlSelected = (sourceId: number, url: string): boolean => {
     return selectedSubUrls[sourceId]?.has(url) || false;
+  };
+
+  const isFileSelected = (sourceId: number, fileId: string): boolean => {
+    return selectedFiles[sourceId]?.has(fileId) || false;
   };
 
   const areAllChildrenSelected = (sourceId: number, node: UrlNode): boolean => {
@@ -254,7 +312,7 @@ export const ImportSourcesDialog = ({
 
   const handleImport = () => {
     const sourceIdsToImport = Array.from(selectedSources);
-    onImport(sourceIdsToImport, selectedSubUrls);
+    onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
   };
 
   const isSourceAlreadyImported = (sourceId: number) => {
@@ -334,6 +392,77 @@ export const ImportSourcesDialog = ({
     );
   };
 
+  const renderNestedFiles = (source: KnowledgeSource) => {
+    if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+          <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+          <p className="text-muted-foreground text-sm">No files found in this source</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-1">
+        <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
+          Files in {source.name}
+        </div>
+        {source.knowledge_sources.map((file, index) => (
+          <div key={`file-${file.id || index}`} className="py-1">
+            <div
+              className={cn(
+                "flex items-center hover:bg-gray-100 rounded px-2 py-2",
+                isFileSelected(source.id, file.id) && "bg-gray-100"
+              )}
+            >
+              <Checkbox
+                id={`file-${source.id}-${file.id}`}
+                className="mr-2"
+                checked={isFileSelected(source.id, file.id)}
+                onCheckedChange={() => toggleFileSelection(source.id, file.id)}
+              />
+              
+              <div className="flex flex-col flex-1">
+                <span className="flex items-center text-sm font-medium">
+                  {renderSourceIcon(file.type || source.type)}
+                  {file.name || `File ${index + 1}`}
+                </span>
+                
+                <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
+                  {file.metadata?.file_size && (
+                    <span className="mr-3">
+                      Size: {formatFileSizeToMB(file.metadata.file_size)}
+                    </span>
+                  )}
+                  
+                  {file.metadata?.no_of_pages && (
+                    <span className="mr-3">{file.metadata.no_of_pages} pages</span>
+                  )}
+                  
+                  {file.metadata?.no_of_rows && (
+                    <span className="mr-3">{file.metadata.no_of_rows} rows</span>
+                  )}
+                  
+                  {file.metadata?.upload_date && (
+                    <span>
+                      Uploaded: {new Date(file.metadata.upload_date).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex space-x-1">
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1000px] h-[756px] p-0 overflow-hidden" fixedFooter>
@@ -398,7 +527,7 @@ export const ImportSourcesDialog = ({
                           onClick={() => {
                             if (!selectedSources.has(source.id)) {
                               toggleSourceSelection(source);
-                            } else if (hasUrlStructure(source)) {
+                            } else if (hasUrlStructure(source) || hasNestedFiles(source)) {
                               setSelectedSource(source);
                             }
                           }}
@@ -463,19 +592,30 @@ export const ImportSourcesDialog = ({
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2">
-                  {selectedSource && hasUrlStructure(selectedSource) ? (
-                    <div className="space-y-1">
-                      <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
-                        URLs for {selectedSource.name}
+                  {selectedSource ? (
+                    hasUrlStructure(selectedSource) ? (
+                      <div className="space-y-1">
+                        <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
+                          URLs for {selectedSource.name}
+                        </div>
+                        {renderWebsiteUrls(selectedSource)}
                       </div>
-                      {renderWebsiteUrls(selectedSource)}
-                    </div>
+                    ) : hasNestedFiles(selectedSource) ? (
+                      renderNestedFiles(selectedSource)
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                        <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                        <p className="text-muted-foreground text-sm">
+                          No detailed information available for this source type
+                        </p>
+                      </div>
+                    )
                   ) : (
                     <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                      <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                      <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
                       <p className="text-muted-foreground text-sm">
                         {selectedSources.size > 0 
-                          ? "Select a website source to view and select specific URLs" 
+                          ? "Select a document or website source to view details" 
                           : "Select a source from the list"}
                       </p>
                     </div>
