@@ -396,7 +396,8 @@ export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> 
   }
   
   try {
-    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${sourceId}/`, {
+    // Updated URL to use the correct knowledgesource endpoint
+    const response = await fetch(`${BASE_URL}knowledgesource/${sourceId}/`, {
       method: 'DELETE',
       headers: getAuthHeaders(token),
     });
