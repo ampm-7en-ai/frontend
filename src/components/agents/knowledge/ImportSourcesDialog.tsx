@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -275,14 +274,15 @@ export const ImportSourcesDialog = ({
     }
   };
 
-  const toggleFileSelection = (sourceId: number, fileId: string) => {
+  const toggleFileSelection = (sourceId: number, fileId: string | number) => {
     setSelectedFiles(prev => {
       const sourceFiles = new Set(prev[sourceId] || []);
+      const fileIdString = String(fileId);
       
-      if (sourceFiles.has(fileId)) {
-        sourceFiles.delete(fileId);
+      if (sourceFiles.has(fileIdString)) {
+        sourceFiles.delete(fileIdString);
       } else {
-        sourceFiles.add(fileId);
+        sourceFiles.add(fileIdString);
       }
       
       return {
@@ -296,8 +296,8 @@ export const ImportSourcesDialog = ({
     return selectedSubUrls[sourceId]?.has(url) || false;
   };
 
-  const isFileSelected = (sourceId: number, fileId: string): boolean => {
-    return selectedFiles[sourceId]?.has(fileId) || false;
+  const isFileSelected = (sourceId: number, fileId: string | number): boolean => {
+    return selectedFiles[sourceId]?.has(String(fileId)) || false;
   };
 
   const areAllChildrenSelected = (sourceId: number, node: UrlNode): boolean => {
@@ -412,13 +412,13 @@ export const ImportSourcesDialog = ({
             <div
               className={cn(
                 "flex items-center hover:bg-gray-100 rounded px-2 py-2",
-                isFileSelected(source.id, file.id) && "bg-gray-100"
+                isFileSelected(source.id, String(file.id)) && "bg-gray-100"
               )}
             >
               <Checkbox
-                id={`file-${source.id}-${file.id}`}
+                id={`file-${source.id}-${String(file.id)}`}
                 className="mr-2"
-                checked={isFileSelected(source.id, file.id)}
+                checked={isFileSelected(source.id, String(file.id))}
                 onCheckedChange={() => toggleFileSelection(source.id, file.id)}
               />
               
