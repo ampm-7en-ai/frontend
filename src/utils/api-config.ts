@@ -438,3 +438,36 @@ export const deleteKnowledgeBase = async (knowledgeBaseId: number): Promise<bool
     throw error;
   }
 };
+
+// Function to add a new file to existing knowledge base
+export const addFileToKnowledgeBase = async (knowledgeBaseId: number, file: File): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  try {
+    const formData = new FormData();
+    formData.append('knowledge_base', knowledgeBaseId.toString());
+    formData.append('file', file);
+    
+    const response = await fetch(`${BASE_URL}knowledgesource/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Note: Do not set 'Content-Type': 'application/json' for FormData
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(errorData.message || `Failed to add file to knowledge base: ${response.status}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error adding file to knowledge base:', error);
+    throw error;
+  }
+};

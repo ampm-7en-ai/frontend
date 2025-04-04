@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase, addFileToKnowledgeBase } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import {
   Breadcrumb,
@@ -218,7 +218,7 @@ const KnowledgeBase = () => {
         } else if (doc.provider === 'slack') {
           return (
             <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A">
-              <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+              <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.521-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
             </svg>
           );
         }
@@ -294,11 +294,43 @@ const KnowledgeBase = () => {
     }
   };
 
-  const handleFileUpload = (e) => {
-    toast({
-      title: "File upload",
-      description: "File upload functionality would be implemented here."
-    });
+  const handleFileUpload = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    if (!selectedKnowledgeBase || !selectedKnowledgeBase.id) {
+      toast({
+        title: "Error",
+        description: "Cannot upload file: No knowledge base selected",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      toast({
+        title: "Uploading file...",
+        description: "Please wait while the file is being uploaded."
+      });
+      
+      await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
+      
+      toast({
+        title: "Success",
+        description: "File has been successfully uploaded."
+      });
+      
+      refetch();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "There was an error uploading the file. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      e.target.value = '';
+    }
   };
 
   const handleDeleteFile = async (sourceId: number) => {
@@ -712,90 +744,104 @@ const KnowledgeBase = () => {
               Add New File
             </label>
             <input 
-              id="file-upload"
-              type="file"
-              accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+              id="file-upload" 
+              type="file" 
               className="hidden"
+              accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
               onChange={handleFileUpload}
             />
           </Button>
         </div>
 
         <Card>
+          <CardHeader>
+            <CardTitle>Files</CardTitle>
+            <CardDescription>
+              Files in this knowledge base. You can add more files using the button above.
+            </CardDescription>
+          </CardHeader>
           <CardContent className="p-0">
-            {selectedKnowledgeBase.knowledge_sources?.length > 0 ? (
+            {selectedKnowledgeBase.knowledge_sources && selectedKnowledgeBase.knowledge_sources.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Filename</TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead>Format</TableHead>
-                    <TableHead>Content</TableHead>
                     <TableHead>Size</TableHead>
+                    <TableHead>Content</TableHead>
                     <TableHead>Uploaded</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-16 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedKnowledgeBase.knowledge_sources.map((source) => {
-                    const contentMeasure = getContentMeasure(source);
-                    const uploadDate = source.metadata?.upload_date 
-                      ? formatDate(source.metadata.upload_date) 
-                      : 'N/A';
-                    
-                    return (
-                      <TableRow key={source.id}>
-                        <TableCell className="font-medium">{source.title || 'Unnamed File'}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-medium">
-                            {source.metadata?.format?.toUpperCase() || 'N/A'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{contentMeasure}</TableCell>
-                        <TableCell>{formatFileSizeToMB(source.metadata?.file_size || 0)}</TableCell>
-                        <TableCell>{uploadDate}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleDownloadFile(source)}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleDeleteFile(source.id)}
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
+                  {selectedKnowledgeBase.knowledge_sources.map((source) => (
+                    <TableRow key={source.id}>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className={`p-2 rounded ${getIconBackground({ sourceType: source.type })} mr-2`}>
+                            {renderSourceIcon({ sourceType: source.type })}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                          <div>
+                            <div className="font-medium">{source.name || 'Unnamed file'}</div>
+                            <div className="text-xs text-muted-foreground">{source.id}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {source.metadata?.format || 'N/A'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {formatFileSizeToMB(source.metadata?.file_size || 0)}
+                      </TableCell>
+                      <TableCell>
+                        {getContentMeasure(source)}
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(source.metadata?.upload_date || source.created_at)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {source.file && (
+                              <DropdownMenuItem 
+                                className="flex items-center gap-2 cursor-pointer"
+                                onClick={() => handleDownloadFile(source)}
+                              >
+                                <Download className="h-4 w-4" /> Download
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem 
+                              className="flex items-center gap-2 text-destructive cursor-pointer"
+                              onClick={() => handleDeleteFile(source.id)}
+                            >
+                              <Trash className="h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16">
+              <div className="flex flex-col items-center justify-center py-10">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-1">No files found</h3>
+                <h3 className="text-lg font-medium mb-1">No files in this knowledge base</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Upload your first file to get started
+                  Add your first file to get started
                 </p>
-                <Button>
-                  <label htmlFor="file-upload-empty" className="flex gap-2 items-center cursor-pointer">
+                <Button asChild>
+                  <label htmlFor="file-upload" className="flex gap-2 items-center cursor-pointer">
                     <Upload className="h-4 w-4" />
-                    Upload File
+                    Add File
                   </label>
-                  <input
-                    id="file-upload-empty"
-                    type="file"
-                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
-                    className="hidden"
-                    onChange={handleFileUpload}
-                  />
                 </Button>
               </div>
             )}
