@@ -122,7 +122,8 @@ const KnowledgeBase = () => {
         status: kb.status,
         trainingStatus: kb.training_status,
         knowledge_sources: kb.knowledge_sources || [],
-        fileCount: kb.knowledge_sources ? kb.knowledge_sources.length : 0
+        fileCount: kb.knowledge_sources ? kb.knowledge_sources.length : 0,
+        metadata: firstSource?.metadata || {}
       };
     });
   };
@@ -290,6 +291,40 @@ const KnowledgeBase = () => {
     }
   };
 
+  const getMetadataDisplay = (doc) => {
+    if (doc.sourceType === 'website') {
+      const subUrls = doc.metadata?.sub_urls;
+      const pagesCount = subUrls ? 
+        (Array.isArray(subUrls?.children) ? subUrls.children.length : 0) : 
+        0;
+      const totalChars = subUrls ? subUrls.chars || 0 : 0;
+      
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5">
+          {pagesCount} pages • {totalChars.toLocaleString()} characters
+        </div>
+      );
+    } else if (doc.sourceType === 'plain_text') {
+      const chars = doc.metadata?.no_of_chars || 0;
+      
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5">
+          {chars.toLocaleString()} characters
+        </div>
+      );
+    } else {
+      // For other source types, display number of files
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5">
+          {doc.fileCount > 0 ? 
+            `${doc.fileCount} ${doc.fileCount === 1 ? 'file' : 'files'}` : 
+            'No files'
+          }
+        </div>
+      );
+    }
+  };
+
   const renderMainView = () => {
     return (
       <>
@@ -447,12 +482,7 @@ const KnowledgeBase = () => {
                           </div>
                           <div className="flex flex-col">
                             <span className={`font-medium ${canShowNestedView(doc.sourceType) ? 'hover:underline' : ''}`}>{doc.title}</span>
-                            <div className="text-xs text-muted-foreground mt-0.5">
-                              {doc.fileCount > 0 ? 
-                                `${doc.fileCount} ${doc.fileCount === 1 ? 'file' : 'files'}` : 
-                                'No files'
-                              }
-                            </div>
+                            {getMetadataDisplay(doc)}
                           </div>
                         </div>
                       </TableCell>
@@ -604,15 +634,17 @@ const KnowledgeBase = () => {
                         <TableCell>{uploadDate}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
-                              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                              onClick={() => handleDownloadFile(source)}
-                              title="Download file"
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
+                            {source.file && (
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                onClick={() => handleDownloadFile(source)}
+                                title="Download file"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button 
                               variant="ghost" 
                               size="icon" 
