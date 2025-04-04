@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -321,7 +320,14 @@ const KnowledgeBase = () => {
         description: "File has been successfully uploaded."
       });
       
-      refetch();
+      await refetch();
+      
+      if (data) {
+        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
+        if (updatedKnowledgeBase) {
+          setSelectedKnowledgeBase(updatedKnowledgeBase);
+        }
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       toast({
