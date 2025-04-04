@@ -64,8 +64,15 @@ const KnowledgeBase = () => {
   useEffect(() => {
     if (data) {
       setKnowledgeBases(data);
+      
+      if (selectedKnowledgeBase) {
+        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
+        if (updatedKnowledgeBase) {
+          setSelectedKnowledgeBase(updatedKnowledgeBase);
+        }
+      }
     }
-  }, [data]);
+  }, [data, selectedKnowledgeBase]);
 
   useEffect(() => {
     if (error) {
@@ -723,6 +730,8 @@ const KnowledgeBase = () => {
   const renderDetailView = () => {
     if (!selectedKnowledgeBase) return null;
 
+    const knowledgeSources = selectedKnowledgeBase.knowledge_sources || [];
+
     return (
       <>
         <div className="mb-6">
@@ -746,10 +755,10 @@ const KnowledgeBase = () => {
             <h2 className="text-2xl font-bold mb-1">{selectedKnowledgeBase.title}</h2>
             <div className="text-muted-foreground">
               <Badge variant="outline" className="mr-2 font-medium">
-                {selectedKnowledgeBase.sourceType.toUpperCase()}
+                {selectedKnowledgeBase.sourceType?.toUpperCase() || "UNKNOWN"}
               </Badge>
-              {selectedKnowledgeBase.knowledge_sources ? 
-                `${selectedKnowledgeBase.knowledge_sources.length} files` : "0 files"}
+              {knowledgeSources ? 
+                `${knowledgeSources.length} files` : "0 files"}
             </div>
           </div>
           <div className="flex gap-2">
@@ -768,7 +777,7 @@ const KnowledgeBase = () => {
 
         <Card>
           <CardContent className="p-0">
-            {selectedKnowledgeBase.knowledge_sources && selectedKnowledgeBase.knowledge_sources.length === 0 ? (
+            {!knowledgeSources || knowledgeSources.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-1">No files found</h3>
@@ -799,7 +808,7 @@ const KnowledgeBase = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedKnowledgeBase.knowledge_sources && selectedKnowledgeBase.knowledge_sources.map((source) => (
+                  {knowledgeSources.map((source) => (
                     <TableRow key={source.id}>
                       <TableCell>
                         <div className="flex items-center">
