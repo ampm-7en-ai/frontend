@@ -2,13 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { renderSourceIcon } from './knowledgeUtils';
+import { Badge } from '@/components/ui/badge';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -32,6 +34,9 @@ export const ImportSourcesDialog = ({
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
   const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
+  const [selectedSourceFiles, setSelectedSourceFiles] = useState<any[]>([]);
+  const [selectedNestedItem, setSelectedNestedItem] = useState<any | null>(null);
+  const [breadcrumbPath, setBreadcrumbPath] = useState<{id: string | number, name: string}[]>([]);
   
   useEffect(() => {
     if (isOpen) {
@@ -39,48 +44,132 @@ export const ImportSourcesDialog = ({
       setExpandedNodes(new Set());
       setSelectedSubUrls({});
       setSelectedSource(null);
+      setSelectedSourceFiles([]);
+      setSelectedNestedItem(null);
+      setBreadcrumbPath([]);
       setSelectedType('all');
     }
   }, [isOpen, externalSources]);
 
   useEffect(() => {
-    if (selectedSource && hasUrlStructure(selectedSource)) {
-      const sourceId = selectedSource.id;
-      const rootNode = findRootUrlNode(selectedSource);
-      
-      if (rootNode && rootNode.url) {
-        if (!selectedSubUrls[sourceId]) {
-          setSelectedSubUrls(prev => ({
-            ...prev,
-            [sourceId]: new Set<string>()
-          }));
-        }
+    if (selectedSource) {
+      if (hasUrlStructure(selectedSource)) {
+        const sourceId = selectedSource.id;
+        const rootNode = findRootUrlNode(selectedSource);
         
-        setExpandedNodes(prev => new Set([...prev, rootNode.url]));
-        
-        const selectedUrls = new Set<string>();
-        
-        const collectSelectedUrls = (node: UrlNode) => {
-          if (node.is_selected) {
-            selectedUrls.add(node.url);
+        if (rootNode && rootNode.url) {
+          if (!selectedSubUrls[sourceId]) {
+            setSelectedSubUrls(prev => ({
+              ...prev,
+              [sourceId]: new Set<string>()
+            }));
           }
           
-          if (node.children && node.children.length > 0) {
-            node.children.forEach(child => collectSelectedUrls(child));
+          setExpandedNodes(prev => new Set([...prev, rootNode.url]));
+          
+          const selectedUrls = new Set<string>();
+          
+          const collectSelectedUrls = (node: UrlNode) => {
+            if (node.is_selected) {
+              selectedUrls.add(node.url);
+            }
+            
+            if (node.children && node.children.length > 0) {
+              node.children.forEach(child => collectSelectedUrls(child));
+            }
+          };
+          
+          collectSelectedUrls(rootNode);
+          
+          if (selectedUrls.size > 0) {
+            setSelectedSubUrls(prev => ({
+              ...prev,
+              [sourceId]: selectedUrls
+            }));
           }
-        };
-        
-        collectSelectedUrls(rootNode);
-        
-        if (selectedUrls.size > 0) {
-          setSelectedSubUrls(prev => ({
-            ...prev,
-            [sourceId]: selectedUrls
-          }));
         }
+      } else if (selectedSource.type === 'csv' || selectedSource.type === 'docs' || 
+                 selectedSource.type === 'pdf' || selectedSource.type === 'docx') {
+        // Handle nested files for documents and spreadsheets
+        loadNestedFiles(selectedSource);
+        
+        // Set breadcrumb
+        setBreadcrumbPath([
+          { id: selectedSource.id, name: selectedSource.name || 'Untitled Source' }
+        ]);
       }
+    } else {
+      setSelectedSourceFiles([]);
+      setBreadcrumbPath([]);
     }
   }, [selectedSource]);
+
+  useEffect(() => {
+    if (selectedNestedItem) {
+      loadNestedFiles(selectedNestedItem);
+      
+      // Update breadcrumb path
+      setBreadcrumbPath(prev => {
+        // Check if this item already exists in the path
+        const existingIndex = prev.findIndex(item => item.id === selectedNestedItem.id);
+        
+        if (existingIndex >= 0) {
+          // If exists, truncate the path up to this item
+          return prev.slice(0, existingIndex + 1);
+        } else {
+          // Otherwise add to the path
+          return [...prev, {
+            id: selectedNestedItem.id,
+            name: selectedNestedItem.name || selectedNestedItem.title || 'Untitled'
+          }];
+        }
+      });
+    }
+  }, [selectedNestedItem]);
+
+  const loadNestedFiles = (source: any) => {
+    // In a real implementation, this would be an API call to fetch nested files
+    // For now, we'll simulate with mock data based on the source type
+    
+    // Check if source has knowledge_sources or files array
+    if (source.knowledge_sources && Array.isArray(source.knowledge_sources) && source.knowledge_sources.length > 0) {
+      setSelectedSourceFiles(source.knowledge_sources);
+    } else if (source.files && Array.isArray(source.files) && source.files.length > 0) {
+      setSelectedSourceFiles(source.files);
+    } else if (source.children && Array.isArray(source.children) && source.children.length > 0) {
+      setSelectedSourceFiles(source.children);
+    } else {
+      // For demo/mock purposes only - in real implementation this would come from the API
+      const mockData = [];
+      if (source.type === 'csv') {
+        // Generate mock spreadsheet data
+        for (let i = 1; i <= 5; i++) {
+          mockData.push({
+            id: `${source.id}-sheet-${i}`,
+            name: `Sheet ${i}`,
+            type: 'sheet',
+            size: Math.floor(Math.random() * 1000) * 1024,
+            rows: Math.floor(Math.random() * 500) + 100,
+            columns: Math.floor(Math.random() * 10) + 3,
+            parentId: source.id
+          });
+        }
+      } else if (source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') {
+        // Generate mock document sections
+        for (let i = 1; i <= 5; i++) {
+          mockData.push({
+            id: `${source.id}-section-${i}`,
+            name: `Section ${i}`,
+            type: 'section',
+            chars: Math.floor(Math.random() * 5000) + 1000,
+            pages: Math.floor(Math.random() * 5) + 1,
+            parentId: source.id
+          });
+        }
+      }
+      setSelectedSourceFiles(mockData);
+    }
+  };
 
   const sourceTypes = useMemo(() => {
     const counts = {
@@ -146,6 +235,8 @@ export const ImportSourcesDialog = ({
       
       if (selectedSource && selectedSource.id === sourceId) {
         setSelectedSource(null);
+        setSelectedSourceFiles([]);
+        setBreadcrumbPath([]);
       }
     } else {
       newSelectedSources.add(sourceId);
@@ -236,6 +327,39 @@ export const ImportSourcesDialog = ({
         };
       });
     }
+  };
+
+  const toggleNestedItemSelection = (item: any) => {
+    const sourceId = selectedSource?.id;
+    if (!sourceId) return;
+    
+    const itemId = item.id || item._id;
+    if (!itemId) return;
+    
+    setSelectedSubUrls(prev => {
+      const sourceItems = new Set(prev[sourceId] || []);
+      
+      if (sourceItems.has(itemId)) {
+        sourceItems.delete(itemId);
+      } else {
+        sourceItems.add(itemId);
+      }
+      
+      return {
+        ...prev,
+        [sourceId]: sourceItems
+      };
+    });
+  };
+
+  const isNestedItemSelected = (item: any): boolean => {
+    const sourceId = selectedSource?.id;
+    if (!sourceId) return false;
+    
+    const itemId = item.id || item._id;
+    if (!itemId) return false;
+    
+    return selectedSubUrls[sourceId]?.has(itemId) || false;
   };
 
   const isUrlSelected = (sourceId: number, url: string): boolean => {
@@ -334,6 +458,177 @@ export const ImportSourcesDialog = ({
     );
   };
 
+  const renderNestedFiles = () => {
+    if (!selectedSource) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+          <File className="h-10 w-10 text-muted-foreground/40 mb-2" />
+          <p className="text-muted-foreground text-sm">
+            {selectedSources.size > 0 
+              ? "Select a document or spreadsheet to view contents" 
+              : "Select a source from the list"}
+          </p>
+        </div>
+      );
+    }
+
+    if (selectedSourceFiles.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+          <File className="h-10 w-10 text-muted-foreground/40 mb-2" />
+          <p className="text-muted-foreground text-sm">No content available</p>
+        </div>
+      );
+    }
+
+    const getIcon = (item: any) => {
+      const type = item.type || item.fileType || (item.name?.endsWith('.pdf') ? 'pdf' : 'document');
+      
+      if (type === 'csv' || type === 'sheet' || type === 'spreadsheet') {
+        return <FileSpreadsheet className="h-4 w-4 text-emerald-600" />;
+      } else if (type === 'pdf') {
+        return <FileText className="h-4 w-4 text-red-600" />;
+      } else if (type === 'docx' || type === 'section' || type === 'document') {
+        return <FileText className="h-4 w-4 text-blue-600" />;
+      } else if (type === 'folder' || type === 'directory') {
+        return <Folder className="h-4 w-4 text-amber-500" />;
+      }
+      
+      return <File className="h-4 w-4 text-gray-600" />;
+    };
+
+    return (
+      <div className="space-y-1">
+        {breadcrumbPath.length > 0 && (
+          <div className="px-2 mb-3">
+            <Breadcrumb className="text-sm">
+              {breadcrumbPath.map((item, index) => (
+                <React.Fragment key={item.id}>
+                  {index === 0 ? (
+                    <BreadcrumbItem>
+                      <BreadcrumbLink 
+                        onClick={() => {
+                          setSelectedNestedItem(null);
+                          setBreadcrumbPath([breadcrumbPath[0]]);
+                          loadNestedFiles(selectedSource);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {item.name}
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                  ) : index === breadcrumbPath.length - 1 ? (
+                    <>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>{item.name}</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </>
+                  ) : (
+                    <>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbLink 
+                          onClick={() => {
+                            const selectedItem = selectedSourceFiles.find(file => 
+                              file.id === item.id || file._id === item.id
+                            );
+                            if (selectedItem) {
+                              setSelectedNestedItem(selectedItem);
+                              setBreadcrumbPath(breadcrumbPath.slice(0, index + 1));
+                            }
+                          }}
+                          className="cursor-pointer"
+                        >
+                          {item.name}
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                    </>
+                  )}
+                </React.Fragment>
+              ))}
+            </Breadcrumb>
+          </div>
+        )}
+        
+        <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded flex justify-between items-center">
+          <span>
+            {selectedSource.type === 'csv' || selectedSource.type === 'spreadsheet'
+              ? 'Sheets'
+              : selectedSource.type === 'pdf' || selectedSource.type === 'docx' || selectedSource.type === 'docs'
+                ? 'Document Sections'
+                : 'Contents'}
+          </span>
+          {selectedSourceFiles.length > 0 && (
+            <Badge variant="outline" className="text-xs">
+              {selectedSourceFiles.length} {selectedSourceFiles.length === 1 ? 'item' : 'items'}
+            </Badge>
+          )}
+        </div>
+        
+        {selectedSourceFiles.map((item, index) => {
+          const isItemSelected = isNestedItemSelected(item);
+          const hasNestedItems = !!(item.files?.length > 0 || item.children?.length > 0 || 
+                                   item.sections?.length > 0 || item.sheets?.length > 0);
+          
+          const itemName = item.name || item.title || `Item ${index + 1}`;
+          const itemType = item.type || item.fileType || 'document';
+          const itemSize = item.size || item.fileSize;
+          const itemRows = item.rows || item.rowCount;
+          const itemColumns = item.columns || item.columnCount;
+          const itemChars = item.chars || item.characters || item.characterCount;
+          const itemPages = item.pages || item.pageCount;
+          
+          return (
+            <div 
+              key={item.id || item._id || index}
+              className={cn(
+                "flex items-center px-2 py-2.5 rounded hover:bg-gray-100 cursor-pointer",
+                isItemSelected && "bg-gray-100/80"
+              )}
+            >
+              <Checkbox 
+                checked={isItemSelected}
+                onCheckedChange={() => toggleNestedItemSelection(item)}
+                id={`file-${item.id || item._id || index}`}
+                className="mr-2 flex-shrink-0"
+              />
+              
+              <div 
+                className="flex-1 flex items-start"
+                onClick={() => toggleNestedItemSelection(item)}
+              >
+                <div className="mr-2 mt-0.5">{getIcon(item)}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm truncate">{itemName}</div>
+                  <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                    <span className="capitalize">{itemType}</span>
+                    {itemSize && <span>{typeof itemSize === 'number' ? formatFileSizeToMB(itemSize) : itemSize}</span>}
+                    {itemRows && <span>{itemRows.toLocaleString()} rows</span>}
+                    {itemColumns && <span>{itemColumns} columns</span>}
+                    {itemChars && <span>{itemChars.toLocaleString()} characters</span>}
+                    {itemPages && <span>{itemPages} {itemPages === 1 ? 'page' : 'pages'}</span>}
+                  </div>
+                </div>
+              </div>
+              
+              {hasNestedItems && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="flex-shrink-0 h-7 w-7"
+                  onClick={() => setSelectedNestedItem(item)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1000px] h-[756px] p-0 overflow-hidden" fixedFooter>
@@ -401,6 +696,7 @@ export const ImportSourcesDialog = ({
                             } else if (hasUrlStructure(source)) {
                               setSelectedSource(source);
                             }
+                            setSelectedSource(source);
                           }}
                         >
                           <div className="flex items-center p-3 bg-white">
@@ -470,6 +766,9 @@ export const ImportSourcesDialog = ({
                       </div>
                       {renderWebsiteUrls(selectedSource)}
                     </div>
+                  ) : selectedSource && (selectedSource.type === 'csv' || selectedSource.type === 'docs' || 
+                                         selectedSource.type === 'pdf' || selectedSource.type === 'docx') ? (
+                    renderNestedFiles()
                   ) : (
                     <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
                       <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
