@@ -295,11 +295,14 @@ const KnowledgeBase = () => {
 
   const getAgentColor = (agentName) => {
     const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-teal-500'];
+    // Fix: Convert string to number for modulo operation
     const index = agentName.charCodeAt(0) % colors.length;
     return colors[index];
   };
 
   const getAgentInitials = (agentName) => {
+    // Fix: Handle case when agentName might be undefined
+    if (!agentName) return '';
     return agentName.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
