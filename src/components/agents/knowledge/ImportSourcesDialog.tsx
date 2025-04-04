@@ -154,7 +154,7 @@ export const ImportSourcesDialog = ({
            source.knowledge_sources.length > 0;
   };
 
-  const toggleSourceSelection = (source: KnowledgeSource) => {
+  const toggleSourceSelection = (source: KnowledgeSource, setAsSelectedSource: boolean = true) => {
     const sourceId = source.id;
     const newSelectedSources = new Set(selectedSources);
     
@@ -175,8 +175,8 @@ export const ImportSourcesDialog = ({
     } else {
       newSelectedSources.add(sourceId);
       
-      if ((source.type === 'website' && hasUrlStructure(source)) || 
-          ((source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && hasNestedFiles(source))) {
+      if (setAsSelectedSource && ((source.type === 'website' && hasUrlStructure(source)) || 
+          ((source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && hasNestedFiles(source)))) {
         setSelectedSource(source);
       }
     }
@@ -520,30 +520,33 @@ export const ImportSourcesDialog = ({
                         <div 
                           key={source.id} 
                           className={cn(
-                            "border rounded-md overflow-hidden cursor-pointer transition",
+                            "border rounded-md overflow-hidden transition",
                             isSelected && "border-primary",
                             source === selectedSource && "ring-2 ring-primary"
                           )}
-                          onClick={() => {
-                            if (!selectedSources.has(source.id)) {
-                              toggleSourceSelection(source);
-                            } else if (hasUrlStructure(source) || hasNestedFiles(source)) {
-                              setSelectedSource(source);
-                            }
-                          }}
                         >
                           <div className="flex items-center p-3 bg-white">
                             <Checkbox 
                               id={`source-${source.id}`}
                               checked={selectedSources.has(source.id) || source.selected}
-                              onCheckedChange={() => toggleSourceSelection(source)}
+                              onCheckedChange={() => {
+                                toggleSourceSelection(source, true);
+                              }}
                               className="mr-2"
                               onClick={(e) => e.stopPropagation()}
                             />
-                            <div className="flex-1">
+                            <div 
+                              className="flex-1 cursor-pointer"
+                              onClick={() => {
+                                if (selectedSources.has(source.id) && (hasUrlStructure(source) || hasNestedFiles(source))) {
+                                  setSelectedSource(source);
+                                }
+                              }}
+                            >
                               <label 
                                 htmlFor={`source-${source.id}`}
                                 className="flex items-center cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 {renderSourceIcon(source.type)}
                                 <span className="font-medium">
