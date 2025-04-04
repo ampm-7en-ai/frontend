@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -15,6 +14,7 @@ export interface KnowledgeSource {
     title?: string;
     status: 'error' | 'success' | 'pending';
     selected?: boolean;
+    chars?: number;
   }[];
   documents?: {
     id: string;
