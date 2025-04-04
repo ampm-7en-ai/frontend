@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -719,4 +720,145 @@ const KnowledgeBase = () => {
     return (
       <>
         <div className="mb-6">
-          <Breadcrumb
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <span onClick={handleBackToMainView} className="cursor-pointer">Knowledge Sources</span>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{selectedKnowledgeBase.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          <div>
+            <h2 className="text-2xl font-bold mb-1">{selectedKnowledgeBase.title}</h2>
+            <div className="text-muted-foreground">
+              <Badge variant="outline" className="mr-2 font-medium">
+                {selectedKnowledgeBase.sourceType.toUpperCase()}
+              </Badge>
+              {selectedKnowledgeBase.knowledge_sources ? 
+                `${selectedKnowledgeBase.knowledge_sources.length} files` : "0 files"}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button className="relative overflow-hidden">
+              <input 
+                type="file" 
+                className="cursor-pointer absolute inset-0 opacity-0" 
+                accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                onChange={handleFileUpload}
+              />
+              <Upload className="h-4 w-4 mr-2" />
+              Upload File
+            </Button>
+          </div>
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            {selectedKnowledgeBase.knowledge_sources && selectedKnowledgeBase.knowledge_sources.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-1">No files found</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add some files to this knowledge source
+                </p>
+                <Button className="relative overflow-hidden">
+                  <input 
+                    type="file" 
+                    className="cursor-pointer absolute inset-0 opacity-0" 
+                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                    onChange={handleFileUpload}
+                  />
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload File
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40%]">File Name</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Content</TableHead>
+                    <TableHead>Upload Date</TableHead>
+                    <TableHead className="w-16 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedKnowledgeBase.knowledge_sources && selectedKnowledgeBase.knowledge_sources.map((source) => (
+                    <TableRow key={source.id}>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className={`p-2 rounded ${getIconBackground({sourceType: selectedKnowledgeBase.sourceType})} mr-2 flex-shrink-0`}>
+                            {renderSourceIcon({sourceType: selectedKnowledgeBase.sourceType})}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{source.name || "Untitled"}</span>
+                            <span className="text-xs text-muted-foreground">{source.id}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {formatFileSizeToMB(source.metadata?.size)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono uppercase text-xs">
+                          {source.metadata?.format || "Unknown"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {getContentMeasure(source)}
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(source.metadata?.upload_date)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem 
+                              className="flex items-center gap-2 cursor-pointer"
+                              onClick={() => handleDownloadFile(source)}
+                            >
+                              <Download className="h-4 w-4" /> Download
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="flex items-center gap-2 text-destructive cursor-pointer"
+                              onClick={() => handleDeleteFile(source.id)}
+                            >
+                              <Trash className="h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {viewMode === 'main' ? renderMainView() : renderDetailView()}
+    </div>
+  );
+};
+
+export default KnowledgeBase;
