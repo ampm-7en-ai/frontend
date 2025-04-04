@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -713,4 +714,109 @@ const KnowledgeBase = () => {
               Add New File
             </label>
             <input 
-              id="file
+              id="file-upload"
+              type="file"
+              accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+          </Button>
+        </div>
+
+        {/* Rest of detail view implementation */}
+        <Card>
+          <CardContent className="p-0">
+            {selectedKnowledgeBase.knowledge_sources?.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Filename</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Content</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Uploaded</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedKnowledgeBase.knowledge_sources.map((source) => {
+                    const contentMeasure = getContentMeasure(source);
+                    const uploadDate = source.metadata?.upload_date 
+                      ? formatDate(source.metadata.upload_date) 
+                      : 'N/A';
+                    
+                    return (
+                      <TableRow key={source.id}>
+                        <TableCell className="font-medium">{source.title || 'Unnamed File'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-medium">
+                            {source.metadata?.format?.toUpperCase() || 'N/A'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{contentMeasure}</TableCell>
+                        <TableCell>{formatFileSizeToMB(source.metadata?.file_size || 0)}</TableCell>
+                        <TableCell>{uploadDate}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDownloadFile(source)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDeleteFile(source.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-1">No files found</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Upload your first file to get started
+                </p>
+                <Button>
+                  <label htmlFor="file-upload-empty" className="flex gap-2 items-center cursor-pointer">
+                    <Upload className="h-4 w-4" />
+                    Upload File
+                  </label>
+                  <input
+                    id="file-upload-empty"
+                    type="file"
+                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Knowledge Base</h1>
+      </div>
+      
+      {viewMode === 'main' ? renderMainView() : renderDetailView()}
+    </div>
+  );
+};
+
+export default KnowledgeBase;
