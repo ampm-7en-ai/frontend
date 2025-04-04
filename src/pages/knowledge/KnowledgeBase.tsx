@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download } from 'lucide-react';
+import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,6 +22,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { StatCard } from '@/components/dashboard/StatCard';
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
@@ -139,11 +140,63 @@ const KnowledgeBase = () => {
     return matchesSearch && matchesType;
   });
 
-  const documentCount = documents.filter(d => d.sourceType === 'docs').length;
-  const websiteCount = documents.filter(d => d.sourceType === 'website').length;
-  const spreadsheetCount = documents.filter(d => d.sourceType === 'csv').length;
-  const plainTextCount = documents.filter(d => d.sourceType === 'plain_text').length;
-  const thirdPartyCount = documents.filter(d => d.sourceType === 'thirdparty').length;
+  // Calculate stats for knowledge sources
+  const knowledgeStats = useMemo(() => {
+    if (isLoading || !documents.length) {
+      return {
+        totalSources: 0,
+        documentSources: 0,
+        documentFiles: 0,
+        websiteSources: 0,
+        spreadsheetSources: 0,
+        spreadsheetRows: 0,
+        plainTextSources: 0,
+        plainTextChars: 0
+      };
+    }
+
+    const stats = {
+      totalSources: documents.length || 0,
+      documentSources: 0,
+      documentFiles: 0,
+      websiteSources: 0,
+      spreadsheetSources: 0,
+      spreadsheetRows: 0,
+      plainTextSources: 0,
+      plainTextChars: 0
+    };
+
+    documents.forEach(source => {
+      // Count by source type
+      if (source.sourceType === 'docs') {
+        stats.documentSources++;
+        // Count nested files for documents
+        if (source.knowledge_sources) {
+          stats.documentFiles += source.knowledge_sources.length;
+        }
+      } else if (source.sourceType === 'website') {
+        stats.websiteSources++;
+      } else if (source.sourceType === 'csv') {
+        stats.spreadsheetSources++;
+        // Count total rows across all spreadsheets
+        if (source.knowledge_sources) {
+          source.knowledge_sources.forEach(ks => {
+            if (ks.metadata && ks.metadata.no_of_rows) {
+              stats.spreadsheetRows += parseInt(ks.metadata.no_of_rows) || 0;
+            }
+          });
+        }
+      } else if (source.sourceType === 'plain_text') {
+        stats.plainTextSources++;
+        // Count total characters across all plaintext
+        if (source.knowledge_sources && source.knowledge_sources[0]?.metadata?.no_of_chars) {
+          stats.plainTextChars += parseInt(source.knowledge_sources[0].metadata.no_of_chars) || 0;
+        }
+      }
+    });
+
+    return stats;
+  }, [documents, isLoading]);
 
   const canShowNestedView = (sourceType) => {
     return sourceType !== 'website' && sourceType !== 'plain_text';
@@ -388,13 +441,26 @@ const KnowledgeBase = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-1">
-                <FileText className="h-4 w-4 text-blue-600" />
-                Documents
+                <Layers className="h-4 w-4 text-primary" />
+                Total Sources
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : documentCount}</div>
-              <div className="text-sm text-muted-foreground">PDF, DOCX, etc.</div>
+              <div className="text-3xl font-bold">{isLoading ? "..." : knowledgeStats.totalSources}</div>
+              <div className="text-sm text-muted-foreground">All knowledge sources</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-1">
+                <Book className="h-4 w-4 text-blue-600" />
+                Document Files
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{isLoading ? "..." : knowledgeStats.documentFiles}</div>
+              <div className="text-sm text-muted-foreground">From {knowledgeStats.documentSources} sources</div>
             </CardContent>
           </Card>
           
@@ -406,7 +472,7 @@ const KnowledgeBase = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : websiteCount}</div>
+              <div className="text-3xl font-bold">{isLoading ? "..." : knowledgeStats.websiteSources}</div>
               <div className="text-sm text-muted-foreground">URLs, Webpages</div>
             </CardContent>
           </Card>
@@ -415,42 +481,29 @@ const KnowledgeBase = () => {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-1">
                 <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                Spreadsheets
+                Spreadsheet Rows
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : spreadsheetCount}</div>
-              <div className="text-sm text-muted-foreground">CSV, Excel files</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-1">
-                <File className="h-4 w-4 text-purple-600" />
-                Plain Text
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : plainTextCount}</div>
-              <div className="text-sm text-muted-foreground">Plain text files</div>
+              <div className="text-3xl font-bold">{isLoading ? "..." : knowledgeStats.spreadsheetRows.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">From {knowledgeStats.spreadsheetSources} sources</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-1">
-                <svg className="h-4 w-4 text-blue-600" viewBox="0 0 87.3 78">
-                  <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="currentColor"/>
-                  <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="currentColor"/>
-                  <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="currentColor"/>
-                </svg>
-                Third Party
+                <FileText className="h-4 w-4 text-purple-600" />
+                Plain Text
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : thirdPartyCount}</div>
-              <div className="text-sm text-muted-foreground">Google Drive, Slack, etc.</div>
+              <div className="text-3xl font-bold">{isLoading ? "..." : knowledgeStats.plainTextSources}</div>
+              <div className="text-sm text-muted-foreground">
+                {knowledgeStats.plainTextChars > 0 ? 
+                  `${knowledgeStats.plainTextChars.toLocaleString()} characters` : 
+                  "Plain text files"}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -640,79 +693,4 @@ const KnowledgeBase = () => {
                     return (
                       <TableRow key={index}>
                         <TableCell>
-                          <div className="flex items-center">
-                            <div className={`p-2 rounded ${getIconBackground(selectedKnowledgeBase)} mr-2 flex-shrink-0`}>
-                              {renderSourceIcon(selectedKnowledgeBase)}
-                            </div>
-                            <span className="font-medium">{source.title}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{format}</TableCell>
-                        <TableCell>{fileSize}</TableCell>
-                        <TableCell>{getContentMeasure(source)}</TableCell>
-                        <TableCell>{uploadDate}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {source.file && (
-                              <Button 
-                                variant="outline" 
-                                size="icon" 
-                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                onClick={() => handleDownloadFile(source)}
-                                title="Download file"
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            )}
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                              onClick={() => handleDeleteFile(source.id)}
-                              title="Delete file"
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-1">No files found</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Add your first file to this knowledge source
-                </p>
-                <Button className="gap-2">
-                  <label htmlFor="file-upload-empty" className="flex gap-2 items-center cursor-pointer">
-                    <Plus className="h-4 w-4" />
-                    Add New File
-                  </label>
-                  <input 
-                    id="file-upload-empty" 
-                    type="file" 
-                    className="hidden" 
-                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
-                    onChange={handleFileUpload}
-                  />
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      {viewMode === 'main' ? renderMainView() : renderDetailView()}
-    </div>
-  );
-};
-
-export default KnowledgeBase;
+                          <
