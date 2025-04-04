@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,7 @@ export const ImportSourcesDialog = ({
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
   const [selectedFiles, setSelectedFiles] = useState<Record<number, Set<string>>>({});
-  const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
+  const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState<KnowledgeSource | null>(null);
   const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
   
   useEffect(() => {
@@ -43,17 +42,17 @@ export const ImportSourcesDialog = ({
       setExpandedNodes(new Set());
       setSelectedSubUrls({});
       setSelectedFiles({});
-      setSelectedSource(null);
+      setSelectedKnowledgeBase(null);
       setSelectedType('all');
       setExpandedSources(new Set());
     }
   }, [isOpen, externalSources]);
 
   useEffect(() => {
-    if (selectedSource) {
-      if (hasUrlStructure(selectedSource)) {
-        const sourceId = selectedSource.id;
-        const rootNode = findRootUrlNode(selectedSource);
+    if (selectedKnowledgeBase) {
+      if (hasUrlStructure(selectedKnowledgeBase)) {
+        const sourceId = selectedKnowledgeBase.id;
+        const rootNode = findRootUrlNode(selectedKnowledgeBase);
         
         if (rootNode && rootNode.url) {
           if (!selectedSubUrls[sourceId]) {
@@ -86,8 +85,8 @@ export const ImportSourcesDialog = ({
             }));
           }
         }
-      } else if (hasNestedFiles(selectedSource)) {
-        const sourceId = selectedSource.id;
+      } else if (hasNestedFiles(selectedKnowledgeBase)) {
+        const sourceId = selectedKnowledgeBase.id;
         if (!selectedFiles[sourceId]) {
           setSelectedFiles(prev => ({
             ...prev,
@@ -96,7 +95,7 @@ export const ImportSourcesDialog = ({
         }
       }
     }
-  }, [selectedSource]);
+  }, [selectedKnowledgeBase]);
 
   // Update selected sources based on selections in the third panel
   useEffect(() => {
@@ -106,9 +105,8 @@ export const ImportSourcesDialog = ({
       if (urlSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
-        // Only remove from selected if it's not plain_text type
-        const source = externalSources.find(s => s.id === numericId);
-        if (source && source.type !== 'plain_text' && !selectedFiles[numericId]?.size) {
+        // Only remove from selected if there are no files selected
+        if (!selectedFiles[numericId]?.size) {
           setSelectedSources(prev => {
             const newSet = new Set(prev);
             newSet.delete(numericId);
@@ -124,9 +122,8 @@ export const ImportSourcesDialog = ({
       if (fileSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
-        // Only remove from selected if it's not plain_text type and no URLs are selected
-        const source = externalSources.find(s => s.id === numericId);
-        if (source && source.type !== 'plain_text' && !selectedSubUrls[numericId]?.size) {
+        // Only remove from selected if no URLs are selected
+        if (!selectedSubUrls[numericId]?.size) {
           setSelectedSources(prev => {
             const newSet = new Set(prev);
             newSet.delete(numericId);
@@ -194,26 +191,21 @@ export const ImportSourcesDialog = ({
            source.knowledge_sources.length > 0;
   };
 
-  const toggleSourceSelection = (source: KnowledgeSource) => {
+  const handleKnowledgeBaseClick = (source: KnowledgeSource) => {
     if (source.type === 'plain_text') {
-      // For plain_text, toggle selection with checkbox behavior
       const sourceId = source.id;
       const newSelectedSources = new Set(selectedSources);
       
       if (newSelectedSources.has(sourceId)) {
         newSelectedSources.delete(sourceId);
-        
-        if (selectedSource && selectedSource.id === sourceId) {
-          setSelectedSource(null);
-        }
+        setSelectedKnowledgeBase(null);
       } else {
         newSelectedSources.add(sourceId);
       }
       
       setSelectedSources(newSelectedSources);
     } else {
-      // For other types, just select the source to show in third panel
-      setSelectedSource(source);
+      setSelectedKnowledgeBase(source);
     }
   };
 
@@ -350,6 +342,28 @@ export const ImportSourcesDialog = ({
 
   const isSourceAlreadyImported = (sourceId: number) => {
     return currentSources.some(source => source.id === sourceId);
+  };
+
+  const getFileCount = (source: KnowledgeSource): number => {
+    if (source.type === 'website') {
+      const rootNode = findRootUrlNode(source);
+      if (!rootNode) return 0;
+      
+      let count = 0;
+      const countNodes = (node: UrlNode) => {
+        count++;
+        if (node.children) {
+          node.children.forEach(countNodes);
+        }
+      };
+      
+      countNodes(rootNode);
+      return count;
+    } else if (source.knowledge_sources) {
+      return source.knowledge_sources.length;
+    }
+    
+    return 0;
   };
 
   const renderWebsiteUrls = (source: KnowledgeSource, urlNode?: UrlNode | null, level: number = 0, parentPath: string = '') => {
@@ -550,36 +564,36 @@ export const ImportSourcesDialog = ({
                       const isSelected = selectedSources.has(source.id);
                       const hasExpandableContent = hasUrlStructure(source) || hasNestedFiles(source);
                       const isPlainText = source.type === 'plain_text';
-                      const isCurrentlySelectedSource = source === selectedSource;
+                      const isCurrentlySelectedKB = source === selectedKnowledgeBase;
+                      const fileCount = getFileCount(source);
 
-                      // Determine which styling to apply based on source type and selection status
                       const cardClasses = cn(
                         "border rounded-md overflow-hidden transition cursor-pointer",
                         alreadyImported && "border-gray-300 bg-gray-50/50",
                         isPlainText && isSelected && "border-gray-400 bg-gray-50",
-                        isCurrentlySelectedSource && !isPlainText && "border-gray-400 shadow-sm",
-                        isSelected && selectedSubUrls[source.id]?.size > 0 || selectedFiles[source.id]?.size > 0 ? "border-gray-400 bg-gray-50/70" : "",
+                        isCurrentlySelectedKB && !isPlainText && "border-gray-400 shadow-sm",
+                        isSelected && !isPlainText && 
+                        (selectedSubUrls[source.id]?.size > 0 || selectedFiles[source.id]?.size > 0) 
+                          ? "border-gray-400 bg-gray-50/70" : "",
                       );
                       
                       return (
                         <div 
                           key={source.id} 
                           className={cardClasses}
-                          onClick={() => toggleSourceSelection(source)}
+                          onClick={() => handleKnowledgeBaseClick(source)}
                         >
                           <div className="flex items-center p-3 bg-white">
                             {isPlainText ? (
                               <Checkbox 
                                 id={`source-${source.id}`}
                                 checked={selectedSources.has(source.id) || source.selected}
-                                onCheckedChange={() => {
-                                  toggleSourceSelection(source);
-                                }}
+                                onCheckedChange={() => handleKnowledgeBaseClick(source)}
                                 className="mr-2"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             ) : hasExpandableContent ? (
-                              <ChevronRight className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
+                              <div className="w-5 mr-2" />
                             ) : (
                               <div className="w-5 mr-2" />
                             )}
@@ -595,6 +609,12 @@ export const ImportSourcesDialog = ({
                               
                               <div className="text-xs text-muted-foreground mt-1 flex items-center flex-wrap">
                                 <span className="mr-3">Type: {source.type}</span>
+                                
+                                {!isPlainText && fileCount > 0 && (
+                                  <span className="mr-3 font-medium text-gray-700">
+                                    {fileCount} {fileCount === 1 ? 'item' : 'items'}
+                                  </span>
+                                )}
                                 
                                 {firstKnowledgeSource?.metadata?.no_of_pages && (
                                   <span className="mr-3">{firstKnowledgeSource.metadata.no_of_pages} pages</span>
@@ -617,6 +637,10 @@ export const ImportSourcesDialog = ({
                                 )}
                               </div>
                             </div>
+                            
+                            {!isPlainText && hasExpandableContent && (
+                              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            )}
                           </div>
                         </div>
                       );
@@ -633,16 +657,16 @@ export const ImportSourcesDialog = ({
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2">
-                  {selectedSource ? (
-                    hasUrlStructure(selectedSource) ? (
+                  {selectedKnowledgeBase ? (
+                    hasUrlStructure(selectedKnowledgeBase) ? (
                       <div className="space-y-1">
                         <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
-                          URLs for {selectedSource.name}
+                          URLs for {selectedKnowledgeBase.name}
                         </div>
-                        {renderWebsiteUrls(selectedSource)}
+                        {renderWebsiteUrls(selectedKnowledgeBase)}
                       </div>
-                    ) : hasNestedFiles(selectedSource) ? (
-                      renderNestedFiles(selectedSource)
+                    ) : hasNestedFiles(selectedKnowledgeBase) ? (
+                      renderNestedFiles(selectedKnowledgeBase)
                     ) : (
                       <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
                         <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
@@ -656,8 +680,8 @@ export const ImportSourcesDialog = ({
                       <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
                       <p className="text-muted-foreground text-sm">
                         {selectedSources.size > 0 
-                          ? "Select a document or website source to view details" 
-                          : "Select a source from the list"}
+                          ? "Select a knowledge base to view available sources" 
+                          : "Select a knowledge base from the list"}
                       </p>
                     </div>
                   )}
@@ -685,4 +709,3 @@ export const ImportSourcesDialog = ({
     </Dialog>
   );
 };
-
