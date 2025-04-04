@@ -148,7 +148,7 @@ const KnowledgeBase = () => {
         documentFiles: 0,
         websiteSources: 0,
         spreadsheetSources: 0,
-        spreadsheetRows: 0,
+        spreadsheetFiles: 0,
         plainTextSources: 0,
         plainTextChars: 0
       };
@@ -160,7 +160,7 @@ const KnowledgeBase = () => {
       documentFiles: 0,
       websiteSources: 0,
       spreadsheetSources: 0,
-      spreadsheetRows: 0,
+      spreadsheetFiles: 0,
       plainTextSources: 0,
       plainTextChars: 0
     };
@@ -176,11 +176,7 @@ const KnowledgeBase = () => {
       } else if (source.sourceType === 'csv') {
         stats.spreadsheetSources++;
         if (source.knowledge_sources) {
-          source.knowledge_sources.forEach(ks => {
-            if (ks.metadata && ks.metadata.no_of_rows) {
-              stats.spreadsheetRows += parseInt(ks.metadata.no_of_rows) || 0;
-            }
-          });
+          stats.spreadsheetFiles += source.knowledge_sources.length;
         }
       } else if (source.sourceType === 'plain_text') {
         stats.plainTextSources++;
@@ -471,11 +467,11 @@ const KnowledgeBase = () => {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-1">
                 <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                Spreadsheet Rows
+                Spreadsheet Files
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : knowledgeStats.spreadsheetRows.toLocaleString()}</div>
+              <div className="text-3xl font-bold">{isLoading ? "..." : knowledgeStats.spreadsheetFiles}</div>
               <div className="text-sm text-muted-foreground">From {knowledgeStats.spreadsheetSources} sources</div>
             </CardContent>
           </Card>

@@ -44,7 +44,7 @@ const KnowledgeStatsCard = () => {
         documentFiles: 0,
         websiteSources: 0,
         spreadsheetSources: 0,
-        spreadsheetRows: 0,
+        spreadsheetFiles: 0,
         plainTextSources: 0,
         plainTextChars: 0
       };
@@ -56,16 +56,14 @@ const KnowledgeStatsCard = () => {
       documentFiles: 0,
       websiteSources: 0,
       spreadsheetSources: 0,
-      spreadsheetRows: 0,
+      spreadsheetFiles: 0,
       plainTextSources: 0,
       plainTextChars: 0
     };
 
     knowledgeBases.forEach(source => {
-      // Count by source type
       if (source.type === 'docs') {
         result.documentSources++;
-        // Count nested files for documents
         if (source.knowledge_sources) {
           result.documentFiles += source.knowledge_sources.length;
         }
@@ -73,17 +71,11 @@ const KnowledgeStatsCard = () => {
         result.websiteSources++;
       } else if (source.type === 'csv') {
         result.spreadsheetSources++;
-        // Count total rows across all spreadsheets
         if (source.knowledge_sources) {
-          source.knowledge_sources.forEach(ks => {
-            if (ks.metadata && ks.metadata.no_of_rows) {
-              result.spreadsheetRows += parseInt(ks.metadata.no_of_rows) || 0;
-            }
-          });
+          result.spreadsheetFiles += source.knowledge_sources.length;
         }
       } else if (source.type === 'plain_text') {
         result.plainTextSources++;
-        // Count total characters across all plaintext
         if (source.knowledge_sources && source.knowledge_sources[0]?.metadata?.no_of_chars) {
           result.plainTextChars += parseInt(source.knowledge_sources[0].metadata.no_of_chars) || 0;
         }
@@ -119,8 +111,8 @@ const KnowledgeStatsCard = () => {
             className="bg-green-50"
           />
           <StatCard
-            title="Spreadsheet Rows"
-            value={isLoading ? "..." : `${stats.spreadsheetRows.toLocaleString()}`}
+            title="Spreadsheet Files"
+            value={isLoading ? "..." : `${stats.spreadsheetFiles}`}
             icon={<FileSpreadsheet className="h-4 w-4" />}
             className="bg-emerald-50"
           />
