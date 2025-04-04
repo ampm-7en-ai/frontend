@@ -807,7 +807,7 @@ const KnowledgeBase = () => {
                     <TableHead>Format</TableHead>
                     <TableHead>Content</TableHead>
                     <TableHead>Upload Date</TableHead>
-                    <TableHead className="w-16 text-right">Actions</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -818,9 +818,8 @@ const KnowledgeBase = () => {
                           <div className={`p-2 rounded ${getIconBackground({sourceType: sourceType})} mr-2 flex-shrink-0`}>
                             {renderSourceIcon({sourceType: sourceType})}
                           </div>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{source.title || source.name || "Untitled"}</span>
-                            <span className="text-xs text-muted-foreground">{source.id}</span>
+                          <div className="font-medium">
+                            {source.title || source.name || "Untitled"}
                           </div>
                         </div>
                       </TableCell>
@@ -839,27 +838,24 @@ const KnowledgeBase = () => {
                         {formatDate(source.metadata?.upload_date)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              className="flex items-center gap-2 cursor-pointer"
-                              onClick={() => handleDownloadFile(source)}
-                            >
-                              <Download className="h-4 w-4" /> Download
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="flex items-center gap-2 text-destructive cursor-pointer"
-                              onClick={() => handleDeleteFile(source.id)}
-                            >
-                              <Trash className="h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 px-2"
+                            onClick={() => handleDownloadFile(source)}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteFile(source.id)}
+                          >
+                            <Trash className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
