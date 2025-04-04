@@ -1,3 +1,4 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -56,6 +57,8 @@ export interface KnowledgeSourceItem {
   url: string | null;
   file?: string | null;
   title: string;
+  name?: string; // Add name as an alternative to title
+  type?: string; // Add type field for consistent reference
   status?: string;
   selected?: boolean;
   knowledge_base?: number;
@@ -63,6 +66,7 @@ export interface KnowledgeSourceItem {
   metadata?: {
     format?: string;
     file_size?: string | number;
+    size?: string | number; // Add size as alternative to file_size
     sub_urls?: UrlNode;
     crawl_more?: string | boolean;
     no_of_pages?: number;

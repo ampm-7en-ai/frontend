@@ -816,13 +816,13 @@ const KnowledgeBase = () => {
                             {renderSourceIcon({sourceType: selectedKnowledgeBase.sourceType})}
                           </div>
                           <div className="flex flex-col">
-                            <span className="font-medium">{source.name || "Untitled"}</span>
+                            <span className="font-medium">{source.title || source.name || "Untitled"}</span>
                             <span className="text-xs text-muted-foreground">{source.id}</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {formatFileSizeToMB(source.metadata?.size)}
+                        {formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size)}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-mono uppercase text-xs">
