@@ -520,10 +520,11 @@ export const ImportSourcesDialog = ({
                         <div 
                           key={source.id} 
                           className={cn(
-                            "border rounded-md overflow-hidden transition",
+                            "border rounded-md overflow-hidden transition cursor-pointer",
                             isSelected && "border-primary",
                             source === selectedSource && "ring-2 ring-primary"
                           )}
+                          onClick={() => toggleSourceSelection(source, true)}
                         >
                           <div className="flex items-center p-3 bg-white">
                             <Checkbox 
@@ -535,25 +536,14 @@ export const ImportSourcesDialog = ({
                               className="mr-2"
                               onClick={(e) => e.stopPropagation()}
                             />
-                            <div 
-                              className="flex-1 cursor-pointer"
-                              onClick={() => {
-                                if (selectedSources.has(source.id) && (hasUrlStructure(source) || hasNestedFiles(source))) {
-                                  setSelectedSource(source);
-                                }
-                              }}
-                            >
-                              <label 
-                                htmlFor={`source-${source.id}`}
-                                className="flex items-center cursor-pointer"
-                                onClick={(e) => e.stopPropagation()}
-                              >
+                            <div className="flex-1">
+                              <div className="flex items-center">
                                 {renderSourceIcon(source.type)}
                                 <span className="font-medium">
                                   {source.name}
                                   {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(already imported)</span>}
                                 </span>
-                              </label>
+                              </div>
                               
                               <div className="text-xs text-muted-foreground mt-1 flex items-center flex-wrap">
                                 <span className="mr-3">Type: {source.type}</span>
