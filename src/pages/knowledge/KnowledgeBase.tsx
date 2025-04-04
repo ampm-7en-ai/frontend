@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, FileIcon, File, ChevronDown, ChevronRight } from 'lucide-react';
+import { Book, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, FileIcon, File } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,10 +16,13 @@ import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { 
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from "@/components/ui/collapsible";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+  DrawerFooter,
+} from "@/components/ui/drawer";
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
@@ -27,7 +30,7 @@ const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
-  const [expandedRows, setExpandedRows] = useState({});
+  const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -72,13 +75,6 @@ const KnowledgeBase = () => {
       });
     }
   }, [error, toast]);
-
-  const toggleRow = (id) => {
-    setExpandedRows(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -209,13 +205,20 @@ const KnowledgeBase = () => {
   };
 
   const getAgentColor = (agentName) => {
+    if (!agentName || typeof agentName !== 'string') return 'bg-blue-500';
     const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-teal-500'];
-    const index = agentName.charCodeAt(0) % colors.length;
+    const charCode = agentName.charCodeAt(0) || 0;
+    const index = charCode % colors.length;
     return colors[index];
   };
 
   const getAgentInitials = (agentName) => {
-    return agentName.split(' ').map(n => n[0]).join('').toUpperCase();
+    if (!agentName || typeof agentName !== 'string') return '';
+    return agentName.split(' ').map(n => n[0] || '').join('').toUpperCase();
+  };
+
+  const handleFileDrawerOpen = (doc) => {
+    setSelectedKnowledgeBase(doc);
   };
 
   return (
@@ -354,7 +357,7 @@ const KnowledgeBase = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Document Name</TableHead>
+                  <TableHead className="w-[40%]">Knowledge</TableHead>
                   <TableHead>Source Type</TableHead>
                   <TableHead>Agents</TableHead>
                   <TableHead>Uploaded</TableHead>
@@ -363,132 +366,125 @@ const KnowledgeBase = () => {
               </TableHeader>
               <TableBody>
                 {filteredDocuments.map((doc) => (
-                  <React.Fragment key={doc.id}>
-                    <TableRow>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {doc.knowledge_sources && doc.knowledge_sources.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="p-0 h-6 w-6 mr-1"
-                              onClick={() => toggleRow(doc.id)}
-                            >
-                              {expandedRows[doc.id] ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </Button>
-                          )}
-                          <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
-                            {renderSourceIcon(doc)}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{doc.title}</span>
-                            {doc.knowledge_sources && doc.knowledge_sources.length > 1 && (
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {doc.knowledge_sources.length} files
-                              </div>
-                            )}
-                            {doc.knowledge_sources && doc.knowledge_sources.length <= 1 && (
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {doc.pages} {doc.pages && doc.size ? '•' : ''} {doc.size}
-                                {doc.fileFormat !== 'N/A' && ` • ${doc.fileFormat}`}
-                              </div>
-                            )}
-                          </div>
+                  <TableRow key={doc.id}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
+                          {renderSourceIcon(doc)}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-medium">
-                          {doc.sourceType.toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {doc.agents && doc.agents.length > 0 ? (
-                            <>
-                              <div className="flex -space-x-2">
-                                {doc.agents.slice(0, 3).map((agentName, index) => (
-                                  <TooltipProvider key={`${doc.id}-agent-${index}`}>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Avatar className="h-8 w-8 border-2 border-background">
-                                          <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs`}>
-                                            {getAgentInitials(agentName)}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>{agentName}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                ))}
-                              </div>
-                              {doc.agents.length > 3 && (
-                                <Badge variant="secondary" className="ml-1 text-xs font-semibold">
-                                  +{doc.agents.length - 3} more
-                                </Badge>
-                              )}
-                            </>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">None</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {doc.uploadedAt}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
-                              <Trash className="h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    {doc.knowledge_sources && doc.knowledge_sources.length > 1 && expandedRows[doc.id] && (
-                      <TableRow>
-                        <TableCell colSpan={5}>
-                          <Collapsible open={true}>
-                            <CollapsibleContent>
-                              <div className="pl-12 pr-4 py-2 bg-muted/20">
-                                <h4 className="text-sm font-medium mb-2">Files</h4>
-                                <div className="space-y-2">
-                                  {doc.knowledge_sources.map((source, index) => (
-                                    <div key={index} className="flex items-center justify-between py-1 border-b border-dashed border-gray-200 last:border-0">
-                                      <div className="flex items-center">
-                                        <div className={`p-1.5 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
-                                          {renderSourceIcon(doc)}
-                                        </div>
-                                        <div className="flex flex-col">
-                                          <span className="text-sm font-medium">{source.title}</span>
-                                          <div className="text-xs text-muted-foreground">
-                                            {source.metadata?.file_size && formatFileSizeToMB(source.metadata.file_size)}
-                                            {source.metadata?.no_of_pages && ` • ${source.metadata.no_of_pages} pages`}
-                                            {source.metadata?.format && ` • ${source.metadata.format}`}
+                        <div className="flex flex-col">
+                          <span className="font-medium">{doc.title}</span>
+                          {doc.knowledge_sources && doc.knowledge_sources.length > 1 ? (
+                            <Drawer>
+                              <DrawerTrigger asChild>
+                                <button 
+                                  onClick={() => handleFileDrawerOpen(doc)} 
+                                  className="text-xs text-primary hover:underline mt-0.5"
+                                >
+                                  {doc.knowledge_sources.length} files
+                                </button>
+                              </DrawerTrigger>
+                              <DrawerContent>
+                                <DrawerHeader>
+                                  <DrawerTitle>Files in {doc.title}</DrawerTitle>
+                                </DrawerHeader>
+                                <div className="px-4 py-2">
+                                  <div className="space-y-4">
+                                    {doc.knowledge_sources.map((source, index) => (
+                                      <div key={index} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                                        <div className="flex items-center">
+                                          <div className={`p-1.5 rounded ${getIconBackground(doc)} mr-3 flex-shrink-0`}>
+                                            {renderSourceIcon(doc)}
+                                          </div>
+                                          <div className="flex flex-col">
+                                            <span className="font-medium">{source.title}</span>
+                                            <div className="text-xs text-muted-foreground">
+                                              {source.metadata?.file_size && formatFileSizeToMB(source.metadata.file_size)}
+                                              {source.metadata?.no_of_pages && ` • ${source.metadata.no_of_pages} pages`}
+                                              {source.metadata?.format && ` • ${source.metadata.format}`}
+                                            </div>
                                           </div>
                                         </div>
+                                        <Button variant="ghost" size="icon" className="text-destructive">
+                                          <Trash className="h-4 w-4" />
+                                        </Button>
                                       </div>
-                                    </div>
-                                  ))}
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
+                                <DrawerFooter>
+                                  <Button className="w-full gap-2">
+                                    <Plus className="h-4 w-4" />
+                                    Add New File
+                                  </Button>
+                                </DrawerFooter>
+                              </DrawerContent>
+                            </Drawer>
+                          ) : (
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {doc.pages} {doc.pages && doc.size ? '•' : ''} {doc.size}
+                              {doc.fileFormat !== 'N/A' && ` • ${doc.fileFormat}`}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-medium">
+                        {doc.sourceType.toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {doc.agents && doc.agents.length > 0 ? (
+                          <>
+                            <div className="flex -space-x-2">
+                              {doc.agents.slice(0, 3).map((agentName, index) => (
+                                <TooltipProvider key={`${doc.id}-agent-${index}`}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Avatar className="h-8 w-8 border-2 border-background">
+                                        <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs`}>
+                                          {getAgentInitials(agentName)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{agentName}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ))}
+                            </div>
+                            {doc.agents.length > 3 && (
+                              <Badge variant="secondary" className="ml-1 text-xs font-semibold">
+                                +{doc.agents.length - 3} more
+                              </Badge>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">None</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {doc.uploadedAt}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
+                            <Trash className="h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
