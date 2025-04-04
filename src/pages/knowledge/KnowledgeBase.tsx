@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File } from 'lucide-react';
+import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,7 +32,6 @@ const KnowledgeBase = () => {
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
 
-  // Fetch knowledge bases logic
   const fetchKnowledgeBases = async () => {
     try {
       const token = getAccessToken();
@@ -78,7 +76,6 @@ const KnowledgeBase = () => {
     }
   }, [error, toast]);
 
-  // Helper functions
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     
@@ -103,12 +100,10 @@ const KnowledgeBase = () => {
         ? formatDate(firstSource.metadata.upload_date) 
         : formatDate(kb.last_updated);
 
-      // Get file format from metadata
       const fileFormat = firstSource && firstSource.metadata && firstSource.metadata.format 
         ? firstSource.metadata.format 
         : 'N/A';
 
-      // Extract agent names from the agents array
       const agentNames = kb.agents && kb.agents.length > 0
         ? kb.agents.map(agent => agent.name)
         : [];
@@ -126,7 +121,7 @@ const KnowledgeBase = () => {
         provider: null,
         status: kb.status,
         trainingStatus: kb.training_status,
-        knowledge_sources: kb.knowledge_sources || [], // Include the knowledge_sources array
+        knowledge_sources: kb.knowledge_sources || [],
         fileCount: kb.knowledge_sources ? kb.knowledge_sources.length : 0
       };
     });
@@ -143,14 +138,12 @@ const KnowledgeBase = () => {
     return matchesSearch && matchesType;
   });
 
-  // Statistics counts
   const documentCount = documents.filter(d => d.sourceType === 'docs').length;
   const websiteCount = documents.filter(d => d.sourceType === 'website').length;
   const spreadsheetCount = documents.filter(d => d.sourceType === 'csv').length;
   const plainTextCount = documents.filter(d => d.sourceType === 'plain_text').length;
   const thirdPartyCount = documents.filter(d => d.sourceType === 'thirdparty').length;
 
-  // Helper function to check if a source type should have a nested view
   const canShowNestedView = (sourceType) => {
     return sourceType !== 'website' && sourceType !== 'plain_text';
   };
@@ -227,10 +220,8 @@ const KnowledgeBase = () => {
     return agentName.split(' ').map(n => n[0] || '').join('').toUpperCase();
   };
 
-  // New function to handle knowledge base click
   const handleKnowledgeBaseClick = (doc) => {
     if (!canShowNestedView(doc.sourceType)) {
-      // If the source type doesn't support nested view, show a message
       toast({
         title: "Info",
         description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`
@@ -242,13 +233,11 @@ const KnowledgeBase = () => {
     setViewMode('detail');
   };
 
-  // Function to go back to main view
   const handleBackToMainView = () => {
     setSelectedKnowledgeBase(null);
     setViewMode('main');
   };
 
-  // Helper function to get the file type acceptance string based on source type
   const getFileAcceptTypes = (sourceType) => {
     switch (sourceType) {
       case 'docs':
@@ -260,25 +249,47 @@ const KnowledgeBase = () => {
     }
   };
 
-  // Handle file upload for a knowledge base
   const handleFileUpload = (e) => {
-    // Implementation would go here
     toast({
       title: "File upload",
       description: "File upload functionality would be implemented here."
     });
   };
 
-  // Handle file deletion
   const handleDeleteFile = (fileId) => {
-    // Implementation would go here
     toast({
       title: "Delete file",
       description: `File with ID ${fileId} deletion would be implemented here.`
     });
   };
 
-  // Render main view (knowledge bases list)
+  const handleDownloadFile = (file) => {
+    if (!file || !file.file) {
+      toast({
+        title: "Download error",
+        description: "No file URL available for download.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Downloading file",
+      description: `Downloading file: ${file.title || 'Unnamed file'}`
+    });
+    
+    try {
+      window.open(file.file, '_blank');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading the file.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderMainView = () => {
     return (
       <>
@@ -511,7 +522,6 @@ const KnowledgeBase = () => {
     );
   };
 
-  // Render detail view (knowledge files)
   const renderDetailView = () => {
     if (!selectedKnowledgeBase) return null;
 
@@ -521,7 +531,7 @@ const KnowledgeBase = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink onClick={() => setViewMode('main')} className="cursor-pointer">
+                <BreadcrumbLink onClick={handleBackToMainView} className="cursor-pointer">
                   Knowledge
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -563,7 +573,7 @@ const KnowledgeBase = () => {
                     <TableHead>Size</TableHead>
                     <TableHead>Pages</TableHead>
                     <TableHead>Uploaded</TableHead>
-                    <TableHead className="w-16 text-right">Actions</TableHead>
+                    <TableHead className="w-24 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -593,14 +603,26 @@ const KnowledgeBase = () => {
                         <TableCell>{pages}</TableCell>
                         <TableCell>{uploadDate}</TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-destructive"
-                            onClick={() => handleDeleteFile(source.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                              onClick={() => handleDownloadFile(source)}
+                              title="Download file"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                              onClick={() => handleDeleteFile(source.id)}
+                              title="Delete file"
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
