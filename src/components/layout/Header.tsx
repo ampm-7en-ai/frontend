@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator
+} from '@/components/ui/breadcrumb';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -49,18 +56,19 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
           <h1 className="text-base font-semibold text-black tracking-tight">{pageTitle}</h1>
           
           {breadcrumbs && breadcrumbs.length > 0 && (
-            <div className="hidden md:flex items-center text-xs text-dark-gray">
-              {breadcrumbs.map((crumb, index) => (
-                <React.Fragment key={index}>
-                  {index > 0 && <span className="mx-1">/</span>}
-                  <a 
-                    href={crumb.href} 
-                    className="hover:text-black transition-colors duration-200"
-                  >
-                    {crumb.label}
-                  </a>
-                </React.Fragment>
-              ))}
+            <div className="hidden md:block ml-2">
+              <Breadcrumb>
+                <BreadcrumbList>
+                  {breadcrumbs.map((crumb, index) => (
+                    <React.Fragment key={index}>
+                      <BreadcrumbItem>
+                        <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+                      </BreadcrumbItem>
+                      {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
+                    </React.Fragment>
+                  ))}
+                </BreadcrumbList>
+              </Breadcrumb>
             </div>
           )}
         </div>

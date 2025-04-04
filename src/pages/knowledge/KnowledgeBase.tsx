@@ -731,6 +731,9 @@ const KnowledgeBase = () => {
     if (!selectedKnowledgeBase) return null;
 
     const knowledgeSources = selectedKnowledgeBase.knowledge_sources || [];
+    const sourceType = selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown";
+    
+    const formattedSourceType = sourceType.charAt(0).toUpperCase() + sourceType.slice(1);
 
     return (
       <>
@@ -744,7 +747,7 @@ const KnowledgeBase = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{selectedKnowledgeBase.title}</BreadcrumbPage>
+                <BreadcrumbPage>{selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -752,13 +755,13 @@ const KnowledgeBase = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <div>
-            <h2 className="text-2xl font-bold mb-1">{selectedKnowledgeBase.title}</h2>
+            <h2 className="text-2xl font-bold mb-1">{selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}</h2>
             <div className="text-muted-foreground">
               <Badge variant="outline" className="mr-2 font-medium">
-                {selectedKnowledgeBase.sourceType?.toUpperCase() || "UNKNOWN"}
+                {formattedSourceType}
               </Badge>
               {knowledgeSources ? 
-                `${knowledgeSources.length} files` : "0 files"}
+                `${knowledgeSources.length} ${knowledgeSources.length === 1 ? 'file' : 'files'}` : "0 files"}
             </div>
           </div>
           <div className="flex gap-2">
@@ -766,7 +769,7 @@ const KnowledgeBase = () => {
               <input 
                 type="file" 
                 className="cursor-pointer absolute inset-0 opacity-0" 
-                accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
                 onChange={handleFileUpload}
               />
               <Upload className="h-4 w-4 mr-2" />
@@ -788,7 +791,7 @@ const KnowledgeBase = () => {
                   <input 
                     type="file" 
                     className="cursor-pointer absolute inset-0 opacity-0" 
-                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
                     onChange={handleFileUpload}
                   />
                   <Upload className="h-4 w-4 mr-2" />
@@ -812,8 +815,8 @@ const KnowledgeBase = () => {
                     <TableRow key={source.id}>
                       <TableCell>
                         <div className="flex items-center">
-                          <div className={`p-2 rounded ${getIconBackground({sourceType: selectedKnowledgeBase.sourceType})} mr-2 flex-shrink-0`}>
-                            {renderSourceIcon({sourceType: selectedKnowledgeBase.sourceType})}
+                          <div className={`p-2 rounded ${getIconBackground({sourceType: sourceType})} mr-2 flex-shrink-0`}>
+                            {renderSourceIcon({sourceType: sourceType})}
                           </div>
                           <div className="flex flex-col">
                             <span className="font-medium">{source.title || source.name || "Untitled"}</span>
@@ -826,7 +829,7 @@ const KnowledgeBase = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-mono uppercase text-xs">
-                          {source.metadata?.format || "Unknown"}
+                          {source.metadata?.format || source.type || "Unknown"}
                         </Badge>
                       </TableCell>
                       <TableCell>
