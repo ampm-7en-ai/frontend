@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -97,6 +98,45 @@ export const ImportSourcesDialog = ({
     }
   }, [selectedSource]);
 
+  // Update selected sources based on selections in the third panel
+  useEffect(() => {
+    // Process URL selections
+    for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
+      const numericId = Number(sourceId);
+      if (urlSet.size > 0) {
+        setSelectedSources(prev => new Set([...prev, numericId]));
+      } else {
+        // Only remove from selected if it's not plain_text type
+        const source = externalSources.find(s => s.id === numericId);
+        if (source && source.type !== 'plain_text' && !selectedFiles[numericId]?.size) {
+          setSelectedSources(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(numericId);
+            return newSet;
+          });
+        }
+      }
+    }
+    
+    // Process file selections
+    for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
+      const numericId = Number(sourceId);
+      if (fileSet.size > 0) {
+        setSelectedSources(prev => new Set([...prev, numericId]));
+      } else {
+        // Only remove from selected if it's not plain_text type and no URLs are selected
+        const source = externalSources.find(s => s.id === numericId);
+        if (source && source.type !== 'plain_text' && !selectedSubUrls[numericId]?.size) {
+          setSelectedSources(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(numericId);
+            return newSet;
+          });
+        }
+      }
+    }
+  }, [selectedSubUrls, selectedFiles, externalSources]);
+
   const sourceTypes = useMemo(() => {
     const counts = {
       all: { count: 0, label: 'All Sources', icon: <FileText className="h-4 w-4" /> },
@@ -174,11 +214,6 @@ export const ImportSourcesDialog = ({
     } else {
       // For other types, just select the source to show in third panel
       setSelectedSource(source);
-      
-      // If this source has nested content that needs selection, ensure it's in selectedSources
-      if ((hasUrlStructure(source) || hasNestedFiles(source)) && !selectedSources.has(source.id)) {
-        setSelectedSources(prev => new Set([...prev, source.id]));
-      }
     }
   };
 
@@ -515,15 +550,21 @@ export const ImportSourcesDialog = ({
                       const isSelected = selectedSources.has(source.id);
                       const hasExpandableContent = hasUrlStructure(source) || hasNestedFiles(source);
                       const isPlainText = source.type === 'plain_text';
+                      const isCurrentlySelectedSource = source === selectedSource;
+
+                      // Determine which styling to apply based on source type and selection status
+                      const cardClasses = cn(
+                        "border rounded-md overflow-hidden transition cursor-pointer",
+                        alreadyImported && "border-gray-300 bg-gray-50/50",
+                        isPlainText && isSelected && "border-gray-400 bg-gray-50",
+                        isCurrentlySelectedSource && !isPlainText && "border-gray-400 shadow-sm",
+                        isSelected && selectedSubUrls[source.id]?.size > 0 || selectedFiles[source.id]?.size > 0 ? "border-gray-400 bg-gray-50/70" : "",
+                      );
                       
                       return (
                         <div 
                           key={source.id} 
-                          className={cn(
-                            "border rounded-md overflow-hidden transition cursor-pointer",
-                            isSelected && "border-primary",
-                            source === selectedSource && "ring-2 ring-primary"
-                          )}
+                          className={cardClasses}
                           onClick={() => toggleSourceSelection(source)}
                         >
                           <div className="flex items-center p-3 bg-white">
@@ -644,3 +685,4 @@ export const ImportSourcesDialog = ({
     </Dialog>
   );
 };
+
