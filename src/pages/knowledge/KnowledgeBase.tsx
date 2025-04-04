@@ -126,7 +126,8 @@ const KnowledgeBase = () => {
         provider: null,
         status: kb.status,
         trainingStatus: kb.training_status,
-        knowledge_sources: kb.knowledge_sources || [] // Include the knowledge_sources array
+        knowledge_sources: kb.knowledge_sources || [], // Include the knowledge_sources array
+        fileCount: kb.knowledge_sources ? kb.knowledge_sources.length : 0
       };
     });
   };
@@ -148,6 +149,11 @@ const KnowledgeBase = () => {
   const spreadsheetCount = documents.filter(d => d.sourceType === 'csv').length;
   const plainTextCount = documents.filter(d => d.sourceType === 'plain_text').length;
   const thirdPartyCount = documents.filter(d => d.sourceType === 'thirdparty').length;
+
+  // Helper function to check if a source type should have a nested view
+  const canShowNestedView = (sourceType) => {
+    return sourceType !== 'website' && sourceType !== 'plain_text';
+  };
 
   const renderSourceIcon = (doc) => {
     switch (doc.sourceType) {
@@ -223,6 +229,15 @@ const KnowledgeBase = () => {
 
   // New function to handle knowledge base click
   const handleKnowledgeBaseClick = (doc) => {
+    if (!canShowNestedView(doc.sourceType)) {
+      // If the source type doesn't support nested view, show a message
+      toast({
+        title: "Info",
+        description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`
+      });
+      return;
+    }
+    
     setSelectedKnowledgeBase(doc);
     setViewMode('detail');
   };
@@ -230,7 +245,37 @@ const KnowledgeBase = () => {
   // Function to go back to main view
   const handleBackToMainView = () => {
     setSelectedKnowledgeBase(null);
-    setViewMode('detail');
+    setViewMode('main');
+  };
+
+  // Helper function to get the file type acceptance string based on source type
+  const getFileAcceptTypes = (sourceType) => {
+    switch (sourceType) {
+      case 'docs':
+        return '.pdf,.docx,.txt';
+      case 'csv':
+        return '.csv,.xlsx,.xls';
+      default:
+        return '*';
+    }
+  };
+
+  // Handle file upload for a knowledge base
+  const handleFileUpload = (e) => {
+    // Implementation would go here
+    toast({
+      title: "File upload",
+      description: "File upload functionality would be implemented here."
+    });
+  };
+
+  // Handle file deletion
+  const handleDeleteFile = (fileId) => {
+    // Implementation would go here
+    toast({
+      title: "Delete file",
+      description: `File with ID ${fileId} deletion would be implemented here.`
+    });
   };
 
   // Render main view (knowledge bases list)
@@ -383,22 +428,19 @@ const KnowledgeBase = () => {
                     <TableRow key={doc.id}>
                       <TableCell>
                         <div 
-                          className="flex items-center cursor-pointer"
-                          onClick={() => handleKnowledgeBaseClick(doc)}
+                          className={`flex items-center ${canShowNestedView(doc.sourceType) ? 'cursor-pointer hover:text-primary' : ''}`}
+                          onClick={() => canShowNestedView(doc.sourceType) && handleKnowledgeBaseClick(doc)}
                         >
                           <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
                             {renderSourceIcon(doc)}
                           </div>
                           <div className="flex flex-col">
-                            <span className="font-medium hover:text-primary hover:underline">{doc.title}</span>
+                            <span className={`font-medium ${canShowNestedView(doc.sourceType) ? 'hover:underline' : ''}`}>{doc.title}</span>
                             <div className="text-xs text-muted-foreground mt-0.5">
-                              {doc.knowledge_sources?.length > 1 ? 
-                                `${doc.knowledge_sources.length} files` : 
-                                (doc.pages ? `${doc.pages} pages` : '') + 
-                                (doc.pages && doc.size ? ' • ' : '') + 
-                                (doc.size || '')
+                              {doc.fileCount > 0 ? 
+                                `${doc.fileCount} ${doc.fileCount === 1 ? 'file' : 'files'}` : 
+                                'No files'
                               }
-                              {doc.fileFormat !== 'N/A' && ` • ${doc.fileFormat}`}
                             </div>
                           </div>
                         </div>
@@ -496,8 +538,17 @@ const KnowledgeBase = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">{selectedKnowledgeBase.title}</h2>
           <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add New File
+            <label htmlFor="file-upload" className="flex gap-2 items-center cursor-pointer">
+              <Plus className="h-4 w-4" />
+              Add New File
+            </label>
+            <input 
+              id="file-upload" 
+              type="file" 
+              className="hidden" 
+              accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+              onChange={handleFileUpload}
+            />
           </Button>
         </div>
 
@@ -542,7 +593,12 @@ const KnowledgeBase = () => {
                         <TableCell>{pages}</TableCell>
                         <TableCell>{uploadDate}</TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="text-destructive">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-destructive"
+                            onClick={() => handleDeleteFile(source.id)}
+                          >
                             <Trash className="h-4 w-4" />
                           </Button>
                         </TableCell>
@@ -559,8 +615,17 @@ const KnowledgeBase = () => {
                   Add your first file to this knowledge source
                 </p>
                 <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add New File
+                  <label htmlFor="file-upload-empty" className="flex gap-2 items-center cursor-pointer">
+                    <Plus className="h-4 w-4" />
+                    Add New File
+                  </label>
+                  <input 
+                    id="file-upload-empty" 
+                    type="file" 
+                    className="hidden" 
+                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                    onChange={handleFileUpload}
+                  />
                 </Button>
               </div>
             )}
