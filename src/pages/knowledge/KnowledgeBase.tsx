@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, FileIcon, File } from 'lucide-react';
+import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,14 +15,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-  DrawerFooter,
-} from "@/components/ui/drawer";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
@@ -31,7 +31,9 @@ const KnowledgeBase = () => {
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
+  const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
 
+  // Fetch knowledge bases logic
   const fetchKnowledgeBases = async () => {
     try {
       const token = getAccessToken();
@@ -76,6 +78,7 @@ const KnowledgeBase = () => {
     }
   }, [error, toast]);
 
+  // Helper functions
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     
@@ -139,6 +142,7 @@ const KnowledgeBase = () => {
     return matchesSearch && matchesType;
   });
 
+  // Statistics counts
   const documentCount = documents.filter(d => d.sourceType === 'docs').length;
   const websiteCount = documents.filter(d => d.sourceType === 'website').length;
   const spreadsheetCount = documents.filter(d => d.sourceType === 'csv').length;
@@ -208,7 +212,7 @@ const KnowledgeBase = () => {
     if (!agentName || typeof agentName !== 'string') return 'bg-blue-500';
     const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-teal-500'];
     const charCode = agentName.charCodeAt(0) || 0;
-    const index = charCode % colors.length;
+    const index = Math.floor(charCode % colors.length);
     return colors[index];
   };
 
@@ -217,280 +221,358 @@ const KnowledgeBase = () => {
     return agentName.split(' ').map(n => n[0] || '').join('').toUpperCase();
   };
 
-  const handleFileDrawerOpen = (doc) => {
+  // New function to handle knowledge base click
+  const handleKnowledgeBaseClick = (doc) => {
     setSelectedKnowledgeBase(doc);
+    setViewMode('detail');
+  };
+
+  // Function to go back to main view
+  const handleBackToMainView = () => {
+    setSelectedKnowledgeBase(null);
+    setViewMode('detail');
+  };
+
+  // Render main view (knowledge bases list)
+  const renderMainView = () => {
+    return (
+      <>
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          <div className="relative w-full sm:w-96">
+            <Input 
+              placeholder="Search documents..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10" 
+            />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="flex gap-2">
+            <Select 
+              value={sourceTypeFilter} 
+              onValueChange={setSourceTypeFilter}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                <SelectItem value="docs">Documents</SelectItem>
+                <SelectItem value="website">Websites</SelectItem>
+                <SelectItem value="csv">Spreadsheets</SelectItem>
+                <SelectItem value="plain_text">Plain Text</SelectItem>
+                <SelectItem value="thirdparty">Third Party</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button asChild className="flex items-center gap-1">
+              <Link to="/knowledge/upload">
+                <Upload className="h-4 w-4" />
+                Add Source
+              </Link>
+            </Button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-1">
+                <FileText className="h-4 w-4 text-blue-600" />
+                Documents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{isLoading ? "..." : documentCount}</div>
+              <div className="text-sm text-muted-foreground">PDF, DOCX, etc.</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-1">
+                <Globe className="h-4 w-4 text-green-600" />
+                Websites
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{isLoading ? "..." : websiteCount}</div>
+              <div className="text-sm text-muted-foreground">URLs, Webpages</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-1">
+                <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                Spreadsheets
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{isLoading ? "..." : spreadsheetCount}</div>
+              <div className="text-sm text-muted-foreground">CSV, Excel files</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-1">
+                <File className="h-4 w-4 text-purple-600" />
+                Plain Text
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{isLoading ? "..." : plainTextCount}</div>
+              <div className="text-sm text-muted-foreground">Plain text files</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-1">
+                <svg className="h-4 w-4 text-blue-600" viewBox="0 0 87.3 78">
+                  <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="currentColor"/>
+                  <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="currentColor"/>
+                  <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="currentColor"/>
+                </svg>
+                Third Party
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{isLoading ? "..." : thirdPartyCount}</div>
+              <div className="text-sm text-muted-foreground">Google Drive, Slack, etc.</div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-2">Loading knowledge bases...</span>
+              </div>
+            ) : filteredDocuments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-1">No knowledge sources found</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {searchQuery || sourceTypeFilter !== 'all' ? 
+                    "Try adjusting your search or filter" : 
+                    "Add your first knowledge source to get started"}
+                </p>
+                <Button asChild>
+                  <Link to="/knowledge/upload">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Add Source
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40%]">Knowledge</TableHead>
+                    <TableHead>Source Type</TableHead>
+                    <TableHead>Agents</TableHead>
+                    <TableHead>Uploaded</TableHead>
+                    <TableHead className="w-16 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredDocuments.map((doc) => (
+                    <TableRow key={doc.id}>
+                      <TableCell>
+                        <div 
+                          className="flex items-center cursor-pointer"
+                          onClick={() => handleKnowledgeBaseClick(doc)}
+                        >
+                          <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
+                            {renderSourceIcon(doc)}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-medium hover:text-primary hover:underline">{doc.title}</span>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {doc.knowledge_sources?.length > 1 ? 
+                                `${doc.knowledge_sources.length} files` : 
+                                (doc.pages ? `${doc.pages} pages` : '') + 
+                                (doc.pages && doc.size ? ' • ' : '') + 
+                                (doc.size || '')
+                              }
+                              {doc.fileFormat !== 'N/A' && ` • ${doc.fileFormat}`}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-medium">
+                          {doc.sourceType.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          {doc.agents && doc.agents.length > 0 ? (
+                            <>
+                              <div className="flex -space-x-2">
+                                {doc.agents.slice(0, 3).map((agentName, index) => (
+                                  <TooltipProvider key={`${doc.id}-agent-${index}`}>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Avatar className="h-8 w-8 border-2 border-background">
+                                          <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs`}>
+                                            {getAgentInitials(agentName)}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>{agentName}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                ))}
+                              </div>
+                              {doc.agents.length > 3 && (
+                                <Badge variant="secondary" className="ml-1 text-xs font-semibold">
+                                  +{doc.agents.length - 3} more
+                                </Badge>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">None</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {doc.uploadedAt}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
+                              <Trash className="h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
+
+  // Render detail view (knowledge files)
+  const renderDetailView = () => {
+    if (!selectedKnowledgeBase) return null;
+
+    return (
+      <>
+        <div className="mb-6">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => setViewMode('main')} className="cursor-pointer">
+                  Knowledge
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+                <ChevronRight className="h-4 w-4" />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbPage>{selectedKnowledgeBase.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">{selectedKnowledgeBase.title}</h2>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add New File
+          </Button>
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            {selectedKnowledgeBase.knowledge_sources && selectedKnowledgeBase.knowledge_sources.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40%]">File Name</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Pages</TableHead>
+                    <TableHead>Uploaded</TableHead>
+                    <TableHead className="w-16 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedKnowledgeBase.knowledge_sources.map((source, index) => {
+                    const fileSize = source.metadata?.file_size 
+                      ? formatFileSizeToMB(source.metadata.file_size) 
+                      : "N/A";
+                    
+                    const pages = source.metadata?.no_of_pages || "N/A";
+                    const format = source.metadata?.format || "N/A";
+                    const uploadDate = source.metadata?.upload_date 
+                      ? formatDate(source.metadata.upload_date) 
+                      : "N/A";
+
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className={`p-2 rounded ${getIconBackground(selectedKnowledgeBase)} mr-2 flex-shrink-0`}>
+                              {renderSourceIcon(selectedKnowledgeBase)}
+                            </div>
+                            <span className="font-medium">{source.title}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{format}</TableCell>
+                        <TableCell>{fileSize}</TableCell>
+                        <TableCell>{pages}</TableCell>
+                        <TableCell>{uploadDate}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" className="text-destructive">
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-1">No files found</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add your first file to this knowledge source
+                </p>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add New File
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative w-full sm:w-96">
-          <Input 
-            placeholder="Search documents..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10" 
-          />
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="flex gap-2">
-          <Select 
-            value={sourceTypeFilter} 
-            onValueChange={setSourceTypeFilter}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sources</SelectItem>
-              <SelectItem value="docs">Documents</SelectItem>
-              <SelectItem value="website">Websites</SelectItem>
-              <SelectItem value="csv">Spreadsheets</SelectItem>
-              <SelectItem value="plain_text">Plain Text</SelectItem>
-              <SelectItem value="thirdparty">Third Party</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button asChild className="flex items-center gap-1">
-            <Link to="/knowledge/upload">
-              <Upload className="h-4 w-4" />
-              Add Source
-            </Link>
-          </Button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-1">
-              <FileText className="h-4 w-4 text-blue-600" />
-              Documents
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{isLoading ? "..." : documentCount}</div>
-            <div className="text-sm text-muted-foreground">PDF, DOCX, etc.</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-1">
-              <Globe className="h-4 w-4 text-green-600" />
-              Websites
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{isLoading ? "..." : websiteCount}</div>
-            <div className="text-sm text-muted-foreground">URLs, Webpages</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-1">
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-              Spreadsheets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{isLoading ? "..." : spreadsheetCount}</div>
-            <div className="text-sm text-muted-foreground">CSV, Excel files</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-1">
-              <File className="h-4 w-4 text-purple-600" />
-              Plain Text
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{isLoading ? "..." : plainTextCount}</div>
-            <div className="text-sm text-muted-foreground">Plain text files</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-1">
-              <svg className="h-4 w-4 text-blue-600" viewBox="0 0 87.3 78">
-                <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="currentColor"/>
-                <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="currentColor"/>
-                <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="currentColor"/>
-              </svg>
-              Third Party
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{isLoading ? "..." : thirdPartyCount}</div>
-            <div className="text-sm text-muted-foreground">Google Drive, Slack, etc.</div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-2">Loading knowledge bases...</span>
-            </div>
-          ) : filteredDocuments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-1">No knowledge sources found</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {searchQuery || sourceTypeFilter !== 'all' ? 
-                  "Try adjusting your search or filter" : 
-                  "Add your first knowledge source to get started"}
-              </p>
-              <Button asChild>
-                <Link to="/knowledge/upload">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Add Source
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[40%]">Knowledge</TableHead>
-                  <TableHead>Source Type</TableHead>
-                  <TableHead>Agents</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                  <TableHead className="w-16 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDocuments.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
-                          {renderSourceIcon(doc)}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{doc.title}</span>
-                          {doc.knowledge_sources && doc.knowledge_sources.length > 1 ? (
-                            <Drawer>
-                              <DrawerTrigger asChild>
-                                <button 
-                                  onClick={() => handleFileDrawerOpen(doc)} 
-                                  className="text-xs text-primary hover:underline mt-0.5"
-                                >
-                                  {doc.knowledge_sources.length} files
-                                </button>
-                              </DrawerTrigger>
-                              <DrawerContent>
-                                <DrawerHeader>
-                                  <DrawerTitle>Files in {doc.title}</DrawerTitle>
-                                </DrawerHeader>
-                                <div className="px-4 py-2">
-                                  <div className="space-y-4">
-                                    {doc.knowledge_sources.map((source, index) => (
-                                      <div key={index} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                                        <div className="flex items-center">
-                                          <div className={`p-1.5 rounded ${getIconBackground(doc)} mr-3 flex-shrink-0`}>
-                                            {renderSourceIcon(doc)}
-                                          </div>
-                                          <div className="flex flex-col">
-                                            <span className="font-medium">{source.title}</span>
-                                            <div className="text-xs text-muted-foreground">
-                                              {source.metadata?.file_size && formatFileSizeToMB(source.metadata.file_size)}
-                                              {source.metadata?.no_of_pages && ` • ${source.metadata.no_of_pages} pages`}
-                                              {source.metadata?.format && ` • ${source.metadata.format}`}
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="text-destructive">
-                                          <Trash className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                <DrawerFooter>
-                                  <Button className="w-full gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    Add New File
-                                  </Button>
-                                </DrawerFooter>
-                              </DrawerContent>
-                            </Drawer>
-                          ) : (
-                            <div className="text-xs text-muted-foreground mt-0.5">
-                              {doc.pages} {doc.pages && doc.size ? '•' : ''} {doc.size}
-                              {doc.fileFormat !== 'N/A' && ` • ${doc.fileFormat}`}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="font-medium">
-                        {doc.sourceType.toUpperCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        {doc.agents && doc.agents.length > 0 ? (
-                          <>
-                            <div className="flex -space-x-2">
-                              {doc.agents.slice(0, 3).map((agentName, index) => (
-                                <TooltipProvider key={`${doc.id}-agent-${index}`}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Avatar className="h-8 w-8 border-2 border-background">
-                                        <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs`}>
-                                          {getAgentInitials(agentName)}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>{agentName}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              ))}
-                            </div>
-                            {doc.agents.length > 3 && (
-                              <Badge variant="secondary" className="ml-1 text-xs font-semibold">
-                                +{doc.agents.length - 3} more
-                              </Badge>
-                            )}
-                          </>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">None</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {doc.uploadedAt}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
-                            <Trash className="h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {viewMode === 'main' ? renderMainView() : renderDetailView()}
     </div>
   );
 };
