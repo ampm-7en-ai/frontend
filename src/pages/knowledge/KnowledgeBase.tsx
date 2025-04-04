@@ -4,22 +4,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, FileIcon, File, ChevronDown, ChevronRight } from 'lucide-react';
+import { 
+  Book, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, 
+  FileIcon, File, ChevronDown, ChevronRight, SortAsc, SortDesc, Check, Filter, Download, Share2, Star, StarOff
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
+import { 
+  BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, 
+  formatFileSizeToMB, getSourceMetadataInfo 
+} from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
@@ -28,6 +40,10 @@ const KnowledgeBase = () => {
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [starredItems, setStarredItems] = useState(new Set());
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -78,6 +94,33 @@ const KnowledgeBase = () => {
       ...prev,
       [id]: !prev[id]
     }));
+  };
+
+  const toggleStar = (e, id) => {
+    e.stopPropagation();
+    setStarredItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? <SortAsc className="h-4 w-4 ml-1" /> : <SortDesc className="h-4 w-4 ml-1" />;
   };
 
   const formatDate = (dateString) => {
@@ -141,6 +184,48 @@ const KnowledgeBase = () => {
     const matchesType = sourceTypeFilter === 'all' || doc.sourceType === sourceTypeFilter;
     
     return matchesSearch && matchesType;
+  });
+
+  // Sort documents
+  const sortedDocuments = [...filteredDocuments].sort((a, b) => {
+    if (sortField === 'name') {
+      return sortDirection === 'asc' 
+        ? a.title.localeCompare(b.title)
+        : b.title.localeCompare(a.title);
+    }
+    if (sortField === 'type') {
+      return sortDirection === 'asc'
+        ? a.sourceType.localeCompare(b.sourceType)
+        : b.sourceType.localeCompare(a.sourceType);
+    }
+    if (sortField === 'date') {
+      const dateA = new Date(a.uploadedAt);
+      const dateB = new Date(b.uploadedAt);
+      return sortDirection === 'asc'
+        ? dateA - dateB
+        : dateB - dateA;
+    }
+    if (sortField === 'size') {
+      // Extract numeric size for comparison
+      const getSizeValue = (size) => {
+        if (!size || size === 'N/A') return 0;
+        const match = size.match(/[\d.]+/);
+        return match ? parseFloat(match[0]) : 0;
+      };
+      const sizeA = getSizeValue(a.size);
+      const sizeB = getSizeValue(b.size);
+      return sortDirection === 'asc'
+        ? sizeA - sizeB
+        : sizeB - sizeA;
+    }
+    return 0;
+  });
+
+  // Bring starred items to top
+  const finalDocuments = [...sortedDocuments].sort((a, b) => {
+    const aStarred = starredItems.has(a.id) ? 1 : 0;
+    const bStarred = starredItems.has(b.id) ? 1 : 0;
+    return bStarred - aStarred;
   });
 
   const documentCount = documents.filter(d => d.sourceType === 'docs').length;
@@ -218,44 +303,24 @@ const KnowledgeBase = () => {
     return agentName.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Filter menu options
+  const filterOptions = [
+    { label: "All Types", value: "all" },
+    { label: "Documents", value: "docs" },
+    { label: "Websites", value: "website" },
+    { label: "Spreadsheets", value: "csv" },
+    { label: "Plain Text", value: "plain_text" },
+    { label: "Third Party", value: "thirdparty" },
+  ];
+
+  // Breadcrumb navigation
+  const breadcrumbs = [
+    { name: "My Drive", path: "/knowledge" },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative w-full sm:w-96">
-          <Input 
-            placeholder="Search documents..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10" 
-          />
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="flex gap-2">
-          <Select 
-            value={sourceTypeFilter} 
-            onValueChange={setSourceTypeFilter}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sources</SelectItem>
-              <SelectItem value="docs">Documents</SelectItem>
-              <SelectItem value="website">Websites</SelectItem>
-              <SelectItem value="csv">Spreadsheets</SelectItem>
-              <SelectItem value="plain_text">Plain Text</SelectItem>
-              <SelectItem value="thirdparty">Third Party</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button asChild className="flex items-center gap-1">
-            <Link to="/knowledge/upload">
-              <Upload className="h-4 w-4" />
-              Add Source
-            </Link>
-          </Button>
-        </div>
-      </div>
-      
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -327,6 +392,113 @@ const KnowledgeBase = () => {
         </Card>
       </div>
       
+      {/* Breadcrumb and Search */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-2 text-sm">
+          {breadcrumbs.map((crumb, index) => (
+            <React.Fragment key={index}>
+              <Link 
+                to={crumb.path} 
+                className="text-blue-600 hover:underline font-medium"
+              >
+                {crumb.name}
+              </Link>
+              {index < breadcrumbs.length - 1 && (
+                <ChevronRight className="h-4 w-4 text-gray-400" />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-64">
+            <Input 
+              placeholder="Search documents..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10" 
+            />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-1">
+                <Filter className="h-4 w-4" />
+                <span>{filterOptions.find(opt => opt.value === sourceTypeFilter)?.label || "All Types"}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              {filterOptions.map((option) => (
+                <DropdownMenuItem 
+                  key={option.value} 
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => setSourceTypeFilter(option.value)}
+                >
+                  {sourceTypeFilter === option.value && <Check className="h-4 w-4" />}
+                  <span className={sourceTypeFilter === option.value ? "font-medium" : ""}>
+                    {option.label}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <div className="flex items-center gap-1 border rounded-md">
+            <Button
+              variant={viewMode === 'list' ? "secondary" : "ghost"}
+              size="icon"
+              className="h-9 w-9 rounded-r-none"
+              onClick={() => setViewMode('list')}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="h-4 w-4"
+              >
+                <line x1="3" x2="21" y1="6" y2="6"></line>
+                <line x1="3" x2="21" y1="12" y2="12"></line>
+                <line x1="3" x2="21" y1="18" y2="18"></line>
+              </svg>
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? "secondary" : "ghost"}
+              size="icon"
+              className="h-9 w-9 rounded-l-none"
+              onClick={() => setViewMode('grid')}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="h-4 w-4"
+              >
+                <rect width="7" height="7" x="3" y="3"></rect>
+                <rect width="7" height="7" x="14" y="3"></rect>
+                <rect width="7" height="7" x="14" y="14"></rect>
+                <rect width="7" height="7" x="3" y="14"></rect>
+              </svg>
+            </Button>
+          </div>
+          
+          <Button asChild className="flex items-center gap-1">
+            <Link to="/knowledge/upload">
+              <Upload className="h-4 w-4" />
+              Add Source
+            </Link>
+          </Button>
+        </div>
+      </div>
+      
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -334,7 +506,7 @@ const KnowledgeBase = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <span className="ml-2">Loading knowledge bases...</span>
             </div>
-          ) : filteredDocuments.length === 0 ? (
+          ) : finalDocuments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-1">No knowledge sources found</h3>
@@ -350,37 +522,82 @@ const KnowledgeBase = () => {
                 </Link>
               </Button>
             </div>
-          ) : (
+          ) : viewMode === 'list' ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Document Name</TableHead>
-                  <TableHead>Source Type</TableHead>
+                  <TableHead className="w-[40%]">
+                    <button 
+                      className="flex items-center font-medium"
+                      onClick={() => handleSort('name')}
+                    >
+                      Name {getSortIcon('name')}
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button 
+                      className="flex items-center font-medium"
+                      onClick={() => handleSort('type')}
+                    >
+                      Type {getSortIcon('type')}
+                    </button>
+                  </TableHead>
                   <TableHead>Agents</TableHead>
-                  <TableHead>Uploaded</TableHead>
+                  <TableHead>
+                    <button 
+                      className="flex items-center font-medium"
+                      onClick={() => handleSort('date')}
+                    >
+                      Last modified {getSortIcon('date')}
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button 
+                      className="flex items-center font-medium"
+                      onClick={() => handleSort('size')}
+                    >
+                      File size {getSortIcon('size')}
+                    </button>
+                  </TableHead>
                   <TableHead className="w-16 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDocuments.map((doc) => (
+                {finalDocuments.map((doc) => (
                   <React.Fragment key={doc.id}>
-                    <TableRow>
+                    <TableRow 
+                      className="cursor-pointer hover:bg-muted/80"
+                      onClick={() => doc.knowledge_sources && doc.knowledge_sources.length > 1 ? toggleRow(doc.id) : null}
+                    >
                       <TableCell>
                         <div className="flex items-center">
-                          {doc.knowledge_sources && doc.knowledge_sources.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="p-0 h-6 w-6 mr-1"
-                              onClick={() => toggleRow(doc.id)}
+                          <div className="flex items-center mr-2">
+                            <button 
+                              className="p-1 hover:bg-muted rounded-full"
+                              onClick={(e) => toggleStar(e, doc.id)}
                             >
-                              {expandedRows[doc.id] ? (
-                                <ChevronDown className="h-4 w-4" />
+                              {starredItems.has(doc.id) ? (
+                                <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
                               ) : (
-                                <ChevronRight className="h-4 w-4" />
+                                <StarOff className="h-4 w-4 text-gray-400" />
                               )}
-                            </Button>
-                          )}
+                            </button>
+                            {doc.knowledge_sources && doc.knowledge_sources.length > 1 && (
+                              <button
+                                className="p-0 h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRow(doc.id);
+                                }}
+                              >
+                                {expandedRows[doc.id] ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
                           <div className={`p-2 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
                             {renderSourceIcon(doc)}
                           </div>
@@ -441,14 +658,24 @@ const KnowledgeBase = () => {
                       <TableCell>
                         {doc.uploadedAt}
                       </TableCell>
+                      <TableCell>
+                        {doc.size}
+                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                              <Share2 className="h-4 w-4" /> Share
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                              <Download className="h-4 w-4" /> Download
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem className="flex items-center gap-2 text-destructive cursor-pointer">
                               <Trash className="h-4 w-4" /> Delete
                             </DropdownMenuItem>
@@ -458,7 +685,7 @@ const KnowledgeBase = () => {
                     </TableRow>
                     {doc.knowledge_sources && doc.knowledge_sources.length > 1 && expandedRows[doc.id] && (
                       <TableRow>
-                        <TableCell colSpan={5}>
+                        <TableCell colSpan={6}>
                           <Collapsible open={true}>
                             <CollapsibleContent>
                               <div className="pl-12 pr-4 py-2 bg-muted/20">
@@ -479,6 +706,14 @@ const KnowledgeBase = () => {
                                           </div>
                                         </div>
                                       </div>
+                                      <div className="flex items-center gap-1">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                          <Download className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                          <Trash className="h-4 w-4" />
+                                        </Button>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -492,6 +727,76 @@ const KnowledgeBase = () => {
                 ))}
               </TableBody>
             </Table>
+          ) : (
+            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {finalDocuments.map((doc) => (
+                <div 
+                  key={doc.id} 
+                  className="border rounded-md p-3 hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => doc.knowledge_sources && doc.knowledge_sources.length > 1 ? toggleRow(doc.id) : null}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className={`p-3 rounded ${getIconBackground(doc)} mr-2 flex-shrink-0`}>
+                      {renderSourceIcon(doc)}
+                    </div>
+                    <button 
+                      className="p-1 hover:bg-muted rounded-full"
+                      onClick={(e) => toggleStar(e, doc.id)}
+                    >
+                      {starredItems.has(doc.id) ? (
+                        <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+                      ) : (
+                        <StarOff className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="mt-2">
+                    <h3 className="font-medium text-sm truncate" title={doc.title}>{doc.title}</h3>
+                    <div className="flex items-center justify-between mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {doc.sourceType.toUpperCase()}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">{doc.size}</span>
+                    </div>
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      {doc.uploadedAt}
+                    </div>
+                    {doc.knowledge_sources && doc.knowledge_sources.length > 1 && (
+                      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <ChevronRight className="h-3 w-3" />
+                        <span>{doc.knowledge_sources.length} files</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {expandedRows[doc.id] && doc.knowledge_sources && doc.knowledge_sources.length > 1 && (
+                    <Accordion type="single" collapsible className="mt-2">
+                      <AccordionItem value="files" className="border-t border-dashed">
+                        <AccordionTrigger className="py-2 text-xs">View Files</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-2">
+                            {doc.knowledge_sources.map((source, index) => (
+                              <div key={index} className="flex items-start justify-between py-1">
+                                <div className="flex items-center">
+                                  <div className={`p-1 rounded ${getIconBackground(doc)} mr-1.5 flex-shrink-0`}>
+                                    {renderSourceIcon(doc)}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-medium truncate max-w-[120px]" title={source.title}>
+                                      {source.title}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
