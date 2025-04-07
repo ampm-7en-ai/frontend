@@ -412,6 +412,24 @@ const KnowledgeTrainingStatus = ({
     );
   };
 
+  const toggleUrlSectionExpansion = (sourceId: number, sectionKey: string) => {
+    setKnowledgeSources(prev => 
+      prev.map(source => {
+        if (source.id === sourceId) {
+          const currentExpandedSections = source.expandedUrlSections || {};
+          return { 
+            ...source, 
+            expandedUrlSections: {
+              ...currentExpandedSections,
+              [sectionKey]: !currentExpandedSections[sectionKey]
+            }
+          };
+        }
+        return source;
+      })
+    );
+  };
+
   const trainSource = (sourceId: number) => {
     const sourceIndex = knowledgeSources.findIndex(s => s.id === sourceId);
     if (sourceIndex === -1) return;
@@ -516,11 +534,64 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
+  const renderUrlChildren = (source: KnowledgeSource, urlNode: UrlNode, level: number = 0, parentKey: string = '') => {
+    if (!urlNode || !urlNode.children || urlNode.children.length === 0) return null;
+    
+    const sectionKey = parentKey ? `${parentKey}-${urlNode.url}` : urlNode.url;
+    const isExpanded = source.expandedUrlSections?.[sectionKey] !== false; // Default to expanded
+    
+    return (
+      <div className="ml-4 mt-1">
+        <div 
+          className="flex items-center cursor-pointer text-sm font-medium py-1"
+          onClick={() => toggleUrlSectionExpansion(source.id, sectionKey)}
+        >
+          {isExpanded ? 
+            <ChevronDown className="h-3.5 w-3.5 mr-1 text-gray-500" /> : 
+            <ChevronRight className="h-3.5 w-3.5 mr-1 text-gray-500" />
+          }
+          <span>{urlNode.title || urlNode.url}</span>
+          <Badge variant="outline" className="ml-2 text-xs">{urlNode.children.length} urls</Badge>
+        </div>
+        
+        {isExpanded && (
+          <div className="space-y-1 ml-2 mt-1">
+            {urlNode.children.map((child, idx) => (
+              <div key={`child-url-${idx}`} className="border border-dashed border-gray-200 rounded-md p-2">
+                <div className="flex items-center">
+                  <Globe className="h-3.5 w-3.5 mr-2 text-blue-400" />
+                  <span className="text-xs truncate max-w-[250px]" title={child.url}>
+                    {child.title || child.url}
+                  </span>
+                  {child.selected !== undefined && (
+                    <Badge 
+                      variant="outline" 
+                      className={`ml-2 text-xs ${child.selected ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-700'}`}
+                    >
+                      {child.selected ? 'Selected' : 'Not Selected'}
+                    </Badge>
+                  )}
+                  {child.chars && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {child.chars} chars
+                    </span>
+                  )}
+                </div>
+                {child.children && child.children.length > 0 && renderUrlChildren(source, child, level + 1, sectionKey)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderNestedSources = (source: KnowledgeSource) => {
     const hasNestedSources = source.knowledge_sources && source.knowledge_sources.length > 0;
     const hasInsideLinks = source.insideLinks && source.insideLinks.length > 0;
-
-    if (!hasNestedSources && !hasInsideLinks) return null;
+    const hasSubUrls = source.metadata?.sub_urls?.children && source.metadata.sub_urls.children.length > 0;
+    
+    if (!hasNestedSources && !hasInsideLinks && !hasSubUrls) return null;
 
     return (
       <div className={`pl-4 mt-2 space-y-2 ${source.isExpanded ? 'block' : 'hidden'}`}>
@@ -572,6 +643,17 @@ const KnowledgeTrainingStatus = ({
                   </div>
                 </div>
               ))}
+            </div>
+          </>
+        )}
+
+        {hasSubUrls && (
+          <>
+            <div className="text-sm font-medium mt-2 mb-1">Website Structure:</div>
+            <div className="space-y-1 border border-dashed border-gray-200 rounded-md p-2">
+              {source.metadata?.sub_urls?.children?.map((urlNode, idx) => 
+                renderUrlChildren(source, urlNode, 0, `root-${idx}`)
+              )}
             </div>
           </>
         )}

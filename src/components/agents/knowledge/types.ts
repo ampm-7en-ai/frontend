@@ -49,6 +49,7 @@ export interface KnowledgeSource {
   agents?: AgentReference[];
   nestedItems?: Record<string, boolean>;
   isExpanded?: boolean;
+  expandedUrlSections?: Record<string, boolean>;
 }
 
 export interface AgentReference {
