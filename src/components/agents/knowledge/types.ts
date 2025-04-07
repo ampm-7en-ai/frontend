@@ -1,3 +1,4 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -36,6 +37,9 @@ export interface KnowledgeSource {
     last_updated?: string;
     last_fetched?: string;
     knowledge_source_ids?: number[];
+    sub_urls?: {
+      children?: UrlNode[];
+    };
   };
   icon?: string;
   knowledge_sources?: KnowledgeSourceItem[];
@@ -61,6 +65,7 @@ export interface KnowledgeSourceItem {
   type?: string; // Add type field for consistent reference
   status?: string;
   selected?: boolean;
+  is_selected?: boolean; // Add is_selected to match API response
   knowledge_base?: number;
   parent_knowledge_source?: number | null;
   metadata?: {

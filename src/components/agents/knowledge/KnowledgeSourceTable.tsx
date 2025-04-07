@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -40,24 +39,20 @@ const KnowledgeSourceTable = ({
   const [expandedNestedItems, setExpandedNestedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    // Initialize selected URL counts
     const initialSelectedCounts: Record<number, number> = {};
     
     sources.forEach(source => {
       if (source.type === 'website' || source.type === 'url') {
         let count = 0;
         
-        // Count selected URLs from insideLinks
         if (source.insideLinks) {
           count += source.insideLinks.filter(link => link.selected).length;
         }
         
-        // Count selected URLs from selectedSubUrls
         if (source.selectedSubUrls) {
           count += source.selectedSubUrls.size;
         }
         
-        // Count selected URLs from metadata.sub_urls.children
         if (source.metadata?.sub_urls?.children) {
           const countSelectedInChildren = (nodes: UrlNode[] | undefined): number => {
             if (!nodes) return 0;
@@ -391,7 +386,6 @@ const KnowledgeSourceTable = ({
     );
   };
 
-  // Function to render selected URLs from API response
   const getApiSelectedSubUrls = (source: KnowledgeSource) => {
     if (!source.metadata?.sub_urls?.children) {
       return null;
@@ -452,13 +446,12 @@ const KnowledgeSourceTable = ({
     );
   };
 
-  // Function to render selected files from API response
   const getApiSelectedFiles = (source: KnowledgeSource) => {
     if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
       return null;
     }
     
-    const selectedSources = source.knowledge_sources.filter(ks => ks.is_selected || ks.selected);
+    const selectedSources = source.knowledge_sources.filter(ks => ks.selected || ks.is_selected);
     
     if (selectedSources.length === 0) {
       return null;
@@ -503,7 +496,6 @@ const KnowledgeSourceTable = ({
       <div className="ml-7 mt-1 space-y-1">
         <div className="text-xs text-muted-foreground font-medium">Selected URLs:</div>
         {allSelectedUrls.map((item, index) => {
-          // Check if it's a string or an object with url/title properties
           const displayTitle = typeof item === 'string' ? item : item.title || item.url;
           const displayUrl = typeof item === 'string' ? item : item.url;
           
@@ -533,9 +525,7 @@ const KnowledgeSourceTable = ({
 
   const renderFileContent = (source: KnowledgeSource) => {
     if (source.type === 'docs' || source.type === 'csv') {
-      // For nested knowledge sources (imported files)
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
-        // Filter knowledge sources to only show selected ones if any are marked as selected
         const selectedFiles = source.knowledge_sources.filter(file => file.selected || file.is_selected);
         const filesToShow = selectedFiles.length > 0 ? selectedFiles : source.knowledge_sources;
         
@@ -575,7 +565,6 @@ const KnowledgeSourceTable = ({
         );
       }
       
-      // For individually selected documents
       const selectedDocs = source.documents?.filter(doc => doc.selected) || [];
       
       if (selectedDocs.length === 0) {
@@ -749,10 +738,8 @@ const KnowledgeSourceTable = ({
                       <Collapsible open={true}>
                         <CollapsibleContent>
                           <div className="p-2 bg-muted/30 border-t border-dashed">
-                            {/* Render selected URLs from API response for website sources */}
                             {(source.type === 'website' || source.type === 'url') && getApiSelectedSubUrls(source)}
                             
-                            {/* Render previously selected URLs from insideLinks and selectedSubUrls */}
                             {(source.type === 'website' || source.type === 'url') && source.selectedSubUrls && source.selectedSubUrls.size > 0 && (
                               <div className="px-4 py-3">
                                 <div className="text-sm font-medium mb-2">Previously Selected URLs</div>
@@ -791,13 +778,10 @@ const KnowledgeSourceTable = ({
                             {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
                             
-                            {/* Show API selected files for docs and csv types */}
                             {(source.type === 'docs' || source.type === 'csv') && getApiSelectedFiles(source)}
                             
-                            {/* Show imported knowledge sources for docs and csv types */}
                             {(source.type === 'docs' || source.type === 'csv') && renderFileContent(source)}
                             
-                            {/* If there are documents from the API, show them */}
                             {source.documents?.length > 0 && getDocumentsContent(source)}
                           </div>
                         </CollapsibleContent>
