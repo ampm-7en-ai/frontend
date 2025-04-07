@@ -201,7 +201,11 @@ const KnowledgeTrainingStatus = ({
         crawlOptions: source.crawl_options || 'single',
         insideLinks: insideLinks.length > 0 ? insideLinks : source.insideLinks || [],
         metadata: source.metadata || {},
-        knowledge_sources: source.knowledge_sources || []
+        knowledge_sources: source.knowledge_sources || [],
+        title: source.title || source.name || 'Unnamed source',
+        is_selected: source.is_selected || source.selected || false,
+        selected: source.selected || source.is_selected || false,
+        url: source.url || null
       };
       
       sourcesMap.set(source.id, knowledgeSource);
@@ -223,7 +227,7 @@ const KnowledgeTrainingStatus = ({
           
           const childSource = sourcesMap.get(source.id);
           if (childSource) {
-            parentSource.knowledge_sources.push(childSource);
+            (parentSource.knowledge_sources as KnowledgeSource[]).push(childSource);
           }
         }
       }

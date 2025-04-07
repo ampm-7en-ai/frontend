@@ -436,14 +436,14 @@ const KnowledgeSourceTable = ({
       console.log(`Rendering ${children.length} children at level ${level}`);
       
       return children.map((child, index) => {
-        const isSelected = child.is_selected;
+        const isSelected = child.selected || child.is_selected;
         const hasChildren = child.children && child.children.length > 0;
         const childKey = child.key || `child-${index}`;
         const isExpanded = isNestedItemExpanded(source.id, childKey);
         
         console.log(`Child: ${child.url}, isSelected: ${isSelected}, hasChildren: ${hasChildren}`);
         
-        const hasSelectedChildren = hasChildren && child.children?.some(c => c.is_selected);
+        const hasSelectedChildren = hasChildren && child.children?.some(c => c.selected || c.is_selected);
         if (!isSelected && !hasSelectedChildren) {
           console.log(`Skipping ${child.url} - not selected and no selected children`);
           return null;
@@ -474,8 +474,8 @@ const KnowledgeSourceTable = ({
     };
     
     const anySelectedUrls = source.metadata.sub_urls.children.some(child => {
-      const isDirectlySelected = child.is_selected;
-      const hasSelectedChildren = child.children && child.children.some(c => c.is_selected);
+      const isDirectlySelected = child.selected || child.is_selected;
+      const hasSelectedChildren = child.children && child.children.some(c => c.selected || c.is_selected);
       
       console.log(`Checking ${child.url}: directly selected: ${isDirectlySelected}, has selected children: ${hasSelectedChildren}`);
       
@@ -535,12 +535,12 @@ const KnowledgeSourceTable = ({
             <div key={`file-${file.id || index}`} className="flex items-center text-xs p-1 rounded hover:bg-muted">
               <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
               <File className="h-3 w-3 mr-2 text-blue-500" />
-              <span className="truncate flex-1" title={file.title || file.name}>
-                {file.title || file.name || `File ${index + 1}`}
+              <span className="truncate flex-1" title={file.name || (file as KnowledgeSourceItem).title || `File ${index + 1}`}>
+                {file.name || (file as KnowledgeSourceItem).title || `File ${index + 1}`}
               </span>
               {file.metadata?.file_size && (
                 <span className="text-muted-foreground">
-                  {formatFileSizeToMB(file.metadata.file_size || file.metadata.size)}
+                  {formatFileSizeToMB(file.metadata.file_size || file.metadata.size || 0)}
                 </span>
               )}
             </div>
