@@ -4,17 +4,19 @@ import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AlertBannerProps {
-  message: string;
+  message?: string;
   variant?: 'info' | 'success' | 'warning' | 'error';
   className?: string;
   icon?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function AlertBanner({
   message,
   variant = 'info',
   className,
-  icon = <Info className="h-4 w-4" />
+  icon = <Info className="h-4 w-4" />,
+  children
 }: AlertBannerProps) {
   const variantStyles = {
     info: 'bg-blue-50 border-blue-100 text-blue-700',
@@ -40,7 +42,7 @@ export function AlertBanner({
       )}>
         {icon}
       </span>
-      <span>{message}</span>
+      <span>{message || children}</span>
     </div>
   );
 }
