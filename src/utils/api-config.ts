@@ -299,7 +299,11 @@ const fileToDataURL = (file: File): Promise<string> => {
 };
 
 // Function to update an agent
-export const updateAgent = async (agentId: string, agentData: any): Promise<any> => {
+export const updateAgent = async (
+  agentId: string, 
+  agentData: any, 
+  uploadParams?: { customAvatarFile: File | null, avatarType: string, avatarSrc: string }
+): Promise<any> => {
   const token = getAccessToken();
   if (!token) {
     throw new Error("Authentication required");
@@ -350,10 +354,10 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   }
   
   // Handle custom avatar with file upload by converting to data URL
-  if (agentData.avatar && agentData.avatar.file && agentData.avatar.type === 'custom') {
+  if (uploadParams && uploadParams.customAvatarFile && uploadParams.avatarType === 'custom') {
     try {
       // Convert the file to a complete data URL with the prefix
-      const dataURL = await fileToDataURL(agentData.avatar.file);
+      const dataURL = await fileToDataURL(uploadParams.customAvatarFile);
       
       // Update the avatar src in the payload with the complete data URL
       payload.appearance.avatar = {
@@ -366,11 +370,10 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
       console.error('Error converting file to data URL:', error);
       throw new Error('Failed to process avatar file');
     }
-  } else if (agentData.appearance?.avatar?.src && agentData.appearance?.avatar?.src.startsWith('blob:')) {
-    // If the avatar src is a blob URL but without a file object, we need to convert it to a base64 data URL
+  } else if (uploadParams && uploadParams.avatarSrc && uploadParams.avatarSrc.startsWith('blob:')) {
     try {
       // Fetch the blob URL and convert it to a base64 data URL
-      const response = await fetch(agentData.appearance.avatar.src);
+      const response = await fetch(uploadParams.avatarSrc);
       const blob = await response.blob();
       const dataURL = await fileToDataURL(new File([blob], 'avatar', { type: blob.type }));
       

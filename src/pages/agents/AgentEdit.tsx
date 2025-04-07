@@ -245,15 +245,13 @@ const AgentEdit = () => {
         knowledge_bases: agentKnowledgeSources
       };
 
-      if (customAvatarFile && agent.avatar.type === 'custom') {
-        payload.appearance.avatar = {
-          ...agent.avatar,
-          file: customAvatarFile
-        };
-        console.log('Custom avatar file will be uploaded:', customAvatarFile);
-      }
+      const uploadParams = {
+        customAvatarFile: customAvatarFile,
+        avatarType: agent.avatar.type,
+        avatarSrc: agent.avatar.src
+      };
 
-      await updateAgent(agentId || '', payload);
+      await updateAgent(agentId || '', payload, uploadParams);
       
       toast({
         title: "Changes saved",
