@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -596,40 +599,51 @@ export const ImportSourcesDialog = ({
     if (!selectedKnowledgeBase || !hasUrlStructure(selectedKnowledgeBase)) return null;
     
     return (
-      <div className="flex items-center space-x-2 mb-2 px-2">
-        <div className="relative flex-1">
+      <div className="flex flex-col space-y-2 mb-2 px-2 w-full">
+        <div className="relative w-full">
           <Input
-            placeholder="Filter URLs..."
+            placeholder="Search by title or URL..."
             value={urlFilter}
             onChange={(e) => setUrlFilter(e.target.value)}
-            className="pl-8"
+            className="pl-7 py-1 h-8 text-xs"
+            size={1}
           />
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
         </div>
         
-        <Select
-          value={urlSortOrder}
-          onValueChange={(value) => setUrlSortOrder(value as 'asc' | 'desc')}
-        >
-          <SelectTrigger className="w-[110px]">
-            <SelectValue placeholder="Sort" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="asc">A-Z</SelectItem>
-            <SelectItem value="desc">Z-A</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        {excludedUrls.size > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setExcludedUrls(new Set())}
-            className="text-xs"
-          >
-            Clear {excludedUrls.size} excluded
-          </Button>
-        )}
+        <div className="flex items-center justify-between w-full gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs h-7 px-2 w-[100px] flex justify-between items-center"
+              >
+                <span>{urlSortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
+                <ArrowUpDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[100px]">
+              <DropdownMenuItem onClick={() => setUrlSortOrder('asc')} className="text-xs">
+                A-Z
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setUrlSortOrder('desc')} className="text-xs">
+                Z-A
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {excludedUrls.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExcludedUrls(new Set())}
+              className="text-xs h-7"
+            >
+              Clear {excludedUrls.size} excluded
+            </Button>
+          )}
+        </div>
       </div>
     );
   };
