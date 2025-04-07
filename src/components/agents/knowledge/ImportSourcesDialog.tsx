@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2 } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint } from '@/utils/api-config';
@@ -10,6 +10,10 @@ import { cn } from '@/lib/utils';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { renderSourceIcon } from './knowledgeUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -35,7 +39,10 @@ export const ImportSourcesDialog = ({
   const [selectedFiles, setSelectedFiles] = useState<Record<number, Set<string>>>({});
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState<KnowledgeSource | null>(null);
   const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
-  
+  const [urlFilter, setUrlFilter] = useState<string>('');
+  const [urlSortOrder, setUrlSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [excludedUrls, setExcludedUrls] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (isOpen) {
       setSelectedSources(new Set());
@@ -45,6 +52,9 @@ export const ImportSourcesDialog = ({
       setSelectedKnowledgeBase(null);
       setSelectedType('all');
       setExpandedSources(new Set());
+      setUrlFilter('');
+      setUrlSortOrder('asc');
+      setExcludedUrls(new Set());
     }
   }, [isOpen, externalSources]);
 
@@ -328,6 +338,61 @@ export const ImportSourcesDialog = ({
     });
   };
 
+  const filterAndSortNodes = (node: UrlNode, parentPath: string = ''): UrlNode | null => {
+    if (!node) return null;
+    
+    const currentPath = parentPath ? `${parentPath}/${node.url}` : node.url;
+    
+    if (excludedUrls.has(node.url)) return null;
+    
+    const matchesFilter = 
+      !urlFilter || 
+      node.title?.toLowerCase().includes(urlFilter.toLowerCase()) || 
+      node.url.toLowerCase().includes(urlFilter.toLowerCase());
+    
+    if (node.children && node.children.length > 0) {
+      let filteredChildren = node.children
+        .map(child => filterAndSortNodes(child, currentPath))
+        .filter(Boolean) as UrlNode[];
+      
+      if (filteredChildren.length > 0) {
+        filteredChildren = filteredChildren.sort((a, b) => {
+          const titleA = (a.title || a.url).toLowerCase();
+          const titleB = (b.title || b.url).toLowerCase();
+          
+          if (urlSortOrder === 'asc') {
+            return titleA.localeCompare(titleB);
+          } else {
+            return titleB.localeCompare(titleA);
+          }
+        });
+      }
+      
+      if (!matchesFilter && filteredChildren.length === 0) {
+        return null;
+      }
+      
+      return {
+        ...node,
+        children: filteredChildren
+      };
+    }
+    
+    return matchesFilter ? node : null;
+  };
+
+  const toggleExcludeUrl = (url: string) => {
+    setExcludedUrls(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(url)) {
+        newSet.delete(url);
+      } else {
+        newSet.add(url);
+      }
+      return newSet;
+    });
+  };
+
   const handleImport = () => {
     const sourceIdsToImport = Array.from(selectedSources);
     onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
@@ -364,7 +429,17 @@ export const ImportSourcesDialog = ({
       const rootNode = findRootUrlNode(source);
       if (!rootNode) return null;
       
-      return renderWebsiteUrls(source, rootNode, level, '');
+      const filteredRootNode = filterAndSortNodes(rootNode);
+      if (!filteredRootNode) {
+        return (
+          <div className="flex flex-col items-center justify-center text-center py-6">
+            <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
+            <p className="text-muted-foreground">No URLs match your filter</p>
+          </div>
+        );
+      }
+      
+      return renderWebsiteUrls(source, filteredRootNode, level, '');
     }
     
     const currentPath = parentPath ? `${parentPath}/${urlNode.url}` : urlNode.url;
@@ -404,7 +479,7 @@ export const ImportSourcesDialog = ({
               </span>
             </div>
           ) : (
-            <div className="flex flex-col">
+            <div className="flex flex-col flex-1">
               <span className="flex items-center text-sm overflow-hidden text-ellipsis">
                 <Globe className="h-4 w-4 mr-2 text-green-600" />
                 {urlNode.title || urlNode.url}
@@ -418,6 +493,26 @@ export const ImportSourcesDialog = ({
                 </span>
               )}
             </div>
+          )}
+          
+          {!isRoot && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 ml-2" 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExcludeUrl(urlNode.url);
+              }}
+            >
+              {excludedUrls.has(urlNode.url) ? (
+                <Badge variant="outline" className="px-1 bg-red-50 text-red-500 text-xs">
+                  Excluded
+                </Badge>
+              ) : (
+                <Filter className="h-3 w-3 text-muted-foreground" />
+              )}
+            </Button>
           )}
         </div>
         
@@ -493,6 +588,48 @@ export const ImportSourcesDialog = ({
             </div>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const renderWebsiteFilterControls = () => {
+    if (!selectedKnowledgeBase || !hasUrlStructure(selectedKnowledgeBase)) return null;
+    
+    return (
+      <div className="flex items-center space-x-2 mb-2 px-2">
+        <div className="relative flex-1">
+          <Input
+            placeholder="Filter URLs..."
+            value={urlFilter}
+            onChange={(e) => setUrlFilter(e.target.value)}
+            className="pl-8"
+          />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        </div>
+        
+        <Select
+          value={urlSortOrder}
+          onValueChange={(value) => setUrlSortOrder(value as 'asc' | 'desc')}
+        >
+          <SelectTrigger className="w-[110px]">
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="asc">A-Z</SelectItem>
+            <SelectItem value="desc">Z-A</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        {excludedUrls.size > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setExcludedUrls(new Set())}
+            className="text-xs"
+          >
+            Clear {excludedUrls.size} excluded
+          </Button>
+        )}
       </div>
     );
   };
@@ -650,6 +787,9 @@ export const ImportSourcesDialog = ({
                         <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
                           URLs for {selectedKnowledgeBase.name}
                         </div>
+                        
+                        {renderWebsiteFilterControls()}
+                        
                         {renderWebsiteUrls(selectedKnowledgeBase)}
                       </div>
                     ) : hasNestedFiles(selectedKnowledgeBase) ? (
