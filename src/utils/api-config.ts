@@ -284,7 +284,7 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
   return response.json();
 };
 
-// Function to convert a File to a complete data URL (including prefix)
+// Function to convert a File to a base64 data URL (including prefix)
 const fileToDataURL = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -365,6 +365,23 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
     } catch (error) {
       console.error('Error converting file to data URL:', error);
       throw new Error('Failed to process avatar file');
+    }
+  } else if (agentData.appearance?.avatar?.src && agentData.appearance?.avatar?.src.startsWith('blob:')) {
+    // If the avatar src is a blob URL but without a file object, we need to convert it to a base64 data URL
+    try {
+      // Fetch the blob URL and convert it to a base64 data URL
+      const response = await fetch(agentData.appearance.avatar.src);
+      const blob = await response.blob();
+      const dataURL = await fileToDataURL(new File([blob], 'avatar', { type: blob.type }));
+      
+      // Update the avatar src in the payload with the complete data URL
+      payload.appearance.avatar.src = dataURL;
+      
+      console.log('Converted blob URL to base64 data URL for JSON payload');
+    } catch (error) {
+      console.error('Error converting blob URL to data URL:', error);
+      // Keep the original src if conversion fails
+      console.log('Keeping original src due to conversion error');
     }
   }
   

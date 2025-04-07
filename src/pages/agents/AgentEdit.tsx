@@ -246,7 +246,11 @@ const AgentEdit = () => {
       };
 
       if (customAvatarFile && agent.avatar.type === 'custom') {
-        console.log('Custom avatar file will be uploaded separately:', customAvatarFile);
+        payload.avatar = {
+          ...agent.avatar,
+          file: customAvatarFile
+        };
+        console.log('Custom avatar file will be uploaded:', customAvatarFile);
       }
 
       await updateAgent(agentId || '', payload);
