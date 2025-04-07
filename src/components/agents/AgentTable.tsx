@@ -94,11 +94,14 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
 
     // Count from metadata.sub_urls.children if they exist and are selected
     if (source.metadata?.sub_urls?.children) {
+      console.log(`Counting selected sub URLs for ${source.name} from metadata.sub_urls.children`);
+      
       const countSelectedChildren = (nodes: UrlNode[] | undefined) => {
         if (!nodes) return 0;
         
         let selectedCount = 0;
         for (const node of nodes) {
+          console.log(`Node ${node.url}, is_selected: ${node.is_selected}`);
           if (node.is_selected) {
             selectedCount++;
           }
@@ -109,7 +112,9 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
         return selectedCount;
       };
       
-      count += countSelectedChildren(source.metadata.sub_urls.children);
+      const selectedChildrenCount = countSelectedChildren(source.metadata.sub_urls.children);
+      console.log(`Selected children count: ${selectedChildrenCount}`);
+      count += selectedChildrenCount;
     }
     
     return count;
@@ -148,7 +153,14 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap">
-                  {agent.knowledgeSources.map(source => (
+                  {agent.knowledgeSources.map(source => {
+                    console.log(`Rendering KnowledgeSourceBadge for ${source.name}:`, { 
+                      type: source.type,
+                      selectedUrls: getSelectedSubUrlsCount(source),
+                      selectedDocs: getSelectedDocumentCount(source)
+                    });
+                    
+                    return (
                     <div key={source.id} className="mr-1 mb-1">
                       <KnowledgeSourceBadge source={source} />
                       
@@ -233,7 +245,7 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                         </TooltipProvider>
                       )}
                     </div>
-                  ))}
+                  )})}
                   {agent.knowledgeSources.some(source => source.hasError) && (
                     <div className="w-full mt-1 text-xs text-red-600 flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3" />

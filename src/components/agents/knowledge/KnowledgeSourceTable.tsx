@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -53,11 +54,16 @@ const KnowledgeSourceTable = ({
           count += source.selectedSubUrls.size;
         }
         
+        // Count selected items in the metadata.sub_urls.children if they exist
         if (source.metadata?.sub_urls?.children) {
+          console.log(`Source ${source.id} - checking sub_urls children:`, source.metadata.sub_urls.children);
+          
           const countSelectedInChildren = (nodes: UrlNode[] | undefined): number => {
             if (!nodes) return 0;
+            
             let selectedCount = 0;
             for (const node of nodes) {
+              console.log(`Checking node: ${node.url}, is_selected: ${node.is_selected}`);
               if (node.is_selected) {
                 selectedCount++;
               }
@@ -68,10 +74,13 @@ const KnowledgeSourceTable = ({
             return selectedCount;
           };
           
-          count += countSelectedInChildren(source.metadata.sub_urls.children);
+          const selectedInChildren = countSelectedInChildren(source.metadata.sub_urls.children);
+          console.log(`Source ${source.id} - selected children count: ${selectedInChildren}`);
+          count += selectedInChildren;
         }
         
         initialSelectedCounts[source.id] = count;
+        console.log(`Source ${source.id} - total selected count: ${count}`);
       }
     });
     
@@ -387,12 +396,20 @@ const KnowledgeSourceTable = ({
   };
 
   const getApiSelectedSubUrls = (source: KnowledgeSource) => {
+    console.log(`getApiSelectedSubUrls for source ${source.id} (${source.name}):`, source.metadata?.sub_urls);
+    
     if (!source.metadata?.sub_urls?.children) {
+      console.log(`No sub_urls.children found for source ${source.id}`);
       return null;
     }
     
     const renderChildren = (children: UrlNode[] | undefined, level = 0) => {
-      if (!children || children.length === 0) return null;
+      if (!children || children.length === 0) {
+        console.log(`No children or empty children array at level ${level}`);
+        return null;
+      }
+      
+      console.log(`Rendering ${children.length} children at level ${level}`);
       
       return children.map((child, index) => {
         const isSelected = child.is_selected;
@@ -400,7 +417,12 @@ const KnowledgeSourceTable = ({
         const childKey = child.key || `child-${index}`;
         const isExpanded = isNestedItemExpanded(source.id, childKey);
         
-        if (!isSelected && (!hasChildren || !child.children?.some(c => c.is_selected))) {
+        console.log(`Child: ${child.url}, isSelected: ${isSelected}, hasChildren: ${hasChildren}`);
+        
+        // Only render if this node is selected or if it has children with selected nodes
+        const hasSelectedChildren = hasChildren && child.children?.some(c => c.is_selected);
+        if (!isSelected && !hasSelectedChildren) {
+          console.log(`Skipping ${child.url} - not selected and no selected children`);
           return null;
         }
         
@@ -425,37 +447,64 @@ const KnowledgeSourceTable = ({
             {hasChildren && isExpanded && renderChildren(child.children, level + 1)}
           </React.Fragment>
         );
-      });
+      }).filter(Boolean); // Filter out null items
     };
     
-    const anySelectedUrls = source.metadata.sub_urls.children.some(child => 
-      child.is_selected || (child.children && child.children.some(c => c.is_selected))
-    );
+    // Check if there are any selected URLs in the tree
+    const anySelectedUrls = source.metadata.sub_urls.children.some(child => {
+      const isDirectlySelected = child.is_selected;
+      const hasSelectedChildren = child.children && child.children.some(c => c.is_selected);
+      
+      console.log(`Checking ${child.url}: directly selected: ${isDirectlySelected}, has selected children: ${hasSelectedChildren}`);
+      
+      return isDirectlySelected || hasSelectedChildren;
+    });
     
     if (!anySelectedUrls) {
+      console.log(`No selected URLs found in sub_urls.children for source ${source.id}`);
       return null;
     }
+    
+    const renderedItems = renderChildren(source.metadata.sub_urls.children);
+    
+    // If after filtering, we don't have any items, return null
+    if (!renderedItems || renderedItems.every(item => item === null)) {
+      console.log(`No items to render after filtering for source ${source.id}`);
+      return null;
+    }
+    
+    console.log(`Rendering API selected URLs for source ${source.id}`);
     
     return (
       <div className="px-2 py-2">
         <div className="text-sm font-medium mb-2">Selected URLs from API</div>
         <div className="space-y-1 max-h-60 overflow-y-auto">
-          {renderChildren(source.metadata.sub_urls.children)}
+          {renderedItems}
         </div>
       </div>
     );
   };
 
   const getApiSelectedFiles = (source: KnowledgeSource) => {
+    console.log(`getApiSelectedFiles for source ${source.id} (${source.name}):`, source.knowledge_sources);
+    
     if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
+      console.log(`No knowledge_sources found for source ${source.id}`);
       return null;
     }
     
-    const selectedSources = source.knowledge_sources.filter(ks => ks.selected || ks.is_selected);
+    const selectedSources = source.knowledge_sources.filter(ks => {
+      const isSelected = ks.selected || ks.is_selected;
+      console.log(`Knowledge source ${ks.id}: selected=${ks.selected}, is_selected=${ks.is_selected}, final=${isSelected}`);
+      return isSelected;
+    });
     
     if (selectedSources.length === 0) {
+      console.log(`No selected knowledge sources found for source ${source.id}`);
       return null;
     }
+    
+    console.log(`Rendering ${selectedSources.length} selected files for source ${source.id}`);
     
     return (
       <div className="px-2 py-2">
@@ -619,7 +668,17 @@ const KnowledgeSourceTable = ({
               </TableCell>
             </TableRow>
           ) : (
-            sources.map((source) => (
+            sources.map((source) => {
+              // Debug log source structure
+              console.log(`Rendering source ${source.id} (${source.name})`, {
+                type: source.type,
+                metadata: source.metadata,
+                subUrls: source.metadata?.sub_urls,
+                hasChildren: source.metadata?.sub_urls?.children?.length > 0,
+                knowledgeSources: source.knowledge_sources
+              });
+              
+              return (
               <React.Fragment key={source.id}>
                 <TableRow>
                   <TableCell className="py-2 w-8">
@@ -790,7 +849,7 @@ const KnowledgeSourceTable = ({
                   </TableRow>
                 )}
               </React.Fragment>
-            ))
+            )})
           )}
         </TableBody>
       </Table>

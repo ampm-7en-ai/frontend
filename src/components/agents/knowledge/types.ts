@@ -65,14 +65,16 @@ export interface KnowledgeSourceItem {
   type?: string; // Add type field for consistent reference
   status?: string;
   selected?: boolean;
-  is_selected?: boolean; // Add is_selected to match API response
+  is_selected?: boolean; // Explicitly define is_selected to match API response
   knowledge_base?: number;
   parent_knowledge_source?: number | null;
   metadata?: {
     format?: string;
     file_size?: string | number;
     size?: string | number; // Add size as alternative to file_size
-    sub_urls?: UrlNode;
+    sub_urls?: {
+      children?: UrlNode[];
+    };
     crawl_more?: string | boolean;
     no_of_pages?: number;
     no_of_rows?: number;
@@ -99,7 +101,7 @@ export interface UrlNode {
   children?: UrlNode[];
   level?: number;
   path?: string;
-  is_selected?: boolean; // Property for API selected state
+  is_selected?: boolean; // Explicitly define is_selected to match API response
   chars?: number; // Property for character count
 }
 
