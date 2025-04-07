@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ const KnowledgeBase = () => {
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
+  const [shouldFetchData, setShouldFetchData] = useState(false);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -56,10 +58,27 @@ const KnowledgeBase = () => {
     }
   };
 
+  // Modified to prevent automatic fetching on component mount
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
+    enabled: shouldFetchData // Only fetch when explicitly enabled
   });
+
+  // Function to manually load data when needed (e.g., when first viewing the page)
+  const loadDataIfNeeded = () => {
+    if (!data && !isLoading) {
+      setShouldFetchData(true);
+      setTimeout(() => {
+        refetch();
+      }, 0);
+    }
+  };
+
+  // Load data when component mounts
+  useEffect(() => {
+    loadDataIfNeeded();
+  }, []);
 
   useEffect(() => {
     if (data) {

@@ -474,8 +474,14 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['knowledgeBases', agentId],
     queryFn: fetchKnowledgeBases,
     staleTime: 5 * 60 * 1000,
-    enabled: !knowledgeBasesLoaded
+    enabled: false
   });
+
+  const loadKnowledgeBases = () => {
+    if (!knowledgeBasesLoaded && cachedKnowledgeBases.current.length === 0) {
+      refetch();
+    }
+  };
 
   return (
     <Card>
@@ -489,7 +495,7 @@ const KnowledgeTrainingStatus = ({
             variant="outline" 
             size="sm" 
             onClick={() => {
-              refreshKnowledgeBases();
+              loadKnowledgeBases();
               setIsImportDialogOpen(true);
             }}
             className="flex items-center gap-1"
@@ -536,7 +542,10 @@ const KnowledgeTrainingStatus = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={refreshKnowledgeBases}
+                onClick={() => {
+                  loadKnowledgeBases();
+                  refreshKnowledgeBases();
+                }}
                 className="flex items-center gap-1.5"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -566,7 +575,7 @@ const KnowledgeTrainingStatus = ({
                 <Button
                   variant="outline"
                   onClick={() => {
-                    refreshKnowledgeBases();
+                    loadKnowledgeBases();
                     setIsImportDialogOpen(true);
                   }}
                   className="flex items-center gap-1"
