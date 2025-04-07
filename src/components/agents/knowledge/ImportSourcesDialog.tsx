@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Download, Trash2 } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint } from '@/utils/api-config';
@@ -97,15 +97,12 @@ export const ImportSourcesDialog = ({
     }
   }, [selectedKnowledgeBase]);
 
-  // Update selected sources based on selections in the third panel
   useEffect(() => {
-    // Process URL selections
     for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
       const numericId = Number(sourceId);
       if (urlSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
-        // Only remove from selected if there are no files selected
         if (!selectedFiles[numericId]?.size) {
           setSelectedSources(prev => {
             const newSet = new Set(prev);
@@ -116,13 +113,11 @@ export const ImportSourcesDialog = ({
       }
     }
     
-    // Process file selections
     for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
       const numericId = Number(sourceId);
       if (fileSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
-        // Only remove from selected if no URLs are selected
         if (!selectedSubUrls[numericId]?.size) {
           setSelectedSources(prev => {
             const newSet = new Set(prev);
@@ -472,7 +467,7 @@ export const ImportSourcesDialog = ({
               <div className="flex flex-col flex-1">
                 <span className="flex items-center text-sm font-medium">
                   {renderSourceIcon(file.type || source.type)}
-                  {file.name || `File ${index + 1}`}
+                  {file.title || file.name || `File ${index + 1}`}
                 </span>
                 
                 <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
@@ -496,12 +491,6 @@ export const ImportSourcesDialog = ({
                     </span>
                   )}
                 </div>
-              </div>
-              
-              <div className="flex space-x-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Download className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </div>
