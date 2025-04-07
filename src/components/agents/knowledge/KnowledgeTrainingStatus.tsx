@@ -193,6 +193,40 @@ const KnowledgeTrainingStatus = ({
         metadata: source.metadata || {}
       });
       
+      let domainLinksStructure = null;
+      if (source.type === 'website' && source.metadata) {
+        if (source.metadata.domain_links) {
+          domainLinksStructure = source.metadata.domain_links;
+        } else if (source.metadata.sub_urls) {
+          domainLinksStructure = source.metadata.sub_urls;
+        }
+      }
+      
+      const isExpanded = true;
+      const expandedUrlSections = {};
+      
+      if (domainLinksStructure) {
+        if (Array.isArray(domainLinksStructure)) {
+          domainLinksStructure.forEach((node, idx) => {
+            const key = `root-${idx}`;
+            expandedUrlSections[key] = true;
+            
+            if (node.children) {
+              node.children.forEach(child => {
+                expandedUrlSections[`${key}-${child.url}`] = true;
+              });
+            }
+          });
+        } else if (domainLinksStructure.children) {
+          const key = 'root-0';
+          expandedUrlSections[key] = true;
+          
+          domainLinksStructure.children.forEach(child => {
+            expandedUrlSections[`${key}-${child.url}`] = true;
+          });
+        }
+      }
+      
       return {
         id: source.id,
         name: source.name || 'Unnamed source',
@@ -205,7 +239,8 @@ const KnowledgeTrainingStatus = ({
         crawlOptions: source.crawl_options || 'single',
         insideLinks: source.insideLinks || [],
         metadata: source.metadata || {},
-        isExpanded: false,
+        isExpanded: isExpanded,
+        expandedUrlSections: expandedUrlSections,
         knowledge_sources: source.knowledge_sources || []
       };
     });
@@ -649,8 +684,9 @@ const KnowledgeTrainingStatus = ({
     const hasNestedSources = source.knowledge_sources && source.knowledge_sources.length > 0;
     const hasInsideLinks = source.insideLinks && source.insideLinks.length > 0;
     const hasSubUrls = source.metadata?.sub_urls?.children && source.metadata.sub_urls.children.length > 0;
+    const hasDomainLinks = source.metadata?.domain_links;
     
-    if (!hasNestedSources && !hasInsideLinks && !hasSubUrls) return null;
+    if (!hasNestedSources && !hasInsideLinks && !hasSubUrls && !hasDomainLinks) return null;
 
     return (
       <div className={`pl-4 mt-2 space-y-2 ${source.isExpanded ? 'block' : 'hidden'}`}>
@@ -716,13 +752,34 @@ const KnowledgeTrainingStatus = ({
             </div>
           </>
         )}
+        
+        {hasDomainLinks && (
+          <>
+            <div className="text-sm font-medium mt-2 mb-1">Website Structure:</div>
+            <div className="space-y-1 border border-dashed border-gray-200 rounded-md p-2">
+              {Array.isArray(source.metadata.domain_links) ? (
+                source.metadata.domain_links.map((urlNode, idx) => 
+                  renderUrlChildren(source, urlNode, 0, `root-${idx}`)
+                )
+              ) : source.metadata.domain_links.children ? (
+                source.metadata.domain_links.children.map((urlNode, idx) => 
+                  renderUrlChildren(source, urlNode, 0, `root-${idx}`)
+                )
+              ) : (
+                renderUrlChildren(source, source.metadata.domain_links, 0, 'root-0')
+              )}
+            </div>
+          </>
+        )}
       </div>
     );
   };
 
   const renderSourceCard = (source: KnowledgeSource) => {
     const hasNestedItems = (source.knowledge_sources && source.knowledge_sources.length > 0) || 
-                          (source.insideLinks && source.insideLinks.length > 0);
+                          (source.insideLinks && source.insideLinks.length > 0) ||
+                          (source.metadata?.sub_urls?.children) ||
+                          (source.metadata?.domain_links);
     
     return (
       <div key={source.id} className="border rounded-lg overflow-hidden">
