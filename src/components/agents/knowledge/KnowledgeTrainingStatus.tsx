@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +32,11 @@ import {
 } from '@/utils/api';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -146,7 +150,8 @@ const KnowledgeTrainingStatus = ({
         trainingStatus: 'idle' as const,
         linkBroken: false,
         knowledge_sources: kb.knowledge_sources,
-        metadata: kb.metadata || {}
+        metadata: kb.metadata || {},
+        urlStructure: urlStructure
       };
     });
   };
@@ -195,6 +200,7 @@ const KnowledgeTrainingStatus = ({
       });
       
       let domainLinksStructure = null;
+      
       if (source.type === 'website' && source.metadata) {
         if (source.metadata.domain_links) {
           domainLinksStructure = source.metadata.domain_links;
@@ -213,8 +219,14 @@ const KnowledgeTrainingStatus = ({
             expandedUrlSections[key] = true;
             
             if (node.children) {
-              node.children.forEach(child => {
-                expandedUrlSections[`${key}-${child.url}`] = true;
+              node.children.forEach((child, childIdx) => {
+                expandedUrlSections[`${key}-${childIdx}`] = true;
+                
+                if (child.children) {
+                  child.children.forEach((grandchild, grandchildIdx) => {
+                    expandedUrlSections[`${key}-${childIdx}-${grandchildIdx}`] = true;
+                  });
+                }
               });
             }
           });
@@ -222,8 +234,14 @@ const KnowledgeTrainingStatus = ({
           const key = 'root-0';
           expandedUrlSections[key] = true;
           
-          domainLinksStructure.children.forEach(child => {
-            expandedUrlSections[`${key}-${child.url}`] = true;
+          domainLinksStructure.children.forEach((child, childIdx) => {
+            expandedUrlSections[`${key}-${childIdx}`] = true;
+            
+            if (child.children) {
+              child.children.forEach((grandchild, grandchildIdx) => {
+                expandedUrlSections[`${key}-${childIdx}-${grandchildIdx}`] = true;
+              });
+            }
           });
         }
       }
@@ -439,7 +457,8 @@ const KnowledgeTrainingStatus = ({
         throw new Error('Authentication required');
       }
       
-      const response = await fetch(`${BASE_URL}agents/${agentId}/remove-knowledge-sources/`, {
+      const removeEndpoint = API_ENDPOINTS.REMOVE_KNOWLEDGE_SOURCES(agentId);
+      const response = await fetch(`${BASE_URL}${removeEndpoint}`, {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
@@ -636,21 +655,18 @@ const KnowledgeTrainingStatus = ({
     const isExpanded = source.expandedUrlSections?.[sectionKey] !== false; // Default to expanded
     
     return (
-      <div className="ml-4 mt-1">
-        <div 
-          className="flex items-center cursor-pointer text-sm font-medium py-1"
-          onClick={() => toggleUrlSectionExpansion(source.id, sectionKey)}
-        >
-          {isExpanded ? 
-            <ChevronDown className="h-3.5 w-3.5 mr-1 text-gray-500" /> : 
-            <ChevronRight className="h-3.5 w-3.5 mr-1 text-gray-500" />
-          }
-          <span>{urlNode.title || urlNode.url}</span>
-          <Badge variant="outline" className="ml-2 text-xs">{urlNode.children.length} urls</Badge>
-        </div>
-        
-        {isExpanded && (
-          <div className="space-y-1 ml-2 mt-1">
+      <div className="ml-4 mt-2">
+        <Collapsible defaultOpen={isExpanded}>
+          <CollapsibleTrigger className="flex items-center cursor-pointer text-sm font-medium py-1">
+            {isExpanded ? 
+              <ChevronDown className="h-3.5 w-3.5 mr-1 text-gray-500" /> : 
+              <ChevronRight className="h-3.5 w-3.5 mr-1 text-gray-500" />
+            }
+            <span>{urlNode.title || urlNode.url}</span>
+            <Badge variant="outline" className="ml-2 text-xs">{urlNode.children.length} urls</Badge>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="space-y-1 ml-2 mt-1">
             {urlNode.children.map((child, idx) => (
               <div key={`child-url-${idx}`} className="border border-dashed border-gray-200 rounded-md p-2">
                 <div className="flex items-center">
@@ -672,11 +688,11 @@ const KnowledgeTrainingStatus = ({
                     </span>
                   )}
                 </div>
-                {child.children && child.children.length > 0 && renderUrlChildren(source, child, level + 1, sectionKey)}
+                {child.children && child.children.length > 0 && renderUrlChildren(source, child, level + 1, `${sectionKey}-${idx}`)}
               </div>
             ))}
-          </div>
-        )}
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     );
   };
@@ -707,6 +723,20 @@ const KnowledgeTrainingStatus = ({
                 </span>
               )}
             </div>
+            
+            {nestedSource.metadata?.sub_urls?.children && (
+              <div className="mt-2 ml-4">
+                <div className="text-xs font-medium text-muted-foreground mb-1">Indexed URLs:</div>
+                {nestedSource.metadata.sub_urls.children.map((urlChild, urlIdx) => (
+                  <div key={`url-${urlIdx}`} className="text-xs ml-2 flex items-center">
+                    <Globe className="h-3 w-3 mr-1 text-blue-400" />
+                    <span className="truncate max-w-[200px]" title={urlChild.url}>
+                      {urlChild.title || urlChild.url}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
 
@@ -862,7 +892,11 @@ const KnowledgeTrainingStatus = ({
   useEffect(() => {
     if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
       console.log("Using preloaded knowledge sources:", preloadedKnowledgeSources);
+      
       const formattedSources = transformAgentKnowledgeSources(preloadedKnowledgeSources);
+      
+      console.log("Formatted knowledge sources:", formattedSources);
+      
       setKnowledgeSources(formattedSources);
       setPrevSourceIds(formattedSources.map(s => s.id));
       setPrevSourcesLength(formattedSources.length);
