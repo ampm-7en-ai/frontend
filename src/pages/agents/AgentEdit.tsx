@@ -242,11 +242,20 @@ const AgentEdit = () => {
         agentType: agent.agentType,
         systemPrompt: agent.systemPrompt,
         knowledge_bases: agentKnowledgeSources,
-        customAvatarFile: customAvatarFile
+        customAvatarFile
       };
 
       if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
-        payload.knowledgeSources = agent.knowledgeSources;
+        const kbId = agentKnowledgeSources && agentKnowledgeSources.length > 0
+          ? agentKnowledgeSources[0].id
+          : "20";
+          
+        payload.settings = {
+          ...(payload.settings || {}),
+          knowledge_source_filters: {
+            [kbId]: agent.knowledgeSources
+          }
+        };
       }
 
       await updateAgent(agentId || '', payload);

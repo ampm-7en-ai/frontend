@@ -311,22 +311,7 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   // Create a deep clone of the payload to avoid modifying the original
   const payload = JSON.parse(JSON.stringify(agentData));
   
-  // Format the knowledge source filters if needed
-  if (agentData.knowledgeSources && Array.isArray(agentData.knowledgeSources)) {
-    // Check if we have any knowledge bases to use as the key
-    const kbId = agentData.knowledge_bases && agentData.knowledge_bases.length > 0
-      ? agentData.knowledge_bases[0].id
-      : "20"; // Use a default ID if no knowledge bases available
-      
-    payload.settings = {
-      ...payload.settings || {},
-      knowledge_source_filters: {
-        [kbId]: agentData.knowledgeSources
-      }
-    };
-  }
-  
-  // Handle custom avatar, first check if there's a File object attached to the appearance directly
+  // Handle custom avatar, first check if there's a File object passed separately
   if (agentData.customAvatarFile && payload.appearance?.avatar?.type === 'custom') {
     try {
       // Convert the file to a complete data URL with the prefix
@@ -362,7 +347,6 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   
   // Remove any non-API properties from the payload
   delete payload.customAvatarFile;
-  delete payload.knowledgeSources;
   
   console.log('Sending JSON payload:', payload);
   
