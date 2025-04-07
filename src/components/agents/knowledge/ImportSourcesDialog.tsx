@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ interface ImportSourcesDialogProps {
   onOpenChange: (open: boolean) => void;
   externalSources: KnowledgeSource[];
   currentSources: KnowledgeSource[];
-  onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => void;
+  onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>, shouldRefresh?: boolean) => void;
   agentId?: string;
 }
 
@@ -447,7 +448,8 @@ export const ImportSourcesDialog = ({
       
       onOpenChange(false);
       
-      onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
+      // Pass false to indicate we don't want to refresh the knowledge sources list
+      onImport(sourceIdsToImport, selectedSubUrls, selectedFiles, false);
       
     } catch (error) {
       console.error("Error importing knowledge sources:", error);
