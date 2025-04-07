@@ -58,6 +58,35 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
     setDeploymentDialogOpen(true);
   };
 
+  // Only display top-level knowledge sources in table
+  const renderKnowledgeSources = (sources: KnowledgeSource[]) => {
+    if (!sources || sources.length === 0) return null;
+
+    const visibleSources = sources.slice(0, 3);
+    const remainingCount = sources.length - 3;
+
+    return (
+      <div className="flex flex-wrap">
+        {visibleSources.map(source => (
+          <div key={source.id} className="mr-1 mb-1">
+            <KnowledgeSourceBadge source={source} />
+          </div>
+        ))}
+        {remainingCount > 0 && (
+          <Badge variant="outline" className="bg-gray-100 text-gray-800">
+            +{remainingCount} more
+          </Badge>
+        )}
+        {sources.some(source => source.hasError) && (
+          <div className="w-full mt-1 text-xs text-red-600 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            Needs retraining
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <Table>
@@ -90,19 +119,7 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                 </Badge>
               </TableCell>
               <TableCell>
-                <div className="flex flex-wrap">
-                  {agent.knowledgeSources.map(source => (
-                    <div key={source.id} className="mr-1 mb-1">
-                      <KnowledgeSourceBadge source={source} />
-                    </div>
-                  ))}
-                  {agent.knowledgeSources.some(source => source.hasError) && (
-                    <div className="w-full mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <AlertTriangle className="h-3 w-3" />
-                      Needs retraining
-                    </div>
-                  )}
-                </div>
+                {renderKnowledgeSources(agent.knowledgeSources)}
               </TableCell>
               <TableCell>{agent.conversations.toLocaleString()}</TableCell>
               <TableCell>
