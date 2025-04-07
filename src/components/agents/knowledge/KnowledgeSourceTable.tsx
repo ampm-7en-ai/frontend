@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -40,6 +39,32 @@ const KnowledgeSourceTable = ({
   const [expandedNestedItems, setExpandedNestedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    const initialExpandedRows: Record<number, boolean> = {};
+    
+    sources.forEach(source => {
+      const hasNestedContent = source.knowledge_sources?.length > 0 || 
+                              (source.metadata?.sub_urls?.children && 
+                               source.metadata.sub_urls.children.some(c => c.is_selected)) ||
+                              source.documents?.some(doc => doc.selected) ||
+                              source.insideLinks?.some(link => link.selected);
+                              
+      if (hasNestedContent) {
+        initialExpandedRows[source.id] = true;
+        
+        if (source.knowledge_sources) {
+          const nestedKey = `${source.id}-files`;
+          setExpandedNestedItems(prev => ({
+            ...prev,
+            [nestedKey]: true
+          }));
+        }
+      }
+    });
+    
+    setExpandedRows(initialExpandedRows);
+  }, [sources]);
+
+  useEffect(() => {
     const initialSelectedCounts: Record<number, number> = {};
     
     sources.forEach(source => {
@@ -54,7 +79,6 @@ const KnowledgeSourceTable = ({
           count += source.selectedSubUrls.size;
         }
         
-        // Count selected items in the metadata.sub_urls.children if they exist
         if (source.metadata?.sub_urls?.children) {
           console.log(`Source ${source.id} - checking sub_urls children:`, source.metadata.sub_urls.children);
           
@@ -419,7 +443,6 @@ const KnowledgeSourceTable = ({
         
         console.log(`Child: ${child.url}, isSelected: ${isSelected}, hasChildren: ${hasChildren}`);
         
-        // Only render if this node is selected or if it has children with selected nodes
         const hasSelectedChildren = hasChildren && child.children?.some(c => c.is_selected);
         if (!isSelected && !hasSelectedChildren) {
           console.log(`Skipping ${child.url} - not selected and no selected children`);
@@ -447,10 +470,9 @@ const KnowledgeSourceTable = ({
             {hasChildren && isExpanded && renderChildren(child.children, level + 1)}
           </React.Fragment>
         );
-      }).filter(Boolean); // Filter out null items
+      }).filter(Boolean);
     };
     
-    // Check if there are any selected URLs in the tree
     const anySelectedUrls = source.metadata.sub_urls.children.some(child => {
       const isDirectlySelected = child.is_selected;
       const hasSelectedChildren = child.children && child.children.some(c => c.is_selected);
@@ -467,7 +489,6 @@ const KnowledgeSourceTable = ({
     
     const renderedItems = renderChildren(source.metadata.sub_urls.children);
     
-    // If after filtering, we don't have any items, return null
     if (!renderedItems || renderedItems.every(item => item === null)) {
       console.log(`No items to render after filtering for source ${source.id}`);
       return null;
@@ -567,7 +588,7 @@ const KnowledgeSourceTable = ({
            source.type === 'website' ||
            source.type === 'docs' ||
            source.type === 'csv' ||
-           source.knowledge_sources?.length > 0 ||
+           (source.knowledge_sources && source.knowledge_sources.length > 0) ||
            (source.metadata?.sub_urls?.children && 
             source.metadata.sub_urls.children.some(c => c.is_selected));
   };
@@ -579,9 +600,11 @@ const KnowledgeSourceTable = ({
         const selectedFiles = source.knowledge_sources.filter(file => file.selected || file.is_selected);
         const filesToShow = selectedFiles.length > 0 ? selectedFiles : source.knowledge_sources;
         
+        const accordionValue = "files";
+        
         return (
           <div className="px-2 py-2">
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion type="single" collapsible className="w-full" defaultValue={accordionValue}>
               <AccordionItem value="files" className="border-0">
                 <AccordionTrigger className="py-2 hover:no-underline">
                   <span className="flex items-center text-sm font-medium">
@@ -670,7 +693,6 @@ const KnowledgeSourceTable = ({
             </TableRow>
           ) : (
             sources.map((source) => {
-              // Debug log source structure
               console.log(`Rendering source ${source.id} (${source.name})`, {
                 type: source.type,
                 metadata: source.metadata,
