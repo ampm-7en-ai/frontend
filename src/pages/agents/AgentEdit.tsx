@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import { AlertBanner } from '@/components/ui/alert-banner';
-import { AgentModelBadge } from '@/components/agents/AgentModelBadge';
+import AgentModelBadge from '@/components/agents/AgentModelBadge';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { useToast } from '@/hooks/use-toast';
 import { MODELS, getModelDisplay } from '@/constants/modelOptions';
