@@ -85,7 +85,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
         <DialogBody>
           <Tabs defaultValue="website" className="w-full" value={selectedPlatform} onValueChange={setSelectedPlatform}>
             <div className="flex items-start gap-6">
-              <TabsList orientation="vertical" className="h-auto w-52 flex-col items-start justify-start">
+              <TabsList orientation="vertical" className="h-auto w-44 flex-col items-start justify-start">
                 {platforms.map((platform) => (
                   <TabsTrigger 
                     key={platform.id}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -35,6 +35,7 @@ export const ImportSourcesDialog = ({
   onImport,
   agentId = "",
 }: ImportSourcesDialogProps) => {
+  const { toast } = useToast();
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedSources, setSelectedSources] = useState<Set<number>>(new Set());
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -396,9 +397,42 @@ export const ImportSourcesDialog = ({
     });
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     const sourceIdsToImport = Array.from(selectedSources);
-    onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
+    
+    if (sourceIdsToImport.length === 0) {
+      return;
+    }
+    
+    try {
+      const payload = {
+        sourceIds: sourceIdsToImport,
+        selectedSubUrls: Object.fromEntries(
+          Object.entries(selectedSubUrls).map(([key, value]) => [key, Array.from(value)])
+        ),
+        selectedFiles: Object.fromEntries(
+          Object.entries(selectedFiles).map(([key, value]) => [key, Array.from(value)])
+        ),
+        agentId
+      };
+      
+      toast({
+        title: "Importing knowledge sources",
+        description: "Your selected sources are being imported...",
+      });
+      
+      onOpenChange(false);
+      
+      onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
+      
+    } catch (error) {
+      console.error("Error importing knowledge sources:", error);
+      toast({
+        title: "Import failed",
+        description: "There was an error importing the selected sources.",
+        variant: "destructive"
+      });
+    }
   };
 
   const isSourceAlreadyImported = (sourceId: number) => {
@@ -687,7 +721,7 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={30} defaultSize={40}>
+          <ResizablePanel minSize={30} defaultSize={30}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-2">
@@ -774,7 +808,7 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={15} defaultSize={40}>
+          <ResizablePanel minSize={15} defaultSize={50}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2">
