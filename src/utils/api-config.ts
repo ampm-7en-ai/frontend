@@ -299,11 +299,7 @@ const fileToDataURL = (file: File): Promise<string> => {
 };
 
 // Function to update an agent
-export const updateAgent = async (
-  agentId: string, 
-  agentData: any, 
-  uploadParams?: { customAvatarFile: File | null, avatarType: string, avatarSrc: string }
-): Promise<any> => {
+export const updateAgent = async (agentId: string, agentData: any): Promise<any> => {
   const token = getAccessToken();
   if (!token) {
     throw new Error("Authentication required");
@@ -312,31 +308,8 @@ export const updateAgent = async (
   console.log('Updating agent with ID:', agentId);
   console.log('Agent data:', agentData);
   
-  // Create the complete payload structure as required by the API
-  const payload = {
-    name: agentData.name,
-    description: agentData.description,
-    appearance: {
-      primaryColor: agentData.appearance?.primaryColor,
-      secondaryColor: agentData.appearance?.secondaryColor,
-      fontFamily: agentData.appearance?.fontFamily,
-      chatbotName: agentData.appearance?.chatbotName,
-      welcomeMessage: agentData.appearance?.welcomeMessage,
-      buttonText: agentData.appearance?.buttonText,
-      position: agentData.appearance?.position,
-      avatar: {
-        type: agentData.appearance?.avatar?.type,
-        src: agentData.appearance?.avatar?.src // Will be updated with dataURL if needed
-      }
-    },
-    behavior: agentData.behavior,
-    model: agentData.model,
-    agentType: agentData.agentType,
-    systemPrompt: agentData.systemPrompt,
-    settings: {
-      ...(agentData.settings || {}),
-    }
-  };
+  // Create a deep clone of the payload to avoid modifying the original
+  const payload = JSON.parse(JSON.stringify(agentData));
   
   // Format the knowledge source filters if needed
   if (agentData.knowledgeSources && Array.isArray(agentData.knowledgeSources)) {
@@ -346,34 +319,33 @@ export const updateAgent = async (
       : "20"; // Use a default ID if no knowledge bases available
       
     payload.settings = {
-      ...payload.settings,
+      ...payload.settings || {},
       knowledge_source_filters: {
         [kbId]: agentData.knowledgeSources
       }
     };
   }
   
-  // Handle custom avatar with file upload by converting to data URL
-  if (uploadParams && uploadParams.customAvatarFile && uploadParams.avatarType === 'custom') {
+  // Handle custom avatar, first check if there's a File object attached to the appearance directly
+  if (agentData.customAvatarFile && payload.appearance?.avatar?.type === 'custom') {
     try {
       // Convert the file to a complete data URL with the prefix
-      const dataURL = await fileToDataURL(uploadParams.customAvatarFile);
+      const dataURL = await fileToDataURL(agentData.customAvatarFile);
       
-      // Update the avatar src in the payload with the complete data URL
-      payload.appearance.avatar = {
-        type: 'custom',
-        src: dataURL
-      };
+      // Update the avatar src in the payload
+      payload.appearance.avatar.src = dataURL;
       
       console.log('Converted avatar file to complete data URL for JSON payload');
     } catch (error) {
       console.error('Error converting file to data URL:', error);
       throw new Error('Failed to process avatar file');
     }
-  } else if (uploadParams && uploadParams.avatarSrc && uploadParams.avatarSrc.startsWith('blob:')) {
+  } 
+  // If the avatar src is a blob URL, we need to convert it to a base64 data URL
+  else if (payload.appearance?.avatar?.src && payload.appearance.avatar.src.startsWith('blob:')) {
     try {
       // Fetch the blob URL and convert it to a base64 data URL
-      const response = await fetch(uploadParams.avatarSrc);
+      const response = await fetch(payload.appearance.avatar.src);
       const blob = await response.blob();
       const dataURL = await fileToDataURL(new File([blob], 'avatar', { type: blob.type }));
       
@@ -387,6 +359,10 @@ export const updateAgent = async (
       console.log('Keeping original src due to conversion error');
     }
   }
+  
+  // Remove any non-API properties from the payload
+  delete payload.customAvatarFile;
+  delete payload.knowledgeSources;
   
   console.log('Sending JSON payload:', payload);
   

@@ -241,17 +241,15 @@ const AgentEdit = () => {
         },
         agentType: agent.agentType,
         systemPrompt: agent.systemPrompt,
-        knowledgeSources: agent.knowledgeSources,
-        knowledge_bases: agentKnowledgeSources
+        knowledge_bases: agentKnowledgeSources,
+        customAvatarFile: customAvatarFile
       };
 
-      const uploadParams = {
-        customAvatarFile: customAvatarFile,
-        avatarType: agent.avatar.type,
-        avatarSrc: agent.avatar.src
-      };
+      if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
+        payload.knowledgeSources = agent.knowledgeSources;
+      }
 
-      await updateAgent(agentId || '', payload, uploadParams);
+      await updateAgent(agentId || '', payload);
       
       toast({
         title: "Changes saved",
