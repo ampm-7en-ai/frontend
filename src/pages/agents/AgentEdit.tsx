@@ -215,7 +215,44 @@ const AgentEdit = () => {
     setIsSaving(true);
     
     try {
-      const payload = {
+      interface AgentPayloadType {
+        name: string;
+        description: string;
+        appearance: {
+          primaryColor: string;
+          secondaryColor: string;
+          fontFamily: string;
+          chatbotName: string;
+          welcomeMessage: string;
+          buttonText: string;
+          position: "bottom-right" | "bottom-left";
+          avatar: {
+            type: string;
+            src: string;
+          }
+        };
+        behavior: {
+          showOnMobile: boolean;
+          collectVisitorData: boolean;
+          autoShowAfter: number;
+          suggestions: string[];
+        };
+        model: {
+          selectedModel: string;
+          temperature: number;
+          maxResponseLength: string;
+        };
+        agentType: string;
+        systemPrompt: string;
+        knowledge_bases: any[];
+        customAvatarFile: File | null;
+        settings?: {
+          knowledge_source_filters?: Record<string, number[]>;
+          [key: string]: any;
+        };
+      }
+
+      const payload: AgentPayloadType = {
         name: agent.name,
         description: agent.description,
         appearance: {
@@ -251,7 +288,6 @@ const AgentEdit = () => {
           : "20";
           
         payload.settings = {
-          ...(payload.settings || {}),
           knowledge_source_filters: {
             [kbId]: agent.knowledgeSources
           }
