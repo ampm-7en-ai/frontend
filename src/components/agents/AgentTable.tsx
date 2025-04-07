@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -72,7 +71,7 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
     
     // Count selected knowledge sources from imported files
     if (source.knowledge_sources) {
-      count += source.knowledge_sources.filter(ks => ks.selected).length;
+      count += source.knowledge_sources.filter(src => src.selected).length || 0;
     }
     
     return count;
@@ -153,10 +152,10 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                               <div className="text-xs text-blue-700 ml-6 flex items-center">
                                 <File className="h-3 w-3 mr-1" />
                                 {getSelectedDocumentCount(source)} selected
-                                {source.knowledge_sources && source.knowledge_sources.some(ks => ks.selected) && (
+                                {source.knowledge_sources && source.knowledge_sources.length > 0 && (
                                   <span className="ml-1 flex items-center">
                                     <FolderOpen className="h-3 w-3 mx-1" />
-                                    {source.knowledge_sources.filter(ks => ks.selected).length} imported
+                                    {source.knowledge_sources.filter(src => src.selected).length} imported
                                   </span>
                                 )}
                               </div>

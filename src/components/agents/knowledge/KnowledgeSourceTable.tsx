@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,12 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB } from '@/utils/api-config';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface KnowledgeSourceTableProps {
   sources: KnowledgeSource[];
@@ -330,6 +335,10 @@ const KnowledgeSourceTable = ({
   const getSelectedChildUrls = (source: KnowledgeSource) => {
     const selectedUrls = source.insideLinks?.filter(link => link.selected) || [];
     
+    if (source.knowledge_sources?.[0]?.metadata?.sub_urls) {
+      // Handle sub_urls from metadata if needed
+    }
+    
     const selectedSubUrlsArray = source.selectedSubUrls ? 
       Array.from(source.selectedSubUrls) : [];
     
@@ -343,6 +352,7 @@ const KnowledgeSourceTable = ({
       <div className="ml-7 mt-1 space-y-1">
         <div className="text-xs text-muted-foreground font-medium">Selected URLs:</div>
         {allSelectedUrls.map((item, index) => {
+          // Check if it's a string or an object with url/title properties
           const displayTitle = typeof item === 'string' ? item : item.title || item.url;
           const displayUrl = typeof item === 'string' ? item : item.url;
           
@@ -358,81 +368,91 @@ const KnowledgeSourceTable = ({
     );
   };
 
-  const getSelectedNestedFiles = (source: KnowledgeSource) => {
-    if (!source.knowledge_sources) return null;
-    
-    const selectedFiles = source.knowledge_sources.filter(file => file.selected);
-    
-    if (selectedFiles.length === 0) return null;
-    
-    return (
-      <div className="ml-7 mt-1 space-y-1">
-        <div className="text-xs text-muted-foreground font-medium">Selected Files ({selectedFiles.length}):</div>
-        {selectedFiles.map((file, index) => (
-          <div key={index} className="flex items-center text-xs text-muted-foreground ml-2">
-            <File className="h-3 w-3 mr-1 text-blue-500" />
-            <span className="font-medium">{file.title || file.name}</span>
-            {file.metadata?.file_size && (
-              <span className="ml-1 text-xs text-muted-foreground">({formatFileSizeToMB(file.metadata.file_size)})</span>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   const shouldShowExpandableContent = (source: KnowledgeSource) => {
-    // Always show expandable content for 'docs' and 'csv' types to display nested files
-    if (source.type === 'docs' || source.type === 'csv') {
-      return true;
-    }
-    
     return source.type === 'webpage' || 
            source.documents?.length > 0 || 
            source.type === 'url' || 
-           source.type === 'website';
+           source.type === 'website' ||
+           source.type === 'docs' ||
+           source.type === 'csv' ||
+           source.knowledge_sources?.length > 0;
   };
 
-  const renderNestedFilesContent = (source: KnowledgeSource) => {
-    if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
+  const renderFileContent = (source: KnowledgeSource) => {
+    if (source.type === 'docs' || source.type === 'csv') {
+      // For nested knowledge sources (imported files)
+      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        // Filter knowledge sources to only show selected ones if any are marked as selected
+        const selectedFiles = source.knowledge_sources.filter(file => file.selected);
+        const filesToShow = selectedFiles.length > 0 ? selectedFiles : source.knowledge_sources;
+        
+        return (
+          <div className="px-2 py-2">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="files" className="border-0">
+                <AccordionTrigger className="py-2 hover:no-underline">
+                  <span className="flex items-center text-sm font-medium">
+                    <FolderOpen className="h-4 w-4 mr-2 text-blue-500" />
+                    {selectedFiles.length > 0 ? 
+                      `Selected Files (${selectedFiles.length}/${source.knowledge_sources.length})` : 
+                      `Imported Files (${source.knowledge_sources.length})`}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-1 max-h-60 overflow-y-auto pl-6">
+                    {filesToShow.map((file) => (
+                      <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+                        <div className={`w-2 h-2 rounded-full mr-2 ${file.selected ? 'bg-green-500' : 'bg-blue-500'}`} />
+                        <File className="h-3 w-3 mr-2 text-blue-500" />
+                        <span className="truncate flex-1" title={file.title || file.name}>
+                          {file.title || file.name}
+                        </span>
+                        {file.metadata?.file_size && (
+                          <span className="text-muted-foreground">
+                            {formatFileSizeToMB(file.metadata.file_size)}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        );
+      }
+      
+      // For individually selected documents
+      const selectedDocs = source.documents?.filter(doc => doc.selected) || [];
+      
+      if (selectedDocs.length === 0) {
+        return (
+          <div className="py-2 px-4 text-sm text-muted-foreground">
+            No files selected for training. All files will be included.
+          </div>
+        );
+      }
+      
       return (
-        <div className="py-2 px-4 text-sm text-muted-foreground">
-          No files selected for training. All files will be included.
+        <div className="px-2 py-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium">Selected Files ({selectedDocs.length}/{source.documents?.length || 0})</div>
+          </div>
+          <div className="space-y-1 max-h-40 overflow-y-auto">
+            {selectedDocs.map((doc, index) => (
+              <div key={doc.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+                <div className={`w-2 h-2 rounded-full mr-2 bg-green-500`} />
+                <File className="h-3 w-3 mr-2 text-blue-500" />
+                <span className="truncate flex-1" title={doc.name}>{doc.name}</span>
+                <span className="text-muted-foreground">{formatFileSizeToMB(doc.size)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       );
     }
     
-    const selectedFiles = source.knowledge_sources.filter(file => file.selected);
-    
-    if (selectedFiles.length === 0) {
-      return (
-        <div className="py-2 px-4 text-sm text-muted-foreground">
-          No files selected for training. All files will be included.
-        </div>
-      );
-    }
-    
-    return (
-      <div className="px-2 py-2">
-        <div className="text-sm font-medium mb-2">Selected Nested Files ({selectedFiles.length})</div>
-        <div className="space-y-1 max-h-40 overflow-y-auto">
-          {selectedFiles.map((file) => (
-            <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
-              <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
-              <File className="h-3 w-3 mr-2 text-blue-500" />
-              <span className="truncate flex-1" title={file.title || file.name}>
-                {file.title || file.name}
-              </span>
-              {file.metadata?.file_size && (
-                <span className="text-muted-foreground">
-                  {formatFileSizeToMB(file.metadata.file_size)}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return null;
   };
 
   return (
@@ -505,28 +525,19 @@ const KnowledgeSourceTable = ({
                           </div>
                         )}
                         
-                        {(source.type === 'docs' || source.type === 'csv') && (
-                          <>
-                            {source.documents?.some(doc => doc.selected) && (
-                              <div className="ml-7 mt-1">
-                                <div className="text-xs text-muted-foreground font-medium">
-                                  {source.documents.filter(doc => doc.selected).length} files selected
-                                </div>
-                              </div>
-                            )}
-                            
-                            {source.knowledge_sources && source.knowledge_sources.some(ks => ks.selected) && (
-                              <div className="ml-7 mt-1">
-                                <div className="text-xs text-muted-foreground font-medium">
-                                  {source.knowledge_sources.filter(ks => ks.selected).length} imported files selected
-                                </div>
-                              </div>
-                            )}
-                          </>
+                        {(source.type === 'docs' || source.type === 'csv') && 
+                         (source.documents?.some(doc => doc.selected) || source.knowledge_sources?.some(ks => ks.selected)) && (
+                          <div className="ml-7 mt-1">
+                            <div className="text-xs text-muted-foreground font-medium">
+                              {source.documents?.filter(doc => doc.selected).length || 0} files selected
+                              {source.knowledge_sources && (
+                                <span className="ml-1">
+                                  , {source.knowledge_sources.filter(ks => ks.selected).length || source.knowledge_sources.length} imported
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         )}
-                        
-                        {getSelectedChildUrls(source)}
-                        {getSelectedNestedFiles(source)}
                       </>
                     )}
                   </TableCell>
@@ -621,9 +632,10 @@ const KnowledgeSourceTable = ({
                             {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
                             
-                            {(source.type === 'docs' || source.type === 'csv') && source.knowledge_sources && 
-                              source.knowledge_sources.some(ks => ks.selected) && renderNestedFilesContent(source)}
+                            {/* Show imported knowledge sources for docs and csv types */}
+                            {(source.type === 'docs' || source.type === 'csv') && renderFileContent(source)}
                             
+                            {/* If there are documents from the API, show them */}
                             {source.documents?.length > 0 && getDocumentsContent(source)}
                           </div>
                         </CollapsibleContent>
