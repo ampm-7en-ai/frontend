@@ -460,7 +460,7 @@ export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSourc
   }
   
   try {
-    const response = await fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources`, {
+    const response = await fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources/`, {
       method: 'POST',
       headers: getAuthHeaders(token),
       body: JSON.stringify({
