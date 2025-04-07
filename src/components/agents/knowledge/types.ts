@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -43,12 +42,12 @@ export interface KnowledgeSource {
   };
   icon?: string;
   knowledge_sources?: KnowledgeSourceItem[];
-  format?: string; // Making format optional in KnowledgeSource
-  pages?: string;  // Making pages optional in KnowledgeSource
-  selected?: boolean; // Track selection state
-  selectedSubUrls?: Set<string>; // Store selected sub URLs
-  agents?: AgentReference[]; // Add agents array to match API structure
-  nestedItems?: Record<string, boolean>; // Map of nested item IDs to their selection state
+  format?: string;
+  pages?: string;
+  selected?: boolean;
+  selectedSubUrls?: Set<string>;
+  agents?: AgentReference[];
+  nestedItems?: Record<string, boolean>;
 }
 
 export interface AgentReference {
@@ -61,17 +60,17 @@ export interface KnowledgeSourceItem {
   url: string | null;
   file?: string | null;
   title: string;
-  name?: string; // Add name as an alternative to title
-  type?: string; // Add type field for consistent reference
+  name?: string;
+  type?: string;
   status?: string;
   selected?: boolean;
-  is_selected?: boolean; // Explicitly define is_selected to match API response
+  is_selected?: boolean;
   knowledge_base?: number;
   parent_knowledge_source?: number | null;
   metadata?: {
     format?: string;
     file_size?: string | number;
-    size?: string | number; // Add size as alternative to file_size
+    size?: string | number;
     sub_urls?: {
       children?: UrlNode[];
     };
@@ -101,8 +100,8 @@ export interface UrlNode {
   children?: UrlNode[];
   level?: number;
   path?: string;
-  is_selected?: boolean; // Explicitly define is_selected to match API response
-  chars?: number; // Property for character count
+  is_selected?: boolean;
+  chars?: number;
 }
 
 export interface ProcessedSource extends KnowledgeSource {

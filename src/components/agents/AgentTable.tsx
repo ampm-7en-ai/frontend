@@ -72,7 +72,10 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
     
     // Count selected knowledge sources from imported files
     if (source.knowledge_sources) {
+      console.log(`Counting knowledge_sources for ${source.name}:`, source.knowledge_sources);
       count += source.knowledge_sources.filter(src => src.selected || src.is_selected).length || 0;
+    } else {
+      console.log(`No knowledge_sources found for ${source.name}`);
     }
     
     return count;

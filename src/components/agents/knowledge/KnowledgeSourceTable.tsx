@@ -575,6 +575,7 @@ const KnowledgeSourceTable = ({
   const renderFileContent = (source: KnowledgeSource) => {
     if (source.type === 'docs' || source.type === 'csv') {
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        console.log(`Rendering file content for ${source.name} with ${source.knowledge_sources.length} knowledge sources`);
         const selectedFiles = source.knowledge_sources.filter(file => file.selected || file.is_selected);
         const filesToShow = selectedFiles.length > 0 ? selectedFiles : source.knowledge_sources;
         
