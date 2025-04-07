@@ -8,7 +8,7 @@ import { KnowledgeSource, UrlNode } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 
 interface KnowledgeTrainingStatusProps {
