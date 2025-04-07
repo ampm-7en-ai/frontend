@@ -32,6 +32,16 @@ import {
 } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -63,6 +73,10 @@ const KnowledgeTrainingStatus = ({
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<any[]>([]);
+  
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
+  const [isDeletingSource, setIsDeletingSource] = useState(false);
 
   const fetchKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
@@ -370,24 +384,69 @@ const KnowledgeTrainingStatus = ({
     refetch();
   };
 
+  const confirmRemoveSource = (sourceId: number) => {
+    setSourceToDelete(sourceId);
+    setIsDeleteDialogOpen(true);
+  };
+
   const removeSource = async (sourceId: number) => {
-    const sourceToRemove = knowledgeSources.find(source => source.id === sourceId);
+    if (!sourceId) return;
     
+    const sourceToRemove = knowledgeSources.find(source => source.id === sourceId);
     if (!sourceToRemove) return;
     
-    setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
+    setIsDeletingSource(true);
     
-    if (onSourcesChange) {
-      const updatedSourceIds = knowledgeSources
-        .filter(s => s.id !== sourceId)
-        .map(s => s.id);
-      onSourcesChange(updatedSourceIds);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      const response = await fetch(`${BASE_URL}agents/${agentId}/remove-knowledge-sources/`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          knowledgeSources: [sourceId]
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+        throw new Error(errorData.message || `Failed to remove knowledge source: ${response.status}`);
+      }
+      
+      setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
+      
+      if (onSourcesChange) {
+        const updatedSourceIds = knowledgeSources
+          .filter(s => s.id !== sourceId)
+          .map(s => s.id);
+        onSourcesChange(updatedSourceIds);
+      }
+      
+      setNeedsRetraining(true);
+      
+      const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
+      toast(toastInfo);
+      
+      toast({
+        title: "Knowledge source removed",
+        description: "Your agent needs to be retrained with the updated knowledge sources.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error removing knowledge source:', error);
+      toast({
+        title: "Failed to remove knowledge source",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeletingSource(false);
+      setIsDeleteDialogOpen(false);
+      setSourceToDelete(null);
     }
-    
-    setNeedsRetraining(true);
-    
-    const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
-    toast(toastInfo);
   };
 
   const updateSource = async (sourceId: number, data: Partial<KnowledgeSource>) => {
@@ -727,8 +786,9 @@ const KnowledgeTrainingStatus = ({
               <Button 
                 size="sm" 
                 variant="ghost" 
-                onClick={() => removeSource(source.id)} 
+                onClick={() => confirmRemoveSource(source.id)} 
                 className="text-destructive hover:text-destructive"
+                disabled={isDeletingSource}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -898,6 +958,35 @@ const KnowledgeTrainingStatus = ({
         onImport={importSelectedSources}
         agentId={agentId}
       />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the knowledge source from your agent. This action cannot be undone.
+              {needsRetraining && <p className="mt-2 font-medium text-amber-600">Your agent will need to be retrained after this change.</p>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingSource}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => sourceToDelete && removeSource(sourceToDelete)}
+              disabled={isDeletingSource}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingSource ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                "Remove"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

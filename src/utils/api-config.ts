@@ -13,7 +13,8 @@ export const API_ENDPOINTS = {
   RESEND_OTP: "users/resend-otp/",
   SSO_LOGIN: "users/sso_login/",
   AGENTS: "agents/",
-  KNOWLEDGEBASE: "knowledgebase/"
+  KNOWLEDGEBASE: "knowledgebase/",
+  REMOVE_KNOWLEDGE_SOURCES: (agentId: string) => `agents/${agentId}/remove-knowledge-sources/`
 };
 
 // Function to get knowledge base endpoint with optional agent ID
