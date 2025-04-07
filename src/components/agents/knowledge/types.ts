@@ -40,6 +40,7 @@ export interface KnowledgeSource {
     sub_urls?: {
       children?: UrlNode[];
     };
+    size?: string | number;
   };
   icon?: string;
   knowledge_sources?: KnowledgeSourceItem[];
@@ -51,6 +52,10 @@ export interface KnowledgeSource {
   nestedItems?: Record<string, boolean>;
   updated_at?: string;
   training_status?: string;
+  is_selected?: boolean;
+  title?: string;
+  url?: string;
+  file?: string | null;
 }
 
 export interface AgentReference {

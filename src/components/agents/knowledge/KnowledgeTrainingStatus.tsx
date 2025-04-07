@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off, RefreshCw } from 'lucide-react';
+import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { KnowledgeSource, UrlNode } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
-import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, getKnowledgeBaseEndpoint } from '@/utils/api-config';
+import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 
 interface KnowledgeTrainingStatusProps {
