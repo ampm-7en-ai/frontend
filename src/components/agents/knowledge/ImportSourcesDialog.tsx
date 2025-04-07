@@ -673,7 +673,7 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={30} defaultSize={50}>
+          <ResizablePanel minSize={30} defaultSize={40}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-2">
@@ -683,7 +683,6 @@ export const ImportSourcesDialog = ({
                     </div>
                   ) : (
                     filteredSources.map((source) => {
-                      const firstKnowledgeSource = source.knowledge_sources?.[0];
                       const alreadyImported = isSourceAlreadyImported(source.id);
                       const isSelected = selectedSources.has(source.id);
                       const hasExpandableContent = hasUrlStructure(source) || hasNestedFiles(source);
@@ -731,33 +730,17 @@ export const ImportSourcesDialog = ({
                                 </span>
                               </div>
                               
-                              <div className="text-xs text-muted-foreground mt-1 flex items-center flex-wrap">
-                                <span className="mr-3">Type: {source.type}</span>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                <span className="mr-2">Type: {source.type}</span>
                                 
                                 {!isPlainText && fileCount > 0 && (
-                                  <span className="mr-3 font-medium text-gray-700">
+                                  <span className="font-medium text-gray-700">
                                     {fileCount} {fileCount === 1 ? 'item' : 'items'}
                                   </span>
                                 )}
                                 
-                                {firstKnowledgeSource?.metadata?.no_of_pages && (
-                                  <span className="mr-3">{firstKnowledgeSource.metadata.no_of_pages} pages</span>
-                                )}
-                                
-                                {firstKnowledgeSource?.metadata?.no_of_rows && (
-                                  <span className="mr-3">{firstKnowledgeSource.metadata.no_of_rows} rows</span>
-                                )}
-                                
-                                {firstKnowledgeSource?.metadata?.file_size && (
-                                  <span className="mr-3">
-                                    Size: {formatFileSizeToMB(firstKnowledgeSource.metadata.file_size)}
-                                  </span>
-                                )}
-                                
-                                {firstKnowledgeSource?.metadata?.upload_date && (
-                                  <span>
-                                    Uploaded: {new Date(firstKnowledgeSource.metadata.upload_date).toLocaleDateString()}
-                                  </span>
+                                {source.type === 'website' && source.knowledge_sources?.[0]?.metadata?.no_of_pages && (
+                                  <span className="ml-2">{source.knowledge_sources[0].metadata.no_of_pages} pages</span>
                                 )}
                               </div>
                             </div>
@@ -777,7 +760,7 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={15} defaultSize={30}>
+          <ResizablePanel minSize={15} defaultSize={40}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2">
