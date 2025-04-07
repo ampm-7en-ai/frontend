@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -381,78 +382,57 @@ const KnowledgeSourceTable = ({
   };
 
   const shouldShowExpandableContent = (source: KnowledgeSource) => {
+    // Always show expandable content for 'docs' and 'csv' types to display nested files
+    if (source.type === 'docs' || source.type === 'csv') {
+      return true;
+    }
+    
     return source.type === 'webpage' || 
            source.documents?.length > 0 || 
            source.type === 'url' || 
-           source.type === 'website' ||
-           source.type === 'docs' ||
-           source.type === 'csv';
+           source.type === 'website';
   };
 
-  const renderFileContent = (source: KnowledgeSource) => {
-    if (source.type === 'docs' || source.type === 'csv') {
-      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
-        const selectedFiles = source.knowledge_sources.filter(file => file.selected);
-        
-        if (selectedFiles.length === 0) {
-          return (
-            <div className="py-2 px-4 text-sm text-muted-foreground">
-              No files selected for training. All files will be included.
-            </div>
-          );
-        }
-        
-        return (
-          <div className="px-2 py-2">
-            <div className="text-sm font-medium mb-2">Selected Files ({selectedFiles.length})</div>
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {selectedFiles.map((file) => (
-                <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
-                  <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
-                  <File className="h-3 w-3 mr-2 text-blue-500" />
-                  <span className="truncate flex-1" title={file.title || file.name}>
-                    {file.title || file.name}
-                  </span>
-                  {file.metadata?.file_size && (
-                    <span className="text-muted-foreground">
-                      {formatFileSizeToMB(file.metadata.file_size)}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-      
-      const selectedDocs = source.documents?.filter(doc => doc.selected) || [];
-      
-      if (selectedDocs.length === 0) {
-        return (
-          <div className="py-2 px-4 text-sm text-muted-foreground">
-            No files selected for training. All files will be included.
-          </div>
-        );
-      }
-      
+  const renderNestedFilesContent = (source: KnowledgeSource) => {
+    if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
       return (
-        <div className="px-2 py-2">
-          <div className="text-sm font-medium mb-2">Selected Files ({selectedDocs.length})</div>
-          <div className="space-y-1 max-h-40 overflow-y-auto">
-            {selectedDocs.map((doc) => (
-              <div key={doc.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
-                <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
-                <File className="h-3 w-3 mr-2 text-blue-500" />
-                <span className="truncate flex-1" title={doc.name}>{doc.name}</span>
-                <span className="text-muted-foreground">{formatFileSizeToMB(doc.size)}</span>
-              </div>
-            ))}
-          </div>
+        <div className="py-2 px-4 text-sm text-muted-foreground">
+          No files selected for training. All files will be included.
         </div>
       );
     }
     
-    return null;
+    const selectedFiles = source.knowledge_sources.filter(file => file.selected);
+    
+    if (selectedFiles.length === 0) {
+      return (
+        <div className="py-2 px-4 text-sm text-muted-foreground">
+          No files selected for training. All files will be included.
+        </div>
+      );
+    }
+    
+    return (
+      <div className="px-2 py-2">
+        <div className="text-sm font-medium mb-2">Selected Nested Files ({selectedFiles.length})</div>
+        <div className="space-y-1 max-h-40 overflow-y-auto">
+          {selectedFiles.map((file) => (
+            <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+              <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
+              <File className="h-3 w-3 mr-2 text-blue-500" />
+              <span className="truncate flex-1" title={file.title || file.name}>
+                {file.title || file.name}
+              </span>
+              {file.metadata?.file_size && (
+                <span className="text-muted-foreground">
+                  {formatFileSizeToMB(file.metadata.file_size)}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -545,6 +525,7 @@ const KnowledgeSourceTable = ({
                           </>
                         )}
                         
+                        {getSelectedChildUrls(source)}
                         {getSelectedNestedFiles(source)}
                       </>
                     )}
@@ -640,7 +621,8 @@ const KnowledgeSourceTable = ({
                             {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
                             
-                            {(source.type === 'docs' || source.type === 'csv') && renderFileContent(source)}
+                            {(source.type === 'docs' || source.type === 'csv') && source.knowledge_sources && 
+                              source.knowledge_sources.some(ks => ks.selected) && renderNestedFilesContent(source)}
                             
                             {source.documents?.length > 0 && getDocumentsContent(source)}
                           </div>
