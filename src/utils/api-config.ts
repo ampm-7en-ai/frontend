@@ -451,3 +451,32 @@ export const addFileToKnowledgeBase = async (knowledgeBaseId: number, file: File
     throw error;
   }
 };
+
+// Function to add knowledge sources to an agent
+export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSources: number[], selectedKnowledgeSources: string[]): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  try {
+    const response = await fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources`, {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({
+        knowledgeSources,
+        selected_knowledge_sources: selectedKnowledgeSources
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(errorData.message || `Failed to add knowledge sources: ${response.status}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error adding knowledge sources to agent:', error);
+    throw error;
+  }
+};

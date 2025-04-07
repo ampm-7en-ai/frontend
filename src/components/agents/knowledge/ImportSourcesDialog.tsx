@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { KnowledgeSource, UrlNode } from './types';
 import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
-import { formatFileSizeToMB, getKnowledgeBaseEndpoint } from '@/utils/api-config';
+import { formatFileSizeToMB, getKnowledgeBaseEndpoint, addKnowledgeSourcesToAgent } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { renderSourceIcon } from './knowledgeUtils';
@@ -405,24 +406,41 @@ export const ImportSourcesDialog = ({
     }
     
     try {
-      const payload = {
-        sourceIds: sourceIdsToImport,
-        selectedSubUrls: Object.fromEntries(
-          Object.entries(selectedSubUrls).map(([key, value]) => [key, Array.from(value)])
-        ),
-        selectedFiles: Object.fromEntries(
-          Object.entries(selectedFiles).map(([key, value]) => [key, Array.from(value)])
-        ),
-        agentId
-      };
+      // Convert selectedSubUrls and selectedFiles to a single array of selected knowledge source IDs
+      const allSelectedIds: string[] = [];
+      
+      // Add selected URLs
+      Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
+        urlSet.forEach(url => {
+          allSelectedIds.push(url);
+        });
+      });
+      
+      // Add selected files
+      Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
+        fileSet.forEach(fileId => {
+          allSelectedIds.push(fileId);
+        });
+      });
       
       toast({
         title: "Importing knowledge sources",
         description: "Your selected sources are being imported...",
       });
       
+      if (agentId) {
+        // Use the API endpoint to add knowledge sources to the agent
+        await addKnowledgeSourcesToAgent(agentId, sourceIdsToImport, allSelectedIds);
+        
+        toast({
+          title: "Import successful",
+          description: "Knowledge sources have been added to the agent.",
+        });
+      }
+      
       onOpenChange(false);
       
+      // Call the onImport callback to notify the parent component
       onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
       
     } catch (error) {

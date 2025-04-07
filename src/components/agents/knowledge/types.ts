@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -45,6 +44,7 @@ export interface KnowledgeSource {
   selected?: boolean; // Track selection state
   selectedSubUrls?: Set<string>; // Store selected sub URLs
   agents?: AgentReference[]; // Add agents array to match API structure
+  nestedItems?: Record<string, boolean>; // Map of nested item IDs to their selection state
 }
 
 export interface AgentReference {
@@ -121,4 +121,9 @@ export interface SourceAnalysis {
   hasChildren: boolean;
   childrenCount: number;
   structure?: string;
+}
+
+export interface ImportKnowledgeSourcesPayload {
+  knowledgeSources: number[];
+  selected_knowledge_sources: string[];
 }
