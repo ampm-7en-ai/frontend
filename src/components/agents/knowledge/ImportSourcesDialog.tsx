@@ -142,10 +142,12 @@ export const ImportSourcesDialog = ({
     
     externalSources.forEach(source => {
       counts.all.count++;
-      if (counts[source.type as keyof typeof counts]) {
-        counts[source.type as keyof typeof counts].count++;
+      const sourceType = source.type as keyof typeof counts;
+      if (counts[sourceType]) {
+        counts[sourceType].count++;
       }
-      if (source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') {
+      
+      if (source.type === 'docs') {
         counts.docs.count++;
       }
     });
@@ -157,7 +159,7 @@ export const ImportSourcesDialog = ({
     return selectedType === 'all' 
       ? externalSources 
       : selectedType === 'docs'
-        ? externalSources.filter(source => source.type === 'pdf' || source.type === 'docx' || source.type === 'docs')
+        ? externalSources.filter(source => source.type === 'docs')
         : externalSources.filter(source => source.type === selectedType);
   }, [selectedType, externalSources]);
 
