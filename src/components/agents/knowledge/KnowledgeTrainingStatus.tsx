@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, getKnowledgeBaseEndpoint } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
-import KnowledgeSourceCard from './KnowledgeSourceCard';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -41,7 +41,7 @@ const KnowledgeTrainingStatus = ({
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<any[]>([]);
-
+  
   const fetchKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
       console.log("Using cached knowledge bases instead of fetching");
@@ -144,11 +144,7 @@ const KnowledgeTrainingStatus = ({
   const transformAgentKnowledgeSources = (data) => {
     if (!data) return [];
     
-    // First pass: create a map of all sources
-    const sourcesMap = new Map();
-    const rootSources: KnowledgeSource[] = [];
-    
-    data.forEach(source => {
+    return data.map(source => {
       let trainingStatus: 'idle' | 'training' | 'success' | 'error' = 'idle';
       const status = source.training_status || 'idle';
       
@@ -189,7 +185,7 @@ const KnowledgeTrainingStatus = ({
         }
       }
       
-      const knowledgeSource: KnowledgeSource = {
+      return {
         id: source.id,
         name: source.name || 'Unnamed source',
         type: source.type || 'document',
@@ -200,40 +196,9 @@ const KnowledgeTrainingStatus = ({
         linkBroken: source.link_broken || false,
         crawlOptions: source.crawl_options || 'single',
         insideLinks: insideLinks.length > 0 ? insideLinks : source.insideLinks || [],
-        metadata: source.metadata || {},
-        knowledge_sources: source.knowledge_sources || [],
-        title: source.title || source.name || 'Unnamed source',
-        is_selected: source.is_selected || source.selected || false,
-        selected: source.selected || source.is_selected || false,
-        url: source.url || null
+        metadata: source.metadata || {}
       };
-      
-      sourcesMap.set(source.id, knowledgeSource);
-      
-      // Check if it's a root source
-      if (!source.parent_knowledge_source) {
-        rootSources.push(knowledgeSource);
-      }
     });
-    
-    // Second pass: organize child sources
-    data.forEach(source => {
-      if (source.parent_knowledge_source) {
-        const parentSource = sourcesMap.get(source.parent_knowledge_source);
-        if (parentSource) {
-          if (!parentSource.knowledge_sources) {
-            parentSource.knowledge_sources = [];
-          }
-          
-          const childSource = sourcesMap.get(source.id);
-          if (childSource) {
-            (parentSource.knowledge_sources as KnowledgeSource[]).push(childSource);
-          }
-        }
-      }
-    });
-    
-    return rootSources;
   };
 
   const processSelectedSubUrls = (urlNode: UrlNode, selectedUrls: Set<string>, result: UrlNode[] = []): UrlNode[] => {
@@ -546,53 +511,6 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  const renderKnowledgeSourcesList = () => {
-    if (knowledgeSources.length === 0) {
-      return (
-        <div className="border rounded-md p-8 text-center">
-          <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
-          <Button
-            variant="outline"
-            onClick={() => {
-              loadKnowledgeBases();
-              setIsImportDialogOpen(true);
-            }}
-            className="flex items-center gap-1"
-          >
-            <Import className="h-4 w-4" />
-            Import Sources
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-4">
-        {knowledgeSources.map(source => {
-          const hasNestedSources = source.knowledge_sources && source.knowledge_sources.length > 0;
-          
-          return (
-            <KnowledgeSourceCard
-              key={source.id}
-              source={source}
-              onTrain={trainSource}
-              onRemove={removeSource}
-              hasNestedSources={hasNestedSources}
-              nestedSources={source.knowledge_sources || []}
-            />
-          );
-        })}
-        
-        {needsRetraining && knowledgeSources.length > 0 && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
-            <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -663,10 +581,152 @@ const KnowledgeTrainingStatus = ({
               </Button>
             </div>
             
-            {renderKnowledgeSourcesList()}
+            {knowledgeSources.length > 0 ? (
+              <>
+                <div className="space-y-4">
+                  {knowledgeSources.map(source => (
+                    <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium">{source.name}</div>
+                        <div className="text-sm text-muted-foreground">{source.type} • {source.size}</div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {source.trainingStatus === 'idle' ? (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => trainSource(source.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <Zap className="h-3.5 w-3.5" />
+                            Train
+                          </Button>
+                        ) : source.trainingStatus === 'training' ? (
+                          <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+                            <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                            Training...
+                          </Button>
+                        ) : source.trainingStatus === 'success' ? (
+                          <div className="text-green-600 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <span className="text-sm">Trained</span>
+                          </div>
+                        ) : (
+                          <div className="text-red-600 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            <span className="text-sm">Failed</span>
+                          </div>
+                        )}
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => removeSource(source.id)} 
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {needsRetraining && knowledgeSources.length > 0 && (
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="border rounded-md p-8 text-center">
+                <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    loadKnowledgeBases();
+                    setIsImportDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Import className="h-4 w-4" />
+                  Import Sources
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
-          renderKnowledgeSourcesList()
+          <>
+            <div className="space-y-4">
+              {knowledgeSources.map(source => (
+                <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">{source.name}</div>
+                    <div className="text-sm text-muted-foreground">{source.type} • {source.size}</div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {source.trainingStatus === 'idle' ? (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => trainSource(source.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <Zap className="h-3.5 w-3.5" />
+                        Train
+                      </Button>
+                    ) : source.trainingStatus === 'training' ? (
+                      <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+                        <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                        Training...
+                      </Button>
+                    ) : source.trainingStatus === 'success' ? (
+                      <div className="text-green-600 flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        <span className="text-sm">Trained</span>
+                      </div>
+                    ) : (
+                      <div className="text-red-600 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        <span className="text-sm">Failed</span>
+                      </div>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => removeSource(source.id)} 
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {needsRetraining && knowledgeSources.length > 0 && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+              </div>
+            )}
+            
+            {knowledgeSources.length === 0 && (
+              <div className="border rounded-md p-8 text-center">
+                <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    loadKnowledgeBases();
+                    setIsImportDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Import className="h-4 w-4" />
+                  Import Sources
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
 

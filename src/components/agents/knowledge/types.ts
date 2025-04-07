@@ -42,7 +42,7 @@ export interface KnowledgeSource {
     };
   };
   icon?: string;
-  knowledge_sources?: KnowledgeSourceItem[] | KnowledgeSource[];
+  knowledge_sources?: KnowledgeSourceItem[];
   format?: string;
   pages?: string;
   selected?: boolean;
@@ -51,7 +51,6 @@ export interface KnowledgeSource {
   nestedItems?: Record<string, boolean>;
   updated_at?: string;
   training_status?: string;
-  parent_knowledge_source?: number | null;
 }
 
 export interface AgentReference {
