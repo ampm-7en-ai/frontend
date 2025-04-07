@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -140,4 +139,44 @@ export interface SourceAnalysis {
 export interface ImportKnowledgeSourcesPayload {
   knowledgeSources: number[];
   selected_knowledge_sources: string[];
+}
+
+export interface ApiKnowledgeBase {
+  id: number;
+  name: string;
+  type: string;
+  metadata: any;
+  last_updated: string;
+  training_status: string;
+  status: string;
+  knowledge_sources: ApiKnowledgeSource[];
+  owner: number;
+  agents: AgentReference[];
+  is_selected: boolean;
+  is_linked: boolean;
+}
+
+export interface ApiKnowledgeSource {
+  id: number;
+  url: string | null;
+  file: string | null;
+  title: string;
+  status: string;
+  knowledge_base: number;
+  parent_knowledge_source: number | null;
+  metadata: any;
+  owner: number;
+  sub_knowledge_sources: ApiKnowledgeSource[];
+  is_selected: boolean;
+  sub_urls?: {
+    key: string;
+    url: string;
+    is_selected: boolean;
+    children: Array<{
+      key: string;
+      url: string;
+      is_selected: boolean;
+      children: any[];
+    }>;
+  };
 }

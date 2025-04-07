@@ -83,68 +83,54 @@ export const getAccessToken = (): string | null => {
 };
 
 // Function to convert file size to MB or KB format
-export const formatFileSizeToMB = (size: string | number): string => {
-  if (!size) return 'N/A';
-  
-  // If size is already a string that ends with MB or KB, return it as is
-  if (typeof size === 'string' && (size.toUpperCase().endsWith('MB') || size.toUpperCase().endsWith('KB'))) {
-    return size;
+export const formatFileSizeToMB = (bytes: string | number): string => {
+  if (typeof bytes === 'string') {
+    bytes = parseInt(bytes, 10);
   }
+
+  if (isNaN(bytes) || bytes === 0) return '0 KB';
+
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
   
-  // Convert string to number if needed
-  let sizeInBytes: number;
-  if (typeof size === 'string') {
-    // Handle strings like "1.5 KB" or "500 B"
-    const match = size.match(/^([\d.]+)\s*([KMG]?B)$/i);
-    if (match) {
-      const value = parseFloat(match[1]);
-      const unit = match[2].toUpperCase();
-      
-      switch (unit) {
-        case 'B': sizeInBytes = value; break;
-        case 'KB': sizeInBytes = value * 1024; break;
-        case 'MB': return `${value} MB`; // Already in MB
-        case 'GB': sizeInBytes = value * 1024 * 1024 * 1024; break;
-        default: sizeInBytes = 0;
-      }
-    } else {
-      // Try to parse as a number
-      sizeInBytes = parseFloat(size);
-      if (isNaN(sizeInBytes)) return 'N/A';
-    }
-  } else {
-    sizeInBytes = size;
-  }
+  if (i === 0) return `${bytes} ${sizes[i]}`;
   
-  // Convert to MB with 2 decimal places
-  const sizeInMB = sizeInBytes / (1024 * 1024);
-  
-  // Format the output - use KB for smaller files
-  if (sizeInMB < 1) {
-    // Show in KB if less than 1 MB
-    const sizeInKB = sizeInBytes / 1024;
-    return `${sizeInKB.toFixed(2)} KB`;
-  } else {
-    return `${sizeInMB.toFixed(2)} MB`;
-  }
+  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
 };
 
 // Function to get source metadata information based on source type
-export const getSourceMetadataInfo = (source: any): { count: string, size: string } => {
-  const metadata = source.metadata || {};
-  let count = '';
+export const getSourceMetadataInfo = (source: { type: string, metadata: any }): { count: string, size: string } => {
+  const result = { count: '', size: 'N/A' };
   
-  if (source.type === 'plain_text' && metadata.no_of_chars) {
-    count = `${metadata.no_of_chars} characters`;
-  } else if (source.type === 'csv' && metadata.no_of_rows) {
-    count = `${metadata.no_of_rows} rows`;
-  } else if ((source.type === 'docs' || source.type === 'website' || source.type === 'pdf') && metadata.no_of_pages) {
-    count = `${metadata.no_of_pages} pages`;
+  if (!source || !source.metadata) return result;
+  
+  // Handle file size
+  if (source.metadata.file_size) {
+    result.size = formatFileSizeToMB(source.metadata.file_size);
+  } else if (source.metadata.size) {
+    result.size = formatFileSizeToMB(source.metadata.size);
   }
   
-  const size = metadata.file_size ? formatFileSizeToMB(metadata.file_size) : 'N/A';
+  // Handle count metrics depending on source type
+  if (source.type === 'document' || source.type === 'pdf') {
+    if (source.metadata.no_of_pages) {
+      result.count = `${source.metadata.no_of_pages} page${source.metadata.no_of_pages !== 1 ? 's' : ''}`;
+    }
+  } else if (source.type === 'website') {
+    if (source.metadata.no_of_pages) {
+      result.count = `${source.metadata.no_of_pages} page${source.metadata.no_of_pages !== 1 ? 's' : ''}`;
+    }
+  } else if (source.type === 'csv') {
+    if (source.metadata.no_of_rows) {
+      result.count = `${source.metadata.no_of_rows} row${source.metadata.no_of_rows !== 1 ? 's' : ''}`;
+    }
+  } else if (source.type === 'plain_text') {
+    if (source.metadata.no_of_chars) {
+      result.count = `${source.metadata.no_of_chars} character${source.metadata.no_of_chars !== 1 ? 's' : ''}`;
+    }
+  }
   
-  return { count, size };
+  return result;
 };
 
 // Function to fetch agent details (including knowledge bases)

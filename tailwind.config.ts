@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -151,12 +150,22 @@ export default {
 				'pulse': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.5' },
-				}
+				},
+				'collapsible-down': {
+					"0%": { height: "0", opacity: "0" },
+					"100%": { height: "var(--radix-collapsible-content-height)", opacity: "1" },
+				},
+				'collapsible-up': {
+					"0%": { height: "var(--radix-collapsible-content-height)", opacity: "1" },
+					"100%": { height: "0", opacity: "0" },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'collapsible-down': 'collapsible-down 0.2s ease-out',
+				'collapsible-up': 'collapsible-up 0.2s ease-out',
 			},
 			backgroundImage: {
 				'blue-gradient': 'linear-gradient(90deg, #0066FF 0%, #0052CC 100%)',
