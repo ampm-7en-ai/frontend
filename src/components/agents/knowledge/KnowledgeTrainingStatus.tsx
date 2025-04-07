@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ import {
   formatFileSizeToMB, 
   getSourceMetadataInfo, 
   getKnowledgeBaseEndpoint 
-} from '@/utils/api-config';
+} from '@/utils/api';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import {
