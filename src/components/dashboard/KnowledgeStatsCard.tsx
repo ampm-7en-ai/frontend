@@ -1,10 +1,9 @@
-
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Layers, BookOpen, FileSpreadsheet, Globe, FileText } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { useQuery } from '@tanstack/react-query';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api';
 
 const KnowledgeStatsCard = () => {
   const fetchKnowledgeBases = async () => {

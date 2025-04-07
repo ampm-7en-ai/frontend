@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
-import { createAgent } from '@/utils/api-config';
+import { createAgent } from '@/utils/api';
 
 const AgentCreate = () => {
   const { toast } = useToast();

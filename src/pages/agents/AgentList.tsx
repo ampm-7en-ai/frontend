@@ -1,4 +1,5 @@
 
+// Update imports to use the new api module
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bot, Search } from 'lucide-react';
 import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
-import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
+import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';

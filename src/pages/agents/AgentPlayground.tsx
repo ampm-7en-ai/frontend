@@ -1,4 +1,5 @@
 
+// Update imports to use the new api module
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Bot, ArrowLeft, User, SendHorizontal } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { fetchAgentDetails } from '@/utils/api-config';
+import { fetchAgentDetails } from '@/utils/api';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 type Message = {

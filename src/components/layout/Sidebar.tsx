@@ -33,7 +33,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api';
 
 interface SidebarProps {
   isCollapsed: boolean;

@@ -1,9 +1,10 @@
 
+// Update imports to use the new api module
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
