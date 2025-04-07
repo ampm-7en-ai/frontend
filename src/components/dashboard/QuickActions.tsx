@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { 
   PlusCircle, 
@@ -9,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api';
+import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
 type QuickActionsProps = {
   className?: string;

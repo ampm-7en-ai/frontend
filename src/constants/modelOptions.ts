@@ -1,15 +1,15 @@
 
-export const MODELS = [
-  { value: 'gpt4', label: 'GPT-4' },
-  { value: 'gpt35', label: 'GPT-3.5' },
-  { value: 'llama', label: 'Llama 3' },
-  { value: 'anthropic', label: 'Claude (Anthropic)' },
-  { value: 'deepseek', label: 'DeepSeek' }
-];
+export const MODELS = {
+  'gpt4': { name: 'GPT-4', provider: 'OpenAI' },
+  'gpt35': { name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
+  'anthropic': { name: 'Claude 3', provider: 'Anthropic' },
+  'mistral': { name: 'Mistral 7B', provider: 'Mistral AI' },
+  'llama': { name: 'Llama-3.1-70B-Instruct', provider: 'Meta AI' },
+  'gemini': { name: 'Gemini Pro', provider: 'Google' },
+  'mixtral': { name: 'Mixtral 8x7B', provider: 'Mistral AI' },
+  'deepseek': { name: 'DeepSeek-R1', provider: 'DeepSeek' }
+};
 
-export const DEFAULT_SYSTEM_PROMPT = "You are a helpful AI assistant. Your goal is to assist users with their questions and problems in a clear and concise manner.";
-
-export const getModelDisplay = (modelId: string): string => {
-  const model = MODELS.find(m => m.value === modelId);
-  return model ? model.label : modelId;
+export const getModelDisplay = (modelKey: string): string => {
+  return (MODELS as any)[modelKey]?.name || modelKey;
 };

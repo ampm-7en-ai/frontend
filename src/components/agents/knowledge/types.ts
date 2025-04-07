@@ -1,3 +1,4 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -48,8 +49,6 @@ export interface KnowledgeSource {
   selectedSubUrls?: Set<string>;
   agents?: AgentReference[];
   nestedItems?: Record<string, boolean>;
-  isExpanded?: boolean;
-  expandedUrlSections?: Record<string, boolean>;
 }
 
 export interface AgentReference {

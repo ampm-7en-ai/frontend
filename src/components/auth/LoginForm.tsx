@@ -1,5 +1,4 @@
 
-// Update imports to use the new api module
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { getApiUrl, API_ENDPOINTS } from '@/utils/api';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
 
 const loginSchema = z.object({

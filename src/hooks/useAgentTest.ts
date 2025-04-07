@@ -1,19 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from './use-toast';
-import { MODELS, getModelDisplay } from '@/constants/modelOptions';
-import { Message } from '@/types/chat';
-import { Agent, KnowledgeSource } from '@/types/agent';
-import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken, fetchAgentDetails } from '@/utils/api';
+import { Agent, Message, ChatConfig } from '@/components/agents/modelComparison/types';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 
-interface ChatConfig {
-  model: string;
-  temperature: number;
-  systemPrompt: string;
-  maxLength: number;
-}
-
+// Mock data for fallback
 const mockAgents = [
   {
     id: "1",
@@ -129,6 +123,7 @@ export const useAgentTest = (initialAgentId: string) => {
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
   const [primaryColors, setPrimaryColors] = useState<string[]>(['#9b87f5', '#33C3F0', '#6E59A5']);
 
+  // Fetch all agents
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
@@ -154,6 +149,7 @@ export const useAgentTest = (initialAgentId: string) => {
         const data = await response.json();
         console.log('All agents data received:', data);
         
+        // Transform the API response to match our UI needs
         return data.agents?.map((agent: any) => ({
           id: agent.id.toString(),
           name: agent.name,
@@ -169,6 +165,7 @@ export const useAgentTest = (initialAgentId: string) => {
     retry: 1,
   });
 
+  // Fetch specific agent details
   const { data: agentData, isLoading: isLoadingAgent, refetch: refetchAgent } = useQuery({
     queryKey: ['agent', selectedAgentId],
     queryFn: async () => {
@@ -186,10 +183,12 @@ export const useAgentTest = (initialAgentId: string) => {
     retry: 1,
   });
 
+  // Process agent data when available
   useEffect(() => {
     if (agentData) {
       console.log('Agent details data received successfully:', agentData);
       
+      // Create properly typed knowledge sources
       const knowledgeSources: KnowledgeSource[] = agentData.knowledge_bases?.map((kb: any, index: number) => ({
         id: kb.id || index,
         name: kb.name || `Source ${index + 1}`,
@@ -202,6 +201,7 @@ export const useAgentTest = (initialAgentId: string) => {
         content: kb.content || ""
       })) || [];
       
+      // Extract avatar source from the agent's appearance if available
       const avatarSrc = agentData.appearance?.avatar?.src || '';
       
       const transformedAgent: Agent = {
@@ -220,8 +220,10 @@ export const useAgentTest = (initialAgentId: string) => {
       
       setAgent(transformedAgent);
       
+      // Extract primary color from appearance if available, or use defaults
       const primaryColor = agentData.appearance?.primaryColor || '#9b87f5';
       
+      // Create color variations for each model
       const newPrimaryColors = [
         primaryColor,
         adjustColor(primaryColor, 30),
@@ -241,21 +243,26 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   }, [agentData, selectedAgentId, numModels]);
 
+  // Helper function to adjust colors
   const adjustColor = (color: string, amount: number): string => {
     try {
+      // Default color if input is invalid
       if (!color || !color.startsWith('#') || color.length !== 7) {
         return amount > 0 ? '#33C3F0' : '#6E59A5';
       }
 
+      // Convert hex color to RGB
       const hex = color.replace('#', '');
       const r = parseInt(hex.substring(0, 2), 16);
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
 
+      // Adjust the color
       const newR = Math.max(0, Math.min(255, r + amount));
       const newG = Math.max(0, Math.min(255, g + amount));
       const newB = Math.max(0, Math.min(255, b + amount));
 
+      // Convert back to hex
       return `#${Math.round(newR).toString(16).padStart(2, '0')}${Math.round(newG).toString(16).padStart(2, '0')}${Math.round(newB).toString(16).padStart(2, '0')}`;
     } catch (error) {
       console.error("Error adjusting color:", error);
@@ -263,6 +270,7 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   };
 
+  // Handle errors in fetching agent details
   useEffect(() => {
     if (agentData === undefined && !isLoadingAgent) {
       console.error('Error or no data fetching agent');
@@ -274,6 +282,7 @@ export const useAgentTest = (initialAgentId: string) => {
       
       const mockAgent = mockAgents.find(a => a.id === selectedAgentId);
       if (mockAgent) {
+        // Create properly typed knowledge sources for the mock agent
         const knowledgeSources: KnowledgeSource[] = mockAgent.knowledgeSources || [];
         
         setAgent({
@@ -289,6 +298,7 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   }, [agentData, isLoadingAgent, selectedAgentId, toast]);
 
+  // Force refetch on mount and when selectedAgentId changes
   useEffect(() => {
     console.log("Component mounted or selectedAgentId changed, refetching");
     if (selectedAgentId) {
@@ -362,7 +372,7 @@ export const useAgentTest = (initialAgentId: string) => {
           sender: senderType,
           model: chatConfigs[i].model,
           timestamp: new Date(),
-          avatarSrc: agent?.avatarSrc
+          avatarSrc: agent?.avatarSrc  // Add the agent's avatar to the message
         };
         
         setMessages(prev => {
@@ -392,6 +402,7 @@ export const useAgentTest = (initialAgentId: string) => {
   };
 
   return {
+    // State
     selectedAgentId,
     agent,
     chatConfigs,
@@ -403,9 +414,11 @@ export const useAgentTest = (initialAgentId: string) => {
     allAgents,
     primaryColors,
     
+    // Loading states
     isLoadingAgents,
     isLoadingAgent,
     
+    // Action handlers
     handleAgentChange,
     handleUpdateChatConfig,
     handleSystemPromptEdit,
@@ -417,6 +430,7 @@ export const useAgentTest = (initialAgentId: string) => {
     setIsModalOpen,
     setIsSystemPromptOpen,
     
+    // Utilities
     refetchAgent
   };
 };

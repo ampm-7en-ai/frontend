@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api';
+import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
 
 // Define user role types
 export type UserRole = 'user' | 'admin' | 'superadmin';

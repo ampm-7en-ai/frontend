@@ -2,556 +2,715 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  CheckCircle, 
-  LoaderCircle, 
-  AlertCircle, 
-  Zap, 
-  Import, 
-  Trash2, 
-  Link2Off, 
-  RefreshCw,
-  ChevronRight,
-  ChevronDown,
-  FileText,
-  Globe,
-  Folder
-} from 'lucide-react';
+import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, Link2Off, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { KnowledgeSource, UrlNode } from '@/types/agent';
-import ImportSourcesDialog from './ImportSourcesDialog';
+import { KnowledgeSource, UrlNode } from './types';
+import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
-import { 
-  BASE_URL, 
-  API_ENDPOINTS, 
-  getAuthHeaders, 
-  getAccessToken, 
-  formatFileSizeToMB, 
-  getSourceMetadataInfo, 
-  getKnowledgeBaseEndpoint 
-} from '@/utils/api';
+import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, getKnowledgeBaseEndpoint } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/components/ui/badge';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from "@/components/ui/collapsible";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface KnowledgeTrainingStatusProps {
-  agentId?: string;
+  agentId: string;
+  initialSelectedSources?: number[];
+  onSourcesChange?: (selectedSourceIds: number[]) => void;
+  preloadedKnowledgeSources?: any[];  
+  isLoading?: boolean;
+  loadError?: string | null;
 }
 
-// Helper functions for toast messages
-const getToastMessageForSourceChange = (source: KnowledgeSource) => {
-  if (source.trainingStatus === 'error') {
-    return {
-      title: "Error Processing Knowledge",
-      description: `Error processing ${source.name}. Please check the source and try again.`,
-      variant: "destructive"
-    };
-  }
+const KnowledgeTrainingStatus = ({ 
+  agentId, 
+  initialSelectedSources = [], 
+  onSourcesChange,
+  preloadedKnowledgeSources = [],
+  isLoading = false,
+  loadError = null
+}: KnowledgeTrainingStatusProps) => {
+  const { toast } = useToast();
   
-  if (source.linkBroken) {
-    return {
-      title: "Broken Link Detected",
-      description: `Link for ${source.name} appears to be broken. Please update the source.`,
-      variant: "destructive"
-    };
-  }
-  
-  return {
-    title: "Knowledge Source Updated",
-    description: `${source.name} has been successfully processed.`
-  };
-};
-
-const getTrainingStatusToast = () => {
-  return {
-    title: "Training Started",
-    description: "Your knowledge base is being trained. This may take a few minutes.",
-  };
-};
-
-const getRetrainingRequiredToast = () => {
-  return {
-    title: "Retraining Recommended",
-    description: "Some knowledge sources have changed and require retraining.",
-    variant: "warning"
-  };
-};
-
-const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agentId }) => {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [knowledgeSourceToDelete, setKnowledgeSourceToDelete] = useState<KnowledgeSource | null>(null);
-  const [isRetrainingRequired, setIsRetrainingRequired] = useState(false);
-  const [expandedStates, setExpandedStates] = useState<Record<number, boolean>>({});
-  const [expandedUrlSections, setExpandedUrlSections] = useState<Record<string, boolean>>({});
-  const toastRef = useRef(useToast());
-  const { toast } = toastRef.current;
+  const [isTrainingAll, setIsTrainingAll] = useState(false);
+  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
+  const [needsRetraining, setNeedsRetraining] = useState(true);
+  const [showTrainingAlert, setShowTrainingAlert] = useState(false);
+  
+  const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
+  const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
+  const [showFallbackUI, setShowFallbackUI] = useState(false);
+  const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
+  const cachedKnowledgeBases = useRef<any[]>([]);
+  
+  const fetchKnowledgeBases = async () => {
+    if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
+      console.log("Using cached knowledge bases instead of fetching");
+      return cachedKnowledgeBases.current;
+    }
 
-  const fetchKnowledgeSources = async () => {
     try {
       const token = getAccessToken();
       if (!token) {
         throw new Error('Authentication required');
       }
 
-      let apiUrl = getKnowledgeBaseEndpoint();
-      if (agentId) {
-        apiUrl += `&agent_id=${agentId}`;
-      }
-
-      const response = await fetch(apiUrl, {
+      console.log(`Fetching knowledge bases from API with agentId: ${agentId}`);
+      const endpoint = getKnowledgeBaseEndpoint(agentId);
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
         headers: getAuthHeaders(token),
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch knowledge sources: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch knowledge bases');
       }
 
       const data = await response.json();
-      return data || [];
-    } catch (error: any) {
-      console.error('Error fetching knowledge sources:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to fetch knowledge sources.',
-        variant: 'destructive',
-      });
-      return [];
+      
+      cachedKnowledgeBases.current = data;
+      setKnowledgeBasesLoaded(true);
+      
+      return data;
+    } catch (error) {
+      console.error('Error fetching knowledge bases:', error);
+      throw error;
     }
   };
 
-  const {
-    data: knowledgeSources,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['knowledgeSources', agentId],
-    queryFn: fetchKnowledgeSources,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const formatExternalSources = (data) => {
+    if (!data) return [];
+    
+    return data.map(kb => {
+      const firstSource = kb.knowledge_sources && kb.knowledge_sources.length > 0 
+        ? kb.knowledge_sources[0] 
+        : null;
+
+      const metadataInfo = firstSource ? getSourceMetadataInfo({
+        type: kb.type,
+        metadata: firstSource.metadata
+      }) : { count: '', size: 'N/A' };
+        
+      const uploadDate = firstSource && firstSource.metadata && firstSource.metadata.upload_date 
+        ? formatDate(firstSource.metadata.upload_date) 
+        : formatDate(kb.last_updated);
+
+      let urlStructure = null;
+      if (kb.type === 'website' && firstSource && firstSource.metadata) {
+        if (firstSource.metadata.sub_urls) {
+          urlStructure = firstSource.metadata.sub_urls;
+        }
+      }
+
+      return {
+        id: kb.id,
+        name: kb.name,
+        type: kb.type,
+        size: metadataInfo.size,
+        lastUpdated: uploadDate,
+        trainingStatus: 'idle' as const,
+        linkBroken: false,
+        knowledge_sources: kb.knowledge_sources,
+        metadata: kb.metadata || {}
+      };
+    });
+  };
+
+  const getMimeTypeForFormat = (type) => {
+    switch(type) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'xlsx':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'csv':
+        return 'text/csv';
+      case 'website':
+      case 'url':
+        return 'text/html';
+      case 'plain_text':
+        return 'text/plain';
+      default:
+        return 'application/octet-stream';
+    }
+  };
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB');
+  };
+
+  const transformAgentKnowledgeSources = (data) => {
+    if (!data) return [];
+    
+    return data.map(source => {
+      let trainingStatus: 'idle' | 'training' | 'success' | 'error' = 'idle';
+      const status = source.training_status || 'idle';
+      
+      if (status === 'training') trainingStatus = 'training';
+      else if (status === 'success') trainingStatus = 'success';
+      else if (status === 'error') trainingStatus = 'error';
+      
+      const metadataInfo = getSourceMetadataInfo({
+        type: source.type || 'document',
+        metadata: source.metadata || {}
+      });
+      
+      return {
+        id: source.id,
+        name: source.name || 'Unnamed source',
+        type: source.type || 'document',
+        size: metadataInfo.size,
+        pages: metadataInfo.count,
+        lastUpdated: formatDate(source.metadata?.upload_date || source.updated_at),
+        trainingStatus: trainingStatus,
+        linkBroken: source.link_broken || false,
+        crawlOptions: source.crawl_options || 'single',
+        insideLinks: source.insideLinks || [],
+        metadata: source.metadata || {}
+      };
+    });
+  };
+
+  const processSelectedSubUrls = (urlNode: UrlNode, selectedUrls: Set<string>, result: UrlNode[] = []): UrlNode[] => {
+    if (selectedUrls.has(urlNode.url)) {
+      const selectedNode: UrlNode = { 
+        ...urlNode,
+        selected: true,
+        children: [] 
+      };
+      result.push(selectedNode);
+    }
+    
+    if (urlNode.children && urlNode.children.length > 0) {
+      for (const child of urlNode.children) {
+        processSelectedSubUrls(child, selectedUrls, result);
+      }
+    }
+    
+    return result;
+  };
+
+  const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
+    if (!availableKnowledgeBases && !showFallbackUI && !cachedKnowledgeBases.current.length) {
+      toast({
+        title: "Cannot import sources",
+        description: "Knowledge base data is unavailable. Please try again later.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const externalSourcesData = formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current);
+    
+    const existingSourcesMap = new Map(knowledgeSources.map(s => [s.id, s]));
+    const newSourceIds = sourceIds.filter(id => !existingSourcesMap.has(id));
+    const existingSourceIds = sourceIds.filter(id => existingSourcesMap.has(id));
+    
+    const sourcesToAdd: KnowledgeSource[] = [];
+    
+    newSourceIds.forEach(id => {
+      const externalSource = externalSourcesData.find(s => s.id === id);
+      if (!externalSource) return;
+      
+      const newSource = processSourceForImport(externalSource, selectedSubUrls?.[id]);
+      if (newSource) {
+        sourcesToAdd.push(newSource);
+      }
+    });
+    
+    existingSourceIds.forEach(id => {
+      if (!selectedSubUrls?.[id] || selectedSubUrls[id].size === 0) return;
+      
+      const existingSource = existingSourcesMap.get(id);
+      const externalSource = externalSourcesData.find(s => s.id === id);
+      
+      if (existingSource && externalSource) {
+        const updatedSource = {
+          ...existingSource,
+          insideLinks: processSelectedUrlsForSource(externalSource, selectedSubUrls[id], [], true)
+        };
+        
+        setKnowledgeSources(prev => 
+          prev.map(source => source.id === id ? updatedSource : source)
+        );
+        
+        toast({
+          title: "Knowledge source updated",
+          description: `Updated selected URLs for "${existingSource.name}".`
+        });
+      }
+    });
+    
+    if (sourcesToAdd.length > 0) {
+      setKnowledgeSources(prev => [...prev, ...sourcesToAdd]);
+      
+      if (sourcesToAdd.length === 1) {
+        toast({
+          title: "Knowledge source imported",
+          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."`
+        });
+      } else {
+        toast({
+          title: "Knowledge sources imported",
+          description: `${sourcesToAdd.length} sources have been added to your knowledge base.`
+        });
+      }
+    }
+    
+    if (sourcesToAdd.length === 0 && existingSourceIds.length === 0) {
+      toast({
+        title: "No sources imported",
+        description: "No changes were made to your knowledge base."
+      });
+    }
+    
+    setIsImportDialogOpen(false);
+    setNeedsRetraining(true);
+    
+    if (onSourcesChange) {
+      const updatedSourceIds = [...knowledgeSources, ...sourcesToAdd].map(s => s.id);
+      onSourcesChange(updatedSourceIds);
+    }
+  };
+  
+  const processSourceForImport = (externalSource, selectedUrls?: Set<string>): KnowledgeSource | null => {
+    if (!externalSource) return null;
+    
+    const newSource: KnowledgeSource = {
+      id: externalSource.id,
+      name: externalSource.name,
+      type: externalSource.type,
+      size: externalSource.size,
+      lastUpdated: externalSource.lastUpdated,
+      trainingStatus: 'idle' as const,
+      linkBroken: false,
+      knowledge_sources: externalSource.knowledge_sources,
+      metadata: externalSource.metadata,
+      insideLinks: []
+    };
+    
+    if (externalSource.type === 'website' && selectedUrls && selectedUrls.size > 0) {
+      newSource.insideLinks = processSelectedUrlsForSource(externalSource, selectedUrls, [], true);
+    }
+    
+    return newSource;
+  };
+  
+  const processSelectedUrlsForSource = (
+    externalSource, 
+    selectedUrls: Set<string>, 
+    existingLinks: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}> = [],
+    replaceExisting: boolean = false
+  ) => {
+    if (!selectedUrls || selectedUrls.size === 0) return existingLinks;
+    
+    const knowledgeSource = externalSource.knowledge_sources?.[0];
+    if (!knowledgeSource) return existingLinks;
+    
+    let rootNode: UrlNode | null = null;
+    
+    if (knowledgeSource.metadata?.sub_urls) {
+      rootNode = knowledgeSource.metadata.sub_urls as UrlNode;
+    } else if (externalSource.metadata?.domain_links) {
+      rootNode = Array.isArray(externalSource.metadata.domain_links) 
+        ? externalSource.metadata.domain_links[0] 
+        : externalSource.metadata.domain_links;
+    }
+    
+    if (!rootNode) return existingLinks;
+    
+    const selectedNodes = processSelectedSubUrls(rootNode, selectedUrls);
+    
+    const newInsideLinks = replaceExisting ? [] : [...existingLinks];
+    
+    selectedNodes.forEach(node => {
+      if (node.url !== 'root' && !existingLinks.map(link => link.url).includes(node.url)) {
+        newInsideLinks.push({
+          url: node.url,
+          title: node.title || node.url,
+          status: 'pending' as const,
+          selected: true
+        });
+      }
+    });
+    
+    return newInsideLinks;
+  };
 
   useEffect(() => {
-    if (knowledgeSources && Array.isArray(knowledgeSources)) {
-      const retrainingNeeded = knowledgeSources.some(source => source.trainingStatus === 'error' || source.linkBroken);
-      setIsRetrainingRequired(retrainingNeeded);
+    if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
+      console.log("Using preloaded knowledge sources:", preloadedKnowledgeSources);
+      const formattedSources = transformAgentKnowledgeSources(preloadedKnowledgeSources);
+      setKnowledgeSources(formattedSources);
+      setPrevSourceIds(formattedSources.map(s => s.id));
+      setPrevSourcesLength(formattedSources.length);
+      setShowFallbackUI(false);
     }
-  }, [knowledgeSources]);
+  }, [preloadedKnowledgeSources]);
 
-  const handleImportDialogOpen = () => {
-    setIsImportDialogOpen(true);
-  };
-
-  const handleImportDialogClose = () => {
-    setIsImportDialogOpen(false);
-  };
-
-  const handleKnowledgeSourceChange = (knowledgeSource: KnowledgeSource) => {
-    const toastMessage = getToastMessageForSourceChange(knowledgeSource);
-    if (toastMessage) {
-      toast(toastMessage);
+  useEffect(() => {
+    if (!isLoading && loadError) {
+      console.log("Setting fallback UI due to load error:", loadError);
+      setShowFallbackUI(true);
     }
+  }, [isLoading, loadError]);
+
+  const refreshKnowledgeBases = () => {
+    console.log("Manually refreshing knowledge bases");
+    setKnowledgeBasesLoaded(false);
+    cachedKnowledgeBases.current = [];
     refetch();
   };
 
-  const handleRetrain = async () => {
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      // Using KNOWLEDGEBASE endpoint as TRAIN_KNOWLEDGEBASE is not defined
-      const apiUrl = `${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}train/`;
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          ...getAuthHeaders(token),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ agent_id: agentId }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrain knowledge base.');
-      }
-
-      toast(getTrainingStatusToast());
-      refetch();
-    } catch (err: any) {
-      toast({
-        title: 'Error',
-        description: err.message || 'Failed to retrain knowledge base.',
-        variant: 'destructive',
-      });
+  const removeSource = async (sourceId: number) => {
+    const sourceToRemove = knowledgeSources.find(source => source.id === sourceId);
+    
+    if (!sourceToRemove) return;
+    
+    setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
+    
+    if (onSourcesChange) {
+      const updatedSourceIds = knowledgeSources
+        .filter(s => s.id !== sourceId)
+        .map(s => s.id);
+      onSourcesChange(updatedSourceIds);
     }
+    
+    setNeedsRetraining(true);
+    
+    const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
+    toast(toastInfo);
   };
 
-  const handleDeleteKnowledgeSource = (source: KnowledgeSource) => {
-    setKnowledgeSourceToDelete(source);
-    setIsDeleteAlertOpen(true);
-  };
-
-  const confirmDeleteKnowledgeSource = async () => {
-    if (!knowledgeSourceToDelete) return;
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      // Using the correct endpoint path
-      const apiUrl = `${BASE_URL}knowledgesource/${knowledgeSourceToDelete.id}/`;
-      const response = await fetch(apiUrl, {
-        method: 'DELETE',
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete knowledge source.');
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Knowledge source deleted successfully.',
-      });
-      refetch();
-    } catch (err: any) {
-      toast({
-        title: 'Error',
-        description: err.message || 'Failed to delete knowledge source.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsDeleteAlertOpen(false);
-      setKnowledgeSourceToDelete(null);
-    }
-  };
-
-  const cancelDeleteKnowledgeSource = () => {
-    setIsDeleteAlertOpen(false);
-    setKnowledgeSourceToDelete(null);
-  };
-
-  const toggleExpand = (id: number) => {
-    setExpandedStates(prevState => ({
-      ...prevState,
-      [id]: !prevState[id],
-    }));
-  };
-
-  const toggleUrlSectionExpand = (url: string) => {
-    setExpandedUrlSections(prevState => ({
-      ...prevState,
-      [url]: !prevState[url],
-    }));
-  };
-
-  const renderSourceIcon = (type: string) => {
-    switch (type) {
-      case 'website':
-        return <Globe className="h-4 w-4 mr-2 text-blue-500" />;
-      case 'document':
-        return <FileText className="h-4 w-4 mr-2 text-orange-500" />;
-      case 'folder':
-        return <Folder className="h-4 w-4 mr-2 text-yellow-500" />;
-      default:
-        return <FileText className="h-4 w-4 mr-2" />;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Knowledge Training Status</CardTitle>
-          <CardDescription>Loading knowledge sources...</CardDescription>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center py-4">
-          <LoaderCircle className="h-6 w-6 animate-spin" />
-        </CardContent>
-      </Card>
+  const updateSource = async (sourceId: number, data: Partial<KnowledgeSource>) => {
+    setKnowledgeSources(prev => 
+      prev.map(source => 
+        source.id === sourceId 
+          ? { ...source, ...data } 
+          : source
+      )
     );
-  }
+    
+    setNeedsRetraining(true);
+  };
 
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Knowledge Training Status</CardTitle>
-          <CardDescription>Error loading knowledge sources.</CardDescription>
-        </CardHeader>
-        <CardContent className="py-4">
-          <AlertBanner 
-            message="Failed to load knowledge sources. Please try again."
-            variant="error"
-            icon={<AlertCircle className="h-4 w-4 mr-2" />}
-          />
-        </CardContent>
-      </Card>
+  const trainSource = (sourceId: number) => {
+    const sourceIndex = knowledgeSources.findIndex(s => s.id === sourceId);
+    if (sourceIndex === -1) return;
+    
+    const sourceName = knowledgeSources[sourceIndex].name;
+    
+    setKnowledgeSources(prev => 
+      prev.map(source => 
+        source.id === sourceId 
+          ? { ...source, trainingStatus: 'training' as const } 
+          : source
+      )
     );
-  }
+    
+    toast(getTrainingStatusToast('start', sourceName));
+    
+    setTimeout(() => {
+      setKnowledgeSources(prev => 
+        prev.map(source => 
+          source.id === sourceId 
+            ? { ...source, trainingStatus: 'success' as const } 
+            : source
+        )
+      );
+      
+      setNeedsRetraining(false);
+      toast(getTrainingStatusToast('success', sourceName));
+    }, 3000);
+  };
 
-  const trainingSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'training') : [];
-  const successfulSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'success') : [];
-  const errorSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'error') : [];
-  const idleSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'idle') : [];
-  const brokenLinkSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.linkBroken) : [];
+  const trainAllSources = () => {
+    if (knowledgeSources.length === 0) {
+      toast({
+        title: "No sources selected",
+        description: "Please import at least one knowledge source to train.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsTrainingAll(true);
+    setShowTrainingAlert(true);
+    
+    toast({
+      title: "Training all sources",
+      description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`
+    });
+
+    setKnowledgeSources(prev => 
+      prev.map(source => ({ 
+        ...source, 
+        trainingStatus: 'training' as const
+      }))
+    );
+
+    setTimeout(() => {
+      setKnowledgeSources(prev => 
+        prev.map(source => ({ 
+          ...source, 
+          trainingStatus: 'success' as const
+        }))
+      );
+      
+      setIsTrainingAll(false);
+      setNeedsRetraining(false);
+      setShowTrainingAlert(false);
+      
+      toast({
+        title: "Training complete",
+        description: "All knowledge sources have been processed."
+      });
+    }, 4000);
+  };
+
+  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError, refetch } = useQuery({
+    queryKey: ['knowledgeBases', agentId],
+    queryFn: fetchKnowledgeBases,
+    staleTime: 5 * 60 * 1000,
+    enabled: false
+  });
+
+  const loadKnowledgeBases = () => {
+    if (!knowledgeBasesLoaded && cachedKnowledgeBases.current.length === 0) {
+      refetch();
+    }
+  };
 
   return (
-    <div>
-      {isRetrainingRequired && (
-        <AlertBanner 
-          message="Retraining is recommended to incorporate recent changes."
-          variant="warning"
-          icon={<RefreshCw className="h-4 w-4 mr-2" />}
-          className="mb-4"
-        >
-          <Button variant="outline" size="sm" onClick={handleRetrain}>
-            Retrain Now
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle className="text-lg">Knowledge Sources</CardTitle>
+          <CardDescription>Connect knowledge sources to your agent to improve its responses</CardDescription>
+        </div>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              loadKnowledgeBases();
+              setIsImportDialogOpen(true);
+            }}
+            className="flex items-center gap-1"
+          >
+            <Import className="h-4 w-4" />
+            Import Sources
           </Button>
-        </AlertBanner>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Knowledge Training Status</CardTitle>
-          <CardDescription>View the status of your knowledge sources and manage training.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {trainingSources.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Training</h4>
-              {trainingSources.map(source => (
-                <div key={source.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {renderSourceIcon(source.type)}
-                    <span>{source.name}</span>
-                  </div>
-                  <Badge variant="secondary">
-                    <LoaderCircle className="h-3 w-3 mr-1 animate-spin" />
-                    Training
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {successfulSources.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Successful</h4>
-              {successfulSources.map(source => (
-                <div key={source.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {renderSourceIcon(source.type)}
-                    <span>{source.name}</span>
-                  </div>
-                  <Badge>
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Success
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {errorSources.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Errors</h4>
-              {errorSources.map(source => (
-                <div key={source.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {renderSourceIcon(source.type)}
-                    <span>{source.name}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="destructive">
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      Error
-                    </Badge>
-                    <Button variant="outline" size="sm" onClick={() => handleDeleteKnowledgeSource(source)}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {idleSources.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Idle</h4>
-              {idleSources.map(source => (
-                <div key={source.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {renderSourceIcon(source.type)}
-                    <span>{source.name}</span>
-                  </div>
-                  <Badge variant="secondary">
-                    <Zap className="h-3 w-3 mr-1" />
-                    Idle
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {brokenLinkSources.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Broken Links</h4>
-              {brokenLinkSources.map(source => (
-                <div key={source.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {renderSourceIcon(source.type)}
-                    <span>{source.name}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="destructive">
-                      <Link2Off className="h-3 w-3 mr-1" />
-                      Broken Link
-                    </Badge>
-                    <Button variant="outline" size="sm" onClick={() => handleDeleteKnowledgeSource(source)}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {Array.isArray(knowledgeSources) && knowledgeSources.map(source => (
-            <Collapsible key={source.id} onOpenChange={() => toggleExpand(source.id)} open={expandedStates[source.id] || false}>
-              <div className="border rounded-md p-2">
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between py-2">
-                    <div className="flex items-center">
-                      {renderSourceIcon(source.type)}
-                      <span>{source.name}</span>
-                      {source.linkBroken && (
-                        <Badge variant="destructive" className="ml-2">
-                          <Link2Off className="h-3 w-3 mr-1" />
-                          Broken Link
-                        </Badge>
-                      )}
-                      {source.trainingStatus === 'error' && (
-                        <Badge variant="destructive" className="ml-2">
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          Error
-                        </Badge>
-                      )}
-                    </div>
-                    {expandedStates[source.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4">
-                  <div className="text-sm text-muted-foreground space-y-2">
-                    <p>
-                      <strong>Type:</strong> {source.type}
-                    </p>
-                    <p>
-                      <strong>Size:</strong> {formatFileSizeToMB(parseInt(source.size, 10))} MB
-                    </p>
-                    {source.lastUpdated && (
-                      <p>
-                        <strong>Last Updated:</strong> {new Date(source.lastUpdated).toLocaleDateString()}
-                      </p>
-                    )}
-                    {source.metadata && getSourceMetadataInfo(source.metadata)}
-                    {source.type === 'website' && source.insideLinks && source.insideLinks.length > 0 && (
-                      <div className="space-y-2">
-                        <h5 className="text-xs font-medium">Inside Links:</h5>
-                        {source.insideLinks.map((link, index) => (
-                          <div key={index}>
-                            <Collapsible open={!!expandedUrlSections[link.url]} onOpenChange={() => toggleUrlSectionExpand(link.url)}>
-                              <CollapsibleTrigger asChild>
-                                <Button variant="ghost" className="w-full justify-between py-1 text-left">
-                                  <div className="flex items-center">
-                                    <span className="truncate">{link.title || link.url}</span>
-                                    {link.status === 'error' && (
-                                      <Badge variant="destructive" className="ml-2">
-                                        Error
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  {expandedUrlSections[link.url] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                </Button>
-                              </CollapsibleTrigger>
-                              <CollapsibleContent className="pl-4">
-                                <p className="text-xs">
-                                  <strong>URL:</strong> {link.url}
-                                </p>
-                                <p className="text-xs">
-                                  <strong>Status:</strong> {link.status}
-                                </p>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <Button variant="outline" size="sm" onClick={() => handleDeleteKnowledgeSource(source)}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Source
-                    </Button>
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
-          ))}
-
-          {Array.isArray(knowledgeSources) && knowledgeSources.length === 0 && (
-            <div className="text-center py-4">
-              <p className="text-muted-foreground">No knowledge sources added yet.</p>
-              <Button variant="outline" onClick={handleImportDialogOpen}>
-                <Import className="h-4 w-4 mr-2" />
-                Import Sources
+          <Button 
+            onClick={trainAllSources} 
+            disabled={isTrainingAll || knowledgeSources.length === 0}
+            size="sm"
+            className="flex items-center gap-1"
+          >
+            {isTrainingAll ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <Zap className="h-4 w-4" />
+            )}
+            {isTrainingAll ? 'Training...' : 'Train All'}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {showTrainingAlert && (
+          <div className="mb-4">
+            <AlertBanner 
+              message="Training started! It will just take a minute or so, depending on the number of pages."
+              variant="info"
+            />
+          </div>
+        )}
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center py-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-2">Loading knowledge sources...</span>
+          </div>
+        ) : showFallbackUI || loadError ? (
+          <div className="py-6">
+            <div className="flex flex-col items-center justify-center text-center mb-6">
+              <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
+              <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
+              <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base. You can still import and manage sources.</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  loadKnowledgeBases();
+                  refreshKnowledgeBases();
+                }}
+                className="flex items-center gap-1.5"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry Connection
               </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            {knowledgeSources.length > 0 ? (
+              <>
+                <div className="space-y-4">
+                  {knowledgeSources.map(source => (
+                    <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium">{source.name}</div>
+                        <div className="text-sm text-muted-foreground">{source.type} • {source.size}</div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {source.trainingStatus === 'idle' ? (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => trainSource(source.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <Zap className="h-3.5 w-3.5" />
+                            Train
+                          </Button>
+                        ) : source.trainingStatus === 'training' ? (
+                          <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+                            <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                            Training...
+                          </Button>
+                        ) : source.trainingStatus === 'success' ? (
+                          <div className="text-green-600 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <span className="text-sm">Trained</span>
+                          </div>
+                        ) : (
+                          <div className="text-red-600 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            <span className="text-sm">Failed</span>
+                          </div>
+                        )}
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => removeSource(source.id)} 
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {needsRetraining && knowledgeSources.length > 0 && (
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="border rounded-md p-8 text-center">
+                <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    loadKnowledgeBases();
+                    setIsImportDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Import className="h-4 w-4" />
+                  Import Sources
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {knowledgeSources.map(source => (
+                <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">{source.name}</div>
+                    <div className="text-sm text-muted-foreground">{source.type} • {source.size}</div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {source.trainingStatus === 'idle' ? (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => trainSource(source.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <Zap className="h-3.5 w-3.5" />
+                        Train
+                      </Button>
+                    ) : source.trainingStatus === 'training' ? (
+                      <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+                        <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                        Training...
+                      </Button>
+                    ) : source.trainingStatus === 'success' ? (
+                      <div className="text-green-600 flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        <span className="text-sm">Trained</span>
+                      </div>
+                    ) : (
+                      <div className="text-red-600 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        <span className="text-sm">Failed</span>
+                      </div>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => removeSource(source.id)} 
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {needsRetraining && knowledgeSources.length > 0 && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+              </div>
+            )}
+            
+            {knowledgeSources.length === 0 && (
+              <div className="border rounded-md p-8 text-center">
+                <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    loadKnowledgeBases();
+                    setIsImportDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Import className="h-4 w-4" />
+                  Import Sources
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
 
-      <ImportSourcesDialog 
-        isOpen={isImportDialogOpen} 
-        onClose={handleImportDialogClose} 
-        onSourceChange={handleKnowledgeSourceChange} 
+      <ImportSourcesDialog
+        isOpen={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        externalSources={formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current)}
+        currentSources={knowledgeSources}
+        onImport={importSelectedSources}
+        agentId={agentId}
       />
-
-      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Knowledge Source</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this knowledge source? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelDeleteKnowledgeSource}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteKnowledgeSource} className="bg-red-500 hover:bg-red-600 text-white">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </Card>
   );
 };
 
