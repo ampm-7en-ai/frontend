@@ -526,12 +526,14 @@ const KnowledgeSourceTable = ({
                         )}
                         
                         {(source.type === 'docs' || source.type === 'csv') && 
-                         (source.documents?.some(doc => doc.selected) || source.knowledge_sources?.length > 0) && (
+                         (source.documents?.some(doc => doc.selected) || source.knowledge_sources?.some(ks => ks.selected)) && (
                           <div className="ml-7 mt-1">
                             <div className="text-xs text-muted-foreground font-medium">
                               {source.documents?.filter(doc => doc.selected).length || 0} files selected
-                              {source.knowledge_sources && source.knowledge_sources.length > 0 && (
-                                <span className="ml-1">, {source.knowledge_sources.length} imported</span>
+                              {source.knowledge_sources && (
+                                <span className="ml-1">
+                                  , {source.knowledge_sources.filter(ks => ks.selected).length || source.knowledge_sources.length} imported
+                                </span>
                               )}
                             </div>
                           </div>

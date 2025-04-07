@@ -146,10 +146,6 @@ export const ImportSourcesDialog = ({
       if (counts[sourceType]) {
         counts[sourceType].count++;
       }
-      
-      if (source.type === 'docs') {
-        counts.docs.count++;
-      }
     });
     
     return counts;

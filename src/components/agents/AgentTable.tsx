@@ -71,8 +71,7 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
     
     // Count selected knowledge sources from imported files
     if (source.knowledge_sources) {
-      const selectedSources = source.knowledge_sources.filter(src => src.selected);
-      count += selectedSources.length > 0 ? selectedSources.length : source.knowledge_sources.length;
+      count += source.knowledge_sources.filter(src => src.selected).length || 0;
     }
     
     return count;
@@ -115,7 +114,6 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                     <div key={source.id} className="mr-1 mb-1">
                       <KnowledgeSourceBadge source={source} />
                       
-                      {/* Display selected child URLs count for website sources */}
                       {(source.type === 'website' || source.type === 'url') && 
                        (source.selectedSubUrls?.size > 0 || source.insideLinks?.some(link => link.selected)) && (
                         <TooltipProvider>
@@ -145,9 +143,9 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                         </TooltipProvider>
                       )}
                       
-                      {/* Display selected files count for document sources */}
                       {(source.type === 'docs' || source.type === 'csv') && 
-                       (source.documents?.some(doc => doc.selected) || source.knowledge_sources?.length > 0) && (
+                       (source.documents?.some(doc => doc.selected) || 
+                       (source.knowledge_sources && source.knowledge_sources.some(ks => ks.selected))) && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -157,9 +155,7 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                                 {source.knowledge_sources && source.knowledge_sources.length > 0 && (
                                   <span className="ml-1 flex items-center">
                                     <FolderOpen className="h-3 w-3 mx-1" />
-                                    {source.knowledge_sources.filter(src => src.selected).length > 0 ? 
-                                      source.knowledge_sources.filter(src => src.selected).length : 
-                                      source.knowledge_sources.length} imported
+                                    {source.knowledge_sources.filter(src => src.selected).length} imported
                                   </span>
                                 )}
                               </div>
@@ -180,24 +176,14 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                                 </>
                               )}
                               
-                              {source.knowledge_sources && source.knowledge_sources.length > 0 && (
+                              {source.knowledge_sources && source.knowledge_sources.some(ks => ks.selected) && (
                                 <>
-                                  <p className="font-medium text-xs mt-2">
-                                    {source.knowledge_sources.filter(src => src.selected).length > 0 ? 
-                                      "Selected imported files:" : 
-                                      "Imported files:"}
-                                  </p>
+                                  <p className="font-medium text-xs mt-2">Selected imported files:</p>
                                   <ul className="text-xs list-disc pl-4 mt-1">
-                                    {(source.knowledge_sources.filter(src => src.selected).length > 0 ? 
-                                      source.knowledge_sources.filter(src => src.selected) : 
-                                      source.knowledge_sources)
-                                      .slice(0, 5).map((file, i) => (
-                                        <li key={i}>{file.title || file.name}</li>
-                                      ))
-                                    }
-                                    {(source.knowledge_sources.filter(src => src.selected).length > 0 ? 
-                                      source.knowledge_sources.filter(src => src.selected).length : 
-                                      source.knowledge_sources.length) > 5 && (
+                                    {source.knowledge_sources.filter(ks => ks.selected).slice(0, 5).map((file, i) => (
+                                      <li key={i}>{file.title || file.name}</li>
+                                    ))}
+                                    {source.knowledge_sources.filter(ks => ks.selected).length > 5 && (
                                       <li>... and more</li>
                                     )}
                                   </ul>
