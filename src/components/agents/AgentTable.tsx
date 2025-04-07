@@ -22,7 +22,8 @@ import {
   Copy, 
   Trash2,
   Check,
-  Globe
+  Globe,
+  File
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -119,6 +120,32 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                                 ))}
                                 {(source.selectedSubUrls && source.selectedSubUrls.size > 5) || 
                                  (source.insideLinks && source.insideLinks.filter(link => link.selected).length > 5) && (
+                                  <li>... and more</li>
+                                )}
+                              </ul>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      
+                      {/* Display selected files count for document sources */}
+                      {(source.type === 'docs' || source.type === 'csv') && 
+                       source.documents?.some(doc => doc.selected) && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="text-xs text-blue-700 ml-6 flex items-center">
+                                <File className="h-3 w-3 mr-1" />
+                                {source.documents.filter(doc => doc.selected).length} files
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Selected files for {source.name}</p>
+                              <ul className="text-xs list-disc pl-4 mt-1">
+                                {source.documents.filter(doc => doc.selected).slice(0, 5).map((doc, i) => (
+                                  <li key={i}>{doc.name}</li>
+                                ))}
+                                {source.documents.filter(doc => doc.selected).length > 5 && (
                                   <li>... and more</li>
                                 )}
                               </ul>

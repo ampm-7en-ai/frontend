@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown, Globe } from 'lucide-react';
+import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown, Globe, File } from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { getSourceTypeIcon, getStatusIndicator } from './knowledgeUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -359,6 +359,49 @@ const KnowledgeSourceTable = ({
     );
   };
 
+  const shouldShowExpandableContent = (source: KnowledgeSource) => {
+    return source.type === 'webpage' || 
+           source.documents?.length > 0 || 
+           source.type === 'url' || 
+           source.type === 'website' ||
+           source.type === 'docs' ||
+           source.type === 'csv';
+  };
+
+  const renderFileContent = (source: KnowledgeSource) => {
+    if (source.type === 'docs' || source.type === 'csv') {
+      const selectedDocs = source.documents?.filter(doc => doc.selected) || [];
+      
+      if (selectedDocs.length === 0) {
+        return (
+          <div className="py-2 px-4 text-sm text-muted-foreground">
+            No files selected for training. All files will be included.
+          </div>
+        );
+      }
+      
+      return (
+        <div className="px-2 py-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium">Selected Files ({selectedDocs.length}/{source.documents?.length || 0})</div>
+          </div>
+          <div className="space-y-1 max-h-40 overflow-y-auto">
+            {selectedDocs.map((doc, index) => (
+              <div key={doc.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+                <div className={`w-2 h-2 rounded-full mr-2 bg-green-500`} />
+                <File className="h-3 w-3 mr-2 text-blue-500" />
+                <span className="truncate flex-1" title={doc.name}>{doc.name}</span>
+                <span className="text-muted-foreground">{formatFileSizeToMB(doc.size)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -385,7 +428,7 @@ const KnowledgeSourceTable = ({
               <React.Fragment key={source.id}>
                 <TableRow>
                   <TableCell className="py-2 w-8">
-                    {(source.type === 'webpage' || source.documents?.length > 0 || source.type === 'url' || source.type === 'website') && (
+                    {shouldShowExpandableContent(source) && (
                       <button 
                         onClick={() => toggleRowExpansion(source.id)}
                         className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-gray-100"
@@ -418,13 +461,26 @@ const KnowledgeSourceTable = ({
                       </div>
                     )}
                     
-                    {!expandedRows[source.id] && (source.type === 'website' || source.type === 'url') && 
-                     (source.selectedSubUrls?.size > 0 || source.insideLinks?.some(link => link.selected)) && (
-                      <div className="ml-7 mt-1">
-                        <div className="text-xs text-muted-foreground font-medium">
-                          {source.selectedSubUrls?.size || source.insideLinks?.filter(link => link.selected).length} URLs selected
-                        </div>
-                      </div>
+                    {!expandedRows[source.id] && (
+                      <>
+                        {(source.type === 'website' || source.type === 'url') && 
+                         (source.selectedSubUrls?.size > 0 || source.insideLinks?.some(link => link.selected)) && (
+                          <div className="ml-7 mt-1">
+                            <div className="text-xs text-muted-foreground font-medium">
+                              {source.selectedSubUrls?.size || source.insideLinks?.filter(link => link.selected).length} URLs selected
+                            </div>
+                          </div>
+                        )}
+                        
+                        {(source.type === 'docs' || source.type === 'csv') && 
+                         source.documents?.some(doc => doc.selected) && (
+                          <div className="ml-7 mt-1">
+                            <div className="text-xs text-muted-foreground font-medium">
+                              {source.documents.filter(doc => doc.selected).length} files selected
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </TableCell>
                   <TableCell className="py-2">{formatFileSizeToMB(source.size)}</TableCell>
@@ -518,6 +574,8 @@ const KnowledgeSourceTable = ({
                             {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
                             {source.documents?.length > 0 && getDocumentsContent(source)}
+                            
+                            {(source.type === 'docs' || source.type === 'csv') && renderFileContent(source)}
                           </div>
                         </CollapsibleContent>
                       </Collapsible>
