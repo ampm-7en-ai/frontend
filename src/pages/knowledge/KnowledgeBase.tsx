@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SearchInput } from '@/components/knowledge/SearchInput';
@@ -7,7 +8,7 @@ import { Plus } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import { KnowledgeSourceImport } from '@/components/knowledge/KnowledgeSourceImport';
 import { useParams, useNavigate } from 'react-router-dom';
-import { KnowledgeTrainingStatus } from '@/components/knowledge/KnowledgeTrainingStatus';
+import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken, fetchKnowledgeSourceDetails, fetchExternalKnowledgeSources, deleteKnowledgeSource, deleteKnowledgeBase } from '@/utils/api';
 

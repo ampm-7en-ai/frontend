@@ -2,10 +2,17 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from './use-toast';
-import { MODELS, DEFAULT_SYSTEM_PROMPT } from '@/constants/modelOptions';
+import { MODELS, getModelDisplay } from '@/constants/modelOptions';
 import { Message } from '@/types/chat';
-import { Agent } from '@/types/agent';
+import { Agent, KnowledgeSource } from '@/types/agent';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken, fetchAgentDetails } from '@/utils/api';
+
+interface ChatConfig {
+  model: string;
+  temperature: number;
+  systemPrompt: string;
+  maxLength: number;
+}
 
 const mockAgents = [
   {

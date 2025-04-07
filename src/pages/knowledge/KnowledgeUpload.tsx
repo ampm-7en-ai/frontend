@@ -13,4 +13,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { createKnowledgeBase, addFileToKnowledgeBase } from '@/utils/api';
 
-// ... keep existing code
+const KnowledgeUpload = () => {
+  // Component implementation here
+  return (
+    <div>Knowledge Upload Component</div>
+  );
+};
+
+export default KnowledgeUpload;

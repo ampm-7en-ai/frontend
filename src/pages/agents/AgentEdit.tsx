@@ -118,43 +118,44 @@ const AgentEdit = () => {
       setAvailableKnowledgeSources(data);
       return data;
     },
-    onSettled: () => {
+    onSuccess: () => {
+      setIsLoadingKnowledgeSources(false);
+    },
+    onError: () => {
       setIsLoadingKnowledgeSources(false);
     },
     retry: 1,
   });
 
   // Mutation for updating agent details
-  const updateAgentMutation = useMutation(
-    async (updatedAgentData: any) => {
+  const updateAgentMutation = useMutation({
+    mutationFn: async (updatedAgentData: any) => {
       if (!agentId) throw new Error("Agent ID is required");
       return updateAgent(agentId, updatedAgentData);
     },
-    {
-      onSuccess: () => {
-        toast({
-          title: "Agent Updated",
-          description: `${agentName} has been successfully updated.`,
-        });
-        queryClient.invalidateQueries(['agent', agentId]);
-        navigate('/agents');
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Update Failed",
-          description: error.message || "Failed to update agent.",
-          variant: "destructive",
-        });
-      },
-      onSettled: () => {
-        setIsSubmitting(false);
-      },
-    }
-  );
+    onSuccess: () => {
+      toast({
+        title: "Agent Updated",
+        description: `${agentName} has been successfully updated.`,
+      });
+      queryClient.invalidateQueries({queryKey: ['agent', agentId]});
+      navigate('/agents');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update agent.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
+  });
 
   // Mutation for adding knowledge sources to agent
-  const addKnowledgeSourcesMutation = useMutation(
-    async () => {
+  const addKnowledgeSourcesMutation = useMutation({
+    mutationFn: async () => {
       if (!agentId) throw new Error("Agent ID is required");
       
       // Convert selectedKnowledgeSources to numbers
@@ -164,23 +165,21 @@ const AgentEdit = () => {
       
       return addKnowledgeSourcesToAgent(agentId, knowledgeSources, selectedKnowledgeSources);
     },
-    {
-      onSuccess: () => {
-        toast({
-          title: "Knowledge Sources Updated",
-          description: "Knowledge sources have been successfully updated.",
-        });
-        queryClient.invalidateQueries(['agent', agentId]);
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Update Failed",
-          description: error.message || "Failed to update knowledge sources.",
-          variant: "destructive",
-        });
-      },
-    }
-  );
+    onSuccess: () => {
+      toast({
+        title: "Knowledge Sources Updated",
+        description: "Knowledge sources have been successfully updated.",
+      });
+      queryClient.invalidateQueries({queryKey: ['agent', agentId]});
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update knowledge sources.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAgentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAgentName(e.target.value);

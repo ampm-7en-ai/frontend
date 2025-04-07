@@ -1,4 +1,4 @@
-// Update imports to use the new api module
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,174 +9,105 @@ import { Progress } from '@/components/ui/progress';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api';
 
 interface ImportSourcesDialogProps {
-  open: boolean;
+  isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   agentId: string;
-  onSourcesImported: () => void;
+  externalSources: any[];
+  currentSources: any[];
+  onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => void;
 }
 
-const ImportSourcesDialog: React.FC<ImportSourcesDialogProps> = ({ open, onOpenChange, agentId, onSourcesImported }) => {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+export const ImportSourcesDialog: React.FC<ImportSourcesDialogProps> = ({
+  isOpen,
+  onOpenChange,
+  agentId,
+  externalSources,
+  currentSources,
+  onImport
+}) => {
+  const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
+  const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
   const { toast } = useToast();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
+  const handleSelectSource = (sourceId: number) => {
+    if (selectedSourceIds.includes(sourceId)) {
+      setSelectedSourceIds(prev => prev.filter(id => id !== sourceId));
+    } else {
+      setSelectedSourceIds(prev => [...prev, sourceId]);
     }
   };
 
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
-  };
-
-  const handleImport = async () => {
-    if (selectedFiles.length === 0) {
+  const handleImport = () => {
+    if (selectedSourceIds.length === 0) {
       toast({
-        title: "No files selected",
-        description: "Please select at least one file to import.",
+        title: "No sources selected",
+        description: "Please select at least one knowledge source to import.",
         variant: "destructive",
       });
       return;
     }
 
-    setUploading(true);
-    setUploadProgress(0);
-
-    const formData = new FormData();
-    selectedFiles.forEach(file => {
-      formData.append('file', file);
-    });
-
-    const token = getAccessToken();
-    if (!token) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to continue.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/upload-knowledge/`), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to upload files: ${response.status}`);
-      }
-
-      // Simulate upload progress
-      const interval = setInterval(() => {
-        setUploadProgress(prevProgress => {
-          const newProgress = prevProgress + 20;
-          if (newProgress >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return newProgress;
-        });
-      }, 300);
-
-      const data = await response.json();
-      console.log('Files uploaded successfully:', data);
-      toast({
-        title: "Files uploaded",
-        description: "Your files have been successfully uploaded and are being processed.",
-      });
-      onSourcesImported();
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error('Error uploading files:', error);
-      toast({
-        title: "Upload failed",
-        description: error.message || "There was an error uploading your files. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-    }
+    onImport(selectedSourceIds, selectedSubUrls);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Import Knowledge Sources</DialogTitle>
           <DialogDescription>
-            Upload files to add knowledge sources to your agent.
+            Select knowledge sources to import into your agent
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <Tabs defaultValue="upload" className="w-full">
-            <TabsList>
-              <TabsTrigger value="upload">Upload Files</TabsTrigger>
-              <TabsTrigger value="link" disabled>Import from Link (Coming Soon)</TabsTrigger>
-            </TabsList>
-            <TabsContent value="upload">
-              <div className="space-y-4">
-                <div className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center">
-                  <Upload className="h-6 w-6 text-muted-foreground" />
-                  <p className="text-sm mt-2">Drag and drop files here or click to select</p>
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" className="mt-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link>Select Files</Link>
-                    </Button>
-                  </label>
-                </div>
-                {selectedFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Selected Files:</p>
-                    <ul className="list-none pl-0">
-                      {selectedFiles.map((file, index) => (
-                        <li key={index} className="flex items-center justify-between px-3 py-1.5 border rounded-md">
-                          <span className="text-sm">{file.name}</span>
-                          <Button variant="ghost" size="icon" onClick={() => handleRemoveFile(index)}>
-                            <AlertCircle className="h-4 w-4" />
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
+        
+        <div className="py-4">
+          {externalSources.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No knowledge sources available to import</p>
+              <Button asChild>
+                <a href="/knowledge/upload">Create Knowledge Source</a>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {externalSources.map((source) => {
+                const isAlreadyImported = currentSources.some(s => s.id === source.id);
+                
+                return (
+                  <div 
+                    key={source.id} 
+                    className={`border rounded-md p-4 ${
+                      selectedSourceIds.includes(source.id) ? 'border-primary bg-primary/5' : ''
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`source-${source.id}`}
+                        checked={selectedSourceIds.includes(source.id)}
+                        onChange={() => handleSelectSource(source.id)}
+                        disabled={isAlreadyImported}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <label 
+                        htmlFor={`source-${source.id}`} 
+                        className={`ml-2 font-medium ${isAlreadyImported ? 'text-muted-foreground' : ''}`}
+                      >
+                        {source.name}
+                        {isAlreadyImported && " (Already imported)"}
+                      </label>
+                    </div>
                   </div>
-                )}
-              </div>
-            </TabsContent>
-            <TabsContent value="link">
-              <p>Coming soon: Import knowledge sources from external links.</p>
-            </TabsContent>
-          </Tabs>
-          {uploading && (
-            <Progress value={uploadProgress} className="w-full" />
+                );
+              })}
+            </div>
           )}
         </div>
+        
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleImport} disabled={uploading}>
-            {uploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              "Import"
-            )}
+          <Button onClick={handleImport} disabled={selectedSourceIds.length === 0}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import Selected Sources
           </Button>
         </DialogFooter>
       </DialogContent>
