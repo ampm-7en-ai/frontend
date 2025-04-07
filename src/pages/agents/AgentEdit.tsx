@@ -63,6 +63,20 @@ const updateAgent = async (id, data) => {
   return { success: true, data };
 };
 
+// Helper function to determine model badge color
+const getModelBadgeColor = (model: string) => {
+  const modelLower = model.toLowerCase();
+  if (modelLower.includes('gpt-4') || modelLower === 'gpt4') {
+    return 'indigo';
+  } else if (modelLower.includes('gpt-3.5') || modelLower === 'gpt35') {
+    return 'green';
+  } else if (modelLower.includes('claude') || modelLower === 'anthropic') {
+    return 'purple';
+  } else {
+    return 'blue';
+  }
+};
+
 const AgentEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -375,7 +389,7 @@ const AgentEdit = () => {
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Model</span>
-                  <AgentModelBadge model={model} />
+                  <AgentModelBadge model={model} getModelBadgeColor={getModelBadgeColor} />
                 </div>
                 
                 <div className="flex items-center justify-between">
