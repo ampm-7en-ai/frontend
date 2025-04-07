@@ -157,6 +157,34 @@ const KnowledgeTrainingStatus = ({
         metadata: source.metadata || {}
       });
       
+      const insideLinks = [];
+      
+      // Process website sub-URLs if they exist
+      if (source.type === 'website' && source.metadata && source.metadata.sub_urls) {
+        const processUrls = (urlNode, parentPath = '') => {
+          if (!urlNode) return;
+          
+          if (Array.isArray(urlNode.children)) {
+            urlNode.children.forEach(child => {
+              if (child.url && child.selected) {
+                insideLinks.push({
+                  url: child.url,
+                  title: child.title || child.url,
+                  status: 'success' as const,
+                  selected: true,
+                  chars: child.chars
+                });
+              }
+              processUrls(child, `${parentPath}/${child.url}`);
+            });
+          }
+        };
+        
+        if (source.metadata.sub_urls.children) {
+          processUrls(source.metadata.sub_urls);
+        }
+      }
+      
       return {
         id: source.id,
         name: source.name || 'Unnamed source',
@@ -167,7 +195,7 @@ const KnowledgeTrainingStatus = ({
         trainingStatus: trainingStatus,
         linkBroken: source.link_broken || false,
         crawlOptions: source.crawl_options || 'single',
-        insideLinks: source.insideLinks || [],
+        insideLinks: insideLinks.length > 0 ? insideLinks : source.insideLinks || [],
         metadata: source.metadata || {}
       };
     });

@@ -49,6 +49,8 @@ export interface KnowledgeSource {
   selectedSubUrls?: Set<string>;
   agents?: AgentReference[];
   nestedItems?: Record<string, boolean>;
+  updated_at?: string;
+  training_status?: string;
 }
 
 export interface AgentReference {
