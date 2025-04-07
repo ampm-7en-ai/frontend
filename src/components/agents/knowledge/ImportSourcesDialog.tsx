@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -47,6 +46,7 @@ export const ImportSourcesDialog = ({
   const [urlFilter, setUrlFilter] = useState<string>('');
   const [urlSortOrder, setUrlSortOrder] = useState<'asc' | 'desc'>('asc');
   const [excludedUrls, setExcludedUrls] = useState<Set<string>>(new Set());
+  const [urlKeyMap, setUrlKeyMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -80,10 +80,15 @@ export const ImportSourcesDialog = ({
           setExpandedNodes(prev => new Set([...prev, rootNode.url]));
           
           const selectedUrls = new Set<string>();
+          const urlKeys: Record<string, string> = {};
           
           const collectSelectedUrls = (node: UrlNode) => {
             if (node.is_selected) {
               selectedUrls.add(node.url);
+            }
+            
+            if (node.key) {
+              urlKeys[node.url] = node.key;
             }
             
             if (node.children && node.children.length > 0) {
@@ -92,6 +97,11 @@ export const ImportSourcesDialog = ({
           };
           
           collectSelectedUrls(rootNode);
+          
+          setUrlKeyMap(prev => ({
+            ...prev,
+            ...urlKeys
+          }));
           
           if (selectedUrls.size > 0) {
             setSelectedSubUrls(prev => ({
@@ -406,17 +416,15 @@ export const ImportSourcesDialog = ({
     }
     
     try {
-      // Convert selectedSubUrls and selectedFiles to a single array of selected knowledge source IDs
       const allSelectedIds: string[] = [];
       
-      // Add selected URLs
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         urlSet.forEach(url => {
-          allSelectedIds.push(url);
+          const key = urlKeyMap[url] || url;
+          allSelectedIds.push(key);
         });
       });
       
-      // Add selected files
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
         fileSet.forEach(fileId => {
           allSelectedIds.push(fileId);
@@ -429,7 +437,6 @@ export const ImportSourcesDialog = ({
       });
       
       if (agentId) {
-        // Use the API endpoint to add knowledge sources to the agent
         await addKnowledgeSourcesToAgent(agentId, sourceIdsToImport, allSelectedIds);
         
         toast({
@@ -440,7 +447,6 @@ export const ImportSourcesDialog = ({
       
       onOpenChange(false);
       
-      // Call the onImport callback to notify the parent component
       onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
       
     } catch (error) {
