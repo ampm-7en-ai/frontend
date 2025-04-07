@@ -47,22 +47,12 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Knowledge Sources</CardTitle>
-          <CardDescription>
-            Browse and manage knowledge sources connected to this agent
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {knowledgeBases.map((knowledgeBase) => (
-            <CollapsibleKnowledgeSourceCard 
-              key={knowledgeBase.id}
-              knowledgeBase={knowledgeBase} 
-            />
-          ))}
-        </CardContent>
-      </Card>
+      {knowledgeBases.map((knowledgeBase) => (
+        <CollapsibleKnowledgeSourceCard 
+          key={knowledgeBase.id}
+          knowledgeBase={knowledgeBase} 
+        />
+      ))}
     </div>
   );
 };

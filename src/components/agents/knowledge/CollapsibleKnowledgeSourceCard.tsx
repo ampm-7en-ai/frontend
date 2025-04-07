@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ApiKnowledgeBase, ApiKnowledgeSource } from './types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight, FileText, Globe, Database, File } from 'lucide-react';
@@ -12,7 +12,7 @@ interface CollapsibleKnowledgeSourceCardProps {
 }
 
 const getIconForType = (type: string) => {
-  switch (type) {
+  switch (type.toLowerCase()) {
     case 'website':
       return <Globe className="h-4 w-4 mr-2" />;
     case 'document':
@@ -45,22 +45,25 @@ const getFormattedSize = (source: ApiKnowledgeSource) => {
     return `${source.metadata.no_of_rows} rows`;
   }
   
-  return 'Unknown size';
+  return 'N/A';
 };
 
 const CollapsibleKnowledgeSourceCard: React.FC<CollapsibleKnowledgeSourceCardProps> = ({ knowledgeBase }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Card className="mb-4">
+    <Card className="border shadow-sm">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-2 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
+        <CardHeader className="p-4 pb-2 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               {getIconForType(knowledgeBase.type)}
-              <CardTitle className="text-lg">{knowledgeBase.name}</CardTitle>
+              <span className="text-lg font-medium">{knowledgeBase.name}</span>
             </div>
             <div className="flex items-center space-x-2">
+              <div className="text-sm text-muted-foreground">
+                {knowledgeBase.type} • {knowledgeBase.knowledge_sources.length} source{knowledgeBase.knowledge_sources.length !== 1 ? 's' : ''}
+              </div>
               <Badge variant={knowledgeBase.is_linked ? "default" : "outline"}>
                 {knowledgeBase.is_linked ? "Linked" : "Not Linked"}
               </Badge>
@@ -68,16 +71,14 @@ const CollapsibleKnowledgeSourceCard: React.FC<CollapsibleKnowledgeSourceCardPro
                 {knowledgeBase.training_status === 'success' ? "Trained" : 
                  knowledgeBase.training_status === 'training' ? "Training" : "Untrained"}
               </Badge>
-              <CollapsibleTrigger asChild>
-                <button className="h-6 w-6 rounded-full inline-flex items-center justify-center text-muted-foreground">
-                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </button>
+              <CollapsibleTrigger className="h-6 w-6 rounded-full inline-flex items-center justify-center text-muted-foreground">
+                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </CollapsibleTrigger>
             </div>
           </div>
         </CardHeader>
         <CollapsibleContent>
-          <CardContent>
+          <CardContent className="pt-0 pb-4">
             <div className="pl-6 border-l-2 border-gray-200 ml-2 mt-2 space-y-3">
               {knowledgeBase.knowledge_sources.map((source) => (
                 <div key={source.id} className="p-3 bg-gray-50 rounded-md">
@@ -94,7 +95,6 @@ const CollapsibleKnowledgeSourceCard: React.FC<CollapsibleKnowledgeSourceCardPro
                     </div>
                   </div>
                   
-                  {/* Display sub_urls for website sources if they exist */}
                   {source.sub_urls?.children && source.sub_urls.children.length > 0 && (
                     <div className="mt-2 pl-6 border-l border-gray-200 space-y-2">
                       {source.sub_urls.children.map((subUrl) => (
