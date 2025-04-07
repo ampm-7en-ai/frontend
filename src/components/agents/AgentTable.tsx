@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +35,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
-import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { KnowledgeSource, UrlNode } from '@/components/agents/knowledge/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AgentTableProps {
@@ -71,7 +72,44 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
     
     // Count selected knowledge sources from imported files
     if (source.knowledge_sources) {
-      count += source.knowledge_sources.filter(src => src.selected).length || 0;
+      count += source.knowledge_sources.filter(src => src.selected || src.is_selected).length || 0;
+    }
+    
+    return count;
+  };
+
+  // Helper function to count selected sub-URLs from the API response
+  const getSelectedSubUrlsCount = (source: KnowledgeSource): number => {
+    let count = 0;
+    
+    // Count selectedSubUrls if exists
+    if (source.selectedSubUrls) {
+      count += source.selectedSubUrls.size;
+    }
+    
+    // Count insideLinks that are selected
+    if (source.insideLinks) {
+      count += source.insideLinks.filter(link => link.selected).length;
+    }
+
+    // Count from metadata.sub_urls.children if they exist and are selected
+    if (source.metadata?.sub_urls?.children) {
+      const countSelectedChildren = (nodes: UrlNode[] | undefined) => {
+        if (!nodes) return 0;
+        
+        let selectedCount = 0;
+        for (const node of nodes) {
+          if (node.is_selected) {
+            selectedCount++;
+          }
+          if (node.children && node.children.length > 0) {
+            selectedCount += countSelectedChildren(node.children);
+          }
+        }
+        return selectedCount;
+      };
+      
+      count += countSelectedChildren(source.metadata.sub_urls.children);
     }
     
     return count;
@@ -115,13 +153,13 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                       <KnowledgeSourceBadge source={source} />
                       
                       {(source.type === 'website' || source.type === 'url') && 
-                       (source.selectedSubUrls?.size > 0 || source.insideLinks?.some(link => link.selected)) && (
+                       (getSelectedSubUrlsCount(source) > 0) && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="text-xs text-green-700 ml-6 flex items-center">
                                 <Globe className="h-3 w-3 mr-1" />
-                                {source.selectedSubUrls?.size || source.insideLinks?.filter(link => link.selected).length} URLs
+                                {getSelectedSubUrlsCount(source)} URLs
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -133,8 +171,10 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                                 {source.insideLinks?.filter(link => link.selected).slice(0, 5).map((link, i) => (
                                   <li key={i}>{link.title || link.url}</li>
                                 ))}
-                                {(source.selectedSubUrls && source.selectedSubUrls.size > 5) || 
-                                 (source.insideLinks && source.insideLinks.filter(link => link.selected).length > 5) && (
+                                {source.metadata?.sub_urls?.children?.filter(node => node.is_selected).slice(0, 5).map((node, i) => (
+                                  <li key={i}>{node.title || node.url}</li>
+                                ))}
+                                {getSelectedSubUrlsCount(source) > 5 && (
                                   <li>... and more</li>
                                 )}
                               </ul>
@@ -144,8 +184,7 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                       )}
                       
                       {(source.type === 'docs' || source.type === 'csv') && 
-                       (source.documents?.some(doc => doc.selected) || 
-                       (source.knowledge_sources && source.knowledge_sources.some(ks => ks.selected))) && (
+                       (getSelectedDocumentCount(source) > 0) && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -155,7 +194,7 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                                 {source.knowledge_sources && source.knowledge_sources.length > 0 && (
                                   <span className="ml-1 flex items-center">
                                     <FolderOpen className="h-3 w-3 mx-1" />
-                                    {source.knowledge_sources.filter(src => src.selected).length} imported
+                                    {source.knowledge_sources.filter(src => src.selected || src.is_selected).length} imported
                                   </span>
                                 )}
                               </div>
@@ -176,14 +215,14 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                                 </>
                               )}
                               
-                              {source.knowledge_sources && source.knowledge_sources.some(ks => ks.selected) && (
+                              {source.knowledge_sources && source.knowledge_sources.some(ks => ks.selected || ks.is_selected) && (
                                 <>
                                   <p className="font-medium text-xs mt-2">Selected imported files:</p>
                                   <ul className="text-xs list-disc pl-4 mt-1">
-                                    {source.knowledge_sources.filter(ks => ks.selected).slice(0, 5).map((file, i) => (
+                                    {source.knowledge_sources.filter(ks => ks.selected || ks.is_selected).slice(0, 5).map((file, i) => (
                                       <li key={i}>{file.title || file.name}</li>
                                     ))}
-                                    {source.knowledge_sources.filter(ks => ks.selected).length > 5 && (
+                                    {source.knowledge_sources.filter(ks => ks.selected || ks.is_selected).length > 5 && (
                                       <li>... and more</li>
                                     )}
                                   </ul>

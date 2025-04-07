@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { 
   LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, 
   ExternalLink, FileText, Link, ArrowDown, Globe, File, FolderOpen, Folder 
 } from 'lucide-react';
-import { KnowledgeSource } from './types';
+import { KnowledgeSource, UrlNode } from './types';
 import { getSourceTypeIcon, getStatusIndicator } from './knowledgeUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -36,6 +37,51 @@ const KnowledgeSourceTable = ({
   const { toast } = useToast();
   const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
   const [selectedUrlCount, setSelectedUrlCount] = useState<Record<number, number>>({});
+  const [expandedNestedItems, setExpandedNestedItems] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Initialize selected URL counts
+    const initialSelectedCounts: Record<number, number> = {};
+    
+    sources.forEach(source => {
+      if (source.type === 'website' || source.type === 'url') {
+        let count = 0;
+        
+        // Count selected URLs from insideLinks
+        if (source.insideLinks) {
+          count += source.insideLinks.filter(link => link.selected).length;
+        }
+        
+        // Count selected URLs from selectedSubUrls
+        if (source.selectedSubUrls) {
+          count += source.selectedSubUrls.size;
+        }
+        
+        // Count selected URLs from metadata.sub_urls.children
+        if (source.metadata?.sub_urls?.children) {
+          const countSelectedInChildren = (nodes: UrlNode[] | undefined): number => {
+            if (!nodes) return 0;
+            let selectedCount = 0;
+            for (const node of nodes) {
+              if (node.is_selected) {
+                selectedCount++;
+              }
+              if (node.children && node.children.length > 0) {
+                selectedCount += countSelectedInChildren(node.children);
+              }
+            }
+            return selectedCount;
+          };
+          
+          count += countSelectedInChildren(source.metadata.sub_urls.children);
+        }
+        
+        initialSelectedCounts[source.id] = count;
+      }
+    });
+    
+    setSelectedUrlCount(initialSelectedCounts);
+  }, [sources]);
 
   const shouldShowTrainButton = (source: KnowledgeSource) => {
     return source.trainingStatus === 'error' || source.linkBroken;
@@ -46,6 +92,19 @@ const KnowledgeSourceTable = ({
       ...prev,
       [sourceId]: !prev[sourceId]
     }));
+  };
+
+  const toggleNestedItemExpansion = (sourceId: number, itemKey: string) => {
+    const key = `${sourceId}-${itemKey}`;
+    setExpandedNestedItems(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const isNestedItemExpanded = (sourceId: number, itemKey: string) => {
+    const key = `${sourceId}-${itemKey}`;
+    return !!expandedNestedItems[key];
   };
 
   const handleCrawlOptionChange = (sourceId: number, option: 'single' | 'children') => {
@@ -332,12 +391,104 @@ const KnowledgeSourceTable = ({
     );
   };
 
+  // Function to render selected URLs from API response
+  const getApiSelectedSubUrls = (source: KnowledgeSource) => {
+    if (!source.metadata?.sub_urls?.children) {
+      return null;
+    }
+    
+    const renderChildren = (children: UrlNode[] | undefined, level = 0) => {
+      if (!children || children.length === 0) return null;
+      
+      return children.map((child, index) => {
+        const isSelected = child.is_selected;
+        const hasChildren = child.children && child.children.length > 0;
+        const childKey = child.key || `child-${index}`;
+        const isExpanded = isNestedItemExpanded(source.id, childKey);
+        
+        if (!isSelected && (!hasChildren || !child.children?.some(c => c.is_selected))) {
+          return null;
+        }
+        
+        return (
+          <React.Fragment key={childKey}>
+            <div className="flex items-center text-xs p-1 rounded hover:bg-muted ml-2" style={{ marginLeft: `${level * 0.75}rem` }}>
+              {hasChildren && (
+                <button 
+                  onClick={() => toggleNestedItemExpansion(source.id, childKey)}
+                  className="h-4 w-4 inline-flex items-center justify-center mr-1"
+                >
+                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                </button>
+              )}
+              {!hasChildren && <div className="w-4 mr-1" />}
+              <div className={`w-2 h-2 rounded-full mr-2 ${isSelected ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <Globe className="h-3 w-3 mr-2 text-green-600" />
+              <span className="font-medium">{child.title || child.url}</span>
+              {child.chars && <span className="text-xs text-muted-foreground ml-2">{child.chars} chars</span>}
+            </div>
+            
+            {hasChildren && isExpanded && renderChildren(child.children, level + 1)}
+          </React.Fragment>
+        );
+      });
+    };
+    
+    const anySelectedUrls = source.metadata.sub_urls.children.some(child => 
+      child.is_selected || (child.children && child.children.some(c => c.is_selected))
+    );
+    
+    if (!anySelectedUrls) {
+      return null;
+    }
+    
+    return (
+      <div className="px-2 py-2">
+        <div className="text-sm font-medium mb-2">Selected URLs from API</div>
+        <div className="space-y-1 max-h-60 overflow-y-auto">
+          {renderChildren(source.metadata.sub_urls.children)}
+        </div>
+      </div>
+    );
+  };
+
+  // Function to render selected files from API response
+  const getApiSelectedFiles = (source: KnowledgeSource) => {
+    if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
+      return null;
+    }
+    
+    const selectedSources = source.knowledge_sources.filter(ks => ks.is_selected || ks.selected);
+    
+    if (selectedSources.length === 0) {
+      return null;
+    }
+    
+    return (
+      <div className="px-2 py-2">
+        <div className="text-sm font-medium mb-2">Selected Files from API ({selectedSources.length})</div>
+        <div className="space-y-1 max-h-40 overflow-y-auto">
+          {selectedSources.map((file, index) => (
+            <div key={`file-${file.id || index}`} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+              <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
+              <File className="h-3 w-3 mr-2 text-blue-500" />
+              <span className="truncate flex-1" title={file.title || file.name}>
+                {file.title || file.name || `File ${index + 1}`}
+              </span>
+              {file.metadata?.file_size && (
+                <span className="text-muted-foreground">
+                  {formatFileSizeToMB(file.metadata.file_size || file.metadata.size)}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const getSelectedChildUrls = (source: KnowledgeSource) => {
     const selectedUrls = source.insideLinks?.filter(link => link.selected) || [];
-    
-    if (source.knowledge_sources?.[0]?.metadata?.sub_urls) {
-      // Handle sub_urls from metadata if needed
-    }
     
     const selectedSubUrlsArray = source.selectedSubUrls ? 
       Array.from(source.selectedSubUrls) : [];
@@ -375,7 +526,9 @@ const KnowledgeSourceTable = ({
            source.type === 'website' ||
            source.type === 'docs' ||
            source.type === 'csv' ||
-           source.knowledge_sources?.length > 0;
+           source.knowledge_sources?.length > 0 ||
+           (source.metadata?.sub_urls?.children && 
+            source.metadata.sub_urls.children.some(c => c.is_selected));
   };
 
   const renderFileContent = (source: KnowledgeSource) => {
@@ -383,7 +536,7 @@ const KnowledgeSourceTable = ({
       // For nested knowledge sources (imported files)
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
         // Filter knowledge sources to only show selected ones if any are marked as selected
-        const selectedFiles = source.knowledge_sources.filter(file => file.selected);
+        const selectedFiles = source.knowledge_sources.filter(file => file.selected || file.is_selected);
         const filesToShow = selectedFiles.length > 0 ? selectedFiles : source.knowledge_sources;
         
         return (
@@ -402,7 +555,7 @@ const KnowledgeSourceTable = ({
                   <div className="space-y-1 max-h-60 overflow-y-auto pl-6">
                     {filesToShow.map((file) => (
                       <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
-                        <div className={`w-2 h-2 rounded-full mr-2 ${file.selected ? 'bg-green-500' : 'bg-blue-500'}`} />
+                        <div className={`w-2 h-2 rounded-full mr-2 ${file.selected || file.is_selected ? 'bg-green-500' : 'bg-blue-500'}`} />
                         <File className="h-3 w-3 mr-2 text-blue-500" />
                         <span className="truncate flex-1" title={file.title || file.name}>
                           {file.title || file.name}
@@ -517,22 +670,25 @@ const KnowledgeSourceTable = ({
                     {!expandedRows[source.id] && (
                       <>
                         {(source.type === 'website' || source.type === 'url') && 
-                         (source.selectedSubUrls?.size > 0 || source.insideLinks?.some(link => link.selected)) && (
+                         (source.selectedSubUrls?.size > 0 || 
+                          source.insideLinks?.some(link => link.selected) ||
+                          source.metadata?.sub_urls?.children?.some(node => node.is_selected)) && (
                           <div className="ml-7 mt-1">
                             <div className="text-xs text-muted-foreground font-medium">
-                              {source.selectedSubUrls?.size || source.insideLinks?.filter(link => link.selected).length} URLs selected
+                              {selectedUrlCount[source.id] || 0} URLs selected
                             </div>
                           </div>
                         )}
                         
                         {(source.type === 'docs' || source.type === 'csv') && 
-                         (source.documents?.some(doc => doc.selected) || source.knowledge_sources?.some(ks => ks.selected)) && (
+                         (source.documents?.some(doc => doc.selected) || 
+                          source.knowledge_sources?.some(ks => ks.selected || ks.is_selected)) && (
                           <div className="ml-7 mt-1">
                             <div className="text-xs text-muted-foreground font-medium">
                               {source.documents?.filter(doc => doc.selected).length || 0} files selected
                               {source.knowledge_sources && (
                                 <span className="ml-1">
-                                  , {source.knowledge_sources.filter(ks => ks.selected).length || source.knowledge_sources.length} imported
+                                  , {source.knowledge_sources.filter(ks => ks.selected || ks.is_selected).length || source.knowledge_sources.length} imported
                                 </span>
                               )}
                             </div>
@@ -593,44 +749,50 @@ const KnowledgeSourceTable = ({
                       <Collapsible open={true}>
                         <CollapsibleContent>
                           <div className="p-2 bg-muted/30 border-t border-dashed">
-                            {(source.type === 'website' || source.type === 'url') && (
+                            {/* Render selected URLs from API response for website sources */}
+                            {(source.type === 'website' || source.type === 'url') && getApiSelectedSubUrls(source)}
+                            
+                            {/* Render previously selected URLs from insideLinks and selectedSubUrls */}
+                            {(source.type === 'website' || source.type === 'url') && source.selectedSubUrls && source.selectedSubUrls.size > 0 && (
                               <div className="px-4 py-3">
-                                <div className="text-sm font-medium mb-2">Selected URLs</div>
-                                {source.selectedSubUrls && source.selectedSubUrls.size > 0 ? (
-                                  <div className="space-y-1">
-                                    {Array.from(source.selectedSubUrls).map((url, index) => (
+                                <div className="text-sm font-medium mb-2">Previously Selected URLs</div>
+                                <div className="space-y-1">
+                                  {Array.from(source.selectedSubUrls).map((url, index) => (
+                                    <div key={index} className="flex items-center text-xs p-1 rounded">
+                                      <Globe className="h-3.5 w-3.5 mr-2 text-green-600" />
+                                      <div className="flex flex-col">
+                                        <span className="text-sm">{url}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {(source.type === 'website' || source.type === 'url') && source.insideLinks?.some(link => link.selected) && (
+                              <div className="px-4 py-3">
+                                <div className="text-sm font-medium mb-2">Selected Inside Links</div>
+                                <div className="space-y-1">
+                                  {source.insideLinks
+                                    .filter(link => link.selected)
+                                    .map((link, index) => (
                                       <div key={index} className="flex items-center text-xs p-1 rounded">
                                         <Globe className="h-3.5 w-3.5 mr-2 text-green-600" />
                                         <div className="flex flex-col">
-                                          <span className="text-sm">{url}</span>
+                                          <span className="text-sm">{link.title || link.url}</span>
+                                          <span className="text-xs text-muted-foreground">{link.url}</span>
                                         </div>
                                       </div>
                                     ))}
-                                  </div>
-                                ) : source.insideLinks?.some(link => link.selected) ? (
-                                  <div className="space-y-1">
-                                    {source.insideLinks
-                                      .filter(link => link.selected)
-                                      .map((link, index) => (
-                                        <div key={index} className="flex items-center text-xs p-1 rounded">
-                                          <Globe className="h-3.5 w-3.5 mr-2 text-green-600" />
-                                          <div className="flex flex-col">
-                                            <span className="text-sm">{link.title || link.url}</span>
-                                            <span className="text-xs text-muted-foreground">{link.url}</span>
-                                          </div>
-                                        </div>
-                                      ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-sm text-muted-foreground">
-                                    No URLs selected. All content from the website will be imported.
-                                  </div>
-                                )}
+                                </div>
                               </div>
                             )}
                             
                             {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
+                            
+                            {/* Show API selected files for docs and csv types */}
+                            {(source.type === 'docs' || source.type === 'csv') && getApiSelectedFiles(source)}
                             
                             {/* Show imported knowledge sources for docs and csv types */}
                             {(source.type === 'docs' || source.type === 'csv') && renderFileContent(source)}
