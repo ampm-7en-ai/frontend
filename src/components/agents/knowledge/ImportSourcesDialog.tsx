@@ -351,7 +351,7 @@ export const ImportSourcesDialog = ({
     
     const matchesFilter = 
       !urlFilter || 
-      node.title?.toLowerCase().includes(urlFilter.toLowerCase()) || 
+      (node.title?.toLowerCase().includes(urlFilter.toLowerCase())) || 
       node.url.toLowerCase().includes(urlFilter.toLowerCase());
     
     if (node.children && node.children.length > 0) {
@@ -639,10 +639,10 @@ export const ImportSourcesDialog = ({
             placeholder="Search by title or URL..."
             value={urlFilter}
             onChange={(e) => setUrlFilter(e.target.value)}
-            className="pl-7 py-1 h-8 text-xs"
+            className="pl-7 py-1 h-7 text-xs"
             size={1}
           />
-          <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
+          <Search className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
         </div>
         
         <div className="flex items-center justify-between w-full gap-2">
@@ -651,13 +651,13 @@ export const ImportSourcesDialog = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-xs h-7 px-2 w-[100px] flex justify-between items-center"
+                className="text-xs h-6 px-2 w-[90px] flex justify-between items-center"
               >
                 <span>{urlSortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
                 <ArrowUpDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[100px]">
+            <DropdownMenuContent align="start" className="w-[90px]">
               <DropdownMenuItem onClick={() => setUrlSortOrder('asc')} className="text-xs">
                 A-Z
               </DropdownMenuItem>
@@ -672,7 +672,7 @@ export const ImportSourcesDialog = ({
               variant="outline"
               size="sm"
               onClick={() => setExcludedUrls(new Set())}
-              className="text-xs h-7"
+              className="text-xs h-6"
             >
               Clear {excludedUrls.size} excluded
             </Button>
@@ -808,7 +808,7 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={15} defaultSize={50}>
+          <ResizablePanel minSize={15} defaultSize={50 + 8}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2">
