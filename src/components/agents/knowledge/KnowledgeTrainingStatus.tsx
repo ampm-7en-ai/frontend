@@ -76,7 +76,7 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  const formatExternalSources = (data: any[]) => {
+  const formatExternalSources = (data) => {
     if (!data) return [];
     
     return data.map(kb => {
@@ -114,7 +114,7 @@ const KnowledgeTrainingStatus = ({
     });
   };
 
-  const getMimeTypeForFormat = (type: string) => {
+  const getMimeTypeForFormat = (type) => {
     switch(type) {
       case 'pdf':
         return 'application/pdf';
@@ -134,14 +134,14 @@ const KnowledgeTrainingStatus = ({
     }
   };
   
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
   };
 
-  const transformAgentKnowledgeSources = (data: any[]) => {
+  const transformAgentKnowledgeSources = (data) => {
     if (!data) return [];
     
     return data.map(source => {
@@ -275,7 +275,7 @@ const KnowledgeTrainingStatus = ({
     }
   };
   
-  const processSourceForImport = (externalSource: any, selectedUrls?: Set<string>): KnowledgeSource | null => {
+  const processSourceForImport = (externalSource, selectedUrls?: Set<string>): KnowledgeSource | null => {
     if (!externalSource) return null;
     
     const newSource: KnowledgeSource = {
@@ -299,7 +299,7 @@ const KnowledgeTrainingStatus = ({
   };
   
   const processSelectedUrlsForSource = (
-    externalSource: any, 
+    externalSource, 
     selectedUrls: Set<string>, 
     existingLinks: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}> = [],
     replaceExisting: boolean = false
