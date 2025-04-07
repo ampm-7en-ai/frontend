@@ -1,7 +1,11 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, ExternalLink, FileText, Link, ArrowDown, Globe, File } from 'lucide-react';
+import { 
+  LoaderCircle, Trash2, Zap, Link2Off, ChevronDown, ChevronRight, 
+  ExternalLink, FileText, Link, ArrowDown, Globe, File, FolderOpen, Folder 
+} from 'lucide-react';
 import { KnowledgeSource } from './types';
 import { getSourceTypeIcon, getStatusIndicator } from './knowledgeUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -10,6 +14,12 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB } from '@/utils/api-config';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface KnowledgeSourceTableProps {
   sources: KnowledgeSource[];
@@ -365,11 +375,49 @@ const KnowledgeSourceTable = ({
            source.type === 'url' || 
            source.type === 'website' ||
            source.type === 'docs' ||
-           source.type === 'csv';
+           source.type === 'csv' ||
+           source.knowledge_sources?.length > 0;
   };
 
   const renderFileContent = (source: KnowledgeSource) => {
     if (source.type === 'docs' || source.type === 'csv') {
+      // For nested knowledge sources (imported files)
+      if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        return (
+          <div className="px-2 py-2">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="files" className="border-0">
+                <AccordionTrigger className="py-2 hover:no-underline">
+                  <span className="flex items-center text-sm font-medium">
+                    <FolderOpen className="h-4 w-4 mr-2 text-blue-500" />
+                    Imported Files ({source.knowledge_sources.length})
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-1 max-h-60 overflow-y-auto pl-6">
+                    {source.knowledge_sources.map((file) => (
+                      <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+                        <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
+                        <File className="h-3 w-3 mr-2 text-blue-500" />
+                        <span className="truncate flex-1" title={file.title || file.name}>
+                          {file.title || file.name}
+                        </span>
+                        {file.metadata?.file_size && (
+                          <span className="text-muted-foreground">
+                            {formatFileSizeToMB(file.metadata.file_size)}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        );
+      }
+      
+      // For individually selected documents
       const selectedDocs = source.documents?.filter(doc => doc.selected) || [];
       
       if (selectedDocs.length === 0) {
@@ -473,10 +521,13 @@ const KnowledgeSourceTable = ({
                         )}
                         
                         {(source.type === 'docs' || source.type === 'csv') && 
-                         source.documents?.some(doc => doc.selected) && (
+                         (source.documents?.some(doc => doc.selected) || source.knowledge_sources?.length > 0) && (
                           <div className="ml-7 mt-1">
                             <div className="text-xs text-muted-foreground font-medium">
-                              {source.documents.filter(doc => doc.selected).length} files selected
+                              {source.documents?.filter(doc => doc.selected).length || 0} files selected
+                              {source.knowledge_sources && source.knowledge_sources.length > 0 && (
+                                <span className="ml-1">, {source.knowledge_sources.length} imported</span>
+                              )}
                             </div>
                           </div>
                         )}
@@ -573,9 +624,12 @@ const KnowledgeSourceTable = ({
                             
                             {source.type === 'url' && getCrawlOptionsContent(source)}
                             {source.type === 'webpage' && getInsideLinksContent(source)}
-                            {source.documents?.length > 0 && getDocumentsContent(source)}
                             
+                            {/* Show imported knowledge sources for docs and csv types */}
                             {(source.type === 'docs' || source.type === 'csv') && renderFileContent(source)}
+                            
+                            {/* If there are documents from the API, show them */}
+                            {source.documents?.length > 0 && getDocumentsContent(source)}
                           </div>
                         </CollapsibleContent>
                       </Collapsible>
