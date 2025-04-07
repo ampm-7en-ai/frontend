@@ -62,6 +62,23 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
     setDeploymentDialogOpen(true);
   };
 
+  const getSelectedDocumentCount = (source: KnowledgeSource): number => {
+    let count = 0;
+    
+    // Count documents that are manually selected
+    if (source.documents) {
+      count += source.documents.filter(doc => doc.selected).length;
+    }
+    
+    // Count selected knowledge sources from imported files
+    if (source.knowledge_sources) {
+      const selectedSources = source.knowledge_sources.filter(src => src.selected);
+      count += selectedSources.length > 0 ? selectedSources.length : source.knowledge_sources.length;
+    }
+    
+    return count;
+  };
+
   return (
     <>
       <Table>
@@ -137,11 +154,13 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                             <TooltipTrigger asChild>
                               <div className="text-xs text-blue-700 ml-6 flex items-center">
                                 <File className="h-3 w-3 mr-1" />
-                                {source.documents?.filter(doc => doc.selected).length || 0} selected
+                                {getSelectedDocumentCount(source)} selected
                                 {source.knowledge_sources && source.knowledge_sources.length > 0 && (
                                   <span className="ml-1 flex items-center">
                                     <FolderOpen className="h-3 w-3 mx-1" />
-                                    {source.knowledge_sources.length} imported
+                                    {source.knowledge_sources.filter(src => src.selected).length > 0 ? 
+                                      source.knowledge_sources.filter(src => src.selected).length : 
+                                      source.knowledge_sources.length} imported
                                   </span>
                                 )}
                               </div>
@@ -164,12 +183,22 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                               
                               {source.knowledge_sources && source.knowledge_sources.length > 0 && (
                                 <>
-                                  <p className="font-medium text-xs mt-2">Imported files:</p>
+                                  <p className="font-medium text-xs mt-2">
+                                    {source.knowledge_sources.filter(src => src.selected).length > 0 ? 
+                                      "Selected imported files:" : 
+                                      "Imported files:"}
+                                  </p>
                                   <ul className="text-xs list-disc pl-4 mt-1">
-                                    {source.knowledge_sources.slice(0, 5).map((file, i) => (
-                                      <li key={i}>{file.title || file.name}</li>
-                                    ))}
-                                    {source.knowledge_sources.length > 5 && (
+                                    {(source.knowledge_sources.filter(src => src.selected).length > 0 ? 
+                                      source.knowledge_sources.filter(src => src.selected) : 
+                                      source.knowledge_sources)
+                                      .slice(0, 5).map((file, i) => (
+                                        <li key={i}>{file.title || file.name}</li>
+                                      ))
+                                    }
+                                    {(source.knowledge_sources.filter(src => src.selected).length > 0 ? 
+                                      source.knowledge_sources.filter(src => src.selected).length : 
+                                      source.knowledge_sources.length) > 5 && (
                                       <li>... and more</li>
                                     )}
                                   </ul>

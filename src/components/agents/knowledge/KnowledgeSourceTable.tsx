@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -383,6 +382,10 @@ const KnowledgeSourceTable = ({
     if (source.type === 'docs' || source.type === 'csv') {
       // For nested knowledge sources (imported files)
       if (source.knowledge_sources && source.knowledge_sources.length > 0) {
+        // Filter knowledge sources to only show selected ones if any are marked as selected
+        const selectedFiles = source.knowledge_sources.filter(file => file.selected);
+        const filesToShow = selectedFiles.length > 0 ? selectedFiles : source.knowledge_sources;
+        
         return (
           <div className="px-2 py-2">
             <Accordion type="single" collapsible className="w-full">
@@ -390,14 +393,16 @@ const KnowledgeSourceTable = ({
                 <AccordionTrigger className="py-2 hover:no-underline">
                   <span className="flex items-center text-sm font-medium">
                     <FolderOpen className="h-4 w-4 mr-2 text-blue-500" />
-                    Imported Files ({source.knowledge_sources.length})
+                    {selectedFiles.length > 0 ? 
+                      `Selected Files (${selectedFiles.length}/${source.knowledge_sources.length})` : 
+                      `Imported Files (${source.knowledge_sources.length})`}
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-1 max-h-60 overflow-y-auto pl-6">
-                    {source.knowledge_sources.map((file) => (
+                    {filesToShow.map((file) => (
                       <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
-                        <div className="w-2 h-2 rounded-full mr-2 bg-green-500" />
+                        <div className={`w-2 h-2 rounded-full mr-2 ${file.selected ? 'bg-green-500' : 'bg-blue-500'}`} />
                         <File className="h-3 w-3 mr-2 text-blue-500" />
                         <span className="truncate flex-1" title={file.title || file.name}>
                           {file.title || file.name}
