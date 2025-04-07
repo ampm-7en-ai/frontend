@@ -6,11 +6,10 @@ import { KnowledgeSourcesList } from '@/components/knowledge/KnowledgeSourcesLis
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
-import { KnowledgeSourceImport } from '@/components/knowledge/KnowledgeSourceImport';
 import { useParams, useNavigate } from 'react-router-dom';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { useToast } from '@/hooks/use-toast';
-import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken, fetchKnowledgeSourceDetails, fetchExternalKnowledgeSources, deleteKnowledgeSource, deleteKnowledgeBase } from '@/utils/api';
+import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken, deleteKnowledgeSource, deleteKnowledgeBase } from '@/utils/api';
 
 const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState('');

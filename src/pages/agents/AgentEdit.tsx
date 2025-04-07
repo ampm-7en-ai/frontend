@@ -60,24 +60,34 @@ const AgentEdit = () => {
   const [descriptionError, setDescriptionError] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
-  // Fetch agent details
-  const { data: agent, isLoading: isLoadingAgent } = useQuery({
+  const fetchAgentData = async () => {
+    if (!agentId) return null;
+    try {
+      const agentData = await fetchAgentDetails(agentId);
+      return agentData;
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+      throw error;
+    }
+  };
+
+  const {
+    data: agent,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['agent', agentId],
-    queryFn: async () => {
-      if (!agentId) return null;
-      try {
-        const agentData = await fetchAgentDetails(agentId);
-        return agentData;
-      } catch (error) {
-        console.error("Error fetching agent details:", error);
-        throw error;
-      }
-    },
-    enabled: !!agentId,
-    retry: 1,
+    queryFn: fetchAgentData,
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to fetch agent data: ${error.message}`,
+        variant: 'destructive',
+      });
+    }
   });
 
-  // Initialize form state with agent data
   useEffect(() => {
     if (agent) {
       setAgentName(agent.name);
@@ -91,12 +101,10 @@ const AgentEdit = () => {
       setWelcomeMessage(agent.appearance?.welcomeMessage || '');
       setSystemPrompt(agent.systemPrompt || '');
       
-      // Initialize selected knowledge sources
       setSelectedKnowledgeSources(agent.knowledge_bases?.map((kb: any) => kb.id.toString()) || []);
     }
   }, [agent]);
 
-  // Fetch available knowledge sources
   const { isLoading: isKnowledgeBasesLoading } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: async () => {
@@ -127,7 +135,6 @@ const AgentEdit = () => {
     retry: 1,
   });
 
-  // Mutation for updating agent details
   const updateAgentMutation = useMutation({
     mutationFn: async (updatedAgentData: any) => {
       if (!agentId) throw new Error("Agent ID is required");
@@ -153,12 +160,10 @@ const AgentEdit = () => {
     },
   });
 
-  // Mutation for adding knowledge sources to agent
   const addKnowledgeSourcesMutation = useMutation({
     mutationFn: async () => {
       if (!agentId) throw new Error("Agent ID is required");
       
-      // Convert selectedKnowledgeSources to numbers
       const knowledgeSources = availableKnowledgeSources
         .filter((kb: any) => selectedKnowledgeSources.includes(kb.id.toString()))
         .map((kb: any) => kb.id);
@@ -197,7 +202,6 @@ const AgentEdit = () => {
       setCustomAvatarFile(file);
       setAvatarType('custom');
       
-      // Create a local URL for display purposes
       const url = URL.createObjectURL(file);
       setAvatarSrc(url);
     }
@@ -311,7 +315,7 @@ const AgentEdit = () => {
     }
   };
 
-  if (isLoadingAgent) {
+  if (isLoading) {
     return (
       <div className="space-y-4 p-8 text-center">
         <LoadingSpinner text="Loading agent information..." />
@@ -319,7 +323,7 @@ const AgentEdit = () => {
     );
   }
 
-  if (!agent && !isLoadingAgent) {
+  if (!agent && !isLoading) {
     return (
       <div className="space-y-4 p-8 text-center">
         <h3 className="text-lg font-medium">Agent not found</h3>

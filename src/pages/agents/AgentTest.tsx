@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -71,6 +70,16 @@ const AgentTest = () => {
     );
   }
 
+  const modelConfigs = Object.fromEntries(MODELS.map(model => [
+    model.value, 
+    { name: model.label, provider: 'default' }
+  ]));
+
+  const agentKnowledgeSources = agent?.knowledgeSources?.map(source => ({
+    ...source,
+    crawlOptions: source.crawlOptions as any
+  })) || [];
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
@@ -101,7 +110,7 @@ const AgentTest = () => {
                 onOpenSystemPrompt={() => handleSystemPromptEdit(index)}
                 onUpdateConfig={(field, value) => handleUpdateChatConfig(index, field, value)}
                 onSaveConfig={() => handleSaveConfig(index)}
-                modelOptions={MODELS}
+                modelOptions={modelConfigs}
                 primaryColor={primaryColor}
                 avatarSrc={agent?.avatarSrc}
               />
@@ -126,7 +135,7 @@ const AgentTest = () => {
         <KnowledgeSourceModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          sources={agent?.knowledgeSources || []}
+          sources={agentKnowledgeSources}
           initialSourceId={selectedSourceId}
           agentId={selectedAgentId}
         />

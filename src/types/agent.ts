@@ -11,6 +11,15 @@ export interface Agent {
   isDeployed: boolean;
   systemPrompt: string;
   avatarSrc?: string;
+  knowledge_bases?: any[];
+}
+
+export interface UrlNode {
+  url: string;
+  title?: string;
+  status: 'success' | 'error' | 'pending';
+  selected?: boolean;
+  children?: UrlNode[];
 }
 
 export interface KnowledgeSource {
