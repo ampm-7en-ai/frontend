@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -79,12 +80,14 @@ const AgentEdit = () => {
   } = useQuery({
     queryKey: ['agent', agentId],
     queryFn: fetchAgentData,
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: `Failed to fetch agent data: ${error.message}`,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: any) => {
+        toast({
+          title: 'Error',
+          description: `Failed to fetch agent data: ${error.message}`,
+          variant: 'destructive',
+        });
+      }
     }
   });
 
@@ -126,11 +129,13 @@ const AgentEdit = () => {
       setAvailableKnowledgeSources(data);
       return data;
     },
-    onSuccess: () => {
-      setIsLoadingKnowledgeSources(false);
-    },
-    onError: () => {
-      setIsLoadingKnowledgeSources(false);
+    meta: {
+      onSuccess: () => {
+        setIsLoadingKnowledgeSources(false);
+      },
+      onError: () => {
+        setIsLoadingKnowledgeSources(false);
+      }
     },
     retry: 1,
   });
@@ -145,7 +150,7 @@ const AgentEdit = () => {
         title: "Agent Updated",
         description: `${agentName} has been successfully updated.`,
       });
-      queryClient.invalidateQueries({queryKey: ['agent', agentId]});
+      queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
       navigate('/agents');
     },
     onError: (error: any) => {
@@ -168,14 +173,14 @@ const AgentEdit = () => {
         .filter((kb: any) => selectedKnowledgeSources.includes(kb.id.toString()))
         .map((kb: any) => kb.id);
       
-      return addKnowledgeSourcesToAgent(agentId, knowledgeSources, selectedKnowledgeSources);
+      return addKnowledgeSourcesToAgent(agentId, knowledgeSources);
     },
     onSuccess: () => {
       toast({
         title: "Knowledge Sources Updated",
         description: "Knowledge sources have been successfully updated.",
       });
-      queryClient.invalidateQueries({queryKey: ['agent', agentId]});
+      queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
     },
     onError: (error: any) => {
       toast({

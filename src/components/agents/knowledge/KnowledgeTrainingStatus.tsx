@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,6 @@ import { useToast } from '@/hooks/use-toast';
 import { KnowledgeSource, UrlNode } from '@/types/agent';
 import ImportSourcesDialog from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
-import { getToastMessageForSourceChange, getTrainingStatusToast, getRetrainingRequiredToast } from './knowledgeUtils';
 import { 
   BASE_URL, 
   API_ENDPOINTS, 
@@ -51,6 +51,45 @@ import {
 interface KnowledgeTrainingStatusProps {
   agentId?: string;
 }
+
+// Helper functions for toast messages
+const getToastMessageForSourceChange = (source: KnowledgeSource) => {
+  if (source.trainingStatus === 'error') {
+    return {
+      title: "Error Processing Knowledge",
+      description: `Error processing ${source.name}. Please check the source and try again.`,
+      variant: "destructive"
+    };
+  }
+  
+  if (source.linkBroken) {
+    return {
+      title: "Broken Link Detected",
+      description: `Link for ${source.name} appears to be broken. Please update the source.`,
+      variant: "destructive"
+    };
+  }
+  
+  return {
+    title: "Knowledge Source Updated",
+    description: `${source.name} has been successfully processed.`
+  };
+};
+
+const getTrainingStatusToast = () => {
+  return {
+    title: "Training Started",
+    description: "Your knowledge base is being trained. This may take a few minutes.",
+  };
+};
+
+const getRetrainingRequiredToast = () => {
+  return {
+    title: "Retraining Recommended",
+    description: "Some knowledge sources have changed and require retraining.",
+    variant: "warning"
+  };
+};
 
 const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agentId }) => {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -100,19 +139,14 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
     isLoading,
     error,
     refetch,
-  } = useQuery(['knowledgeSources', agentId], fetchKnowledgeSources, {
-    onError: (err: any) => {
-      toast({
-        title: 'Error',
-        description: err.message || 'Failed to fetch knowledge sources.',
-        variant: 'destructive',
-      });
-    },
+  } = useQuery({
+    queryKey: ['knowledgeSources', agentId],
+    queryFn: fetchKnowledgeSources,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   useEffect(() => {
-    if (knowledgeSources) {
+    if (knowledgeSources && Array.isArray(knowledgeSources)) {
       const retrainingNeeded = knowledgeSources.some(source => source.trainingStatus === 'error' || source.linkBroken);
       setIsRetrainingRequired(retrainingNeeded);
     }
@@ -141,7 +175,8 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
         throw new Error('Authentication required');
       }
 
-      const apiUrl = `${BASE_URL}${API_ENDPOINTS.TRAIN_KNOWLEDGEBASE}`;
+      // Using KNOWLEDGEBASE endpoint as TRAIN_KNOWLEDGEBASE is not defined
+      const apiUrl = `${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}train/`;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -180,7 +215,8 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
         throw new Error('Authentication required');
       }
 
-      const apiUrl = `${BASE_URL}${API_ENDPOINTS.KNOWLEDGE_SOURCE}/${knowledgeSourceToDelete.id}`;
+      // Using the correct endpoint path
+      const apiUrl = `${BASE_URL}knowledgesource/${knowledgeSourceToDelete.id}/`;
       const response = await fetch(apiUrl, {
         method: 'DELETE',
         headers: getAuthHeaders(token),
@@ -262,27 +298,31 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
           <CardDescription>Error loading knowledge sources.</CardDescription>
         </CardHeader>
         <CardContent className="py-4">
-          <AlertBanner variant="destructive">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <span>Failed to load knowledge sources. Please try again.</span>
-          </AlertBanner>
+          <AlertBanner 
+            message="Failed to load knowledge sources. Please try again."
+            variant="error"
+            icon={<AlertCircle className="h-4 w-4 mr-2" />}
+          />
         </CardContent>
       </Card>
     );
   }
 
-  const trainingSources = knowledgeSources?.filter(source => source.trainingStatus === 'training');
-  const successfulSources = knowledgeSources?.filter(source => source.trainingStatus === 'success');
-  const errorSources = knowledgeSources?.filter(source => source.trainingStatus === 'error');
-  const idleSources = knowledgeSources?.filter(source => source.trainingStatus === 'idle');
-  const brokenLinkSources = knowledgeSources?.filter(source => source.linkBroken);
+  const trainingSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'training') : [];
+  const successfulSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'success') : [];
+  const errorSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'error') : [];
+  const idleSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.trainingStatus === 'idle') : [];
+  const brokenLinkSources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source.linkBroken) : [];
 
   return (
     <div>
       {isRetrainingRequired && (
-        <AlertBanner>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          <span>Retraining is recommended to incorporate recent changes.</span>
+        <AlertBanner 
+          message="Retraining is recommended to incorporate recent changes."
+          variant="warning"
+          icon={<RefreshCw className="h-4 w-4 mr-2" />}
+          className="mb-4"
+        >
           <Button variant="outline" size="sm" onClick={handleRetrain}>
             Retrain Now
           </Button>
@@ -295,7 +335,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
           <CardDescription>View the status of your knowledge sources and manage training.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {trainingSources?.length > 0 && (
+          {trainingSources.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Training</h4>
               {trainingSources.map(source => (
@@ -313,7 +353,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
             </div>
           )}
 
-          {successfulSources?.length > 0 && (
+          {successfulSources.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Successful</h4>
               {successfulSources.map(source => (
@@ -322,7 +362,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
                     {renderSourceIcon(source.type)}
                     <span>{source.name}</span>
                   </div>
-                  <Badge variant="success">
+                  <Badge>
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Success
                   </Badge>
@@ -331,7 +371,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
             </div>
           )}
 
-          {errorSources?.length > 0 && (
+          {errorSources.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Errors</h4>
               {errorSources.map(source => (
@@ -355,7 +395,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
             </div>
           )}
 
-          {idleSources?.length > 0 && (
+          {idleSources.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Idle</h4>
               {idleSources.map(source => (
@@ -373,7 +413,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
             </div>
           )}
 
-          {brokenLinkSources?.length > 0 && (
+          {brokenLinkSources.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Broken Links</h4>
               {brokenLinkSources.map(source => (
@@ -397,7 +437,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
             </div>
           )}
 
-          {knowledgeSources?.map(source => (
+          {Array.isArray(knowledgeSources) && knowledgeSources.map(source => (
             <Collapsible key={source.id} onOpenChange={() => toggleExpand(source.id)} open={expandedStates[source.id] || false}>
               <div className="border rounded-md p-2">
                 <CollapsibleTrigger asChild>
@@ -434,7 +474,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
                         <strong>Last Updated:</strong> {new Date(source.lastUpdated).toLocaleDateString()}
                       </p>
                     )}
-                    {getSourceMetadataInfo(source.metadata)}
+                    {source.metadata && getSourceMetadataInfo(source.metadata)}
                     {source.type === 'website' && source.insideLinks && source.insideLinks.length > 0 && (
                       <div className="space-y-2">
                         <h5 className="text-xs font-medium">Inside Links:</h5>
@@ -477,7 +517,7 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
             </Collapsible>
           ))}
 
-          {knowledgeSources?.length === 0 && (
+          {Array.isArray(knowledgeSources) && knowledgeSources.length === 0 && (
             <div className="text-center py-4">
               <p className="text-muted-foreground">No knowledge sources added yet.</p>
               <Button variant="outline" onClick={handleImportDialogOpen}>
@@ -489,7 +529,11 @@ const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({ agent
         </CardContent>
       </Card>
 
-      <ImportSourcesDialog open={isImportDialogOpen} onClose={handleImportDialogClose} onKnowledgeSourceChange={handleKnowledgeSourceChange} />
+      <ImportSourcesDialog 
+        isOpen={isImportDialogOpen} 
+        onClose={handleImportDialogClose} 
+        onSourceChange={handleKnowledgeSourceChange} 
+      />
 
       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
