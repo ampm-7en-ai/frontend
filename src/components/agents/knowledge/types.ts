@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -41,6 +40,7 @@ export interface KnowledgeSource {
       children?: UrlNode[];
     };
     size?: string | number;
+    created_at?: string;
   };
   icon?: string;
   knowledge_sources?: KnowledgeSourceItem[];
@@ -56,6 +56,8 @@ export interface KnowledgeSource {
   title?: string;
   url?: string;
   file?: string | null;
+  chunks?: number;
+  description?: string;
 }
 
 export interface AgentReference {

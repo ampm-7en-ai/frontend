@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogBody } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
 import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
@@ -430,6 +430,7 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
+      // Add type guards for urlSet and fileSet to ensure they are iterable
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         if (urlSet && typeof urlSet.forEach === 'function') {
           urlSet.forEach(url => {
@@ -907,7 +908,7 @@ export const ImportSourcesDialog = ({
                                   Type: {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
                                 </span>
                                 
-                                {source.chunks && (
+                                {source.chunks !== undefined && (
                                   <span className="mr-3">{source.chunks} chunks</span>
                                 )}
                                 
