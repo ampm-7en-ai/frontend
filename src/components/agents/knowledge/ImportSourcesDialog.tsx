@@ -1,341 +1,223 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
-import { formatFileSizeToMB, getKnowledgeBaseEndpoint, addKnowledgeSourcesToAgent } from '@/utils/api-config';
-import { cn } from '@/lib/utils';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { renderSourceIcon } from './knowledgeUtils';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import { Search, X, FileText, Globe, Database, File, Loader2, Plus, Check, ChevronRight, ChevronDown, ExternalLink, FolderOpen } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { KnowledgeSource, UrlNode, ProcessedSource, SourceAnalysis, ImportKnowledgeSourcesPayload } from './types';
+import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface ImportSourcesDialogProps {
-  isOpen: boolean;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
-  externalSources: KnowledgeSource[];
-  currentSources: KnowledgeSource[];
-  onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => void;
+  onSourcesImported?: (sources: KnowledgeSource[]) => void;
   agentId?: string;
-  preventMultipleCalls?: boolean;
 }
 
-export const ImportSourcesDialog = ({
-  isOpen,
+const ImportSourcesDialog: React.FC<ImportSourcesDialogProps> = ({
+  open,
   onOpenChange,
-  externalSources,
-  currentSources,
-  onImport,
-  agentId = "",
-  preventMultipleCalls = false,
-}: ImportSourcesDialogProps) => {
+  onSourcesImported,
+  agentId
+}) => {
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [sources, setSources] = useState<ProcessedSource[]>([]);
+  const [selectedSources, setSelectedSources] = useState<Record<number, boolean>>({});
+  const [expandedSources, setExpandedSources] = useState<Record<number, boolean>>({});
+  const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
+  const [isImporting, setIsImporting] = useState(false);
+  const [sourceAnalysis, setSourceAnalysis] = useState<Record<number, SourceAnalysis>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isImporting, setIsImporting] = useState(false);
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedSources, setSelectedSources] = useState<Set<number>>(new Set());
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
-  const [selectedFiles, setSelectedFiles] = useState<Record<number, Set<string>>>({});
-  const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState<KnowledgeSource | null>(null);
-  const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
-  const [urlFilter, setUrlFilter] = useState<string>('');
-  const [urlSortOrder, setUrlSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [excludedUrls, setExcludedUrls] = useState<Set<string>>(new Set());
-  const [urlKeyMap, setUrlKeyMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (isOpen) {
-      setSelectedSources(new Set());
-      setExpandedNodes(new Set());
+    if (open) {
+      fetchSources();
+    } else {
+      // Reset state when dialog closes
+      setSearchQuery('');
+      setSelectedSources({});
+      setExpandedSources({});
       setSelectedSubUrls({});
-      setSelectedFiles({});
-      setSelectedKnowledgeBase(null);
-      setSelectedType('all');
-      setExpandedSources(new Set());
-      setUrlFilter('');
-      setUrlSortOrder('asc');
-      setExcludedUrls(new Set());
+      setExpandedNodes({});
     }
-  }, [isOpen, externalSources]);
+  }, [open]);
 
-  useEffect(() => {
-    if (selectedKnowledgeBase) {
-      if (hasUrlStructure(selectedKnowledgeBase)) {
-        const sourceId = selectedKnowledgeBase.id;
-        const rootNode = findRootUrlNode(selectedKnowledgeBase);
+  const fetchSources = async () => {
+    setIsLoading(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const response = await fetch(`${BASE_URL}knowledge-sources/`, {
+        method: 'GET',
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sources: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Process the sources to add format information
+      const processedSources: ProcessedSource[] = data.map((source: any) => {
+        let format = 'unknown';
+        let pages = '';
         
-        if (rootNode && rootNode.url) {
-          if (!selectedSubUrls[sourceId]) {
-            setSelectedSubUrls(prev => ({
-              ...prev,
-              [sourceId]: new Set<string>()
-            }));
-          }
-          
-          setExpandedNodes(prev => new Set([...prev, rootNode.url]));
-          
-          const selectedUrls = new Set<string>();
-          const urlKeys: Record<string, string> = {};
-          
-          const collectSelectedUrls = (node: UrlNode) => {
-            if (node.is_selected) {
-              selectedUrls.add(node.url);
-            }
-            
-            if (node.key) {
-              urlKeys[node.url] = node.key;
-            }
-            
-            if (node.children && node.children.length > 0) {
-              node.children.forEach(child => collectSelectedUrls(child));
-            }
-          };
-          
-          collectSelectedUrls(rootNode);
-          
-          setUrlKeyMap(prev => ({
-            ...prev,
-            ...urlKeys
-          }));
-          
-          if (selectedUrls.size > 0) {
-            setSelectedSubUrls(prev => ({
-              ...prev,
-              [sourceId]: selectedUrls
-            }));
-          }
+        if (source.type === 'document' || source.type === 'pdf') {
+          format = source.metadata?.format || 'pdf';
+          pages = source.metadata?.no_of_pages ? `${source.metadata.no_of_pages} pages` : '';
+        } else if (source.type === 'csv') {
+          format = 'csv';
+          pages = source.metadata?.no_of_rows ? `${source.metadata.no_of_rows} rows` : '';
+        } else if (source.type === 'website' || source.type === 'url') {
+          format = 'website';
+        } else if (source.type === 'plain_text') {
+          format = 'text';
         }
-      } else if (hasNestedFiles(selectedKnowledgeBase)) {
-        const sourceId = selectedKnowledgeBase.id;
-        if (!selectedFiles[sourceId]) {
-          setSelectedFiles(prev => ({
-            ...prev,
-            [sourceId]: new Set<string>()
-          }));
-        }
-      }
-    }
-  }, [selectedKnowledgeBase]);
-
-  useEffect(() => {
-    for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
-      const numericId = Number(sourceId);
-      if (urlSet && urlSet instanceof Set && urlSet.size > 0) {
-        setSelectedSources(prev => new Set([...prev, numericId]));
-      } else {
-        if (!selectedFiles[numericId]?.size) {
-          setSelectedSources(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(numericId);
-            return newSet;
-          });
-        }
-      }
-    }
-    
-    for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
-      const numericId = Number(sourceId);
-      if (fileSet && fileSet instanceof Set && fileSet.size > 0) {
-        setSelectedSources(prev => new Set([...prev, numericId]));
-      } else {
-        if (!selectedSubUrls[numericId]?.size) {
-          setSelectedSources(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(numericId);
-            return newSet;
-          });
-        }
-      }
-    }
-  }, [selectedSubUrls, selectedFiles, externalSources]);
-
-  const sourceTypes = useMemo(() => {
-    const counts = {
-      all: { count: 0, label: 'All Sources', icon: <FileText className="h-4 w-4" /> },
-      docs: { count: 0, label: 'Documents', icon: <FileText className="h-4 w-4 text-blue-600" /> },
-      pdf: { count: 0, label: 'PDF', icon: <FileText className="h-4 w-4 text-red-600" /> },
-      docx: { count: 0, label: 'DOCX', icon: <FileText className="h-4 w-4 text-blue-600" /> },
-      website: { count: 0, label: 'Websites', icon: <Globe className="h-4 w-4 text-green-600" /> },
-      csv: { count: 0, label: 'Spreadsheets', icon: <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> },
-      plain_text: { count: 0, label: 'Plain Text', icon: <File className="h-4 w-4 text-purple-600" /> }
-    };
-    
-    externalSources.forEach(source => {
-      counts.all.count++;
-      const sourceType = source.type as keyof typeof counts;
-      if (counts[sourceType]) {
-        counts[sourceType].count++;
-      }
-    });
-    
-    return counts;
-  }, [externalSources]);
-
-  const filteredSources = useMemo(() => {
-    return selectedType === 'all' 
-      ? externalSources 
-      : selectedType === 'docs'
-        ? externalSources.filter(source => source.type === 'docs')
-        : externalSources.filter(source => source.type === selectedType);
-  }, [selectedType, externalSources]);
-
-  const findRootUrlNode = (source: KnowledgeSource): UrlNode | null => {
-    const firstKnowledgeSource = source.knowledge_sources?.[0];
-    if (!firstKnowledgeSource) return null;
-    
-    if (firstKnowledgeSource.metadata?.sub_urls) {
-      return firstKnowledgeSource.metadata.sub_urls as UrlNode;
-    } else if (source.metadata?.domain_links) {
-      return Array.isArray(source.metadata.domain_links) 
-        ? source.metadata.domain_links[0] 
-        : source.metadata.domain_links;
-    }
-    
-    return null;
-  };
-
-  const hasUrlStructure = (source: KnowledgeSource) => {
-    return source.type === 'website' && findRootUrlNode(source) !== null;
-  };
-  
-  const hasNestedFiles = (source: KnowledgeSource) => {
-    return (source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
-           source.knowledge_sources && 
-           source.knowledge_sources.length > 0;
-  };
-
-  const handleKnowledgeBaseClick = (source: KnowledgeSource) => {
-    if (source.type === 'plain_text') {
-      const sourceId = source.id;
-      const newSelectedSources = new Set(selectedSources);
-      
-      if (newSelectedSources.has(sourceId)) {
-        newSelectedSources.delete(sourceId);
-        setSelectedKnowledgeBase(null);
-      } else {
-        newSelectedSources.add(sourceId);
-      }
-      
-      setSelectedSources(newSelectedSources);
-    } else {
-      setSelectedKnowledgeBase(source);
-    }
-  };
-
-  const toggleNodeExpansion = (nodePath: string) => {
-    const newExpandedNodes = new Set(expandedNodes);
-    if (newExpandedNodes.has(nodePath)) {
-      newExpandedNodes.delete(nodePath);
-    } else {
-      newExpandedNodes.add(nodePath);
-    }
-    setExpandedNodes(newExpandedNodes);
-  };
-
-  const toggleSourceExpansion = (sourceId: number) => {
-    const newExpandedSources = new Set(expandedSources);
-    if (newExpandedSources.has(sourceId)) {
-      newExpandedSources.delete(sourceId);
-    } else {
-      newExpandedSources.add(sourceId);
-    }
-    setExpandedSources(newExpandedSources);
-  };
-
-  const getAllUrlsFromNode = (node: UrlNode): string[] => {
-    const urls: string[] = [node.url];
-    
-    if (node.children && node.children.length > 0) {
-      for (const child of node.children) {
-        urls.push(...getAllUrlsFromNode(child));
-      }
-    }
-    
-    return urls;
-  };
-
-  const selectAllUrlsUnderNode = (sourceId: number, node: UrlNode) => {
-    const allUrls = getAllUrlsFromNode(node);
-    
-    setSelectedSubUrls(prev => {
-      const sourceUrls = new Set(prev[sourceId] || []);
-      allUrls.forEach(url => sourceUrls.add(url));
-      
-      return {
-        ...prev,
-        [sourceId]: sourceUrls
-      };
-    });
-  };
-
-  const unselectAllUrlsUnderNode = (sourceId: number, node: UrlNode) => {
-    const allUrls = getAllUrlsFromNode(node);
-    
-    setSelectedSubUrls(prev => {
-      if (!prev[sourceId]) return prev;
-      
-      const sourceUrls = new Set(prev[sourceId]);
-      allUrls.forEach(url => sourceUrls.delete(url));
-      
-      return {
-        ...prev,
-        [sourceId]: sourceUrls
-      };
-    });
-  };
-
-  const toggleUrlSelection = (sourceId: number, node: UrlNode, isRoot: boolean = false) => {
-    const url = node.url;
-    const isSelected = isUrlSelected(sourceId, url);
-    
-    if (isRoot) {
-      if (isSelected) {
-        unselectAllUrlsUnderNode(sourceId, node);
-      } else {
-        selectAllUrlsUnderNode(sourceId, node);
-      }
-    } else {
-      setSelectedSubUrls(prev => {
-        const sourceUrls = new Set(prev[sourceId] || []);
         
-        if (isSelected) {
-          sourceUrls.delete(url);
-        } else {
-          sourceUrls.add(url);
+        // Extract domain links from metadata or directly from the source
+        let domain_links = null;
+        if (source.metadata?.domain_links) {
+          domain_links = source.metadata.domain_links;
+        } else if (source.metadata?.sub_urls?.children) {
+          domain_links = source.metadata.sub_urls.children;
         }
         
         return {
-          ...prev,
-          [sourceId]: sourceUrls
+          ...source,
+          format,
+          pages,
+          domain_links,
+          trainingStatus: source.training_status || 'idle'
         };
+      });
+      
+      setSources(processedSources);
+      
+      // Analyze sources for expandable content
+      const analysis: Record<number, SourceAnalysis> = {};
+      processedSources.forEach(source => {
+        let hasDomainLinks = false;
+        let domainLinksSource: 'metadata' | 'direct' | 'none' = 'none';
+        
+        if (source.metadata?.domain_links) {
+          hasDomainLinks = true;
+          domainLinksSource = 'metadata';
+        } else if (source.domain_links) {
+          hasDomainLinks = true;
+          domainLinksSource = 'direct';
+        }
+        
+        const hasChildren = source.knowledge_sources && source.knowledge_sources.length > 0;
+        
+        analysis[source.id] = {
+          id: source.id,
+          name: source.name,
+          type: source.type,
+          hasDomainLinks,
+          domainLinksSource,
+          hasChildren,
+          childrenCount: hasChildren ? source.knowledge_sources!.length : 0,
+          structure: JSON.stringify({
+            hasDomainLinks,
+            domainLinksSource,
+            hasChildren,
+            childrenCount: hasChildren ? source.knowledge_sources!.length : 0
+          })
+        };
+      });
+      
+      setSourceAnalysis(analysis);
+    } catch (error) {
+      console.error('Error fetching sources:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to load knowledge sources',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredSources = useMemo(() => {
+    return sources.filter(source => {
+      // Filter by tab
+      if (activeTab !== 'all' && source.type !== activeTab) {
+        return false;
+      }
+      
+      // Filter by search query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return source.name.toLowerCase().includes(query) || 
+               source.type.toLowerCase().includes(query);
+      }
+      
+      return true;
+    });
+  }, [sources, activeTab, searchQuery]);
+
+  const handleSourceSelect = (sourceId: number, selected: boolean) => {
+    setSelectedSources(prev => ({
+      ...prev,
+      [sourceId]: selected
+    }));
+    
+    // If deselecting, also clear any selected sub-URLs
+    if (!selected && selectedSubUrls[sourceId]) {
+      setSelectedSubUrls(prev => {
+        const newState = { ...prev };
+        delete newState[sourceId];
+        return newState;
       });
     }
   };
 
-  const toggleFileSelection = (sourceId: number, fileId: string | number) => {
-    setSelectedFiles(prev => {
-      const sourceFiles = new Set(prev[sourceId] || []);
-      const fileIdString = String(fileId);
+  const toggleSourceExpansion = (sourceId: number) => {
+    setExpandedSources(prev => ({
+      ...prev,
+      [sourceId]: !prev[sourceId]
+    }));
+  };
+
+  const toggleNodeExpansion = (nodeKey: string) => {
+    setExpandedNodes(prev => ({
+      ...prev,
+      [nodeKey]: !prev[nodeKey]
+    }));
+  };
+
+  const handleSubUrlSelect = (sourceId: number, url: string, selected: boolean) => {
+    setSelectedSubUrls(prev => {
+      const currentUrls = prev[sourceId] || new Set<string>();
+      const newUrls = new Set(currentUrls);
       
-      if (sourceFiles.has(fileIdString)) {
-        sourceFiles.delete(fileIdString);
+      if (selected) {
+        newUrls.add(url);
       } else {
-        sourceFiles.add(fileIdString);
+        newUrls.delete(url);
       }
       
       return {
         ...prev,
-        [sourceId]: sourceFiles
+        [sourceId]: newUrls
       };
     });
   };
@@ -344,584 +226,459 @@ export const ImportSourcesDialog = ({
     return selectedSubUrls[sourceId]?.has(url) || false;
   };
 
-  const isFileSelected = (sourceId: number, fileId: string | number): boolean => {
-    return selectedFiles[sourceId]?.has(String(fileId)) || false;
-  };
-
-  const areAllChildrenSelected = (sourceId: number, node: UrlNode): boolean => {
-    if (!node.children || node.children.length === 0) return true;
-    
-    return node.children.every(child => {
-      const childSelected = isUrlSelected(sourceId, child.url);
-      const childrenSelected = areAllChildrenSelected(sourceId, child);
-      return childSelected && childrenSelected;
-    });
-  };
-
-  const filterAndSortNodes = (node: UrlNode, parentPath: string = ''): UrlNode | null => {
-    if (!node) return null;
-    
-    const currentPath = parentPath ? `${parentPath}/${node.url}` : node.url;
-    
-    if (excludedUrls.has(node.url)) return null;
-    
-    const matchesFilter = 
-      !urlFilter || 
-      (node.title?.toLowerCase().includes(urlFilter.toLowerCase())) || 
-      node.url.toLowerCase().includes(urlFilter.toLowerCase());
-    
-    if (node.children && node.children.length > 0) {
-      let filteredChildren = node.children
-        .map(child => filterAndSortNodes(child, currentPath))
-        .filter(Boolean) as UrlNode[];
+  const selectAllSubUrls = (sourceId: number, urls: string[], selected: boolean) => {
+    setSelectedSubUrls(prev => {
+      const currentUrls = prev[sourceId] || new Set<string>();
+      const newUrls = new Set(currentUrls);
       
-      if (filteredChildren.length > 0) {
-        filteredChildren = filteredChildren.sort((a, b) => {
-          const titleA = (a.title || a.url).toLowerCase();
-          const titleB = (b.title || b.url).toLowerCase();
-          
-          if (urlSortOrder === 'asc') {
-            return titleA.localeCompare(titleB);
-          } else {
-            return titleB.localeCompare(titleA);
-          }
-        });
-      }
-      
-      if (!matchesFilter && filteredChildren.length === 0) {
-        return null;
+      if (selected) {
+        urls.forEach(url => newUrls.add(url));
+      } else {
+        urls.forEach(url => newUrls.delete(url));
       }
       
       return {
-        ...node,
-        children: filteredChildren
+        ...prev,
+        [sourceId]: newUrls
       };
-    }
-    
-    return matchesFilter ? node : null;
-  };
-
-  const toggleExcludeUrl = (url: string) => {
-    setExcludedUrls(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(url)) {
-        newSet.delete(url);
-      } else {
-        newSet.add(url);
-      }
-      return newSet;
     });
   };
 
-  const handleImport = async () => {
-    const sourceIdsToImport = Array.from(selectedSources);
+  const getSelectedSourcesCount = () => {
+    return Object.values(selectedSources).filter(Boolean).length;
+  };
+
+  const getSelectedUrlsCount = (sourceId: number) => {
+    return selectedSubUrls[sourceId]?.size || 0;
+  };
+
+  const getTotalSelectedUrlsCount = () => {
+    return Object.values(selectedSubUrls).reduce((total, urls) => total + urls.size, 0);
+  };
+
+  const handleImportSources = async () => {
+    const selectedSourceIds = Object.entries(selectedSources)
+      .filter(([_, selected]) => selected)
+      .map(([id]) => parseInt(id));
     
-    if (sourceIdsToImport.length === 0) {
+    if (selectedSourceIds.length === 0) {
+      toast({
+        title: 'No sources selected',
+        description: 'Please select at least one knowledge source to import.',
+        variant: 'destructive',
+      });
       return;
     }
     
-    if (isImporting) {
-      console.log("Import already in progress, ignoring duplicate call");
+    if (!agentId) {
+      toast({
+        title: 'Error',
+        description: 'Agent ID is missing. Cannot import sources.',
+        variant: 'destructive',
+      });
       return;
     }
+    
+    setIsImporting(true);
     
     try {
-      setIsImporting(true);
-      const allSelectedIds: string[] = [];
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
       
-      for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
-        if (urlSet && urlSet instanceof Set) {
-          for (const url of Array.from(urlSet)) {
-            const key = urlKeyMap[url] || url;
-            allSelectedIds.push(key);
-          }
+      // Prepare the selected URLs for each source
+      const selected_knowledge_sources: string[] = [];
+      
+      for (const sourceId of selectedSourceIds) {
+        // If there are selected sub-URLs for this source, add them
+        const sourceUrls = selectedSubUrls[sourceId];
+        if (sourceUrls && sourceUrls instanceof Set && sourceUrls.size > 0) {
+          const urlsToImport = Array.from(sourceUrls);
+          selected_knowledge_sources.push(...urlsToImport);
         }
       }
       
-      for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
-        if (fileSet && fileSet instanceof Set) {
-          for (const fileId of Array.from(fileSet)) {
-            allSelectedIds.push(fileId);
-          }
-        }
-      }
+      const payload: ImportKnowledgeSourcesPayload = {
+        knowledgeSources: selectedSourceIds,
+        selected_knowledge_sources
+      };
       
-      toast({
-        title: "Importing knowledge sources",
-        description: "Your selected sources are being imported...",
+      const response = await fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources/`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(payload)
       });
       
-      if (agentId) {
-        const currentData = queryClient.getQueryData(['agentKnowledgeBases', agentId]) || [];
-        
-        const sourcesToAdd = sourceIdsToImport.map(id => 
-          externalSources.find(source => source.id === id)
-        ).filter(Boolean);
-        
-        const optimisticData = [...currentData, ...sourcesToAdd];
-        
-        queryClient.setQueryData(['agentKnowledgeBases', agentId], optimisticData);
-        
-        await addKnowledgeSourcesToAgent(agentId, sourceIdsToImport, allSelectedIds);
-        
-        toast({
-          title: "Import successful",
-          description: "Knowledge sources have been added to the agent.",
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `Failed to import sources: ${response.status}`);
       }
       
-      onOpenChange(false);
-      
-      onImport(sourceIdsToImport, selectedSubUrls, selectedFiles);
-      
-    } catch (error) {
-      console.error("Error importing knowledge sources:", error);
-      
-      if (agentId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['agentKnowledgeBases', agentId]
-        });
-      }
+      // Invalidate the agent knowledge bases query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
       
       toast({
-        title: "Import failed",
-        description: "There was an error importing the selected sources.",
-        variant: "destructive"
+        title: 'Sources imported',
+        description: `Successfully imported ${selectedSourceIds.length} knowledge sources.`,
+      });
+      
+      // Call the callback with the selected sources
+      if (onSourcesImported) {
+        const importedSources = sources.filter(source => selectedSourceIds.includes(source.id));
+        onSourcesImported(importedSources);
+      }
+      
+      // Close the dialog
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error importing sources:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to import knowledge sources',
+        variant: 'destructive',
       });
     } finally {
       setIsImporting(false);
     }
   };
 
-  const isSourceAlreadyImported = (sourceId: number) => {
-    return currentSources.some(source => source.id === sourceId);
+  const renderSourceIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'document':
+      case 'pdf':
+        return <FileText className="h-4 w-4" />;
+      case 'website':
+      case 'url':
+        return <Globe className="h-4 w-4" />;
+      case 'csv':
+        return <Database className="h-4 w-4" />;
+      case 'plain_text':
+        return <File className="h-4 w-4" />;
+      default:
+        return <File className="h-4 w-4" />;
+    }
   };
 
-  const getFileCount = (source: KnowledgeSource): number => {
-    if (source.type === 'website') {
-      const rootNode = findRootUrlNode(source);
-      if (!rootNode) return 0;
-      
-      let count = 0;
-      const countNodes = (node: UrlNode) => {
-        count++;
-        if (node.children) {
-          node.children.forEach(countNodes);
-        }
-      };
-      
-      countNodes(rootNode);
-      return count;
-    } else if (source.knowledge_sources) {
-      return source.knowledge_sources.length;
-    }
+  const renderUrlTree = (sourceId: number, nodes: UrlNode[] | undefined, level = 0, path = '') => {
+    if (!nodes || nodes.length === 0) return null;
     
-    return 0;
-  };
-
-  const renderWebsiteUrls = (source: KnowledgeSource, urlNode?: UrlNode | null, level: number = 0, parentPath: string = '') => {
-    if (!urlNode) {
-      const rootNode = findRootUrlNode(source);
-      if (!rootNode) return null;
+    return nodes.map((node, index) => {
+      const nodeKey = node.key || `${sourceId}-${path}-${index}`;
+      const isExpanded = expandedNodes[nodeKey] || false;
+      const hasChildren = node.children && node.children.length > 0;
+      const nodePath = path ? `${path}-${index}` : `${index}`;
       
-      const filteredRootNode = filterAndSortNodes(rootNode);
-      if (!filteredRootNode) {
-        return (
-          <div className="flex flex-col items-center justify-center text-center py-6">
-            <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
-            <p className="text-muted-foreground">No URLs match your filter</p>
-          </div>
-        );
-      }
-      
-      return renderWebsiteUrls(source, filteredRootNode, level, '');
-    }
-    
-    const currentPath = parentPath ? `${parentPath}/${urlNode.url}` : urlNode.url;
-    const isExpanded = expandedNodes.has(currentPath);
-    const hasChildren = urlNode.children && urlNode.children.length > 0;
-    const isRoot = level === 0;
-    
-    let isSelected = isUrlSelected(source.id, urlNode.url);
-    
-    return (
-      <div key={currentPath} className="py-1">
-        <div className={cn(
-          "flex items-center hover:bg-gray-100 rounded px-2 py-1 cursor-pointer", 
-          isSelected && "bg-gray-100"
-        )}>
-          {hasChildren ? (
-            <span 
-              onClick={() => toggleNodeExpansion(currentPath)}
-              className="inline-flex items-center justify-center w-5 h-5"
-            >
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </span>
-          ) : <span className="w-5" />}
-          
-          <Checkbox 
-            id={`url-${source.id}-${urlNode.url}`}
-            className="mr-2"
-            checked={isSelected}
-            onCheckedChange={() => toggleUrlSelection(source.id, urlNode, isRoot)}
-          />
-          
-          {isRoot ? (
-            <div>
-              <span className="flex items-center text-sm">
-                <FolderOpen className="h-4 w-4 mr-2 text-amber-500" />
-                Root
-              </span>
-            </div>
-          ) : (
-            <div className="flex flex-col flex-1">
-              <span className="flex items-center text-sm overflow-hidden text-ellipsis">
-                <Globe className="h-4 w-4 mr-2 text-green-600" />
-                {urlNode.title || urlNode.url}
-              </span>
-              {urlNode.url && (
-                <span className="text-xs text-muted-foreground ml-6 truncate max-w-[300px]">{urlNode.url}</span>
-              )}
-              {urlNode.chars && (
-                <span className="text-xs text-muted-foreground ml-6">
-                  {urlNode.chars.toLocaleString()} characters
+      return (
+        <div key={nodeKey} style={{ marginLeft: `${level * 16}px` }}>
+          <div className="flex items-center py-1">
+            {hasChildren ? (
+              <button
+                type="button"
+                onClick={() => toggleNodeExpansion(nodeKey)}
+                className="mr-1 h-5 w-5 inline-flex items-center justify-center rounded-sm hover:bg-gray-100"
+              >
+                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              </button>
+            ) : (
+              <div className="mr-1 w-5" />
+            )}
+            
+            <Checkbox
+              id={`url-${nodeKey}`}
+              checked={isUrlSelected(sourceId, node.url)}
+              onCheckedChange={(checked) => handleSubUrlSelect(sourceId, node.url, !!checked)}
+              className="mr-2"
+            />
+            
+            <div className="flex items-center">
+              <ExternalLink className="h-3 w-3 mr-1 text-blue-500" />
+              <Label
+                htmlFor={`url-${nodeKey}`}
+                className="text-xs cursor-pointer truncate max-w-[300px]"
+                title={node.url}
+              >
+                {node.title || node.url}
+              </Label>
+              {node.chars !== undefined && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  {node.chars.toLocaleString()} chars
                 </span>
               )}
             </div>
-          )}
+          </div>
           
-          {!isRoot && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 ml-2" 
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExcludeUrl(urlNode.url);
-              }}
-            >
-              {excludedUrls.has(urlNode.url) ? (
-                <Badge variant="outline" className="px-1 bg-red-50 text-red-500 text-xs">
-                  Excluded
-                </Badge>
-              ) : (
-                <Filter className="h-3 w-3 text-muted-foreground" />
+          {hasChildren && isExpanded && renderUrlTree(sourceId, node.children, level + 1, nodePath)}
+        </div>
+      );
+    });
+  };
+
+  const renderSourceItem = (source: ProcessedSource) => {
+    const isSelected = selectedSources[source.id] || false;
+    const isExpanded = expandedSources[source.id] || false;
+    const analysis = sourceAnalysis[source.id];
+    
+    // Determine if this source has expandable content
+    const hasExpandableContent = analysis?.hasDomainLinks || analysis?.hasChildren;
+    
+    // Get all URLs from domain_links for the "Select All" functionality
+    const allUrls: string[] = [];
+    if (source.domain_links) {
+      const extractUrls = (nodes: UrlNode[] | UrlNode | undefined): void => {
+        if (!nodes) return;
+        
+        const nodeArray = Array.isArray(nodes) ? nodes : [nodes];
+        
+        nodeArray.forEach(node => {
+          if (node.url) allUrls.push(node.url);
+          if (node.children) extractUrls(node.children);
+        });
+      };
+      
+      extractUrls(source.domain_links);
+    }
+    
+    const selectedUrlsCount = getSelectedUrlsCount(source.id);
+    const allUrlsSelected = selectedUrlsCount > 0 && selectedUrlsCount === allUrls.length;
+    const someUrlsSelected = selectedUrlsCount > 0 && selectedUrlsCount < allUrls.length;
+    
+    return (
+      <div key={source.id} className="border rounded-md mb-2 overflow-hidden">
+        <div className="flex items-center p-3 bg-gray-50">
+          <Checkbox
+            id={`source-${source.id}`}
+            checked={isSelected}
+            onCheckedChange={(checked) => handleSourceSelect(source.id, !!checked)}
+            className="mr-3"
+          />
+          
+          <div className="flex-1">
+            <div className="flex items-center">
+              <div className="mr-2 h-6 w-6 rounded-md bg-white border border-gray-200 flex items-center justify-center">
+                {renderSourceIcon(source.type)}
+              </div>
+              
+              <Label
+                htmlFor={`source-${source.id}`}
+                className="font-medium cursor-pointer"
+              >
+                {source.name}
+              </Label>
+              
+              <Badge variant="outline" className="ml-2 text-xs">
+                {source.type}
+              </Badge>
+              
+              {source.pages && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  {source.pages}
+                </span>
               )}
+            </div>
+            
+            {source.metadata?.website && (
+              <div className="text-xs text-muted-foreground ml-8 mt-0.5 flex items-center">
+                <Globe className="h-3 w-3 mr-1" />
+                {source.metadata.website}
+              </div>
+            )}
+          </div>
+          
+          {hasExpandableContent && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-2 p-0 h-8 w-8"
+              onClick={() => toggleSourceExpansion(source.id)}
+            >
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           )}
         </div>
         
-        {isExpanded && hasChildren && (
-          <div className="ml-5 border-l pl-2 mt-1">
-            {urlNode.children?.map(child => 
-              renderWebsiteUrls(source, child, level + 1, currentPath)
-            )}
-          </div>
+        {isSelected && isExpanded && (
+          <Collapsible open={true}>
+            <CollapsibleContent>
+              <div className="p-3 border-t">
+                {analysis?.hasDomainLinks && source.domain_links && (
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium">URLs</h4>
+                      
+                      {allUrls.length > 0 && (
+                        <div className="flex items-center">
+                          <Checkbox
+                            id={`select-all-${source.id}`}
+                            checked={allUrlsSelected}
+                            onCheckedChange={(checked) => selectAllSubUrls(source.id, allUrls, !!checked)}
+                            className="mr-2"
+                          />
+                          <Label
+                            htmlFor={`select-all-${source.id}`}
+                            className="text-xs cursor-pointer"
+                          >
+                            {allUrlsSelected ? 'Deselect All' : 'Select All'}
+                          </Label>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="max-h-60 overflow-y-auto">
+                      {Array.isArray(source.domain_links) ? (
+                        renderUrlTree(source.id, source.domain_links)
+                      ) : (
+                        renderUrlTree(source.id, [source.domain_links])
+                      )}
+                    </div>
+                    
+                    {selectedUrlsCount > 0 && (
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        {selectedUrlsCount} URL{selectedUrlsCount !== 1 ? 's' : ''} selected
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {analysis?.hasChildren && source.knowledge_sources && (
+                  <div>
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="files" className="border-0">
+                        <AccordionTrigger className="py-2 hover:no-underline">
+                          <span className="flex items-center text-sm font-medium">
+                            <FolderOpen className="h-4 w-4 mr-2 text-blue-500" />
+                            Files ({source.knowledge_sources.length})
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-1 max-h-40 overflow-y-auto">
+                            {source.knowledge_sources.map((file) => (
+                              <div key={file.id} className="flex items-center text-xs p-1 rounded hover:bg-muted">
+                                <File className="h-3 w-3 mr-2 text-blue-500" />
+                                <span className="truncate flex-1" title={file.title}>
+                                  {file.title}
+                                </span>
+                                {file.metadata?.file_size && (
+                                  <span className="text-muted-foreground">
+                                    {typeof file.metadata.file_size === 'string' ? 
+                                      file.metadata.file_size : 
+                                      `${Math.round(file.metadata.file_size / 1024)} KB`}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </div>
     );
   };
 
-  const renderNestedFiles = (source: KnowledgeSource) => {
-    if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-          <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-          <p className="text-muted-foreground text-sm">No files found in this source</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-1">
-        <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
-          Files in {source.name}
-        </div>
-        {source.knowledge_sources.map((file, index) => (
-          <div key={`file-${file.id || index}`} className="py-1">
-            <div
-              className={cn(
-                "flex items-center hover:bg-gray-100 rounded px-2 py-2",
-                isFileSelected(source.id, String(file.id)) && "bg-gray-100"
-              )}
-            >
-              <Checkbox
-                id={`file-${source.id}-${String(file.id)}`}
-                className="mr-2"
-                checked={isFileSelected(source.id, String(file.id))}
-                onCheckedChange={() => toggleFileSelection(source.id, file.id)}
-              />
-              
-              <div className="flex flex-col flex-1">
-                <span className="flex items-center text-sm font-medium">
-                  {renderSourceIcon(file.type || source.type)}
-                  {file.title || file.name || `File ${index + 1}`}
-                </span>
-                
-                <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
-                  {file.metadata?.file_size && (
-                    <span className="mr-3">
-                      Size: {formatFileSizeToMB(file.metadata.file_size)}
-                    </span>
-                  )}
-                  
-                  {file.metadata?.no_of_pages && (
-                    <span className="mr-3">{file.metadata.no_of_pages} pages</span>
-                  )}
-                  
-                  {file.metadata?.no_of_rows && (
-                    <span className="mr-3">{file.metadata.no_of_rows} rows</span>
-                  )}
-                  
-                  {file.metadata?.upload_date && (
-                    <span>
-                      Uploaded: {new Date(file.metadata.upload_date).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderWebsiteFilterControls = () => {
-    if (!selectedKnowledgeBase || !hasUrlStructure(selectedKnowledgeBase)) return null;
-    
-    return (
-      <div className="flex flex-col space-y-2 mb-2 px-2 w-full">
-        <div className="relative w-full">
-          <Input
-            placeholder="Search by title or URL..."
-            value={urlFilter}
-            onChange={(e) => setUrlFilter(e.target.value)}
-            className="pl-7 py-1 h-7 text-xs"
-            size={1}
-          />
-          <Search className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
-        </div>
-        
-        <div className="flex items-center justify-between w-full gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-xs h-6 px-2 w-[90px] flex justify-between items-center"
-              >
-                <span>{urlSortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
-                <ArrowUpDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[90px]">
-              <DropdownMenuItem onClick={() => setUrlSortOrder('asc')} className="text-xs">
-                A-Z
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setUrlSortOrder('desc')} className="text-xs">
-                Z-A
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          {excludedUrls.size > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setExcludedUrls(new Set())}
-              className="text-xs h-6"
-            >
-              Clear {excludedUrls.size} excluded
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] h-[756px] p-0 overflow-hidden" fixedFooter>
-        <DialogHeader className="px-6 pt-6 pb-2 border-b">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
+        <DialogHeader>
           <DialogTitle>Import Knowledge Sources</DialogTitle>
+          <DialogDescription>
+            Select knowledge sources to import into your agent.
+          </DialogDescription>
         </DialogHeader>
         
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel minSize={15} defaultSize={20}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
-                <div className="p-2 space-y-1">
-                  {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
-                    count > 0 && (
-                      <button
-                        key={type}
-                        className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
-                          selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                        )}
-                        onClick={() => setSelectedType(type)}
-                      >
-                        <span className="flex items-center">
-                          {icon}
-                          <span className="ml-2">{label}</span>
-                        </span>
-                        <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
-                          {count}
-                        </span>
-                      </button>
-                    )
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel minSize={30} defaultSize={30}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
-                <div className="p-2 space-y-2">
-                  {filteredSources.length === 0 ? (
-                    <div className="flex items-center justify-center h-full py-20">
-                      <p className="text-muted-foreground">No {selectedType === 'all' ? '' : selectedType} sources found</p>
-                    </div>
-                  ) : (
-                    filteredSources.map((source) => {
-                      const alreadyImported = isSourceAlreadyImported(source.id);
-                      const isSelected = selectedSources.has(source.id);
-                      const hasExpandableContent = hasUrlStructure(source) || hasNestedFiles(source);
-                      const isPlainText = source.type === 'plain_text';
-                      const isCurrentlySelectedKB = source === selectedKnowledgeBase;
-                      const fileCount = getFileCount(source);
-
-                      const cardClasses = cn(
-                        "border rounded-md overflow-hidden transition cursor-pointer",
-                        alreadyImported && "border-gray-300 bg-gray-50/50",
-                        isPlainText && isSelected && "border-gray-400 bg-gray-50",
-                        isCurrentlySelectedKB && !isPlainText && "border-gray-400 shadow-sm",
-                        isSelected && !isPlainText && 
-                        (selectedSubUrls[source.id]?.size > 0 || selectedFiles[source.id]?.size > 0) 
-                          ? "border-gray-400 bg-gray-50/70" : "",
-                      );
-                      
-                      return (
-                        <div 
-                          key={source.id} 
-                          className={cardClasses}
-                          onClick={() => handleKnowledgeBaseClick(source)}
-                        >
-                          <div className="flex items-center p-3 bg-white">
-                            {isPlainText ? (
-                              <Checkbox 
-                                id={`source-${source.id}`}
-                                checked={selectedSources.has(source.id) || source.selected}
-                                onCheckedChange={() => handleKnowledgeBaseClick(source)}
-                                className="mr-2"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : hasExpandableContent ? (
-                              <div className="w-5 mr-2" />
-                            ) : (
-                              <div className="w-5 mr-2" />
-                            )}
-                            
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                {renderSourceIcon(source.type)}
-                                <span className="font-medium">
-                                  {source.name}
-                                  {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(already imported)</span>}
-                                </span>
-                              </div>
-                              
-                              <div className="text-xs text-muted-foreground mt-1">
-                                <span className="mr-2">Type: {source.type}</span>
-                                
-                                {!isPlainText && fileCount > 0 && (
-                                  <span className="font-medium text-gray-700">
-                                    {fileCount} {fileCount === 1 ? 'item' : 'items'}
-                                  </span>
-                                )}
-                                
-                                {source.type === 'website' && source.knowledge_sources?.[0]?.metadata?.no_of_pages && (
-                                  <span className="ml-2">{source.knowledge_sources[0].metadata.no_of_pages} pages</span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {!isPlainText && hasExpandableContent && (
-                              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel minSize={15} defaultSize={50 + 8}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
-                <div className="p-2">
-                  {selectedKnowledgeBase ? (
-                    hasUrlStructure(selectedKnowledgeBase) ? (
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
-                          URLs for {selectedKnowledgeBase.name}
-                        </div>
-                        
-                        {renderWebsiteFilterControls()}
-                        
-                        {renderWebsiteUrls(selectedKnowledgeBase)}
-                      </div>
-                    ) : hasNestedFiles(selectedKnowledgeBase) ? (
-                      renderNestedFiles(selectedKnowledgeBase)
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                        <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                        <p className="text-muted-foreground text-sm">
-                          No detailed information available for this source type
-                        </p>
-                      </div>
-                    )
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                      <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                      <p className="text-muted-foreground text-sm">
-                        {selectedSources.size > 0 
-                          ? "Select a knowledge base to view available sources" 
-                          : "Select a knowledge base from the list"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-        
-        <DialogFooter fixed className="border-t p-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {selectedSources.size} source{selectedSources.size !== 1 ? 's' : ''} selected
+        <div className="flex items-center space-x-2 my-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search sources..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="mr-2">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleImport}
-            disabled={selectedSources.size === 0 || isImporting}
-          >
-            {isImporting ? "Importing..." : "Import Selected"}
-          </Button>
+        </div>
+        
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-2">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="website">Websites</TabsTrigger>
+            <TabsTrigger value="document">Documents</TabsTrigger>
+            <TabsTrigger value="csv">CSV</TabsTrigger>
+            <TabsTrigger value="plain_text">Text</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value={activeTab} className="mt-0">
+            <ScrollArea className="h-[400px] pr-4">
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center h-[300px]">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Loading knowledge sources...</p>
+                </div>
+              ) : filteredSources.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-[300px] text-center">
+                  <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium mb-1">No knowledge sources found</p>
+                  <p className="text-xs text-muted-foreground">
+                    {searchQuery ? 'Try a different search term' : 'Add knowledge sources to get started'}
+                  </p>
+                </div>
+              ) : (
+                filteredSources.map(renderSourceItem)
+              )}
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+        
+        <Separator className="my-2" />
+        
+        <DialogFooter className="flex items-center justify-between sm:justify-between">
+          <div className="text-sm">
+            {getSelectedSourcesCount()} source{getSelectedSourcesCount() !== 1 ? 's' : ''} selected
+            {getTotalSelectedUrlsCount() > 0 && (
+              <span className="ml-1">
+                ({getTotalSelectedUrlsCount()} URL{getTotalSelectedUrlsCount() !== 1 ? 's' : ''})
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleImportSources} 
+              disabled={getSelectedSourcesCount() === 0 || isImporting}
+            >
+              {isImporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Import Selected
+                </>
+              )}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
+export default ImportSourcesDialog;
