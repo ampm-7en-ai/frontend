@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogBody } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -430,7 +429,6 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      // Add type guards for urlSet and fileSet to ensure they are iterable
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         if (urlSet && typeof urlSet.forEach === 'function') {
           urlSet.forEach(url => {
@@ -831,6 +829,86 @@ export const ImportSourcesDialog = ({
     }
   };
 
+  const renderSelectedSourcesList = () => {
+    if (selectedSources.size === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+          <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+          <p className="text-muted-foreground">Select knowledge sources from the list to import</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-3">
+        <h3 className="text-lg font-medium px-2">Selected Sources</h3>
+        {Array.from(selectedSources).map(sourceId => {
+          const source = externalSources.find(s => s.id === sourceId);
+          if (!source) return null;
+          
+          const fileCount = selectedFiles[sourceId]?.size || 0;
+          const urlCount = selectedSubUrls[sourceId]?.size || 0;
+          
+          return (
+            <div key={sourceId} className="flex items-start justify-between border rounded-md p-3">
+              <div className="flex items-start space-x-3">
+                <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
+                
+                <div>
+                  <h4 className="font-medium text-sm">{source.name}</h4>
+                  
+                  {source.type === 'website' && urlCount > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {urlCount} {urlCount === 1 ? 'URL' : 'URLs'} selected
+                    </p>
+                  )}
+                  
+                  {(source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
+                    fileCount > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {fileCount} {fileCount === 1 ? 'file' : 'files'} selected
+                    </p>
+                  )}
+                  
+                  {source.type === 'plain_text' && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Text source
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive"
+                onClick={() => {
+                  const newSelectedSources = new Set(selectedSources);
+                  newSelectedSources.delete(sourceId);
+                  setSelectedSources(newSelectedSources);
+                  
+                  if (selectedSubUrls[sourceId]) {
+                    const newSelectedSubUrls = { ...selectedSubUrls };
+                    delete newSelectedSubUrls[sourceId];
+                    setSelectedSubUrls(newSelectedSubUrls);
+                  }
+                  
+                  if (selectedFiles[sourceId]) {
+                    const newSelectedFiles = { ...selectedFiles };
+                    delete newSelectedFiles[sourceId];
+                    setSelectedFiles(newSelectedFiles);
+                  }
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1000px] h-[756px] p-0 overflow-hidden" fixedFooter>
@@ -839,7 +917,7 @@ export const ImportSourcesDialog = ({
         </DialogHeader>
         
         <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel minSize={15} defaultSize={20}>
+          <ResizablePanel minSize={15} defaultSize={15}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-1">
@@ -870,7 +948,7 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={30} defaultSize={30}>
+          <ResizablePanel minSize={25} defaultSize={25}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-2">
@@ -986,7 +1064,7 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={35} defaultSize={50}>
+          <ResizablePanel minSize={30} defaultSize={35}>
             <div className="border-0 rounded-md overflow-hidden h-full">
               <ScrollArea className="h-full">
                 <div className="p-4">
@@ -1041,74 +1119,23 @@ export const ImportSourcesDialog = ({
                       </div>
                     </div>
                   ) : (
-                    <div>
-                      <h3 className="text-lg font-medium mb-4">Selected Sources</h3>
-                      
-                      {selectedSources.size === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                          <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                          <p className="text-muted-foreground">Select knowledge sources from the list to import</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {Array.from(selectedSources).map(sourceId => {
-                            const source = externalSources.find(s => s.id === sourceId);
-                            if (!source) return null;
-                            
-                            return (
-                              <div key={sourceId} className="flex items-start justify-between border rounded-md p-3">
-                                <div className="flex items-start space-x-3">
-                                  <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
-                                  
-                                  <div>
-                                    <h4 className="font-medium text-sm">{source.name}</h4>
-                                    
-                                    {source.type === 'website' && selectedSubUrls[sourceId]?.size > 0 && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {selectedSubUrls[sourceId].size} URLs selected
-                                      </p>
-                                    )}
-                                    
-                                    {(source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
-                                     selectedFiles[sourceId]?.size > 0 && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {selectedFiles[sourceId].size} files selected
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  onClick={() => {
-                                    const newSelectedSources = new Set(selectedSources);
-                                    newSelectedSources.delete(sourceId);
-                                    setSelectedSources(newSelectedSources);
-                                    
-                                    if (selectedSubUrls[sourceId]) {
-                                      const newSelectedSubUrls = { ...selectedSubUrls };
-                                      delete newSelectedSubUrls[sourceId];
-                                      setSelectedSubUrls(newSelectedSubUrls);
-                                    }
-                                    
-                                    if (selectedFiles[sourceId]) {
-                                      const newSelectedFiles = { ...selectedFiles };
-                                      delete newSelectedFiles[sourceId];
-                                      setSelectedFiles(newSelectedFiles);
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                    <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                      <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                      <p className="text-muted-foreground">Select a knowledge source to view details</p>
                     </div>
                   )}
+                </div>
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel minSize={20} defaultSize={25}>
+            <div className="border-0 rounded-md overflow-hidden h-full">
+              <ScrollArea className="h-full">
+                <div className="p-4">
+                  {renderSelectedSourcesList()}
                 </div>
               </ScrollArea>
             </div>
