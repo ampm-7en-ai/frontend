@@ -130,7 +130,7 @@ export const ImportSourcesDialog = ({
   useEffect(() => {
     for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
       const numericId = Number(sourceId);
-      if (urlSet.size > 0) {
+      if (urlSet && urlSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
         if (!selectedFiles[numericId]?.size) {
@@ -145,7 +145,7 @@ export const ImportSourcesDialog = ({
     
     for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
       const numericId = Number(sourceId);
-      if (fileSet.size > 0) {
+      if (fileSet && fileSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
         if (!selectedSubUrls[numericId]?.size) {
@@ -874,143 +874,4 @@ export const ImportSourcesDialog = ({
                 <div className="p-2 space-y-2">
                   {filteredSources.length === 0 ? (
                     <div className="flex items-center justify-center h-full py-20">
-                      <p className="text-muted-foreground">No {selectedType === 'all' ? '' : selectedType} sources found</p>
-                    </div>
-                  ) : (
-                    filteredSources.map((source) => {
-                      const alreadyImported = isSourceAlreadyImported(source.id);
-                      const isSelected = selectedSources.has(source.id);
-                      const hasExpandableContent = hasUrlStructure(source) || hasNestedFiles(source);
-                      const isPlainText = source.type === 'plain_text';
-                      const isCurrentlySelectedKB = source === selectedKnowledgeBase;
-                      const fileCount = getFileCount(source);
-
-                      const cardClasses = cn(
-                        "border rounded-md overflow-hidden transition cursor-pointer",
-                        alreadyImported && "border-gray-300 bg-gray-50/50",
-                        isPlainText && isSelected && "border-gray-400 bg-gray-50",
-                        isCurrentlySelectedKB && !isPlainText && "border-gray-400 shadow-sm",
-                        isSelected && !isPlainText && 
-                        (selectedSubUrls[source.id]?.size > 0 || selectedFiles[source.id]?.size > 0) 
-                          ? "border-gray-400 bg-gray-50/70" : "",
-                      );
-                      
-                      return (
-                        <div 
-                          key={source.id} 
-                          className={cardClasses}
-                          onClick={() => handleKnowledgeBaseClick(source)}
-                        >
-                          <div className="flex items-center p-3 bg-white">
-                            {isPlainText ? (
-                              <Checkbox 
-                                id={`source-${source.id}`}
-                                checked={selectedSources.has(source.id) || source.selected}
-                                onCheckedChange={() => handleKnowledgeBaseClick(source)}
-                                className="mr-2"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : hasExpandableContent ? (
-                              <div className="w-5 mr-2" />
-                            ) : (
-                              <div className="w-5 mr-2" />
-                            )}
-                            
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                {renderSourceIcon(source.type)}
-                                <span className="font-medium">
-                                  {source.name}
-                                  {alreadyImported && <span className="text-sm font-normal text-muted-foreground ml-2">(already imported)</span>}
-                                </span>
-                              </div>
-                              
-                              <div className="text-xs text-muted-foreground mt-1">
-                                <span className="mr-2">Type: {source.type}</span>
-                                
-                                {!isPlainText && fileCount > 0 && (
-                                  <span className="font-medium text-gray-700">
-                                    {fileCount} {fileCount === 1 ? 'item' : 'items'}
-                                  </span>
-                                )}
-                                
-                                {source.type === 'website' && source.knowledge_sources?.[0]?.metadata?.no_of_pages && (
-                                  <span className="ml-2">{source.knowledge_sources[0].metadata.no_of_pages} pages</span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {!isPlainText && hasExpandableContent && (
-                              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel minSize={15} defaultSize={50 + 8}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
-                <div className="p-2">
-                  {selectedKnowledgeBase ? (
-                    hasUrlStructure(selectedKnowledgeBase) ? (
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
-                          URLs for {selectedKnowledgeBase.name}
-                        </div>
-                        
-                        {renderWebsiteFilterControls()}
-                        
-                        {renderWebsiteUrls(selectedKnowledgeBase)}
-                      </div>
-                    ) : hasNestedFiles(selectedKnowledgeBase) ? (
-                      renderNestedFiles(selectedKnowledgeBase)
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                        <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                        <p className="text-muted-foreground text-sm">
-                          No detailed information available for this source type
-                        </p>
-                      </div>
-                    )
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                      <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                      <p className="text-muted-foreground text-sm">
-                        {selectedSources.size > 0 
-                          ? "Select a knowledge base to view available sources" 
-                          : "Select a knowledge base from the list"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-        
-        <DialogFooter fixed className="border-t p-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {selectedSources.size} source{selectedSources.size !== 1 ? 's' : ''} selected
-          </div>
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="mr-2">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleImport}
-            disabled={selectedSources.size === 0 || isImporting}
-          >
-            {isImporting ? "Importing..." : "Import Selected"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+                      <p className="text
