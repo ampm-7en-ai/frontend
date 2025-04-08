@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,7 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
+import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
