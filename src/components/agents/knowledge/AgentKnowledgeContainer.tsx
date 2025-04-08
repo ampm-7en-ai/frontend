@@ -38,6 +38,28 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
         if (source.file?.endsWith('.csv')) sourceType = "csv";
         if (source.file?.endsWith('.docx')) sourceType = "docx";
         
+        // Process sub-knowledge sources more thoroughly for nested content
+        const processedSubSources = Array.isArray(source.sub_knowledge_sources) 
+          ? source.sub_knowledge_sources.map((subSource: any) => ({
+              id: subSource.id,
+              title: subSource.title || subSource.name || "Untitled",
+              type: subSource.type || sourceType,
+              url: subSource.url || null,
+              file: subSource.file || null,
+              metadata: subSource.metadata || {},
+              sub_knowledge_sources: Array.isArray(subSource.sub_knowledge_sources) 
+                ? subSource.sub_knowledge_sources : []
+            }))
+          : [];
+        
+        // Process sub_urls structure for website sources
+        let processedMetadata = {...(source.metadata || {})};
+        
+        // Preserve the original sub_urls structure that ImportSourcesDialog expects
+        if (sourceType === 'website' && source.metadata?.sub_urls) {
+          processedMetadata.sub_urls = source.metadata.sub_urls;
+        }
+        
         return {
           id: source.id,
           name: source.title || source.name || "Untitled Source",
@@ -45,17 +67,13 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
           size: typeof source.metadata?.file_size === 'number' 
             ? `${Math.round(source.metadata.file_size / 1024)} KB` 
             : "Unknown size",
-          lastUpdated: source.metadata?.last_fetched || "Unknown",
+          lastUpdated: source.metadata?.last_fetched || source.metadata?.upload_date || "Unknown",
           trainingStatus: 'success' as const,
-          knowledge_sources: Array.isArray(source.sub_knowledge_sources) 
-            ? source.sub_knowledge_sources.map((subSource: any) => ({
-                id: subSource.id,
-                title: subSource.title,
-                type: subSource.type || sourceType,
-                url: subSource.url || null,
-                metadata: subSource.metadata || {}
-              }))
-            : []
+          knowledge_sources: processedSubSources,
+          metadata: processedMetadata,
+          url: source.url || null,
+          file: source.file || null,
+          domain_links: source.metadata?.domain_links || null
         };
       });
       
