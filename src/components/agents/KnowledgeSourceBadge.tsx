@@ -12,22 +12,23 @@ import { KnowledgeSource } from '@/components/agents/knowledge/types';
 interface KnowledgeSourceBadgeProps {
   source: KnowledgeSource;
   onClick?: () => void;
+  size?: 'sm' | 'md';
 }
 
-const KnowledgeSourceBadge = ({ source, onClick }: KnowledgeSourceBadgeProps) => {
+const KnowledgeSourceBadge = ({ source, onClick, size = 'md' }: KnowledgeSourceBadgeProps) => {
   const getIcon = () => {
     switch (source.type) {
       case 'document':
       case 'pdf':
-        return <FileText className="h-3 w-3" />;
+        return <FileText className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
       case 'database':
-        return <Database className="h-3 w-3" />;
+        return <Database className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
       case 'webpage':
       case 'website':
       case 'url':
-        return <Globe className="h-3 w-3" />;
+        return <Globe className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
       default:
-        return <BookOpen className="h-3 w-3" />;
+        return <BookOpen className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
     }
   };
 
@@ -61,23 +62,27 @@ const KnowledgeSourceBadge = ({ source, onClick }: KnowledgeSourceBadgeProps) =>
     }
   };
 
+  const sizeClasses = size === 'sm' 
+    ? 'px-1.5 py-0.5 text-[10px]' 
+    : 'px-2 py-0.5 text-xs';
+
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <div 
-            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-colors duration-200 cursor-pointer ${getBadgeStyle()}`}
+            className={`inline-flex items-center gap-1.5 rounded-full transition-colors duration-200 cursor-pointer ${getBadgeStyle()} ${sizeClasses}`}
             onClick={onClick}
           >
             <span className={getTextColor()}>
               {getIcon()}
             </span>
-            <span className="text-xs font-medium">{source.name}</span>
+            <span className={`font-medium ${size === 'sm' ? 'text-[10px]' : 'text-xs'}`}>{source.name}</span>
             {source.hasError && (
-              <AlertTriangle className="h-3 w-3 text-red-500" />
+              <AlertTriangle className={size === 'sm' ? "h-2.5 w-2.5 text-red-500" : "h-3 w-3 text-red-500"} />
             )}
             {source.linkBroken && (
-              <Link2Off className="h-3 w-3 text-orange-500" />
+              <Link2Off className={size === 'sm' ? "h-2.5 w-2.5 text-orange-500" : "h-3 w-3 text-orange-500"} />
             )}
           </div>
         </TooltipTrigger>

@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQueryClient } from '@tanstack/react-query';
+import { Separator } from '@/components/ui/separator';
+import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -29,16 +32,16 @@ interface KnowledgeSourceListProps {
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
     case 'website':
-      return <Globe className="h-4 w-4 mr-2" />;
+      return <Globe className="h-4 w-4" />;
     case 'document':
     case 'pdf':
-      return <FileText className="h-4 w-4 mr-2" />;
+      return <FileText className="h-4 w-4" />;
     case 'csv':
-      return <Database className="h-4 w-4 mr-2" />;
+      return <Database className="h-4 w-4" />;
     case 'plain_text':
-      return <File className="h-4 w-4 mr-2" />;
+      return <File className="h-4 w-4" />;
     default:
-      return <File className="h-4 w-4 mr-2" />;
+      return <File className="h-4 w-4" />;
   }
 };
 
@@ -189,83 +192,101 @@ const KnowledgeBaseCard = ({
     }
   };
 
+  const getBadgeForStatus = (status: string) => {
+    switch (status) {
+      case 'success':
+        return <Badge variant="success" className="text-xs font-medium">Trained</Badge>;
+      case 'training':
+        return <Badge variant="secondary" className="text-xs font-medium">Training</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs font-medium">Untrained</Badge>;
+    }
+  };
+
+  const getSourceType = (source: any) => {
+    return {
+      name: source.title || "Unknown",
+      type: source.metadata?.format?.toLowerCase() || knowledgeBase.type
+    };
+  };
+
   return (
     <>
-      <Card className="border shadow-sm">
+      <div className="overflow-hidden rounded-md border border-gray-200 shadow-sm bg-white">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CardHeader className="p-4 pb-2 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
+          <div className="px-4 py-3 cursor-pointer flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors" onClick={() => setIsOpen(!isOpen)}>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-6 h-6 bg-white rounded-md border">
                 {getIconForType(knowledgeBase.type)}
-                <CardTitle>{knowledgeBase.name}</CardTitle>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="text-sm text-muted-foreground">
-                  {getTypeDescription(knowledgeBase)}
-                </div>
-                <Badge variant={knowledgeBase.is_linked ? "default" : "outline"}>
-                  {knowledgeBase.is_linked ? "Linked" : "Not Linked"}
-                </Badge>
-                <Badge variant={knowledgeBase.training_status === 'success' ? "success" : "secondary"}>
-                  {knowledgeBase.training_status === 'success' ? "Trained" : 
-                  knowledgeBase.training_status === 'training' ? "Training" : "Untrained"}
-                </Badge>
-                {agentId && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={handleDeleteClick}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-                <CollapsibleTrigger className="h-6 w-6 rounded-full inline-flex items-center justify-center text-muted-foreground">
-                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </CollapsibleTrigger>
-              </div>
+              <h3 className="font-medium text-sm">{knowledgeBase.name}</h3>
             </div>
-          </CardHeader>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {getTypeDescription(knowledgeBase)}
+              </span>
+              
+              {getBadgeForStatus(knowledgeBase.training_status)}
+              
+              {agentId && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  onClick={handleDeleteClick}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+              
+              <CollapsibleTrigger className="h-7 w-7 rounded-md inline-flex items-center justify-center hover:bg-gray-200">
+                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </CollapsibleTrigger>
+            </div>
+          </div>
+          
           <CollapsibleContent>
-            <CardContent className="pt-0 pb-4">
-              <div className="pl-6 border-l-2 border-gray-200 ml-2 mt-2 space-y-3">
-                {knowledgeBase.knowledge_sources.map((source) => (
-                  <div key={source.id} className="p-3 bg-gray-50 rounded-md">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        {getIconForType(source.metadata?.format?.toLowerCase() || knowledgeBase.type)}
-                        <span className="font-medium">{source.title}</span>
-                      </div>
-                      <div>
-                        <Badge variant={source.is_selected ? "success" : "outline"} className="mr-2">
-                          {source.is_selected ? "Selected" : "Not Selected"}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                      </div>
+            <div className="px-4 py-2 space-y-1">
+              {knowledgeBase.knowledge_sources.map((source, index) => (
+                <div key={source.id} className="py-2">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
                     </div>
-                    
-                    {source.sub_urls?.children && source.sub_urls.children.length > 0 && (
-                      <div className="mt-2 pl-6 border-l border-gray-200 space-y-2">
-                        {source.sub_urls.children.map((subUrl) => (
-                          <div key={subUrl.key} className="flex justify-between items-center p-2 bg-white rounded">
-                            <div className="flex items-center">
-                              <Globe className="h-3 w-3 mr-2 text-gray-500" />
-                              <span className="text-sm">{subUrl.url}</span>
-                            </div>
-                            <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-xs">
-                              {subUrl.is_selected ? "Selected" : "Not Selected"}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
+                      <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
+                        {source.is_selected ? "Selected" : "Not Selected"}
+                      </Badge>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
+                  
+                  {source.sub_urls?.children && source.sub_urls.children.length > 0 && (
+                    <div className="ml-8 mt-2 space-y-1.5">
+                      {source.sub_urls.children.map((subUrl) => (
+                        <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
+                          <div className="flex items-center gap-2 max-w-[70%]">
+                            <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                            <span className="text-xs truncate">{subUrl.url}</span>
+                          </div>
+                          <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
+                            {subUrl.is_selected ? "Selected" : "Not Selected"}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {index < knowledgeBase.knowledge_sources.length - 1 && (
+                    <Separator className="mt-2 bg-gray-100" />
+                  )}
+                </div>
+              ))}
+            </div>
           </CollapsibleContent>
         </Collapsible>
-      </Card>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -313,38 +334,31 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
   
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Knowledge Sources</CardTitle>
-          <CardDescription>Loading knowledge sources...</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-2">
+        {[1, 2].map(i => (
+          <div key={i} className="animate-pulse">
+            <div className="h-12 bg-gray-100 rounded-md mb-1"></div>
+            <div className="h-8 bg-gray-50 rounded-md w-3/4"></div>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
     );
   }
 
   if (!localKnowledgeBases || localKnowledgeBases.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Knowledge Sources</CardTitle>
-          <CardDescription>No knowledge sources found</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center items-center py-8 text-muted-foreground">
-            No knowledge sources are available for this agent.
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-md border border-dashed p-6 flex flex-col items-center justify-center">
+        <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+        <h3 className="text-sm font-medium mb-1">No knowledge sources</h3>
+        <p className="text-xs text-muted-foreground text-center">
+          Import knowledge sources to improve your agent's responses.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {localKnowledgeBases.map((knowledgeBase) => (
         <KnowledgeBaseCard
           key={knowledgeBase.id}
