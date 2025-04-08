@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
 import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
@@ -874,4 +875,257 @@ export const ImportSourcesDialog = ({
                 <div className="p-2 space-y-2">
                   {filteredSources.length === 0 ? (
                     <div className="flex items-center justify-center h-full py-20">
-                      <p className="text
+                      <p className="text-muted-foreground">No sources found</p>
+                    </div>
+                  ) : (
+                    filteredSources.map(source => (
+                      <div
+                        key={source.id}
+                        className={cn(
+                          "p-3 border rounded-md cursor-pointer hover:border-primary transition-colors",
+                          (selectedSources.has(source.id) || selectedKnowledgeBase?.id === source.id) && "border-primary bg-primary/5"
+                        )}
+                        onClick={() => handleKnowledgeBaseClick(source)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3">
+                            <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
+                            
+                            <div>
+                              <h4 className="font-medium text-sm">
+                                {source.name}
+                                {isSourceAlreadyImported(source.id) && (
+                                  <Badge variant="outline" className="ml-2 text-xs">
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Imported
+                                  </Badge>
+                                )}
+                              </h4>
+                              
+                              <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
+                                <span className="mr-3">
+                                  Type: {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
+                                </span>
+                                
+                                {source.chunks && (
+                                  <span className="mr-3">{source.chunks} chunks</span>
+                                )}
+                                
+                                {getFileCount(source) > 0 && (
+                                  <span className="mr-3">
+                                    {getFileCount(source)} {source.type === 'website' ? 'pages' : 'files'}
+                                  </span>
+                                )}
+                                
+                                {source.metadata?.created_at && (
+                                  <span>
+                                    Added: {new Date(source.metadata.created_at).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center">
+                            {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source))) ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleSourceExpansion(source.id);
+                                }}
+                              >
+                                {expandedSources.has(source.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              </Button>
+                            ) : (
+                              <Checkbox
+                                checked={selectedSources.has(source.id)}
+                                onCheckedChange={(checked) => {
+                                  const newSelectedSources = new Set(selectedSources);
+                                  
+                                  if (checked) {
+                                    newSelectedSources.add(source.id);
+                                  } else {
+                                    newSelectedSources.delete(source.id);
+                                  }
+                                  
+                                  setSelectedSources(newSelectedSources);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        
+                        {expandedSources.has(source.id) && (
+                          <div className="mt-3 border-t pt-2">
+                            {hasUrlStructure(source) && renderWebsiteFilterControls()}
+                            <div className="max-h-[350px] overflow-y-auto pr-1 pl-1">
+                              {hasUrlStructure(source) ? (
+                                renderWebsiteUrls(source)
+                              ) : hasNestedFiles(source) ? (
+                                renderNestedFiles(source)
+                              ) : (
+                                <div className="flex justify-center py-2 text-muted-foreground text-sm">
+                                  No detailed content available
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel minSize={35} defaultSize={50}>
+            <div className="border-0 rounded-md overflow-hidden h-full">
+              <ScrollArea className="h-full">
+                <div className="p-4">
+                  {selectedKnowledgeBase ? (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium flex items-center">
+                          {renderSourceIcon(selectedKnowledgeBase.type)}
+                          <span className="ml-2">{selectedKnowledgeBase.name}</span>
+                        </h3>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedKnowledgeBase(null)}
+                        >
+                          Back to Sources
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {hasUrlStructure(selectedKnowledgeBase) ? (
+                          <>
+                            {renderWebsiteFilterControls()}
+                            <div className="border rounded-md p-3">
+                              <h4 className="font-medium text-sm mb-2">Website Structure</h4>
+                              <div className="max-h-[550px] overflow-y-auto">
+                                {renderWebsiteUrls(selectedKnowledgeBase)}
+                              </div>
+                            </div>
+                          </>
+                        ) : hasNestedFiles(selectedKnowledgeBase) ? (
+                          <div className="border rounded-md p-3">
+                            <h4 className="font-medium text-sm mb-2">Files</h4>
+                            <div className="max-h-[550px] overflow-y-auto">
+                              {renderNestedFiles(selectedKnowledgeBase)}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                            <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                            <p className="text-muted-foreground">No detailed content available for this source</p>
+                          </div>
+                        )}
+                        
+                        {selectedKnowledgeBase.description && (
+                          <div className="border rounded-md p-3">
+                            <h4 className="font-medium text-sm mb-1">Description</h4>
+                            <p className="text-sm text-muted-foreground">{selectedKnowledgeBase.description}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-lg font-medium mb-4">Selected Sources</h3>
+                      
+                      {selectedSources.size === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                          <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                          <p className="text-muted-foreground">Select knowledge sources from the list to import</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {Array.from(selectedSources).map(sourceId => {
+                            const source = externalSources.find(s => s.id === sourceId);
+                            if (!source) return null;
+                            
+                            return (
+                              <div key={sourceId} className="flex items-start justify-between border rounded-md p-3">
+                                <div className="flex items-start space-x-3">
+                                  <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
+                                  
+                                  <div>
+                                    <h4 className="font-medium text-sm">{source.name}</h4>
+                                    
+                                    {source.type === 'website' && selectedSubUrls[sourceId]?.size > 0 && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {selectedSubUrls[sourceId].size} URLs selected
+                                      </p>
+                                    )}
+                                    
+                                    {(source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
+                                     selectedFiles[sourceId]?.size > 0 && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {selectedFiles[sourceId].size} files selected
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => {
+                                    const newSelectedSources = new Set(selectedSources);
+                                    newSelectedSources.delete(sourceId);
+                                    setSelectedSources(newSelectedSources);
+                                    
+                                    if (selectedSubUrls[sourceId]) {
+                                      const newSelectedSubUrls = { ...selectedSubUrls };
+                                      delete newSelectedSubUrls[sourceId];
+                                      setSelectedSubUrls(newSelectedSubUrls);
+                                    }
+                                    
+                                    if (selectedFiles[sourceId]) {
+                                      const newSelectedFiles = { ...selectedFiles };
+                                      delete newSelectedFiles[sourceId];
+                                      setSelectedFiles(newSelectedFiles);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+        
+        <DialogFooter className="px-6 py-4 border-t" fixed>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleImport} 
+            disabled={selectedSources.size === 0 || isImporting}
+          >
+            {isImporting ? "Importing..." : "Import Sources"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
