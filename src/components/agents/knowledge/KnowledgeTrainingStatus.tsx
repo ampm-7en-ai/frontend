@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -171,7 +170,13 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // No need to invalidate here since ImportSourcesDialog handles the optimistic update
+    // Force refresh of knowledge bases to show the newly imported sources with their URLs
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+      if (onKnowledgeBasesChanged) {
+        onKnowledgeBasesChanged();
+      }
+    }, 500);
   };
 
   const trainAllSources = () => {
@@ -311,7 +316,7 @@ const KnowledgeTrainingStatus = ({
       </CardContent>
 
       <ImportSourcesDialog
-        isOpen={isImportDialogOpen}
+        open={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         externalSources={availableKnowledgeBases || []}
         currentSources={formatExternalSources(agentKnowledgeBases || [])}

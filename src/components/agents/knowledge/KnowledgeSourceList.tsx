@@ -60,7 +60,30 @@ const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
       return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
       
     case 'website':
-      const urlCount = firstSource.sub_urls?.children?.length || 0;
+      let urlCount = 0;
+      
+      if (firstSource.sub_urls) {
+        const countSelectedUrls = (items) => {
+          if (!items) return 0;
+          let count = 0;
+          
+          items.forEach(item => {
+            if (item.is_selected) {
+              count++;
+            }
+            if (item.children && item.children.length > 0) {
+              count += countSelectedUrls(item.children);
+            }
+          });
+          
+          return count;
+        };
+        
+        if (firstSource.sub_urls.children) {
+          urlCount = countSelectedUrls(firstSource.sub_urls.children);
+        }
+      }
+      
       return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
       
     case 'plain_text':
@@ -269,9 +292,6 @@ const KnowledgeBaseCard = ({
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                        <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
-                          {source.is_selected ? "Selected" : "Not Selected"}
-                        </Badge>
                       </div>
                     </div>
                   )}
@@ -288,7 +308,9 @@ const KnowledgeBaseCard = ({
                             </div>
                             <div className="flex items-center gap-2">
                               {subUrl.chars !== undefined && (
-                                <span className="text-xs text-muted-foreground">{subUrl.chars?.toLocaleString() || ''} chars</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {subUrl.chars?.toLocaleString() || ''} chars
+                                </span>
                               )}
                             </div>
                           </div>

@@ -55,6 +55,8 @@ export interface KnowledgeSource {
   title?: string;
   url?: string;
   file?: string | null;
+  selected_urls?: string[];
+  selected_urls_count?: number;
 }
 
 export interface AgentReference {

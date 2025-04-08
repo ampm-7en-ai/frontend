@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,15 +20,21 @@ import { useQueryClient } from '@tanstack/react-query';
 interface ImportSourcesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSourcesImported?: (sources: KnowledgeSource[]) => void;
+  externalSources?: any[];
+  currentSources?: any[];
+  onImport?: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => void;
   agentId?: string;
+  preventMultipleCalls?: boolean;
 }
 
 const ImportSourcesDialog: React.FC<ImportSourcesDialogProps> = ({
   open,
   onOpenChange,
-  onSourcesImported,
-  agentId
+  externalSources = [],
+  currentSources = [],
+  onImport,
+  agentId,
+  preventMultipleCalls = false
 }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -315,6 +322,22 @@ const ImportSourcesDialog: React.FC<ImportSourcesDialogProps> = ({
         throw new Error(errorData?.message || `Failed to import sources: ${response.status}`);
       }
       
+      // Optimistically update the client-side data with the selected URLs
+      const importedSourcesData = selectedSourceIds.map(id => {
+        const source = sources.find(s => s.id === id);
+        if (!source) return null;
+        
+        // Include selected sub-URLs in the source data
+        const selectedUrlsSet = selectedSubUrls[id];
+        const selectedUrlsArray = selectedUrlsSet ? Array.from(selectedUrlsSet) : [];
+        
+        return {
+          ...source,
+          selected_urls: selectedUrlsArray,
+          selected_urls_count: selectedUrlsArray.length
+        };
+      }).filter(Boolean);
+      
       // Invalidate the agent knowledge bases query to refresh the data
       queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
       
@@ -323,10 +346,9 @@ const ImportSourcesDialog: React.FC<ImportSourcesDialogProps> = ({
         description: `Successfully imported ${selectedSourceIds.length} knowledge sources.`,
       });
       
-      // Call the callback with the selected sources
-      if (onSourcesImported) {
-        const importedSources = sources.filter(source => selectedSourceIds.includes(source.id));
-        onSourcesImported(importedSources);
+      // Call the callback with the selected sources and URLs
+      if (onImport) {
+        onImport(selectedSourceIds, selectedSubUrls);
       }
       
       // Close the dialog
