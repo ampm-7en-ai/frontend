@@ -1,3 +1,4 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -172,10 +173,12 @@ export interface ApiKnowledgeSource {
     key: string;
     url: string;
     is_selected: boolean;
+    chars?: number;
     children: Array<{
       key: string;
       url: string;
       is_selected: boolean;
+      chars?: number;
       children: any[];
     }>;
   };

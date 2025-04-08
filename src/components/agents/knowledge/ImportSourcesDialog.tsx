@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -739,6 +738,95 @@ export const ImportSourcesDialog = ({
         </div>
       </div>
     );
+  };
+
+  const getSourcesForFinalPanel = (state: any) => {
+    try {
+      if (!state.selectedSources || state.selectedSources.length === 0) {
+        console.log("No selected sources found");
+        return [];
+      }
+
+      const selectedSourcesArray = Array.isArray(state.selectedSources) 
+        ? state.selectedSources 
+        : Object.values(state.selectedSources);
+
+      return selectedSourcesArray.map((sourceId: number) => {
+        const source = state.sources.find((s: any) => s.id === sourceId);
+        if (!source) return null;
+        
+        const processedSource = { ...source };
+        
+        if (state.sourceSelections?.[source.id]?.documents) {
+          processedSource.documents = source.documents?.map((doc: any) => ({
+            ...doc,
+            selected: state.sourceSelections[source.id].documents.includes(doc.id)
+          }));
+        }
+        
+        if (state.sourceSelections?.[source.id]?.urls) {
+          if (!processedSource.selectedSubUrls) {
+            processedSource.selectedSubUrls = new Set();
+          }
+          
+          state.sourceSelections[source.id].urls.forEach((url: string) => {
+            processedSource.selectedSubUrls?.add(url);
+          });
+        }
+        
+        if (state.sourceSelections?.[source.id]?.insideLinks && source.insideLinks) {
+          processedSource.insideLinks = source.insideLinks.map((link: any, idx: number) => ({
+            ...link,
+            selected: state.sourceSelections[source.id].insideLinks.includes(idx)
+          }));
+        }
+        
+        if (state.sourceSelections?.[source.id]?.crawlOptions) {
+          processedSource.crawlOptions = state.sourceSelections[source.id].crawlOptions;
+        }
+        
+        if (state.sourceSelections?.[source.id]?.domainLinks) {
+          const updateNodeSelection = (node: any, selections: string[]) => {
+            if (!node) return node;
+            
+            const updatedNode = { ...node };
+            updatedNode.selected = selections.includes(node.url);
+            
+            if (updatedNode.children && updatedNode.children.length > 0) {
+              updatedNode.children = updatedNode.children.map((child: any) => 
+                updateNodeSelection(child, selections)
+              );
+            }
+            
+            return updatedNode;
+          };
+          
+          if (source.metadata?.domain_links) {
+            if (Array.isArray(source.metadata.domain_links)) {
+              processedSource.metadata = {
+                ...processedSource.metadata,
+                domain_links: source.metadata.domain_links.map((link: any) => 
+                  updateNodeSelection(link, state.sourceSelections[source.id].domainLinks)
+                )
+              };
+            } else {
+              processedSource.metadata = {
+                ...processedSource.metadata,
+                domain_links: updateNodeSelection(
+                  source.metadata.domain_links, 
+                  state.sourceSelections[source.id].domainLinks
+                )
+              };
+            }
+          }
+        }
+        
+        return processedSource;
+      }).filter(Boolean);
+    } catch (error) {
+      console.error("Error in getSourcesForFinalPanel:", error);
+      return [];
+    }
   };
 
   return (
