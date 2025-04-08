@@ -22,6 +22,11 @@ export const getKnowledgeBaseEndpoint = (agentId?: string): string => {
   return agentId ? `${baseEndpoint}&agent_id=${agentId}` : baseEndpoint;
 };
 
+// Function to get agent endpoint for a specific agent ID
+export const getAgentEndpoint = (agentId: string): string => {
+  return `${API_ENDPOINTS.AGENTS}${agentId}/`;
+};
+
 // Utility function to get full API URL
 export const getApiUrl = (endpoint: string): string => {
   return `${BASE_URL}${endpoint}`;

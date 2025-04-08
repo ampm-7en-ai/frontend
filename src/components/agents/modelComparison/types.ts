@@ -35,6 +35,7 @@ import { KnowledgeSource } from '../knowledge/types';
 // Re-export the type for backward compatibility
 export type { KnowledgeSource };
 
+// Add the missing ModelTestLink type
 export type ModelTestLink = {
   model: string;
   label?: string;

@@ -1,16 +1,19 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ApiKnowledgeBase, KnowledgeSource, UrlNode } from './types';
+import { ApiKnowledgeBase, KnowledgeSource } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
-import { BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, getSourceMetadataInfo, formatFileSizeToMB } from '@/utils/api-config';
+import { 
+  BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
+  getAgentEndpoint, getSourceMetadataInfo, formatFileSizeToMB 
+} from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
-import { Globe, FileText, File, Database } from 'lucide-react';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -20,94 +23,6 @@ interface KnowledgeTrainingStatusProps {
   isLoading?: boolean;
   loadError?: string | null;
 }
-
-const getIconForType = (type: string) => {
-  switch (type.toLowerCase()) {
-    case 'website':
-      return <Globe className="h-4 w-4 mr-2" />;
-    case 'document':
-    case 'pdf':
-      return <FileText className="h-4 w-4 mr-2" />;
-    case 'csv':
-      return <Database className="h-4 w-4 mr-2" />;
-    case 'plain_text':
-      return <File className="h-4 w-4 mr-2" />;
-    default:
-      return <File className="h-4 w-4 mr-2" />;
-  }
-};
-
-const getFormattedSize = (source: any) => {
-  if (source.metadata?.file_size) {
-    if (typeof source.metadata.file_size === 'string' && source.metadata.file_size.endsWith('B')) {
-      const sizeInBytes = parseInt(source.metadata.file_size.replace('B', ''), 10);
-      return formatFileSizeToMB(sizeInBytes);
-    }
-    return formatFileSizeToMB(source.metadata.file_size);
-  }
-  
-  if (source.metadata?.no_of_chars) {
-    return `${source.metadata.no_of_chars} chars`;
-  }
-  
-  if (source.metadata?.no_of_rows) {
-    return `${source.metadata.no_of_rows} rows`;
-  }
-  
-  return 'N/A';
-};
-
-const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
-  const { type } = knowledgeBase;
-  
-  const firstSource = knowledgeBase.knowledge_sources?.[0];
-  if (!firstSource) return type;
-  
-  switch (type.toLowerCase()) {
-    case 'document':
-    case 'pdf':
-    case 'docs':
-    case 'csv':
-      const fileCount = knowledgeBase.knowledge_sources.length;
-      return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
-      
-    case 'website':
-      const urlCount = firstSource.sub_urls?.children?.length || 0;
-      return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
-      
-    case 'plain_text':
-      if (firstSource.metadata?.no_of_chars) {
-        return `${firstSource.metadata.no_of_chars} chars`;
-      }
-      return type;
-      
-    default:
-      return type;
-  }
-};
-
-const getSourceTypeDisplay = (source: KnowledgeSource) => {
-  switch (source.type?.toLowerCase()) {
-    case 'document':
-    case 'pdf':
-    case 'docs':
-    case 'csv':
-      return source.pages ? `${source.pages} pages` : `${source.type}`;
-    
-    case 'website':
-      const insideLinksCount = source.insideLinks?.length || 0;
-      return `${insideLinksCount} ${insideLinksCount === 1 ? 'URL' : 'URLs'}`;
-    
-    case 'plain_text':
-      if (source.metadata?.no_of_chars) {
-        return `${source.metadata.no_of_chars} chars`;
-      }
-      return source.type;
-    
-    default:
-      return source.type;
-  }
-};
 
 const KnowledgeTrainingStatus = ({ 
   agentId, 
@@ -125,12 +40,12 @@ const KnowledgeTrainingStatus = ({
   const [needsRetraining, setNeedsRetraining] = useState(true);
   const [showTrainingAlert, setShowTrainingAlert] = useState(false);
   
-  const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
-  const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
+  // State for caching knowledge bases
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
   
-  const fetchKnowledgeBases = async () => {
+  // For Import dialog - fetch all available knowledge bases
+  const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
       console.log("Using cached knowledge bases instead of fetching");
       return cachedKnowledgeBases.current;
@@ -164,6 +79,31 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
+  // For the KnowledgeSourceList - fetch agent-specific knowledge bases
+  const fetchAgentKnowledgeBases = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      console.log(`Fetching agent details for ID: ${agentId}`);
+      const response = await fetch(`${BASE_URL}${getAgentEndpoint(agentId)}`, {
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent details: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.knowledge_bases || [];
+    } catch (error) {
+      console.error('Error fetching agent knowledge bases:', error);
+      throw error;
+    }
+  };
+
   const formatExternalSources = (data) => {
     if (!data) return [];
     
@@ -181,45 +121,18 @@ const KnowledgeTrainingStatus = ({
         ? formatDate(firstSource.metadata.upload_date) 
         : formatDate(kb.last_updated);
 
-      let urlStructure = null;
-      if (kb.type === 'website' && firstSource && firstSource.metadata) {
-        if (firstSource.metadata.sub_urls) {
-          urlStructure = firstSource.metadata.sub_urls;
-        }
-      }
-
       return {
         id: kb.id,
         name: kb.name,
         type: kb.type,
         size: metadataInfo.size,
         lastUpdated: uploadDate,
-        trainingStatus: 'idle' as const,
+        trainingStatus: 'idle' as 'idle' | 'training' | 'success' | 'error',
         linkBroken: false,
         knowledge_sources: kb.knowledge_sources,
         metadata: kb.metadata || {}
       };
     });
-  };
-
-  const getMimeTypeForFormat = (type) => {
-    switch(type) {
-      case 'pdf':
-        return 'application/pdf';
-      case 'docx':
-        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      case 'xlsx':
-        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-      case 'csv':
-        return 'text/csv';
-      case 'website':
-      case 'url':
-        return 'text/html';
-      case 'plain_text':
-        return 'text/plain';
-      default:
-        return 'application/octet-stream';
-    }
   };
   
   const formatDate = (dateString) => {
@@ -229,83 +142,12 @@ const KnowledgeTrainingStatus = ({
     return date.toLocaleDateString('en-GB');
   };
 
-  const transformAgentKnowledgeSources = (data) => {
-    if (!data) return [];
-    
-    return data.map(source => {
-      let trainingStatus: 'idle' | 'training' | 'success' | 'error' = 'idle';
-      const status = source.training_status || 'idle';
-      
-      if (status === 'training') trainingStatus = 'training';
-      else if (status === 'success') trainingStatus = 'success';
-      else if (status === 'error') trainingStatus = 'error';
-      
-      const metadataInfo = getSourceMetadataInfo({
-        type: source.type || 'document',
-        metadata: source.metadata || {}
-      });
-      
-      const insideLinks = [];
-      
-      // Process website sub-URLs if they exist
-      if (source.type === 'website' && source.metadata && source.metadata.sub_urls) {
-        const processUrls = (urlNode, parentPath = '') => {
-          if (!urlNode) return;
-          
-          if (Array.isArray(urlNode.children)) {
-            urlNode.children.forEach(child => {
-              if (child.url && child.selected) {
-                insideLinks.push({
-                  url: child.url,
-                  title: child.title || child.url,
-                  status: 'success' as const,
-                  selected: true,
-                  chars: child.chars
-                });
-              }
-              processUrls(child, `${parentPath}/${child.url}`);
-            });
-          }
-        };
-        
-        if (source.metadata.sub_urls.children) {
-          processUrls(source.metadata.sub_urls);
-        }
-      }
-      
-      return {
-        id: source.id,
-        name: source.name || 'Unnamed source',
-        type: source.type || 'document',
-        size: metadataInfo.size,
-        pages: metadataInfo.count,
-        lastUpdated: formatDate(source.metadata?.upload_date || source.updated_at),
-        trainingStatus: trainingStatus,
-        linkBroken: source.link_broken || false,
-        crawlOptions: source.crawl_options || 'single',
-        insideLinks: insideLinks.length > 0 ? insideLinks : source.insideLinks || [],
-        metadata: source.metadata || {}
-      };
-    });
-  };
-
-  const processSelectedSubUrls = (urlNode: UrlNode, selectedUrls: Set<string>, result: UrlNode[] = []): UrlNode[] => {
-    if (selectedUrls.has(urlNode.url)) {
-      const selectedNode: UrlNode = { 
-        ...urlNode,
-        selected: true,
-        children: [] 
-      };
-      result.push(selectedNode);
-    }
-    
-    if (urlNode.children && urlNode.children.length > 0) {
-      for (const child of urlNode.children) {
-        processSelectedSubUrls(child, selectedUrls, result);
-      }
-    }
-    
-    return result;
+  const refreshKnowledgeBases = () => {
+    console.log("Manually refreshing knowledge bases");
+    setKnowledgeBasesLoaded(false);
+    cachedKnowledgeBases.current = [];
+    refetchAvailableKnowledgeBases();
+    refetchAgentKnowledgeBases();
   };
 
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
@@ -318,224 +160,17 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    const externalSourcesData = formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current);
-    
-    const existingSourcesMap = new Map(knowledgeSources.map(s => [s.id, s]));
-    const newSourceIds = sourceIds.filter(id => !existingSourcesMap.has(id));
-    const existingSourceIds = sourceIds.filter(id => existingSourcesMap.has(id));
-    
-    const sourcesToAdd: KnowledgeSource[] = [];
-    
-    newSourceIds.forEach(id => {
-      const externalSource = externalSourcesData.find(s => s.id === id);
-      if (!externalSource) return;
-      
-      const newSource = processSourceForImport(externalSource, selectedSubUrls?.[id]);
-      if (newSource) {
-        sourcesToAdd.push(newSource);
-      }
+    toast({
+      title: "Sources imported",
+      description: "The selected knowledge sources have been imported.",
     });
-    
-    existingSourceIds.forEach(id => {
-      if (!selectedSubUrls?.[id] || selectedSubUrls[id].size === 0) return;
-      
-      const existingSource = existingSourcesMap.get(id);
-      const externalSource = externalSourcesData.find(s => s.id === id);
-      
-      if (existingSource && externalSource) {
-        const updatedSource = {
-          ...existingSource,
-          insideLinks: processSelectedUrlsForSource(externalSource, selectedSubUrls[id], [], true)
-        };
-        
-        setKnowledgeSources(prev => 
-          prev.map(source => source.id === id ? updatedSource : source)
-        );
-        
-        toast({
-          title: "Knowledge source updated",
-          description: `Updated selected URLs for "${existingSource.name}".`
-        });
-      }
-    });
-    
-    if (sourcesToAdd.length > 0) {
-      setKnowledgeSources(prev => [...prev, ...sourcesToAdd]);
-      
-      if (sourcesToAdd.length === 1) {
-        toast({
-          title: "Knowledge source imported",
-          description: `"${sourcesToAdd[0].name}" has been added to your knowledge base."`
-        });
-      } else {
-        toast({
-          title: "Knowledge sources imported",
-          description: `${sourcesToAdd.length} sources have been added to your knowledge base.`
-        });
-      }
-    }
-    
-    if (sourcesToAdd.length === 0 && existingSourceIds.length === 0) {
-      toast({
-        title: "No sources imported",
-        description: "No changes were made to your knowledge base."
-      });
-    }
     
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
-    
-    if (onSourcesChange) {
-      const updatedSourceIds = [...knowledgeSources, ...sourcesToAdd].map(s => s.id);
-      onSourcesChange(updatedSourceIds);
-    }
-  };
-  
-  const processSourceForImport = (externalSource, selectedUrls?: Set<string>): KnowledgeSource | null => {
-    if (!externalSource) return null;
-    
-    const newSource: KnowledgeSource = {
-      id: externalSource.id,
-      name: externalSource.name,
-      type: externalSource.type,
-      size: externalSource.size,
-      lastUpdated: externalSource.lastUpdated,
-      trainingStatus: 'idle' as const,
-      linkBroken: false,
-      knowledge_sources: externalSource.knowledge_sources,
-      metadata: externalSource.metadata,
-      insideLinks: []
-    };
-    
-    if (externalSource.type === 'website' && selectedUrls && selectedUrls.size > 0) {
-      newSource.insideLinks = processSelectedUrlsForSource(externalSource, selectedUrls, [], true);
-    }
-    
-    return newSource;
-  };
-  
-  const processSelectedUrlsForSource = (
-    externalSource, 
-    selectedUrls: Set<string>, 
-    existingLinks: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}> = [],
-    replaceExisting: boolean = false
-  ) => {
-    if (!selectedUrls || selectedUrls.size === 0) return existingLinks;
-    
-    const knowledgeSource = externalSource.knowledge_sources?.[0];
-    if (!knowledgeSource) return existingLinks;
-    
-    let rootNode: UrlNode | null = null;
-    
-    if (knowledgeSource.metadata?.sub_urls) {
-      rootNode = knowledgeSource.metadata.sub_urls as UrlNode;
-    } else if (externalSource.metadata?.domain_links) {
-      rootNode = Array.isArray(externalSource.metadata.domain_links) 
-        ? externalSource.metadata.domain_links[0] 
-        : externalSource.metadata.domain_links;
-    }
-    
-    if (!rootNode) return existingLinks;
-    
-    const selectedNodes = processSelectedSubUrls(rootNode, selectedUrls);
-    
-    const newInsideLinks = replaceExisting ? [] : [...existingLinks];
-    
-    selectedNodes.forEach(node => {
-      if (node.url !== 'root' && !existingLinks.map(link => link.url).includes(node.url)) {
-        newInsideLinks.push({
-          url: node.url,
-          title: node.title || node.url,
-          status: 'pending' as const,
-          selected: true
-        });
-      }
-    });
-    
-    return newInsideLinks;
-  };
-
-  useEffect(() => {
-    if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
-      console.log("Using preloaded knowledge sources:", preloadedKnowledgeSources);
-      const formattedSources = transformAgentKnowledgeSources(preloadedKnowledgeSources);
-      setKnowledgeSources(formattedSources);
-      setPrevSourceIds(formattedSources.map(s => s.id));
-      setPrevSourcesLength(formattedSources.length);
-    }
-  }, [preloadedKnowledgeSources]);
-
-  const refreshKnowledgeBases = () => {
-    console.log("Manually refreshing knowledge bases");
-    setKnowledgeBasesLoaded(false);
-    cachedKnowledgeBases.current = [];
-    refetch();
-  };
-
-  const removeSource = async (sourceId: number) => {
-    const sourceToRemove = knowledgeSources.find(source => source.id === sourceId);
-    
-    if (!sourceToRemove) return;
-    
-    setKnowledgeSources(prev => prev.filter(source => source.id !== sourceId));
-    
-    if (onSourcesChange) {
-      const updatedSourceIds = knowledgeSources
-        .filter(s => s.id !== sourceId)
-        .map(s => s.id);
-      onSourcesChange(updatedSourceIds);
-    }
-    
-    setNeedsRetraining(true);
-    
-    const toastInfo = getToastMessageForSourceChange('removed', sourceToRemove.name);
-    toast(toastInfo);
-  };
-
-  const updateSource = async (sourceId: number, data: Partial<KnowledgeSource>) => {
-    setKnowledgeSources(prev => 
-      prev.map(source => 
-        source.id === sourceId 
-          ? { ...source, ...data } 
-          : source
-      )
-    );
-    
-    setNeedsRetraining(true);
-  };
-
-  const trainSource = (sourceId: number) => {
-    const sourceIndex = knowledgeSources.findIndex(s => s.id === sourceId);
-    if (sourceIndex === -1) return;
-    
-    const sourceName = knowledgeSources[sourceIndex].name;
-    
-    setKnowledgeSources(prev => 
-      prev.map(source => 
-        source.id === sourceId 
-          ? { ...source, trainingStatus: 'training' as const } 
-          : source
-      )
-    );
-    
-    toast(getTrainingStatusToast('start', sourceName));
-    
-    setTimeout(() => {
-      setKnowledgeSources(prev => 
-        prev.map(source => 
-          source.id === sourceId 
-            ? { ...source, trainingStatus: 'success' as const } 
-            : source
-        )
-      );
-      
-      setNeedsRetraining(false);
-      toast(getTrainingStatusToast('success', sourceName));
-    }, 3000);
   };
 
   const trainAllSources = () => {
-    if (knowledgeSources.length === 0) {
+    if (agentKnowledgeBases.length === 0) {
       toast({
         title: "No sources selected",
         description: "Please import at least one knowledge source to train.",
@@ -549,24 +184,10 @@ const KnowledgeTrainingStatus = ({
     
     toast({
       title: "Training all sources",
-      description: `Processing ${knowledgeSources.length} knowledge sources. This may take a moment.`
+      description: `Processing ${agentKnowledgeBases.length} knowledge sources. This may take a moment.`
     });
 
-    setKnowledgeSources(prev => 
-      prev.map(source => ({ 
-        ...source, 
-        trainingStatus: 'training' as const
-      }))
-    );
-
     setTimeout(() => {
-      setKnowledgeSources(prev => 
-        prev.map(source => ({ 
-          ...source, 
-          trainingStatus: 'success' as const
-        }))
-      );
-      
       setIsTrainingAll(false);
       setNeedsRetraining(false);
       setShowTrainingAlert(false);
@@ -578,18 +199,38 @@ const KnowledgeTrainingStatus = ({
     }, 4000);
   };
 
-  const { data: availableKnowledgeBases, isLoading: isLoadingKnowledgeBases, error: knowledgeBasesError, refetch } = useQuery({
-    queryKey: ['knowledgeBases', agentId],
-    queryFn: fetchKnowledgeBases,
+  // Query for available knowledge bases (for import dialog)
+  const { 
+    data: availableKnowledgeBases, 
+    isLoading: isLoadingAvailableKnowledgeBases, 
+    error: availableKnowledgeBasesError, 
+    refetch: refetchAvailableKnowledgeBases 
+  } = useQuery({
+    queryKey: ['availableKnowledgeBases', agentId],
+    queryFn: fetchAvailableKnowledgeBases,
     staleTime: 5 * 60 * 1000,
-    enabled: !!(agentId && !knowledgeBasesLoaded && cachedKnowledgeBases.current.length === 0)
+    enabled: false // We'll trigger this manually when needed
+  });
+
+  // Query for agent-specific knowledge bases (for display)
+  const { 
+    data: agentKnowledgeBases, 
+    isLoading: isLoadingAgentKnowledgeBases, 
+    error: agentKnowledgeBasesError, 
+    refetch: refetchAgentKnowledgeBases 
+  } = useQuery({
+    queryKey: ['agentKnowledgeBases', agentId],
+    queryFn: fetchAgentKnowledgeBases,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!agentId
   });
 
   useEffect(() => {
-    if (agentId && !knowledgeBasesLoaded && cachedKnowledgeBases.current.length === 0) {
-      refetch();
+    if (isImportDialogOpen) {
+      // Only fetch available knowledge bases when import dialog is opened
+      refetchAvailableKnowledgeBases();
     }
-  }, [agentId, knowledgeBasesLoaded, refetch]);
+  }, [isImportDialogOpen, refetchAvailableKnowledgeBases]);
 
   return (
     <Card>
@@ -610,7 +251,7 @@ const KnowledgeTrainingStatus = ({
           </Button>
           <Button 
             onClick={trainAllSources} 
-            disabled={isTrainingAll || (!isLoading && knowledgeSources.length === 0)}
+            disabled={isTrainingAll || (!isLoadingAgentKnowledgeBases && (!agentKnowledgeBases || agentKnowledgeBases.length === 0))}
             size="sm"
             className="flex items-center gap-1"
           >
@@ -633,37 +274,13 @@ const KnowledgeTrainingStatus = ({
           </div>
         )}
         
-        {isLoading || isLoadingKnowledgeBases ? (
-          <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-2">Loading knowledge sources...</span>
-          </div>
-        ) : knowledgeBasesError ? (
-          <div className="py-6">
-            <div className="flex flex-col items-center justify-center text-center mb-6">
-              <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
-              <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
-              <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base.</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={refreshKnowledgeBases}
-                className="flex items-center gap-1.5"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Retry Connection
-              </Button>
-            </div>
-          </div>
-        ) : (
-          // Use KnowledgeSourceList component for consistent UI
-          <KnowledgeSourceList 
-            knowledgeBases={availableKnowledgeBases || cachedKnowledgeBases.current} 
-            isLoading={isLoading || isLoadingKnowledgeBases}
-          />
-        )}
+        {/* Use KnowledgeSourceList component to display agent-specific knowledge bases */}
+        <KnowledgeSourceList 
+          knowledgeBases={agentKnowledgeBases || []} 
+          isLoading={isLoadingAgentKnowledgeBases}
+        />
         
-        {needsRetraining && knowledgeSources.length > 0 && (
+        {needsRetraining && agentKnowledgeBases && agentKnowledgeBases.length > 0 && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
             <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
             <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
@@ -674,8 +291,8 @@ const KnowledgeTrainingStatus = ({
       <ImportSourcesDialog
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
-        externalSources={formatExternalSources ? formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current) : []}
-        currentSources={knowledgeSources}
+        externalSources={availableKnowledgeBases || []}
+        currentSources={formatExternalSources(agentKnowledgeBases || [])}
         onImport={importSelectedSources}
         agentId={agentId}
       />
