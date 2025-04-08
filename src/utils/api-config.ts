@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -20,6 +21,11 @@ export const API_ENDPOINTS = {
 export const getKnowledgeBaseEndpoint = (agentId?: string): string => {
   const baseEndpoint = `${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`;
   return agentId ? `${baseEndpoint}&agent_id=${agentId}` : baseEndpoint;
+};
+
+// Function to get agent endpoint with agent ID
+export const getAgentEndpoint = (agentId: string): string => {
+  return `${API_ENDPOINTS.AGENTS}${agentId}/`;
 };
 
 // Utility function to get full API URL

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -84,7 +83,6 @@ const formatFileSizeToMB = (bytes: number) => {
   return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
 };
 
-// Extract KnowledgeBaseCard as a separate component to avoid React Hook issues
 const KnowledgeBaseCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBase }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -193,7 +191,6 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
     );
   }
 
-  // Filter knowledge bases to only show those linked to this agent
   const linkedKnowledgeBases = knowledgeBases.filter(kb => kb.is_linked);
 
   return (

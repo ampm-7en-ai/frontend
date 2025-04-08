@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw, Globe, FileText, Database } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ApiKnowledgeBase, KnowledgeSource } from './types';
+import { ApiKnowledgeBase } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
@@ -18,6 +18,7 @@ import {
 } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
+import { KnowledgeSource } from '@/components/agents/modelComparison/types';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -27,6 +28,59 @@ interface KnowledgeTrainingStatusProps {
   isLoading?: boolean;
   loadError?: string | null;
 }
+
+interface UrlNode {
+  key: string;
+  url: string;
+  title?: string;
+  is_selected?: boolean;
+  children?: UrlNode[];
+}
+
+const processSelectedSubUrls = (rootNode: UrlNode, selectedUrls: Set<string>): UrlNode[] => {
+  const selectedNodes: UrlNode[] = [];
+  
+  const traverse = (node: UrlNode) => {
+    if (selectedUrls.has(node.url)) {
+      selectedNodes.push(node);
+    }
+    
+    node.children?.forEach(childNode => {
+      traverse(childNode);
+    });
+  };
+  
+  traverse(rootNode);
+  return selectedNodes;
+};
+
+const transformAgentKnowledgeSources = (sources: any[]): KnowledgeSource[] => {
+  if (!sources || !Array.isArray(sources)) return [];
+  
+  return sources.map(source => ({
+    id: source.id,
+    name: source.name,
+    type: source.type,
+    lastUpdated: source.lastUpdated || source.last_updated,
+    trainingStatus: source.training_status || 'idle',
+    knowledge_sources: source.knowledge_sources || [],
+    metadata: source.metadata || {}
+  }));
+};
+
+const formatExternalSources = (sources: ApiKnowledgeBase[]): KnowledgeSource[] => {
+  if (!sources || !Array.isArray(sources)) return [];
+  
+  return sources.map(source => ({
+    id: source.id,
+    name: source.name,
+    type: source.type,
+    lastUpdated: source.last_updated,
+    trainingStatus: source.training_status,
+    knowledge_sources: source.knowledge_sources || [],
+    metadata: source.metadata || {}
+  }));
+};
 
 const KnowledgeTrainingStatus = ({ 
   agentId, 
@@ -518,34 +572,10 @@ const KnowledgeTrainingStatus = ({
           </div>
         )}
         
-        {isLoading || isLoadingAgent ? (
-          <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-2">Loading knowledge sources...</span>
-          </div>
-        ) : agentError ? (
-          <div className="py-6">
-            <div className="flex flex-col items-center justify-center text-center mb-6">
-              <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
-              <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
-              <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base.</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={refreshKnowledgeBases}
-                className="flex items-center gap-1.5"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Retry Connection
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <KnowledgeSourceList 
-            knowledgeBases={agentData?.knowledge_bases || []} 
-            isLoading={isLoading || isLoadingAgent}
-          />
-        )}
+        <KnowledgeSourceList 
+          knowledgeBases={agentData?.knowledge_bases || []} 
+          isLoading={isLoading || isLoadingAgent}
+        />
         
         {needsRetraining && agentData?.knowledge_bases && agentData.knowledge_bases.length > 0 && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">

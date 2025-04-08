@@ -14,6 +14,19 @@ export interface Agent {
   knowledge_bases?: any[]; // Original knowledge_bases from API
 }
 
+export interface KnowledgeSource {
+  id: number;
+  name: string;
+  type: string;
+  size?: string;
+  lastUpdated?: string;
+  trainingStatus?: 'idle' | 'training' | 'success' | 'error';
+  linkBroken?: boolean;
+  knowledge_sources?: any[];
+  metadata?: any;
+  insideLinks?: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}>;
+}
+
 export interface Message {
   id: number;
   content: string;
