@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -582,9 +583,9 @@ export const ImportSourcesDialog = ({
               {urlNode.url && (
                 <span className="text-xs text-muted-foreground ml-6 truncate max-w-[300px]">{urlNode.url}</span>
               )}
-              {urlNode.chars && (
+              {urlNode.chars !== undefined && (
                 <span className="text-xs text-muted-foreground ml-6">
-                  {urlNode.chars.toLocaleString()} characters
+                  {urlNode.chars === 0 ? "0 characters" : `${urlNode.chars.toLocaleString()} characters`}
                 </span>
               )}
             </div>
