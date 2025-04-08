@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKnowledgeBase, KnowledgeSource } from './types';
-import ImportSourcesDialog from './ImportSourcesDialog';
+import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
 import { 
@@ -170,13 +171,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // Force refresh of knowledge bases to show the newly imported sources with their URLs
-    setTimeout(() => {
-      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
-      if (onKnowledgeBasesChanged) {
-        onKnowledgeBasesChanged();
-      }
-    }, 500);
+    // No need to invalidate here since ImportSourcesDialog handles the optimistic update
   };
 
   const trainAllSources = () => {
@@ -316,7 +311,7 @@ const KnowledgeTrainingStatus = ({
       </CardContent>
 
       <ImportSourcesDialog
-        open={isImportDialogOpen}
+        isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         externalSources={availableKnowledgeBases || []}
         currentSources={formatExternalSources(agentKnowledgeBases || [])}
