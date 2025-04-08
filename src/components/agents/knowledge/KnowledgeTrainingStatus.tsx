@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,11 +39,9 @@ const KnowledgeTrainingStatus = ({
   const [needsRetraining, setNeedsRetraining] = useState(true);
   const [showTrainingAlert, setShowTrainingAlert] = useState(false);
   
-  // State for caching knowledge bases
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
   
-  // For Import dialog - fetch all available knowledge bases
   const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
       console.log("Using cached knowledge bases instead of fetching");
@@ -79,7 +76,6 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  // For the KnowledgeSourceList - fetch agent-specific knowledge bases
   const fetchAgentKnowledgeBases = async () => {
     try {
       const token = getAccessToken();
@@ -167,6 +163,8 @@ const KnowledgeTrainingStatus = ({
     
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
+    
+    refetchAgentKnowledgeBases();
   };
 
   const trainAllSources = () => {
@@ -199,7 +197,6 @@ const KnowledgeTrainingStatus = ({
     }, 4000);
   };
 
-  // Query for available knowledge bases (for import dialog)
   const { 
     data: availableKnowledgeBases, 
     isLoading: isLoadingAvailableKnowledgeBases, 
@@ -209,10 +206,9 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['availableKnowledgeBases', agentId],
     queryFn: fetchAvailableKnowledgeBases,
     staleTime: 5 * 60 * 1000,
-    enabled: false // We'll trigger this manually when needed
+    enabled: false
   });
 
-  // Query for agent-specific knowledge bases (for display)
   const { 
     data: agentKnowledgeBases, 
     isLoading: isLoadingAgentKnowledgeBases, 
@@ -227,7 +223,6 @@ const KnowledgeTrainingStatus = ({
 
   useEffect(() => {
     if (isImportDialogOpen) {
-      // Only fetch available knowledge bases when import dialog is opened
       refetchAvailableKnowledgeBases();
     }
   }, [isImportDialogOpen, refetchAvailableKnowledgeBases]);
@@ -274,13 +269,11 @@ const KnowledgeTrainingStatus = ({
           </div>
         )}
         
-        {/* Pass the agentId to KnowledgeSourceList */}
         <KnowledgeSourceList 
           knowledgeBases={agentKnowledgeBases || []} 
           isLoading={isLoadingAgentKnowledgeBases}
           agentId={agentId}
           onKnowledgeBaseRemoved={(id) => {
-            // Refresh the knowledge bases list when a knowledge base is removed
             refetchAgentKnowledgeBases();
           }}
         />
