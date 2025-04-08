@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -185,4 +184,16 @@ export interface ApiKnowledgeSource {
       children: any[];
     }>;
   };
+}
+
+export interface SourceSelectionState {
+  selectedSources: number[] | Set<number>;
+  sources: KnowledgeSource[];
+  sourceSelections?: Record<number, {
+    documents?: string[];
+    urls?: string[];
+    insideLinks?: number[];
+    crawlOptions?: 'single' | 'children';
+    domainLinks?: string[];
+  }>;
 }
