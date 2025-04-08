@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKnowledgeBase, KnowledgeSource } from './types';
-import { ImportSourcesDialog } from './ImportSourcesDialog';
+import ImportSourcesDialog from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
 import { 
@@ -171,7 +171,8 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // No need to invalidate here since ImportSourcesDialog handles the optimistic update
+    // Refresh knowledge bases after import
+    refreshKnowledgeBases();
   };
 
   const trainAllSources = () => {
@@ -207,8 +208,8 @@ const KnowledgeTrainingStatus = ({
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
     console.log("Knowledge base removed, id:", id);
     
-    // Knowledge base removal is handled optimistically in KnowledgeSourceList
-    // No need to invalidate the query here
+    // Refresh knowledge bases after removal
+    refreshKnowledgeBases();
   }, []);
 
   const { 
