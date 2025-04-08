@@ -128,7 +128,8 @@ export const ImportSourcesDialog = ({
   }, [selectedKnowledgeBase]);
 
   useEffect(() => {
-    for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
+    for (const entry of Object.entries(selectedSubUrls)) {
+      const [sourceId, urlSet] = entry;
       const numericId = Number(sourceId);
       if (urlSet && urlSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
@@ -143,7 +144,8 @@ export const ImportSourcesDialog = ({
       }
     }
     
-    for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
+    for (const entry of Object.entries(selectedFiles)) {
+      const [sourceId, fileSet] = entry;
       const numericId = Number(sourceId);
       if (fileSet && fileSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
@@ -911,7 +913,7 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] h-[756px] p-0 overflow-hidden" fixedFooter>
+      <DialogContent className="sm:max-w-[1200px] h-[850px] p-0 overflow-hidden" fixedFooter>
         <DialogHeader className="px-6 pt-6 pb-2 border-b">
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
@@ -1006,19 +1008,7 @@ export const ImportSourcesDialog = ({
                           </div>
                           
                           <div className="flex items-center">
-                            {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source))) ? (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleSourceExpansion(source.id);
-                                }}
-                              >
-                                {expandedSources.has(source.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              </Button>
-                            ) : (
+                            {source.type === 'plain_text' ? (
                               <Checkbox
                                 checked={selectedSources.has(source.id)}
                                 onCheckedChange={(checked) => {
@@ -1034,26 +1024,21 @@ export const ImportSourcesDialog = ({
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                               />
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleKnowledgeBaseClick(source);
+                                }}
+                              >
+                                View Details
+                              </Button>
                             )}
                           </div>
                         </div>
-                        
-                        {expandedSources.has(source.id) && (
-                          <div className="mt-3 border-t pt-2">
-                            {hasUrlStructure(source) && renderWebsiteFilterControls()}
-                            <div className="max-h-[350px] overflow-y-auto pr-1 pl-1">
-                              {hasUrlStructure(source) ? (
-                                renderWebsiteUrls(source)
-                              ) : hasNestedFiles(source) ? (
-                                renderNestedFiles(source)
-                              ) : (
-                                <div className="flex justify-center py-2 text-muted-foreground text-sm">
-                                  No detailed content available
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     ))
                   )}
