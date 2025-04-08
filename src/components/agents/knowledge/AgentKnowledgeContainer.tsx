@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ApiKnowledgeBase, KnowledgeSource } from './types';
+import { ApiKnowledgeBase, KnowledgeSource, KnowledgeSourceItem } from './types';
 import KnowledgeSourceList from './KnowledgeSourceList';
 import { Button } from '@/components/ui/button';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
@@ -31,22 +31,33 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
         id: 1001,
         name: "Corporate Documentation",
         type: "docs",
+        size: "1.5 MB",
+        lastUpdated: "2023-04-01",
+        trainingStatus: 'success',
         knowledge_sources: [
-          { id: 2001, title: "Employee Handbook.pdf", type: "pdf", metadata: { file_size: 1500000 } }
+          { 
+            id: 2001, 
+            title: "Employee Handbook.pdf", 
+            type: "pdf", 
+            url: null,
+            metadata: { file_size: 1500000 } 
+          }
         ]
       },
       {
         id: 1002,
         name: "Marketing Website",
         type: "website",
+        size: "2.3 MB",
+        lastUpdated: "2023-05-15",
+        trainingStatus: 'success',
         knowledge_sources: [
           { 
             id: 2002, 
             title: "Marketing Site", 
+            url: "https://example.com",
             metadata: { 
               sub_urls: {
-                url: "root",
-                key: "root-key",
                 children: [
                   { url: "https://example.com/home", key: "home-key", is_selected: true },
                   { url: "https://example.com/products", key: "products-key", is_selected: false }
@@ -72,6 +83,25 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
     setIsImportDialogOpen(false);
   };
 
+  // Create a mapping of ApiKnowledgeSource to KnowledgeSource for the dialog
+  const mapApiSourcesToKnowledgeSources = () => {
+    return knowledgeBases.flatMap(kb => kb.knowledge_sources).map(source => ({
+      id: source.id,
+      name: source.title,
+      type: source.metadata?.format || "unknown",
+      size: typeof source.metadata?.file_size === 'number' 
+        ? `${Math.round(source.metadata.file_size / 1024)} KB` 
+        : "Unknown size",
+      lastUpdated: source.metadata?.last_fetched || "Unknown",
+      trainingStatus: source.status === "trained" ? "success" : "idle",
+      url: source.url,
+      file: source.file,
+      title: source.title,
+      metadata: source.metadata,
+      knowledge_sources: source.sub_knowledge_sources || []
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -94,7 +124,7 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         externalSources={externalSources}
-        currentSources={knowledgeBases.flatMap(kb => kb.knowledge_sources)}
+        currentSources={mapApiSourcesToKnowledgeSources()}
         onImport={handleImportSources}
         agentId={agentId}
       />
