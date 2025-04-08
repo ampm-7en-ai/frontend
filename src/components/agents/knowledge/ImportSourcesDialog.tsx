@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -430,7 +431,8 @@ export const ImportSourcesDialog = ({
       const allSelectedIds: string[] = [];
       
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
-        if (urlSet && typeof urlSet.forEach === 'function') {
+        // Fix: Add type checking for urlSet before using forEach
+        if (urlSet && urlSet instanceof Set) {
           urlSet.forEach(url => {
             const key = urlKeyMap[url] || url;
             allSelectedIds.push(key);
@@ -439,7 +441,8 @@ export const ImportSourcesDialog = ({
       });
       
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
-        if (fileSet && typeof fileSet.forEach === 'function') {
+        // Fix: Add type checking for fileSet before using forEach
+        if (fileSet && fileSet instanceof Set) {
           fileSet.forEach(fileId => {
             allSelectedIds.push(fileId);
           });
