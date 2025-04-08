@@ -19,7 +19,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, updateAgent } from '@/utils/api-config';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -64,6 +64,7 @@ const AgentEdit = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("general");
+  const queryClient = useQueryClient();
   
   const [agent, setAgent] = useState({
     id: agentId,
@@ -126,7 +127,8 @@ const AgentEdit = () => {
       }
       
       return response.json();
-    }
+    },
+    staleTime: 30 * 1000, // 30 seconds stale time to reduce frequent refetches
   });
 
   React.useEffect(() => {
@@ -821,6 +823,7 @@ const AgentEdit = () => {
       preloadedKnowledgeSources={agentKnowledgeSources}
       isLoading={isLoading}
       loadError={loadError}
+      onKnowledgeBasesChanged={handleKnowledgeBasesChanged}
     />
   );
 

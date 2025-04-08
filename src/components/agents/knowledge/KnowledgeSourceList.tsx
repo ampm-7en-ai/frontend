@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -110,6 +110,7 @@ const KnowledgeBaseCard = ({
   const [isOpen, setIsOpen] = React.useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -154,6 +155,9 @@ const KnowledgeBaseCard = ({
         title: "Knowledge base removed",
         description: `Successfully removed "${knowledgeBase.name}" from this agent`,
       });
+      
+      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+      queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
       
       if (onDelete) {
         onDelete();

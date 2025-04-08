@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,16 +12,17 @@ import {
   BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
   getAgentEndpoint, getSourceMetadataInfo, formatFileSizeToMB 
 } from '@/utils/api-config';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
   initialSelectedSources?: number[];
   onSourcesChange?: (selectedSourceIds: number[]) => void;
-  preloadedKnowledgeSources?: any[];  
+  preloadedKnowledgeSources?: any[];
   isLoading?: boolean;
   loadError?: string | null;
+  onKnowledgeBasesChanged?: () => void;
 }
 
 const KnowledgeTrainingStatus = ({ 
@@ -29,9 +31,11 @@ const KnowledgeTrainingStatus = ({
   onSourcesChange,
   preloadedKnowledgeSources = [],
   isLoading = false,
-  loadError = null
+  loadError = null,
+  onKnowledgeBasesChanged
 }: KnowledgeTrainingStatusProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
@@ -142,8 +146,17 @@ const KnowledgeTrainingStatus = ({
     console.log("Manually refreshing knowledge bases");
     setKnowledgeBasesLoaded(false);
     cachedKnowledgeBases.current = [];
-    refetchAvailableKnowledgeBases();
-    refetchAgentKnowledgeBases();
+    
+    // Use the queryClient to invalidate all relevant queries
+    queryClient.invalidateQueries({ queryKey: ['availableKnowledgeBases', agentId] });
+    queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+    
+    // Additional query invalidation for the parent component if needed
+    queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
+    
+    if (onKnowledgeBasesChanged) {
+      onKnowledgeBasesChanged();
+    }
   };
 
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
@@ -164,7 +177,13 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    refetchAgentKnowledgeBases();
+    // Invalidate queries to trigger a refresh
+    queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+    queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
+    
+    if (onKnowledgeBasesChanged) {
+      onKnowledgeBasesChanged();
+    }
   };
 
   const trainAllSources = () => {
@@ -274,7 +293,13 @@ const KnowledgeTrainingStatus = ({
           isLoading={isLoadingAgentKnowledgeBases}
           agentId={agentId}
           onKnowledgeBaseRemoved={(id) => {
-            refetchAgentKnowledgeBases();
+            // Invalidate queries to refresh data after deletion
+            queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+            queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
+            
+            if (onKnowledgeBasesChanged) {
+              onKnowledgeBasesChanged();
+            }
           }}
         />
         
