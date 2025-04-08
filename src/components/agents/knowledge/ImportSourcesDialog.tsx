@@ -430,16 +430,20 @@ export const ImportSourcesDialog = ({
       const allSelectedIds: string[] = [];
       
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
-        urlSet.forEach(url => {
-          const key = urlKeyMap[url] || url;
-          allSelectedIds.push(key);
-        });
+        if (urlSet && typeof urlSet.forEach === 'function') {
+          urlSet.forEach(url => {
+            const key = urlKeyMap[url] || url;
+            allSelectedIds.push(key);
+          });
+        }
       });
       
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
-        fileSet.forEach(fileId => {
-          allSelectedIds.push(fileId);
-        });
+        if (fileSet && typeof fileSet.forEach === 'function') {
+          fileSet.forEach(fileId => {
+            allSelectedIds.push(fileId);
+          });
+        }
       });
       
       toast({
@@ -455,7 +459,7 @@ export const ImportSourcesDialog = ({
           
           queryClient.setQueryData(['agentKnowledgeBases', agentId], (old) => {
             if (!old) return currentData;
-            return [...old];
+            return Array.isArray(old) ? [...old] : [old];
           });
         }
         
