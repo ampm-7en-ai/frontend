@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ApiKnowledgeBase, ApiKnowledgeSource } from './types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -29,7 +28,6 @@ const getIconForType = (type: string) => {
 
 const getFormattedSize = (source: ApiKnowledgeSource) => {
   if (source.metadata?.file_size) {
-    // Handle file size in bytes with 'B' suffix
     if (typeof source.metadata.file_size === 'string' && source.metadata.file_size.endsWith('B')) {
       const sizeInBytes = parseInt(source.metadata.file_size.replace('B', ''), 10);
       return formatFileSizeToMB(sizeInBytes);
@@ -48,6 +46,35 @@ const getFormattedSize = (source: ApiKnowledgeSource) => {
   return 'N/A';
 };
 
+const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
+  const { type } = knowledgeBase;
+  
+  const firstSource = knowledgeBase.knowledge_sources?.[0];
+  if (!firstSource) return type;
+  
+  switch (type.toLowerCase()) {
+    case 'document':
+    case 'pdf':
+    case 'docs':
+    case 'csv':
+      const fileCount = knowledgeBase.knowledge_sources.length;
+      return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
+      
+    case 'website':
+      const urlCount = firstSource.sub_urls?.children?.length || 0;
+      return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
+      
+    case 'plain_text':
+      if (firstSource.metadata?.no_of_chars) {
+        return `${firstSource.metadata.no_of_chars} chars`;
+      }
+      return type;
+      
+    default:
+      return type;
+  }
+};
+
 const CollapsibleKnowledgeSourceCard: React.FC<CollapsibleKnowledgeSourceCardProps> = ({ knowledgeBase }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -62,7 +89,7 @@ const CollapsibleKnowledgeSourceCard: React.FC<CollapsibleKnowledgeSourceCardPro
             </div>
             <div className="flex items-center space-x-2">
               <div className="text-sm text-muted-foreground">
-                {knowledgeBase.type} • {knowledgeBase.knowledge_sources.length} source{knowledgeBase.knowledge_sources.length !== 1 ? 's' : ''}
+                {getTypeDescription(knowledgeBase)}
               </div>
               <Badge variant={knowledgeBase.is_linked ? "default" : "outline"}>
                 {knowledgeBase.is_linked ? "Linked" : "Not Linked"}
