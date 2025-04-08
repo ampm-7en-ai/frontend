@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ApiKnowledgeBase, KnowledgeSource, KnowledgeSourceItem } from './types';
 import KnowledgeSourceList from './KnowledgeSourceList';
@@ -22,10 +21,7 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [externalSources, setExternalSources] = useState<KnowledgeSource[]>([]);
   
-  // Placeholder for external sources that would normally come from an API call
   const handleOpenImportDialog = () => {
-    // In a real implementation, this would fetch external sources from an API
-    // For now, let's create some mock data
     const mockExternalSources: KnowledgeSource[] = [
       {
         id: 1001,
@@ -79,27 +75,36 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
       description: `${sourceIds.length} knowledge sources were imported successfully.`,
     });
     
-    // In a real implementation, this would update the knowledgeBases state with the newly imported sources
     setIsImportDialogOpen(false);
   };
 
-  // Create a mapping of ApiKnowledgeSource to KnowledgeSource for the dialog
   const mapApiSourcesToKnowledgeSources = () => {
-    return knowledgeBases.flatMap(kb => kb.knowledge_sources).map(source => ({
-      id: source.id,
-      name: source.title,
-      type: source.metadata?.format || "unknown",
-      size: typeof source.metadata?.file_size === 'number' 
-        ? `${Math.round(source.metadata.file_size / 1024)} KB` 
-        : "Unknown size",
-      lastUpdated: source.metadata?.last_fetched || "Unknown",
-      trainingStatus: source.status === "trained" ? "success" : "idle",
-      url: source.url,
-      file: source.file,
-      title: source.title,
-      metadata: source.metadata,
-      knowledge_sources: source.sub_knowledge_sources || []
-    }));
+    return knowledgeBases.flatMap(kb => kb.knowledge_sources).map(source => {
+      let trainingStatus: 'idle' | 'training' | 'success' | 'error' = 'idle';
+      if (source.status === "trained") {
+        trainingStatus = 'success';
+      } else if (source.status === "training") {
+        trainingStatus = 'training';
+      } else if (source.status === "failed" || source.status === "error") {
+        trainingStatus = 'error';
+      }
+      
+      return {
+        id: source.id,
+        name: source.title,
+        type: source.metadata?.format || "unknown",
+        size: typeof source.metadata?.file_size === 'number' 
+          ? `${Math.round(source.metadata.file_size / 1024)} KB` 
+          : "Unknown size",
+        lastUpdated: source.metadata?.last_fetched || "Unknown",
+        trainingStatus: trainingStatus,
+        url: source.url,
+        file: source.file,
+        title: source.title,
+        metadata: source.metadata,
+        knowledge_sources: source.sub_knowledge_sources || []
+      };
+    });
   };
 
   return (
