@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, LoaderCircle, AlertCircle, Zap, Import, Trash2, RefreshCw, ChevronDown, ChevronRight, FileText, Globe, Database, File } from 'lucide-react';
+import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { KnowledgeSource, UrlNode, ApiKnowledgeBase } from './types';
+import { ApiKnowledgeBase, KnowledgeSource, UrlNode } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, formatFileSizeToMB, getSourceMetadataInfo } from '@/utils/api-config';
+import { BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, getSourceMetadataInfo, formatFileSizeToMB } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import KnowledgeSourceList from './KnowledgeSourceList';
+import { Globe, FileText, File, Database } from 'lucide-react';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -109,78 +109,6 @@ const getSourceTypeDisplay = (source: KnowledgeSource) => {
   }
 };
 
-const KnowledgeBaseCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBase }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Card key={knowledgeBase.id} className="border shadow-sm">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="p-4 pb-2 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              {getIconForType(knowledgeBase.type)}
-              <span className="text-lg font-medium">{knowledgeBase.name}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="text-sm text-muted-foreground">
-                {getTypeDescription(knowledgeBase)}
-              </div>
-              <Badge variant={knowledgeBase.is_linked ? "default" : "outline"}>
-                {knowledgeBase.is_linked ? "Linked" : "Not Linked"}
-              </Badge>
-              <Badge variant={knowledgeBase.training_status === 'success' ? "success" : "secondary"}>
-                {knowledgeBase.training_status === 'success' ? "Trained" : 
-                knowledgeBase.training_status === 'training' ? "Training" : "Untrained"}
-              </Badge>
-              <CollapsibleTrigger className="h-6 w-6 rounded-full inline-flex items-center justify-center text-muted-foreground">
-                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </CollapsibleTrigger>
-            </div>
-          </div>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent className="pt-0 pb-4">
-            <div className="pl-6 border-l-2 border-gray-200 ml-2 mt-2 space-y-3">
-              {knowledgeBase.knowledge_sources.map((source) => (
-                <div key={source.id} className="p-3 bg-gray-50 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      {getIconForType(source.metadata?.format?.toLowerCase() || knowledgeBase.type)}
-                      <span className="font-medium">{source.title}</span>
-                    </div>
-                    <div>
-                      <Badge variant={source.is_selected ? "success" : "outline"} className="mr-2">
-                        {source.is_selected ? "Selected" : "Not Selected"}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                    </div>
-                  </div>
-                  
-                  {source.sub_urls?.children && source.sub_urls.children.length > 0 && (
-                    <div className="mt-2 pl-6 border-l border-gray-200 space-y-2">
-                      {source.sub_urls.children.map((subUrl) => (
-                        <div key={subUrl.key} className="flex justify-between items-center p-2 bg-white rounded">
-                          <div className="flex items-center">
-                            <Globe className="h-3 w-3 mr-2 text-gray-500" />
-                            <span className="text-sm">{subUrl.url}</span>
-                          </div>
-                          <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-xs">
-                            {subUrl.is_selected ? "Selected" : "Not Selected"}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
-  );
-};
-
 const KnowledgeTrainingStatus = ({ 
   agentId, 
   initialSelectedSources = [], 
@@ -199,9 +127,8 @@ const KnowledgeTrainingStatus = ({
   
   const [prevSourcesLength, setPrevSourcesLength] = useState(knowledgeSources.length);
   const [prevSourceIds, setPrevSourceIds] = useState<number[]>([]);
-  const [showFallbackUI, setShowFallbackUI] = useState(false);
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
-  const cachedKnowledgeBases = useRef<any[]>([]);
+  const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
   
   const fetchKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
@@ -382,7 +309,7 @@ const KnowledgeTrainingStatus = ({
   };
 
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
-    if (!availableKnowledgeBases && !showFallbackUI && !cachedKnowledgeBases.current.length) {
+    if (!availableKnowledgeBases && !cachedKnowledgeBases.current.length) {
       toast({
         title: "Cannot import sources",
         description: "Knowledge base data is unavailable. Please try again later.",
@@ -535,16 +462,8 @@ const KnowledgeTrainingStatus = ({
       setKnowledgeSources(formattedSources);
       setPrevSourceIds(formattedSources.map(s => s.id));
       setPrevSourcesLength(formattedSources.length);
-      setShowFallbackUI(false);
     }
   }, [preloadedKnowledgeSources]);
-
-  useEffect(() => {
-    if (!isLoading && loadError) {
-      console.log("Setting fallback UI due to load error:", loadError);
-      setShowFallbackUI(true);
-    }
-  }, [isLoading, loadError]);
 
   const refreshKnowledgeBases = () => {
     console.log("Manually refreshing knowledge bases");
@@ -691,7 +610,7 @@ const KnowledgeTrainingStatus = ({
           </Button>
           <Button 
             onClick={trainAllSources} 
-            disabled={isTrainingAll || (!isLoading && availableKnowledgeBases && availableKnowledgeBases.length === 0 && knowledgeSources.length === 0)}
+            disabled={isTrainingAll || (!isLoading && knowledgeSources.length === 0)}
             size="sm"
             className="flex items-center gap-1"
           >
@@ -714,120 +633,34 @@ const KnowledgeTrainingStatus = ({
           </div>
         )}
         
-        {isLoading ? (
+        {isLoading || isLoadingKnowledgeBases ? (
           <div className="flex justify-center items-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-2">Loading knowledge sources...</span>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {(availableKnowledgeBases && availableKnowledgeBases.length > 0) ? (
-              availableKnowledgeBases.map(knowledgeBase => (
-                <KnowledgeBaseCard key={knowledgeBase.id} knowledgeBase={knowledgeBase} />
-              ))
-            ) : cachedKnowledgeBases.current && cachedKnowledgeBases.current.length > 0 ? (
-              cachedKnowledgeBases.current.map(knowledgeBase => (
-                <KnowledgeBaseCard key={knowledgeBase.id} knowledgeBase={knowledgeBase} />
-              ))
-            ) : showFallbackUI || loadError ? (
-              <div className="py-6">
-                <div className="flex flex-col items-center justify-center text-center mb-6">
-                  <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
-                  <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
-                  <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base. You can still import and manage sources.</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={refreshKnowledgeBases}
-                    className="flex items-center gap-1.5"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Retry Connection
-                  </Button>
-                </div>
-                {/* Fallback UI content */}
-                {knowledgeSources.length > 0 ? (
-                  <div className="space-y-4">
-                    {knowledgeSources.map(source => (
-                      <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center">
-                            {getIconForType(source.type)}
-                            <span className="font-medium ml-2">{source.name}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {getSourceTypeDisplay(source)} • {source.size}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {/* Training controls */}
-                          {source.trainingStatus === 'idle' ? (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => trainSource(source.id)}
-                              className="flex items-center gap-1"
-                            >
-                              <Zap className="h-3.5 w-3.5" />
-                              Train
-                            </Button>
-                          ) : source.trainingStatus === 'training' ? (
-                            <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
-                              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-                              Training...
-                            </Button>
-                          ) : source.trainingStatus === 'success' ? (
-                            <div className="text-green-600 flex items-center">
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              <span className="text-sm">Trained</span>
-                            </div>
-                          ) : (
-                            <div className="text-red-600 flex items-center">
-                              <AlertCircle className="h-4 w-4 mr-1" />
-                              <span className="text-sm">Failed</span>
-                            </div>
-                          )}
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => removeSource(source.id)} 
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="border rounded-md p-8 text-center">
-                    <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsImportDialogOpen(true)}
-                      className="flex items-center gap-1"
-                    >
-                      <Import className="h-4 w-4" />
-                      Import Sources
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              // Show empty state when no knowledge bases loaded
-              <div className="border rounded-md p-8 text-center">
-                <p className="mb-4 text-muted-foreground">No knowledge sources available</p>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsImportDialogOpen(true)}
-                  className="flex items-center gap-1"
-                >
-                  <Import className="h-4 w-4" />
-                  Import Sources
-                </Button>
-              </div>
-            )}
+        ) : knowledgeBasesError ? (
+          <div className="py-6">
+            <div className="flex flex-col items-center justify-center text-center mb-6">
+              <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
+              <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
+              <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base.</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={refreshKnowledgeBases}
+                className="flex items-center gap-1.5"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry Connection
+              </Button>
+            </div>
           </div>
+        ) : (
+          // Use KnowledgeSourceList component for consistent UI
+          <KnowledgeSourceList 
+            knowledgeBases={availableKnowledgeBases || cachedKnowledgeBases.current} 
+            isLoading={isLoading || isLoadingKnowledgeBases}
+          />
         )}
         
         {needsRetraining && knowledgeSources.length > 0 && (

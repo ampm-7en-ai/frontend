@@ -2,7 +2,6 @@
 import React from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { renderSourceIcon } from './knowledgeUtils';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight, Globe, FileText, File, Database } from 'lucide-react';
@@ -57,6 +56,34 @@ const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
   }
 };
 
+const getFormattedSize = (source: any) => {
+  if (source.metadata?.file_size) {
+    if (typeof source.metadata.file_size === 'string' && source.metadata.file_size.endsWith('B')) {
+      const sizeInBytes = parseInt(source.metadata.file_size.replace('B', ''), 10);
+      return formatFileSizeToMB(sizeInBytes);
+    }
+    return formatFileSizeToMB(source.metadata.file_size);
+  }
+  
+  if (source.metadata?.no_of_chars) {
+    return `${source.metadata.no_of_chars} chars`;
+  }
+  
+  if (source.metadata?.no_of_rows) {
+    return `${source.metadata.no_of_rows} rows`;
+  }
+  
+  return 'N/A';
+};
+
+const formatFileSizeToMB = (bytes: number) => {
+  if (bytes === 0) return '0 B';
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+};
+
+// Extract KnowledgeBaseCard as a separate component to avoid React Hook issues
 const KnowledgeBaseCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBase }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -100,6 +127,7 @@ const KnowledgeBaseCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBase 
                       <Badge variant={source.is_selected ? "success" : "outline"} className="mr-2">
                         {source.is_selected ? "Selected" : "Not Selected"}
                       </Badge>
+                      <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
                     </div>
                   </div>
                   
