@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
@@ -45,7 +44,28 @@ const KnowledgeTrainingStatus = ({
   
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
+  const debounceTimerRef = useRef<number | null>(null);
   
+  const invalidateQueriesDebounced = useCallback((queryKeys: string[]) => {
+    if (debounceTimerRef.current) {
+      window.clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = window.setTimeout(() => {
+      console.log("Executing debounced query invalidation for:", queryKeys);
+      
+      queryKeys.forEach(key => {
+        queryClient.invalidateQueries({ queryKey: [key, agentId] });
+      });
+      
+      if (onKnowledgeBasesChanged) {
+        onKnowledgeBasesChanged();
+      }
+      
+      debounceTimerRef.current = null;
+    }, 300);
+  }, [agentId, queryClient, onKnowledgeBasesChanged]);
+
   const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
       console.log("Using cached knowledge bases instead of fetching");
@@ -147,16 +167,7 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeBasesLoaded(false);
     cachedKnowledgeBases.current = [];
     
-    // Use the queryClient to invalidate all relevant queries
-    queryClient.invalidateQueries({ queryKey: ['availableKnowledgeBases', agentId] });
-    queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
-    
-    // Additional query invalidation for the parent component if needed
-    queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
-    
-    if (onKnowledgeBasesChanged) {
-      onKnowledgeBasesChanged();
-    }
+    invalidateQueriesDebounced(['availableKnowledgeBases', 'agentKnowledgeBases', 'agent']);
   };
 
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
@@ -177,13 +188,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // Invalidate queries to trigger a refresh
-    queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
-    queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
-    
-    if (onKnowledgeBasesChanged) {
-      onKnowledgeBasesChanged();
-    }
+    invalidateQueriesDebounced(['agentKnowledgeBases', 'agent']);
   };
 
   const trainAllSources = () => {
@@ -216,6 +221,12 @@ const KnowledgeTrainingStatus = ({
     }, 4000);
   };
 
+  const handleKnowledgeBaseRemoved = useCallback((id: number) => {
+    console.log("Knowledge base removed, id:", id);
+    
+    invalidateQueriesDebounced(['agentKnowledgeBases', 'agent']);
+  }, [invalidateQueriesDebounced]);
+
   const { 
     data: availableKnowledgeBases, 
     isLoading: isLoadingAvailableKnowledgeBases, 
@@ -236,7 +247,7 @@ const KnowledgeTrainingStatus = ({
   } = useQuery({
     queryKey: ['agentKnowledgeBases', agentId],
     queryFn: fetchAgentKnowledgeBases,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
     enabled: !!agentId
   });
 
@@ -245,6 +256,14 @@ const KnowledgeTrainingStatus = ({
       refetchAvailableKnowledgeBases();
     }
   }, [isImportDialogOpen, refetchAvailableKnowledgeBases]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Card>
@@ -292,15 +311,7 @@ const KnowledgeTrainingStatus = ({
           knowledgeBases={agentKnowledgeBases || []} 
           isLoading={isLoadingAgentKnowledgeBases}
           agentId={agentId}
-          onKnowledgeBaseRemoved={(id) => {
-            // Invalidate queries to refresh data after deletion
-            queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
-            queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
-            
-            if (onKnowledgeBasesChanged) {
-              onKnowledgeBasesChanged();
-            }
-          }}
+          onKnowledgeBaseRemoved={handleKnowledgeBaseRemoved}
         />
         
         {needsRetraining && agentKnowledgeBases && agentKnowledgeBases.length > 0 && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -213,12 +213,14 @@ const AgentEdit = () => {
     }, 2000);
   };
 
-  const handleKnowledgeBasesChanged = () => {
-    queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
-    queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
-    
+  const handleKnowledgeBasesChanged = useCallback(() => {
     console.log("Knowledge bases changed, refreshing data...");
-  };
+    
+    // Use a single staggered invalidation to prevent multiple API calls
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
+    }, 500);
+  }, [agentId, queryClient]);
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
