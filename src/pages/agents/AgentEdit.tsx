@@ -819,8 +819,8 @@ const AgentEdit = () => {
       initialSelectedSources={agent.knowledgeSources}
       onSourcesChange={handleKnowledgeSourcesChange}
       preloadedKnowledgeSources={agentKnowledgeSources}
-      isLoading={false}
-      loadError={null}
+      isLoading={isLoading}
+      loadError={loadError}
     />
   );
 
