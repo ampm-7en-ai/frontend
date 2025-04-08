@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
@@ -45,12 +44,8 @@ interface AuthData {
 // Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-// Auth provider component - properly defined as function component
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+// Auth provider component
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

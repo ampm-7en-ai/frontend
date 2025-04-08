@@ -22,7 +22,6 @@ import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, updateAgent } 
 import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
-import AgentKnowledgeContainer from '@/components/agents/knowledge/AgentKnowledgeContainer';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -815,10 +814,13 @@ const AgentEdit = () => {
   );
 
   const renderKnowledgeContent = () => (
-    <AgentKnowledgeContainer 
+    <KnowledgeTrainingStatus 
       agentId={agentId || '1'} 
-      knowledgeBases={agentKnowledgeSources}
-      isLoading={isLoading}
+      initialSelectedSources={agent.knowledgeSources}
+      onSourcesChange={handleKnowledgeSourcesChange}
+      preloadedKnowledgeSources={agentKnowledgeSources}
+      isLoading={false}
+      loadError={null}
     />
   );
 

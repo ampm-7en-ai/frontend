@@ -1,12 +1,7 @@
 
-import React, { useState } from 'react';
-import { ApiKnowledgeBase, KnowledgeSource, KnowledgeSourceItem } from './types';
+import React from 'react';
+import { ApiKnowledgeBase } from './types';
 import KnowledgeSourceList from './KnowledgeSourceList';
-import { Button } from '@/components/ui/button';
-import { ImportSourcesDialog } from './ImportSourcesDialog';
-import { Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { fetchExternalKnowledgeSources } from '@/utils/api-config';
 
 interface AgentKnowledgeContainerProps {
   agentId: string;
@@ -19,142 +14,11 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
   knowledgeBases,
   isLoading = false
 }) => {
-  const { toast } = useToast();
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [externalSources, setExternalSources] = useState<KnowledgeSource[]>([]);
-  const [isLoadingExternalSources, setIsLoadingExternalSources] = useState(false);
-  
-  const handleOpenImportDialog = async () => {
-    setIsLoadingExternalSources(true);
-    try {
-      // Fetch from correct endpoint with agentId
-      const response = await fetchExternalKnowledgeSources(agentId);
-      
-      // Transform API response to KnowledgeSource format
-      const transformedSources = response.map((source: any) => {
-        let sourceType = source.type || "unknown";
-        if (source.url) sourceType = "website";
-        if (source.file?.endsWith('.pdf')) sourceType = "pdf";
-        if (source.file?.endsWith('.csv')) sourceType = "csv";
-        if (source.file?.endsWith('.docx')) sourceType = "docx";
-        
-        // Process sub-knowledge sources more thoroughly for nested content
-        const processedSubSources = Array.isArray(source.sub_knowledge_sources) 
-          ? source.sub_knowledge_sources.map((subSource: any) => ({
-              id: subSource.id,
-              title: subSource.title || subSource.name || "Untitled",
-              type: subSource.type || sourceType,
-              url: subSource.url || null,
-              file: subSource.file || null,
-              metadata: subSource.metadata || {},
-              sub_knowledge_sources: Array.isArray(subSource.sub_knowledge_sources) 
-                ? subSource.sub_knowledge_sources : []
-            }))
-          : [];
-        
-        // Process sub_urls structure for website sources
-        let processedMetadata = {...(source.metadata || {})};
-        
-        // Preserve the original sub_urls structure that ImportSourcesDialog expects
-        if (sourceType === 'website' && source.metadata?.sub_urls) {
-          processedMetadata.sub_urls = source.metadata.sub_urls;
-        }
-        
-        return {
-          id: source.id,
-          name: source.title || source.name || "Untitled Source",
-          type: sourceType,
-          size: typeof source.metadata?.file_size === 'number' 
-            ? `${Math.round(source.metadata.file_size / 1024)} KB` 
-            : "Unknown size",
-          lastUpdated: source.metadata?.last_fetched || source.metadata?.upload_date || "Unknown",
-          trainingStatus: 'success' as const,
-          knowledge_sources: processedSubSources,
-          metadata: processedMetadata,
-          url: source.url || null,
-          file: source.file || null,
-          domain_links: source.metadata?.domain_links || null
-        };
-      });
-      
-      setExternalSources(transformedSources);
-    } catch (error) {
-      console.error("Error fetching external knowledge sources:", error);
-      toast({
-        title: "Error loading sources",
-        description: "Failed to load external knowledge sources. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingExternalSources(false);
-      setIsImportDialogOpen(true);
-    }
-  };
-  
-  const handleImportSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
-    toast({
-      title: "Sources imported",
-      description: `${sourceIds.length} knowledge sources were imported successfully.`,
-    });
-    
-    setIsImportDialogOpen(false);
-  };
-
-  const mapApiSourcesToKnowledgeSources = () => {
-    return knowledgeBases.flatMap(kb => kb.knowledge_sources).map(source => {
-      let trainingStatus: 'idle' | 'training' | 'success' | 'error' = 'idle';
-      if (source.status === "trained") {
-        trainingStatus = 'success';
-      } else if (source.status === "training") {
-        trainingStatus = 'training';
-      } else if (source.status === "failed" || source.status === "error") {
-        trainingStatus = 'error';
-      }
-      
-      return {
-        id: source.id,
-        name: source.title,
-        type: source.metadata?.format || "unknown",
-        size: typeof source.metadata?.file_size === 'number' 
-          ? `${Math.round(source.metadata.file_size / 1024)} KB` 
-          : "Unknown size",
-        lastUpdated: source.metadata?.last_fetched || "Unknown",
-        trainingStatus: trainingStatus,
-        url: source.url,
-        file: source.file,
-        title: source.title,
-        metadata: source.metadata,
-        knowledge_sources: source.sub_knowledge_sources || []
-      };
-    });
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Knowledge Sources</h2>
-        <Button 
-          onClick={handleOpenImportDialog}
-          className="flex items-center gap-1"
-          disabled={isLoadingExternalSources}
-        >
-          <Plus className="h-4 w-4" />
-          {isLoadingExternalSources ? "Loading..." : "Import Knowledge"}
-        </Button>
-      </div>
-      
       <KnowledgeSourceList 
         knowledgeBases={knowledgeBases}
         isLoading={isLoading}
-      />
-      
-      <ImportSourcesDialog
-        isOpen={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        externalSources={externalSources}
-        currentSources={mapApiSourcesToKnowledgeSources()}
-        onImport={handleImportSources}
-        agentId={agentId}
       />
     </div>
   );
