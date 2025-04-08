@@ -274,10 +274,15 @@ const KnowledgeTrainingStatus = ({
           </div>
         )}
         
-        {/* Use KnowledgeSourceList component to display agent-specific knowledge bases */}
+        {/* Pass the agentId to KnowledgeSourceList */}
         <KnowledgeSourceList 
           knowledgeBases={agentKnowledgeBases || []} 
           isLoading={isLoadingAgentKnowledgeBases}
+          agentId={agentId}
+          onKnowledgeBaseRemoved={(id) => {
+            // Refresh the knowledge bases list when a knowledge base is removed
+            refetchAgentKnowledgeBases();
+          }}
         />
         
         {needsRetraining && agentKnowledgeBases && agentKnowledgeBases.length > 0 && (
