@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -101,7 +102,9 @@ export const ImportSourcesDialog = ({
             }
           };
           
-          collectSelectedUrls(rootNode);
+          if (rootNode) {
+            collectSelectedUrls(rootNode);
+          }
           
           setUrlKeyMap(prev => ({
             ...prev,
@@ -925,3 +928,5 @@ export const ImportSourcesDialog = ({
     </Dialog>
   );
 };
+
+export default ImportSourcesDialog;
