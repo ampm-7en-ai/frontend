@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -430,24 +429,22 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
-        // Fix: Add type checking for urlSet before using forEach
+      for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
         if (urlSet && urlSet instanceof Set) {
-          urlSet.forEach(url => {
+          for (const url of Array.from(urlSet)) {
             const key = urlKeyMap[url] || url;
             allSelectedIds.push(key);
-          });
+          }
         }
-      });
+      }
       
-      Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
-        // Fix: Add type checking for fileSet before using forEach
+      for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
         if (fileSet && fileSet instanceof Set) {
-          fileSet.forEach(fileId => {
+          for (const fileId of Array.from(fileSet)) {
             allSelectedIds.push(fileId);
-          });
+          }
         }
-      });
+      }
       
       toast({
         title: "Importing knowledge sources",
