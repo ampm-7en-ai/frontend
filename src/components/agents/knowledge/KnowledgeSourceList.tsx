@@ -17,6 +17,7 @@ const getIconForType = (type: string) => {
       return <Globe className="h-4 w-4 mr-2" />;
     case 'document':
     case 'pdf':
+    case 'docs':
       return <FileText className="h-4 w-4 mr-2" />;
     case 'csv':
       return <Database className="h-4 w-4 mr-2" />;
@@ -192,9 +193,12 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
     );
   }
 
+  // Filter knowledge bases to only show those linked to this agent
+  const linkedKnowledgeBases = knowledgeBases.filter(kb => kb.is_linked);
+
   return (
     <div className="space-y-4">
-      {knowledgeBases.map((knowledgeBase) => (
+      {linkedKnowledgeBases.map((knowledgeBase) => (
         <KnowledgeBaseCard
           key={knowledgeBase.id}
           knowledgeBase={knowledgeBase}

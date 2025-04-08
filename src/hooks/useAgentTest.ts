@@ -188,7 +188,7 @@ export const useAgentTest = (initialAgentId: string) => {
     if (agentData) {
       console.log('Agent details data received successfully:', agentData);
       
-      // Create properly typed knowledge sources
+      // Create properly typed knowledge sources using the agent-specific knowledge_bases
       const knowledgeSources: KnowledgeSource[] = agentData.knowledge_bases?.map((kb: any, index: number) => ({
         id: kb.id || index,
         name: kb.name || `Source ${index + 1}`,
@@ -196,7 +196,7 @@ export const useAgentTest = (initialAgentId: string) => {
         icon: 'BookOpen',
         size: kb.size || '0 KB',
         lastUpdated: kb.last_updated || new Date().toISOString(),
-        trainingStatus: (kb.status || 'success') as 'success' | 'idle' | 'training' | 'error',
+        trainingStatus: (kb.training_status || 'success') as 'success' | 'idle' | 'training' | 'error',
         hasError: kb.status === 'error',
         content: kb.content || ""
       })) || [];
@@ -215,7 +215,8 @@ export const useAgentTest = (initialAgentId: string) => {
         model: agentData.model?.selectedModel || agentData.model?.name || 'gpt4',
         isDeployed: agentData.status === 'Live',
         systemPrompt: agentData.systemPrompt || "You are a helpful AI assistant.",
-        avatarSrc: avatarSrc
+        avatarSrc: avatarSrc,
+        knowledge_bases: agentData.knowledge_bases || [] // Store the original knowledge_bases
       };
       
       setAgent(transformedAgent);
