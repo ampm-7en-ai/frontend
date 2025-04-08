@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -108,7 +109,9 @@ const KnowledgeBaseCard = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -135,7 +138,21 @@ const KnowledgeBaseCard = ({
       return;
     }
 
+    if (isDeleting) {
+      console.log("Delete operation already in progress, ignoring duplicate call");
+      return;
+    }
+
     try {
+      setIsDeleting(true);
+      
+      const previousData = queryClient.getQueryData(['agentKnowledgeBases', agentId]);
+      
+      queryClient.setQueryData(['agentKnowledgeBases', agentId], (old: any[]) => {
+        if (!old) return [];
+        return old.filter(kb => kb.id !== knowledgeBase.id);
+      });
+
       const response = await fetch(`${BASE_URL}agents/${agentId}/remove-knowledge-sources/`, {
         method: 'POST',
         headers: getAuthHeaders(token),
@@ -145,6 +162,8 @@ const KnowledgeBaseCard = ({
       });
 
       if (!response.ok) {
+        queryClient.setQueryData(['agentKnowledgeBases', agentId], previousData);
+        
         const errorData = await response.json().catch(() => null);
         throw new Error(errorData?.message || `Failed to delete: ${response.status}`);
       }
@@ -165,6 +184,7 @@ const KnowledgeBaseCard = ({
         variant: "destructive"
       });
     } finally {
+      setIsDeleting(false);
       setShowDeleteDialog(false);
     }
   };
@@ -261,8 +281,9 @@ const KnowledgeBaseCard = ({
             <AlertDialogAction 
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
             >
-              Remove
+              {isDeleting ? "Removing..." : "Remove"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

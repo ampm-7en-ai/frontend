@@ -45,17 +45,25 @@ const KnowledgeTrainingStatus = ({
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
   const debounceTimerRef = useRef<number | null>(null);
+  const initialMountRef = useRef(true);
   
   const invalidateQueriesDebounced = useCallback((queryKeys: string[]) => {
     if (debounceTimerRef.current) {
       window.clearTimeout(debounceTimerRef.current);
     }
     
+    const uniqueKeys = new Set(queryKeys);
+    
     debounceTimerRef.current = window.setTimeout(() => {
-      console.log("Executing debounced query invalidation for:", queryKeys);
+      console.log("Executing debounced query invalidation for:", Array.from(uniqueKeys));
       
-      queryKeys.forEach(key => {
-        queryClient.invalidateQueries({ queryKey: [key, agentId] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey[0];
+          return typeof queryKey === 'string' && 
+                 uniqueKeys.has(queryKey) && 
+                 query.queryKey[1] === agentId;
+        }
       });
       
       if (onKnowledgeBasesChanged) {
@@ -63,7 +71,7 @@ const KnowledgeTrainingStatus = ({
       }
       
       debounceTimerRef.current = null;
-    }, 300);
+    }, 500);
   }, [agentId, queryClient, onKnowledgeBasesChanged]);
 
   const fetchAvailableKnowledgeBases = async () => {
@@ -167,7 +175,7 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeBasesLoaded(false);
     cachedKnowledgeBases.current = [];
     
-    invalidateQueriesDebounced(['availableKnowledgeBases', 'agentKnowledgeBases', 'agent']);
+    invalidateQueriesDebounced(['agentKnowledgeBases']);
   };
 
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
@@ -188,7 +196,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    invalidateQueriesDebounced(['agentKnowledgeBases', 'agent']);
+    invalidateQueriesDebounced(['agentKnowledgeBases']);
   };
 
   const trainAllSources = () => {
@@ -224,7 +232,7 @@ const KnowledgeTrainingStatus = ({
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
     console.log("Knowledge base removed, id:", id);
     
-    invalidateQueriesDebounced(['agentKnowledgeBases', 'agent']);
+    invalidateQueriesDebounced(['agentKnowledgeBases']);
   }, [invalidateQueriesDebounced]);
 
   const { 
@@ -247,8 +255,8 @@ const KnowledgeTrainingStatus = ({
   } = useQuery({
     queryKey: ['agentKnowledgeBases', agentId],
     queryFn: fetchAgentKnowledgeBases,
-    staleTime: 30 * 1000,
-    enabled: !!agentId
+    staleTime: 2 * 60 * 1000,
+    enabled: !!agentId && !initialMountRef.current
   });
 
   useEffect(() => {
@@ -264,6 +272,18 @@ const KnowledgeTrainingStatus = ({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (initialMountRef.current) {
+      initialMountRef.current = false;
+      
+      if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
+        queryClient.setQueryData(['agentKnowledgeBases', agentId], preloadedKnowledgeSources);
+      } else {
+        refetchAgentKnowledgeBases();
+      }
+    }
+  }, [agentId, preloadedKnowledgeSources, queryClient, refetchAgentKnowledgeBases]);
 
   return (
     <Card>
@@ -329,6 +349,7 @@ const KnowledgeTrainingStatus = ({
         currentSources={formatExternalSources(agentKnowledgeBases || [])}
         onImport={importSelectedSources}
         agentId={agentId}
+        preventMultipleCalls={true}
       />
     </Card>
   );

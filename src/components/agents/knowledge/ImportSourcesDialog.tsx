@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface ImportSourcesDialogProps {
   currentSources: KnowledgeSource[];
   onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => void;
   agentId?: string;
+  preventMultipleCalls?: boolean;
 }
 
 export const ImportSourcesDialog = ({
@@ -34,8 +36,11 @@ export const ImportSourcesDialog = ({
   currentSources,
   onImport,
   agentId = "",
+  preventMultipleCalls = false,
 }: ImportSourcesDialogProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isImporting, setIsImporting] = useState(false);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedSources, setSelectedSources] = useState<Set<number>>(new Set());
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -415,7 +420,13 @@ export const ImportSourcesDialog = ({
       return;
     }
     
+    if (isImporting) {
+      console.log("Import already in progress, ignoring duplicate call");
+      return;
+    }
+    
     try {
+      setIsImporting(true);
       const allSelectedIds: string[] = [];
       
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
@@ -439,6 +450,15 @@ export const ImportSourcesDialog = ({
       if (agentId) {
         await addKnowledgeSourcesToAgent(agentId, sourceIdsToImport, allSelectedIds);
         
+        if (preventMultipleCalls) {
+          const currentData = queryClient.getQueryData(['agentKnowledgeBases', agentId]) || [];
+          
+          queryClient.setQueryData(['agentKnowledgeBases', agentId], (old) => {
+            if (!old) return currentData;
+            return [...old];
+          });
+        }
+        
         toast({
           title: "Import successful",
           description: "Knowledge sources have been added to the agent.",
@@ -456,6 +476,8 @@ export const ImportSourcesDialog = ({
         description: "There was an error importing the selected sources.",
         variant: "destructive"
       });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -882,9 +904,9 @@ export const ImportSourcesDialog = ({
           </Button>
           <Button 
             onClick={handleImport}
-            disabled={selectedSources.size === 0}
+            disabled={selectedSources.size === 0 || isImporting}
           >
-            Import Selected
+            {isImporting ? "Importing..." : "Import Selected"}
           </Button>
         </DialogFooter>
       </DialogContent>
