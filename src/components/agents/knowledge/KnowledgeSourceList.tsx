@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -21,6 +20,7 @@ import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQueryClient } from '@tanstack/react-query';
 import { Separator } from '@/components/ui/separator';
 import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
+import { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -203,10 +203,13 @@ const KnowledgeBaseCard = ({
     }
   };
 
-  const getSourceType = (source: any) => {
+  const getSourceType = (source: any): KnowledgeSourceBadgeProps['source'] => {
     return {
       name: source.title || "Unknown",
-      type: source.metadata?.format?.toLowerCase() || knowledgeBase.type
+      type: source.metadata?.format?.toLowerCase() || knowledgeBase.type,
+      id: source.id || 0,
+      hasError: source.status === 'error',
+      linkBroken: source.url && !source.url.startsWith('http')
     };
   };
 

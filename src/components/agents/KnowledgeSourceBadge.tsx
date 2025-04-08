@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BookOpen, Database, Globe, AlertTriangle, Link2Off, FileText } from 'lucide-react';
 import { 
@@ -9,8 +8,17 @@ import {
 } from '@/components/ui/tooltip';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
-interface KnowledgeSourceBadgeProps {
-  source: KnowledgeSource;
+export interface KnowledgeSourceBadgeProps {
+  source: {
+    name: string;
+    type: string;
+    id?: number;
+    size?: string;
+    lastUpdated?: string;
+    trainingStatus?: 'idle' | 'training' | 'success' | 'error';
+    linkBroken?: boolean;
+    hasError?: boolean;
+  };
   onClick?: () => void;
   size?: 'sm' | 'md';
 }
