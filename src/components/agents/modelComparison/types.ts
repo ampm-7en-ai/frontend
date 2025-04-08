@@ -1,44 +1,42 @@
 
-export interface Agent {
+export type Message = {
+  id: number;
+  content: string;
+  sender: 'user' | 'agent1' | 'agent2' | 'agent3';
+  model?: string;
+  timestamp: Date;
+  avatarSrc?: string;
+};
+
+export type ChatConfig = {
+  model: string;
+  temperature: number;
+  systemPrompt: string;
+  maxLength: number;
+};
+
+export type Agent = {
   id: string;
   name: string;
-  description?: string;
-  conversations?: number;
-  lastModified?: string;
-  averageRating?: number;
+  description: string;
+  conversations: number;
+  lastModified: string;
+  averageRating: number;
   knowledgeSources: KnowledgeSource[];
   model: string;
   isDeployed: boolean;
   systemPrompt?: string;
   avatarSrc?: string;
-  knowledge_bases?: any[]; // Original knowledge_bases from API
-}
+};
 
-export interface KnowledgeSource {
-  id: number;
-  name: string;
-  type: string;
-  size?: string;
-  lastUpdated?: string;
-  trainingStatus?: 'idle' | 'training' | 'success' | 'error';
-  linkBroken?: boolean;
-  knowledge_sources?: any[];
-  metadata?: any;
-  insideLinks?: Array<{url: string, title?: string, status: 'success' | 'error' | 'pending', selected?: boolean}>;
-}
+// Import the full KnowledgeSource type from the central definition
+import { KnowledgeSource } from '../knowledge/types';
 
-export interface Message {
-  id: number;
-  content: string;
-  sender: 'user' | 'agent1' | 'agent2' | 'agent3';
-  timestamp: Date;
-  avatarSrc?: string;
-  model?: string;
-}
+// Re-export the type for backward compatibility
+export type { KnowledgeSource };
 
-export interface ChatConfig {
+export type ModelTestLink = {
   model: string;
-  temperature: number;
-  systemPrompt: string;
-  maxLength: number;
-}
+  label?: string;
+  openInNewTab?: boolean;
+};

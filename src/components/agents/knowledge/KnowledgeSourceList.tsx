@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,7 +17,6 @@ const getIconForType = (type: string) => {
       return <Globe className="h-4 w-4 mr-2" />;
     case 'document':
     case 'pdf':
-    case 'docs':
       return <FileText className="h-4 w-4 mr-2" />;
     case 'csv':
       return <Database className="h-4 w-4 mr-2" />;
@@ -83,6 +83,7 @@ const formatFileSizeToMB = (bytes: number) => {
   return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
 };
 
+// Extract KnowledgeBaseCard as a separate component to avoid React Hook issues
 const KnowledgeBaseCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBase }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -191,11 +192,9 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
     );
   }
 
-  const linkedKnowledgeBases = knowledgeBases.filter(kb => kb.is_linked);
-
   return (
     <div className="space-y-4">
-      {linkedKnowledgeBases.map((knowledgeBase) => (
+      {knowledgeBases.map((knowledgeBase) => (
         <KnowledgeBaseCard
           key={knowledgeBase.id}
           knowledgeBase={knowledgeBase}
