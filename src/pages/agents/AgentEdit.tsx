@@ -213,6 +213,13 @@ const AgentEdit = () => {
     }, 2000);
   };
 
+  const handleKnowledgeBasesChanged = () => {
+    queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+    queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
+    
+    console.log("Knowledge bases changed, refreshing data...");
+  };
+
   const handleSaveChanges = async () => {
     setIsSaving(true);
     
