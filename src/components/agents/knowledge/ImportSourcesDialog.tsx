@@ -911,6 +911,68 @@ export const ImportSourcesDialog = ({
     );
   };
 
+  const renderSourceMetadata = (source: KnowledgeSource) => {
+    if (!source) return null;
+    
+    return (
+      <div className="border rounded-md p-3 space-y-3">
+        <h4 className="font-medium text-sm">Metadata</h4>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          {source.metadata?.no_of_chars && (
+            <div>
+              <span className="text-muted-foreground">Characters:</span> {source.metadata.no_of_chars.toLocaleString()}
+            </div>
+          )}
+          {source.metadata?.no_of_pages && (
+            <div>
+              <span className="text-muted-foreground">Pages:</span> {source.metadata.no_of_pages}
+            </div>
+          )}
+          {source.metadata?.no_of_rows && (
+            <div>
+              <span className="text-muted-foreground">Rows:</span> {source.metadata.no_of_rows.toLocaleString()}
+            </div>
+          )}
+          {source.metadata?.file_size && (
+            <div>
+              <span className="text-muted-foreground">Size:</span> {formatFileSizeToMB(source.metadata.file_size)}
+            </div>
+          )}
+          {source.metadata?.last_updated && (
+            <div>
+              <span className="text-muted-foreground">Last Updated:</span> {new Date(source.metadata.last_updated).toLocaleString()}
+            </div>
+          )}
+          {source.metadata?.last_fetched && (
+            <div>
+              <span className="text-muted-foreground">Last Fetched:</span> {new Date(source.metadata.last_fetched).toLocaleString()}
+            </div>
+          )}
+          {source.metadata?.created_at && (
+            <div>
+              <span className="text-muted-foreground">Created:</span> {new Date(source.metadata.created_at).toLocaleDateString()}
+            </div>
+          )}
+          {source.chunks !== undefined && (
+            <div>
+              <span className="text-muted-foreground">Chunks:</span> {source.chunks}
+            </div>
+          )}
+          {source.format && (
+            <div>
+              <span className="text-muted-foreground">Format:</span> {source.format}
+            </div>
+          )}
+          {source.metadata?.website && (
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Website:</span> {source.metadata.website}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1200px] h-[850px] p-0 overflow-hidden" fixedFooter>
@@ -973,7 +1035,7 @@ export const ImportSourcesDialog = ({
                             <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
                             
                             <div>
-                              <h4 className="font-medium text-sm">
+                              <h4 className="font-medium text-sm flex items-center">
                                 {source.name}
                                 {isSourceAlreadyImported(source.id) && (
                                   <Badge variant="outline" className="ml-2 text-xs">
@@ -1024,19 +1086,7 @@ export const ImportSourcesDialog = ({
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                               />
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-xs"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleKnowledgeBaseClick(source);
-                                }}
-                              >
-                                View Details
-                              </Button>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </div>
@@ -1055,19 +1105,11 @@ export const ImportSourcesDialog = ({
                 <div className="p-4">
                   {selectedKnowledgeBase ? (
                     <div>
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="mb-4">
                         <h3 className="text-lg font-medium flex items-center">
                           {renderSourceIcon(selectedKnowledgeBase.type)}
                           <span className="ml-2">{selectedKnowledgeBase.name}</span>
                         </h3>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedKnowledgeBase(null)}
-                        >
-                          Back to Sources
-                        </Button>
                       </div>
                       
                       <div className="space-y-4">
@@ -1094,6 +1136,8 @@ export const ImportSourcesDialog = ({
                             <p className="text-muted-foreground">No detailed content available for this source</p>
                           </div>
                         )}
+                        
+                        {renderSourceMetadata(selectedKnowledgeBase)}
                         
                         {selectedKnowledgeBase.description && (
                           <div className="border rounded-md p-3">
