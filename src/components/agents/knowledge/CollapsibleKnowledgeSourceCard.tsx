@@ -60,6 +60,43 @@ const CollapsibleKnowledgeSourceCard: React.FC<CollapsibleKnowledgeSourceCardPro
     }));
   };
 
+  // Count the total number of items (including sub-sources and sub-urls)
+  const calculateTotalItems = () => {
+    let totalCount = 0;
+    
+    // Count main knowledge sources
+    totalCount += knowledgeBase.knowledge_sources.length;
+    
+    // Count sub-knowledge sources
+    knowledgeBase.knowledge_sources.forEach(source => {
+      if (source.sub_knowledge_sources) {
+        totalCount += source.sub_knowledge_sources.length;
+      }
+      
+      // Count sub-urls
+      if (source.sub_urls?.children) {
+        const countSubUrls = (urlNode: any) => {
+          let count = 0;
+          if (urlNode.url && urlNode.url !== 'root') {
+            count += 1;
+          }
+          if (urlNode.children && Array.isArray(urlNode.children)) {
+            urlNode.children.forEach((child: any) => {
+              count += countSubUrls(child);
+            });
+          }
+          return count;
+        };
+        
+        totalCount += countSubUrls(source.sub_urls);
+      }
+    });
+    
+    return totalCount;
+  };
+
+  const totalItems = calculateTotalItems();
+
   const renderSubUrls = (source: ApiKnowledgeSource) => {
     if (!source.sub_urls?.children || source.sub_urls.children.length === 0) {
       return null;
@@ -87,9 +124,14 @@ const CollapsibleKnowledgeSourceCard: React.FC<CollapsibleKnowledgeSourceCardPro
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader className="p-4 pb-2 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
           <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              {getIconForType(knowledgeBase.type)}
-              <span className="text-lg font-medium">{knowledgeBase.name}</span>
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                {getIconForType(knowledgeBase.type)}
+                <span className="text-lg font-medium">{knowledgeBase.name}</span>
+              </div>
+              <div className="text-xs text-muted-foreground ml-6 mt-1">
+                {totalItems} item{totalItems !== 1 ? 's' : ''}
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <div className="text-sm text-muted-foreground">
