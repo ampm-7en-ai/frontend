@@ -219,20 +219,32 @@ export const ImportSourcesDialog = ({
 
   const handleKnowledgeBaseClick = (source: KnowledgeSource) => {
     if (source.type === 'plain_text') {
-      const sourceId = source.id;
-      const newSelectedSources = new Set(selectedSources);
-      
-      if (newSelectedSources.has(sourceId)) {
-        newSelectedSources.delete(sourceId);
-        setSelectedKnowledgeBase(null);
-      } else {
-        newSelectedSources.add(sourceId);
-      }
-      
-      setSelectedSources(newSelectedSources);
+      // Direct toggle for plain text sources
+      toggleSourceSelection(source);
     } else {
-      setSelectedKnowledgeBase(source);
+      // For other sources, show details and select if clicked again
+      if (selectedKnowledgeBase?.id === source.id) {
+        toggleSourceSelection(source);
+      } else {
+        setSelectedKnowledgeBase(source);
+      }
     }
+  };
+
+  const toggleSourceSelection = (source: KnowledgeSource) => {
+    const sourceId = source.id;
+    const newSelectedSources = new Set(selectedSources);
+    
+    if (newSelectedSources.has(sourceId)) {
+      newSelectedSources.delete(sourceId);
+      if (selectedKnowledgeBase?.id === sourceId) {
+        setSelectedKnowledgeBase(null);
+      }
+    } else {
+      newSelectedSources.add(sourceId);
+    }
+    
+    setSelectedSources(newSelectedSources);
   };
 
   const toggleNodeExpansion = (nodePath: string) => {
@@ -432,9 +444,9 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      // Fix TypeScript error by explicitly checking if urlSet is iterable
+      // Fix TypeScript error by explicitly checking for Set type
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
-        if (urlSet && typeof urlSet.forEach === 'function') {
+        if (urlSet && urlSet instanceof Set) {
           urlSet.forEach(url => {
             const key = urlKeyMap[url] || url;
             allSelectedIds.push(key);
@@ -442,9 +454,8 @@ export const ImportSourcesDialog = ({
         }
       });
       
-      // Same fix for fileSet
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
-        if (fileSet && typeof fileSet.forEach === 'function') {
+        if (fileSet && fileSet instanceof Set) {
           fileSet.forEach(fileId => {
             allSelectedIds.push(fileId);
           });
@@ -1092,7 +1103,7 @@ export const ImportSourcesDialog = ({
                           <div className="flex items-start space-x-3">
                             <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
                             
-                            <div>
+                            <div className="flex-1">
                               <h4 className="font-medium text-sm flex items-center">
                                 {source.name}
                                 {isSourceAlreadyImported(source.id) && (
@@ -1103,28 +1114,32 @@ export const ImportSourcesDialog = ({
                                 )}
                               </h4>
                               
-                              <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
-                                <span className="mr-3">
-                                  Type: {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
-                                </span>
+                              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                                  {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
+                                </Badge>
                                 
-                                {source.chunks !== undefined && (
-                                  <span className="mr-3">{source.chunks} chunks</span>
+                                {source.chunks && (
+                                  <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
+                                    {source.chunks} chunks
+                                  </Badge>
                                 )}
                                 
                                 {getFileCount(source) > 0 && (
-                                  <span className="mr-3">
+                                  <Badge variant="outline" className="text-xs px-2 py-0.5 bg-green-50 text-green-700 border-green-200">
                                     {getFileCount(source)} {source.type === 'website' ? 'pages' : 'files'}
-                                  </span>
+                                  </Badge>
                                 )}
                                 
                                 {source.metadata?.created_at && (
-                                  <span>
-                                    Added: {new Date(source.metadata.created_at).toLocaleDateString()}
-                                  </span>
+                                  <Badge variant="outline" className="text-xs px-2 py-0.5 bg-gray-50 text-gray-700 border-gray-200">
+                                    {new Date(source.metadata.created_at).toLocaleDateString()}
+                                  </Badge>
                                 )}
                               </div>
                             </div>
+                            
+                            <ChevronRight className="h-4 w-4 text-muted-foreground mt-1" />
                           </div>
                           
                           <div className="flex items-center">
@@ -1159,7 +1174,7 @@ export const ImportSourcesDialog = ({
           
           <ResizablePanel minSize={30} defaultSize={35}>
             <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
+              <div className="h-full">
                 <div className="p-4">
                   {selectedKnowledgeBase ? (
                     <div>
@@ -1167,6 +1182,23 @@ export const ImportSourcesDialog = ({
                         <h3 className="text-lg font-medium flex items-center">
                           {renderSourceIcon(selectedKnowledgeBase.type)}
                           <span className="ml-2">{selectedKnowledgeBase.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-auto"
+                            onClick={() => toggleSourceSelection(selectedKnowledgeBase)}
+                          >
+                            {selectedSources.has(selectedKnowledgeBase.id) ? (
+                              <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                                <CheckCircle className="h-3 w-3" />
+                                Selected
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-gray-50">
+                                Select
+                              </Badge>
+                            )}
+                          </Button>
                         </h3>
                       </div>
                       
@@ -1176,7 +1208,7 @@ export const ImportSourcesDialog = ({
                             {renderWebsiteFilterControls()}
                             <div className="border rounded-md p-3">
                               <h4 className="font-medium text-sm mb-2">Website Structure</h4>
-                              <div className="max-h-[550px] overflow-y-auto">
+                              <div className="max-h-[350px] overflow-y-auto">
                                 {renderWebsiteUrls(selectedKnowledgeBase)}
                               </div>
                             </div>
@@ -1184,12 +1216,12 @@ export const ImportSourcesDialog = ({
                         ) : hasNestedFiles(selectedKnowledgeBase) ? (
                           <div className="border rounded-md p-3">
                             <h4 className="font-medium text-sm mb-2">Files</h4>
-                            <div className="max-h-[550px] overflow-y-auto">
+                            <div className="max-h-[350px] overflow-y-auto">
                               {renderNestedFiles(selectedKnowledgeBase)}
                             </div>
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                          <div className="flex flex-col items-center justify-center h-[180px] text-center px-4 border rounded-md">
                             <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
                             <p className="text-muted-foreground">No detailed content available for this source</p>
                           </div>
@@ -1205,7 +1237,7 @@ export const ImportSourcesDialog = ({
                     </div>
                   )}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           </ResizablePanel>
           
@@ -1237,3 +1269,4 @@ export const ImportSourcesDialog = ({
     </Dialog>
   );
 };
+
