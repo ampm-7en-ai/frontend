@@ -27,7 +27,7 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
   const handleOpenImportDialog = async () => {
     setIsLoadingExternalSources(true);
     try {
-      // Use the correct endpoint with the agentId
+      // Fetch from correct endpoint with agentId
       const response = await fetchExternalKnowledgeSources(agentId);
       
       // Transform API response to KnowledgeSource format
@@ -38,32 +38,6 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
         if (source.file?.endsWith('.csv')) sourceType = "csv";
         if (source.file?.endsWith('.docx')) sourceType = "docx";
         
-        // Process sub-knowledge sources more thoroughly for nested content
-        const processedSubSources = Array.isArray(source.sub_knowledge_sources) 
-          ? source.sub_knowledge_sources.map((subSource: any) => ({
-              id: subSource.id,
-              title: subSource.title || subSource.name || "Untitled",
-              type: subSource.type || sourceType,
-              url: subSource.url || null,
-              file: subSource.file || null,
-              metadata: subSource.metadata || {},
-              sub_knowledge_sources: Array.isArray(subSource.sub_knowledge_sources) 
-                ? subSource.sub_knowledge_sources : []
-            }))
-          : [];
-        
-        // Process sub_urls structure for website sources
-        let processedMetadata = {...(source.metadata || {})};
-        
-        if (sourceType === 'website' && source.metadata?.sub_urls) {
-          // Ensure sub_urls has the correct structure with children
-          if (!processedMetadata.sub_urls.children && Array.isArray(processedMetadata.sub_urls)) {
-            processedMetadata.sub_urls = {
-              children: processedMetadata.sub_urls
-            };
-          }
-        }
-        
         return {
           id: source.id,
           name: source.title || source.name || "Untitled Source",
@@ -71,13 +45,17 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
           size: typeof source.metadata?.file_size === 'number' 
             ? `${Math.round(source.metadata.file_size / 1024)} KB` 
             : "Unknown size",
-          lastUpdated: source.metadata?.last_fetched || source.metadata?.upload_date || "Unknown",
+          lastUpdated: source.metadata?.last_fetched || "Unknown",
           trainingStatus: 'success' as const,
-          knowledge_sources: processedSubSources,
-          metadata: processedMetadata,
-          url: source.url || null,
-          file: source.file || null,
-          domain_links: source.metadata?.domain_links || null
+          knowledge_sources: Array.isArray(source.sub_knowledge_sources) 
+            ? source.sub_knowledge_sources.map((subSource: any) => ({
+                id: subSource.id,
+                title: subSource.title,
+                type: subSource.type || sourceType,
+                url: subSource.url || null,
+                metadata: subSource.metadata || {}
+              }))
+            : []
         };
       });
       
