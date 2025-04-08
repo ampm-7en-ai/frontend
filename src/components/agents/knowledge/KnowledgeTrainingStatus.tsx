@@ -663,14 +663,14 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['knowledgeBases', agentId],
     queryFn: fetchKnowledgeBases,
     staleTime: 5 * 60 * 1000,
-    enabled: false
+    enabled: !!(agentId && !knowledgeBasesLoaded && cachedKnowledgeBases.current.length === 0)
   });
 
-  const loadKnowledgeBases = () => {
-    if (!knowledgeBasesLoaded && cachedKnowledgeBases.current.length === 0) {
+  useEffect(() => {
+    if (agentId && !knowledgeBasesLoaded && cachedKnowledgeBases.current.length === 0) {
       refetch();
     }
-  };
+  }, [agentId, knowledgeBasesLoaded, refetch]);
 
   return (
     <Card>
@@ -683,10 +683,7 @@ const KnowledgeTrainingStatus = ({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => {
-              loadKnowledgeBases();
-              setIsImportDialogOpen(true);
-            }}
+            onClick={() => setIsImportDialogOpen(true)}
             className="flex items-center gap-1"
           >
             <Import className="h-4 w-4" />
@@ -694,7 +691,7 @@ const KnowledgeTrainingStatus = ({
           </Button>
           <Button 
             onClick={trainAllSources} 
-            disabled={isTrainingAll || knowledgeSources.length === 0}
+            disabled={isTrainingAll || (!isLoading && availableKnowledgeBases && availableKnowledgeBases.length === 0 && knowledgeSources.length === 0)}
             size="sm"
             className="flex items-center gap-1"
           >
@@ -722,171 +719,107 @@ const KnowledgeTrainingStatus = ({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-2">Loading knowledge sources...</span>
           </div>
-        ) : showFallbackUI || loadError ? (
-          <div className="py-6">
-            <div className="flex flex-col items-center justify-center text-center mb-6">
-              <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
-              <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
-              <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base. You can still import and manage sources.</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => {
-                  loadKnowledgeBases();
-                  refreshKnowledgeBases();
-                }}
-                className="flex items-center gap-1.5"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Retry Connection
-              </Button>
-            </div>
-            
-            {knowledgeSources.length > 0 ? (
-              <div className="space-y-4">
-                {knowledgeSources.map(source => (
-                  <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        {getIconForType(source.type)}
-                        <span className="font-medium ml-2">{source.name}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {getSourceTypeDisplay(source)} • {source.size}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {source.trainingStatus === 'idle' ? (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => trainSource(source.id)}
-                          className="flex items-center gap-1"
-                        >
-                          <Zap className="h-3.5 w-3.5" />
-                          Train
-                        </Button>
-                      ) : source.trainingStatus === 'training' ? (
-                        <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
-                          <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-                          Training...
-                        </Button>
-                      ) : source.trainingStatus === 'success' ? (
-                        <div className="text-green-600 flex items-center">
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          <span className="text-sm">Trained</span>
-                        </div>
-                      ) : (
-                        <div className="text-red-600 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          <span className="text-sm">Failed</span>
-                        </div>
-                      )}
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => removeSource(source.id)} 
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="border rounded-md p-8 text-center">
-                <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    loadKnowledgeBases();
-                    setIsImportDialogOpen(true);
-                  }}
-                  className="flex items-center gap-1"
-                >
-                  <Import className="h-4 w-4" />
-                  Import Sources
-                </Button>
-              </div>
-            )}
-          </div>
-        ) : cachedKnowledgeBases.current && cachedKnowledgeBases.current.length > 0 ? (
-          <div className="space-y-4">
-            {cachedKnowledgeBases.current.map(knowledgeBase => (
-              <KnowledgeBaseCard key={knowledgeBase.id} knowledgeBase={knowledgeBase} />
-            ))}
-          </div>
         ) : (
-          <>
-            <div className="space-y-4">
-              {knowledgeSources.map(source => (
-                <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      {getIconForType(source.type)}
-                      <span className="font-medium ml-2">{source.name}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {getSourceTypeDisplay(source)} • {source.size}
-                    </div>
+          <div className="space-y-4">
+            {(availableKnowledgeBases && availableKnowledgeBases.length > 0) ? (
+              availableKnowledgeBases.map(knowledgeBase => (
+                <KnowledgeBaseCard key={knowledgeBase.id} knowledgeBase={knowledgeBase} />
+              ))
+            ) : cachedKnowledgeBases.current && cachedKnowledgeBases.current.length > 0 ? (
+              cachedKnowledgeBases.current.map(knowledgeBase => (
+                <KnowledgeBaseCard key={knowledgeBase.id} knowledgeBase={knowledgeBase} />
+              ))
+            ) : showFallbackUI || loadError ? (
+              <div className="py-6">
+                <div className="flex flex-col items-center justify-center text-center mb-6">
+                  <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
+                  <h3 className="text-lg font-semibold mb-1">Failed to load knowledge sources</h3>
+                  <p className="text-muted-foreground mb-4">There was a problem connecting to the knowledge base. You can still import and manage sources.</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={refreshKnowledgeBases}
+                    className="flex items-center gap-1.5"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Retry Connection
+                  </Button>
+                </div>
+                {/* Fallback UI content */}
+                {knowledgeSources.length > 0 ? (
+                  <div className="space-y-4">
+                    {knowledgeSources.map(source => (
+                      <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            {getIconForType(source.type)}
+                            <span className="font-medium ml-2">{source.name}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {getSourceTypeDisplay(source)} • {source.size}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {/* Training controls */}
+                          {source.trainingStatus === 'idle' ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => trainSource(source.id)}
+                              className="flex items-center gap-1"
+                            >
+                              <Zap className="h-3.5 w-3.5" />
+                              Train
+                            </Button>
+                          ) : source.trainingStatus === 'training' ? (
+                            <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+                              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                              Training...
+                            </Button>
+                          ) : source.trainingStatus === 'success' ? (
+                            <div className="text-green-600 flex items-center">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm">Trained</span>
+                            </div>
+                          ) : (
+                            <div className="text-red-600 flex items-center">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm">Failed</span>
+                            </div>
+                          )}
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => removeSource(source.id)} 
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {source.trainingStatus === 'idle' ? (
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => trainSource(source.id)}
-                        className="flex items-center gap-1"
-                      >
-                        <Zap className="h-3.5 w-3.5" />
-                        Train
-                      </Button>
-                    ) : source.trainingStatus === 'training' ? (
-                      <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
-                        <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-                        Training...
-                      </Button>
-                    ) : source.trainingStatus === 'success' ? (
-                      <div className="text-green-600 flex items-center">
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        <span className="text-sm">Trained</span>
-                      </div>
-                    ) : (
-                      <div className="text-red-600 flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        <span className="text-sm">Failed</span>
-                      </div>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={() => removeSource(source.id)} 
-                      className="text-destructive hover:text-destructive"
+                ) : (
+                  <div className="border rounded-md p-8 text-center">
+                    <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsImportDialogOpen(true)}
+                      className="flex items-center gap-1"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Import className="h-4 w-4" />
+                      Import Sources
                     </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-            
-            {needsRetraining && knowledgeSources.length > 0 && (
-              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
-                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+                )}
               </div>
-            )}
-            
-            {knowledgeSources.length === 0 && (
+            ) : (
+              // Show empty state when no knowledge bases loaded
               <div className="border rounded-md p-8 text-center">
-                <p className="mb-4 text-muted-foreground">No knowledge sources selected</p>
+                <p className="mb-4 text-muted-foreground">No knowledge sources available</p>
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    loadKnowledgeBases();
-                    setIsImportDialogOpen(true);
-                  }}
+                  onClick={() => setIsImportDialogOpen(true)}
                   className="flex items-center gap-1"
                 >
                   <Import className="h-4 w-4" />
@@ -894,14 +827,21 @@ const KnowledgeTrainingStatus = ({
                 </Button>
               </div>
             )}
-          </>
+          </div>
+        )}
+        
+        {needsRetraining && knowledgeSources.length > 0 && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+          </div>
         )}
       </CardContent>
 
       <ImportSourcesDialog
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
-        externalSources={formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current)}
+        externalSources={formatExternalSources ? formatExternalSources(availableKnowledgeBases || cachedKnowledgeBases.current) : []}
         currentSources={knowledgeSources}
         onImport={importSelectedSources}
         agentId={agentId}
