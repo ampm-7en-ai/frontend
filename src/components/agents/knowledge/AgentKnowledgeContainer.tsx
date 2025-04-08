@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ApiKnowledgeBase, KnowledgeSource, KnowledgeSourceItem } from './types';
 import KnowledgeSourceList from './KnowledgeSourceList';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { fetchExternalKnowledgeSources } from '@/utils/api-config';
 
 interface AgentKnowledgeContainerProps {
   agentId: string;
@@ -20,53 +22,54 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
   const { toast } = useToast();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [externalSources, setExternalSources] = useState<KnowledgeSource[]>([]);
+  const [isLoadingExternalSources, setIsLoadingExternalSources] = useState(false);
   
-  const handleOpenImportDialog = () => {
-    const mockExternalSources: KnowledgeSource[] = [
-      {
-        id: 1001,
-        name: "Corporate Documentation",
-        type: "docs",
-        size: "1.5 MB",
-        lastUpdated: "2023-04-01",
-        trainingStatus: 'success',
-        knowledge_sources: [
-          { 
-            id: 2001, 
-            title: "Employee Handbook.pdf", 
-            type: "pdf", 
-            url: null,
-            metadata: { file_size: 1500000 } 
-          }
-        ]
-      },
-      {
-        id: 1002,
-        name: "Marketing Website",
-        type: "website",
-        size: "2.3 MB",
-        lastUpdated: "2023-05-15",
-        trainingStatus: 'success',
-        knowledge_sources: [
-          { 
-            id: 2002, 
-            title: "Marketing Site", 
-            url: "https://example.com",
-            metadata: { 
-              sub_urls: {
-                children: [
-                  { url: "https://example.com/home", key: "home-key", is_selected: true },
-                  { url: "https://example.com/products", key: "products-key", is_selected: false }
-                ]
-              }
-            }
-          }
-        ]
-      }
-    ];
-    
-    setExternalSources(mockExternalSources);
-    setIsImportDialogOpen(true);
+  const handleOpenImportDialog = async () => {
+    setIsLoadingExternalSources(true);
+    try {
+      const response = await fetchExternalKnowledgeSources();
+      
+      // Transform API response to KnowledgeSource format
+      const transformedSources = response.map((source: any) => {
+        let sourceType = source.type || "unknown";
+        if (source.url) sourceType = "website";
+        if (source.file?.endsWith('.pdf')) sourceType = "pdf";
+        if (source.file?.endsWith('.csv')) sourceType = "csv";
+        if (source.file?.endsWith('.docx')) sourceType = "docx";
+        
+        return {
+          id: source.id,
+          name: source.title || source.name || "Untitled Source",
+          type: sourceType,
+          size: typeof source.metadata?.file_size === 'number' 
+            ? `${Math.round(source.metadata.file_size / 1024)} KB` 
+            : "Unknown size",
+          lastUpdated: source.metadata?.last_fetched || "Unknown",
+          trainingStatus: 'success' as const,
+          knowledge_sources: Array.isArray(source.sub_knowledge_sources) 
+            ? source.sub_knowledge_sources.map((subSource: any) => ({
+                id: subSource.id,
+                title: subSource.title,
+                type: subSource.type || sourceType,
+                url: subSource.url || null,
+                metadata: subSource.metadata || {}
+              }))
+            : []
+        };
+      });
+      
+      setExternalSources(transformedSources);
+    } catch (error) {
+      console.error("Error fetching external knowledge sources:", error);
+      toast({
+        title: "Error loading sources",
+        description: "Failed to load external knowledge sources. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingExternalSources(false);
+      setIsImportDialogOpen(true);
+    }
   };
   
   const handleImportSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
@@ -114,9 +117,10 @@ const AgentKnowledgeContainer: React.FC<AgentKnowledgeContainerProps> = ({
         <Button 
           onClick={handleOpenImportDialog}
           className="flex items-center gap-1"
+          disabled={isLoadingExternalSources}
         >
           <Plus className="h-4 w-4" />
-          Import Knowledge
+          {isLoadingExternalSources ? "Loading..." : "Import Knowledge"}
         </Button>
       </div>
       
