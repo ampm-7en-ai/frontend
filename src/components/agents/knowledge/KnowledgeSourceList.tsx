@@ -278,7 +278,7 @@ const KnowledgeBaseCard = ({
                   )}
                   
                   {source.sub_urls?.children && source.sub_urls.children.length > 0 && (
-                    <div className={knowledgeBase.type.toLowerCase() === 'website' ? "" : "ml-8 mt-2"} className="space-y-1.5">
+                    <div className={knowledgeBase.type.toLowerCase() === 'website' ? "space-y-1.5" : "ml-8 mt-2 space-y-1.5"}>
                       {source.sub_urls.children.map((subUrl) => (
                         <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
                           <div className="flex items-center gap-2 max-w-[70%]">
@@ -286,8 +286,8 @@ const KnowledgeBaseCard = ({
                             <span className="text-xs truncate">{subUrl.url}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {knowledgeBase.type.toLowerCase() === 'website' && subUrl.chars && (
-                              <span className="text-xs text-muted-foreground">{subUrl.chars.toLocaleString()} chars</span>
+                            {knowledgeBase.type.toLowerCase() === 'website' && subUrl.chars !== undefined && (
+                              <span className="text-xs text-muted-foreground">{subUrl.chars?.toLocaleString() || ''} chars</span>
                             )}
                             <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
                               {subUrl.is_selected ? "Selected" : "Not Selected"}

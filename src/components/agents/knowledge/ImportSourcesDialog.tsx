@@ -130,7 +130,7 @@ export const ImportSourcesDialog = ({
   useEffect(() => {
     for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
       const numericId = Number(sourceId);
-      if (urlSet.size > 0) {
+      if (urlSet && urlSet instanceof Set && urlSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
         if (!selectedFiles[numericId]?.size) {
@@ -145,7 +145,7 @@ export const ImportSourcesDialog = ({
     
     for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
       const numericId = Number(sourceId);
-      if (fileSet.size > 0) {
+      if (fileSet && fileSet instanceof Set && fileSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
         if (!selectedSubUrls[numericId]?.size) {
