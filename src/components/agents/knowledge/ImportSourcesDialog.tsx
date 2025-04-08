@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogBody } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -431,6 +432,7 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
+      // Fix TypeScript error by explicitly checking if urlSet is iterable
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         if (urlSet && typeof urlSet.forEach === 'function') {
           urlSet.forEach(url => {
@@ -440,6 +442,7 @@ export const ImportSourcesDialog = ({
         }
       });
       
+      // Same fix for fileSet
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
         if (fileSet && typeof fileSet.forEach === 'function') {
           fileSet.forEach(fileId => {
@@ -915,57 +918,109 @@ export const ImportSourcesDialog = ({
     if (!source) return null;
     
     return (
-      <div className="border rounded-md p-3 space-y-3">
-        <h4 className="font-medium text-sm">Metadata</h4>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          {source.metadata?.no_of_chars && (
-            <div>
-              <span className="text-muted-foreground">Characters:</span> {source.metadata.no_of_chars.toLocaleString()}
+      <div className="border rounded-md overflow-hidden bg-gray-50">
+        <div className="border-b bg-gray-100 px-4 py-2">
+          <h4 className="font-medium text-sm">Source Details</h4>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* GitHub-style metadata table */}
+          <table className="min-w-full text-sm">
+            <tbody>
+              {source.metadata?.no_of_chars && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Total Characters</td>
+                  <td className="py-2">{source.metadata.no_of_chars.toLocaleString()}</td>
+                </tr>
+              )}
+              {source.metadata?.no_of_pages && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Total Pages</td>
+                  <td className="py-2">{source.metadata.no_of_pages}</td>
+                </tr>
+              )}
+              {source.metadata?.no_of_rows && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Total Rows</td>
+                  <td className="py-2">{source.metadata.no_of_rows.toLocaleString()}</td>
+                </tr>
+              )}
+              {source.metadata?.file_size && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">File Size</td>
+                  <td className="py-2">{formatFileSizeToMB(source.metadata.file_size)}</td>
+                </tr>
+              )}
+              {source.metadata?.last_updated && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Last Updated</td>
+                  <td className="py-2">{new Date(source.metadata.last_updated).toLocaleString()}</td>
+                </tr>
+              )}
+              {source.metadata?.last_fetched && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Last Fetched</td>
+                  <td className="py-2">{new Date(source.metadata.last_fetched).toLocaleString()}</td>
+                </tr>
+              )}
+              {source.metadata?.created_at && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Created</td>
+                  <td className="py-2">{new Date(source.metadata.created_at).toLocaleDateString()}</td>
+                </tr>
+              )}
+              {source.chunks !== undefined && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Chunks</td>
+                  <td className="py-2">{source.chunks}</td>
+                </tr>
+              )}
+              {source.format && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Format</td>
+                  <td className="py-2">{source.format}</td>
+                </tr>
+              )}
+              {source.metadata?.website && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Website</td>
+                  <td className="py-2 break-all">{source.metadata.website}</td>
+                </tr>
+              )}
+              {source.type && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium">Type</td>
+                  <td className="py-2 flex items-center">
+                    {renderSourceIcon(source.type)}
+                    <span className="ml-2 capitalize">{source.type}</span>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          
+          {source.description && (
+            <div className="pt-3 border-t border-gray-200">
+              <h5 className="font-medium text-sm mb-2">Description</h5>
+              <p className="text-sm text-muted-foreground bg-white p-3 rounded border">{source.description}</p>
             </div>
           )}
-          {source.metadata?.no_of_pages && (
-            <div>
-              <span className="text-muted-foreground">Pages:</span> {source.metadata.no_of_pages}
-            </div>
-          )}
-          {source.metadata?.no_of_rows && (
-            <div>
-              <span className="text-muted-foreground">Rows:</span> {source.metadata.no_of_rows.toLocaleString()}
-            </div>
-          )}
-          {source.metadata?.file_size && (
-            <div>
-              <span className="text-muted-foreground">Size:</span> {formatFileSizeToMB(source.metadata.file_size)}
-            </div>
-          )}
-          {source.metadata?.last_updated && (
-            <div>
-              <span className="text-muted-foreground">Last Updated:</span> {new Date(source.metadata.last_updated).toLocaleString()}
-            </div>
-          )}
-          {source.metadata?.last_fetched && (
-            <div>
-              <span className="text-muted-foreground">Last Fetched:</span> {new Date(source.metadata.last_fetched).toLocaleString()}
-            </div>
-          )}
-          {source.metadata?.created_at && (
-            <div>
-              <span className="text-muted-foreground">Created:</span> {new Date(source.metadata.created_at).toLocaleDateString()}
-            </div>
-          )}
-          {source.chunks !== undefined && (
-            <div>
-              <span className="text-muted-foreground">Chunks:</span> {source.chunks}
-            </div>
-          )}
+          
+          {/* Additional tags or metadata */}
           {source.format && (
-            <div>
-              <span className="text-muted-foreground">Format:</span> {source.format}
-            </div>
-          )}
-          {source.metadata?.website && (
-            <div className="col-span-2">
-              <span className="text-muted-foreground">Website:</span> {source.metadata.website}
+            <div className="flex flex-wrap gap-2 pt-3">
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                {source.format}
+              </Badge>
+              {source.chunks && (
+                <Badge variant="secondary" className="bg-green-50 text-green-700 hover:bg-green-100">
+                  {source.chunks} chunks
+                </Badge>
+              )}
+              {source.metadata?.no_of_pages && (
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+                  {source.metadata.no_of_pages} pages
+                </Badge>
+              )}
             </div>
           )}
         </div>
@@ -975,9 +1030,12 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1200px] h-[850px] p-0 overflow-hidden" fixedFooter>
+      <DialogContent className="sm:max-w-[90vw] w-[1400px] h-[90vh] p-0 overflow-hidden" fixedFooter>
         <DialogHeader className="px-6 pt-6 pb-2 border-b">
           <DialogTitle>Import Knowledge Sources</DialogTitle>
+          <DialogDescription>
+            Select sources from your knowledge base to import into this agent
+          </DialogDescription>
         </DialogHeader>
         
         <ResizablePanelGroup direction="horizontal" className="flex-1">
@@ -1138,13 +1196,6 @@ export const ImportSourcesDialog = ({
                         )}
                         
                         {renderSourceMetadata(selectedKnowledgeBase)}
-                        
-                        {selectedKnowledgeBase.description && (
-                          <div className="border rounded-md p-3">
-                            <h4 className="font-medium text-sm mb-1">Description</h4>
-                            <p className="text-sm text-muted-foreground">{selectedKnowledgeBase.description}</p>
-                          </div>
-                        )}
                       </div>
                     </div>
                   ) : (
