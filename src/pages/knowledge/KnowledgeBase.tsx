@@ -339,43 +339,21 @@ const KnowledgeBase = () => {
         description: "Please wait while the file is being uploaded."
       });
       
-      const response = await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
+      await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
       
       toast({
         title: "Success",
         description: "File has been successfully uploaded."
       });
       
-      // Immediately update the local state with the new file
-      if (response && response.knowledge_source) {
-        // Update the knowledge base with the new file
-        setSelectedKnowledgeBase(prevState => {
-          if (!prevState) return null;
-          
-          const updatedSources = [...(prevState.knowledge_sources || []), response.knowledge_source];
-          return {
-            ...prevState,
-            knowledge_sources: updatedSources
-          };
-        });
-        
-        // Also update the main knowledge bases list
-        setKnowledgeBases(prevBases => {
-          return prevBases.map(kb => {
-            if (kb.id === selectedKnowledgeBase.id) {
-              const updatedSources = [...(kb.knowledge_sources || []), response.knowledge_source];
-              return {
-                ...kb,
-                knowledge_sources: updatedSources
-              };
-            }
-            return kb;
-          });
-        });
-      }
-      
-      // Still refetch to ensure we have the latest data
       await refetch();
+      
+      if (data) {
+        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
+        if (updatedKnowledgeBase) {
+          setSelectedKnowledgeBase(updatedKnowledgeBase);
+        }
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       toast({
@@ -406,44 +384,11 @@ const KnowledgeBase = () => {
 
       await deleteKnowledgeSource(sourceId);
       
-      // Immediately update the UI by removing the deleted file
-      if (selectedKnowledgeBase) {
-        setSelectedKnowledgeBase(prevState => {
-          if (!prevState) return null;
-          
-          const updatedSources = prevState.knowledge_sources.filter(
-            source => source.id !== sourceId
-          );
-          
-          return {
-            ...prevState,
-            knowledge_sources: updatedSources
-          };
-        });
-      }
-      
-      // Update the main knowledge bases list
-      setKnowledgeBases(prevBases => {
-        return prevBases.map(kb => {
-          if (selectedKnowledgeBase && kb.id === selectedKnowledgeBase.id) {
-            const updatedSources = kb.knowledge_sources.filter(
-              source => source.id !== sourceId
-            );
-            return {
-              ...kb,
-              knowledge_sources: updatedSources
-            };
-          }
-          return kb;
-        });
-      });
-      
       toast({
         title: "Success",
         description: "File has been successfully deleted."
       });
       
-      // Still refetch to ensure we have the latest data
       refetch();
       
       if (selectedKnowledgeBase && 
@@ -479,17 +424,11 @@ const KnowledgeBase = () => {
 
       await deleteKnowledgeBase(knowledgeBaseId);
       
-      // Immediately update the UI by removing the deleted knowledge base
-      setKnowledgeBases(prevBases => 
-        prevBases.filter(kb => kb.id !== knowledgeBaseId)
-      );
-      
       toast({
         title: "Success",
         description: "Knowledge base has been successfully deleted."
       });
       
-      // Still refetch to ensure we have the latest data
       refetch();
     } catch (error) {
       console.error("Error deleting knowledge base:", error);

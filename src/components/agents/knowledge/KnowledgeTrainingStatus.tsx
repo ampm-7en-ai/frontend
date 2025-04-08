@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -170,8 +171,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // Refresh knowledge bases after import
-    refreshKnowledgeBases();
+    // No need to invalidate here since ImportSourcesDialog handles the optimistic update
   };
 
   const trainAllSources = () => {
@@ -207,8 +207,8 @@ const KnowledgeTrainingStatus = ({
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
     console.log("Knowledge base removed, id:", id);
     
-    // Refresh knowledge bases after removal
-    refreshKnowledgeBases();
+    // Knowledge base removal is handled optimistically in KnowledgeSourceList
+    // No need to invalidate the query here
   }, []);
 
   const { 
