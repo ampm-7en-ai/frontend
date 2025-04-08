@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { ApiKnowledgeBase } from './types';
-import CollapsibleKnowledgeSourceCard from './CollapsibleKnowledgeSourceCard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { renderSourceIcon } from './knowledgeUtils';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -48,12 +48,38 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
   return (
     <div className="space-y-4">
       {knowledgeBases.map((knowledgeBase) => (
-        <CollapsibleKnowledgeSourceCard 
+        <KnowledgeBaseCard
           key={knowledgeBase.id}
-          knowledgeBase={knowledgeBase} 
+          knowledgeBase={knowledgeBase}
         />
       ))}
     </div>
+  );
+};
+
+// Simple placeholder component to maintain backwards compatibility
+const KnowledgeBaseCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBase }) => {
+  return (
+    <Card className="border shadow-sm">
+      <CardHeader className="p-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            {renderSourceIcon(knowledgeBase.type)}
+            <CardTitle>{knowledgeBase.name}</CardTitle>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div>
+          <p className="text-sm text-muted-foreground">
+            Type: {knowledgeBase.type}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Sources: {knowledgeBase.knowledge_sources.length}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
