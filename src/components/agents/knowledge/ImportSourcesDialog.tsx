@@ -452,16 +452,17 @@ export const ImportSourcesDialog = ({
       });
       
       if (agentId) {
-        await addKnowledgeSourcesToAgent(agentId, sourceIdsToImport, allSelectedIds);
+        const currentData = queryClient.getQueryData(['agentKnowledgeBases', agentId]) || [];
         
-        if (preventMultipleCalls) {
-          const currentData = queryClient.getQueryData(['agentKnowledgeBases', agentId]) || [];
-          
-          queryClient.setQueryData(['agentKnowledgeBases', agentId], (old) => {
-            if (!old) return currentData;
-            return Array.isArray(old) ? [...old] : [old];
-          });
-        }
+        const sourcesToAdd = sourceIdsToImport.map(id => 
+          externalSources.find(source => source.id === id)
+        ).filter(Boolean);
+        
+        const optimisticData = [...currentData, ...sourcesToAdd];
+        
+        queryClient.setQueryData(['agentKnowledgeBases', agentId], optimisticData);
+        
+        await addKnowledgeSourcesToAgent(agentId, sourceIdsToImport, allSelectedIds);
         
         toast({
           title: "Import successful",
@@ -475,6 +476,13 @@ export const ImportSourcesDialog = ({
       
     } catch (error) {
       console.error("Error importing knowledge sources:", error);
+      
+      if (agentId) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['agentKnowledgeBases', agentId]
+        });
+      }
+      
       toast({
         title: "Import failed",
         description: "There was an error importing the selected sources.",

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,36 +45,9 @@ const KnowledgeTrainingStatus = ({
   
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
-  const debounceTimerRef = useRef<number | null>(null);
   const initialMountRef = useRef(true);
+  const skipNextInvalidationRef = useRef(false);
   
-  const invalidateQueriesDebounced = useCallback((queryKeys: string[]) => {
-    if (debounceTimerRef.current) {
-      window.clearTimeout(debounceTimerRef.current);
-    }
-    
-    const uniqueKeys = new Set(queryKeys);
-    
-    debounceTimerRef.current = window.setTimeout(() => {
-      console.log("Executing debounced query invalidation for:", Array.from(uniqueKeys));
-      
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
-          const queryKey = query.queryKey[0];
-          return typeof queryKey === 'string' && 
-                 uniqueKeys.has(queryKey) && 
-                 query.queryKey[1] === agentId;
-        }
-      });
-      
-      if (onKnowledgeBasesChanged) {
-        onKnowledgeBasesChanged();
-      }
-      
-      debounceTimerRef.current = null;
-    }, 500);
-  }, [agentId, queryClient, onKnowledgeBasesChanged]);
-
   const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
       console.log("Using cached knowledge bases instead of fetching");
@@ -175,7 +149,8 @@ const KnowledgeTrainingStatus = ({
     setKnowledgeBasesLoaded(false);
     cachedKnowledgeBases.current = [];
     
-    invalidateQueriesDebounced(['agentKnowledgeBases']);
+    // Force a refetch
+    refetchAgentKnowledgeBases();
   };
 
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
@@ -196,7 +171,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    invalidateQueriesDebounced(['agentKnowledgeBases']);
+    // No need to invalidate here since ImportSourcesDialog handles the optimistic update
   };
 
   const trainAllSources = () => {
@@ -232,8 +207,9 @@ const KnowledgeTrainingStatus = ({
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
     console.log("Knowledge base removed, id:", id);
     
-    invalidateQueriesDebounced(['agentKnowledgeBases']);
-  }, [invalidateQueriesDebounced]);
+    // Knowledge base removal is handled optimistically in KnowledgeSourceList
+    // No need to invalidate the query here
+  }, []);
 
   const { 
     data: availableKnowledgeBases, 
@@ -264,14 +240,6 @@ const KnowledgeTrainingStatus = ({
       refetchAvailableKnowledgeBases();
     }
   }, [isImportDialogOpen, refetchAvailableKnowledgeBases]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        window.clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (initialMountRef.current) {

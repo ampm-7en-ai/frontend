@@ -149,11 +149,16 @@ const KnowledgeBaseCard = ({
     try {
       setIsDeleting(true);
       
-      const previousData = queryClient.getQueryData(['agentKnowledgeBases', agentId]);
-      
       queryClient.setQueryData(['agentKnowledgeBases', agentId], (old: any[]) => {
         if (!old) return [];
         return old.filter(kb => kb.id !== knowledgeBase.id);
+      });
+      
+      setShowDeleteDialog(false);
+      
+      toast({
+        title: "Removing knowledge base...",
+        description: `Removing "${knowledgeBase.name}" from this agent`,
       });
 
       const response = await fetch(`${BASE_URL}agents/${agentId}/remove-knowledge-sources/`, {
@@ -165,7 +170,9 @@ const KnowledgeBaseCard = ({
       });
 
       if (!response.ok) {
-        queryClient.setQueryData(['agentKnowledgeBases', agentId], previousData);
+        queryClient.invalidateQueries({ 
+          queryKey: ['agentKnowledgeBases', agentId] 
+        });
         
         const errorData = await response.json().catch(() => null);
         throw new Error(errorData?.message || `Failed to delete: ${response.status}`);
@@ -181,14 +188,16 @@ const KnowledgeBaseCard = ({
       }
     } catch (error) {
       console.error('Error removing knowledge base:', error);
+      
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to remove knowledge base",
         variant: "destructive"
       });
+      
+      setShowDeleteDialog(false);
     } finally {
       setIsDeleting(false);
-      setShowDeleteDialog(false);
     }
   };
 
