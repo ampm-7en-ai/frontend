@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,7 +27,6 @@ interface ImportSourcesDialogProps {
   agentId?: string;
   preventMultipleCalls?: boolean;
   isLoading?: boolean;
-  onImportSuccess?: () => void;
 }
 
 export const ImportSourcesDialog = ({
@@ -38,7 +38,6 @@ export const ImportSourcesDialog = ({
   agentId = "",
   preventMultipleCalls = false,
   isLoading = false,
-  onImportSuccess,
 }: ImportSourcesDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -462,6 +461,8 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
+      const selectedSourcesArray = Array.from(selectedSources);
+      
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         if (urlSet && urlSet instanceof Set) {
           urlSet.forEach(url => {
@@ -502,13 +503,10 @@ export const ImportSourcesDialog = ({
           description: "Knowledge sources have been added to the agent.",
         });
         
+        // Force refetch after import
         queryClient.invalidateQueries({ 
           queryKey: ['agentKnowledgeBases', agentId]
         });
-        
-        if (onImportSuccess) {
-          onImportSuccess();
-        }
       }
       
       onOpenChange(false);

@@ -29,7 +29,6 @@ interface KnowledgeSourceListProps {
   isLoading?: boolean;
   agentId?: string;
   onKnowledgeBaseRemoved?: (knowledgeBaseId: number) => void;
-  onDeleteSuccess?: () => void;
 }
 
 const getIconForType = (type: string) => {
@@ -161,13 +160,11 @@ const renderChildUrls = (childUrls: any[]) => {
 const KnowledgeBaseCard = ({ 
   knowledgeBase, 
   agentId, 
-  onDelete,
-  onDeleteSuccess
+  onDelete 
 }: { 
   knowledgeBase: ApiKnowledgeBase;
   agentId?: string;
   onDelete?: () => void;
-  onDeleteSuccess?: () => void;
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
@@ -208,7 +205,6 @@ const KnowledgeBaseCard = ({
     try {
       setIsDeleting(true);
       
-      // Apply optimistic update
       queryClient.setQueryData(['agentKnowledgeBases', agentId], (old: any[]) => {
         if (!old) return [];
         return old.filter(kb => kb.id !== knowledgeBase.id);
@@ -221,7 +217,6 @@ const KnowledgeBaseCard = ({
         description: `Removing "${knowledgeBase.name}" from this agent`,
       });
 
-      // Make the API call
       const response = await fetch(`${BASE_URL}agents/${agentId}/remove-knowledge-sources/`, {
         method: 'POST',
         headers: getAuthHeaders(token),
@@ -231,7 +226,6 @@ const KnowledgeBaseCard = ({
       });
 
       if (!response.ok) {
-        // Handle error properly
         queryClient.invalidateQueries({ 
           queryKey: ['agentKnowledgeBases', agentId] 
         });
@@ -245,14 +239,8 @@ const KnowledgeBaseCard = ({
         description: `Successfully removed "${knowledgeBase.name}" from this agent`,
       });
       
-      // Call the onDelete callback
       if (onDelete) {
         onDelete();
-      }
-      
-      // Call the success callback if provided to avoid duplicate API calls
-      if (onDeleteSuccess) {
-        onDeleteSuccess();
       }
     } catch (error) {
       console.error('Error removing knowledge base:', error);
@@ -454,8 +442,7 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
   knowledgeBases,
   isLoading = false,
   agentId,
-  onKnowledgeBaseRemoved,
-  onDeleteSuccess
+  onKnowledgeBaseRemoved
 }) => {
   const [localKnowledgeBases, setLocalKnowledgeBases] = useState(knowledgeBases);
 
@@ -503,7 +490,6 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
           knowledgeBase={knowledgeBase}
           agentId={agentId}
           onDelete={() => handleKnowledgeBaseRemoved(knowledgeBase.id)}
-          onDeleteSuccess={onDeleteSuccess}
         />
       ))}
     </div>
