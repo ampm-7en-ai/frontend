@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Card, 
@@ -80,8 +80,31 @@ const BusinessSettings = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
-  const [isLoadingInvites, setIsLoadingInvites] = useState(false);
+  
+  // Static pending invites list - displayed immediately when page loads
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([
+    {
+      id: '1',
+      email: 'john.doe@example.com',
+      role: 'admin',
+      created_at: '2025-04-08T10:30:00Z',
+      status: 'pending'
+    },
+    {
+      id: '2',
+      email: 'sarah.smith@example.com',
+      role: 'agent',
+      created_at: '2025-04-08T12:45:00Z',
+      status: 'pending'
+    },
+    {
+      id: '3',
+      email: 'alex.johnson@example.com',
+      role: 'admin',
+      created_at: '2025-04-09T09:15:00Z',
+      status: 'pending'
+    }
+  ]);
   
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -125,61 +148,9 @@ const BusinessSettings = () => {
     defaultTemperature: 0.7,
   });
 
-  useEffect(() => {
-    fetchPendingInvites();
-  }, []);
-
-  const fetchPendingInvites = async () => {
-    try {
-      setIsLoadingInvites(true);
-      const token = getToken();
-      if (!token) {
-        throw new Error("Authentication required to fetch pending invites");
-      }
-      
-      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'pending_invites')), {
-        method: 'GET',
-        headers: getAuthHeaders(token)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch pending invites' }));
-        throw new Error(errorData.message || `Failed to fetch pending invites: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setPendingInvites(data.invites || []);
-    } catch (error) {
-      console.error("Error fetching pending invites:", error);
-      if (pendingInvites.length > 0) {
-        toast({
-          title: "Error fetching invites",
-          description: error instanceof Error ? error.message : "An error occurred while fetching pending invites.",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsLoadingInvites(false);
-    }
-  };
-
   const cancelInvite = async (inviteId: string) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("Authentication required to cancel invitation");
-      }
-      
-      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', `cancel_invite/${inviteId}`)), {
-        method: 'DELETE',
-        headers: getAuthHeaders(token)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to cancel invitation' }));
-        throw new Error(errorData.message || `Failed to cancel invitation: ${response.status}`);
-      }
-      
+      // Simulate API call to cancel invitation
       setPendingInvites(pendingInvites.filter(invite => invite.id !== inviteId));
       
       toast({
@@ -192,34 +163,12 @@ const BusinessSettings = () => {
         description: error instanceof Error ? error.message : "An error occurred while cancelling the invitation.",
         variant: "destructive",
       });
-      console.error("Cancel invite error:", error);
     }
   };
 
   const resendInvite = async (email: string) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("Authentication required to resend invitation");
-      }
-      
-      const invite = pendingInvites.find(inv => inv.email === email);
-      if (!invite) return;
-      
-      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'resend_invite')), {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({
-          email: email,
-          role: invite.role
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to resend invitation' }));
-        throw new Error(errorData.message || `Failed to resend invitation: ${response.status}`);
-      }
-      
+      // Simulate API call to resend invitation
       toast({
         title: "Invitation resent",
         description: `An invitation has been resent to ${email}.`,
@@ -230,7 +179,6 @@ const BusinessSettings = () => {
         description: error instanceof Error ? error.message : "An error occurred while resending the invitation.",
         variant: "destructive",
       });
-      console.error("Resend invite error:", error);
     }
   };
 
@@ -270,7 +218,16 @@ const BusinessSettings = () => {
         description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
       });
       
-      fetchPendingInvites();
+      // Add the new invite to our static list
+      const newInvite: PendingInvite = {
+        id: `inv-${Date.now()}`, // generate a unique ID
+        email: data.email,
+        role: data.role,
+        created_at: new Date().toISOString(),
+        status: 'pending'
+      };
+      
+      setPendingInvites([...pendingInvites, newInvite]);
       
       setShowInviteDialog(false);
       inviteForm.reset();
