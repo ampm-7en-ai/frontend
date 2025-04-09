@@ -21,6 +21,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Separator } from '@/components/ui/separator';
 import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
 import { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -35,7 +36,6 @@ const getIconForType = (type: string) => {
       return <Globe className="h-4 w-4" />;
     case 'document':
     case 'pdf':
-    case 'docs':
       return <FileText className="h-4 w-4" />;
     case 'csv':
       return <Database className="h-4 w-4" />;
@@ -49,33 +49,26 @@ const getIconForType = (type: string) => {
 const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
   const { type } = knowledgeBase;
   
-  // Count only selected sources/files
-  const selectedSourcesCount = knowledgeBase.knowledge_sources?.filter(source => source.is_selected).length || 0;
+  const firstSource = knowledgeBase.knowledge_sources?.[0];
+  if (!firstSource) return type;
   
   switch (type.toLowerCase()) {
     case 'document':
     case 'pdf':
     case 'docs':
     case 'csv':
-      return `${selectedSourcesCount} ${selectedSourcesCount === 1 ? 'file' : 'files'}`;
+      const fileCount = knowledgeBase.knowledge_sources.length;
+      return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
       
-    case 'website': {
-      const webSource = knowledgeBase.knowledge_sources?.[0];
-      if (!webSource) return type;
-      
-      const urlCount = webSource.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
+    case 'website':
+      const urlCount = firstSource.sub_urls?.children?.length || 0;
       return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
-    }
       
-    case 'plain_text': {
-      const textSource = knowledgeBase.knowledge_sources?.[0];
-      if (!textSource) return type;
-      
-      if (textSource.metadata?.no_of_chars) {
-        return `${textSource.metadata.no_of_chars} chars`;
+    case 'plain_text':
+      if (firstSource.metadata?.no_of_chars) {
+        return `${firstSource.metadata.no_of_chars} chars`;
       }
       return type;
-    }
       
     default:
       return type;
@@ -230,6 +223,33 @@ const KnowledgeBaseCard = ({
     };
   };
 
+  const renderChildUrls = (childUrls: any[]) => {
+    if (!childUrls || childUrls.length === 0) return null;
+    
+    return (
+      <div className="space-y-1.5 mt-2">
+        {childUrls.map((subUrl) => (
+          <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
+            <div className="flex items-center gap-2 max-w-[70%]">
+              <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
+              <span className="text-xs truncate">{subUrl.url}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {subUrl.chars !== undefined && (
+                <span className="text-xs text-muted-foreground">
+                  {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
+                </span>
+              )}
+              <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
+                {subUrl.is_selected ? "Selected" : "Not Selected"}
+              </Badge>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="overflow-hidden rounded-md border border-gray-200 shadow-sm bg-white">
@@ -270,61 +290,59 @@ const KnowledgeBaseCard = ({
             <div className="px-4 py-2 space-y-1">
               {knowledgeBase.knowledge_sources.map((source, index) => {
                 const isWebsite = knowledgeBase.type.toLowerCase() === 'website';
-                const isDocument = ['document', 'pdf', 'docs'].includes(knowledgeBase.type.toLowerCase());
-                const isCsv = knowledgeBase.type.toLowerCase() === 'csv';
-                
-                // Only show selected sources
-                if (!source.is_selected && (isDocument || isCsv)) {
-                  return null;
-                }
                 
                 return (
                   <div key={source.id} className="py-2">
-                    {isWebsite && source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
-                      <div className="space-y-1.5">
-                        {source.sub_urls.children
-                          .filter(subUrl => subUrl.is_selected)
-                          .map((subUrl: any) => (
-                            <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
-                              <div className="flex items-center gap-2 max-w-[70%]">
-                                <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                                <span className="text-xs truncate">{subUrl.url}</span>
+                    {isWebsite ? (
+                      <>
+                        {source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
+                          <div className="space-y-1.5">
+                            {source.sub_urls.children.map((subUrl: any) => (
+                              <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
+                                <div className="flex items-center gap-2 max-w-[70%]">
+                                  <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                                  <span className="text-xs truncate">{subUrl.url}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {subUrl.chars !== undefined && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
+                                    </span>
+                                  )}
+                                  <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
+                                    {subUrl.is_selected ? "Selected" : "Not Selected"}
+                                  </Badge>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground">
-                                  {subUrl.chars !== undefined ? `${subUrl.chars.toLocaleString()} chars` : 'N/A'}
-                                </span>
-                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex justify-between items-center mb-1.5">
+                            <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
+                              <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
+                                {source.is_selected ? "Selected" : "Not Selected"}
+                              </Badge>
                             </div>
-                          ))}
-                      </div>
-                    ) : (isDocument || isCsv) && source.is_selected ? (
+                          </div>
+                        )}
+                      </>
+                    ) : (
                       <div className="flex justify-between items-center mb-1.5">
                         <div className="flex items-center gap-2">
                           <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            {getFormattedSize(source)}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
+                          <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
+                            {source.is_selected ? "Selected" : "Not Selected"}
+                          </Badge>
                         </div>
                       </div>
-                    ) : (!isDocument && !isCsv && !isWebsite) && source.is_selected ? (
-                      <div className="flex justify-between items-center mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            {getFormattedSize(source)}
-                          </span>
-                        </div>
-                      </div>
-                    ) : null}
+                    )}
                     
-                    {index < knowledgeBase.knowledge_sources.length - 1 && 
-                     knowledgeBase.knowledge_sources.filter(s => s.is_selected).length > 0 && 
-                     source.is_selected && (
+                    {index < knowledgeBase.knowledge_sources.length - 1 && (
                       <Separator className="mt-2 bg-gray-100" />
                     )}
                   </div>
