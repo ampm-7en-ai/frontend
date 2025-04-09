@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -224,6 +223,21 @@ const KnowledgeBaseCard = ({
     };
   };
 
+  const getUrlChars = (source: any): number | undefined => {
+    if (source.sub_urls?.chars !== undefined) {
+      return source.sub_urls.chars;
+    }
+    
+    if (source.sub_urls?.children) {
+      const rootUrl = source.sub_urls.children.find((url: any) => url.key === 'root');
+      if (rootUrl?.chars !== undefined) {
+        return rootUrl.chars;
+      }
+    }
+    
+    return undefined;
+  };
+
   const renderChildUrls = (childUrls: any[]) => {
     if (!childUrls || childUrls.length === 0) return null;
     
@@ -233,7 +247,16 @@ const KnowledgeBaseCard = ({
           <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2 max-w-[70%]">
               <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-              <span className="text-xs truncate">{subUrl.url}</span>
+              <a 
+                href={subUrl.url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-xs truncate hover:text-blue-600 hover:underline flex items-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {subUrl.url}
+                <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0" />
+              </a>
             </div>
             <div className="flex items-center gap-2">
               {subUrl.chars !== undefined && (
@@ -346,9 +369,9 @@ const KnowledgeBaseCard = ({
                               <span className="text-xs text-muted-foreground">
                                 {getFormattedSize(source)}
                               </span>
-                              {source.metadata?.chars !== undefined && (
+                              {getUrlChars(source) !== undefined && (
                                 <span className="text-xs text-muted-foreground">
-                                  {source.metadata.chars === 0 ? "0 chars" : `${source.metadata.chars.toLocaleString()} chars`}
+                                  {getUrlChars(source) === 0 ? "0 chars" : `${getUrlChars(source)?.toLocaleString()} chars`}
                                 </span>
                               )}
                               <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
