@@ -61,12 +61,13 @@ type InviteFormValues = z.infer<typeof inviteFormSchema>;
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 type PreferencesFormValues = z.infer<typeof preferencesFormSchema>;
 
-interface PendingInvite {
+interface Member {
   id: string;
   email: string;
   role: string;
   created_at: string;
-  status: 'pending';
+  status: 'pending' | 'active';
+  name?: string;
 }
 
 const BusinessSettings = () => {
@@ -81,8 +82,23 @@ const BusinessSettings = () => {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Static pending invites list - displayed immediately when page loads
-  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([
+  const [members, setMembers] = useState<Member[]>([
+    {
+      id: 'user-1',
+      email: 'jane.smith@example.com',
+      role: 'admin',
+      created_at: '2025-03-15T14:30:00Z',
+      status: 'active',
+      name: 'Jane Smith'
+    },
+    {
+      id: 'user-2',
+      email: 'michael.brown@example.com',
+      role: 'agent',
+      created_at: '2025-03-20T09:45:00Z',
+      status: 'active',
+      name: 'Michael Brown'
+    },
     {
       id: '1',
       email: 'john.doe@example.com',
@@ -105,7 +121,7 @@ const BusinessSettings = () => {
       status: 'pending'
     }
   ]);
-  
+
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -150,8 +166,7 @@ const BusinessSettings = () => {
 
   const cancelInvite = async (inviteId: string) => {
     try {
-      // Simulate API call to cancel invitation
-      setPendingInvites(pendingInvites.filter(invite => invite.id !== inviteId));
+      setMembers(members.filter(member => member.id !== inviteId));
       
       toast({
         title: "Invitation cancelled",
@@ -168,7 +183,6 @@ const BusinessSettings = () => {
 
   const resendInvite = async (email: string) => {
     try {
-      // Simulate API call to resend invitation
       toast({
         title: "Invitation resent",
         description: `An invitation has been resent to ${email}.`,
@@ -177,6 +191,23 @@ const BusinessSettings = () => {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred while resending the invitation.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteMember = async (memberId: string) => {
+    try {
+      setMembers(members.filter(member => member.id !== memberId));
+      
+      toast({
+        title: "Member removed",
+        description: "The team member has been removed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while removing the team member.",
         variant: "destructive",
       });
     }
@@ -204,7 +235,7 @@ const BusinessSettings = () => {
         headers: getAuthHeaders(token),
         body: JSON.stringify({
           email: data.email,
-          role: data.role,
+          role: data.role === "agent" ? "user" : data.role,
         }),
       });
       
@@ -218,16 +249,15 @@ const BusinessSettings = () => {
         description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
       });
       
-      // Add the new invite to our static list
-      const newInvite: PendingInvite = {
-        id: `inv-${Date.now()}`, // generate a unique ID
+      const newMember: Member = {
+        id: `inv-${Date.now()}`,
         email: data.email,
         role: data.role,
         created_at: new Date().toISOString(),
         status: 'pending'
       };
       
-      setPendingInvites([...pendingInvites, newInvite]);
+      setMembers([...members, newMember]);
       
       setShowInviteDialog(false);
       inviteForm.reset();
@@ -274,6 +304,27 @@ const BusinessSettings = () => {
       description: "Your subscription has been upgraded successfully.",
     });
     setShowUpgradeDialog(false);
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      });
+    }
   };
 
   return (
@@ -474,52 +525,72 @@ const BusinessSettings = () => {
                       <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{user?.name}</p>
+                      <p className="font-medium">{user?.name || 'You'}</p>
                       <p className="text-sm text-muted-foreground">{user?.email}</p>
                     </div>
                   </div>
-                  <Badge>Admin</Badge>
+                  <Badge>Owner</Badge>
                 </div>
                 
-                {pendingInvites.length > 0 && (
+                {members.length > 0 && (
                   <>
                     <Separator />
                     <div className="p-2">
-                      <p className="text-sm text-muted-foreground p-2">Pending Invitations</p>
-                      {pendingInvites.map((invite) => (
-                        <div key={invite.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
+                      <p className="text-sm text-muted-foreground p-2">Members</p>
+                      {members.map((member) => (
+                        <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
                           <div className="flex items-center gap-3">
                             <Avatar>
-                              <AvatarFallback>{invite.email.charAt(0).toUpperCase()}</AvatarFallback>
+                              <AvatarFallback>{member.name?.charAt(0) || member.email.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium flex items-center gap-1">
-                                {invite.email}
-                                <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
-                                  <Clock className="h-3 w-3" /> pending
-                                </Badge>
+                              <p className="font-medium">
+                                {member.name || member.email}
+                                {member.status === 'pending' && (
+                                  <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
+                                    <Clock className="h-3 w-3" /> pending
+                                  </Badge>
+                                )}
                               </p>
-                              <p className="text-sm text-muted-foreground">Awaiting response</p>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <span>{member.email}</span>
+                                <span>&bull;</span>
+                                <span className="capitalize">{member.role}</span>
+                                <span>&bull;</span>
+                                <span>{formatDate(member.created_at)}</span>
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge>{invite.role}</Badge>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => resendInvite(invite.email)}
-                              title="Resend Invitation"
-                            >
-                              <Mail className="h-4 w-4 text-blue-500" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => cancelInvite(invite.id)}
-                              title="Cancel Invitation"
-                            >
-                              <Trash className="h-4 w-4 text-red-500" />
-                            </Button>
+                            {member.status === 'pending' ? (
+                              <>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => resendInvite(member.email)}
+                                  title="Resend Invitation"
+                                >
+                                  <Mail className="h-4 w-4 text-blue-500" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => cancelInvite(member.id)}
+                                  title="Cancel Invitation"
+                                >
+                                  <Trash className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => deleteMember(member.id)}
+                                title="Remove Member"
+                              >
+                                <Trash className="h-4 w-4 text-red-500" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}
