@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -215,15 +214,13 @@ export const ImportSourcesDialog = ({
 
   const handleKnowledgeBaseClick = (source: KnowledgeSource) => {
     if (source.type === 'plain_text') {
-      // Direct toggle for plain text sources
       toggleSourceSelection(source);
     } else {
-      // For other sources, show details and select if clicked again
       if (selectedKnowledgeBase?.id === source.id) {
         toggleSourceSelection(source);
       } else {
         setSelectedKnowledgeBase(source);
-        setShowOnlySelected(false); // Reset filter when switching sources
+        setShowOnlySelected(false);
       }
     }
   };
@@ -266,11 +263,9 @@ export const ImportSourcesDialog = ({
     return urls;
   };
 
-  // Helper to get all flattened URLs
   const getFlattenedUrls = (node: UrlNode): UrlNode[] => {
     let urls: UrlNode[] = [];
     
-    // Don't include the root node itself
     if (node.children && Array.isArray(node.children) && node.children.length > 0) {
       for (const child of node.children) {
         urls.push(child);
@@ -383,10 +378,8 @@ export const ImportSourcesDialog = ({
     const allUrls = getAllUrlsFromNode(rootNode);
     const selectedUrls = selectedSubUrls[sourceId] || new Set<string>();
     
-    // Make sure both are iterable
     if (!allUrls || !selectedUrls) return false;
     
-    // Ensure all URLs are in the selectedUrls set
     return allUrls.every(url => selectedUrls.has(url));
   };
 
@@ -400,10 +393,8 @@ export const ImportSourcesDialog = ({
   const filterAndSortUrls = (rootNode: UrlNode): UrlNode[] => {
     if (!rootNode || !rootNode.children) return [];
     
-    // Start with all URLs flattened
     let allUrls = getFlattenedUrls(rootNode);
     
-    // Filter by search term
     if (urlFilter) {
       allUrls = allUrls.filter(node => 
         (node.title?.toLowerCase().includes(urlFilter.toLowerCase())) || 
@@ -411,10 +402,8 @@ export const ImportSourcesDialog = ({
       );
     }
     
-    // Filter excluded URLs
     allUrls = allUrls.filter(node => !excludedUrls.has(node.url));
     
-    // Filter to show only selected URLs if that option is enabled
     if (showOnlySelected && selectedKnowledgeBase) {
       const sourceId = selectedKnowledgeBase.id;
       const selectedUrlsSet = selectedSubUrls[sourceId];
@@ -423,7 +412,6 @@ export const ImportSourcesDialog = ({
       }
     }
     
-    // Sort URLs
     allUrls.sort((a, b) => {
       const titleA = (a.title || a.url).toLowerCase();
       const titleB = (b.title || b.url).toLowerCase();
@@ -466,7 +454,10 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      // Fix TypeScript error by explicitly checking for Set type
+      const selectedSourcesArray = selectedSources && typeof selectedSources[Symbol.iterator] === 'function' 
+        ? Array.from(selectedSources) 
+        : [];
+      
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         if (urlSet && urlSet instanceof Set) {
           urlSet.forEach(url => {
