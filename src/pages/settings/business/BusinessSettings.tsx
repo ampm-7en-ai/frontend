@@ -553,24 +553,14 @@ const BusinessSettings = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               {member.status === 'pending' ? (
-                                <>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => resendInvite(member.email)}
-                                    title="Resend Invitation"
-                                  >
-                                    <Mail className="h-4 w-4 text-blue-500" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => cancelInvite(member.id)}
-                                    title="Cancel Invitation"
-                                  >
-                                    <Trash className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => cancelInvite(member.id)}
+                                  title="Cancel Invitation"
+                                >
+                                  <Trash className="h-4 w-4 text-red-500" />
+                                </Button>
                               ) : (
                                 <Button 
                                   variant="ghost" 

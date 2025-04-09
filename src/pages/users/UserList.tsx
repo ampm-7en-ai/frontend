@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Search, 
@@ -110,32 +111,6 @@ const domainExperts = [
     lastActive: 'Never',
     expertise: ['Contract Law', 'IP Rights'],
     assignedConversations: 0
-  },
-  {
-    id: '6',
-    name: 'David Wilson',
-    email: 'david.wilson@example.com',
-    avatar: 'DW',
-    role: 'Financial Analyst',
-    business: 'Globex Industries',
-    businessId: 'b2',
-    status: 'active',
-    lastActive: '1 day ago',
-    expertise: ['Financial Planning', 'Investment Analysis'],
-    assignedConversations: 3
-  },
-  {
-    id: '7',
-    name: 'Eva Martinez',
-    email: 'eva.martinez@example.com',
-    avatar: 'EM',
-    role: 'Product Manager',
-    business: 'Initech Solutions',
-    businessId: 'b3',
-    status: 'active',
-    lastActive: '3 hours ago',
-    expertise: ['Product Strategy', 'UX Design'],
-    assignedConversations: 6
   }
 ];
 
@@ -157,8 +132,8 @@ const UserList = () => {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="flex-1 w-full sm:w-auto">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -174,7 +149,7 @@ const UserList = () => {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center">
+              <Button variant="outline" size="sm" className="flex items-center">
                 <Filter className="mr-2 h-4 w-4" />
                 Filter
                 <ChevronDown className="ml-2 h-4 w-4" />
@@ -223,7 +198,7 @@ const UserList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Button>
+          <Button size="sm">
             <UserPlus className="mr-2 h-4 w-4" />
             Add Expert
           </Button>
@@ -231,7 +206,7 @@ const UserList = () => {
       </div>
       
       <Tabs defaultValue="all">
-        <TabsList>
+        <TabsList className="mb-4">
           <TabsTrigger value="all" className="flex items-center">
             <Users className="mr-2 h-4 w-4" />
             All Experts
@@ -246,128 +221,104 @@ const UserList = () => {
           </TabsTrigger>
         </TabsList>
         
-        <div className="mt-6">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Business</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Business</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Active</TableHead>
-                    <TableHead>Assignments</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableCell colSpan={5} className="text-center py-4">
+                      No domain experts found matching your search criteria
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-6">
-                        No domain experts found matching your search criteria
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-7 w-7 bg-primary/10 text-primary text-xs">
+                            <AvatarFallback>{user.avatar}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium text-sm">{user.name}</div>
+                            <div className="text-xs text-muted-foreground">{user.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">{user.role}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Link to={`/businesses/${user.businessId}`} className="flex items-center text-primary hover:underline text-sm">
+                          <Building className="mr-1 h-3 w-3" />
+                          {user.business}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          user.status === 'active' ? 'default' :
+                          user.status === 'inactive' ? 'secondary' : 'outline'
+                        } className="text-xs">
+                          {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to={`/users/${user.id}`} className="cursor-pointer">
+                                <Edit2 className="mr-2 h-4 w-4" />
+                                View Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <MessageSquare className="mr-2 h-4 w-4" />
+                              View Conversations
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className={user.status === 'active' ? 'text-destructive' : 'text-primary'}
+                            >
+                              {user.status === 'active' ? (
+                                <>
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                                  Activate
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8 bg-primary/10 text-primary">
-                              <AvatarFallback>{user.avatar}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{user.name}</div>
-                              <div className="text-xs text-muted-foreground">{user.email}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{user.role}</div>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {user.expertise.map((skill, index) => (
-                              <Badge key={index} variant="outline" className="text-[10px] py-0">
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Link to={`/businesses/${user.businessId}`} className="flex items-center text-primary hover:underline">
-                            <Building className="mr-1 h-3 w-3" />
-                            {user.business}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            user.status === 'active' ? 'default' :
-                            user.status === 'inactive' ? 'secondary' : 'outline'
-                          }>
-                            {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{user.lastActive}</TableCell>
-                        <TableCell>
-                          {user.assignedConversations > 0 ? (
-                            <div className="flex items-center">
-                              <MessageSquare className="mr-1.5 h-3 w-3 text-primary" />
-                              <span>{user.assignedConversations}</span>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">None</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem asChild>
-                                <Link to={`/users/${user.id}`} className="cursor-pointer">
-                                  <Edit2 className="mr-2 h-4 w-4" />
-                                  View Details
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                View Conversations
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className={user.status === 'active' ? 'text-destructive' : 'text-primary'}
-                              >
-                                {user.status === 'active' ? (
-                                  <>
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Deactivate
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                                    Activate
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </Tabs>
     </div>
   );
