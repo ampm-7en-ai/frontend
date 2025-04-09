@@ -28,6 +28,7 @@ import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
 
 // Form schemas
 const profileFormSchema = z.object({
@@ -60,7 +61,7 @@ type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 type PreferencesFormValues = z.infer<typeof preferencesFormSchema>;
 
 const BusinessSettings = () => {
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
   
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -125,12 +126,16 @@ const BusinessSettings = () => {
     try {
       setIsSubmitting(true);
       
-      // API call to create team invite
-      const response = await fetch('/api/users/create_team_invite/', {
+      // Get authentication token
+      const token = getToken();
+      if (!token) {
+        throw new Error("You must be logged in to send invitations");
+      }
+      
+      // API call to create team invite using the base URL from api-config
+      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'create_team_invite')), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(token),
         body: JSON.stringify({
           email: data.email,
           role: data.role,
@@ -138,8 +143,8 @@ const BusinessSettings = () => {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send invitation');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to send invitation' }));
+        throw new Error(errorData.message || `Failed to send invitation: ${response.status}`);
       }
       
       toast({
@@ -155,6 +160,7 @@ const BusinessSettings = () => {
         description: error instanceof Error ? error.message : "An error occurred while sending the invitation.",
         variant: "destructive",
       });
+      console.error("Team invite error:", error);
     } finally {
       setIsSubmitting(false);
     }
