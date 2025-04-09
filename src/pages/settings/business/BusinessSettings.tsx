@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Card, 
@@ -11,7 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save } from 'lucide-react';
+import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save, Clock, UserCheck, UserPlus } from 'lucide-react';
 import { 
   Tooltip,
   TooltipContent,
@@ -28,36 +28,17 @@ import { toast } from "@/components/ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-// Form schemas
-const profileFormSchema = z.object({
-  businessName: z.string().min(2, "Business name must be at least 2 characters."),
-  adminEmail: z.string().email("Invalid email address."),
-});
-
-const inviteFormSchema = z.object({
-  email: z.string().email("Invalid email address."),
-  role: z.enum(["admin", "editor", "viewer"]),
-});
-
-const paymentFormSchema = z.object({
-  cardName: z.string().min(2, "Name must be at least 2 characters."),
-  cardNumber: z.string().min(16, "Card number must be at least 16 digits.").max(19),
-  expiryDate: z.string().min(5, "Expiry date must be in MM/YY format."),
-  cvc: z.string().min(3, "CVC must be at least 3 digits."),
-});
-
-const preferencesFormSchema = z.object({
-  emailNotifications: z.boolean(),
-  timezone: z.string(),
-  language: z.string(),
-  defaultExportFormat: z.string()
-});
-
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
-type InviteFormValues = z.infer<typeof inviteFormSchema>;
-type PaymentFormValues = z.infer<typeof paymentFormSchema>;
-type PreferencesFormValues = z.infer<typeof preferencesFormSchema>;
+type TeamMember = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  status: 'active' | 'pending';
+  dateInvited?: string;
+};
 
 const BusinessSettings = () => {
   const { user } = useAuth();
@@ -69,6 +50,22 @@ const BusinessSettings = () => {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [isInviting, setIsInviting] = useState(false);
+  
+  useEffect(() => {
+    if (user) {
+      setTeamMembers([
+        {
+          id: '1',
+          name: user.name,
+          email: user.email || '',
+          role: 'admin',
+          status: 'active'
+        }
+      ]);
+    }
+  }, [user]);
   
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -82,7 +79,7 @@ const BusinessSettings = () => {
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
       email: '',
-      role: 'viewer',
+      role: 'agent',
     },
   });
 
@@ -120,13 +117,40 @@ const BusinessSettings = () => {
     setIsEditingProfile(false);
   };
 
-  const onInviteSubmit = (data: InviteFormValues) => {
-    toast({
-      title: "Invitation sent",
-      description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
-    });
-    setShowInviteDialog(false);
-    inviteForm.reset();
+  const onInviteSubmit = async (data: InviteFormValues) => {
+    try {
+      setIsInviting(true);
+      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const newMember: TeamMember = {
+        id: Date.now().toString(),
+        name: null,
+        email: data.email,
+        role: data.role,
+        status: 'pending',
+        dateInvited: new Date().toISOString(),
+      };
+      
+      setTeamMembers(prev => [...prev, newMember]);
+      
+      toast({
+        title: "Invitation sent",
+        description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
+      });
+      
+      setShowInviteDialog(false);
+      inviteForm.reset();
+    } catch (error) {
+      console.error("Error sending invitation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send invitation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsInviting(false);
+    }
   };
 
   const onPaymentSubmit = (data: PaymentFormValues) => {
@@ -160,6 +184,37 @@ const BusinessSettings = () => {
       description: "Your subscription has been upgraded successfully.",
     });
     setShowUpgradeDialog(false);
+  };
+
+  const handleCancelInvite = (memberId: string) => {
+    setTeamMembers(prev => prev.filter(member => member.id !== memberId));
+    
+    toast({
+      title: "Invitation canceled",
+      description: "The team invitation has been canceled.",
+    });
+  };
+
+  const renderStatusBadge = (status: 'active' | 'pending') => {
+    if (status === 'active') {
+      return <Badge className="bg-green-100 text-green-800 border-green-200">
+        <UserCheck className="h-3 w-3 mr-1" /> Active
+      </Badge>;
+    }
+    
+    return <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">
+      <Clock className="h-3 w-3 mr-1" /> Pending
+    </Badge>;
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
   };
 
   return (
@@ -354,19 +409,62 @@ const BusinessSettings = () => {
                 Team members who have access to your 7en.ai workspace.
               </p>
               <div className="rounded-md border">
-                <div className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{user?.name}</p>
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
-                  </div>
-                  <Badge>Admin</Badge>
-                </div>
-                <Separator />
+                {teamMembers.map(member => (
+                  <React.Fragment key={member.id}>
+                    <div className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 h-10 w-10 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{member.name || member.email}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{member.email}</span>
+                            <Badge variant="outline">{member.role}</Badge>
+                            {member.dateInvited && (
+                              <span>Invited: {formatDate(member.dateInvited)}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {renderStatusBadge(member.status)}
+                        
+                        {member.status === 'pending' && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-red-500">Cancel</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to cancel the invitation sent to {member.email}? 
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleCancelInvite(member.id)}
+                                  className="bg-red-500 hover:bg-red-600"
+                                >
+                                  Yes, cancel invitation
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </div>
+                    <Separator />
+                  </React.Fragment>
+                ))}
                 <div className="p-4">
                   <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="flex items-center gap-1">
-                        <Plus className="h-4 w-4" /> Invite Team Member
+                        <UserPlus className="h-4 w-4" /> Invite Team Member
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -405,17 +503,31 @@ const BusinessSettings = () => {
                                   </FormControl>
                                   <SelectContent>
                                     <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="editor">Editor</SelectItem>
-                                    <SelectItem value="viewer">Viewer</SelectItem>
+                                    <SelectItem value="agent">Agent</SelectItem>
                                   </SelectContent>
                                 </Select>
+                                <FormDescription>
+                                  Admins can manage all settings, while agents can only interact with users.
+                                </FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                           <DialogFooter>
-                            <Button type="submit" className="flex items-center gap-1">
-                              <Mail className="h-4 w-4" /> Send Invitation
+                            <Button 
+                              type="submit" 
+                              className="flex items-center gap-1"
+                              disabled={isInviting}
+                            >
+                              {isInviting ? (
+                                <>
+                                  <LoadingSpinner size="sm" /> Sending...
+                                </>
+                              ) : (
+                                <>
+                                  <Mail className="h-4 w-4" /> Send Invitation
+                                </>
+                              )}
                             </Button>
                           </DialogFooter>
                         </form>
