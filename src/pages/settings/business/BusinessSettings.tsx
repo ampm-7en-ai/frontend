@@ -269,6 +269,7 @@ const BusinessSettings = () => {
         throw new Error("You must be logged in to send invitations");
       }
       
+      // Convert agent role to user for the API
       const roleForApi = data.role === "agent" ? "user" : data.role;
       
       const response = await fetch(getApiUrl(API_ENDPOINTS.TEAM_INVITE), {
@@ -345,6 +346,15 @@ const BusinessSettings = () => {
       description: "Your subscription has been upgraded successfully.",
     });
     setShowUpgradeDialog(false);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
   };
 
   return (
@@ -531,25 +541,24 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Team Management</h2>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-muted-foreground mb-4">
-                Team members who have access to your 7en.ai workspace.
-              </p>
-              
-              <div className="rounded-md border mb-6">
-                <div className="p-3 bg-muted/40">
-                  <h3 className="font-medium">Active Members</h3>
-                </div>
-                <div className="overflow-x-auto">
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Team Management</h2>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-muted-foreground mb-6">
+              Manage your team members and invitations to your 7en.ai workspace.
+            </p>
+            
+            {/* Team Members list */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-base font-medium mb-4">Team Members</h3>
+                <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Member</TableHead>
                         <TableHead>Role</TableHead>
-                        <TableHead>Last Active</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -558,8 +567,10 @@ const BusinessSettings = () => {
                       <TableRow>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar>
-                              <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                              </AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="font-medium">{user?.name || 'You'}</p>
@@ -568,10 +579,9 @@ const BusinessSettings = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge>Owner</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">Current</span>
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                            Owner
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           {/* No actions for owner */}
@@ -583,8 +593,10 @@ const BusinessSettings = () => {
                         <TableRow key={member.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-muted">
+                                  {member.name.charAt(0)}
+                                </AvatarFallback>
                               </Avatar>
                               <div>
                                 <p className="font-medium">{member.name}</p>
@@ -593,198 +605,165 @@ const BusinessSettings = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Select 
-                              defaultValue={member.role}
-                              onValueChange={(value) => changeTeamMemberRole(member.id, value)}
-                            >
-                              <SelectTrigger className="w-24">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="user">User</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm text-muted-foreground">
-                              {new Date(member.last_active).toLocaleString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
+                            <Badge variant="outline" className={member.role === 'admin' ? 
+                              'bg-blue-50 text-blue-700 border-blue-200' : 
+                              'bg-gray-50 text-gray-700 border-gray-200'}>
+                              {member.role === 'admin' ? 'Admin' : 'User'}
+                            </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => removeTeamMember(member.id)}
-                              title="Remove Member"
-                            >
-                              <Trash className="h-4 w-4 text-red-500" />
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => removeTeamMember(member.id)}
+                                  >
+                                    <Trash className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Remove Member</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
-                
-                <Separator />
-                
-                {pendingInvites.length > 0 && (
-                  <>
-                    <div className="p-3 bg-muted/40">
-                      <h3 className="font-medium">Pending Invitations</h3>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Invited On</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {pendingInvites.map((invite) => (
-                            <TableRow key={invite.id}>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
-                                  <span>{invite.email}</span>
-                                  <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> pending
-                                  </Badge>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{invite.role === 'agent' ? 'User' : invite.role}</Badge>
-                              </TableCell>
-                              <TableCell>
-                                <span className="text-sm text-muted-foreground">
-                                  {new Date(invite.created_at).toLocaleString(undefined, {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => resendInvite(invite.email)}
-                                    title="Resend Invitation"
-                                  >
-                                    <Mail className="h-4 w-4 text-blue-500" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => cancelInvite(invite.id)}
-                                    title="Cancel Invitation"
-                                  >
-                                    <Trash className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </>
-                )}
-                
-                <Separator />
-                <div className="p-4">
-                  <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="flex items-center gap-1">
-                        <Plus className="h-4 w-4" /> Invite Team Member
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Invite Team Member</DialogTitle>
-                        <DialogDescription>
-                          Invite a new team member to your 7en.ai workspace.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <Form {...inviteForm}>
-                        <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
-                          <FormField
-                            control={inviteForm.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Email Address</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    placeholder="colleague@example.com" 
-                                    {...field} 
-                                    type="email"
-                                    autoComplete="email"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={inviteForm.control}
-                            name="role"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Role</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select a role" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="agent">User</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormDescription>
-                                  Admins can manage the entire workspace. Users can only create and manage chatbots.
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <DialogFooter>
-                            <Button 
-                              type="submit" 
-                              className="flex items-center gap-1" 
-                              disabled={isSubmitting}
-                            >
-                              {isSubmitting ? (
-                                <>Sending...</>
-                              ) : (
-                                <>
-                                  <Mail className="h-4 w-4" /> Send Invitation
-                                </>
-                              )}
-                            </Button>
-                          </DialogFooter>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        </section>
+              
+              {/* Pending Invitations */}
+              {pendingInvites.length > 0 && (
+                <div>
+                  <h3 className="text-base font-medium mb-4">Pending Invitations</h3>
+                  <div className="space-y-3">
+                    {pendingInvites.map((invite) => (
+                      <div key={invite.id} className="flex items-start justify-between p-3 border rounded-md bg-muted/10">
+                        <div className="flex items-start gap-3">
+                          <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                          <div>
+                            <p className="font-medium">{invite.email}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                                {invite.role === 'agent' ? 'User' : invite.role}
+                              </Badge>
+                              <p className="text-xs text-muted-foreground">
+                                Invited on {formatDate(invite.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => resendInvite(invite.email)}
+                            title="Resend Invitation"
+                          >
+                            <Mail className="h-4 w-4 text-blue-500" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => cancelInvite(invite.id)}
+                            title="Cancel Invitation"
+                          >
+                            <Trash className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Invite button */}
+              <div>
+                <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-1">
+                      <Plus className="h-4 w-4" /> Invite Team Member
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Invite Team Member</DialogTitle>
+                      <DialogDescription>
+                        Invite a new team member to your 7en.ai workspace.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...inviteForm}>
+                      <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
+                        <FormField
+                          control={inviteForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email Address</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="colleague@example.com" 
+                                  {...field} 
+                                  type="email"
+                                  autoComplete="email"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={inviteForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Role</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a role" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                  <SelectItem value="agent">User</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Admins can manage the entire workspace. Users can only create and manage chatbots.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <DialogFooter>
+                          <Button 
+                            type="submit" 
+                            className="flex items-center gap-1" 
+                            disabled={isSubmitting}
+                          >
+                            {isSubmitting ? (
+                              <>Sending...</>
+                            ) : (
+                              <>
+                                <Mail className="h-4 w-4" /> Send Invitation
+                              </>
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
@@ -937,337 +916,4 @@ const BusinessSettings = () => {
                             </li>
                           </ul>
                         </div>
-                        <div className="border rounded-lg p-4 space-y-2 border-primary bg-primary/5 cursor-pointer">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h3 className="font-medium">Enterprise Plan</h3>
-                              <p className="text-sm text-muted-foreground">For organizations</p>
-                            </div>
-                            <p className="text-lg font-bold">$99/month</p>
-                          </div>
-                          <ul className="space-y-1 text-sm">
-                            <li className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              <span>Everything in Pro</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              <span>Custom AI model training</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              <span>Dedicated support</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              <span>Unlimited team members</span>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                      <DialogFooter className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">
-                          All plans include a 14-day free trial
-                        </div>
-                        <Button onClick={handleUpgradePlan}>Continue to Payment</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-              <Separator />
-              <div>
-                <h3 className="font-medium">Billing Details</h3>
-                <p className="text-muted-foreground mt-1">No payment method added</p>
-                <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="mt-2 flex items-center gap-1">
-                      <CreditCard className="h-4 w-4" /> Add Payment Method
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Payment Method</DialogTitle>
-                      <DialogDescription>
-                        Add a credit card to your account for billing.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Form {...paymentForm}>
-                      <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
-                        <FormField
-                          control={paymentForm.control}
-                          name="cardName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Cardholder Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="John Doe" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={paymentForm.control}
-                          name="cardNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Card Number</FormLabel>
-                              <FormControl>
-                                <Input placeholder="1234 5678 9012 3456" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={paymentForm.control}
-                            name="expiryDate"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Expiry Date</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="MM/YY" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={paymentForm.control}
-                            name="cvc"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>CVC</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="123" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <DialogFooter>
-                          <Button type="submit" className="flex items-center gap-1">
-                            <CreditCard className="h-4 w-4" /> Add Card
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
-            <span>Preferences</span>
-            {!isEditingPreferences ? (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setIsEditingPreferences(true)}
-                className="flex items-center gap-1"
-              >
-                <Edit className="h-4 w-4" /> Edit
-              </Button>
-            ) : (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setIsEditingPreferences(false)}
-                className="flex items-center gap-1"
-              >
-                Cancel
-              </Button>
-            )}
-          </h2>
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              {isEditingPreferences ? (
-                <Form {...preferencesForm}>
-                  <form onSubmit={preferencesForm.handleSubmit(onPreferencesSubmit)} className="space-y-4">
-                    <FormField
-                      control={preferencesForm.control}
-                      name="emailNotifications"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Email Notifications</FormLabel>
-                            <FormDescription>
-                              Receive email notifications for important events
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={preferencesForm.control}
-                      name="timezone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Timezone</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select timezone" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="UTC-12">UTC-12 (Baker Island)</SelectItem>
-                              <SelectItem value="UTC-8">UTC-8 (Pacific Standard Time)</SelectItem>
-                              <SelectItem value="UTC-5">UTC-5 (Eastern Standard Time)</SelectItem>
-                              <SelectItem value="UTC+0">UTC+0 (Greenwich Mean Time)</SelectItem>
-                              <SelectItem value="UTC+1">UTC+1 (Central European Time)</SelectItem>
-                              <SelectItem value="UTC+2">UTC+2 (Eastern European Time)</SelectItem>
-                              <SelectItem value="UTC+8">UTC+8 (China Standard Time)</SelectItem>
-                              <SelectItem value="UTC+9">UTC+9 (Japan Standard Time)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={preferencesForm.control}
-                      name="language"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Language</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select language" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="en-US">English (US)</SelectItem>
-                              <SelectItem value="en-GB">English (UK)</SelectItem>
-                              <SelectItem value="es">Spanish</SelectItem>
-                              <SelectItem value="fr">French</SelectItem>
-                              <SelectItem value="de">German</SelectItem>
-                              <SelectItem value="zh">Chinese</SelectItem>
-                              <SelectItem value="ja">Japanese</SelectItem>
-                              <SelectItem value="ko">Korean</SelectItem>
-                              <SelectItem value="pt">Portuguese</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Set your preferred interface language
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={preferencesForm.control}
-                      name="defaultExportFormat"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Default Export Format</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select export format" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="json">JSON</SelectItem>
-                              <SelectItem value="csv">CSV</SelectItem>
-                              <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
-                              <SelectItem value="txt">Plain Text</SelectItem>
-                              <SelectItem value="pdf">PDF</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Choose your preferred format for data exports
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex justify-end pt-2">
-                      <Button type="submit" className="flex items-center gap-1">
-                        <Save className="h-4 w-4" /> Save Preferences
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              ) : (
-                <>
-                  <div>
-                    <h3 className="font-medium">Email Notifications</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {preferencesForm.getValues().emailNotifications ? 'Enabled' : 'Disabled'}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Timezone</h3>
-                    <p className="text-muted-foreground mt-1">{preferencesForm.getValues().timezone} (Pacific Standard Time)</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Language</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {preferencesForm.getValues().language === 'en-US' ? 'English (US)' : 
-                       preferencesForm.getValues().language === 'en-GB' ? 'English (UK)' :
-                       preferencesForm.getValues().language === 'es' ? 'Spanish' :
-                       preferencesForm.getValues().language === 'fr' ? 'French' :
-                       preferencesForm.getValues().language === 'de' ? 'German' :
-                       preferencesForm.getValues().language === 'zh' ? 'Chinese' :
-                       preferencesForm.getValues().language === 'ja' ? 'Japanese' :
-                       preferencesForm.getValues().language === 'ko' ? 'Korean' :
-                       preferencesForm.getValues().language === 'pt' ? 'Portuguese' : 
-                       preferencesForm.getValues().language}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Default Export Format</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {preferencesForm.getValues().defaultExportFormat.toUpperCase()}
-                    </p>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </section>
-
-        {isSuperAdmin && (
-          <>
-            <section>
-              <h2 className="text-xl font-semibold mb-4">Platform Settings</h2>
-              <Card>
-                <CardContent className="pt-6 space-y-4">
-                  <div>
-                    <h3 className="font-medium">Global Default Model</h3>
-                    <p className="text-muted-foreground mt-1">GPT-4</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Platform Theme</h3>
-                    <p className="text-muted-foreground mt-1">Light</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Default Business Settings</h3>
-                    <p className="text-muted-foreground mt-1">Configured</p>
-                  </div>
-                  <Button>Manage Platform Settings</Button>
-                </CardContent>
-              </Card>
-            </section>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default BusinessSettings;
+                        <div className="border rounded-lg p-4 space-y-2 border-primary bg-primary/5 cursor-
