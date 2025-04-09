@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -5,6 +6,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { TestPageLayout } from './components/layout/TestPageLayout';
 import Login from './pages/Login';
 import Verify from './pages/Verify';
+import InviteRegistration from './pages/InviteRegistration';
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import NotFound from './pages/NotFound';
@@ -174,6 +176,7 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/verify" element={<Verify />} />
+              <Route path="/register" element={<InviteRegistration />} />
               <Route path="/*" element={<ProtectedRoutes />} />
             </Routes>
             <Toaster />

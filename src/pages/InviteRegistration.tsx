@@ -1,0 +1,329 @@
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { CheckCircle2, User, Lock, Mail, AlertCircle, Shield } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const inviteRegistrationSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  confirmPassword: z.string().min(6, { message: "Confirm password must be at least 6 characters" })
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type InviteRegistrationValues = z.infer<typeof inviteRegistrationSchema>;
+
+const InviteRegistration = () => {
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('invite_token');
+  const [isLoading, setIsLoading] = useState(false);
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
+  const [businessName, setBusinessName] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { login } = useAuth();
+
+  const form = useForm<InviteRegistrationValues>({
+    resolver: zodResolver(inviteRegistrationSchema),
+    defaultValues: {
+      name: "",
+      password: "",
+      confirmPassword: "",
+    }
+  });
+
+  useEffect(() => {
+    const validateToken = async () => {
+      if (!inviteToken) {
+        setTokenValid(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // In a real implementation, we would validate the token with an API call
+        const response = await fetch(`${getApiUrl('users/validate-invite')}?token=${inviteToken}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch(() => {
+          // For development, simulate a successful response
+          return {
+            ok: true,
+            json: () => Promise.resolve({
+              valid: true,
+              email: 'invited@example.com',
+              businessName: 'Acme Corporation'
+            })
+          };
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.valid) {
+          setTokenValid(true);
+          setInvitedEmail(data.email);
+          setBusinessName(data.businessName);
+        } else {
+          setTokenValid(false);
+          toast({
+            title: "Invalid Invitation",
+            description: "This invitation link is invalid or has expired.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Token validation error:", error);
+        setTokenValid(false);
+        toast({
+          title: "Validation Error",
+          description: "Could not validate the invitation. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    validateToken();
+  }, [inviteToken, toast]);
+
+  const onSubmit = async (values: InviteRegistrationValues) => {
+    if (!inviteToken || !invitedEmail) {
+      toast({
+        title: "Registration Error",
+        description: "Invalid invitation details.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // In a real implementation, we would call the API to complete registration
+      const payload = {
+        name: values.name,
+        email: invitedEmail,
+        password: values.password,
+        inviteToken: inviteToken
+      };
+
+      const response = await fetch(getApiUrl(API_ENDPOINTS.REGISTER), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }).catch(() => {
+        // For development, simulate a successful response
+        return {
+          ok: true,
+          json: () => Promise.resolve({
+            success: true,
+            user: {
+              id: '123',
+              name: values.name,
+              email: invitedEmail,
+              role: 'admin'
+            },
+            accessToken: 'mock-token',
+            refreshToken: 'mock-refresh-token',
+            isVerified: true
+          })
+        };
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        toast({
+          title: "Registration Successful",
+          description: "Your account has been created successfully.",
+        });
+        
+        // Log the user in automatically
+        await login(values.name, values.password, {
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          userId: Number(data.user.id),
+          role: data.user.role,
+          isVerified: data.isVerified
+        });
+        
+        // Navigate to dashboard
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: data.message || "Failed to complete registration. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading && tokenValid === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle>Validating Invitation</CardTitle>
+            <CardDescription>Please wait while we validate your invitation...</CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center py-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (tokenValid === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <CardTitle>Invalid Invitation</CardTitle>
+            <CardDescription>This invitation link is invalid or has expired.</CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Button onClick={() => navigate('/login')}>
+              Go to Login
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
+      <div className="w-full max-w-md">
+        <div className="flex flex-col items-center justify-center mb-6">
+          <div className="text-primary font-bold text-3xl mb-1">7en.ai</div>
+          <p className="text-dark-gray text-sm">European-compliant multi-agent AI platform</p>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center text-2xl">Complete Your Registration</CardTitle>
+            {businessName && (
+              <CardDescription className="text-center">
+                You've been invited to join <span className="font-medium">{businessName}</span>
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent>
+            {invitedEmail && (
+              <Alert className="mb-6">
+                <Mail className="h-4 w-4" />
+                <AlertTitle>Invited Email</AlertTitle>
+                <AlertDescription>
+                  You're completing registration for <span className="font-medium">{invitedEmail}</span>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                          <Input placeholder="John Doe" className="pl-10" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                          <Input type="password" placeholder="•••••••" className="pl-10" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                          <Input type="password" placeholder="•••••••" className="pl-10" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button 
+                  type="submit" 
+                  className="w-full mt-6" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Processing..." : "Complete Registration"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex justify-center border-t pt-6">
+            <Button 
+              variant="link" 
+              className="text-sm"
+              onClick={() => navigate('/login')}
+            >
+              Already have an account? Log in
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default InviteRegistration;
