@@ -36,6 +36,7 @@ const getIconForType = (type: string) => {
       return <Globe className="h-4 w-4" />;
     case 'document':
     case 'pdf':
+    case 'docs':
       return <FileText className="h-4 w-4" />;
     case 'csv':
       return <Database className="h-4 w-4" />;
@@ -49,19 +50,21 @@ const getIconForType = (type: string) => {
 const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
   const { type } = knowledgeBase;
   
-  const firstSource = knowledgeBase.knowledge_sources?.[0];
-  if (!firstSource) return type;
+  // Count only selected sources/files
+  const selectedSourcesCount = knowledgeBase.knowledge_sources?.filter(source => source.is_selected).length || 0;
   
   switch (type.toLowerCase()) {
     case 'document':
     case 'pdf':
     case 'docs':
     case 'csv':
-      const fileCount = knowledgeBase.knowledge_sources.length;
-      return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
+      return `${selectedSourcesCount} ${selectedSourcesCount === 1 ? 'file' : 'files'}`;
       
     case 'website':
-      const urlCount = firstSource.sub_urls?.children?.length || 0;
+      const firstSource = knowledgeBase.knowledge_sources?.[0];
+      if (!firstSource) return type;
+      
+      const urlCount = firstSource.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
       return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
       
     case 'plain_text':
@@ -270,19 +273,21 @@ const KnowledgeBaseCard = ({
                   <div key={source.id} className="py-2">
                     {isWebsite && source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
                       <div className="space-y-1.5">
-                        {source.sub_urls.children.map((subUrl: any) => (
-                          <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
-                            <div className="flex items-center gap-2 max-w-[70%]">
-                              <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                              <span className="text-xs truncate">{subUrl.url}</span>
+                        {source.sub_urls.children
+                          .filter(subUrl => subUrl.is_selected)
+                          .map((subUrl: any) => (
+                            <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
+                              <div className="flex items-center gap-2 max-w-[70%]">
+                                <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                                <span className="text-xs truncate">{subUrl.url}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">
+                                  {subUrl.chars !== undefined ? `${subUrl.chars.toLocaleString()} chars` : 'N/A'}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">
-                                {subUrl.chars !== undefined ? `${subUrl.chars.toLocaleString()} chars` : 'N/A'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     ) : (isDocument || isCsv) && source.is_selected ? (
                       <div className="flex justify-between items-center mb-1.5">
@@ -293,7 +298,7 @@ const KnowledgeBaseCard = ({
                           <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
                         </div>
                       </div>
-                    ) : (!isDocument && !isCsv && !isWebsite) && (
+                    ) : (!isDocument && !isCsv && !isWebsite) && source.is_selected ? (
                       <div className="flex justify-between items-center mb-1.5">
                         <div className="flex items-center gap-2">
                           <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
@@ -302,9 +307,10 @@ const KnowledgeBaseCard = ({
                           <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
                         </div>
                       </div>
-                    )}
+                    ) : null}
                     
-                    {index < knowledgeBase.knowledge_sources.length - 1 && (
+                    {index < knowledgeBase.knowledge_sources.length - 1 && 
+                     knowledgeBase.knowledge_sources.filter(s => s.is_selected).length > 0 && (
                       <Separator className="mt-2 bg-gray-100" />
                     )}
                   </div>
