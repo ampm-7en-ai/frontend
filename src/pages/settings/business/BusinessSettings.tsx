@@ -31,6 +31,40 @@ import * as z from "zod";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
+// Define the form schemas using zod
+const profileFormSchema = z.object({
+  businessName: z.string().min(1, "Business name is required"),
+  adminEmail: z.string().email("Invalid email address"),
+});
+
+// Define the types based on the schemas
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+const inviteFormSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  role: z.enum(["admin", "agent"]),
+});
+
+type InviteFormValues = z.infer<typeof inviteFormSchema>;
+
+const paymentFormSchema = z.object({
+  cardName: z.string().min(1, "Cardholder name is required"),
+  cardNumber: z.string().min(16, "Card number must be at least 16 characters"),
+  expiryDate: z.string().min(4, "Expiry date is required"),
+  cvc: z.string().min(3, "CVC is required"),
+});
+
+type PaymentFormValues = z.infer<typeof paymentFormSchema>;
+
+const preferencesFormSchema = z.object({
+  emailNotifications: z.boolean(),
+  timezone: z.string(),
+  language: z.string(),
+  defaultExportFormat: z.string(),
+});
+
+type PreferencesFormValues = z.infer<typeof preferencesFormSchema>;
+
 type TeamMember = {
   id: string;
   name: string | null;
@@ -67,6 +101,7 @@ const BusinessSettings = () => {
     }
   }, [user]);
   
+  // Initialize forms with proper resolver and default values
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -881,147 +916,3 @@ const BusinessSettings = () => {
                               <SelectItem value="UTC-8">UTC-8 (Pacific Standard Time)</SelectItem>
                               <SelectItem value="UTC-5">UTC-5 (Eastern Standard Time)</SelectItem>
                               <SelectItem value="UTC+0">UTC+0 (Greenwich Mean Time)</SelectItem>
-                              <SelectItem value="UTC+1">UTC+1 (Central European Time)</SelectItem>
-                              <SelectItem value="UTC+2">UTC+2 (Eastern European Time)</SelectItem>
-                              <SelectItem value="UTC+8">UTC+8 (China Standard Time)</SelectItem>
-                              <SelectItem value="UTC+9">UTC+9 (Japan Standard Time)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={preferencesForm.control}
-                      name="language"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Language</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select language" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="en-US">English (US)</SelectItem>
-                              <SelectItem value="en-GB">English (UK)</SelectItem>
-                              <SelectItem value="es">Spanish</SelectItem>
-                              <SelectItem value="fr">French</SelectItem>
-                              <SelectItem value="de">German</SelectItem>
-                              <SelectItem value="zh">Chinese</SelectItem>
-                              <SelectItem value="ja">Japanese</SelectItem>
-                              <SelectItem value="ko">Korean</SelectItem>
-                              <SelectItem value="pt">Portuguese</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Set your preferred interface language
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={preferencesForm.control}
-                      name="defaultExportFormat"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Default Export Format</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select export format" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="json">JSON</SelectItem>
-                              <SelectItem value="csv">CSV</SelectItem>
-                              <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
-                              <SelectItem value="txt">Plain Text</SelectItem>
-                              <SelectItem value="pdf">PDF</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Choose your preferred format for data exports
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex justify-end pt-2">
-                      <Button type="submit" className="flex items-center gap-1">
-                        <Save className="h-4 w-4" /> Save Preferences
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              ) : (
-                <>
-                  <div>
-                    <h3 className="font-medium">Email Notifications</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {preferencesForm.getValues().emailNotifications ? 'Enabled' : 'Disabled'}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Timezone</h3>
-                    <p className="text-muted-foreground mt-1">{preferencesForm.getValues().timezone} (Pacific Standard Time)</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Language</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {preferencesForm.getValues().language === 'en-US' ? 'English (US)' : 
-                       preferencesForm.getValues().language === 'en-GB' ? 'English (UK)' :
-                       preferencesForm.getValues().language === 'es' ? 'Spanish' :
-                       preferencesForm.getValues().language === 'fr' ? 'French' :
-                       preferencesForm.getValues().language === 'de' ? 'German' :
-                       preferencesForm.getValues().language === 'zh' ? 'Chinese' :
-                       preferencesForm.getValues().language === 'ja' ? 'Japanese' :
-                       preferencesForm.getValues().language === 'ko' ? 'Korean' :
-                       preferencesForm.getValues().language === 'pt' ? 'Portuguese' : 
-                       preferencesForm.getValues().language}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Default Export Format</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {preferencesForm.getValues().defaultExportFormat.toUpperCase()}
-                    </p>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </section>
-
-        {isSuperAdmin && (
-          <>
-            <section>
-              <h2 className="text-xl font-semibold mb-4">Platform Settings</h2>
-              <Card>
-                <CardContent className="pt-6 space-y-4">
-                  <div>
-                    <h3 className="font-medium">Global Default Model</h3>
-                    <p className="text-muted-foreground mt-1">GPT-4</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Platform Theme</h3>
-                    <p className="text-muted-foreground mt-1">Light</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Default Business Settings</h3>
-                    <p className="text-muted-foreground mt-1">Configured</p>
-                  </div>
-                  <Button>Manage Platform Settings</Button>
-                </CardContent>
-              </Card>
-            </section>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default BusinessSettings;
