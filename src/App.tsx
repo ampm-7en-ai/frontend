@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -27,11 +26,10 @@ import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
 import { ProtectedRoute } from './utils/routeUtils';
-
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './context/ThemeContext';
 
-// Create a client
 const queryClient = new QueryClient();
 
 const ProtectedRoutes = () => {
@@ -59,7 +57,6 @@ const ProtectedRoutes = () => {
   
   return (
     <Routes>
-      {/* Main Layout Routes */}
       <Route path="/" element={<MainLayout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={
@@ -140,7 +137,6 @@ const ProtectedRoutes = () => {
         <Route path="/settings" element={<BusinessSettings />} />
         <Route path="/settings/business" element={<BusinessSettings />} />
         
-        {/* Platform settings routes */}
         <Route 
           path="/settings/platform/billing" 
           element={
@@ -162,7 +158,6 @@ const ProtectedRoutes = () => {
         <Route path="*" element={<NotFound />} />
       </Route>
 
-      {/* Test Page Layout - Simplified layout without sidebar and header */}
       <Route element={<TestPageLayout />}>
         <Route path="/agents/:agentId/test" element={<AgentTest />} />
       </Route>
@@ -172,18 +167,20 @@ const ProtectedRoutes = () => {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/verify" element={<Verify />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </Router>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/verify" element={<Verify />} />
+              <Route path="/*" element={<ProtectedRoutes />} />
+            </Routes>
+            <Toaster />
+          </AuthProvider>
+        </Router>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

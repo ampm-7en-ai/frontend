@@ -38,12 +38,42 @@
     --radius: 0.5rem;
   }
 
+  .dark {
+    --background: 220 13% 10%;
+    --foreground: 0 0% 95%;
+
+    --card: 220 13% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 220 13% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 216 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 13% 16%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 220 13% 16%;
+    --muted-foreground: 215 9% 65%;
+
+    --accent: 216 58% 12%;
+    --accent-foreground: 216 100% 65%;
+
+    --destructive: 3 78% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 14% 25%;
+    --input: 215 14% 25%;
+    --ring: 216 100% 50%;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-light-gray/50 text-black font-inter antialiased;
+    @apply bg-background text-foreground font-inter antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -85,7 +115,7 @@
 
 @layer components {
   .card {
-    @apply bg-white rounded-md border border-medium-gray/10 shadow-card p-3;
+    @apply bg-card rounded-md border shadow-card p-3;
   }
 
   .btn {
@@ -93,19 +123,19 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-hover;
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover;
   }
 
   .btn-secondary {
-    @apply bg-white text-primary border border-primary hover:bg-light-gray/50;
+    @apply bg-card text-primary border border-primary hover:bg-muted/50;
   }
 
   .btn-tertiary {
-    @apply bg-transparent text-primary hover:bg-light-gray/50;
+    @apply bg-transparent text-primary hover:bg-muted/50;
   }
 
   .btn-danger {
-    @apply bg-destructive text-white hover:bg-destructive/80;
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/80;
   }
 
   .btn-disabled {
@@ -129,6 +159,6 @@
   }
 
   .skeleton {
-    @apply animate-pulse bg-light-gray rounded;
+    @apply animate-pulse bg-muted rounded;
   }
 }
