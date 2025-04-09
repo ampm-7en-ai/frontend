@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogBody } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, X, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint, addKnowledgeSourcesToAgent } from '@/utils/api-config';
@@ -740,108 +741,21 @@ export const ImportSourcesDialog = ({
     );
   };
 
-  const getSourcesForFinalPanel = (state: any) => {
-    try {
-      if (!state.selectedSources || state.selectedSources.length === 0) {
-        console.log("No selected sources found");
-        return [];
-      }
-
-      const selectedSourcesArray = Array.isArray(state.selectedSources) 
-        ? state.selectedSources 
-        : Object.values(state.selectedSources);
-
-      return selectedSourcesArray.map((sourceId: number) => {
-        const source = state.sources.find((s: any) => s.id === sourceId);
-        if (!source) return null;
-        
-        const processedSource = { ...source };
-        
-        if (state.sourceSelections?.[source.id]?.documents) {
-          processedSource.documents = source.documents?.map((doc: any) => ({
-            ...doc,
-            selected: state.sourceSelections[source.id].documents.includes(doc.id)
-          }));
-        }
-        
-        if (state.sourceSelections?.[source.id]?.urls) {
-          if (!processedSource.selectedSubUrls) {
-            processedSource.selectedSubUrls = new Set();
-          }
-          
-          state.sourceSelections[source.id].urls.forEach((url: string) => {
-            processedSource.selectedSubUrls?.add(url);
-          });
-        }
-        
-        if (state.sourceSelections?.[source.id]?.insideLinks && source.insideLinks) {
-          processedSource.insideLinks = source.insideLinks.map((link: any, idx: number) => ({
-            ...link,
-            selected: state.sourceSelections[source.id].insideLinks.includes(idx)
-          }));
-        }
-        
-        if (state.sourceSelections?.[source.id]?.crawlOptions) {
-          processedSource.crawlOptions = state.sourceSelections[source.id].crawlOptions;
-        }
-        
-        if (state.sourceSelections?.[source.id]?.domainLinks) {
-          const updateNodeSelection = (node: any, selections: string[]) => {
-            if (!node) return node;
-            
-            const updatedNode = { ...node };
-            updatedNode.selected = selections.includes(node.url);
-            
-            if (updatedNode.children && updatedNode.children.length > 0) {
-              updatedNode.children = updatedNode.children.map((child: any) => 
-                updateNodeSelection(child, selections)
-              );
-            }
-            
-            return updatedNode;
-          };
-          
-          if (source.metadata?.domain_links) {
-            if (Array.isArray(source.metadata.domain_links)) {
-              processedSource.metadata = {
-                ...processedSource.metadata,
-                domain_links: source.metadata.domain_links.map((link: any) => 
-                  updateNodeSelection(link, state.sourceSelections[source.id].domainLinks)
-                )
-              };
-            } else {
-              processedSource.metadata = {
-                ...processedSource.metadata,
-                domain_links: updateNodeSelection(
-                  source.metadata.domain_links, 
-                  state.sourceSelections[source.id].domainLinks
-                )
-              };
-            }
-          }
-        }
-        
-        return processedSource;
-      }).filter(Boolean);
-    } catch (error) {
-      console.error("Error in getSourcesForFinalPanel:", error);
-      return [];
-    }
-  };
-
   const renderSelectedSourcesList = () => {
     if (selectedSources.size === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-          <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-          <p className="text-muted-foreground">Select knowledge sources from the list to import</p>
+        <div className="flex flex-col items-center justify-center py-4 text-center px-2">
+          <FileText className="h-6 w-6 text-muted-foreground/40 mb-1" />
+          <p className="text-muted-foreground text-xs">No sources selected</p>
         </div>
       );
     }
     
     return (
-      <div className="space-y-3">
-        <h3 className="text-lg font-medium px-2">Selected Sources</h3>
+      <div className="space-y-2">
+        <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
+          Selected
+        </div>
         {Array.from(selectedSources).map(sourceId => {
           const source = externalSources.find(s => s.id === sourceId);
           if (!source) return null;
@@ -850,28 +764,28 @@ export const ImportSourcesDialog = ({
           const urlCount = selectedSubUrls[sourceId]?.size || 0;
           
           return (
-            <div key={sourceId} className="flex items-start justify-between border rounded-md p-3">
-              <div className="flex items-start space-x-3">
-                <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
+            <div key={sourceId} className="flex items-start justify-between border rounded-md p-2">
+              <div className="flex items-center space-x-2">
+                <div>{renderSourceIcon(source.type)}</div>
                 
                 <div>
-                  <h4 className="font-medium text-sm">{source.name}</h4>
+                  <h4 className="text-xs font-medium">{source.name}</h4>
                   
                   {source.type === 'website' && urlCount > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-[10px] text-muted-foreground">
                       {urlCount} {urlCount === 1 ? 'URL' : 'URLs'} selected
                     </p>
                   )}
                   
                   {(source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
                     fileCount > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-[10px] text-muted-foreground">
                       {fileCount} {fileCount === 1 ? 'file' : 'files'} selected
                     </p>
                   )}
                   
                   {source.type === 'plain_text' && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-[10px] text-muted-foreground">
                       Text source
                     </p>
                   )}
@@ -881,7 +795,7 @@ export const ImportSourcesDialog = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-destructive"
+                className="h-6 w-6 text-muted-foreground hover:text-destructive"
                 onClick={() => {
                   const newSelectedSources = new Set(selectedSources);
                   newSelectedSources.delete(sourceId);
@@ -900,7 +814,7 @@ export const ImportSourcesDialog = ({
                   }
                 }}
               >
-                <Trash2 className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </Button>
             </div>
           );
@@ -911,15 +825,15 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] h-[756px] p-0 overflow-hidden" fixedFooter>
+      <DialogContent className="sm:max-w-[1200px] h-[80vh] max-h-[800px] p-0 overflow-hidden" fixedFooter>
         <DialogHeader className="px-6 pt-6 pb-2 border-b">
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
         
         <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel minSize={15} defaultSize={15}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
+          <ResizablePanel minSize={15} defaultSize={20}>
+            <div className="h-full flex flex-col">
+              <ScrollArea className="flex-1" style={{ '--scrollbar-color': 'var(--scrollbar-color, rgba(155, 135, 245, 0.3))' }}>
                 <div className="p-2 space-y-1">
                   {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
                     count > 0 && (
@@ -942,15 +856,19 @@ export const ImportSourcesDialog = ({
                     )
                   ))}
                 </div>
+                
+                <div className="p-2 pt-4 border-t mt-2">
+                  {renderSelectedSourcesList()}
+                </div>
               </ScrollArea>
             </div>
           </ResizablePanel>
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={25} defaultSize={25}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
+          <ResizablePanel minSize={25} defaultSize={30}>
+            <div className="h-full flex flex-col">
+              <ScrollArea className="flex-1" style={{ '--scrollbar-color': 'var(--scrollbar-color, rgba(155, 135, 245, 0.3))' }}>
                 <div className="p-2 space-y-2">
                   {filteredSources.length === 0 ? (
                     <div className="flex items-center justify-center h-full py-20">
@@ -1064,9 +982,9 @@ export const ImportSourcesDialog = ({
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel minSize={30} defaultSize={35}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
+          <ResizablePanel minSize={30} defaultSize={50}>
+            <div className="h-full flex flex-col">
+              <ScrollArea className="flex-1" style={{ '--scrollbar-color': 'var(--scrollbar-color, rgba(155, 135, 245, 0.3))' }}>
                 <div className="p-4">
                   {selectedKnowledgeBase ? (
                     <div>
@@ -1124,18 +1042,6 @@ export const ImportSourcesDialog = ({
                       <p className="text-muted-foreground">Select a knowledge source to view details</p>
                     </div>
                   )}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel minSize={20} defaultSize={25}>
-            <div className="border-0 rounded-md overflow-hidden h-full">
-              <ScrollArea className="h-full">
-                <div className="p-4">
-                  {renderSelectedSourcesList()}
                 </div>
               </ScrollArea>
             </div>
