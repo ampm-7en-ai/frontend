@@ -29,9 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// Form schemas
 const profileFormSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
   adminEmail: z.string().email("Invalid email address."),
@@ -521,9 +519,6 @@ const BusinessSettings = () => {
               <div className="rounded-md border">
                 <div className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
-                    </Avatar>
                     <div>
                       <p className="font-medium">{user?.name || 'You'}</p>
                       <p className="text-sm text-muted-foreground">{user?.email}</p>
@@ -537,63 +532,58 @@ const BusinessSettings = () => {
                     <Separator />
                     <div className="p-2">
                       <p className="text-sm text-muted-foreground p-2">Members</p>
-                      {members.map((member) => (
-                        <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
-                          <div className="flex items-center gap-3">
-                            <Avatar>
-                              <AvatarFallback>{member.name?.charAt(0) || member.email.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
+                      <div className="divide-y">
+                        {members.map((member) => (
+                          <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
                             <div>
                               <p className="font-medium">
                                 {member.name || member.email}
+                              </p>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <span className="capitalize">{member.role}</span>
                                 {member.status === 'pending' && (
-                                  <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> pending
+                                  <Badge variant="waiting" className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3 mr-1" /> waiting response
                                   </Badge>
                                 )}
-                              </p>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span>{member.email}</span>
                                 <span>&bull;</span>
-                                <span className="capitalize">{member.role}</span>
-                                <span>&bull;</span>
-                                <span>{formatDate(member.created_at)}</span>
+                                <span>Added {formatDate(member.created_at)}</span>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {member.status === 'pending' ? (
-                              <>
+                            <div className="flex items-center gap-2">
+                              {member.status === 'pending' ? (
+                                <>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => resendInvite(member.email)}
+                                    title="Resend Invitation"
+                                  >
+                                    <Mail className="h-4 w-4 text-blue-500" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => cancelInvite(member.id)}
+                                    title="Cancel Invitation"
+                                  >
+                                    <Trash className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </>
+                              ) : (
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  onClick={() => resendInvite(member.email)}
-                                  title="Resend Invitation"
-                                >
-                                  <Mail className="h-4 w-4 text-blue-500" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  onClick={() => cancelInvite(member.id)}
-                                  title="Cancel Invitation"
+                                  onClick={() => deleteMember(member.id)}
+                                  title="Remove Member"
                                 >
                                   <Trash className="h-4 w-4 text-red-500" />
                                 </Button>
-                              </>
-                            ) : (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => deleteMember(member.id)}
-                                title="Remove Member"
-                              >
-                                <Trash className="h-4 w-4 text-red-500" />
-                              </Button>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}
