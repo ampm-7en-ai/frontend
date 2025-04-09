@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Card, 
@@ -30,7 +30,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Form schemas
 const profileFormSchema = z.object({
@@ -70,15 +69,6 @@ interface PendingInvite {
   status: 'pending';
 }
 
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: 'active';
-  last_active: string;
-}
-
 const BusinessSettings = () => {
   const { user, getToken } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
@@ -91,33 +81,7 @@ const BusinessSettings = () => {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    {
-      id: '1',
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      role: 'admin',
-      status: 'active',
-      last_active: '2025-04-09T08:45:00Z'
-    },
-    {
-      id: '2',
-      name: 'Mike Johnson',
-      email: 'mike.johnson@example.com',
-      role: 'user',
-      status: 'active',
-      last_active: '2025-04-09T07:30:00Z'
-    },
-    {
-      id: '3',
-      name: 'Sara Wilson',
-      email: 'sara.wilson@example.com',
-      role: 'user',
-      status: 'active',
-      last_active: '2025-04-08T16:15:00Z'
-    }
-  ]);
-  
+  // Static pending invites list - displayed immediately when page loads
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([
     {
       id: '1',
@@ -129,7 +93,7 @@ const BusinessSettings = () => {
     {
       id: '2',
       email: 'sarah.smith@example.com',
-      role: 'user',
+      role: 'agent',
       created_at: '2025-04-08T12:45:00Z',
       status: 'pending'
     },
@@ -186,6 +150,7 @@ const BusinessSettings = () => {
 
   const cancelInvite = async (inviteId: string) => {
     try {
+      // Simulate API call to cancel invitation
       setPendingInvites(pendingInvites.filter(invite => invite.id !== inviteId));
       
       toast({
@@ -203,6 +168,7 @@ const BusinessSettings = () => {
 
   const resendInvite = async (email: string) => {
     try {
+      // Simulate API call to resend invitation
       toast({
         title: "Invitation resent",
         description: `An invitation has been resent to ${email}.`,
@@ -211,42 +177,6 @@ const BusinessSettings = () => {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred while resending the invitation.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const removeTeamMember = async (memberId: string) => {
-    try {
-      setTeamMembers(teamMembers.filter(member => member.id !== memberId));
-      
-      toast({
-        title: "Team member removed",
-        description: "The team member has been removed successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while removing the team member.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const changeTeamMemberRole = async (memberId: string, newRole: string) => {
-    try {
-      setTeamMembers(teamMembers.map(member => 
-        member.id === memberId ? { ...member, role: newRole } : member
-      ));
-      
-      toast({
-        title: "Role updated",
-        description: "The team member's role has been updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while updating the role.",
         variant: "destructive",
       });
     }
@@ -269,15 +199,12 @@ const BusinessSettings = () => {
         throw new Error("You must be logged in to send invitations");
       }
       
-      // Convert agent role to user for the API
-      const roleForApi = data.role === "agent" ? "user" : data.role;
-      
-      const response = await fetch(getApiUrl(API_ENDPOINTS.TEAM_INVITE), {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'create_team_invite')), {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
           email: data.email,
-          role: roleForApi,
+          role: data.role,
         }),
       });
       
@@ -291,8 +218,9 @@ const BusinessSettings = () => {
         description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
       });
       
+      // Add the new invite to our static list
       const newInvite: PendingInvite = {
-        id: `inv-${Date.now()}`,
+        id: `inv-${Date.now()}`, // generate a unique ID
         email: data.email,
         role: data.role,
         created_at: new Date().toISOString(),
@@ -346,15 +274,6 @@ const BusinessSettings = () => {
       description: "Your subscription has been upgraded successfully.",
     });
     setShowUpgradeDialog(false);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
   };
 
   return (
@@ -541,229 +460,156 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Team Management</h2>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground mb-6">
-              Manage your team members and invitations to your 7en.ai workspace.
-            </p>
-            
-            {/* Team Members list */}
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-base font-medium mb-4">Team Members</h3>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Member</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {/* Current user (owner) row */}
-                      <TableRow>
-                        <TableCell>
+        <section>
+          <h2 className="text-xl font-semibold mb-4">Team Management</h2>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground mb-4">
+                Team members who have access to your 7en.ai workspace.
+              </p>
+              <div className="rounded-md border">
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{user?.name}</p>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </div>
+                  <Badge>Admin</Badge>
+                </div>
+                
+                {pendingInvites.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="p-2">
+                      <p className="text-sm text-muted-foreground p-2">Pending Invitations</p>
+                      {pendingInvites.map((invite) => (
+                        <div key={invite.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-primary/10 text-primary">
-                                {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                              </AvatarFallback>
+                            <Avatar>
+                              <AvatarFallback>{invite.email.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium">{user?.name || 'You'}</p>
-                              <p className="text-sm text-muted-foreground">{user?.email}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                            Owner
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {/* No actions for owner */}
-                        </TableCell>
-                      </TableRow>
-                      
-                      {/* Other team members */}
-                      {teamMembers.map((member) => (
-                        <TableRow key={member.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-muted">
-                                  {member.name.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{member.name}</p>
-                                <p className="text-sm text-muted-foreground">{member.email}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={member.role === 'admin' ? 
-                              'bg-blue-50 text-blue-700 border-blue-200' : 
-                              'bg-gray-50 text-gray-700 border-gray-200'}>
-                              {member.role === 'admin' ? 'Admin' : 'User'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon"
-                                    onClick={() => removeTeamMember(member.id)}
-                                  >
-                                    <Trash className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Remove Member</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-              
-              {/* Pending Invitations */}
-              {pendingInvites.length > 0 && (
-                <div>
-                  <h3 className="text-base font-medium mb-4">Pending Invitations</h3>
-                  <div className="space-y-3">
-                    {pendingInvites.map((invite) => (
-                      <div key={invite.id} className="flex items-start justify-between p-3 border rounded-md bg-muted/10">
-                        <div className="flex items-start gap-3">
-                          <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                          <div>
-                            <p className="font-medium">{invite.email}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                                {invite.role === 'agent' ? 'User' : invite.role}
-                              </Badge>
-                              <p className="text-xs text-muted-foreground">
-                                Invited on {formatDate(invite.created_at)}
+                              <p className="font-medium flex items-center gap-1">
+                                {invite.email}
+                                <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" /> pending
+                                </Badge>
                               </p>
+                              <p className="text-sm text-muted-foreground">Awaiting response</p>
                             </div>
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Badge>{invite.role}</Badge>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => resendInvite(invite.email)}
+                              title="Resend Invitation"
+                            >
+                              <Mail className="h-4 w-4 text-blue-500" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => cancelInvite(invite.id)}
+                              title="Cancel Invitation"
+                            >
+                              <Trash className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => resendInvite(invite.email)}
-                            title="Resend Invitation"
-                          >
-                            <Mail className="h-4 w-4 text-blue-500" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => cancelInvite(invite.id)}
-                            title="Cancel Invitation"
-                          >
-                            <Trash className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Invite button */}
-              <div>
-                <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-1">
-                      <Plus className="h-4 w-4" /> Invite Team Member
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Invite Team Member</DialogTitle>
-                      <DialogDescription>
-                        Invite a new team member to your 7en.ai workspace.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Form {...inviteForm}>
-                      <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
-                        <FormField
-                          control={inviteForm.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email Address</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="colleague@example.com" 
-                                  {...field} 
-                                  type="email"
-                                  autoComplete="email"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={inviteForm.control}
-                          name="role"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Role</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      ))}
+                    </div>
+                  </>
+                )}
+                
+                <Separator />
+                <div className="p-4">
+                  <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="flex items-center gap-1">
+                        <Plus className="h-4 w-4" /> Invite Team Member
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Invite Team Member</DialogTitle>
+                        <DialogDescription>
+                          Invite a new team member to your 7en.ai workspace.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Form {...inviteForm}>
+                        <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
+                          <FormField
+                            control={inviteForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Address</FormLabel>
                                 <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a role" />
-                                  </SelectTrigger>
+                                  <Input 
+                                    placeholder="colleague@example.com" 
+                                    {...field} 
+                                    type="email"
+                                    autoComplete="email"
+                                  />
                                 </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="agent">User</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormDescription>
-                                Admins can manage the entire workspace. Users can only create and manage chatbots.
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <DialogFooter>
-                          <Button 
-                            type="submit" 
-                            className="flex items-center gap-1" 
-                            disabled={isSubmitting}
-                          >
-                            {isSubmitting ? (
-                              <>Sending...</>
-                            ) : (
-                              <>
-                                <Mail className="h-4 w-4" /> Send Invitation
-                              </>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
+                          />
+                          <FormField
+                            control={inviteForm.control}
+                            name="role"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Role</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                    <SelectItem value="agent">Agent</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  Admins can manage the entire workspace. Agents can only create and manage chatbots.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <DialogFooter>
+                            <Button 
+                              type="submit" 
+                              className="flex items-center gap-1" 
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? (
+                                <>Sending...</>
+                              ) : (
+                                <>
+                                  <Mail className="h-4 w-4" /> Send Invitation
+                                </>
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+            </CardContent>
+          </Card>
+        </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
@@ -916,4 +762,337 @@ const BusinessSettings = () => {
                             </li>
                           </ul>
                         </div>
-                        <div className="border rounded-lg p-4 space-y-2 border-primary bg-primary/5 cursor-
+                        <div className="border rounded-lg p-4 space-y-2 border-primary bg-primary/5 cursor-pointer">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h3 className="font-medium">Enterprise Plan</h3>
+                              <p className="text-sm text-muted-foreground">For organizations</p>
+                            </div>
+                            <p className="text-lg font-bold">$99/month</p>
+                          </div>
+                          <ul className="space-y-1 text-sm">
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <span>Everything in Pro</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <span>Custom AI model training</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <span>Dedicated support</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <span>Unlimited team members</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                      <DialogFooter className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                          All plans include a 14-day free trial
+                        </div>
+                        <Button onClick={handleUpgradePlan}>Continue to Payment</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="font-medium">Billing Details</h3>
+                <p className="text-muted-foreground mt-1">No payment method added</p>
+                <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="mt-2 flex items-center gap-1">
+                      <CreditCard className="h-4 w-4" /> Add Payment Method
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Payment Method</DialogTitle>
+                      <DialogDescription>
+                        Add a credit card to your account for billing.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...paymentForm}>
+                      <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
+                        <FormField
+                          control={paymentForm.control}
+                          name="cardName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cardholder Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="John Doe" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={paymentForm.control}
+                          name="cardNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Card Number</FormLabel>
+                              <FormControl>
+                                <Input placeholder="1234 5678 9012 3456" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={paymentForm.control}
+                            name="expiryDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Expiry Date</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="MM/YY" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={paymentForm.control}
+                            name="cvc"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>CVC</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="123" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <DialogFooter>
+                          <Button type="submit" className="flex items-center gap-1">
+                            <CreditCard className="h-4 w-4" /> Add Card
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
+            <span>Preferences</span>
+            {!isEditingPreferences ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsEditingPreferences(true)}
+                className="flex items-center gap-1"
+              >
+                <Edit className="h-4 w-4" /> Edit
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsEditingPreferences(false)}
+                className="flex items-center gap-1"
+              >
+                Cancel
+              </Button>
+            )}
+          </h2>
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              {isEditingPreferences ? (
+                <Form {...preferencesForm}>
+                  <form onSubmit={preferencesForm.handleSubmit(onPreferencesSubmit)} className="space-y-4">
+                    <FormField
+                      control={preferencesForm.control}
+                      name="emailNotifications"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Email Notifications</FormLabel>
+                            <FormDescription>
+                              Receive email notifications for important events
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="timezone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Timezone</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select timezone" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="UTC-12">UTC-12 (Baker Island)</SelectItem>
+                              <SelectItem value="UTC-8">UTC-8 (Pacific Standard Time)</SelectItem>
+                              <SelectItem value="UTC-5">UTC-5 (Eastern Standard Time)</SelectItem>
+                              <SelectItem value="UTC+0">UTC+0 (Greenwich Mean Time)</SelectItem>
+                              <SelectItem value="UTC+1">UTC+1 (Central European Time)</SelectItem>
+                              <SelectItem value="UTC+2">UTC+2 (Eastern European Time)</SelectItem>
+                              <SelectItem value="UTC+8">UTC+8 (China Standard Time)</SelectItem>
+                              <SelectItem value="UTC+9">UTC+9 (Japan Standard Time)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Language</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select language" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="en-US">English (US)</SelectItem>
+                              <SelectItem value="en-GB">English (UK)</SelectItem>
+                              <SelectItem value="es">Spanish</SelectItem>
+                              <SelectItem value="fr">French</SelectItem>
+                              <SelectItem value="de">German</SelectItem>
+                              <SelectItem value="zh">Chinese</SelectItem>
+                              <SelectItem value="ja">Japanese</SelectItem>
+                              <SelectItem value="ko">Korean</SelectItem>
+                              <SelectItem value="pt">Portuguese</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Set your preferred interface language
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="defaultExportFormat"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Default Export Format</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select export format" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="json">JSON</SelectItem>
+                              <SelectItem value="csv">CSV</SelectItem>
+                              <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
+                              <SelectItem value="txt">Plain Text</SelectItem>
+                              <SelectItem value="pdf">PDF</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Choose your preferred format for data exports
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end pt-2">
+                      <Button type="submit" className="flex items-center gap-1">
+                        <Save className="h-4 w-4" /> Save Preferences
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              ) : (
+                <>
+                  <div>
+                    <h3 className="font-medium">Email Notifications</h3>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().emailNotifications ? 'Enabled' : 'Disabled'}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Timezone</h3>
+                    <p className="text-muted-foreground mt-1">{preferencesForm.getValues().timezone} (Pacific Standard Time)</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Language</h3>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().language === 'en-US' ? 'English (US)' : 
+                       preferencesForm.getValues().language === 'en-GB' ? 'English (UK)' :
+                       preferencesForm.getValues().language === 'es' ? 'Spanish' :
+                       preferencesForm.getValues().language === 'fr' ? 'French' :
+                       preferencesForm.getValues().language === 'de' ? 'German' :
+                       preferencesForm.getValues().language === 'zh' ? 'Chinese' :
+                       preferencesForm.getValues().language === 'ja' ? 'Japanese' :
+                       preferencesForm.getValues().language === 'ko' ? 'Korean' :
+                       preferencesForm.getValues().language === 'pt' ? 'Portuguese' : 
+                       preferencesForm.getValues().language}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Default Export Format</h3>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().defaultExportFormat.toUpperCase()}
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
+        {isSuperAdmin && (
+          <>
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Platform Settings</h2>
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <div>
+                    <h3 className="font-medium">Global Default Model</h3>
+                    <p className="text-muted-foreground mt-1">GPT-4</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Platform Theme</h3>
+                    <p className="text-muted-foreground mt-1">Light</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Default Business Settings</h3>
+                    <p className="text-muted-foreground mt-1">Configured</p>
+                  </div>
+                  <Button>Manage Platform Settings</Button>
+                </CardContent>
+              </Card>
+            </section>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default BusinessSettings;

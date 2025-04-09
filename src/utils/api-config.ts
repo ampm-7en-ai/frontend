@@ -7,14 +7,13 @@ export const BASE_URL = "https://api.7en.ai/api/";
 
 // API endpoints
 export const API_ENDPOINTS = {
-  REGISTER: 'users/register/',
-  VERIFY_OTP: 'users/verify_otp/',
-  LOGIN: 'users/login/',
-  RESEND_OTP: 'users/resend-otp/',
-  SSO_LOGIN: 'users/sso_login/',
-  AGENTS: 'agents/',
-  KNOWLEDGEBASE: 'knowledgesource/',
-  TEAM_INVITE: 'users/create_team_invite/',
+  REGISTER: "users/register/",
+  VERIFY_OTP: "users/verify_otp/",
+  LOGIN: "users/login/",
+  RESEND_OTP: "users/resend-otp/",
+  SSO_LOGIN: "users/sso_login/",
+  AGENTS: "agents/",
+  KNOWLEDGEBASE: "knowledgebase/"
 };
 
 // Function to get knowledge base endpoint with optional agent ID
