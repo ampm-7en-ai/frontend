@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -23,6 +25,7 @@ interface ImportSourcesDialogProps {
   onImport: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => void;
   agentId?: string;
   preventMultipleCalls?: boolean;
+  isLoading?: boolean;
 }
 
 export const ImportSourcesDialog = ({
@@ -33,6 +36,7 @@ export const ImportSourcesDialog = ({
   onImport,
   agentId = "",
   preventMultipleCalls = false,
+  isLoading = false,
 }: ImportSourcesDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -168,13 +172,15 @@ export const ImportSourcesDialog = ({
       plain_text: { count: 0, label: 'Plain Text', icon: <File className="h-4 w-4 text-purple-600" /> }
     };
     
-    externalSources.forEach(source => {
-      counts.all.count++;
-      const sourceType = source.type as keyof typeof counts;
-      if (counts[sourceType]) {
-        counts[sourceType].count++;
-      }
-    });
+    if (Array.isArray(externalSources)) {
+      externalSources.forEach(source => {
+        counts.all.count++;
+        const sourceType = source.type as keyof typeof counts;
+        if (counts[sourceType]) {
+          counts[sourceType].count++;
+        }
+      });
+    }
     
     return counts;
   }, [externalSources]);
@@ -880,6 +886,77 @@ export const ImportSourcesDialog = ({
     );
   };
 
+  const renderSourceTypesSkeleton = () => (
+    <div className="space-y-1 mb-4">
+      {[1, 2, 3, 4, 5].map(i => (
+        <div key={i} className="flex items-center justify-between px-3 py-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <Skeleton className="h-5 w-8 rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderKnowledgeSourcesSkeleton = () => (
+    <div className="p-2 space-y-2">
+      {[1, 2, 3, 4, 5].map(i => (
+        <div key={i} className="p-3 border rounded-md">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-3">
+              <Skeleton className="h-4 w-4 mt-0.5" />
+              <div>
+                <Skeleton className="h-4 w-40 mb-2" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+            </div>
+            <Skeleton className="h-4 w-4" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderSourceDetailsSkeleton = () => (
+    <div className="p-4">
+      <div className="mb-4">
+        <Skeleton className="h-6 w-40" />
+      </div>
+      <div className="space-y-4">
+        <div className="flex flex-col space-y-2 mb-4 px-2 w-full">
+          <Skeleton className="h-8 w-full" />
+          <div className="flex items-center justify-between w-full gap-2">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-7 w-20" />
+              <Skeleton className="h-7 w-24" />
+            </div>
+          </div>
+        </div>
+        <div className="border rounded-md p-3">
+          <Skeleton className="h-5 w-32 mb-3" />
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex items-center py-2">
+                <Skeleton className="h-4 w-4 mr-2" />
+                <div className="flex flex-col flex-1">
+                  <Skeleton className="h-4 w-40 mb-1" />
+                  <Skeleton className="h-3 w-60" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1300px] h-[90vh] max-h-[950px] p-0 overflow-hidden" fixedFooter>
@@ -887,184 +964,200 @@ export const ImportSourcesDialog = ({
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
         
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel minSize={15} defaultSize={20}>
-            <div className="h-full flex flex-col p-2">
-              <div className="space-y-1 mb-4">
-                {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
-                  count > 0 && (
-                    <button
-                      key={type}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
-                        selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                      )}
-                      onClick={() => setSelectedType(type)}
-                    >
-                      <span className="flex items-center">
-                        {icon}
-                        <span className="ml-2">{label}</span>
-                      </span>
-                      <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
-                        {count}
-                      </span>
-                    </button>
-                  )
-                ))}
-              </div>
-              
-              <div className="border-t pt-3 flex-1 overflow-hidden">
-                <ScrollArea className="h-full pr-2">
-                  {renderSelectedSourcesList()}
-                </ScrollArea>
-              </div>
+        {isLoading ? (
+          <div className="flex-1 overflow-hidden">
+            <div className="flex items-center justify-center h-full">
+              <LoadingSpinner size="lg" text="Loading knowledge sources..." />
             </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel minSize={25} defaultSize={30}>
-            <div className="h-full flex flex-col">
-              <ScrollArea className="flex-1 pr-2">
-                <div className="p-2 space-y-2">
-                  {filteredSources.length === 0 ? (
-                    <div className="flex items-center justify-center h-full py-20">
-                      <p className="text-muted-foreground">No sources found</p>
-                    </div>
-                  ) : (
-                    filteredSources.map(source => (
-                      <div
-                        key={source.id}
+          </div>
+        ) : externalSources.length === 0 ? (
+          <div className="flex-1 overflow-hidden">
+            <div className="flex flex-col items-center justify-center h-full py-12">
+              <FileText className="h-12 w-12 text-muted-foreground/40 mb-4" />
+              <p className="text-lg text-muted-foreground">No knowledge sources available</p>
+              <p className="text-sm text-muted-foreground mt-1">Try uploading some documents or adding websites</p>
+            </div>
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="horizontal" className="flex-1">
+            <ResizablePanel minSize={15} defaultSize={20}>
+              <div className="h-full flex flex-col p-2">
+                <div className="space-y-1 mb-4">
+                  {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
+                    count > 0 && (
+                      <button
+                        key={type}
                         className={cn(
-                          "p-3 border rounded-md cursor-pointer hover:border-primary transition-colors",
-                          (selectedSources.has(source.id) || selectedKnowledgeBase?.id === source.id) && "border-primary bg-primary/5"
+                          "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
+                          selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                         )}
-                        onClick={() => handleKnowledgeBaseClick(source)}
+                        onClick={() => setSelectedType(type)}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-3">
-                            <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
-                            
-                            <div>
-                              <h4 className="font-medium text-sm">
-                                {source.name}
-                                {isSourceAlreadyImported(source.id) && (
-                                  <Badge variant="outline" className="ml-2 text-xs">
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    Imported
-                                  </Badge>
-                                )}
-                              </h4>
+                        <span className="flex items-center">
+                          {icon}
+                          <span className="ml-2">{label}</span>
+                        </span>
+                        <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  ))}
+                </div>
+                
+                <div className="border-t pt-3 flex-1 overflow-hidden">
+                  <ScrollArea className="h-full pr-2">
+                    {renderSelectedSourcesList()}
+                  </ScrollArea>
+                </div>
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            <ResizablePanel minSize={25} defaultSize={30}>
+              <div className="h-full flex flex-col">
+                <ScrollArea className="flex-1 pr-2">
+                  <div className="p-2 space-y-2">
+                    {filteredSources.length === 0 ? (
+                      <div className="flex items-center justify-center h-full py-20">
+                        <p className="text-muted-foreground">No sources found</p>
+                      </div>
+                    ) : (
+                      filteredSources.map(source => (
+                        <div
+                          key={source.id}
+                          className={cn(
+                            "p-3 border rounded-md cursor-pointer hover:border-primary transition-colors",
+                            (selectedSources.has(source.id) || selectedKnowledgeBase?.id === source.id) && "border-primary bg-primary/5"
+                          )}
+                          onClick={() => handleKnowledgeBaseClick(source)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3">
+                              <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
                               
-                              <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
-                                <span className="mr-3">
-                                  Type: {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
-                                </span>
+                              <div>
+                                <h4 className="font-medium text-sm">
+                                  {source.name}
+                                  {isSourceAlreadyImported(source.id) && (
+                                    <Badge variant="outline" className="ml-2 text-xs">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Imported
+                                    </Badge>
+                                  )}
+                                </h4>
                                 
-                                {source.chunks !== undefined && (
-                                  <span className="mr-3">{source.chunks} chunks</span>
-                                )}
-                                
-                                {getFileCount(source) > 0 && (
+                                <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
                                   <span className="mr-3">
-                                    {getFileCount(source)} {source.type === 'website' ? 'pages' : 'files'}
+                                    Type: {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
                                   </span>
-                                )}
-                                
-                                {source.metadata?.created_at && (
-                                  <span>
-                                    Added: {new Date(source.metadata.created_at).toLocaleDateString()}
-                                  </span>
-                                )}
+                                  
+                                  {source.chunks !== undefined && (
+                                    <span className="mr-3">{source.chunks} chunks</span>
+                                  )}
+                                  
+                                  {getFileCount(source) > 0 && (
+                                    <span className="mr-3">
+                                      {getFileCount(source)} {source.type === 'website' ? 'pages' : 'files'}
+                                    </span>
+                                  )}
+                                  
+                                  {source.metadata?.created_at && (
+                                    <span>
+                                      Added: {new Date(source.metadata.created_at).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source))) ? (
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <Checkbox
-                                checked={selectedSources.has(source.id)}
-                                onCheckedChange={(checked) => {
-                                  const newSelectedSources = new Set(selectedSources);
-                                  
-                                  if (checked) {
-                                    newSelectedSources.add(source.id);
-                                  } else {
-                                    newSelectedSources.delete(source.id);
-                                  }
-                                  
-                                  setSelectedSources(newSelectedSources);
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            )}
+                            
+                            <div className="flex items-center">
+                              {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source))) ? (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Checkbox
+                                  checked={selectedSources.has(source.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newSelectedSources = new Set(selectedSources);
+                                    
+                                    if (checked) {
+                                      newSelectedSources.add(source.id);
+                                    } else {
+                                      newSelectedSources.delete(source.id);
+                                    }
+                                    
+                                    setSelectedSources(newSelectedSources);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel minSize={30} defaultSize={50}>
-            <div className="h-full flex flex-col">
-              <ScrollArea className="flex-1">
-                <div className="p-4">
-                  {selectedKnowledgeBase ? (
-                    <div>
-                      <div className="mb-4">
-                        <h3 className="text-lg font-medium flex items-center">
-                          {renderSourceIcon(selectedKnowledgeBase.type)}
-                          <span className="ml-2">{selectedKnowledgeBase.name}</span>
-                        </h3>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        {hasUrlStructure(selectedKnowledgeBase) ? (
-                          <>
-                            {renderWebsiteFilterControls()}
-                            <div className="border rounded-md p-3">
-                              <h4 className="font-medium text-sm mb-3">Website URLs</h4>
-                              {renderWebsiteUrls(selectedKnowledgeBase)}
-                            </div>
-                          </>
-                        ) : hasNestedFiles(selectedKnowledgeBase) ? (
-                          <div className="border rounded-md p-3">
-                            <h4 className="font-medium text-sm mb-3">Files</h4>
-                            {renderNestedFiles(selectedKnowledgeBase)}
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
-                            <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                            <p className="text-muted-foreground">No detailed content available for this source</p>
-                          </div>
-                        )}
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            <ResizablePanel minSize={30} defaultSize={50}>
+              <div className="h-full flex flex-col">
+                <ScrollArea className="flex-1">
+                  <div className="p-4">
+                    {selectedKnowledgeBase ? (
+                      <div>
+                        <div className="mb-4">
+                          <h3 className="text-lg font-medium flex items-center">
+                            {renderSourceIcon(selectedKnowledgeBase.type)}
+                            <span className="ml-2">{selectedKnowledgeBase.name}</span>
+                          </h3>
+                        </div>
                         
-                        {selectedKnowledgeBase.description && (
-                          <div className="border rounded-md p-3">
-                            <h4 className="font-medium text-sm mb-1">Description</h4>
-                            <p className="text-sm text-muted-foreground">{selectedKnowledgeBase.description}</p>
-                          </div>
-                        )}
+                        <div className="space-y-4">
+                          {hasUrlStructure(selectedKnowledgeBase) ? (
+                            <>
+                              {renderWebsiteFilterControls()}
+                              <div className="border rounded-md p-3">
+                                <h4 className="font-medium text-sm mb-3">Website URLs</h4>
+                                {renderWebsiteUrls(selectedKnowledgeBase)}
+                              </div>
+                            </>
+                          ) : hasNestedFiles(selectedKnowledgeBase) ? (
+                            <div className="border rounded-md p-3">
+                              <h4 className="font-medium text-sm mb-3">Files</h4>
+                              {renderNestedFiles(selectedKnowledgeBase)}
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                              <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                              <p className="text-muted-foreground">No detailed content available for this source</p>
+                            </div>
+                          )}
+                          
+                          {selectedKnowledgeBase.description && (
+                            <div className="border rounded-md p-3">
+                              <h4 className="font-medium text-sm mb-1">Description</h4>
+                              <p className="text-sm text-muted-foreground">{selectedKnowledgeBase.description}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                      <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
-                      <p className="text-muted-foreground">Select a knowledge source to view details</p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                        <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                        <p className="text-muted-foreground">Select a knowledge source to view details</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
         
         <DialogFooter className="px-6 py-4 border-t" fixed>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -1072,7 +1165,7 @@ export const ImportSourcesDialog = ({
           </Button>
           <Button 
             onClick={handleImport} 
-            disabled={selectedSources.size === 0 || isImporting}
+            disabled={selectedSources.size === 0 || isImporting || isLoading}
           >
             {isImporting ? "Importing..." : "Import Sources"}
           </Button>
