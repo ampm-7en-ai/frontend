@@ -125,7 +125,6 @@ export const ImportSourcesDialog = ({
   }, [selectedKnowledgeBase]);
 
   useEffect(() => {
-    // Fixed TypeScript error by explicitly typing each entry
     for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
       const numericId = Number(sourceId);
       if (urlSet && urlSet.size > 0) {
@@ -274,8 +273,25 @@ export const ImportSourcesDialog = ({
     return urls;
   };
 
-  const selectAllUrlsUnderNode = (sourceId: number, node: UrlNode) => {
-    const allUrls = getAllUrlsFromNode(node);
+  // Helper to get all flattened URLs
+  const getFlattenedUrls = (node: UrlNode): UrlNode[] => {
+    let urls: UrlNode[] = [];
+    
+    // Don't include the root node itself
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        urls.push(child);
+        if (child.children && child.children.length > 0) {
+          urls = [...urls, ...getFlattenedUrls(child)];
+        }
+      }
+    }
+    
+    return urls;
+  };
+
+  const selectAllUrls = (sourceId: number, rootNode: UrlNode) => {
+    const allUrls = getAllUrlsFromNode(rootNode);
     
     setSelectedSubUrls(prev => {
       const sourceUrls = new Set(prev[sourceId] || []);
@@ -288,8 +304,8 @@ export const ImportSourcesDialog = ({
     });
   };
 
-  const unselectAllUrlsUnderNode = (sourceId: number, node: UrlNode) => {
-    const allUrls = getAllUrlsFromNode(node);
+  const unselectAllUrls = (sourceId: number, rootNode: UrlNode) => {
+    const allUrls = getAllUrlsFromNode(rootNode);
     
     setSelectedSubUrls(prev => {
       if (!prev[sourceId]) return prev;
@@ -304,32 +320,21 @@ export const ImportSourcesDialog = ({
     });
   };
 
-  const toggleUrlSelection = (sourceId: number, node: UrlNode, isRoot: boolean = false) => {
-    const url = node.url;
-    const isSelected = isUrlSelected(sourceId, url);
-    
-    if (isRoot) {
-      if (isSelected) {
-        unselectAllUrlsUnderNode(sourceId, node);
+  const toggleUrlSelection = (sourceId: number, url: string) => {
+    setSelectedSubUrls(prev => {
+      const sourceUrls = new Set(prev[sourceId] || []);
+      
+      if (sourceUrls.has(url)) {
+        sourceUrls.delete(url);
       } else {
-        selectAllUrlsUnderNode(sourceId, node);
+        sourceUrls.add(url);
       }
-    } else {
-      setSelectedSubUrls(prev => {
-        const sourceUrls = new Set(prev[sourceId] || []);
-        
-        if (isSelected) {
-          sourceUrls.delete(url);
-        } else {
-          sourceUrls.add(url);
-        }
-        
-        return {
-          ...prev,
-          [sourceId]: sourceUrls
-        };
-      });
-    }
+      
+      return {
+        ...prev,
+        [sourceId]: sourceUrls
+      };
+    });
   };
 
   const toggleFileSelection = (sourceId: number, fileId: string | number) => {
@@ -350,6 +355,29 @@ export const ImportSourcesDialog = ({
     });
   };
 
+  const selectAllFiles = (sourceId: number, files: any[]) => {
+    setSelectedFiles(prev => {
+      const sourceFiles = new Set<string>();
+      files.forEach(file => {
+        sourceFiles.add(String(file.id));
+      });
+      
+      return {
+        ...prev,
+        [sourceId]: sourceFiles
+      };
+    });
+  };
+
+  const unselectAllFiles = (sourceId: number) => {
+    setSelectedFiles(prev => {
+      return {
+        ...prev,
+        [sourceId]: new Set<string>()
+      };
+    });
+  };
+
   const isUrlSelected = (sourceId: number, url: string): boolean => {
     return selectedSubUrls[sourceId]?.has(url) || false;
   };
@@ -358,57 +386,50 @@ export const ImportSourcesDialog = ({
     return selectedFiles[sourceId]?.has(String(fileId)) || false;
   };
 
-  const areAllChildrenSelected = (sourceId: number, node: UrlNode): boolean => {
-    if (!node.children || node.children.length === 0) return true;
+  const areAllUrlsSelected = (sourceId: number, rootNode: UrlNode): boolean => {
+    const allUrls = getAllUrlsFromNode(rootNode);
+    const selectedUrls = selectedSubUrls[sourceId] || new Set<string>();
     
-    return node.children.every(child => {
-      const childSelected = isUrlSelected(sourceId, child.url);
-      const childrenSelected = areAllChildrenSelected(sourceId, child);
-      return childSelected && childrenSelected;
-    });
+    return allUrls.every(url => selectedUrls.has(url));
   };
 
-  const filterAndSortNodes = (node: UrlNode, parentPath: string = ''): UrlNode | null => {
-    if (!node) return null;
+  const areAllFilesSelected = (sourceId: number, files: any[]): boolean => {
+    if (!files || files.length === 0) return false;
     
-    const currentPath = parentPath ? `${parentPath}/${node.url}` : node.url;
+    const selectedFilesSet = selectedFiles[sourceId] || new Set<string>();
+    return files.every(file => selectedFilesSet.has(String(file.id)));
+  };
+
+  const filterAndSortUrls = (rootNode: UrlNode): UrlNode[] => {
+    if (!rootNode || !rootNode.children) return [];
     
-    if (excludedUrls.has(node.url)) return null;
+    // Start with all URLs flattened
+    let allUrls = getFlattenedUrls(rootNode);
     
-    const matchesFilter = 
-      !urlFilter || 
-      (node.title?.toLowerCase().includes(urlFilter.toLowerCase())) || 
-      node.url.toLowerCase().includes(urlFilter.toLowerCase());
-    
-    if (node.children && node.children.length > 0) {
-      let filteredChildren = node.children
-        .map(child => filterAndSortNodes(child, currentPath))
-        .filter(Boolean) as UrlNode[];
-      
-      if (filteredChildren.length > 0) {
-        filteredChildren = filteredChildren.sort((a, b) => {
-          const titleA = (a.title || a.url).toLowerCase();
-          const titleB = (b.title || b.url).toLowerCase();
-          
-          if (urlSortOrder === 'asc') {
-            return titleA.localeCompare(titleB);
-          } else {
-            return titleB.localeCompare(titleA);
-          }
-        });
-      }
-      
-      if (!matchesFilter && filteredChildren.length === 0) {
-        return null;
-      }
-      
-      return {
-        ...node,
-        children: filteredChildren
-      };
+    // Filter by search term
+    if (urlFilter) {
+      allUrls = allUrls.filter(node => 
+        (node.title?.toLowerCase().includes(urlFilter.toLowerCase())) || 
+        node.url.toLowerCase().includes(urlFilter.toLowerCase())
+      );
     }
     
-    return matchesFilter ? node : null;
+    // Filter excluded URLs
+    allUrls = allUrls.filter(node => !excludedUrls.has(node.url));
+    
+    // Sort URLs
+    allUrls.sort((a, b) => {
+      const titleA = (a.title || a.url).toLowerCase();
+      const titleB = (b.title || b.url).toLowerCase();
+      
+      if (urlSortOrder === 'asc') {
+        return titleA.localeCompare(titleB);
+      } else {
+        return titleB.localeCompare(titleA);
+      }
+    });
+    
+    return allUrls;
   };
 
   const toggleExcludeUrl = (url: string) => {
@@ -530,105 +551,97 @@ export const ImportSourcesDialog = ({
     return 0;
   };
 
-  const renderWebsiteUrls = (source: KnowledgeSource, urlNode?: UrlNode | null, level: number = 0, parentPath: string = '') => {
-    if (!urlNode) {
-      const rootNode = findRootUrlNode(source);
-      if (!rootNode) return null;
-      
-      const filteredRootNode = filterAndSortNodes(rootNode);
-      if (!filteredRootNode) {
-        return (
-          <div className="flex flex-col items-center justify-center text-center py-6">
-            <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
-            <p className="text-muted-foreground">No URLs match your filter</p>
-          </div>
-        );
-      }
-      
-      return renderWebsiteUrls(source, filteredRootNode, level, '');
+  const renderWebsiteUrls = (source: KnowledgeSource) => {
+    const rootNode = findRootUrlNode(source);
+    if (!rootNode) return null;
+    
+    const flattenedUrls = filterAndSortUrls(rootNode);
+    
+    if (flattenedUrls.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center text-center py-6">
+          <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
+          <p className="text-muted-foreground">No URLs match your filter</p>
+        </div>
+      );
     }
     
-    const currentPath = parentPath ? `${parentPath}/${urlNode.url}` : urlNode.url;
-    const isExpanded = expandedNodes.has(currentPath);
-    const hasChildren = urlNode.children && urlNode.children.length > 0;
-    const isRoot = level === 0;
-    
-    let isSelected = isUrlSelected(source.id, urlNode.url);
+    const allSelected = areAllUrlsSelected(source.id, rootNode);
     
     return (
-      <div key={currentPath} className="py-1">
-        <div className={cn(
-          "flex items-center hover:bg-gray-100 rounded px-2 py-1 cursor-pointer", 
-          isSelected && "bg-gray-100"
-        )}>
-          {hasChildren ? (
-            <span 
-              onClick={() => toggleNodeExpansion(currentPath)}
-              className="inline-flex items-center justify-center w-5 h-5"
-            >
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </span>
-          ) : <span className="w-5" />}
-          
+      <div className="space-y-3">
+        <div className="flex items-center mb-3 pb-2 border-b">
           <Checkbox 
-            id={`url-${source.id}-${urlNode.url}`}
+            id={`select-all-urls-${source.id}`}
             className="mr-2"
-            checked={isSelected}
-            onCheckedChange={() => toggleUrlSelection(source.id, urlNode, isRoot)}
+            checked={allSelected}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                selectAllUrls(source.id, rootNode);
+              } else {
+                unselectAllUrls(source.id, rootNode);
+              }
+            }}
           />
-          
-          {isRoot ? (
-            <div>
-              <span className="flex items-center text-sm">
-                <FolderOpen className="h-4 w-4 mr-2 text-amber-500" />
-                Root
-              </span>
-            </div>
-          ) : (
-            <div className="flex flex-col flex-1">
-              <span className="flex items-center text-sm overflow-hidden text-ellipsis">
-                <Globe className="h-4 w-4 mr-2 text-green-600" />
-                {urlNode.title || urlNode.url}
-              </span>
-              {urlNode.url && (
-                <span className="text-xs text-muted-foreground ml-6 truncate max-w-[300px]">{urlNode.url}</span>
-              )}
-              {urlNode.chars !== undefined && (
-                <span className="text-xs text-muted-foreground ml-6">
-                  {urlNode.chars === 0 ? "0 characters" : `${urlNode.chars.toLocaleString()} characters`}
-                </span>
-              )}
-            </div>
-          )}
-          
-          {!isRoot && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 ml-2" 
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExcludeUrl(urlNode.url);
-              }}
-            >
-              {excludedUrls.has(urlNode.url) ? (
-                <Badge variant="outline" className="px-1 bg-red-50 text-red-500 text-xs">
-                  Excluded
-                </Badge>
-              ) : (
-                <Filter className="h-3 w-3 text-muted-foreground" />
-              )}
-            </Button>
-          )}
+          <label 
+            htmlFor={`select-all-urls-${source.id}`}
+            className="text-sm font-medium"
+          >
+            Select All URLs
+          </label>
         </div>
         
-        {isExpanded && hasChildren && (
-          <div className="ml-5 border-l pl-2 mt-1">
-            {urlNode.children?.map(child => 
-              renderWebsiteUrls(source, child, level + 1, currentPath)
-            )}
-          </div>
-        )}
+        <div className="space-y-2">
+          {flattenedUrls.map((urlNode) => (
+            <div 
+              key={urlNode.url} 
+              className={cn(
+                "flex items-center hover:bg-gray-100 rounded px-2 py-2",
+                isUrlSelected(source.id, urlNode.url) && "bg-gray-100"
+              )}
+            >
+              <Checkbox 
+                id={`url-${source.id}-${urlNode.url}`}
+                className="mr-2"
+                checked={isUrlSelected(source.id, urlNode.url)}
+                onCheckedChange={() => toggleUrlSelection(source.id, urlNode.url)}
+              />
+              
+              <div className="flex flex-col flex-1">
+                <span className="flex items-center text-sm overflow-hidden text-ellipsis">
+                  <Globe className="h-4 w-4 mr-2 text-green-600" />
+                  {urlNode.title || urlNode.url}
+                </span>
+                {urlNode.url && (
+                  <span className="text-xs text-muted-foreground ml-6 truncate max-w-[300px]">{urlNode.url}</span>
+                )}
+                {urlNode.chars !== undefined && (
+                  <span className="text-xs text-muted-foreground ml-6">
+                    {urlNode.chars === 0 ? "0 characters" : `${urlNode.chars.toLocaleString()} characters`}
+                  </span>
+                )}
+              </div>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 ml-2" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExcludeUrl(urlNode.url);
+                }}
+              >
+                {excludedUrls.has(urlNode.url) ? (
+                  <Badge variant="outline" className="px-1 bg-red-50 text-red-500 text-xs">
+                    Excluded
+                  </Badge>
+                ) : (
+                  <Filter className="h-3 w-3 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -636,21 +649,42 @@ export const ImportSourcesDialog = ({
   const renderNestedFiles = (source: KnowledgeSource) => {
     if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+        <div className="flex flex-col items-center justify-center text-center px-4 py-6">
           <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
           <p className="text-muted-foreground text-sm">No files found in this source</p>
         </div>
       );
     }
 
+    const allSelected = areAllFilesSelected(source.id, source.knowledge_sources);
+
     return (
-      <div className="space-y-1">
-        <div className="font-medium text-sm px-2 py-1 bg-muted/50 mb-2 rounded">
-          Files in {source.name}
+      <div className="space-y-3">
+        <div className="flex items-center mb-3 pb-2 border-b">
+          <Checkbox 
+            id={`select-all-files-${source.id}`}
+            className="mr-2"
+            checked={allSelected}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                selectAllFiles(source.id, source.knowledge_sources || []);
+              } else {
+                unselectAllFiles(source.id);
+              }
+            }}
+          />
+          <label 
+            htmlFor={`select-all-files-${source.id}`}
+            className="text-sm font-medium"
+          >
+            Select All Files
+          </label>
         </div>
-        {source.knowledge_sources.map((file, index) => (
-          <div key={`file-${file.id || index}`} className="py-1">
+
+        <div className="space-y-2">
+          {source.knowledge_sources.map((file, index) => (
             <div
+              key={`file-${file.id || index}`}
               className={cn(
                 "flex items-center hover:bg-gray-100 rounded px-2 py-2",
                 isFileSelected(source.id, String(file.id)) && "bg-gray-100"
@@ -692,8 +726,8 @@ export const ImportSourcesDialog = ({
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   };
@@ -702,16 +736,15 @@ export const ImportSourcesDialog = ({
     if (!selectedKnowledgeBase || !hasUrlStructure(selectedKnowledgeBase)) return null;
     
     return (
-      <div className="flex flex-col space-y-2 mb-2 px-2 w-full mt-3">
+      <div className="flex flex-col space-y-2 mb-4 px-2 w-full">
         <div className="relative w-full">
           <Input
             placeholder="Search by title or URL..."
             value={urlFilter}
             onChange={(e) => setUrlFilter(e.target.value)}
-            className="pl-7 py-1 h-7 text-xs"
-            size={1}
+            className="pl-7 py-1 h-8 text-sm"
           />
-          <Search className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
+          <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
         </div>
         
         <div className="flex items-center justify-between w-full gap-2">
@@ -720,7 +753,7 @@ export const ImportSourcesDialog = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-xs h-6 px-2 w-[90px] flex justify-between items-center"
+                className="text-xs h-7 px-2 w-[90px] flex justify-between items-center"
               >
                 <span>{urlSortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
                 <ArrowUpDown className="h-3 w-3" />
@@ -741,7 +774,7 @@ export const ImportSourcesDialog = ({
               variant="outline"
               size="sm"
               onClick={() => setExcludedUrls(new Set())}
-              className="text-xs h-6"
+              className="text-xs h-7"
             >
               Clear {excludedUrls.size} excluded
             </Button>
@@ -839,7 +872,7 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1200px] h-[85vh] max-h-[850px] p-0 overflow-hidden" fixedFooter>
+      <DialogContent className="sm:max-w-[1200px] h-[85vh] max-h-[900px] p-0 overflow-hidden" fixedFooter>
         <DialogHeader className="px-6 pt-6 pb-2 border-b">
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
@@ -1002,19 +1035,11 @@ export const ImportSourcesDialog = ({
                 <div className="p-4">
                   {selectedKnowledgeBase ? (
                     <div>
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="mb-4">
                         <h3 className="text-lg font-medium flex items-center">
                           {renderSourceIcon(selectedKnowledgeBase.type)}
                           <span className="ml-2">{selectedKnowledgeBase.name}</span>
                         </h3>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedKnowledgeBase(null)}
-                        >
-                          Back to Sources
-                        </Button>
                       </div>
                       
                       <div className="space-y-4">
@@ -1022,18 +1047,14 @@ export const ImportSourcesDialog = ({
                           <>
                             {renderWebsiteFilterControls()}
                             <div className="border rounded-md p-3">
-                              <h4 className="font-medium text-sm mb-2">Website Structure</h4>
-                              <div className="max-h-[550px] overflow-y-auto">
-                                {renderWebsiteUrls(selectedKnowledgeBase)}
-                              </div>
+                              <h4 className="font-medium text-sm mb-3">Website URLs</h4>
+                              {renderWebsiteUrls(selectedKnowledgeBase)}
                             </div>
                           </>
                         ) : hasNestedFiles(selectedKnowledgeBase) ? (
                           <div className="border rounded-md p-3">
-                            <h4 className="font-medium text-sm mb-2">Files</h4>
-                            <div className="max-h-[550px] overflow-y-auto">
-                              {renderNestedFiles(selectedKnowledgeBase)}
-                            </div>
+                            <h4 className="font-medium text-sm mb-3">Files</h4>
+                            {renderNestedFiles(selectedKnowledgeBase)}
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
@@ -1077,3 +1098,4 @@ export const ImportSourcesDialog = ({
     </Dialog>
   );
 };
+
