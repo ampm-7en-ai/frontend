@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -889,73 +890,20 @@ export const ImportSourcesDialog = ({
   };
 
   const renderSourceTypesSkeleton = () => (
-    <div className="space-y-1 mb-4">
-      {[1, 2, 3, 4, 5].map(i => (
-        <div key={i} className="flex items-center justify-between px-3 py-2">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-4 w-4" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-          <Skeleton className="h-5 w-8 rounded-full" />
-        </div>
-      ))}
+    <div className="flex flex-col items-center justify-center h-full py-8">
+      <LoadingSpinner size="md" text="Loading source types..." />
     </div>
   );
 
   const renderKnowledgeSourcesSkeleton = () => (
-    <div className="p-2 space-y-2">
-      {[1, 2, 3, 4, 5].map(i => (
-        <div key={i} className="p-3 border rounded-md">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-3">
-              <Skeleton className="h-4 w-4 mt-0.5" />
-              <div>
-                <Skeleton className="h-4 w-40 mb-2" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-3 w-16" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-              </div>
-            </div>
-            <Skeleton className="h-4 w-4" />
-          </div>
-        </div>
-      ))}
+    <div className="flex flex-col items-center justify-center h-full py-8">
+      <LoadingSpinner size="md" text="Loading knowledge sources..." />
     </div>
   );
 
   const renderSourceDetailsSkeleton = () => (
-    <div className="p-4">
-      <div className="mb-4">
-        <Skeleton className="h-6 w-40" />
-      </div>
-      <div className="space-y-4">
-        <div className="flex flex-col space-y-2 mb-4 px-2 w-full">
-          <Skeleton className="h-8 w-full" />
-          <div className="flex items-center justify-between w-full gap-2">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-7 w-20" />
-              <Skeleton className="h-7 w-24" />
-            </div>
-          </div>
-        </div>
-        <div className="border rounded-md p-3">
-          <Skeleton className="h-5 w-32 mb-3" />
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="flex items-center py-2">
-                <Skeleton className="h-4 w-4 mr-2" />
-                <div className="flex flex-col flex-1">
-                  <Skeleton className="h-4 w-40 mb-1" />
-                  <Skeleton className="h-3 w-60" />
-                  <Skeleton className="h-3 w-20" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="flex flex-col items-center justify-center h-full py-8">
+      <LoadingSpinner size="md" text="Loading source details..." />
     </div>
   );
 
