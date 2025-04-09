@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Card, 
@@ -11,7 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save } from 'lucide-react';
+import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save, Trash, Clock } from 'lucide-react';
 import { 
   Tooltip,
   TooltipContent,
@@ -29,6 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Form schemas
 const profileFormSchema = z.object({
@@ -60,6 +61,14 @@ type InviteFormValues = z.infer<typeof inviteFormSchema>;
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 type PreferencesFormValues = z.infer<typeof preferencesFormSchema>;
 
+interface PendingInvite {
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
+  status: 'pending';
+}
+
 const BusinessSettings = () => {
   const { user, getToken } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
@@ -71,6 +80,8 @@ const BusinessSettings = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
+  const [isLoadingInvites, setIsLoadingInvites] = useState(false);
   
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -114,6 +125,115 @@ const BusinessSettings = () => {
     defaultTemperature: 0.7,
   });
 
+  useEffect(() => {
+    fetchPendingInvites();
+  }, []);
+
+  const fetchPendingInvites = async () => {
+    try {
+      setIsLoadingInvites(true);
+      const token = getToken();
+      if (!token) {
+        throw new Error("Authentication required to fetch pending invites");
+      }
+      
+      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'pending_invites')), {
+        method: 'GET',
+        headers: getAuthHeaders(token)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch pending invites' }));
+        throw new Error(errorData.message || `Failed to fetch pending invites: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setPendingInvites(data.invites || []);
+    } catch (error) {
+      console.error("Error fetching pending invites:", error);
+      if (pendingInvites.length > 0) {
+        toast({
+          title: "Error fetching invites",
+          description: error instanceof Error ? error.message : "An error occurred while fetching pending invites.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoadingInvites(false);
+    }
+  };
+
+  const cancelInvite = async (inviteId: string) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error("Authentication required to cancel invitation");
+      }
+      
+      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', `cancel_invite/${inviteId}`)), {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to cancel invitation' }));
+        throw new Error(errorData.message || `Failed to cancel invitation: ${response.status}`);
+      }
+      
+      setPendingInvites(pendingInvites.filter(invite => invite.id !== inviteId));
+      
+      toast({
+        title: "Invitation cancelled",
+        description: "The team invitation has been cancelled successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while cancelling the invitation.",
+        variant: "destructive",
+      });
+      console.error("Cancel invite error:", error);
+    }
+  };
+
+  const resendInvite = async (email: string) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error("Authentication required to resend invitation");
+      }
+      
+      const invite = pendingInvites.find(inv => inv.email === email);
+      if (!invite) return;
+      
+      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'resend_invite')), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          email: email,
+          role: invite.role
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to resend invitation' }));
+        throw new Error(errorData.message || `Failed to resend invitation: ${response.status}`);
+      }
+      
+      toast({
+        title: "Invitation resent",
+        description: `An invitation has been resent to ${email}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while resending the invitation.",
+        variant: "destructive",
+      });
+      console.error("Resend invite error:", error);
+    }
+  };
+
   const onProfileSubmit = (data: ProfileFormValues) => {
     toast({
       title: "Profile updated",
@@ -126,13 +246,11 @@ const BusinessSettings = () => {
     try {
       setIsSubmitting(true);
       
-      // Get authentication token
       const token = getToken();
       if (!token) {
         throw new Error("You must be logged in to send invitations");
       }
       
-      // API call to create team invite using the base URL from api-config
       const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'create_team_invite')), {
         method: 'POST',
         headers: getAuthHeaders(token),
@@ -151,6 +269,8 @@ const BusinessSettings = () => {
         title: "Invitation sent",
         description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
       });
+      
+      fetchPendingInvites();
       
       setShowInviteDialog(false);
       inviteForm.reset();
@@ -392,12 +512,64 @@ const BusinessSettings = () => {
               </p>
               <div className="rounded-md border">
                 <div className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{user?.name}</p>
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{user?.name}</p>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    </div>
                   </div>
                   <Badge>Admin</Badge>
                 </div>
+                
+                {pendingInvites.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="p-2">
+                      <p className="text-sm text-muted-foreground p-2">Pending Invitations</p>
+                      {pendingInvites.map((invite) => (
+                        <div key={invite.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarFallback>{invite.email.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium flex items-center gap-1">
+                                {invite.email}
+                                <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" /> pending
+                                </Badge>
+                              </p>
+                              <p className="text-sm text-muted-foreground">Awaiting response</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge>{invite.role}</Badge>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => resendInvite(invite.email)}
+                              title="Resend Invitation"
+                            >
+                              <Mail className="h-4 w-4 text-blue-500" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => cancelInvite(invite.id)}
+                              title="Cancel Invitation"
+                            >
+                              <Trash className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                
                 <Separator />
                 <div className="p-4">
                   <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
