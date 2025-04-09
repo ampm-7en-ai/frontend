@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Card, 
@@ -30,6 +30,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Form schemas
 const profileFormSchema = z.object({
@@ -69,6 +70,15 @@ interface PendingInvite {
   status: 'pending';
 }
 
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: 'active';
+  last_active: string;
+}
+
 const BusinessSettings = () => {
   const { user, getToken } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
@@ -81,7 +91,33 @@ const BusinessSettings = () => {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Static pending invites list - displayed immediately when page loads
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
+    {
+      id: '1',
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
+      role: 'admin',
+      status: 'active',
+      last_active: '2025-04-09T08:45:00Z'
+    },
+    {
+      id: '2',
+      name: 'Mike Johnson',
+      email: 'mike.johnson@example.com',
+      role: 'user',
+      status: 'active',
+      last_active: '2025-04-09T07:30:00Z'
+    },
+    {
+      id: '3',
+      name: 'Sara Wilson',
+      email: 'sara.wilson@example.com',
+      role: 'user',
+      status: 'active',
+      last_active: '2025-04-08T16:15:00Z'
+    }
+  ]);
+  
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([
     {
       id: '1',
@@ -93,7 +129,7 @@ const BusinessSettings = () => {
     {
       id: '2',
       email: 'sarah.smith@example.com',
-      role: 'agent',
+      role: 'user',
       created_at: '2025-04-08T12:45:00Z',
       status: 'pending'
     },
@@ -150,7 +186,6 @@ const BusinessSettings = () => {
 
   const cancelInvite = async (inviteId: string) => {
     try {
-      // Simulate API call to cancel invitation
       setPendingInvites(pendingInvites.filter(invite => invite.id !== inviteId));
       
       toast({
@@ -168,7 +203,6 @@ const BusinessSettings = () => {
 
   const resendInvite = async (email: string) => {
     try {
-      // Simulate API call to resend invitation
       toast({
         title: "Invitation resent",
         description: `An invitation has been resent to ${email}.`,
@@ -177,6 +211,42 @@ const BusinessSettings = () => {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred while resending the invitation.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeTeamMember = async (memberId: string) => {
+    try {
+      setTeamMembers(teamMembers.filter(member => member.id !== memberId));
+      
+      toast({
+        title: "Team member removed",
+        description: "The team member has been removed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while removing the team member.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const changeTeamMemberRole = async (memberId: string, newRole: string) => {
+    try {
+      setTeamMembers(teamMembers.map(member => 
+        member.id === memberId ? { ...member, role: newRole } : member
+      ));
+      
+      toast({
+        title: "Role updated",
+        description: "The team member's role has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while updating the role.",
         variant: "destructive",
       });
     }
@@ -199,12 +269,14 @@ const BusinessSettings = () => {
         throw new Error("You must be logged in to send invitations");
       }
       
-      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'create_team_invite')), {
+      const roleForApi = data.role === "agent" ? "user" : data.role;
+      
+      const response = await fetch(getApiUrl(API_ENDPOINTS.TEAM_INVITE), {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
           email: data.email,
-          role: data.role,
+          role: roleForApi,
         }),
       });
       
@@ -218,9 +290,8 @@ const BusinessSettings = () => {
         description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
       });
       
-      // Add the new invite to our static list
       const newInvite: PendingInvite = {
-        id: `inv-${Date.now()}`, // generate a unique ID
+        id: `inv-${Date.now()}`,
         email: data.email,
         role: data.role,
         created_at: new Date().toISOString(),
@@ -467,62 +538,166 @@ const BusinessSettings = () => {
               <p className="text-muted-foreground mb-4">
                 Team members who have access to your 7en.ai workspace.
               </p>
-              <div className="rounded-md border">
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{user?.name}</p>
-                      <p className="text-sm text-muted-foreground">{user?.email}</p>
-                    </div>
-                  </div>
-                  <Badge>Admin</Badge>
+              
+              <div className="rounded-md border mb-6">
+                <div className="p-3 bg-muted/40">
+                  <h3 className="font-medium">Active Members</h3>
                 </div>
-                
-                {pendingInvites.length > 0 && (
-                  <>
-                    <Separator />
-                    <div className="p-2">
-                      <p className="text-sm text-muted-foreground p-2">Pending Invitations</p>
-                      {pendingInvites.map((invite) => (
-                        <div key={invite.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Member</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Last Active</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {/* Current user (owner) row */}
+                      <TableRow>
+                        <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar>
-                              <AvatarFallback>{invite.email.charAt(0).toUpperCase()}</AvatarFallback>
+                              <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium flex items-center gap-1">
-                                {invite.email}
-                                <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
-                                  <Clock className="h-3 w-3" /> pending
-                                </Badge>
-                              </p>
-                              <p className="text-sm text-muted-foreground">Awaiting response</p>
+                              <p className="font-medium">{user?.name || 'You'}</p>
+                              <p className="text-sm text-muted-foreground">{user?.email}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge>{invite.role}</Badge>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => resendInvite(invite.email)}
-                              title="Resend Invitation"
+                        </TableCell>
+                        <TableCell>
+                          <Badge>Owner</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">Current</span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {/* No actions for owner */}
+                        </TableCell>
+                      </TableRow>
+                      
+                      {/* Other team members */}
+                      {teamMembers.map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{member.name}</p>
+                                <p className="text-sm text-muted-foreground">{member.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Select 
+                              defaultValue={member.role}
+                              onValueChange={(value) => changeTeamMemberRole(member.id, value)}
                             >
-                              <Mail className="h-4 w-4 text-blue-500" />
-                            </Button>
+                              <SelectTrigger className="w-24">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="user">User</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(member.last_active).toLocaleString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
                             <Button 
                               variant="ghost" 
-                              size="icon" 
-                              onClick={() => cancelInvite(invite.id)}
-                              title="Cancel Invitation"
+                              size="icon"
+                              onClick={() => removeTeamMember(member.id)}
+                              title="Remove Member"
                             >
                               <Trash className="h-4 w-4 text-red-500" />
                             </Button>
-                          </div>
-                        </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                <Separator />
+                
+                {pendingInvites.length > 0 && (
+                  <>
+                    <div className="p-3 bg-muted/40">
+                      <h3 className="font-medium">Pending Invitations</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Invited On</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {pendingInvites.map((invite) => (
+                            <TableRow key={invite.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                                  <span>{invite.email}</span>
+                                  <Badge variant="outline" className="ml-2 text-amber-500 border-amber-200 bg-amber-50 flex items-center gap-1">
+                                    <Clock className="h-3 w-3" /> pending
+                                  </Badge>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{invite.role === 'agent' ? 'User' : invite.role}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm text-muted-foreground">
+                                  {new Date(invite.created_at).toLocaleString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => resendInvite(invite.email)}
+                                    title="Resend Invitation"
+                                  >
+                                    <Mail className="h-4 w-4 text-blue-500" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => cancelInvite(invite.id)}
+                                    title="Cancel Invitation"
+                                  >
+                                    <Trash className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </>
                 )}
@@ -576,11 +751,11 @@ const BusinessSettings = () => {
                                   </FormControl>
                                   <SelectContent>
                                     <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="agent">Agent</SelectItem>
+                                    <SelectItem value="agent">User</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormDescription>
-                                  Admins can manage the entire workspace. Agents can only create and manage chatbots.
+                                  Admins can manage the entire workspace. Users can only create and manage chatbots.
                                 </FormDescription>
                                 <FormMessage />
                               </FormItem>
