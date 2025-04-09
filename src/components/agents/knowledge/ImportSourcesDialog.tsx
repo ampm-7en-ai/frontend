@@ -909,92 +909,218 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      {isLoading ? (
-        <DialogContent>
-          <div className="space-y-2">
-            <LoadingSpinner />
-            <p className="text-center text-sm text-muted-foreground">Loading sources...</p>
+      <DialogContent className="sm:max-w-[1300px] h-[90vh] max-h-[950px] p-0 overflow-hidden" fixedFooter>
+        <DialogHeader className="px-6 pt-6 pb-2 border-b">
+          <DialogTitle>Import Knowledge Sources</DialogTitle>
+        </DialogHeader>
+        
+        {isLoading ? (
+          <div className="flex-1 overflow-hidden">
+            <div className="flex items-center justify-center h-full">
+              <LoadingSpinner size="lg" text="Loading knowledge sources..." />
+            </div>
           </div>
-        </DialogContent>
-      ) : (
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Import Knowledge Sources</DialogTitle>
-            <DialogFooter>
-              <Button variant="secondary" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handleImport} disabled={isImporting}>
-                {isImporting ? 'Importing...' : 'Import'}
-              </Button>
-            </DialogFooter>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
-                Source Types
-              </div>
-              {sourceTypes.all.count > 0 && (
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">All Sources</span>
-                    <span className="text-sm text-muted-foreground">{sourceTypes.all.count}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Documents</span>
-                    <span className="text-sm text-muted-foreground">{sourceTypes.docs.count}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">PDF</span>
-                    <span className="text-sm text-muted-foreground">{sourceTypes.pdf.count}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">DOCX</span>
-                    <span className="text-sm text-muted-foreground">{sourceTypes.docx.count}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Websites</span>
-                    <span className="text-sm text-muted-foreground">{sourceTypes.website.count}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Spreadsheets</span>
-                    <span className="text-sm text-muted-foreground">{sourceTypes.csv.count}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Plain Text</span>
-                    <span className="text-sm text-muted-foreground">{sourceTypes.plain_text.count}</span>
-                  </div>
+        ) : externalSources.length === 0 ? (
+          <div className="flex-1 overflow-hidden">
+            <div className="flex flex-col items-center justify-center h-full py-12">
+              <FileText className="h-12 w-12 text-muted-foreground/40 mb-4" />
+              <p className="text-lg text-muted-foreground">No knowledge sources available</p>
+              <p className="text-sm text-muted-foreground mt-1">Try uploading some documents or adding websites</p>
+            </div>
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="horizontal" className="flex-1">
+            <ResizablePanel minSize={15} defaultSize={20}>
+              <div className="h-full flex flex-col p-2">
+                <div className="space-y-1 mb-4">
+                  {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
+                    count > 0 && (
+                      <button
+                        key={type}
+                        className={cn(
+                          "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
+                          selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                        )}
+                        onClick={() => setSelectedType(type)}
+                      >
+                        <span className="flex items-center">
+                          {icon}
+                          <span className="ml-2">{label}</span>
+                        </span>
+                        <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  ))}
                 </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
-                Selected Sources
+                
+                <div className="border-t pt-3 flex-1 overflow-hidden">
+                  <ScrollArea className="h-full pr-2">
+                    {renderSelectedSourcesList()}
+                  </ScrollArea>
+                </div>
               </div>
-              {renderSelectedSourcesList()}
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
-                Knowledge Sources
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            <ResizablePanel minSize={25} defaultSize={30}>
+              <div className="h-full flex flex-col">
+                <ScrollArea className="flex-1 pr-2">
+                  <div className="p-2 space-y-2">
+                    {filteredSources.length === 0 ? (
+                      <div className="flex items-center justify-center h-full py-20">
+                        <p className="text-muted-foreground">No sources found</p>
+                      </div>
+                    ) : (
+                      filteredSources.map(source => (
+                        <div
+                          key={source.id}
+                          className={cn(
+                            "p-3 border rounded-md cursor-pointer hover:border-primary transition-colors",
+                            (selectedSources.has(source.id) || selectedKnowledgeBase?.id === source.id) && "border-primary bg-primary/5"
+                          )}
+                          onClick={() => handleKnowledgeBaseClick(source)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3">
+                              <div className="mt-0.5">{renderSourceIcon(source.type)}</div>
+                              
+                              <div>
+                                <h4 className="font-medium text-sm">
+                                  {source.name}
+                                  {isSourceAlreadyImported(source.id) && (
+                                    <Badge variant="outline" className="ml-2 text-xs">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Imported
+                                    </Badge>
+                                  )}
+                                </h4>
+                                
+                                <div className="flex flex-wrap text-xs text-muted-foreground mt-1">
+                                  <span className="mr-3">
+                                    Type: {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
+                                  </span>
+                                  
+                                  {source.chunks !== undefined && (
+                                    <span className="mr-3">{source.chunks} chunks</span>
+                                  )}
+                                  
+                                  {getFileCount(source) > 0 && (
+                                    <span className="mr-3">
+                                      {getFileCount(source)} {source.type === 'website' ? 'pages' : 'files'}
+                                    </span>
+                                  )}
+                                  
+                                  {source.metadata?.created_at && (
+                                    <span>
+                                      Added: {new Date(source.metadata.created_at).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source))) ? (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Checkbox
+                                  checked={selectedSources.has(source.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newSelectedSources = new Set(selectedSources);
+                                    
+                                    if (checked) {
+                                      newSelectedSources.add(source.id);
+                                    } else {
+                                      newSelectedSources.delete(source.id);
+                                    }
+                                    
+                                    setSelectedSources(newSelectedSources);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
               </div>
-              {filteredSources.map(source => {
-                if (source.type === 'website') {
-                  return renderWebsiteUrls(source);
-                } else if (source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') {
-                  return renderNestedFiles(source);
-                }
-                return null;
-              })}
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
-                Filters
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            <ResizablePanel minSize={30} defaultSize={50}>
+              <div className="h-full flex flex-col">
+                <ScrollArea className="flex-1">
+                  <div className="p-4">
+                    {selectedKnowledgeBase ? (
+                      <div>
+                        <div className="mb-4">
+                          <h3 className="text-lg font-medium flex items-center">
+                            {renderSourceIcon(selectedKnowledgeBase.type)}
+                            <span className="ml-2">{selectedKnowledgeBase.name}</span>
+                          </h3>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          {hasUrlStructure(selectedKnowledgeBase) ? (
+                            <>
+                              {renderWebsiteFilterControls()}
+                              <div className="border rounded-md p-3">
+                                <h4 className="font-medium text-sm mb-3">Website URLs</h4>
+                                {renderWebsiteUrls(selectedKnowledgeBase)}
+                              </div>
+                            </>
+                          ) : hasNestedFiles(selectedKnowledgeBase) ? (
+                            <div className="border rounded-md p-3">
+                              <h4 className="font-medium text-sm mb-3">Files</h4>
+                              {renderNestedFiles(selectedKnowledgeBase)}
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
+                              <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                              <p className="text-muted-foreground">No detailed content available for this source</p>
+                            </div>
+                          )}
+                          
+                          {selectedKnowledgeBase.description && (
+                            <div className="border rounded-md p-3">
+                              <h4 className="font-medium text-sm mb-1">Description</h4>
+                              <p className="text-sm text-muted-foreground">{selectedKnowledgeBase.description}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                        <FileText className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                        <p className="text-muted-foreground">Select a knowledge source to view details</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
               </div>
-              {renderWebsiteFilterControls()}
-            </div>
-          </div>
-        </DialogContent>
-      )}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
+        
+        <DialogFooter className="px-6 py-4 border-t" fixed>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleImport} 
+            disabled={selectedSources.size === 0 || isImporting || isLoading}
+          >
+            {isImporting ? "Importing..." : "Import Sources"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 };

@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Card, 
@@ -12,7 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save, Clock, UserCheck, UserPlus } from 'lucide-react';
+import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save } from 'lucide-react';
 import { 
   Tooltip,
   TooltipContent,
@@ -29,51 +28,36 @@ import { toast } from "@/components/ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-// Define the form schemas using zod
+// Form schemas
 const profileFormSchema = z.object({
-  businessName: z.string().min(1, "Business name is required"),
-  adminEmail: z.string().email("Invalid email address"),
+  businessName: z.string().min(2, "Business name must be at least 2 characters."),
+  adminEmail: z.string().email("Invalid email address."),
 });
-
-// Define the types based on the schemas
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const inviteFormSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  role: z.enum(["admin", "agent"]),
+  email: z.string().email("Invalid email address."),
+  role: z.enum(["admin", "editor", "viewer"]),
 });
-
-type InviteFormValues = z.infer<typeof inviteFormSchema>;
 
 const paymentFormSchema = z.object({
-  cardName: z.string().min(1, "Cardholder name is required"),
-  cardNumber: z.string().min(16, "Card number must be at least 16 characters"),
-  expiryDate: z.string().min(4, "Expiry date is required"),
-  cvc: z.string().min(3, "CVC is required"),
+  cardName: z.string().min(2, "Name must be at least 2 characters."),
+  cardNumber: z.string().min(16, "Card number must be at least 16 digits.").max(19),
+  expiryDate: z.string().min(5, "Expiry date must be in MM/YY format."),
+  cvc: z.string().min(3, "CVC must be at least 3 digits."),
 });
-
-type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
 const preferencesFormSchema = z.object({
   emailNotifications: z.boolean(),
   timezone: z.string(),
   language: z.string(),
-  defaultExportFormat: z.string(),
+  defaultExportFormat: z.string()
 });
 
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+type InviteFormValues = z.infer<typeof inviteFormSchema>;
+type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 type PreferencesFormValues = z.infer<typeof preferencesFormSchema>;
-
-type TeamMember = {
-  id: string;
-  name: string | null;
-  email: string;
-  role: string;
-  status: 'active' | 'pending';
-  dateInvited?: string;
-};
 
 const BusinessSettings = () => {
   const { user } = useAuth();
@@ -85,24 +69,7 @@ const BusinessSettings = () => {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [isInviting, setIsInviting] = useState(false);
   
-  useEffect(() => {
-    if (user) {
-      setTeamMembers([
-        {
-          id: '1',
-          name: user.name,
-          email: user.email || '',
-          role: 'admin',
-          status: 'active'
-        }
-      ]);
-    }
-  }, [user]);
-  
-  // Initialize forms with proper resolver and default values
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -115,7 +82,7 @@ const BusinessSettings = () => {
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
       email: '',
-      role: 'agent',
+      role: 'viewer',
     },
   });
 
@@ -153,41 +120,13 @@ const BusinessSettings = () => {
     setIsEditingProfile(false);
   };
 
-  const onInviteSubmit = async (data: InviteFormValues) => {
-    try {
-      setIsInviting(true);
-      
-      // Simulate API call to /users/create_team_invite/ endpoint
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newMember: TeamMember = {
-        id: Date.now().toString(),
-        name: null,
-        email: data.email,
-        role: data.role,
-        status: 'pending',
-        dateInvited: new Date().toISOString(),
-      };
-      
-      setTeamMembers(prev => [...prev, newMember]);
-      
-      toast({
-        title: "Invitation sent",
-        description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
-      });
-      
-      setShowInviteDialog(false);
-      inviteForm.reset();
-    } catch (error) {
-      console.error("Error sending invitation:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send invitation. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsInviting(false);
-    }
+  const onInviteSubmit = (data: InviteFormValues) => {
+    toast({
+      title: "Invitation sent",
+      description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
+    });
+    setShowInviteDialog(false);
+    inviteForm.reset();
   };
 
   const onPaymentSubmit = (data: PaymentFormValues) => {
@@ -221,37 +160,6 @@ const BusinessSettings = () => {
       description: "Your subscription has been upgraded successfully.",
     });
     setShowUpgradeDialog(false);
-  };
-
-  const handleCancelInvite = (memberId: string) => {
-    setTeamMembers(prev => prev.filter(member => member.id !== memberId));
-    
-    toast({
-      title: "Invitation canceled",
-      description: "The team invitation has been canceled.",
-    });
-  };
-
-  const renderStatusBadge = (status: 'active' | 'pending') => {
-    if (status === 'active') {
-      return <Badge className="bg-green-100 text-green-800 border-green-200">
-        <UserCheck className="h-3 w-3 mr-1" /> Active
-      </Badge>;
-    }
-    
-    return <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">
-      <Clock className="h-3 w-3 mr-1" /> Pending
-    </Badge>;
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
   };
 
   return (
@@ -446,62 +354,19 @@ const BusinessSettings = () => {
                 Team members who have access to your 7en.ai workspace.
               </p>
               <div className="rounded-md border">
-                {teamMembers.map(member => (
-                  <React.Fragment key={member.id}>
-                    <div className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-primary/10 h-10 w-10 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{member.name || member.email}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{member.email}</span>
-                            <Badge variant="outline">{member.role}</Badge>
-                            {member.dateInvited && (
-                              <span>Invited: {formatDate(member.dateInvited)}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {renderStatusBadge(member.status)}
-                        
-                        {member.status === 'pending' && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-red-500">Cancel</Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to cancel the invitation sent to {member.email}? 
-                                  This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>No, keep it</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => handleCancelInvite(member.id)}
-                                  className="bg-red-500 hover:bg-red-600"
-                                >
-                                  Yes, cancel invitation
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
-                    </div>
-                    <Separator />
-                  </React.Fragment>
-                ))}
+                <div className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{user?.name}</p>
+                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <Badge>Admin</Badge>
+                </div>
+                <Separator />
                 <div className="p-4">
                   <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="flex items-center gap-1">
-                        <UserPlus className="h-4 w-4" /> Invite Team Member
+                        <Plus className="h-4 w-4" /> Invite Team Member
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -540,31 +405,17 @@ const BusinessSettings = () => {
                                   </FormControl>
                                   <SelectContent>
                                     <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="agent">Agent</SelectItem>
+                                    <SelectItem value="editor">Editor</SelectItem>
+                                    <SelectItem value="viewer">Viewer</SelectItem>
                                   </SelectContent>
                                 </Select>
-                                <FormDescription>
-                                  Admins can manage all settings, while agents can only interact with users.
-                                </FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                           <DialogFooter>
-                            <Button 
-                              type="submit" 
-                              className="flex items-center gap-1"
-                              disabled={isInviting}
-                            >
-                              {isInviting ? (
-                                <>
-                                  <LoadingSpinner size="sm" /> Sending...
-                                </>
-                              ) : (
-                                <>
-                                  <Mail className="h-4 w-4" /> Send Invitation
-                                </>
-                              )}
+                            <Button type="submit" className="flex items-center gap-1">
+                              <Mail className="h-4 w-4" /> Send Invitation
                             </Button>
                           </DialogFooter>
                         </form>
@@ -919,10 +770,9 @@ const BusinessSettings = () => {
                               <SelectItem value="UTC-5">UTC-5 (Eastern Standard Time)</SelectItem>
                               <SelectItem value="UTC+0">UTC+0 (Greenwich Mean Time)</SelectItem>
                               <SelectItem value="UTC+1">UTC+1 (Central European Time)</SelectItem>
-                              <SelectItem value="UTC+5:30">UTC+5:30 (Indian Standard Time)</SelectItem>
+                              <SelectItem value="UTC+2">UTC+2 (Eastern European Time)</SelectItem>
                               <SelectItem value="UTC+8">UTC+8 (China Standard Time)</SelectItem>
                               <SelectItem value="UTC+9">UTC+9 (Japan Standard Time)</SelectItem>
-                              <SelectItem value="UTC+10">UTC+10 (Australian Eastern Time)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -944,14 +794,18 @@ const BusinessSettings = () => {
                             <SelectContent>
                               <SelectItem value="en-US">English (US)</SelectItem>
                               <SelectItem value="en-GB">English (UK)</SelectItem>
-                              <SelectItem value="fr-FR">French</SelectItem>
-                              <SelectItem value="de-DE">German</SelectItem>
-                              <SelectItem value="es-ES">Spanish</SelectItem>
-                              <SelectItem value="it-IT">Italian</SelectItem>
-                              <SelectItem value="ja-JP">Japanese</SelectItem>
-                              <SelectItem value="zh-CN">Chinese (Simplified)</SelectItem>
+                              <SelectItem value="es">Spanish</SelectItem>
+                              <SelectItem value="fr">French</SelectItem>
+                              <SelectItem value="de">German</SelectItem>
+                              <SelectItem value="zh">Chinese</SelectItem>
+                              <SelectItem value="ja">Japanese</SelectItem>
+                              <SelectItem value="ko">Korean</SelectItem>
+                              <SelectItem value="pt">Portuguese</SelectItem>
                             </SelectContent>
                           </Select>
+                          <FormDescription>
+                            Set your preferred interface language
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -971,10 +825,14 @@ const BusinessSettings = () => {
                             <SelectContent>
                               <SelectItem value="json">JSON</SelectItem>
                               <SelectItem value="csv">CSV</SelectItem>
-                              <SelectItem value="txt">Text</SelectItem>
+                              <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
+                              <SelectItem value="txt">Plain Text</SelectItem>
                               <SelectItem value="pdf">PDF</SelectItem>
                             </SelectContent>
                           </Select>
+                          <FormDescription>
+                            Choose your preferred format for data exports
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -990,25 +848,65 @@ const BusinessSettings = () => {
                 <>
                   <div>
                     <h3 className="font-medium">Email Notifications</h3>
-                    <p className="text-muted-foreground">{preferencesForm.getValues().emailNotifications ? "Enabled" : "Disabled"}</p>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().emailNotifications ? 'Enabled' : 'Disabled'}
+                    </p>
                   </div>
                   <div>
                     <h3 className="font-medium">Timezone</h3>
-                    <p className="text-muted-foreground">{preferencesForm.getValues().timezone}</p>
+                    <p className="text-muted-foreground mt-1">{preferencesForm.getValues().timezone} (Pacific Standard Time)</p>
                   </div>
                   <div>
                     <h3 className="font-medium">Language</h3>
-                    <p className="text-muted-foreground">{preferencesForm.getValues().language}</p>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().language === 'en-US' ? 'English (US)' : 
+                       preferencesForm.getValues().language === 'en-GB' ? 'English (UK)' :
+                       preferencesForm.getValues().language === 'es' ? 'Spanish' :
+                       preferencesForm.getValues().language === 'fr' ? 'French' :
+                       preferencesForm.getValues().language === 'de' ? 'German' :
+                       preferencesForm.getValues().language === 'zh' ? 'Chinese' :
+                       preferencesForm.getValues().language === 'ja' ? 'Japanese' :
+                       preferencesForm.getValues().language === 'ko' ? 'Korean' :
+                       preferencesForm.getValues().language === 'pt' ? 'Portuguese' : 
+                       preferencesForm.getValues().language}
+                    </p>
                   </div>
                   <div>
                     <h3 className="font-medium">Default Export Format</h3>
-                    <p className="text-muted-foreground">{preferencesForm.getValues().defaultExportFormat.toUpperCase()}</p>
+                    <p className="text-muted-foreground mt-1">
+                      {preferencesForm.getValues().defaultExportFormat.toUpperCase()}
+                    </p>
                   </div>
                 </>
               )}
             </CardContent>
           </Card>
         </section>
+
+        {isSuperAdmin && (
+          <>
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Platform Settings</h2>
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <div>
+                    <h3 className="font-medium">Global Default Model</h3>
+                    <p className="text-muted-foreground mt-1">GPT-4</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Platform Theme</h3>
+                    <p className="text-muted-foreground mt-1">Light</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Default Business Settings</h3>
+                    <p className="text-muted-foreground mt-1">Configured</p>
+                  </div>
+                  <Button>Manage Platform Settings</Button>
+                </CardContent>
+              </Card>
+            </section>
+          </>
+        )}
       </div>
     </div>
   );
