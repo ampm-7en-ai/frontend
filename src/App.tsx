@@ -176,7 +176,7 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/verify" element={<Verify />} />
-              <Route path="/register" element={<InviteRegistration />} />
+              <Route path="/invitation" element={<InviteRegistration />} />
               <Route path="/*" element={<ProtectedRoutes />} />
             </Routes>
             <Toaster />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -54,14 +53,12 @@ const InviteRegistration = () => {
 
       setIsLoading(true);
       try {
-        // In a real implementation, we would validate the token with an API call
         const response = await fetch(`${getApiUrl('users/validate-invite')}?token=${inviteToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         }).catch(() => {
-          // For development, simulate a successful response
           return {
             ok: true,
             json: () => Promise.resolve({
@@ -114,7 +111,6 @@ const InviteRegistration = () => {
 
     setIsLoading(true);
     try {
-      // In a real implementation, we would call the API to complete registration
       const payload = {
         name: values.name,
         email: invitedEmail,
@@ -129,7 +125,6 @@ const InviteRegistration = () => {
         },
         body: JSON.stringify(payload),
       }).catch(() => {
-        // For development, simulate a successful response
         return {
           ok: true,
           json: () => Promise.resolve({
@@ -155,7 +150,6 @@ const InviteRegistration = () => {
           description: "Your account has been created successfully.",
         });
         
-        // Log the user in automatically
         await login(values.name, values.password, {
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
@@ -164,7 +158,6 @@ const InviteRegistration = () => {
           isVerified: data.isVerified
         });
         
-        // Navigate to dashboard
         navigate('/dashboard');
       } else {
         toast({
@@ -183,6 +176,10 @@ const InviteRegistration = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLoginRedirect = () => {
+    navigate('/login');
   };
 
   if (isLoading && tokenValid === null) {
@@ -315,7 +312,7 @@ const InviteRegistration = () => {
             <Button 
               variant="link" 
               className="text-sm"
-              onClick={() => navigate('/login')}
+              onClick={handleLoginRedirect}
             >
               Already have an account? Log in
             </Button>
