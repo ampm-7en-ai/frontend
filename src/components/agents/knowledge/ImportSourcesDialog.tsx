@@ -1,409 +1,297 @@
+
 import React, { useState, useEffect } from 'react';
-import { ApiKnowledgeBase } from './types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link } from 'lucide-react';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogBody } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, Check, AlertCircle } from 'lucide-react';
+import { ApiKnowledgeBase } from './types';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQueryClient } from '@tanstack/react-query';
-import { Separator } from '@/components/ui/separator';
 import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
-import { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
 
-interface KnowledgeSourceListProps {
-  knowledgeBases: ApiKnowledgeBase[];
-  isLoading?: boolean;
-  agentId?: string;
-  onKnowledgeBaseRemoved?: (knowledgeBaseId: number) => void;
+interface ImportSourcesDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  externalSources: ApiKnowledgeBase[];
+  currentSources: any[];
+  onImport: (selectedSources: number[], selectedSubUrls?: Record<number, Set<string>>) => void;
+  agentId: string;
+  preventMultipleCalls?: boolean;
 }
 
-const getIconForType = (type: string) => {
-  switch (type.toLowerCase()) {
-    case 'website':
-      return <Globe className="h-4 w-4" />;
-    case 'document':
-    case 'pdf':
-    case 'docs':
-      return <FileText className="h-4 w-4" />;
-    case 'csv':
-      return <Database className="h-4 w-4" />;
-    case 'plain_text':
-      return <File className="h-4 w-4" />;
-    default:
-      return <File className="h-4 w-4" />;
-  }
-};
-
-const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
-  const { type } = knowledgeBase;
-  
-  // Count only selected sources/files
-  const selectedSourcesCount = knowledgeBase.knowledge_sources?.filter(source => source.is_selected).length || 0;
-  
-  switch (type.toLowerCase()) {
-    case 'document':
-    case 'pdf':
-    case 'docs':
-    case 'csv':
-      return `${selectedSourcesCount} ${selectedSourcesCount === 1 ? 'file' : 'files'}`;
-      
-    case 'website':
-      const firstSource = knowledgeBase.knowledge_sources?.[0];
-      if (!firstSource) return type;
-      
-      const urlCount = firstSource.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
-      return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
-      
-    case 'plain_text':
-      const firstSource = knowledgeBase.knowledge_sources?.[0];
-      if (!firstSource) return type;
-      
-      if (firstSource.metadata?.no_of_chars) {
-        return `${firstSource.metadata.no_of_chars} chars`;
-      }
-      return type;
-      
-    default:
-      return type;
-  }
-};
-
-const getFormattedSize = (source: any) => {
-  if (source.metadata?.file_size) {
-    if (typeof source.metadata.file_size === 'string' && source.metadata.file_size.endsWith('B')) {
-      const sizeInBytes = parseInt(source.metadata.file_size.replace('B', ''), 10);
-      return formatFileSizeToMB(sizeInBytes);
-    }
-    return formatFileSizeToMB(source.metadata.file_size);
-  }
-  
-  if (source.metadata?.no_of_chars) {
-    return `${source.metadata.no_of_chars} chars`;
-  }
-  
-  if (source.metadata?.no_of_rows) {
-    return `${source.metadata.no_of_rows} rows`;
-  }
-  
-  return 'N/A';
-};
-
-const formatFileSizeToMB = (bytes: number) => {
-  if (bytes === 0) return '0 B';
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
-};
-
-const KnowledgeBaseCard = ({ 
-  knowledgeBase, 
-  agentId, 
-  onDelete 
-}: { 
-  knowledgeBase: ApiKnowledgeBase;
-  agentId?: string;
-  onDelete?: () => void;
-}) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-  const [isDeleting, setIsDeleting] = React.useState(false);
+export default function ImportSourcesDialog({
+  isOpen,
+  onOpenChange,
+  externalSources,
+  currentSources,
+  onImport,
+  agentId,
+  preventMultipleCalls = false
+}: ImportSourcesDialogProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSources, setSelectedSources] = useState<number[]>([]);
+  const [selectedSubUrls, setSelectedSubUrls] = useState<Record<number, Set<string>>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowDeleteDialog(true);
+  
+  // Reset selections when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedSources([]);
+      setSelectedSubUrls({});
+      setSearchQuery('');
+    }
+  }, [isOpen]);
+  
+  const getIconType = (type: string) => {
+    return type.toLowerCase();
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!agentId) {
+  const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
+    const { type } = knowledgeBase;
+    
+    // Count only selected sources/files
+    const selectedSourcesCount = knowledgeBase.knowledge_sources?.filter(source => source.is_selected).length || 0;
+    
+    switch (type.toLowerCase()) {
+      case 'document':
+      case 'pdf':
+      case 'docs':
+      case 'csv':
+        return `${selectedSourcesCount} ${selectedSourcesCount === 1 ? 'file' : 'files'}`;
+        
+      case 'website': {
+        const sourceWithUrls = knowledgeBase.knowledge_sources?.[0];
+        if (!sourceWithUrls) return type;
+        
+        const urlCount = sourceWithUrls.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
+        return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
+      }
+        
+      case 'plain_text': {
+        const sourceWithChars = knowledgeBase.knowledge_sources?.[0];
+        if (!sourceWithChars) return type;
+        
+        if (sourceWithChars.metadata?.no_of_chars) {
+          return `${sourceWithChars.metadata.no_of_chars} chars`;
+        }
+        return type;
+      }
+        
+      default:
+        return type;
+    }
+  };
+
+  const filteredSources = externalSources.filter(source => {
+    // Skip sources that are already linked to the current agent
+    const isAlreadyLinked = currentSources.some(cs => cs.id === source.id);
+    if (isAlreadyLinked) return false;
+    
+    // Apply search filter
+    if (searchQuery) {
+      return source.name.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    
+    return true;
+  });
+  
+  const handleSourceSelect = (id: number) => {
+    setSelectedSources(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(sourceId => sourceId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+  
+  const handleSubUrlSelect = (knowledgeBaseId: number, urlKey: string) => {
+    setSelectedSubUrls(prev => {
+      const updatedUrls = new Set(prev[knowledgeBaseId] || []);
+      
+      if (updatedUrls.has(urlKey)) {
+        updatedUrls.delete(urlKey);
+      } else {
+        updatedUrls.add(urlKey);
+      }
+      
+      return {
+        ...prev,
+        [knowledgeBaseId]: updatedUrls
+      };
+    });
+  };
+  
+  const handleImport = async () => {
+    if (selectedSources.length === 0) {
       toast({
-        title: "Error",
-        description: "Cannot delete knowledge base: Agent ID is missing",
+        title: "No sources selected",
+        description: "Please select at least one knowledge source to import",
         variant: "destructive"
       });
       return;
     }
-
-    const token = getAccessToken();
-    if (!token) {
-      toast({
-        title: "Authentication Error",
-        description: "You need to be logged in to perform this action",
-        variant: "destructive"
-      });
+    
+    if (isSubmitting && preventMultipleCalls) {
+      console.log("Import operation already in progress, ignoring duplicate call");
       return;
     }
-
-    if (isDeleting) {
-      console.log("Delete operation already in progress, ignoring duplicate call");
-      return;
-    }
-
+    
+    setIsSubmitting(true);
+    
+    // Optimistic update to show immediate feedback
+    queryClient.setQueryData(['agentKnowledgeBases', agentId], (old: any[] = []) => {
+      const selectedKnowledgeBases = externalSources.filter(kb => selectedSources.includes(kb.id));
+      return [...old, ...selectedKnowledgeBases];
+    });
+    
     try {
-      setIsDeleting(true);
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
       
-      queryClient.setQueryData(['agentKnowledgeBases', agentId], (old: any[]) => {
-        if (!old) return [];
-        return old.filter(kb => kb.id !== knowledgeBase.id);
-      });
-      
-      setShowDeleteDialog(false);
-      
-      toast({
-        title: "Removing knowledge base...",
-        description: `Removing "${knowledgeBase.name}" from this agent`,
-      });
-
-      const response = await fetch(`${BASE_URL}agents/${agentId}/remove-knowledge-sources/`, {
+      const response = await fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources/`, {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
-          knowledgeSources: [knowledgeBase.id]
+          knowledgeSources: selectedSources,
+          selected_knowledge_sources: []
         })
       });
-
+      
       if (!response.ok) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['agentKnowledgeBases', agentId] 
-        });
-        
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `Failed to delete: ${response.status}`);
+        throw new Error(errorData?.message || `Failed to import: ${response.status}`);
       }
-
+      
+      onImport(selectedSources, selectedSubUrls);
+      
       toast({
-        title: "Knowledge base removed",
-        description: `Successfully removed "${knowledgeBase.name}" from this agent`,
+        title: "Sources imported",
+        description: `Successfully imported ${selectedSources.length} knowledge sources`,
       });
       
-      if (onDelete) {
-        onDelete();
-      }
+      onOpenChange(false);
     } catch (error) {
-      console.error('Error removing knowledge base:', error);
+      console.error('Error importing knowledge sources:', error);
+      
+      // Revert optimistic update
+      queryClient.invalidateQueries({
+        queryKey: ['agentKnowledgeBases', agentId]
+      });
       
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to remove knowledge base",
+        title: "Import failed",
+        description: error instanceof Error ? error.message : "Failed to import knowledge sources",
         variant: "destructive"
       });
-      
-      setShowDeleteDialog(false);
     } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const getBadgeForStatus = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <Badge variant="success" className="text-xs font-medium">Trained</Badge>;
-      case 'training':
-        return <Badge variant="secondary" className="text-xs font-medium">Training</Badge>;
-      default:
-        return <Badge variant="outline" className="text-xs font-medium">Untrained</Badge>;
-    }
-  };
-
-  const getSourceType = (source: any): KnowledgeSourceBadgeProps['source'] => {
-    return {
-      name: source.title || "Unknown",
-      type: source.metadata?.format?.toLowerCase() || knowledgeBase.type,
-      id: source.id || 0,
-      hasError: source.status === 'error',
-      linkBroken: source.url && !source.url.startsWith('http')
-    };
-  };
-
-  return (
-    <>
-      <div className="overflow-hidden rounded-md border border-gray-200 shadow-sm bg-white">
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <div className="px-4 py-3 cursor-pointer flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors" onClick={() => setIsOpen(!isOpen)}>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 bg-white rounded-md border">
-                {getIconForType(knowledgeBase.type)}
-              </div>
-              <h3 className="font-medium text-sm">{knowledgeBase.name}</h3>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {getTypeDescription(knowledgeBase)}
-              </span>
-              
-              {getBadgeForStatus(knowledgeBase.training_status)}
-              
-              {agentId && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                  onClick={handleDeleteClick}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-              
-              <CollapsibleTrigger className="h-7 w-7 rounded-md inline-flex items-center justify-center hover:bg-gray-200">
-                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </CollapsibleTrigger>
-            </div>
-          </div>
-          
-          <CollapsibleContent>
-            <div className="px-4 py-2 space-y-1">
-              {knowledgeBase.knowledge_sources.map((source, index) => {
-                const isWebsite = knowledgeBase.type.toLowerCase() === 'website';
-                const isDocument = ['document', 'pdf', 'docs'].includes(knowledgeBase.type.toLowerCase());
-                const isCsv = knowledgeBase.type.toLowerCase() === 'csv';
-                
-                return (
-                  <div key={source.id} className="py-2">
-                    {isWebsite && source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
-                      <div className="space-y-1.5">
-                        {source.sub_urls.children
-                          .filter(subUrl => subUrl.is_selected)
-                          .map((subUrl: any) => (
-                            <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
-                              <div className="flex items-center gap-2 max-w-[70%]">
-                                <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                                <span className="text-xs truncate">{subUrl.url}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground">
-                                  {subUrl.chars !== undefined ? `${subUrl.chars.toLocaleString()} chars` : 'N/A'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    ) : (isDocument || isCsv) && source.is_selected ? (
-                      <div className="flex justify-between items-center mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                        </div>
-                      </div>
-                    ) : (!isDocument && !isCsv && !isWebsite) && source.is_selected ? (
-                      <div className="flex justify-between items-center mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                        </div>
-                      </div>
-                    ) : null}
-                    
-                    {index < knowledgeBase.knowledge_sources.length - 1 && 
-                     knowledgeBase.knowledge_sources.filter(s => s.is_selected).length > 0 && (
-                      <Separator className="mt-2 bg-gray-100" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Knowledge Base</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove "{knowledgeBase.name}" from this agent? 
-              This will unlink the knowledge base from this agent, but won't delete the knowledge base itself.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Removing..." : "Remove"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-};
-
-const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({ 
-  knowledgeBases,
-  isLoading = false,
-  agentId,
-  onKnowledgeBaseRemoved
-}) => {
-  const [localKnowledgeBases, setLocalKnowledgeBases] = useState(knowledgeBases);
-
-  useEffect(() => {
-    setLocalKnowledgeBases(knowledgeBases);
-  }, [knowledgeBases]);
-
-  const handleKnowledgeBaseRemoved = (id: number) => {
-    setLocalKnowledgeBases(prev => prev.filter(kb => kb.id !== id));
-    if (onKnowledgeBaseRemoved) {
-      onKnowledgeBaseRemoved(id);
+      setIsSubmitting(false);
     }
   };
   
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {[1, 2].map(i => (
-          <div key={i} className="animate-pulse">
-            <div className="h-12 bg-gray-100 rounded-md mb-1"></div>
-            <div className="h-8 bg-gray-50 rounded-md w-3/4"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (!localKnowledgeBases || localKnowledgeBases.length === 0) {
-    return (
-      <div className="rounded-md border border-dashed p-6 flex flex-col items-center justify-center">
-        <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-        <h3 className="text-sm font-medium mb-1">No knowledge sources</h3>
-        <p className="text-xs text-muted-foreground text-center">
-          Import knowledge sources to improve your agent's responses.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-3">
-      {localKnowledgeBases.map((knowledgeBase) => (
-        <KnowledgeBaseCard
-          key={knowledgeBase.id}
-          knowledgeBase={knowledgeBase}
-          agentId={agentId}
-          onDelete={() => handleKnowledgeBaseRemoved(knowledgeBase.id)}
-        />
-      ))}
-    </div>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]" fixedFooter>
+        <DialogHeader>
+          <DialogTitle>Import Knowledge Sources</DialogTitle>
+        </DialogHeader>
+        
+        <DialogBody>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search knowledge sources..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <ScrollArea className="h-[350px] pr-4">
+            {filteredSources.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-4 text-center">
+                <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
+                <h3 className="text-sm font-medium">No knowledge sources found</h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {searchQuery 
+                    ? `No results matching "${searchQuery}"`
+                    : "There are no available knowledge sources to import"
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredSources.map((source) => (
+                  <div 
+                    key={source.id} 
+                    className={`p-3 border rounded-md transition-colors cursor-pointer ${
+                      selectedSources.includes(source.id) 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary/30'
+                    }`}
+                    onClick={() => handleSourceSelect(source.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Checkbox 
+                          checked={selectedSources.includes(source.id)}
+                          onCheckedChange={() => handleSourceSelect(source.id)}
+                          className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                        />
+                        <div>
+                          <h3 className="text-sm font-medium">{source.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <KnowledgeSourceBadge 
+                              source={{
+                                name: source.type,
+                                type: getIconType(source.type)
+                              }}
+                              size="sm"
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              {getTypeDescription(source)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {selectedSources.includes(source.id) && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogBody>
+        
+        <DialogFooter fixed>
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleImport}
+            disabled={selectedSources.length === 0 || isSubmitting}
+          >
+            {isSubmitting ? 'Importing...' : 'Import Selected'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
-};
-
-export default KnowledgeSourceList;
+}
