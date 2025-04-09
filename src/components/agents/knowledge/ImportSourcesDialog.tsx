@@ -907,4 +907,90 @@ export const ImportSourcesDialog = ({
   );
 
   return (
-    <Dialog open={
+    <Dialog open={isLoading ? (
+      <div className="space-y-2">
+        <LoadingSpinner />
+        <p className="text-center text-sm text-muted-foreground">Loading sources...</p>
+      </div>
+    ) : (
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Import Knowledge Sources</DialogTitle>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleImport} disabled={isImporting}>
+              {isImporting ? 'Importing...' : 'Import'}
+            </Button>
+          </DialogFooter>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
+              Source Types
+            </div>
+            {sourceTypes.all.count > 0 && (
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">All Sources</span>
+                  <span className="text-sm text-muted-foreground">{sourceTypes.all.count}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Documents</span>
+                  <span className="text-sm text-muted-foreground">{sourceTypes.docs.count}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">PDF</span>
+                  <span className="text-sm text-muted-foreground">{sourceTypes.pdf.count}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">DOCX</span>
+                  <span className="text-sm text-muted-foreground">{sourceTypes.docx.count}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Websites</span>
+                  <span className="text-sm text-muted-foreground">{sourceTypes.website.count}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Spreadsheets</span>
+                  <span className="text-sm text-muted-foreground">{sourceTypes.csv.count}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Plain Text</span>
+                  <span className="text-sm text-muted-foreground">{sourceTypes.plain_text.count}</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
+              Selected Sources
+            </div>
+            {renderSelectedSourcesList()}
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
+              Knowledge Sources
+            </div>
+            {filteredSources.map(source => {
+              if (source.type === 'website') {
+                return renderWebsiteUrls(source);
+              } else if (source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') {
+                return renderNestedFiles(source);
+              }
+              return null;
+            })}
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs uppercase text-muted-foreground tracking-wide mb-1 px-1">
+              Filters
+            </div>
+            {renderWebsiteFilterControls()}
+          </div>
+        </div>
+      </DialogContent>
+    )}>
+
+  );
+};

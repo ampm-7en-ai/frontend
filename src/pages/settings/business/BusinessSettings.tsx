@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -156,6 +157,7 @@ const BusinessSettings = () => {
     try {
       setIsInviting(true);
       
+      // Simulate API call to /users/create_team_invite/ endpoint
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const newMember: TeamMember = {
@@ -916,3 +918,100 @@ const BusinessSettings = () => {
                               <SelectItem value="UTC-8">UTC-8 (Pacific Standard Time)</SelectItem>
                               <SelectItem value="UTC-5">UTC-5 (Eastern Standard Time)</SelectItem>
                               <SelectItem value="UTC+0">UTC+0 (Greenwich Mean Time)</SelectItem>
+                              <SelectItem value="UTC+1">UTC+1 (Central European Time)</SelectItem>
+                              <SelectItem value="UTC+5:30">UTC+5:30 (Indian Standard Time)</SelectItem>
+                              <SelectItem value="UTC+8">UTC+8 (China Standard Time)</SelectItem>
+                              <SelectItem value="UTC+9">UTC+9 (Japan Standard Time)</SelectItem>
+                              <SelectItem value="UTC+10">UTC+10 (Australian Eastern Time)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Language</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select language" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="en-US">English (US)</SelectItem>
+                              <SelectItem value="en-GB">English (UK)</SelectItem>
+                              <SelectItem value="fr-FR">French</SelectItem>
+                              <SelectItem value="de-DE">German</SelectItem>
+                              <SelectItem value="es-ES">Spanish</SelectItem>
+                              <SelectItem value="it-IT">Italian</SelectItem>
+                              <SelectItem value="ja-JP">Japanese</SelectItem>
+                              <SelectItem value="zh-CN">Chinese (Simplified)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="defaultExportFormat"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Default Export Format</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select export format" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="json">JSON</SelectItem>
+                              <SelectItem value="csv">CSV</SelectItem>
+                              <SelectItem value="txt">Text</SelectItem>
+                              <SelectItem value="pdf">PDF</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end pt-2">
+                      <Button type="submit" className="flex items-center gap-1">
+                        <Save className="h-4 w-4" /> Save Preferences
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              ) : (
+                <>
+                  <div>
+                    <h3 className="font-medium">Email Notifications</h3>
+                    <p className="text-muted-foreground">{preferencesForm.getValues().emailNotifications ? "Enabled" : "Disabled"}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Timezone</h3>
+                    <p className="text-muted-foreground">{preferencesForm.getValues().timezone}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Language</h3>
+                    <p className="text-muted-foreground">{preferencesForm.getValues().language}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Default Export Format</h3>
+                    <p className="text-muted-foreground">{preferencesForm.getValues().defaultExportFormat.toUpperCase()}</p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default BusinessSettings;
