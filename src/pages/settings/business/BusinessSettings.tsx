@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
 import { 
   Card, 
   CardContent, 
@@ -12,7 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save, Trash, Clock, Moon, Sun, Monitor } from 'lucide-react';
+import { Info, AlertCircle, Slack, CreditCard, Plus, Mail, Edit, CheckCircle2, User, Save, Trash, Clock } from 'lucide-react';
 import { 
   Tooltip,
   TooltipContent,
@@ -53,8 +52,7 @@ const preferencesFormSchema = z.object({
   emailNotifications: z.boolean(),
   timezone: z.string(),
   language: z.string(),
-  defaultExportFormat: z.string(),
-  theme: z.enum(["system", "light", "dark"])
+  defaultExportFormat: z.string()
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -73,7 +71,6 @@ interface Member {
 
 const BusinessSettings = () => {
   const { user, getToken } = useAuth();
-  const { theme, setTheme } = useTheme();
   const isSuperAdmin = user?.role === 'superadmin';
   
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -156,8 +153,7 @@ const BusinessSettings = () => {
       emailNotifications: true,
       timezone: 'UTC-8',
       language: 'en-US',
-      defaultExportFormat: 'json',
-      theme: theme
+      defaultExportFormat: 'json'
     },
   });
 
@@ -286,8 +282,6 @@ const BusinessSettings = () => {
   };
 
   const onPreferencesSubmit = (data: PreferencesFormValues) => {
-    setTheme(data.theme);
-    
     toast({
       title: "Preferences updated",
       description: "Your preferences have been updated successfully.",
@@ -985,55 +979,6 @@ const BusinessSettings = () => {
                   <form onSubmit={preferencesForm.handleSubmit(onPreferencesSubmit)} className="space-y-4">
                     <FormField
                       control={preferencesForm.control}
-                      name="theme"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel>Theme</FormLabel>
-                          <FormDescription>
-                            Select your preferred theme for the admin interface
-                          </FormDescription>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-6"
-                            >
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="light" />
-                                </FormControl>
-                                <FormLabel className="font-normal mt-0 flex items-center gap-2">
-                                  <Sun className="h-4 w-4" />
-                                  Light
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="dark" />
-                                </FormControl>
-                                <FormLabel className="font-normal mt-0 flex items-center gap-2">
-                                  <Moon className="h-4 w-4" />
-                                  Dark
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="system" />
-                                </FormControl>
-                                <FormLabel className="font-normal mt-0 flex items-center gap-2">
-                                  <Monitor className="h-4 w-4" />
-                                  System
-                                </FormLabel>
-                              </FormItem>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={preferencesForm.control}
                       name="emailNotifications"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
@@ -1150,18 +1095,6 @@ const BusinessSettings = () => {
                 </Form>
               ) : (
                 <>
-                  <div>
-                    <h3 className="font-medium">Theme</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {preferencesForm.getValues().theme === 'light' ? (
-                        <span className="flex items-center gap-2"><Sun className="h-4 w-4" /> Light</span>
-                      ) : preferencesForm.getValues().theme === 'dark' ? (
-                        <span className="flex items-center gap-2"><Moon className="h-4 w-4" /> Dark</span>
-                      ) : (
-                        <span className="flex items-center gap-2"><Monitor className="h-4 w-4" /> System</span>
-                      )}
-                    </p>
-                  </div>
                   <div>
                     <h3 className="font-medium">Email Notifications</h3>
                     <p className="text-muted-foreground mt-1">
