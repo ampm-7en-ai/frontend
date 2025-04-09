@@ -1,22 +1,18 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogBody } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, Folder, X, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint, addKnowledgeSourcesToAgent } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { renderSourceIcon } from './knowledgeUtils';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -129,6 +125,7 @@ export const ImportSourcesDialog = ({
   }, [selectedKnowledgeBase]);
 
   useEffect(() => {
+    // Fixed TypeScript error by explicitly typing each entry
     for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
       const numericId = Number(sourceId);
       if (urlSet && urlSet.size > 0) {
@@ -217,20 +214,32 @@ export const ImportSourcesDialog = ({
 
   const handleKnowledgeBaseClick = (source: KnowledgeSource) => {
     if (source.type === 'plain_text') {
-      const sourceId = source.id;
-      const newSelectedSources = new Set(selectedSources);
-      
-      if (newSelectedSources.has(sourceId)) {
-        newSelectedSources.delete(sourceId);
-        setSelectedKnowledgeBase(null);
-      } else {
-        newSelectedSources.add(sourceId);
-      }
-      
-      setSelectedSources(newSelectedSources);
+      // Direct toggle for plain text sources
+      toggleSourceSelection(source);
     } else {
-      setSelectedKnowledgeBase(source);
+      // For other sources, show details and select if clicked again
+      if (selectedKnowledgeBase?.id === source.id) {
+        toggleSourceSelection(source);
+      } else {
+        setSelectedKnowledgeBase(source);
+      }
     }
+  };
+
+  const toggleSourceSelection = (source: KnowledgeSource) => {
+    const sourceId = source.id;
+    const newSelectedSources = new Set(selectedSources);
+    
+    if (newSelectedSources.has(sourceId)) {
+      newSelectedSources.delete(sourceId);
+      if (selectedKnowledgeBase?.id === sourceId) {
+        setSelectedKnowledgeBase(null);
+      }
+    } else {
+      newSelectedSources.add(sourceId);
+    }
+    
+    setSelectedSources(newSelectedSources);
   };
 
   const toggleNodeExpansion = (nodePath: string) => {
@@ -430,8 +439,9 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
+      // Fix TypeScript error by explicitly checking for Set type
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
-        if (urlSet && typeof urlSet.forEach === 'function') {
+        if (urlSet && urlSet instanceof Set) {
           urlSet.forEach(url => {
             const key = urlKeyMap[url] || url;
             allSelectedIds.push(key);
@@ -440,7 +450,7 @@ export const ImportSourcesDialog = ({
       });
       
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
-        if (fileSet && typeof fileSet.forEach === 'function') {
+        if (fileSet && fileSet instanceof Set) {
           fileSet.forEach(fileId => {
             allSelectedIds.push(fileId);
           });
@@ -692,7 +702,7 @@ export const ImportSourcesDialog = ({
     if (!selectedKnowledgeBase || !hasUrlStructure(selectedKnowledgeBase)) return null;
     
     return (
-      <div className="flex flex-col space-y-2 mb-2 px-2 w-full">
+      <div className="flex flex-col space-y-2 mb-2 px-2 w-full mt-3">
         <div className="relative w-full">
           <Input
             placeholder="Search by title or URL..."
@@ -802,15 +812,19 @@ export const ImportSourcesDialog = ({
                   setSelectedSources(newSelectedSources);
                   
                   if (selectedSubUrls[sourceId]) {
-                    const newSelectedSubUrls = { ...selectedSubUrls };
-                    delete newSelectedSubUrls[sourceId];
-                    setSelectedSubUrls(newSelectedSubUrls);
+                    setSelectedSubUrls(prev => {
+                      const newSelectedSubUrls = { ...prev };
+                      delete newSelectedSubUrls[sourceId];
+                      return newSelectedSubUrls;
+                    });
                   }
                   
                   if (selectedFiles[sourceId]) {
-                    const newSelectedFiles = { ...selectedFiles };
-                    delete newSelectedFiles[sourceId];
-                    setSelectedFiles(newSelectedFiles);
+                    setSelectedFiles(prev => {
+                      const newSelectedFiles = { ...prev };
+                      delete newSelectedFiles[sourceId];
+                      return newSelectedFiles;
+                    });
                   }
                 }}
               >
@@ -825,42 +839,42 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1200px] h-[80vh] max-h-[800px] p-0 overflow-hidden" fixedFooter>
+      <DialogContent className="sm:max-w-[1200px] h-[85vh] max-h-[850px] p-0 overflow-hidden" fixedFooter>
         <DialogHeader className="px-6 pt-6 pb-2 border-b">
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
         
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           <ResizablePanel minSize={15} defaultSize={20}>
-            <div className="h-full flex flex-col">
-              <ScrollArea className="flex-1" style={{ '--scrollbar-color': 'var(--scrollbar-color, rgba(155, 135, 245, 0.3))' }}>
-                <div className="p-2 space-y-1">
-                  {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
-                    count > 0 && (
-                      <button
-                        key={type}
-                        className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
-                          selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                        )}
-                        onClick={() => setSelectedType(type)}
-                      >
-                        <span className="flex items-center">
-                          {icon}
-                          <span className="ml-2">{label}</span>
-                        </span>
-                        <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
-                          {count}
-                        </span>
-                      </button>
-                    )
-                  ))}
-                </div>
-                
-                <div className="p-2 pt-4 border-t mt-2">
+            <div className="h-full flex flex-col p-2">
+              <div className="space-y-1 mb-4">
+                {Object.entries(sourceTypes).map(([type, { count, label, icon }]) => (
+                  count > 0 && (
+                    <button
+                      key={type}
+                      className={cn(
+                        "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
+                        selectedType === type ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                      )}
+                      onClick={() => setSelectedType(type)}
+                    >
+                      <span className="flex items-center">
+                        {icon}
+                        <span className="ml-2">{label}</span>
+                      </span>
+                      <span className="bg-primary-foreground/20 text-xs rounded-full px-2 py-0.5">
+                        {count}
+                      </span>
+                    </button>
+                  )
+                ))}
+              </div>
+              
+              <div className="border-t pt-3 flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
                   {renderSelectedSourcesList()}
-                </div>
-              </ScrollArea>
+                </ScrollArea>
+              </div>
             </div>
           </ResizablePanel>
           
@@ -868,7 +882,7 @@ export const ImportSourcesDialog = ({
           
           <ResizablePanel minSize={25} defaultSize={30}>
             <div className="h-full flex flex-col">
-              <ScrollArea className="flex-1" style={{ '--scrollbar-color': 'var(--scrollbar-color, rgba(155, 135, 245, 0.3))' }}>
+              <ScrollArea className="flex-1">
                 <div className="p-2 space-y-2">
                   {filteredSources.length === 0 ? (
                     <div className="flex items-center justify-center h-full py-20">
@@ -984,7 +998,7 @@ export const ImportSourcesDialog = ({
           
           <ResizablePanel minSize={30} defaultSize={50}>
             <div className="h-full flex flex-col">
-              <ScrollArea className="flex-1" style={{ '--scrollbar-color': 'var(--scrollbar-color, rgba(155, 135, 245, 0.3))' }}>
+              <ScrollArea className="flex-1">
                 <div className="p-4">
                   {selectedKnowledgeBase ? (
                     <div>

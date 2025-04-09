@@ -38,15 +38,10 @@ const ScrollBar = React.forwardRef<
         "h-2.5 flex-col border-t border-t-transparent p-[1px]",
       className
     )}
-    style={{
-      // Use the custom scrollbar color if defined in parent's style
-      '--scrollbar-color': 'var(--scrollbar-color, rgba(155, 135, 245, 0.3))',
-    } as React.CSSProperties}
     {...props}
   >
     <ScrollAreaPrimitive.ScrollAreaThumb 
-      className="relative flex-1 rounded-full"
-      style={{ backgroundColor: 'var(--scrollbar-color)' } as React.CSSProperties} 
+      className="relative flex-1 rounded-full bg-border hover:bg-muted"
     />
   </ScrollAreaPrimitive.ScrollAreaScrollbar>
 ))
