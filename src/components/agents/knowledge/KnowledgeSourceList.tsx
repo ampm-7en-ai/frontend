@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link } from 'lucide-react';
+import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link, ExternalLink } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -301,7 +302,16 @@ const KnowledgeBaseCard = ({
                               <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
                                 <div className="flex items-center gap-2 max-w-[70%]">
                                   <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                                  <span className="text-xs truncate">{subUrl.url}</span>
+                                  <a 
+                                    href={subUrl.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-xs truncate hover:text-blue-600 hover:underline flex items-center"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {subUrl.url}
+                                    <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0" />
+                                  </a>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {subUrl.chars !== undefined && (
@@ -318,9 +328,29 @@ const KnowledgeBaseCard = ({
                           </div>
                         ) : (
                           <div className="flex justify-between items-center mb-1.5">
-                            <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
+                            <div className="flex items-center gap-2 max-w-[70%]">
+                              <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
+                              {source.url && (
+                                <a 
+                                  href={source.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-xs ml-2 text-blue-600 hover:underline flex items-center"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Visit <ExternalLink className="h-3 w-3 ml-1" />
+                                </a>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {getFormattedSize(source)}
+                              </span>
+                              {source.metadata?.chars !== undefined && (
+                                <span className="text-xs text-muted-foreground">
+                                  {source.metadata.chars === 0 ? "0 chars" : `${source.metadata.chars.toLocaleString()} chars`}
+                                </span>
+                              )}
                               <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
                                 {source.is_selected ? "Selected" : "Not Selected"}
                               </Badge>
