@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -21,7 +22,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Separator } from '@/components/ui/separator';
 import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
 import { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface KnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -223,33 +223,6 @@ const KnowledgeBaseCard = ({
     };
   };
 
-  const renderChildUrls = (childUrls: any[]) => {
-    if (!childUrls || childUrls.length === 0) return null;
-    
-    return (
-      <div className="space-y-1.5 mt-2">
-        {childUrls.map((subUrl) => (
-          <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
-            <div className="flex items-center gap-2 max-w-[70%]">
-              <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-              <span className="text-xs truncate">{subUrl.url}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {subUrl.chars !== undefined && (
-                <span className="text-xs text-muted-foreground">
-                  {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
-                </span>
-              )}
-              <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
-                {subUrl.is_selected ? "Selected" : "Not Selected"}
-              </Badge>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <>
       <div className="overflow-hidden rounded-md border border-gray-200 shadow-sm bg-white">
@@ -290,54 +263,43 @@ const KnowledgeBaseCard = ({
             <div className="px-4 py-2 space-y-1">
               {knowledgeBase.knowledge_sources.map((source, index) => {
                 const isWebsite = knowledgeBase.type.toLowerCase() === 'website';
+                const isDocument = ['document', 'pdf', 'docs'].includes(knowledgeBase.type.toLowerCase());
+                const isCsv = knowledgeBase.type.toLowerCase() === 'csv';
                 
                 return (
                   <div key={source.id} className="py-2">
-                    {isWebsite ? (
-                      <>
-                        {source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
-                          <div className="space-y-1.5">
-                            {source.sub_urls.children.map((subUrl: any) => (
-                              <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
-                                <div className="flex items-center gap-2 max-w-[70%]">
-                                  <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                                  <span className="text-xs truncate">{subUrl.url}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {subUrl.chars !== undefined && (
-                                    <span className="text-xs text-muted-foreground">
-                                      {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
-                                    </span>
-                                  )}
-                                  <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
-                                    {subUrl.is_selected ? "Selected" : "Not Selected"}
-                                  </Badge>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="flex justify-between items-center mb-1.5">
-                            <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
+                    {isWebsite && source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {source.sub_urls.children.map((subUrl: any) => (
+                          <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2 max-w-[70%]">
+                              <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                              <span className="text-xs truncate">{subUrl.url}</span>
+                            </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                              <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
-                                {source.is_selected ? "Selected" : "Not Selected"}
-                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {subUrl.chars !== undefined ? `${subUrl.chars.toLocaleString()} chars` : 'N/A'}
+                              </span>
                             </div>
                           </div>
-                        )}
-                      </>
-                    ) : (
+                        ))}
+                      </div>
+                    ) : (isDocument || isCsv) && source.is_selected ? (
                       <div className="flex justify-between items-center mb-1.5">
                         <div className="flex items-center gap-2">
                           <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                          <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
-                            {source.is_selected ? "Selected" : "Not Selected"}
-                          </Badge>
+                        </div>
+                      </div>
+                    ) : (!isDocument && !isCsv && !isWebsite) && (
+                      <div className="flex justify-between items-center mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
                         </div>
                       </div>
                     )}
