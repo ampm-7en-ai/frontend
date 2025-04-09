@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -132,7 +133,7 @@ export const ImportSourcesDialog = ({
   useEffect(() => {
     for (const [sourceId, urlSet] of Object.entries(selectedSubUrls)) {
       const numericId = Number(sourceId);
-      if (urlSet && urlSet.size > 0) {
+      if (urlSet && urlSet instanceof Set && urlSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
         if (!selectedFiles[numericId]?.size) {
@@ -147,7 +148,7 @@ export const ImportSourcesDialog = ({
     
     for (const [sourceId, fileSet] of Object.entries(selectedFiles)) {
       const numericId = Number(sourceId);
-      if (fileSet && fileSet.size > 0) {
+      if (fileSet && fileSet instanceof Set && fileSet.size > 0) {
         setSelectedSources(prev => new Set([...prev, numericId]));
       } else {
         if (!selectedSubUrls[numericId]?.size) {
@@ -460,9 +461,7 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      const selectedSourcesArray = selectedSources && typeof selectedSources[Symbol.iterator] === 'function' 
-        ? Array.from(selectedSources) 
-        : [];
+      const selectedSourcesArray = Array.from(selectedSources);
       
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         if (urlSet && urlSet instanceof Set) {
@@ -502,6 +501,11 @@ export const ImportSourcesDialog = ({
         toast({
           title: "Import successful",
           description: "Knowledge sources have been added to the agent.",
+        });
+        
+        // Force refetch after import
+        queryClient.invalidateQueries({ 
+          queryKey: ['agentKnowledgeBases', agentId]
         });
       }
       

@@ -47,6 +47,7 @@ const KnowledgeTrainingStatus = ({
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
   const initialMountRef = useRef(true);
   const skipNextInvalidationRef = useRef(false);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
@@ -144,16 +145,28 @@ const KnowledgeTrainingStatus = ({
     return date.toLocaleDateString('en-GB');
   };
 
-  const refreshKnowledgeBases = () => {
-    console.log("Manually refreshing knowledge bases");
-    setKnowledgeBasesLoaded(false);
-    cachedKnowledgeBases.current = [];
+  const triggerRefresh = () => {
+    console.log("Triggering knowledge bases refresh");
+    // Clear any existing timeout to prevent multiple refreshes
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
     
-    // Force a refetch
-    refetchAgentKnowledgeBases();
+    // Using a slight delay to avoid multiple refreshes in quick succession
+    refreshTimeoutRef.current = setTimeout(() => {
+      setKnowledgeBasesLoaded(false);
+      cachedKnowledgeBases.current = [];
+      refetchAgentKnowledgeBases();
+      refreshTimeoutRef.current = null;
+    }, 500);
   };
 
-  const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>) => {
+  const refreshKnowledgeBases = () => {
+    console.log("Manually refreshing knowledge bases");
+    triggerRefresh();
+  };
+
+  const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
     if (!availableKnowledgeBases && !cachedKnowledgeBases.current.length) {
       toast({
         title: "Cannot import sources",
@@ -171,7 +184,12 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // No need to invalidate here since ImportSourcesDialog handles the optimistic update
+    // Force a refresh after import
+    triggerRefresh();
+    
+    if (onKnowledgeBasesChanged) {
+      onKnowledgeBasesChanged();
+    }
   };
 
   const trainAllSources = () => {
@@ -207,9 +225,13 @@ const KnowledgeTrainingStatus = ({
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
     console.log("Knowledge base removed, id:", id);
     
-    // Knowledge base removal is handled optimistically in KnowledgeSourceList
-    // No need to invalidate the query here
-  }, []);
+    // Force a refresh after deletion
+    triggerRefresh();
+    
+    if (onKnowledgeBasesChanged) {
+      onKnowledgeBasesChanged();
+    }
+  }, [onKnowledgeBasesChanged]);
 
   const { 
     data: availableKnowledgeBases, 
@@ -252,6 +274,15 @@ const KnowledgeTrainingStatus = ({
       }
     }
   }, [agentId, preloadedKnowledgeSources, queryClient, refetchAgentKnowledgeBases]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Card>
