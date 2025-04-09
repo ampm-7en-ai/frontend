@@ -24,7 +24,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -37,7 +37,7 @@ const profileFormSchema = z.object({
 
 const inviteFormSchema = z.object({
   email: z.string().email("Invalid email address."),
-  role: z.enum(["admin", "editor", "viewer"]),
+  role: z.enum(["admin", "agent"]),
 });
 
 const paymentFormSchema = z.object({
@@ -69,6 +69,7 @@ const BusinessSettings = () => {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -82,7 +83,7 @@ const BusinessSettings = () => {
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
       email: '',
-      role: 'viewer',
+      role: 'agent',
     },
   });
 
@@ -120,13 +121,43 @@ const BusinessSettings = () => {
     setIsEditingProfile(false);
   };
 
-  const onInviteSubmit = (data: InviteFormValues) => {
-    toast({
-      title: "Invitation sent",
-      description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
-    });
-    setShowInviteDialog(false);
-    inviteForm.reset();
+  const onInviteSubmit = async (data: InviteFormValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      // API call to create team invite
+      const response = await fetch('/api/users/create_team_invite/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          role: data.role,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to send invitation');
+      }
+      
+      toast({
+        title: "Invitation sent",
+        description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
+      });
+      
+      setShowInviteDialog(false);
+      inviteForm.reset();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while sending the invitation.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const onPaymentSubmit = (data: PaymentFormValues) => {
@@ -385,7 +416,12 @@ const BusinessSettings = () => {
                               <FormItem>
                                 <FormLabel>Email Address</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="colleague@example.com" {...field} />
+                                  <Input 
+                                    placeholder="colleague@example.com" 
+                                    {...field} 
+                                    type="email"
+                                    autoComplete="email"
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -405,17 +441,29 @@ const BusinessSettings = () => {
                                   </FormControl>
                                   <SelectContent>
                                     <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="editor">Editor</SelectItem>
-                                    <SelectItem value="viewer">Viewer</SelectItem>
+                                    <SelectItem value="agent">Agent</SelectItem>
                                   </SelectContent>
                                 </Select>
+                                <FormDescription>
+                                  Admins can manage the entire workspace. Agents can only create and manage chatbots.
+                                </FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                           <DialogFooter>
-                            <Button type="submit" className="flex items-center gap-1">
-                              <Mail className="h-4 w-4" /> Send Invitation
+                            <Button 
+                              type="submit" 
+                              className="flex items-center gap-1" 
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? (
+                                <>Sending...</>
+                              ) : (
+                                <>
+                                  <Mail className="h-4 w-4" /> Send Invitation
+                                </>
+                              )}
                             </Button>
                           </DialogFooter>
                         </form>
