@@ -47,6 +47,7 @@ export const ImportSourcesDialog = ({
   const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
   const [urlFilter, setUrlFilter] = useState<string>('');
   const [urlSortOrder, setUrlSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [showOnlySelected, setShowOnlySelected] = useState(false);
   const [excludedUrls, setExcludedUrls] = useState<Set<string>>(new Set());
   const [urlKeyMap, setUrlKeyMap] = useState<Record<string, string>>({});
 
@@ -61,6 +62,7 @@ export const ImportSourcesDialog = ({
       setExpandedSources(new Set());
       setUrlFilter('');
       setUrlSortOrder('asc');
+      setShowOnlySelected(false);
       setExcludedUrls(new Set());
     }
   }, [isOpen, externalSources]);
@@ -221,6 +223,7 @@ export const ImportSourcesDialog = ({
         toggleSourceSelection(source);
       } else {
         setSelectedKnowledgeBase(source);
+        setShowOnlySelected(false); // Reset filter when switching sources
       }
     }
   };
@@ -249,16 +252,6 @@ export const ImportSourcesDialog = ({
       newExpandedNodes.add(nodePath);
     }
     setExpandedNodes(newExpandedNodes);
-  };
-
-  const toggleSourceExpansion = (sourceId: number) => {
-    const newExpandedSources = new Set(expandedSources);
-    if (newExpandedSources.has(sourceId)) {
-      newExpandedSources.delete(sourceId);
-    } else {
-      newExpandedSources.add(sourceId);
-    }
-    setExpandedSources(newExpandedSources);
   };
 
   const getAllUrlsFromNode = (node: UrlNode): string[] => {
@@ -390,6 +383,10 @@ export const ImportSourcesDialog = ({
     const allUrls = getAllUrlsFromNode(rootNode);
     const selectedUrls = selectedSubUrls[sourceId] || new Set<string>();
     
+    // Make sure both are iterable
+    if (!allUrls || !selectedUrls) return false;
+    
+    // Ensure all URLs are in the selectedUrls set
     return allUrls.every(url => selectedUrls.has(url));
   };
 
@@ -416,6 +413,15 @@ export const ImportSourcesDialog = ({
     
     // Filter excluded URLs
     allUrls = allUrls.filter(node => !excludedUrls.has(node.url));
+    
+    // Filter to show only selected URLs if that option is enabled
+    if (showOnlySelected && selectedKnowledgeBase) {
+      const sourceId = selectedKnowledgeBase.id;
+      const selectedUrlsSet = selectedSubUrls[sourceId];
+      if (selectedUrlsSet) {
+        allUrls = allUrls.filter(node => selectedUrlsSet.has(node.url));
+      }
+    }
     
     // Sort URLs
     allUrls.sort((a, b) => {
@@ -561,7 +567,9 @@ export const ImportSourcesDialog = ({
       return (
         <div className="flex flex-col items-center justify-center text-center py-6">
           <Globe className="h-10 w-10 text-muted-foreground/40 mb-2" />
-          <p className="text-muted-foreground">No URLs match your filter</p>
+          <p className="text-muted-foreground">
+            {showOnlySelected ? "No selected URLs" : "No URLs match your filter"}
+          </p>
         </div>
       );
     }
@@ -748,26 +756,37 @@ export const ImportSourcesDialog = ({
         </div>
         
         <div className="flex items-center justify-between w-full gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-xs h-7 px-2 w-[90px] flex justify-between items-center"
-              >
-                <span>{urlSortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
-                <ArrowUpDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[90px]">
-              <DropdownMenuItem onClick={() => setUrlSortOrder('asc')} className="text-xs">
-                A-Z
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setUrlSortOrder('desc')} className="text-xs">
-                Z-A
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-xs h-7 px-2 w-[90px] flex justify-between items-center"
+                >
+                  <span>{urlSortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
+                  <ArrowUpDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[90px]">
+                <DropdownMenuItem onClick={() => setUrlSortOrder('asc')} className="text-xs">
+                  A-Z
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setUrlSortOrder('desc')} className="text-xs">
+                  Z-A
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button
+              variant={showOnlySelected ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowOnlySelected(!showOnlySelected)}
+              className="text-xs h-7"
+            >
+              {showOnlySelected ? "All URLs" : "Selected Only"}
+            </Button>
+          </div>
           
           {excludedUrls.size > 0 && (
             <Button
@@ -872,7 +891,7 @@ export const ImportSourcesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1200px] h-[85vh] max-h-[900px] p-0 overflow-hidden" fixedFooter>
+      <DialogContent className="sm:max-w-[1300px] h-[90vh] max-h-[950px] p-0 overflow-hidden" fixedFooter>
         <DialogHeader className="px-6 pt-6 pb-2 border-b">
           <DialogTitle>Import Knowledge Sources</DialogTitle>
         </DialogHeader>
@@ -904,7 +923,7 @@ export const ImportSourcesDialog = ({
               </div>
               
               <div className="border-t pt-3 flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
+                <ScrollArea className="h-full pr-2">
                   {renderSelectedSourcesList()}
                 </ScrollArea>
               </div>
@@ -915,7 +934,7 @@ export const ImportSourcesDialog = ({
           
           <ResizablePanel minSize={25} defaultSize={30}>
             <div className="h-full flex flex-col">
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 pr-2">
                 <div className="p-2 space-y-2">
                   {filteredSources.length === 0 ? (
                     <div className="flex items-center justify-center h-full py-20">
@@ -972,17 +991,7 @@ export const ImportSourcesDialog = ({
                           
                           <div className="flex items-center">
                             {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source))) ? (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleSourceExpansion(source.id);
-                                }}
-                              >
-                                {expandedSources.has(source.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              </Button>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
                             ) : (
                               <Checkbox
                                 checked={selectedSources.has(source.id)}
@@ -1002,23 +1011,6 @@ export const ImportSourcesDialog = ({
                             )}
                           </div>
                         </div>
-                        
-                        {expandedSources.has(source.id) && (
-                          <div className="mt-3 border-t pt-2">
-                            {hasUrlStructure(source) && renderWebsiteFilterControls()}
-                            <div className="max-h-[350px] overflow-y-auto pr-1 pl-1">
-                              {hasUrlStructure(source) ? (
-                                renderWebsiteUrls(source)
-                              ) : hasNestedFiles(source) ? (
-                                renderNestedFiles(source)
-                              ) : (
-                                <div className="flex justify-center py-2 text-muted-foreground text-sm">
-                                  No detailed content available
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     ))
                   )}
@@ -1098,4 +1090,3 @@ export const ImportSourcesDialog = ({
     </Dialog>
   );
 };
-
