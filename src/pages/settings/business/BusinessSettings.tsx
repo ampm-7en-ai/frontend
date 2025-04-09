@@ -539,7 +539,7 @@ const BusinessSettings = () => {
                     <Separator />
                     <div className="p-2">
                       <p className="text-sm text-muted-foreground p-2">Members</p>
-                      <div className="divide-y">
+                      <div>
                         {members.map((member) => (
                           <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
                             <div>
