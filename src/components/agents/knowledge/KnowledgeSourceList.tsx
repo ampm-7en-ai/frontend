@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -60,18 +59,23 @@ const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
     case 'csv':
       return `${selectedSourcesCount} ${selectedSourcesCount === 1 ? 'file' : 'files'}`;
       
-    case 'website':
-      const firstSource = knowledgeBase.knowledge_sources?.[0];
-      if (!firstSource) return type;
+    case 'website': {
+      const webSource = knowledgeBase.knowledge_sources?.[0];
+      if (!webSource) return type;
       
-      const urlCount = firstSource.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
+      const urlCount = webSource.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
       return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
+    }
       
-    case 'plain_text':
-      if (firstSource.metadata?.no_of_chars) {
-        return `${firstSource.metadata.no_of_chars} chars`;
+    case 'plain_text': {
+      const textSource = knowledgeBase.knowledge_sources?.[0];
+      if (!textSource) return type;
+      
+      if (textSource.metadata?.no_of_chars) {
+        return `${textSource.metadata.no_of_chars} chars`;
       }
       return type;
+    }
       
     default:
       return type;
@@ -269,6 +273,11 @@ const KnowledgeBaseCard = ({
                 const isDocument = ['document', 'pdf', 'docs'].includes(knowledgeBase.type.toLowerCase());
                 const isCsv = knowledgeBase.type.toLowerCase() === 'csv';
                 
+                // Only show selected sources
+                if (!source.is_selected && (isDocument || isCsv)) {
+                  return null;
+                }
+                
                 return (
                   <div key={source.id} className="py-2">
                     {isWebsite && source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
@@ -295,7 +304,9 @@ const KnowledgeBaseCard = ({
                           <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {getFormattedSize(source)}
+                          </span>
                         </div>
                       </div>
                     ) : (!isDocument && !isCsv && !isWebsite) && source.is_selected ? (
@@ -304,13 +315,16 @@ const KnowledgeBaseCard = ({
                           <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {getFormattedSize(source)}
+                          </span>
                         </div>
                       </div>
                     ) : null}
                     
                     {index < knowledgeBase.knowledge_sources.length - 1 && 
-                     knowledgeBase.knowledge_sources.filter(s => s.is_selected).length > 0 && (
+                     knowledgeBase.knowledge_sources.filter(s => s.is_selected).length > 0 && 
+                     source.is_selected && (
                       <Separator className="mt-2 bg-gray-100" />
                     )}
                   </div>

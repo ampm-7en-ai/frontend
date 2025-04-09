@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogBody } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -67,19 +66,19 @@ export default function ImportSourcesDialog({
         return `${selectedSourcesCount} ${selectedSourcesCount === 1 ? 'file' : 'files'}`;
         
       case 'website': {
-        const sourceWithUrls = knowledgeBase.knowledge_sources?.[0];
-        if (!sourceWithUrls) return type;
+        const webSourceWithUrls = knowledgeBase.knowledge_sources?.[0];
+        if (!webSourceWithUrls) return type;
         
-        const urlCount = sourceWithUrls.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
+        const urlCount = webSourceWithUrls.sub_urls?.children?.filter(url => url.is_selected)?.length || 0;
         return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
       }
         
       case 'plain_text': {
-        const sourceWithChars = knowledgeBase.knowledge_sources?.[0];
-        if (!sourceWithChars) return type;
+        const textSourceWithChars = knowledgeBase.knowledge_sources?.[0];
+        if (!textSourceWithChars) return type;
         
-        if (sourceWithChars.metadata?.no_of_chars) {
-          return `${sourceWithChars.metadata.no_of_chars} chars`;
+        if (textSourceWithChars.metadata?.no_of_chars) {
+          return `${textSourceWithChars.metadata.no_of_chars} chars`;
         }
         return type;
       }
@@ -129,7 +128,7 @@ export default function ImportSourcesDialog({
     });
   };
   
-  const handleImport = async () => {
+  function handleImport() {
     if (selectedSources.length === 0) {
       toast({
         title: "No sources selected",
@@ -158,28 +157,47 @@ export default function ImportSourcesDialog({
         throw new Error('Authentication required');
       }
       
-      const response = await fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources/`, {
+      fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources/`, {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
           knowledgeSources: selectedSources,
           selected_knowledge_sources: []
         })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errorData => {
+            throw new Error(errorData?.message || `Failed to import: ${response.status}`);
+          });
+        }
+        
+        onImport(selectedSources, selectedSubUrls);
+        
+        toast({
+          title: "Sources imported",
+          description: `Successfully imported ${selectedSources.length} knowledge sources`,
+        });
+        
+        onOpenChange(false);
+      })
+      .catch(error => {
+        console.error('Error importing knowledge sources:', error);
+        
+        // Revert optimistic update
+        queryClient.invalidateQueries({
+          queryKey: ['agentKnowledgeBases', agentId]
+        });
+        
+        toast({
+          title: "Import failed",
+          description: error instanceof Error ? error.message : "Failed to import knowledge sources",
+          variant: "destructive"
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `Failed to import: ${response.status}`);
-      }
-      
-      onImport(selectedSources, selectedSubUrls);
-      
-      toast({
-        title: "Sources imported",
-        description: `Successfully imported ${selectedSources.length} knowledge sources`,
-      });
-      
-      onOpenChange(false);
     } catch (error) {
       console.error('Error importing knowledge sources:', error);
       
@@ -193,10 +211,10 @@ export default function ImportSourcesDialog({
         description: error instanceof Error ? error.message : "Failed to import knowledge sources",
         variant: "destructive"
       });
-    } finally {
+      
       setIsSubmitting(false);
     }
-  };
+  }
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
