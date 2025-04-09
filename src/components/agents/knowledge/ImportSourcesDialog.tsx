@@ -271,10 +271,10 @@ export const ImportSourcesDialog = ({
     let urls: UrlNode[] = [];
     
     // Don't include the root node itself
-    if (node.children && node.children.length > 0) {
+    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
       for (const child of node.children) {
         urls.push(child);
-        if (child.children && child.children.length > 0) {
+        if (child.children && Array.isArray(child.children) && child.children.length > 0) {
           urls = [...urls, ...getFlattenedUrls(child)];
         }
       }

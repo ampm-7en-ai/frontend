@@ -102,6 +102,64 @@ const formatFileSizeToMB = (bytes: number) => {
   return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
 };
 
+const getUrlChars = (source: any): number | undefined => {
+  if (!source || !source.metadata) return undefined;
+  
+  if (source.metadata.sub_urls?.chars !== undefined) {
+    return source.metadata.sub_urls.chars;
+  }
+  
+  if (source.metadata.sub_urls?.children && Array.isArray(source.metadata.sub_urls.children)) {
+    const rootUrl = source.metadata.sub_urls.children.find((url: any) => url.key === 'root');
+    if (rootUrl && rootUrl.chars !== undefined) {
+      return rootUrl.chars;
+    }
+    
+    if (source.metadata.sub_urls.children.length > 0 && 
+        source.metadata.sub_urls.children[0]?.chars !== undefined) {
+      return source.metadata.sub_urls.children[0].chars;
+    }
+  }
+  
+  return undefined;
+};
+
+const renderChildUrls = (childUrls: any[]) => {
+  if (!childUrls || childUrls.length === 0) return null;
+  
+  return (
+    <div className="space-y-1.5 mt-2">
+      {childUrls.map((subUrl) => (
+        <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
+          <div className="flex items-center gap-2 max-w-[70%]">
+            <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
+            <a 
+              href={subUrl.url} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-xs truncate hover:text-blue-600 hover:underline flex items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {subUrl.url}
+              <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0" />
+            </a>
+          </div>
+          <div className="flex items-center gap-2">
+            {subUrl.chars !== undefined && (
+              <span className="text-xs text-muted-foreground">
+                {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
+              </span>
+            )}
+            <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
+              {subUrl.is_selected ? "Selected" : "Not Selected"}
+            </Badge>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const KnowledgeBaseCard = ({ 
   knowledgeBase, 
   agentId, 
@@ -223,57 +281,6 @@ const KnowledgeBaseCard = ({
     };
   };
 
-  const getUrlChars = (source: any): number | undefined => {
-    if (source.sub_urls?.chars !== undefined) {
-      return source.sub_urls.chars;
-    }
-    
-    if (source.sub_urls?.children) {
-      const rootUrl = source.sub_urls.children.find((url: any) => url.key === 'root');
-      if (rootUrl?.chars !== undefined) {
-        return rootUrl.chars;
-      }
-    }
-    
-    return undefined;
-  };
-
-  const renderChildUrls = (childUrls: any[]) => {
-    if (!childUrls || childUrls.length === 0) return null;
-    
-    return (
-      <div className="space-y-1.5 mt-2">
-        {childUrls.map((subUrl) => (
-          <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
-            <div className="flex items-center gap-2 max-w-[70%]">
-              <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-              <a 
-                href={subUrl.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-xs truncate hover:text-blue-600 hover:underline flex items-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {subUrl.url}
-                <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0" />
-              </a>
-            </div>
-            <div className="flex items-center gap-2">
-              {subUrl.chars !== undefined && (
-                <span className="text-xs text-muted-foreground">
-                  {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
-                </span>
-              )}
-              <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
-                {subUrl.is_selected ? "Selected" : "Not Selected"}
-              </Badge>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <>
       <div className="overflow-hidden rounded-md border border-gray-200 shadow-sm bg-white">
@@ -319,9 +326,9 @@ const KnowledgeBaseCard = ({
                   <div key={source.id} className="py-2">
                     {isWebsite ? (
                       <>
-                        {source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
+                        {source.metadata?.sub_urls?.children && source.metadata.sub_urls.children.length > 0 ? (
                           <div className="space-y-1.5">
-                            {source.sub_urls.children.map((subUrl: any) => (
+                            {source.metadata.sub_urls.children.map((subUrl: any) => (
                               <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
                                 <div className="flex items-center gap-2 max-w-[70%]">
                                   <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
@@ -369,9 +376,17 @@ const KnowledgeBaseCard = ({
                               <span className="text-xs text-muted-foreground">
                                 {getFormattedSize(source)}
                               </span>
-                              {getUrlChars(source) !== undefined && (
+                              {source.metadata?.sub_urls?.chars !== undefined && (
                                 <span className="text-xs text-muted-foreground">
-                                  {getUrlChars(source) === 0 ? "0 chars" : `${getUrlChars(source)?.toLocaleString()} chars`}
+                                  {source.metadata.sub_urls.chars === 0 ? "0 chars" : `${source.metadata.sub_urls.chars.toLocaleString()} chars`}
+                                </span>
+                              )}
+                              {source.metadata?.sub_urls?.children && source.metadata.sub_urls.children.length > 0 && 
+                               source.metadata.sub_urls.children[0]?.chars !== undefined && (
+                                <span className="text-xs text-muted-foreground">
+                                  {source.metadata.sub_urls.children[0].chars === 0 ? 
+                                    "0 chars" : 
+                                    `${source.metadata.sub_urls.children[0].chars.toLocaleString()} chars`}
                                 </span>
                               )}
                               <Badge variant={source.is_selected ? "success" : "outline"} className="text-[10px]">
