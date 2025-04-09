@@ -21,7 +21,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Separator } from '@/components/ui/separator';
 import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
 import { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface KnowledgeSourceListProps {
@@ -229,9 +228,6 @@ const KnowledgeBaseCard = ({
     
     return (
       <div className="space-y-1.5 mt-2">
-        <div className="flex items-center mb-1">
-          <span className="text-xs font-medium">Child URLs</span>
-        </div>
         {childUrls.map((subUrl) => (
           <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2 max-w-[70%]">
@@ -294,46 +290,32 @@ const KnowledgeBaseCard = ({
             <div className="px-4 py-2 space-y-1">
               {knowledgeBase.knowledge_sources.map((source, index) => {
                 const isWebsite = knowledgeBase.type.toLowerCase() === 'website';
-                const hasChildUrls = isWebsite && source.sub_urls?.children && source.sub_urls.children.length > 0;
                 
                 return (
                   <div key={source.id} className="py-2">
                     {isWebsite ? (
                       <>
-                        {hasChildUrls ? (
-                          <>
-                            <div className="flex justify-between items-center mb-2">
-                              <KnowledgeSourceBadge 
-                                source={getSourceType(source)} 
-                                size="md" 
-                              />
-                              <span className="text-xs text-muted-foreground">
-                                {source.sub_urls.children.length} URLs
-                              </span>
-                            </div>
-                            <ScrollArea className="h-full max-h-[300px] pr-3">
-                              <div className="space-y-1.5">
-                                {source.sub_urls.children.map((subUrl: any) => (
-                                  <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
-                                    <div className="flex items-center gap-2 max-w-[70%]">
-                                      <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                                      <span className="text-xs truncate">{subUrl.url}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      {subUrl.chars !== undefined && (
-                                        <span className="text-xs text-muted-foreground">
-                                          {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
-                                        </span>
-                                      )}
-                                      <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
-                                        {subUrl.is_selected ? "Selected" : "Not Selected"}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                ))}
+                        {source.sub_urls?.children && source.sub_urls.children.length > 0 ? (
+                          <div className="space-y-1.5">
+                            {source.sub_urls.children.map((subUrl: any) => (
+                              <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
+                                <div className="flex items-center gap-2 max-w-[70%]">
+                                  <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                                  <span className="text-xs truncate">{subUrl.url}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {subUrl.chars !== undefined && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {subUrl.chars === 0 ? "0 characters" : `${subUrl.chars.toLocaleString()} chars`}
+                                    </span>
+                                  )}
+                                  <Badge variant={subUrl.is_selected ? "success" : "outline"} className="text-[10px]">
+                                    {subUrl.is_selected ? "Selected" : "Not Selected"}
+                                  </Badge>
+                                </div>
                               </div>
-                            </ScrollArea>
-                          </>
+                            ))}
+                          </div>
                         ) : (
                           <div className="flex justify-between items-center mb-1.5">
                             <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
