@@ -2,15 +2,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Import, Zap, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Import, Zap, LoaderCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKnowledgeBase, KnowledgeSource } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
-import { getToastMessageForSourceChange, getTrainingStatusToast } from './knowledgeUtils';
 import { 
   BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
-  getAgentEndpoint, getSourceMetadataInfo, formatFileSizeToMB 
+  getAgentEndpoint, getSourceMetadataInfo
 } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
@@ -107,7 +106,7 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  const formatExternalSources = (data) => {
+  const formatExternalSources = (data: any[]) => {
     if (!data) return [];
     
     return data.map(kb => {
@@ -138,14 +137,14 @@ const KnowledgeTrainingStatus = ({
     });
   };
   
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
   };
 
-  const triggerRefresh = () => {
+  const triggerRefresh = useCallback(() => {
     console.log("Triggering knowledge bases refresh");
     // Clear any existing timeout to prevent multiple refreshes
     if (refreshTimeoutRef.current) {
@@ -159,7 +158,7 @@ const KnowledgeTrainingStatus = ({
       refetchAgentKnowledgeBases();
       refreshTimeoutRef.current = null;
     }, 500);
-  };
+  }, []);
 
   const refreshKnowledgeBases = () => {
     console.log("Manually refreshing knowledge bases");
@@ -184,12 +183,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // Force a refresh after import
-    triggerRefresh();
-    
-    if (onKnowledgeBasesChanged) {
-      onKnowledgeBasesChanged();
-    }
+    // The ImportSourcesDialog component now handles the refresh after import
   };
 
   const trainAllSources = () => {
@@ -231,7 +225,7 @@ const KnowledgeTrainingStatus = ({
     if (onKnowledgeBasesChanged) {
       onKnowledgeBasesChanged();
     }
-  }, [onKnowledgeBasesChanged]);
+  }, [onKnowledgeBasesChanged, triggerRefresh]);
 
   const { 
     data: availableKnowledgeBases, 
@@ -349,6 +343,7 @@ const KnowledgeTrainingStatus = ({
         onImport={importSelectedSources}
         agentId={agentId}
         preventMultipleCalls={true}
+        isLoading={isLoadingAvailableKnowledgeBases}
       />
     </Card>
   );
