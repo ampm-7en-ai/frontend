@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -425,6 +426,7 @@ const BusinessSettings = () => {
       </div>
 
       <div className="space-y-8">
+        {/* Usage Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Usage</h2>
           <div className="space-y-4">
@@ -480,6 +482,7 @@ const BusinessSettings = () => {
           </div>
         </section>
 
+        {/* Connected accounts Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Connected accounts</h2>
           <Card>
@@ -500,6 +503,7 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
+        {/* API Keys Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Your 7en.ai API Keys</h2>
           <Card>
@@ -514,6 +518,7 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
+        {/* Business Profile Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
             <span>Business Profile</span>
@@ -599,6 +604,7 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
+        {/* Team Management Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Team Management</h2>
           <Card>
@@ -810,6 +816,7 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
+        {/* Global Agent Settings Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
             <span>Global Agent Settings</span>
@@ -914,6 +921,7 @@ const BusinessSettings = () => {
           </Card>
         </section>
 
+        {/* Billing Section */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Billing</h2>
           <Card>
@@ -931,3 +939,329 @@ const BusinessSettings = () => {
                         <DialogTitle>Upgrade Your Plan</DialogTitle>
                         <DialogDescription>
                           Choose the plan that best fits your needs.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <RadioGroup defaultValue="pro">
+                            <div className="flex items-center space-x-2 border p-4 rounded-md">
+                              <RadioGroupItem value="pro" id="pro" />
+                              <Label htmlFor="pro" className="flex-1">
+                                <div className="font-medium">Pro Plan</div>
+                                <div className="text-sm text-muted-foreground">$49/month</div>
+                              </Label>
+                              <div className="font-medium">500 Credits</div>
+                            </div>
+                            <div className="flex items-center space-x-2 border p-4 rounded-md">
+                              <RadioGroupItem value="business" id="business" />
+                              <Label htmlFor="business" className="flex-1">
+                                <div className="font-medium">Business Plan</div>
+                                <div className="text-sm text-muted-foreground">$99/month</div>
+                              </Label>
+                              <div className="font-medium">1,500 Credits</div>
+                            </div>
+                            <div className="flex items-center space-x-2 border p-4 rounded-md">
+                              <RadioGroupItem value="enterprise" id="enterprise" />
+                              <Label htmlFor="enterprise" className="flex-1">
+                                <div className="font-medium">Enterprise Plan</div>
+                                <div className="text-sm text-muted-foreground">Contact Sales</div>
+                              </Label>
+                              <div className="font-medium">Custom</div>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>Cancel</Button>
+                        <Button onClick={handleUpgradePlan} className="flex items-center gap-1">
+                          <CreditCard className="h-4 w-4" /> Upgrade Now
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium">Payment Method</h3>
+                <div className="flex justify-between items-center mt-1">
+                  <p className="text-muted-foreground">No payment method added</p>
+                  <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="flex items-center gap-1">
+                        <CreditCard className="h-4 w-4" /> Add Payment Method
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add Payment Method</DialogTitle>
+                        <DialogDescription>
+                          Add a new credit or debit card for billing.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <Form {...paymentForm}>
+                        <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
+                          <FormField
+                            control={paymentForm.control}
+                            name="cardName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Name on Card</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="John Doe" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={paymentForm.control}
+                            name="cardNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Card Number</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="4242 4242 4242 4242" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={paymentForm.control}
+                              name="expiryDate"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Expiry Date</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="MM/YY" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={paymentForm.control}
+                              name="cvc"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>CVC</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="123" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <DialogFooter>
+                            <Button type="submit" className="flex items-center gap-1">
+                              <CreditCard className="h-4 w-4" /> Add Card
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium">Billing History</h3>
+                <p className="text-muted-foreground mt-1">No billing history available</p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Preferences Section */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
+            <span>Preferences</span>
+            {!isEditingPreferences ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsEditingPreferences(true)}
+                className="flex items-center gap-1"
+              >
+                <Edit className="h-4 w-4" /> Edit
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsEditingPreferences(false)}
+                className="flex items-center gap-1"
+              >
+                Cancel
+              </Button>
+            )}
+          </h2>
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              {isEditingPreferences ? (
+                <Form {...preferencesForm}>
+                  <form onSubmit={preferencesForm.handleSubmit(onPreferencesSubmit)} className="space-y-4">
+                    <FormField
+                      control={preferencesForm.control}
+                      name="emailNotifications"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel>Email Notifications</FormLabel>
+                            <FormDescription>
+                              Receive email notifications about important updates.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="timezone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Timezone</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select timezone" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="UTC-8">Pacific Time (UTC-8)</SelectItem>
+                              <SelectItem value="UTC-5">Eastern Time (UTC-5)</SelectItem>
+                              <SelectItem value="UTC+0">Greenwich Mean Time (UTC+0)</SelectItem>
+                              <SelectItem value="UTC+1">Central European Time (UTC+1)</SelectItem>
+                              <SelectItem value="UTC+8">China Standard Time (UTC+8)</SelectItem>
+                              <SelectItem value="UTC+9">Japan Standard Time (UTC+9)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Language</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select language" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="en-US">English (US)</SelectItem>
+                              <SelectItem value="en-GB">English (UK)</SelectItem>
+                              <SelectItem value="fr-FR">French</SelectItem>
+                              <SelectItem value="de-DE">German</SelectItem>
+                              <SelectItem value="es-ES">Spanish</SelectItem>
+                              <SelectItem value="ja-JP">Japanese</SelectItem>
+                              <SelectItem value="zh-CN">Chinese (Simplified)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={preferencesForm.control}
+                      name="defaultExportFormat"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Default Export Format</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select export format" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="json">JSON</SelectItem>
+                              <SelectItem value="csv">CSV</SelectItem>
+                              <SelectItem value="pdf">PDF</SelectItem>
+                              <SelectItem value="markdown">Markdown</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end pt-2">
+                      <Button type="submit" className="flex items-center gap-1">
+                        <Save className="h-4 w-4" /> Save Preferences
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              ) : (
+                <>
+                  <div>
+                    <h3 className="font-medium">Email Notifications</h3>
+                    <p className="text-muted-foreground">{preferencesForm.getValues().emailNotifications ? 'Enabled' : 'Disabled'}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Timezone</h3>
+                    <p className="text-muted-foreground">
+                      {preferencesForm.getValues().timezone === 'UTC-8' ? 'Pacific Time (UTC-8)' :
+                       preferencesForm.getValues().timezone === 'UTC-5' ? 'Eastern Time (UTC-5)' :
+                       preferencesForm.getValues().timezone === 'UTC+0' ? 'Greenwich Mean Time (UTC+0)' :
+                       preferencesForm.getValues().timezone === 'UTC+1' ? 'Central European Time (UTC+1)' :
+                       preferencesForm.getValues().timezone === 'UTC+8' ? 'China Standard Time (UTC+8)' :
+                       preferencesForm.getValues().timezone === 'UTC+9' ? 'Japan Standard Time (UTC+9)' :
+                       preferencesForm.getValues().timezone}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Language</h3>
+                    <p className="text-muted-foreground">
+                      {preferencesForm.getValues().language === 'en-US' ? 'English (US)' :
+                       preferencesForm.getValues().language === 'en-GB' ? 'English (UK)' :
+                       preferencesForm.getValues().language === 'fr-FR' ? 'French' :
+                       preferencesForm.getValues().language === 'de-DE' ? 'German' :
+                       preferencesForm.getValues().language === 'es-ES' ? 'Spanish' :
+                       preferencesForm.getValues().language === 'ja-JP' ? 'Japanese' :
+                       preferencesForm.getValues().language === 'zh-CN' ? 'Chinese (Simplified)' :
+                       preferencesForm.getValues().language}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Default Export Format</h3>
+                    <p className="text-muted-foreground">
+                      {preferencesForm.getValues().defaultExportFormat.toUpperCase()}
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default BusinessSettings;
