@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Trash, Clock, Mail, Plus, User } from 'lucide-react';
+import { Trash, Clock, Mail, Plus, User, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
-import { Alert, AlertCircle, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -41,26 +41,7 @@ const TeamManagementSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inviteApiError, setInviteApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [activeTeamMembers, setActiveTeamMembers] = useState<Member[]>([
-    {
-      id: 'user-1',
-      email: 'jane.smith@example.com',
-      role: 'admin',
-      created_at: '2025-03-15T14:30:00Z',
-      status: 'active',
-      name: 'Jane Smith'
-    },
-    {
-      id: 'user-2',
-      email: 'michael.brown@example.com',
-      role: 'agent',
-      created_at: '2025-03-20T09:45:00Z',
-      status: 'active',
-      name: 'Michael Brown'
-    }
-  ]);
-  
+  const [teamMembers, setTeamMembers] = useState<Member[]>([]);
   const [showTeamManagement, setShowTeamManagement] = useState(true);
 
   const inviteForm = useForm<InviteFormValues>({
@@ -72,17 +53,18 @@ const TeamManagementSection = () => {
   });
 
   useEffect(() => {
-    fetchTeamInvites();
+    fetchTeamMembers();
   }, []);
 
-  const fetchTeamInvites = async () => {
+  const fetchTeamMembers = async () => {
     try {
       setLoading(true);
       const token = getToken();
       if (!token) {
-        throw new Error("You must be logged in to view team invites");
+        throw new Error("You must be logged in to view team members");
       }
       
+      // Fetch team invites
       const response = await fetch(getApiUrl('users/get_team_invites/'), {
         method: 'GET',
         headers: getAuthHeaders(token),
@@ -105,22 +87,49 @@ const TeamManagementSection = () => {
       const inviteData = await response.json();
       console.log("Team invites fetched:", inviteData);
       
-      const formattedInvites: Member[] = inviteData.map((invite: any) => ({
+      // Format the invites as members with active/pending status based on 'used' property
+      const formattedMembers: Member[] = inviteData.map((invite: any) => ({
         id: invite.id.toString(),
         email: invite.email,
         role: invite.role,
-        status: 'pending',
+        status: invite.used ? 'active' : 'pending',
+        name: invite.used ? invite.email.split('@')[0] : null, // Simple name creation for active users
+        created_at: invite.created_at || new Date().toISOString(),
         expires_at: invite.expires_at,
         used: invite.used
       }));
       
-      setMembers(formattedInvites);
+      // Add some sample active users for testing - this would be replaced by actual API data
+      const mockActiveUsers = [
+        {
+          id: 'user-1',
+          email: 'jane.smith@example.com',
+          role: 'admin',
+          created_at: '2025-03-15T14:30:00Z',
+          status: 'active' as const,
+          name: 'Jane Smith',
+          used: true
+        },
+        {
+          id: 'user-2',
+          email: 'michael.brown@example.com',
+          role: 'agent',
+          created_at: '2025-03-20T09:45:00Z',
+          status: 'active' as const,
+          name: 'Michael Brown',
+          used: true
+        }
+      ];
+      
+      // Combine the invites with the mock active users for now
+      // In production, you would fetch real active users from the API
+      setTeamMembers([...formattedMembers, ...mockActiveUsers]);
     } catch (error) {
-      console.error("Error fetching team invites:", error);
+      console.error("Error fetching team members:", error);
       if (error instanceof Error && error.message !== "Only team owners can view invites") {
         toast({
           title: "Error",
-          description: error instanceof Error ? error.message : "Failed to fetch team invites",
+          description: error instanceof Error ? error.message : "Failed to fetch team members",
           variant: "destructive",
         });
       }
@@ -149,7 +158,7 @@ const TeamManagementSection = () => {
         throw new Error(errorData.error || `Failed to cancel invitation: ${response.status}`);
       }
       
-      setMembers(members.filter(member => member.id !== inviteId));
+      setTeamMembers(teamMembers.filter(member => member.id !== inviteId));
       
       toast({
         title: "Invitation cancelled",
@@ -164,48 +173,30 @@ const TeamManagementSection = () => {
     }
   };
 
-  const resendInvite = async (inviteId: string, email: string | null) => {
-    if (!email) {
-      toast({
-        title: "Error",
-        description: "No email address available for this invitation.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const removeActiveMember = async (memberId: string) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("You must be logged in to resend invitations");
-      }
+      // This is a placeholder for the actual API call to remove active members
+      // Replace with actual endpoint when available
+      // const token = getToken();
+      // if (!token) {
+      //   throw new Error("You must be logged in to remove team members");
+      // }
       
-      const response = await fetch(getApiUrl(`users/resend_team_invite/${inviteId}/`), {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-      });
+      // const response = await fetch(getApiUrl('users/remove_team_member/'), {
+      //   method: 'DELETE',
+      //   headers: getAuthHeaders(token),
+      //   body: JSON.stringify({
+      //     member_id: memberId
+      //   })
+      // });
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
-        throw new Error(errorData.error || `Failed to resend invitation: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
+      //   throw new Error(errorData.error || `Failed to remove team member: ${response.status}`);
+      // }
       
-      toast({
-        title: "Invitation resent",
-        description: `An invitation has been resent to ${email}.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while resending the invitation.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteMember = async (memberId: string) => {
-    try {
-      setMembers(members.filter(member => member.id !== memberId));
+      // For now, just remove from local state for mock implementation
+      setTeamMembers(teamMembers.filter(member => member.id !== memberId));
       
       toast({
         title: "Member removed",
@@ -255,7 +246,7 @@ const TeamManagementSection = () => {
         description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
       });
       
-      fetchTeamInvites();
+      fetchTeamMembers();
       
       setShowInviteDialog(false);
       inviteForm.reset();
@@ -332,13 +323,13 @@ const TeamManagementSection = () => {
               <Badge>Owner</Badge>
             </div>
             
-            {activeTeamMembers.length > 0 && (
+            {teamMembers.length > 0 && (
               <>
                 <Separator />
                 <div className="p-2">
-                  <p className="text-sm text-muted-foreground p-2">Active Members</p>
+                  <p className="text-sm text-muted-foreground p-2">Team Members</p>
                   <div>
-                    {activeTeamMembers.map((member) => (
+                    {teamMembers.map((member) => (
                       <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
                         <div>
                           <p className="font-medium">
@@ -346,65 +337,31 @@ const TeamManagementSection = () => {
                           </p>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                             <span className="capitalize">{member.role}</span>
-                            <span>&bull;</span>
-                            <span>Added {formatDate(member.created_at || '')}</span>
+                            {member.status === 'pending' ? (
+                              <>
+                                <Badge variant="waiting" className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 mr-1" /> waiting response
+                                </Badge>
+                                <span>&bull;</span>
+                                <span>{member.expires_at ? calculateExpiryStatus(member.expires_at) : 'No expiry'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Badge variant="success" className="flex items-center gap-1">
+                                  active
+                                </Badge>
+                                <span>&bull;</span>
+                                <span>Added {formatDate(member.created_at || '')}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            onClick={() => deleteMember(member.id)}
-                            title="Remove Member"
-                          >
-                            <Trash className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-            
-            {members.length > 0 && (
-              <>
-                <Separator />
-                <div className="p-2">
-                  <p className="text-sm text-muted-foreground p-2">Pending Invitations</p>
-                  <div>
-                    {members.map((member) => (
-                      <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
-                        <div>
-                          <p className="font-medium">
-                            {member.email || "No email specified"}
-                          </p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                            <span className="capitalize">{member.role}</span>
-                            <Badge variant="waiting" className="flex items-center gap-1">
-                              <Clock className="h-3 w-3 mr-1" /> waiting response
-                            </Badge>
-                            <span>&bull;</span>
-                            <span>{member.expires_at ? calculateExpiryStatus(member.expires_at) : 'No expiry'}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {member.email && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => resendInvite(member.id, member.email)}
-                              title="Resend Invitation"
-                              className="text-xs"
-                            >
-                              Resend
-                            </Button>
-                          )}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => cancelInvite(member.id)}
-                            title="Cancel Invitation"
+                            onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
+                            title={member.status === 'pending' ? "Cancel Invitation" : "Remove Member"}
                           >
                             <Trash className="h-4 w-4 text-red-500" />
                           </Button>
@@ -422,7 +379,7 @@ const TeamManagementSection = () => {
               </div>
             )}
             
-            {!loading && members.length === 0 && activeTeamMembers.length === 0 && (
+            {!loading && teamMembers.length === 0 && (
               <div className="p-6 text-center text-muted-foreground">
                 <p>No team members or pending invitations found.</p>
               </div>
