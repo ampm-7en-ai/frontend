@@ -85,14 +85,14 @@ const InviteRegistration = () => {
           console.error("Invalid token:", data);
           setTokenValid(false);
           // Use the error message from the API response
-          throw new Error(data.error || "Invalid invitation token");
+          throw new SyntaxError(data.error || "Invalid invitation token");
         }
       } catch (error) {
         console.log("Token validation error:", error);
         setTokenValid(false);
         toast({
           title: "Invalid Invitation",
-          description: error.message || "This invitation link is invalid or has expired.",
+          description: error.message : "This invitation link is invalid or has expired.",
           variant: "destructive",
         });
       } finally {
