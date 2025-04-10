@@ -93,7 +93,7 @@ const TeamManagementSection = () => {
         email: invite.email,
         role: invite.role,
         status: invite.used ? 'active' : 'pending',
-        name: invite.used ? invite.email.split('@')[0] : null, // Simple name creation for active users
+        name: invite.email, // replace with name after api is done
         created_at: invite.created_at || new Date().toISOString(),
         expires_at: invite.expires_at,
         used: invite.used
