@@ -226,11 +226,26 @@ const KnowledgeTrainingStatus = ({
     }, 4000);
   };
 
+  // Fix for multiple API calls - add debounce mechanism
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
     console.log("Knowledge base removed, id:", id);
     
+    // Use skipNextInvalidationRef to prevent multiple refreshes
+    if (skipNextInvalidationRef.current) {
+      console.log("Skipping refresh due to recent removal");
+      return;
+    }
+    
+    // Set flag to skip next invalidation
+    skipNextInvalidationRef.current = true;
+    
     // Force a refresh after deletion
     triggerRefresh();
+    
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      skipNextInvalidationRef.current = false;
+    }, 1000);
     
     if (onKnowledgeBasesChanged) {
       onKnowledgeBasesChanged();
@@ -296,18 +311,22 @@ const KnowledgeTrainingStatus = ({
 
     window.addEventListener('storage', handleStorageChange);
     
+    // Also add a direct event listener
+    const handleCustomEvent = () => {
+      console.log('Knowledge base created custom event detected, refreshing...');
+      triggerRefresh();
+    };
+    
+    window.addEventListener('knowledgeBaseCreated', handleCustomEvent as EventListener);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [triggerRefresh]);
-
-  useEffect(() => {
-    return () => {
+      window.removeEventListener('knowledgeBaseCreated', handleCustomEvent as EventListener);
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, []);
+  }, [triggerRefresh]);
 
   return (
     <Card>
