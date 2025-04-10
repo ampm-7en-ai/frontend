@@ -498,7 +498,7 @@ const KnowledgeBase = () => {
       localStorage.setItem(KNOWLEDGE_BASE_DELETED_EVENT, Date.now().toString());
       
       // Refresh data after successful deletion
-      refreshData();
+     // refreshData();
     } catch (error) {
       console.error("Error deleting knowledge base:", error);
       toast({
