@@ -80,6 +80,7 @@ const BusinessSettings = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inviteApiError, setInviteApiError] = useState<string | null>(null);
   
   const [members, setMembers] = useState<Member[]>([
     {
@@ -223,6 +224,7 @@ const BusinessSettings = () => {
   const onInviteSubmit = async (data: InviteFormValues) => {
     try {
       setIsSubmitting(true);
+      setInviteApiError(null);
       
       const token = getToken();
       if (!token) {
@@ -238,9 +240,15 @@ const BusinessSettings = () => {
         }),
       });
       
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to send invitation' }));
-        throw new Error(errorData.message || `Failed to send invitation: ${response.status}`);
+        if (responseData.error) {
+          setInviteApiError(responseData.error);
+          return;
+        } else {
+          throw new Error(responseData.message || `Failed to send invitation: ${response.status}`);
+        }
       }
       
       toast({
@@ -581,7 +589,12 @@ const BusinessSettings = () => {
                 
                 <Separator />
                 <div className="p-4">
-                  <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                  <Dialog open={showInviteDialog} onOpenChange={(open) => {
+                    setShowInviteDialog(open);
+                    if (!open) {
+                      setInviteApiError(null);
+                    }
+                  }}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="flex items-center gap-1">
                         <Plus className="h-4 w-4" /> Invite Team Member
@@ -594,6 +607,16 @@ const BusinessSettings = () => {
                           Invite a new team member to your 7en.ai workspace.
                         </DialogDescription>
                       </DialogHeader>
+                      
+                      {inviteApiError && (
+                        <div className="mb-4">
+                          <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <div className="ml-2">{inviteApiError}</div>
+                          </Alert>
+                        </div>
+                      )}
+                      
                       <Form {...inviteForm}>
                         <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
                           <FormField
