@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -155,10 +154,15 @@ const KnowledgeTrainingStatus = ({
     refreshTimeoutRef.current = setTimeout(() => {
       setKnowledgeBasesLoaded(false);
       cachedKnowledgeBases.current = [];
+      
+      // Invalidate both queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['availableKnowledgeBases', agentId] });
+      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+      
       refetchAgentKnowledgeBases();
       refreshTimeoutRef.current = null;
     }, 500);
-  }, []);
+  }, [agentId, queryClient, refetchAgentKnowledgeBases]);
 
   const refreshKnowledgeBases = () => {
     console.log("Manually refreshing knowledge bases");
@@ -236,7 +240,8 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['availableKnowledgeBases', agentId],
     queryFn: fetchAvailableKnowledgeBases,
     staleTime: 5 * 60 * 1000,
-    enabled: false
+    enabled: false,
+    refetchOnWindowFocus: false
   });
 
   const { 
@@ -248,7 +253,8 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['agentKnowledgeBases', agentId],
     queryFn: fetchAgentKnowledgeBases,
     staleTime: 2 * 60 * 1000,
-    enabled: !!agentId && !initialMountRef.current
+    enabled: !!agentId && !initialMountRef.current,
+    refetchOnWindowFocus: false
   });
 
   useEffect(() => {
@@ -269,7 +275,21 @@ const KnowledgeTrainingStatus = ({
     }
   }, [agentId, preloadedKnowledgeSources, queryClient, refetchAgentKnowledgeBases]);
 
-  // Clean up timeout on unmount
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'knowledgeBaseCreated') {
+        console.log('Knowledge base created event detected, refreshing...');
+        triggerRefresh();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [triggerRefresh]);
+
   useEffect(() => {
     return () => {
       if (refreshTimeoutRef.current) {

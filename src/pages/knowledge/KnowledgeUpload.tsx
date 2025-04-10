@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { createKnowledgeBase } from '@/utils/api-config';
+import { useQueryClient } from '@tanstack/react-query';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -38,6 +39,8 @@ const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
   const [files, setFiles] = useState<File[]>([]);
   const [documentName, setDocumentName] = useState('');
   const [sourceType, setSourceType] = useState<SourceType>('url');
@@ -271,12 +274,17 @@ const KnowledgeUpload = () => {
       clearInterval(progressInterval);
       setProgress(100);
       
+      queryClient.invalidateQueries({ queryKey: ['availableKnowledgeBases'] });
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
+      
       toast({
         title: "Success",
         description: "Your knowledge source has been added successfully.",
       });
       
-      navigate('/knowledge');
+      setTimeout(() => {
+        navigate('/knowledge');
+      }, 100);
     } catch (error) {
       setIsUploading(false);
       

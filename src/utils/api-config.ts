@@ -256,27 +256,32 @@ export const createAgent = async (name: string, description: string): Promise<an
 };
 
 // Function to create a new knowledge base
-export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
+export const createKnowledgeBase = async (formData: FormData) => {
   const token = getAccessToken();
   if (!token) {
-    throw new Error("Authentication required");
+    throw new Error('Authentication required');
   }
-  
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
+
+  const response = await fetch(`${BASE_URL}knowledgebase/`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
-      // Note: Do not set 'Content-Type': 'application/json' for FormData
+      Authorization: `Bearer ${token}`,
+      // Don't set Content-Type when using FormData
     },
     body: formData
   });
-  
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
-    throw new Error(errorData.message || `Failed to create knowledge base: ${response.status}`);
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || `Failed to create knowledge base: ${response.status}`);
   }
+
+  const data = await response.json();
   
-  return response.json();
+  // Notify about the new knowledge base
+  notifyKnowledgeBaseCreated();
+  
+  return data;
 };
 
 // Function to convert a File to a base64 data URL (including prefix)
@@ -474,4 +479,13 @@ export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSourc
     console.error('Error adding knowledge sources to agent:', error);
     throw error;
   }
+};
+
+// Function to notify about knowledge base updates across tabs
+export const notifyKnowledgeBaseCreated = () => {
+  // Use localStorage to trigger an event across tabs
+  localStorage.setItem('knowledgeBaseCreated', Date.now().toString());
+  
+  // Also dispatch a custom event for the current tab
+  window.dispatchEvent(new Event('knowledgeBaseCreated'));
 };
