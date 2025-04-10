@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { createKnowledgeBase } from '@/utils/api-config';
+import { useQueryClient } from '@tanstack/react-query';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -38,6 +40,7 @@ const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [files, setFiles] = useState<File[]>([]);
   const [documentName, setDocumentName] = useState('');
   const [sourceType, setSourceType] = useState<SourceType>('url');
@@ -270,6 +273,9 @@ const KnowledgeUpload = () => {
       
       clearInterval(progressInterval);
       setProgress(100);
+      
+      // Invalidate the knowledgeBases query to ensure fresh data on next visit
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
       
       toast({
         title: "Success",

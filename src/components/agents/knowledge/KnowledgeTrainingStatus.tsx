@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -169,6 +170,25 @@ const KnowledgeTrainingStatus = ({
     triggerRefresh();
   };
 
+  const handleImportSuccess = useCallback(() => {
+    console.log("Import successful, refreshing knowledge bases");
+    toast({
+      title: "Sources imported",
+      description: "The selected knowledge sources have been imported.",
+    });
+    
+    setIsImportDialogOpen(false);
+    setNeedsRetraining(true);
+    
+    // Force refresh after successful import
+    triggerRefresh();
+    
+    // Notify parent if needed
+    if (onKnowledgeBasesChanged) {
+      onKnowledgeBasesChanged();
+    }
+  }, [toast, triggerRefresh, onKnowledgeBasesChanged]);
+
   const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
     if (!availableKnowledgeBases && !cachedKnowledgeBases.current.length) {
       toast({
@@ -179,15 +199,8 @@ const KnowledgeTrainingStatus = ({
       return;
     }
     
-    toast({
-      title: "Sources imported",
-      description: "The selected knowledge sources have been imported.",
-    });
-    
-    setIsImportDialogOpen(false);
-    setNeedsRetraining(true);
-    
-    // The ImportSourcesDialog component now handles the refresh after import
+    // We'll let ImportSourcesDialog handle the actual import and success callback
+    // The handleImportSuccess function will be called after successful import
   };
 
   const trainAllSources = () => {
@@ -254,6 +267,7 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['agentKnowledgeBases', agentId],
     queryFn: fetchAgentKnowledgeBases,
     staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!agentId && !initialMountRef.current,
     refetchOnWindowFocus: false
   });
@@ -351,6 +365,7 @@ const KnowledgeTrainingStatus = ({
         agentId={agentId}
         preventMultipleCalls={true}
         isLoading={isLoadingAvailableKnowledgeBases}
+        onImportSuccess={handleImportSuccess}
       />
     </Card>
   );
