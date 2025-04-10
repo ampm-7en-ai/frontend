@@ -52,6 +52,7 @@ const KnowledgeBase = () => {
       }
 
       const data = await response.json();
+      setKnowledgeBases(data);
       return data;
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
