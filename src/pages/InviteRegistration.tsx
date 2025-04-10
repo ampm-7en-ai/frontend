@@ -92,7 +92,7 @@ const InviteRegistration = () => {
         setTokenValid(false);
         toast({
           title: "Invalid Invitation",
-          description: error || "This invitation link is invalid or has expired.",
+          description: error.message || "This invitation link is invalid or has expired.",
           variant: "destructive",
         });
       } finally {
