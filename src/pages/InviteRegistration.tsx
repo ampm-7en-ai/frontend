@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -83,6 +84,7 @@ const InviteRegistration = () => {
         } else {
           console.error("Invalid token:", data);
           setTokenValid(false);
+          // Use the error message from the API response
           throw new Error(data.error || "Invalid invitation token");
         }
       } catch (error) {
