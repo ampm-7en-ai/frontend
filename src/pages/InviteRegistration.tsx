@@ -55,7 +55,7 @@ const InviteRegistration = () => {
 
       setIsLoading(true);
       try {
-        const response = await fetch(`${getApiUrl(API_ENDPOINTS.USERS)}/validate_invite_token/`, {
+        const response = await fetch(`${getApiUrl(API_ENDPOINTS.VALIDATE_INVITE)}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
