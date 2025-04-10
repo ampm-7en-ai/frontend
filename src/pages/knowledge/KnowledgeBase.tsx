@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -721,4 +722,263 @@ const KnowledgeBase = () => {
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-1">No knowledge sources found</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {searchQuery || sourceTypeFilter !== '
+                  {searchQuery || sourceTypeFilter !== 'all' ? 
+                    'Try adjusting your search or filters' : 
+                    'Get started by adding your first knowledge source'}
+                </p>
+                <Button asChild>
+                  <Link to="/knowledge/upload">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Knowledge Source
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Last Updated</TableHead>
+                    <TableHead>Agents</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredDocuments.map((doc) => (
+                    <TableRow key={doc.id}>
+                      <TableCell className="font-medium" noWrap>
+                        <div className="flex items-center gap-2">
+                          <div className={`rounded-md p-1 mr-1 ${getIconBackground(doc)}`}>
+                            {renderSourceIcon(doc)}
+                          </div>
+                          <div>
+                            <div>{doc.title}</div>
+                            {getMetadataDisplay(doc)}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell noWrap>
+                        <Badge variant="outline" className="capitalize">
+                          {doc.sourceType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell noWrap>{doc.size}</TableCell>
+                      <TableCell noWrap>{doc.uploadedAt}</TableCell>
+                      <TableCell>
+                        <div className="flex -space-x-2 overflow-hidden">
+                          {doc.agents && doc.agents.length > 0 ? (
+                            doc.agents.slice(0, 3).map((agent, index) => (
+                              <TooltipProvider key={`${doc.id}-agent-${index}`}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Avatar className="h-6 w-6 border border-background">
+                                      <AvatarFallback className={`text-[10px] ${getAgentColor(agent)}`}>
+                                        {getAgentInitials(agent)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{agent}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground px-1">Not linked to any agents</span>
+                          )}
+                          {doc.agents && doc.agents.length > 3 && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Avatar className="h-6 w-6 border border-background">
+                                    <AvatarFallback className="text-[10px] bg-muted">
+                                      +{doc.agents.length - 3}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{doc.agents.slice(3).join(', ')}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end items-center space-x-1">
+                          {canShowNestedView(doc.sourceType) && (
+                            <Button variant="ghost" size="icon" onClick={() => handleKnowledgeBaseClick(doc)}>
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleDeleteKnowledgeBase(doc.id)}>
+                                <Trash className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
+
+  const renderDetailView = () => {
+    if (!selectedKnowledgeBase) return null;
+
+    return (
+      <>
+        <div className="mb-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={handleBackToMainView} className="cursor-pointer">Knowledge Sources</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{selectedKnowledgeBase.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        <Card className="mb-4">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className={`rounded-md p-1 ${getIconBackground(selectedKnowledgeBase)}`}>
+                  {renderSourceIcon(selectedKnowledgeBase)}
+                </div>
+                {selectedKnowledgeBase.title}
+              </CardTitle>
+              <CardDescription>
+                {selectedKnowledgeBase.fileCount > 0 ? (
+                  `${selectedKnowledgeBase.fileCount} ${selectedKnowledgeBase.fileCount === 1 ? 'file' : 'files'}`
+                ) : (
+                  'No files'
+                )}
+              </CardDescription>
+            </div>
+            <div>
+              <Button
+                variant="outline"
+                className="gap-1"
+                onClick={() => document.getElementById('file-upload').click()}
+              >
+                <Upload className="h-4 w-4" />
+                Add File
+              </Button>
+              <input
+                id="file-upload"
+                type="file"
+                accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType)}
+                style={{ display: 'none' }}
+                onChange={handleFileUpload}
+              />
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardContent className="p-0">
+            {selectedKnowledgeBase.knowledge_sources?.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-1">No files found</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Upload a file to this knowledge source
+                </p>
+                <Button onClick={() => document.getElementById('file-upload').click()}>
+                  <Upload className="h-4 w-4 mr-1" />
+                  Upload File
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Filename</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Content</TableHead>
+                    <TableHead>Uploaded</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedKnowledgeBase.knowledge_sources?.map((source) => (
+                    <TableRow key={source.id}>
+                      <TableCell className="font-medium">
+                        {source.file_name || source.id}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="uppercase">
+                          {source.metadata?.format || 'N/A'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {source.metadata?.size ? formatFileSizeToMB(source.metadata.size) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {getContentMeasure(source)}
+                      </TableCell>
+                      <TableCell>
+                        {source.metadata?.upload_date ? formatDate(source.metadata.upload_date) : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end items-center space-x-1">
+                          {source.file && (
+                            <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(source)}>
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteFile(source.id)}>
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">Knowledge Base</h1>
+      </div>
+      {viewMode === 'main' ? renderMainView() : renderDetailView()}
+    </div>
+  );
+};
+
+export default KnowledgeBase;
+
+// Add the window interface extension
+declare global {
+  interface Window {
+    refreshKnowledgeBases?: () => void;
+  }
+}
