@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -928,3 +929,16 @@ const BusinessSettings = () => {
                   <div>
                     <h3 className="font-medium">Default Temperature</h3>
                     <p className="text-muted-foreground">{globalSettings.defaultTemperature}</p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default BusinessSettings;
+
