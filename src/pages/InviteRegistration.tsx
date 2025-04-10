@@ -15,7 +15,7 @@ import { CheckCircle2, User, Lock, Mail, AlertCircle, Shield } from 'lucide-reac
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const inviteRegistrationSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  username: z.string().min(2, { message: "username must be at least 2 characters" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Confirm password must be at least 6 characters" })
 }).refine((data) => data.password === data.confirmPassword, {
@@ -40,7 +40,7 @@ const InviteRegistration = () => {
   const form = useForm<InviteRegistrationValues>({
     resolver: zodResolver(inviteRegistrationSchema),
     defaultValues: {
-      name: "",
+      username: "",
       password: "",
       confirmPassword: "",
     }
@@ -115,11 +115,10 @@ const InviteRegistration = () => {
     setIsLoading(true);
     try {
       const payload = {
-        name: values.name,
+        username: values.username,
         email: invitedEmail,
         password: values.password,
-        inviteToken: inviteToken,
-        role: userRole
+        invite_token: inviteToken,
       };
 
       const response = await fetch(getApiUrl(API_ENDPOINTS.REGISTER), {
@@ -248,7 +247,7 @@ const InviteRegistration = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>Username</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
