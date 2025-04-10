@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -65,17 +64,9 @@ const InviteRegistration = () => {
           })
         });
 
-        if (!response.ok) {
-          // Handle HTTP errors
-          const errorText = await response.text();
-          console.error("Token validation error:", errorText);
-          setTokenValid(false);
-          throw new Error(`HTTP error ${response.status}: ${errorText}`);
-        }
-
         const data = await response.json();
         
-        if (data.valid) {
+        if (response.ok && data.valid) {
           console.log("Token validation successful:", data);
           setTokenValid(true);
           setInvitedEmail(data.email);
@@ -84,15 +75,15 @@ const InviteRegistration = () => {
         } else {
           console.error("Invalid token:", data);
           setTokenValid(false);
-          // Use the error message from the API response
-          throw new Error(data.error || "Invalid invitation token");
+          const errorMessage = data.error || "This invitation link is invalid or has expired.";
+          throw new Error(errorMessage);
         }
       } catch (error) {
         console.log("Token validation error:", error);
         setTokenValid(false);
         toast({
           title: "Invalid Invitation",
-          description: error instanceof Error ? error.message.message : "This invitation link is invalid or has expired.",
+          description: error instanceof Error ? error.message : "This invitation link is invalid or has expired.",
           variant: "destructive",
         });
       } finally {
@@ -122,7 +113,6 @@ const InviteRegistration = () => {
         invite_token: inviteToken,
       };
 
-      // Updated endpoint to use INVITE_REGISTER
       const response = await fetch(getApiUrl(API_ENDPOINTS.INVITE_REGISTER), {
         method: 'POST',
         headers: {
@@ -132,7 +122,6 @@ const InviteRegistration = () => {
       });
 
       if (!response.ok) {
-        // Handle HTTP errors
         const errorData = await response.json().catch(() => ({ message: "An error occurred" }));
         throw new Error(errorData.message || `HTTP error ${response.status}`);
       }
@@ -140,22 +129,19 @@ const InviteRegistration = () => {
       const data = await response.json();
       console.log("Registration response:", data);
       
-      // Updated to handle the actual API response structure
       toast({
         title: "Registration Successful",
         description: "Your account has been created successfully.",
       });
       
-      // Login with the received credentials
       await login(values.username, values.password, {
-        accessToken: data.access, // Updated to match API response
-        refreshToken: null, // No refresh token in the response
-        userId: Number(data.user_id), // Updated to match API response
-        role: data.user_role, // Updated to match API response
-        isVerified: true // Assume verified since it's an invite
+        accessToken: data.access,
+        refreshToken: null,
+        userId: Number(data.user_id),
+        role: data.user_role,
+        isVerified: true
       });
       
-      // Navigate based on user role
       if (data.user_role === 'superadmin') {
         navigate('/dashboard/superadmin');
       } else if (data.user_role === 'admin') {
@@ -179,7 +165,6 @@ const InviteRegistration = () => {
     navigate('/login');
   };
 
-  // Loading state - show when checking token validity
   if (isLoading && tokenValid === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
@@ -196,7 +181,6 @@ const InviteRegistration = () => {
     );
   }
 
-  // Invalid token state
   if (tokenValid === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
@@ -216,7 +200,6 @@ const InviteRegistration = () => {
     );
   }
 
-  // Valid token state - show registration form
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
       <div className="w-full max-w-md">
