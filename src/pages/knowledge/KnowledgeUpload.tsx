@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { createKnowledgeBase } from '@/utils/api-config';
+import { storeNewKnowledgeBase } from '@/utils/knowledgeStorage';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -270,6 +271,11 @@ const KnowledgeUpload = () => {
       
       clearInterval(progressInterval);
       setProgress(100);
+      
+      if (response) {
+        storeNewKnowledgeBase(response);
+        console.log('Knowledge base created and stored:', response.id);
+      }
       
       toast({
         title: "Success",
