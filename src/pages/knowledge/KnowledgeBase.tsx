@@ -85,7 +85,7 @@ const KnowledgeBase = () => {
     setShouldFetchData(true);
     
     if (data) {
-     // setKnowledgeBases(data);
+      setKnowledgeBases(data);
       
       if (selectedKnowledgeBase) {
         const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
