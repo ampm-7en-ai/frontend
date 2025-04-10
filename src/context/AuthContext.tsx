@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
@@ -100,19 +101,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } else {
             // Token is missing, clear storage and redirect to login
             localStorage.removeItem('user');
-            if (location.pathname !== '/login' && location.pathname !== '/verify') {
+            if (location.pathname !== '/login' && 
+                location.pathname !== '/verify' && 
+                location.pathname !== '/invitation') {
               navigate('/login');
             }
           }
         } catch (error) {
           console.error("Error parsing stored user data:", error);
           localStorage.removeItem('user');
-          if (location.pathname !== '/login' && location.pathname !== '/verify') {
+          if (location.pathname !== '/login' && 
+              location.pathname !== '/verify' && 
+              location.pathname !== '/invitation') {
             navigate('/login');
           }
         }
-      } else if (location.pathname !== '/login' && location.pathname !== '/verify') {
-        // No stored user data and not on login or verify page, redirect to login
+      } else if (location.pathname !== '/login' && 
+                location.pathname !== '/verify' && 
+                location.pathname !== '/invitation') {
+        // No stored user data and not on login, verify, or invitation page, redirect to login
         navigate('/login');
       }
       
