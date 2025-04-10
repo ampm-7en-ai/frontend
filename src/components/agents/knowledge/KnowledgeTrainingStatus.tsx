@@ -14,9 +14,6 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
 
-// Define a custom event for knowledge base updates
-const KNOWLEDGE_BASE_UPDATED_EVENT = 'knowledgeBaseUpdated';
-
 interface KnowledgeTrainingStatusProps {
   agentId: string;
   initialSelectedSources?: number[];
@@ -186,14 +183,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // After import, notify the KnowledgeBase component to refresh its list
-    if (window.refreshKnowledgeBases) {
-      window.refreshKnowledgeBases();
-    }
-    
-    // Dispatch custom event to update knowledge bases
-    const event = new CustomEvent(KNOWLEDGE_BASE_UPDATED_EVENT);
-    window.dispatchEvent(event);
+    // The ImportSourcesDialog component now handles the refresh after import
   };
 
   const trainAllSources = () => {
@@ -231,11 +221,6 @@ const KnowledgeTrainingStatus = ({
     
     // Force a refresh after deletion
     triggerRefresh();
-    
-    // Dispatch an event to notify the KnowledgeBase component
-    if (window.refreshKnowledgeBases) {
-      window.refreshKnowledgeBases();
-    }
     
     if (onKnowledgeBasesChanged) {
       onKnowledgeBasesChanged();
@@ -365,10 +350,3 @@ const KnowledgeTrainingStatus = ({
 };
 
 export default KnowledgeTrainingStatus;
-
-// Add the window interface extension
-declare global {
-  interface Window {
-    refreshKnowledgeBases?: () => void;
-  }
-}
