@@ -1,6 +1,4 @@
 
-import { formatDate } from './api-config';
-
 interface KnowledgeBaseItem {
   id: number;
   name: string;
