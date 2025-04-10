@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,9 @@ const KnowledgeTrainingStatus = ({
   const initialMountRef = useRef(true);
   const skipNextInvalidationRef = useRef(false);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Define refetchAgentKnowledgeBases ref to avoid the reference issue
+  const refetchAgentKnowledgeBasesRef = useRef<() => void>(() => {});
   
   const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
@@ -105,6 +109,29 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
+  // Extract the triggerRefresh function to use the ref instead of the actual function
+  const triggerRefresh = useCallback(() => {
+    console.log("Triggering knowledge bases refresh");
+    // Clear any existing timeout to prevent multiple refreshes
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    
+    // Using a slight delay to avoid multiple refreshes in quick succession
+    refreshTimeoutRef.current = setTimeout(() => {
+      setKnowledgeBasesLoaded(false);
+      cachedKnowledgeBases.current = [];
+      
+      // Invalidate both queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['availableKnowledgeBases', agentId] });
+      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
+      
+      // Using the ref to avoid the reference before declaration issue
+      refetchAgentKnowledgeBasesRef.current();
+      refreshTimeoutRef.current = null;
+    }, 500);
+  }, [agentId, queryClient]);
+
   const formatExternalSources = (data: any[]) => {
     if (!data) return [];
     
@@ -142,27 +169,6 @@ const KnowledgeTrainingStatus = ({
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
   };
-
-  const triggerRefresh = useCallback(() => {
-    console.log("Triggering knowledge bases refresh");
-    // Clear any existing timeout to prevent multiple refreshes
-    if (refreshTimeoutRef.current) {
-      clearTimeout(refreshTimeoutRef.current);
-    }
-    
-    // Using a slight delay to avoid multiple refreshes in quick succession
-    refreshTimeoutRef.current = setTimeout(() => {
-      setKnowledgeBasesLoaded(false);
-      cachedKnowledgeBases.current = [];
-      
-      // Invalidate both queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['availableKnowledgeBases', agentId] });
-      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
-      
-      refetchAgentKnowledgeBases();
-      refreshTimeoutRef.current = null;
-    }, 500);
-  }, [agentId, queryClient, refetchAgentKnowledgeBases]);
 
   const refreshKnowledgeBases = () => {
     console.log("Manually refreshing knowledge bases");
@@ -256,6 +262,11 @@ const KnowledgeTrainingStatus = ({
     enabled: !!agentId && !initialMountRef.current,
     refetchOnWindowFocus: false
   });
+
+  // Update the ref after the function is defined
+  useEffect(() => {
+    refetchAgentKnowledgeBasesRef.current = refetchAgentKnowledgeBases;
+  }, [refetchAgentKnowledgeBases]);
 
   useEffect(() => {
     if (isImportDialogOpen) {
