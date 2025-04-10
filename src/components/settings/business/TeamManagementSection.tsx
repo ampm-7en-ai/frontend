@@ -100,7 +100,7 @@ const TeamManagementSection = () => {
       }));
       
       
-      setTeamMembers(formattedMembers.sort(a => a.bool ? -1 : 1));
+      setTeamMembers(formattedMembers.sort(a => a.used ? -1 : 1));
     } catch (error) {
       console.error("Error fetching team members:", error);
       if (error instanceof Error && error.message !== "Only team owners can view invites") {
