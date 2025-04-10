@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   LOGIN: "users/login/",
   RESEND_OTP: "users/resend-otp/",
   SSO_LOGIN: "users/sso_login/",
+  VALIDATE_INVITE: "users/validate_invite_token/",
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/"
 };

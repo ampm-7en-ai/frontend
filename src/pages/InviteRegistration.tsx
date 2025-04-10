@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +32,7 @@ const InviteRegistration = () => {
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login } = useAuth();
@@ -53,18 +55,22 @@ const InviteRegistration = () => {
 
       setIsLoading(true);
       try {
-        const response = await fetch(`${getApiUrl('users/validate-invite')}?token=${inviteToken}`, {
-          method: 'GET',
+        const response = await fetch(`${getApiUrl('users/validate_invite_token/')}`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            invite_token: inviteToken
+          })
         }).catch(() => {
           return {
             ok: true,
             json: () => Promise.resolve({
               valid: true,
-              email: 'invited@example.com',
-              businessName: 'Acme Corporation'
+              team_name: "webxpujan's Team",
+              role: "admin",
+              email: "invited@example.com"
             })
           };
         });
@@ -74,7 +80,8 @@ const InviteRegistration = () => {
         if (response.ok && data.valid) {
           setTokenValid(true);
           setInvitedEmail(data.email);
-          setBusinessName(data.businessName);
+          setBusinessName(data.team_name);
+          setUserRole(data.role);
         } else {
           setTokenValid(false);
           toast({
@@ -115,7 +122,8 @@ const InviteRegistration = () => {
         name: values.name,
         email: invitedEmail,
         password: values.password,
-        inviteToken: inviteToken
+        inviteToken: inviteToken,
+        role: userRole
       };
 
       const response = await fetch(getApiUrl(API_ENDPOINTS.REGISTER), {
@@ -133,7 +141,7 @@ const InviteRegistration = () => {
               id: '123',
               name: values.name,
               email: invitedEmail,
-              role: 'admin'
+              role: userRole
             },
             accessToken: 'mock-token',
             refreshToken: 'mock-refresh-token',
@@ -231,6 +239,9 @@ const InviteRegistration = () => {
             {businessName && (
               <CardDescription className="text-center">
                 You've been invited to join <span className="font-medium">{businessName}</span>
+                {userRole && (
+                  <> as <span className="font-medium capitalize">{userRole}</span></>
+                )}
               </CardDescription>
             )}
           </CardHeader>
