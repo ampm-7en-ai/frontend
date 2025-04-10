@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase, addFileToKnowledgeBase } from '@/utils/api-config';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,12 +27,12 @@ import { StatCard } from '@/components/dashboard/StatCard';
 const KnowledgeBase = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
-  const [shouldFetchData, setShouldFetchData] = useState(false);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -42,6 +41,7 @@ const KnowledgeBase = () => {
         throw new Error('Authentication required');
       }
 
+      console.log('Fetching knowledge bases from API');
       const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`, {
         headers: getAuthHeaders(token),
       });
@@ -58,34 +58,22 @@ const KnowledgeBase = () => {
     }
   };
 
-  // Modified to prevent automatic fetching on component mount
-  const { data, isLoading, error, refetch } = useQuery({
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery({
     queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
-    enabled: shouldFetchData // Only fetch when explicitly enabled
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   });
 
-  // Function to manually load data when needed (e.g., when first viewing the page)
-  const loadDataIfNeeded = () => {
-    if (!data && !isLoading) {
-      setShouldFetchData(true);
-      setTimeout(() => {
-        refetch();
-      }, 0);
-    }
-  };
-
-  // Load data when component mounts
   useEffect(() => {
-    loadDataIfNeeded();
-  }, []);
-
-  useEffect(() => {
-
-    
-    
     if (data) {
-      setShouldFetchData(true);
       setKnowledgeBases(data);
       
       if (selectedKnowledgeBase) {
@@ -370,7 +358,7 @@ const KnowledgeBase = () => {
     }
   };
 
-  const handleDeleteFile = async (sourceId: number) => {
+  const handleDeleteFile = async (sourceId) => {
     if (!sourceId) {
       toast({
         title: "Error",
@@ -393,7 +381,7 @@ const KnowledgeBase = () => {
         description: "File has been successfully deleted."
       });
       
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
       
       if (selectedKnowledgeBase && 
           selectedKnowledgeBase.knowledge_sources && 
@@ -410,7 +398,7 @@ const KnowledgeBase = () => {
     }
   };
 
-  const handleDeleteKnowledgeBase = async (knowledgeBaseId: number) => {
+  const handleDeleteKnowledgeBase = async (knowledgeBaseId) => {
     if (!knowledgeBaseId) {
       toast({
         title: "Error",
@@ -433,7 +421,7 @@ const KnowledgeBase = () => {
         description: "Knowledge base has been successfully deleted."
       });
       
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
     } catch (error) {
       console.error("Error deleting knowledge base:", error);
       toast({

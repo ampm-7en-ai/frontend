@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -151,14 +150,19 @@ const KnowledgeTrainingStatus = ({
       clearTimeout(refreshTimeoutRef.current);
     }
     
-    // Using a slight delay to avoid multiple refreshes in quick succession
+    // Using a 500ms delay to debounce multiple refresh calls
     refreshTimeoutRef.current = setTimeout(() => {
       setKnowledgeBasesLoaded(false);
       cachedKnowledgeBases.current = [];
-      refetchAgentKnowledgeBases();
+      
+      // Use invalidateQueries instead of direct refetch
+      queryClient.invalidateQueries({ 
+        queryKey: ['agentKnowledgeBases', agentId]
+      });
+      
       refreshTimeoutRef.current = null;
     }, 500);
-  }, []);
+  }, [agentId, queryClient]);
 
   const refreshKnowledgeBases = () => {
     console.log("Manually refreshing knowledge bases");
@@ -227,6 +231,7 @@ const KnowledgeTrainingStatus = ({
     }
   }, [onKnowledgeBasesChanged, triggerRefresh]);
 
+  // Modified with better caching settings
   const { 
     data: availableKnowledgeBases, 
     isLoading: isLoadingAvailableKnowledgeBases, 
@@ -235,10 +240,11 @@ const KnowledgeTrainingStatus = ({
   } = useQuery({
     queryKey: ['availableKnowledgeBases', agentId],
     queryFn: fetchAvailableKnowledgeBases,
-    staleTime: 5 * 60 * 1000,
-    enabled: false
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: false // Don't fetch automatically
   });
 
+  // Modified with better caching settings
   const { 
     data: agentKnowledgeBases, 
     isLoading: isLoadingAgentKnowledgeBases, 
@@ -247,8 +253,9 @@ const KnowledgeTrainingStatus = ({
   } = useQuery({
     queryKey: ['agentKnowledgeBases', agentId],
     queryFn: fetchAgentKnowledgeBases,
-    staleTime: 2 * 60 * 1000,
-    enabled: !!agentId && !initialMountRef.current
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    enabled: !!agentId && !initialMountRef.current,
+    refetchOnWindowFocus: false
   });
 
   useEffect(() => {
