@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,15 +24,42 @@ import {
 } from "@/components/ui/breadcrumb";
 import { StatCard } from '@/components/dashboard/StatCard';
 
+const KNOWLEDGE_SOURCE_ADDED_KEY = 'knowledgeSourceAdded';
+const KNOWLEDGE_SOURCE_TIMESTAMP_KEY = 'knowledgeSourceTimestamp';
+
 const KnowledgeBase = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const location = useLocation();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
+  const [lastRefetchTimestamp, setLastRefetchTimestamp] = useState<number>(0);
+
+  useEffect(() => {
+    const checkForNewKnowledgeSource = () => {
+      const sourceAdded = localStorage.getItem(KNOWLEDGE_SOURCE_ADDED_KEY);
+      const sourceTimestamp = localStorage.getItem(KNOWLEDGE_SOURCE_TIMESTAMP_KEY);
+      
+      if (sourceAdded === 'true' && sourceTimestamp) {
+        const timestamp = parseInt(sourceTimestamp, 10);
+        
+        if (timestamp > lastRefetchTimestamp) {
+          console.log('Detected new knowledge source added, refetching data...');
+          setLastRefetchTimestamp(timestamp);
+          refetch();
+          
+          localStorage.removeItem(KNOWLEDGE_SOURCE_ADDED_KEY);
+        }
+      }
+    };
+    
+    checkForNewKnowledgeSource();
+  }, [location.pathname]);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -340,6 +366,9 @@ const KnowledgeBase = () => {
         description: "File has been successfully uploaded."
       });
       
+      localStorage.setItem(KNOWLEDGE_SOURCE_ADDED_KEY, 'true');
+      localStorage.setItem(KNOWLEDGE_SOURCE_TIMESTAMP_KEY, Date.now().toString());
+      
       await refetch();
       
       if (data) {
@@ -383,6 +412,9 @@ const KnowledgeBase = () => {
         description: "File has been successfully deleted."
       });
       
+      localStorage.setItem(KNOWLEDGE_SOURCE_ADDED_KEY, 'true');
+      localStorage.setItem(KNOWLEDGE_SOURCE_TIMESTAMP_KEY, Date.now().toString());
+      
       queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
       
       if (selectedKnowledgeBase && 
@@ -422,6 +454,9 @@ const KnowledgeBase = () => {
         title: "Success",
         description: "Knowledge base has been successfully deleted."
       });
+      
+      localStorage.setItem(KNOWLEDGE_SOURCE_ADDED_KEY, 'true');
+      localStorage.setItem(KNOWLEDGE_SOURCE_TIMESTAMP_KEY, Date.now().toString());
       
       queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
     } catch (error) {
