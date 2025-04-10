@@ -81,6 +81,9 @@ const KnowledgeBase = () => {
   // }, []);
 
   useEffect(() => {
+
+    refetch();
+    
     if (data) {
       setKnowledgeBases(data);
       
