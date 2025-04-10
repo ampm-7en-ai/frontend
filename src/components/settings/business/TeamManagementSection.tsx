@@ -99,31 +99,8 @@ const TeamManagementSection = () => {
         used: invite.used
       }));
       
-      // Add some sample active users for testing - this would be replaced by actual API data
-      const mockActiveUsers = [
-        {
-          id: 'user-1',
-          email: 'jane.smith@example.com',
-          role: 'admin',
-          created_at: '2025-03-15T14:30:00Z',
-          status: 'active' as const,
-          name: 'Jane Smith',
-          used: true
-        },
-        {
-          id: 'user-2',
-          email: 'michael.brown@example.com',
-          role: 'agent',
-          created_at: '2025-03-20T09:45:00Z',
-          status: 'active' as const,
-          name: 'Michael Brown',
-          used: true
-        }
-      ];
       
-      // Combine the invites with the mock active users for now
-      // In production, you would fetch real active users from the API
-      setTeamMembers([...formattedMembers, ...mockActiveUsers]);
+      setTeamMembers(formattedMembers.sort(a => a.bool ? -1 : 1));
     } catch (error) {
       console.error("Error fetching team members:", error);
       if (error instanceof Error && error.message !== "Only team owners can view invites") {
