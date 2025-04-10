@@ -15,7 +15,7 @@ import { CheckCircle2, User, Lock, Mail, AlertCircle, Shield } from 'lucide-reac
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const inviteRegistrationSchema = z.object({
-  username: z.string().min(2, { message: "username must be at least 2 characters" }),
+  username: z.string().min(2, { message: "Username must be at least 2 characters" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Confirm password must be at least 6 characters" })
 }).refine((data) => data.password === data.confirmPassword, {
@@ -121,7 +121,8 @@ const InviteRegistration = () => {
         invite_token: inviteToken,
       };
 
-      const response = await fetch(getApiUrl(API_ENDPOINTS.REGISTER), {
+      // Updated endpoint to use INVITE_REGISTER
+      const response = await fetch(getApiUrl(API_ENDPOINTS.INVITE_REGISTER), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +144,8 @@ const InviteRegistration = () => {
           description: "Your account has been created successfully.",
         });
         
-        await login(values.name, values.password, {
+        // Login with the new credentials
+        await login(values.username, values.password, {
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
           userId: Number(data.user.id),
@@ -151,7 +153,14 @@ const InviteRegistration = () => {
           isVerified: data.isVerified
         });
         
-        navigate('/dashboard');
+        // Navigate based on user role
+        if (data.user.role === 'superadmin') {
+          navigate('/dashboard/superadmin');
+        } else if (data.user.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         throw new Error(data.message || "Failed to complete registration");
       }
@@ -244,14 +253,14 @@ const InviteRegistration = () => {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="username"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input placeholder="John Doe" className="pl-10" {...field} />
+                          <Input placeholder="username" className="pl-10" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
