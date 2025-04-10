@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -460,8 +459,6 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      const selectedSourcesArray = Array.from(selectedSources);
-      
       Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
         if (urlSet && urlSet instanceof Set) {
           urlSet.forEach(url => {
@@ -491,7 +488,9 @@ export const ImportSourcesDialog = ({
           externalSources.find(source => source.id === id)
         ).filter(Boolean);
         
-        const optimisticData = [...currentData, ...sourcesToAdd];
+        const optimisticData = Array.isArray(currentData) 
+          ? [...currentData, ...sourcesToAdd] 
+          : [...sourcesToAdd];
         
         queryClient.setQueryData(['agentKnowledgeBases', agentId], optimisticData);
         
@@ -502,7 +501,6 @@ export const ImportSourcesDialog = ({
           description: "Knowledge sources have been added to the agent.",
         });
         
-        // Force refetch after import
         queryClient.invalidateQueries({ 
           queryKey: ['agentKnowledgeBases', agentId]
         });

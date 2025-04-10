@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -191,6 +190,7 @@ const InviteRegistration = () => {
     navigate('/login');
   };
 
+  // Loading state - show when checking token validity
   if (isLoading && tokenValid === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
@@ -207,6 +207,7 @@ const InviteRegistration = () => {
     );
   }
 
+  // Invalid token state
   if (tokenValid === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
@@ -226,6 +227,7 @@ const InviteRegistration = () => {
     );
   }
 
+  // Valid token state - show registration form
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
       <div className="w-full max-w-md">
