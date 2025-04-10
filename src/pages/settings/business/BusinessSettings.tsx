@@ -610,12 +610,10 @@ const BusinessSettings = () => {
                       </DialogHeader>
                       
                       {inviteApiError && (
-                        <div className="mb-4">
-                          <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <div className="ml-2">{inviteApiError}</div>
-                          </Alert>
-                        </div>
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>{inviteApiError}</AlertDescription>
+                        </Alert>
                       )}
                       
                       <Form {...inviteForm}>

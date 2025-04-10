@@ -1,3 +1,4 @@
+
 /**
  * Authentication configuration
  */
@@ -19,7 +20,8 @@ export const GOOGLE_OAUTH_SCOPES = 'email profile';
 export const validateInviteToken = async (token: string): Promise<{
   valid: boolean;
   email?: string;
-  businessName?: string;
+  team_name?: string;
+  role?: string;
   error?: string;
 }> => {
   if (!token) {
@@ -43,7 +45,8 @@ export const validateInviteToken = async (token: string): Promise<{
     return {
       valid: true,
       email: 'invited@example.com',
-      businessName: 'Acme Corporation'
+      team_name: 'Acme Corporation',
+      role: 'admin'
     };
   } catch (error) {
     console.error('Error validating invite token:', error);

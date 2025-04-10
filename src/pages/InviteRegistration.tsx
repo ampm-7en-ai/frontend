@@ -55,7 +55,7 @@ const InviteRegistration = () => {
 
       setIsLoading(true);
       try {
-        const response = await fetch(`${getApiUrl('users/validate_invite_token/')}`, {
+        const response = await fetch(`${getApiUrl(API_ENDPOINTS.USERS)}/validate_invite_token/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -64,6 +64,7 @@ const InviteRegistration = () => {
             invite_token: inviteToken
           })
         }).catch(() => {
+          // Mock response for development
           return {
             ok: true,
             json: () => Promise.resolve({
