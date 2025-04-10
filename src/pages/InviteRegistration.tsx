@@ -88,11 +88,11 @@ const InviteRegistration = () => {
           throw new Error(data.error || "Invalid invitation token");
         }
       } catch (error) {
-        console.error("Token validation error:", error);
+        console.log("Token validation error:", error);
         setTokenValid(false);
         toast({
           title: "Invalid Invitation",
-          description: error instanceof Error ? error.message : "This invitation link is invalid or has expired.",
+          description: error || "This invitation link is invalid or has expired.",
           variant: "destructive",
         });
       } finally {
