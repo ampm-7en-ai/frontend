@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase, addFileToKnowledgeBase } from '@/utils/api-config';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,21 +25,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import { StatCard } from '@/components/dashboard/StatCard';
 
-const KNOWLEDGE_BASE_CREATED_EVENT = 'knowledgeBaseCreated';
-const KNOWLEDGE_BASE_UPDATED_EVENT = 'knowledgeBaseUpdated';
-const KNOWLEDGE_BASE_DELETED_EVENT = 'knowledgeBaseDeleted';
-
 const KnowledgeBase = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
   const [shouldFetchData, setShouldFetchData] = useState(false);
-  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState(Date.now());
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -48,7 +42,6 @@ const KnowledgeBase = () => {
         throw new Error('Authentication required');
       }
 
-      console.log('Fetching knowledge bases...');
       const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`, {
         headers: getAuthHeaders(token),
       });
@@ -58,7 +51,6 @@ const KnowledgeBase = () => {
       }
 
       const data = await response.json();
-      console.log('Knowledge bases fetched successfully:', data.length);
       return data;
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
@@ -66,26 +58,14 @@ const KnowledgeBase = () => {
     }
   };
 
-  // Modified to prevent automatic fetching on component mount but use the refresh timestamp
+  // Modified to prevent automatic fetching on component mount
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['knowledgeBases', lastRefreshTimestamp],
+    queryKey: ['knowledgeBases'],
     queryFn: fetchKnowledgeBases,
-    enabled: shouldFetchData,
-    staleTime: 10000, // Consider data fresh for 10 seconds
-    refetchOnWindowFocus: false
+    enabled: shouldFetchData // Only fetch when explicitly enabled
   });
 
-  // Function to manually trigger a refresh
-  const refreshData = () => {
-    console.log('Manually refreshing knowledge bases data');
-    setLastRefreshTimestamp(Date.now());
-    setShouldFetchData(true);
-    setTimeout(() => {
-      refetch();
-    }, 0);
-  };
-
-  // Function to manually load data when needed
+  // Function to manually load data when needed (e.g., when first viewing the page)
   const loadDataIfNeeded = () => {
     if (!data && !isLoading) {
       setShouldFetchData(true);
@@ -98,44 +78,6 @@ const KnowledgeBase = () => {
   // Load data when component mounts
   useEffect(() => {
     loadDataIfNeeded();
-    
-    // Set up event listeners for knowledge base changes
-    const handleKnowledgeBaseCreated = () => {
-      console.log('Knowledge base created event received');
-      refreshData();
-    };
-    
-    const handleKnowledgeBaseUpdated = () => {
-      console.log('Knowledge base updated event received');
-      refreshData();
-    };
-    
-    const handleKnowledgeBaseDeleted = () => {
-      console.log('Knowledge base deleted event received');
-      refreshData();
-    };
-    
-    // Add event listeners
-    window.addEventListener('storage', (e) => {
-      if (e.key === KNOWLEDGE_BASE_CREATED_EVENT) {
-        handleKnowledgeBaseCreated();
-      } else if (e.key === KNOWLEDGE_BASE_UPDATED_EVENT) {
-        handleKnowledgeBaseUpdated();
-      } else if (e.key === KNOWLEDGE_BASE_DELETED_EVENT) {
-        handleKnowledgeBaseDeleted();
-      }
-    });
-    
-    document.addEventListener(KNOWLEDGE_BASE_CREATED_EVENT, handleKnowledgeBaseCreated);
-    document.addEventListener(KNOWLEDGE_BASE_UPDATED_EVENT, handleKnowledgeBaseUpdated);
-    document.addEventListener(KNOWLEDGE_BASE_DELETED_EVENT, handleKnowledgeBaseDeleted);
-    
-    // Cleanup function
-    return () => {
-      document.removeEventListener(KNOWLEDGE_BASE_CREATED_EVENT, handleKnowledgeBaseCreated);
-      document.removeEventListener(KNOWLEDGE_BASE_UPDATED_EVENT, handleKnowledgeBaseUpdated);
-      document.removeEventListener(KNOWLEDGE_BASE_DELETED_EVENT, handleKnowledgeBaseDeleted);
-    };
   }, []);
 
   useEffect(() => {
@@ -404,10 +346,8 @@ const KnowledgeBase = () => {
         description: "File has been successfully uploaded."
       });
       
-      // Refresh data after successful upload
-      refreshData();
+      await refetch();
       
-      // Update the selected knowledge base with fresh data
       if (data) {
         const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
         if (updatedKnowledgeBase) {
@@ -426,7 +366,7 @@ const KnowledgeBase = () => {
     }
   };
 
-  const handleDeleteFile = async (sourceId) => {
+  const handleDeleteFile = async (sourceId: number) => {
     if (!sourceId) {
       toast({
         title: "Error",
@@ -449,8 +389,7 @@ const KnowledgeBase = () => {
         description: "File has been successfully deleted."
       });
       
-      // Refresh data after deletion
-      refreshData();
+      refetch();
       
       if (selectedKnowledgeBase && 
           selectedKnowledgeBase.knowledge_sources && 
@@ -467,7 +406,7 @@ const KnowledgeBase = () => {
     }
   };
 
-  const handleDeleteKnowledgeBase = async (knowledgeBaseId) => {
+  const handleDeleteKnowledgeBase = async (knowledgeBaseId: number) => {
     if (!knowledgeBaseId) {
       toast({
         title: "Error",
@@ -490,15 +429,7 @@ const KnowledgeBase = () => {
         description: "Knowledge base has been successfully deleted."
       });
       
-      // Trigger custom event for deletion
-      const deleteEvent = new Event(KNOWLEDGE_BASE_DELETED_EVENT);
-      document.dispatchEvent(deleteEvent);
-      
-      // Also store in localStorage for cross-tab communication
-      localStorage.setItem(KNOWLEDGE_BASE_DELETED_EVENT, Date.now().toString());
-      
-      // Refresh data after successful deletion
-      refreshData();
+      refetch();
     } catch (error) {
       console.error("Error deleting knowledge base:", error);
       toast({
@@ -961,28 +892,6 @@ const KnowledgeBase = () => {
       {viewMode === 'main' ? renderMainView() : renderDetailView()}
     </div>
   );
-};
-
-// Helper function to notify when a knowledge base is created
-export const notifyKnowledgeBaseCreated = () => {
-  console.log('Notifying knowledge base created');
-  // Dispatch DOM event
-  const createEvent = new Event(KNOWLEDGE_BASE_CREATED_EVENT);
-  document.dispatchEvent(createEvent);
-  
-  // Store in localStorage for cross-tab communication
-  localStorage.setItem(KNOWLEDGE_BASE_CREATED_EVENT, Date.now().toString());
-};
-
-// Helper function to notify when a knowledge base is updated
-export const notifyKnowledgeBaseUpdated = () => {
-  console.log('Notifying knowledge base updated');
-  // Dispatch DOM event
-  const updateEvent = new Event(KNOWLEDGE_BASE_UPDATED_EVENT);
-  document.dispatchEvent(updateEvent);
-  
-  // Store in localStorage for cross-tab communication
-  localStorage.setItem(KNOWLEDGE_BASE_UPDATED_EVENT, Date.now().toString());
 };
 
 export default KnowledgeBase;

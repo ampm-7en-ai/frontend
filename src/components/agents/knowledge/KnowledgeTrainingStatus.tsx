@@ -9,11 +9,10 @@ import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { 
   BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
-  getAgentEndpoint, getSourceMetadataInfo 
+  getAgentEndpoint, getSourceMetadataInfo
 } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
-import { notifyKnowledgeBaseUpdated } from '@/pages/knowledge/KnowledgeBase';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -24,9 +23,6 @@ interface KnowledgeTrainingStatusProps {
   loadError?: string | null;
   onKnowledgeBasesChanged?: () => void;
 }
-
-// Create a constant for the storage event key
-const KNOWLEDGE_BASE_CREATED_EVENT = 'knowledgeBaseCreated';
 
 const KnowledgeTrainingStatus = ({ 
   agentId, 
@@ -51,9 +47,6 @@ const KnowledgeTrainingStatus = ({
   const initialMountRef = useRef(true);
   const skipNextInvalidationRef = useRef(false);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Define refetchAgentKnowledgeBases ref to avoid the reference issue
-  const refetchAgentKnowledgeBasesRef = useRef<() => void>(() => {});
   
   const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
@@ -113,35 +106,6 @@ const KnowledgeTrainingStatus = ({
     }
   };
 
-  // Extract the triggerRefresh function to use the ref instead of the actual function
-  const triggerRefresh = useCallback(() => {
-    console.log("Triggering knowledge bases refresh");
-    // Clear any existing timeout to prevent multiple refreshes
-    if (refreshTimeoutRef.current) {
-      clearTimeout(refreshTimeoutRef.current);
-    }
-    
-    // Using a slight delay to avoid multiple refreshes in quick succession
-    refreshTimeoutRef.current = setTimeout(() => {
-      setKnowledgeBasesLoaded(false);
-      cachedKnowledgeBases.current = [];
-      
-      // Invalidate both queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['availableKnowledgeBases', agentId] });
-      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeBases', agentId] });
-      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
-      
-      // Using the ref to avoid the reference before declaration issue
-      refetchAgentKnowledgeBasesRef.current();
-      refreshTimeoutRef.current = null;
-      
-      // Signal that knowledge bases have changed for global state
-      if (notifyKnowledgeBaseUpdated) {
-        notifyKnowledgeBaseUpdated();
-      }
-    }, 500);
-  }, [agentId, queryClient]);
-
   const formatExternalSources = (data: any[]) => {
     if (!data) return [];
     
@@ -180,6 +144,22 @@ const KnowledgeTrainingStatus = ({
     return date.toLocaleDateString('en-GB');
   };
 
+  const triggerRefresh = useCallback(() => {
+    console.log("Triggering knowledge bases refresh");
+    // Clear any existing timeout to prevent multiple refreshes
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    
+    // Using a slight delay to avoid multiple refreshes in quick succession
+    refreshTimeoutRef.current = setTimeout(() => {
+      setKnowledgeBasesLoaded(false);
+      cachedKnowledgeBases.current = [];
+      refetchAgentKnowledgeBases();
+      refreshTimeoutRef.current = null;
+    }, 500);
+  }, []);
+
   const refreshKnowledgeBases = () => {
     console.log("Manually refreshing knowledge bases");
     triggerRefresh();
@@ -203,13 +183,7 @@ const KnowledgeTrainingStatus = ({
     setIsImportDialogOpen(false);
     setNeedsRetraining(true);
     
-    // Manually trigger refresh after import
-    triggerRefresh();
-    
-    // Notify other components about the knowledge base update
-    if (notifyKnowledgeBaseUpdated) {
-      notifyKnowledgeBaseUpdated();
-    }
+    // The ImportSourcesDialog component now handles the refresh after import
   };
 
   const trainAllSources = () => {
@@ -239,11 +213,6 @@ const KnowledgeTrainingStatus = ({
         title: "Training complete",
         description: "All knowledge sources have been processed."
       });
-      
-      // Notify that knowledge bases have been updated (trained)
-      if (notifyKnowledgeBaseUpdated) {
-        notifyKnowledgeBaseUpdated();
-      }
     }, 4000);
   };
 
@@ -256,11 +225,6 @@ const KnowledgeTrainingStatus = ({
     if (onKnowledgeBasesChanged) {
       onKnowledgeBasesChanged();
     }
-    
-    // Notify other components about the deletion
-    if (notifyKnowledgeBaseUpdated) {
-      notifyKnowledgeBaseUpdated();
-    }
   }, [onKnowledgeBasesChanged, triggerRefresh]);
 
   const { 
@@ -272,8 +236,7 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['availableKnowledgeBases', agentId],
     queryFn: fetchAvailableKnowledgeBases,
     staleTime: 5 * 60 * 1000,
-    enabled: false,
-    refetchOnWindowFocus: false
+    enabled: false
   });
 
   const { 
@@ -285,14 +248,8 @@ const KnowledgeTrainingStatus = ({
     queryKey: ['agentKnowledgeBases', agentId],
     queryFn: fetchAgentKnowledgeBases,
     staleTime: 2 * 60 * 1000,
-    enabled: !!agentId && !initialMountRef.current,
-    refetchOnWindowFocus: false
+    enabled: !!agentId && !initialMountRef.current
   });
-
-  // Update the ref after the function is defined
-  useEffect(() => {
-    refetchAgentKnowledgeBasesRef.current = refetchAgentKnowledgeBases;
-  }, [refetchAgentKnowledgeBases]);
 
   useEffect(() => {
     if (isImportDialogOpen) {
@@ -312,28 +269,7 @@ const KnowledgeTrainingStatus = ({
     }
   }, [agentId, preloadedKnowledgeSources, queryClient, refetchAgentKnowledgeBases]);
 
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === KNOWLEDGE_BASE_CREATED_EVENT) {
-        console.log('Knowledge base created event detected, refreshing...');
-        triggerRefresh();
-      }
-    };
-
-    const handleKnowledgeBaseEvent = () => {
-      console.log('Knowledge base created DOM event detected, refreshing...');
-      triggerRefresh();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    document.addEventListener(KNOWLEDGE_BASE_CREATED_EVENT, handleKnowledgeBaseEvent);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      document.removeEventListener(KNOWLEDGE_BASE_CREATED_EVENT, handleKnowledgeBaseEvent);
-    };
-  }, [triggerRefresh]);
-
+  // Clean up timeout on unmount
   useEffect(() => {
     return () => {
       if (refreshTimeoutRef.current) {
