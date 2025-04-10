@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +23,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { StatCard } from '@/components/dashboard/StatCard';
+import { getNewKnowledgeBase, clearNewKnowledgeBase, hasNewKnowledgeBase } from '@/utils/knowledgeStorage';
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
@@ -34,6 +34,7 @@ const KnowledgeBase = () => {
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
+  const [hasProcessedLocalStorage, setHasProcessedLocalStorage] = useState(false);
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -52,7 +53,6 @@ const KnowledgeBase = () => {
       }
 
       const data = await response.json();
-      setKnowledgeBases(data);
       return data;
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
@@ -75,8 +75,41 @@ const KnowledgeBase = () => {
   });
 
   useEffect(() => {
-    if (data) {
-      //setKnowledgeBases(data);
+    if (data && !hasProcessedLocalStorage) {
+      // Check if there's a newly added knowledge base in localStorage
+      const newKnowledgeBase = getNewKnowledgeBase();
+      
+      if (newKnowledgeBase) {
+        console.log('Found new knowledge base in localStorage:', newKnowledgeBase.id);
+        
+        // Check if this knowledge base already exists in our data
+        const exists = data.some(kb => kb.id === newKnowledgeBase.id);
+        
+        if (!exists) {
+          // Add the new knowledge base to our existing data
+          const updatedData = [newKnowledgeBase, ...data];
+          setKnowledgeBases(updatedData);
+          console.log('Added new knowledge base from localStorage');
+          
+          // Update the React Query cache with the new data
+          queryClient.setQueryData(['knowledgeBases'], updatedData);
+        }
+        
+        // Clear the storage to prevent adding it multiple times
+        clearNewKnowledgeBase();
+      } else {
+        setKnowledgeBases(data);
+      }
+      
+      setHasProcessedLocalStorage(true);
+    }
+  }, [data, hasProcessedLocalStorage, queryClient]);
+
+  useEffect(() => {
+    if (data && hasProcessedLocalStorage) {
+      // Only update if we've already processed localStorage data
+      // This prevents overwriting our merged data on subsequent renders
+      setKnowledgeBases(data);
       
       if (selectedKnowledgeBase) {
         const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
@@ -85,7 +118,7 @@ const KnowledgeBase = () => {
         }
       }
     }
-  }, [data, selectedKnowledgeBase]);
+  }, [data, selectedKnowledgeBase, hasProcessedLocalStorage]);
 
   useEffect(() => {
     if (error) {
