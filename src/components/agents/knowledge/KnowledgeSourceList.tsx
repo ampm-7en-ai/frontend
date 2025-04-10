@@ -445,16 +445,41 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
   onKnowledgeBaseRemoved
 }) => {
   const [localKnowledgeBases, setLocalKnowledgeBases] = useState(knowledgeBases);
+  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     setLocalKnowledgeBases(knowledgeBases);
   }, [knowledgeBases]);
 
   const handleKnowledgeBaseRemoved = (id: number) => {
+    // Check if we're already handling deletion for this id
+    if (deletingIds.has(id)) {
+      return;
+    }
+    
+    // Mark this ID as being deleted
+    setDeletingIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(id);
+      return newSet;
+    });
+    
+    // Update local state
     setLocalKnowledgeBases(prev => prev.filter(kb => kb.id !== id));
+    
+    // Notify parent only once
     if (onKnowledgeBaseRemoved) {
       onKnowledgeBaseRemoved(id);
     }
+    
+    // Remove the ID from our tracking after a delay
+    setTimeout(() => {
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+    }, 1000); // Ensure we don't process duplicate delete events
   };
   
   if (isLoading) {
