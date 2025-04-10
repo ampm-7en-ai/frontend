@@ -312,7 +312,7 @@ const TeamManagementSection = () => {
                           <p className="font-medium">
                             {member.name || member.email}
                           </p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 text-xs">
                             <span className="capitalize">{member.role}</span>
                             {member.status === 'pending' ? (
                               <>
