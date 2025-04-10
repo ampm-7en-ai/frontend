@@ -66,19 +66,19 @@ const KnowledgeBase = () => {
   });
 
   // Function to manually load data when needed (e.g., when first viewing the page)
-  const loadDataIfNeeded = () => {
-    if (!data && !isLoading) {
-      setShouldFetchData(true);
-      setTimeout(() => {
-        refetch();
-      }, 0);
-    }
-  };
+  // const loadDataIfNeeded = () => {
+  //   if (!data && !isLoading) {
+  //     setShouldFetchData(true);
+  //     setTimeout(() => {
+  //       refetch();
+  //     }, 0);
+  //   }
+  // };
 
   // Load data when component mounts
-  useEffect(() => {
-    loadDataIfNeeded();
-  }, []);
+  // useEffect(() => {
+  //   loadDataIfNeeded();
+  // }, []);
 
   useEffect(() => {
     if (data) {
