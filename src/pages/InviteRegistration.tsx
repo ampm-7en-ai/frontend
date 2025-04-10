@@ -43,7 +43,8 @@ const InviteRegistration = () => {
       username: "",
       password: "",
       confirmPassword: "",
-    }
+    },
+    handleSubmit: (func) => func 
   });
 
   useEffect(() => {
