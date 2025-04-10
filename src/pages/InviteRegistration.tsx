@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -137,32 +136,30 @@ const InviteRegistration = () => {
       }
 
       const data = await response.json();
+      console.log("Registration response:", data);
       
-      if (data.success) {
-        toast({
-          title: "Registration Successful",
-          description: "Your account has been created successfully.",
-        });
-        
-        // Login with the new credentials
-        await login(values.username, values.password, {
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-          userId: Number(data.user.id),
-          role: data.user.role,
-          isVerified: data.isVerified
-        });
-        
-        // Navigate based on user role
-        if (data.user.role === 'superadmin') {
-          navigate('/dashboard/superadmin');
-        } else if (data.user.role === 'admin') {
-          navigate('/dashboard/admin');
-        } else {
-          navigate('/dashboard');
-        }
+      // Updated to handle the actual API response structure
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created successfully.",
+      });
+      
+      // Login with the received credentials
+      await login(values.username, values.password, {
+        accessToken: data.access, // Updated to match API response
+        refreshToken: null, // No refresh token in the response
+        userId: Number(data.user_id), // Updated to match API response
+        role: data.user_role, // Updated to match API response
+        isVerified: true // Assume verified since it's an invite
+      });
+      
+      // Navigate based on user role
+      if (data.user_role === 'superadmin') {
+        navigate('/dashboard/superadmin');
+      } else if (data.user_role === 'admin') {
+        navigate('/dashboard/admin');
       } else {
-        throw new Error(data.message || "Failed to complete registration");
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error("Registration error:", error);
