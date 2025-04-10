@@ -15,7 +15,8 @@ export const API_ENDPOINTS = {
   VALIDATE_INVITE: "users/validate_invite_token/",
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/",
-  INVITE_REGISTER: "users/register_with_invite/"
+  INVITE_REGISTER: "users/register_with_invite/",
+  TEAM_INVITES: "users/get_team_invites/"
 };
 
 // Function to get knowledge base endpoint with optional agent ID

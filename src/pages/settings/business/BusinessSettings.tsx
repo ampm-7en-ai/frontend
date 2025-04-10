@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Card, 
@@ -63,11 +63,13 @@ type PreferencesFormValues = z.infer<typeof preferencesFormSchema>;
 
 interface Member {
   id: string;
-  email: string;
+  email: string | null;
   role: string;
-  created_at: string;
+  created_at?: string;
   status: 'pending' | 'active';
   name?: string;
+  expires_at?: string;
+  used?: boolean;
 }
 
 const BusinessSettings = () => {
@@ -82,8 +84,9 @@ const BusinessSettings = () => {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inviteApiError, setInviteApiError] = useState<string | null>(null);
-  
-  const [members, setMembers] = useState<Member[]>([
+  const [loading, setLoading] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [activeTeamMembers, setActiveTeamMembers] = useState<Member[]>([
     {
       id: 'user-1',
       email: 'jane.smith@example.com',
@@ -99,27 +102,6 @@ const BusinessSettings = () => {
       created_at: '2025-03-20T09:45:00Z',
       status: 'active',
       name: 'Michael Brown'
-    },
-    {
-      id: '1',
-      email: 'john.doe@example.com',
-      role: 'admin',
-      created_at: '2025-04-08T10:30:00Z',
-      status: 'pending'
-    },
-    {
-      id: '2',
-      email: 'sarah.smith@example.com',
-      role: 'agent',
-      created_at: '2025-04-08T12:45:00Z',
-      status: 'pending'
-    },
-    {
-      id: '3',
-      email: 'alex.johnson@example.com',
-      role: 'admin',
-      created_at: '2025-04-09T09:15:00Z',
-      status: 'pending'
     }
   ]);
 
@@ -165,8 +147,70 @@ const BusinessSettings = () => {
     defaultTemperature: 0.7,
   });
 
+  useEffect(() => {
+    fetchTeamInvites();
+  }, []);
+
+  const fetchTeamInvites = async () => {
+    try {
+      setLoading(true);
+      const token = getToken();
+      if (!token) {
+        throw new Error("You must be logged in to view team invites");
+      }
+      
+      const response = await fetch(getApiUrl('users/get_team_invites/'), {
+        method: 'GET',
+        headers: getAuthHeaders(token),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
+        throw new Error(errorData.error || `Failed to fetch team invites: ${response.status}`);
+      }
+      
+      const inviteData = await response.json();
+      console.log("Team invites fetched:", inviteData);
+      
+      const formattedInvites: Member[] = inviteData.map((invite: any) => ({
+        id: invite.id.toString(),
+        email: invite.email,
+        role: invite.role,
+        status: 'pending',
+        expires_at: invite.expires_at,
+        used: invite.used
+      }));
+      
+      setMembers(formattedInvites);
+    } catch (error) {
+      console.error("Error fetching team invites:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch team invites",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const cancelInvite = async (inviteId: string) => {
     try {
+      const token = getToken();
+      if (!token) {
+        throw new Error("You must be logged in to cancel invitations");
+      }
+      
+      const response = await fetch(getApiUrl(`users/cancel_team_invite/${inviteId}/`), {
+        method: 'DELETE',
+        headers: getAuthHeaders(token),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
+        throw new Error(errorData.error || `Failed to cancel invitation: ${response.status}`);
+      }
+      
       setMembers(members.filter(member => member.id !== inviteId));
       
       toast({
@@ -182,8 +226,32 @@ const BusinessSettings = () => {
     }
   };
 
-  const resendInvite = async (email: string) => {
+  const resendInvite = async (inviteId: string, email: string | null) => {
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "No email address available for this invitation.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
+      const token = getToken();
+      if (!token) {
+        throw new Error("You must be logged in to resend invitations");
+      }
+      
+      const response = await fetch(getApiUrl(`users/resend_team_invite/${inviteId}/`), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
+        throw new Error(errorData.error || `Failed to resend invitation: ${response.status}`);
+      }
+      
       toast({
         title: "Invitation resent",
         description: `An invitation has been resent to ${email}.`,
@@ -232,7 +300,7 @@ const BusinessSettings = () => {
         throw new Error("You must be logged in to send invitations");
       }
       
-      const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_OTP.replace('resend-otp', 'create_team_invite')), {
+      const response = await fetch(getApiUrl('users/create_team_invite/'), {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
@@ -257,15 +325,7 @@ const BusinessSettings = () => {
         description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
       });
       
-      const newMember: Member = {
-        id: `inv-${Date.now()}`,
-        email: data.email,
-        role: data.role,
-        created_at: new Date().toISOString(),
-        status: 'pending'
-      };
-      
-      setMembers([...members, newMember]);
+      fetchTeamInvites();
       
       setShowInviteDialog(false);
       inviteForm.reset();
@@ -332,6 +392,23 @@ const BusinessSettings = () => {
         day: 'numeric',
         year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
       });
+    }
+  };
+
+  const calculateExpiryStatus = (expiryDate: string): string => {
+    const expiry = new Date(expiryDate);
+    const now = new Date();
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return 'Expired';
+    } else if (diffDays === 0) {
+      return 'Expires today';
+    } else if (diffDays === 1) {
+      return 'Expires tomorrow';
+    } else {
+      return `Expires in ${diffDays} days`;
     }
   };
 
@@ -537,13 +614,13 @@ const BusinessSettings = () => {
                   <Badge>Owner</Badge>
                 </div>
                 
-                {members.length > 0 && (
+                {activeTeamMembers.length > 0 && (
                   <>
                     <Separator />
                     <div className="p-2">
-                      <p className="text-sm text-muted-foreground p-2">Members</p>
+                      <p className="text-sm text-muted-foreground p-2">Active Members</p>
                       <div>
-                        {members.map((member) => (
+                        {activeTeamMembers.map((member) => (
                           <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
                             <div>
                               <p className="font-medium">
@@ -551,41 +628,86 @@ const BusinessSettings = () => {
                               </p>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                 <span className="capitalize">{member.role}</span>
-                                {member.status === 'pending' && (
-                                  <Badge variant="waiting" className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3 mr-1" /> waiting response
-                                  </Badge>
-                                )}
                                 <span>&bull;</span>
-                                <span>Added {formatDate(member.created_at)}</span>
+                                <span>Added {formatDate(member.created_at || '')}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {member.status === 'pending' ? (
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  onClick={() => cancelInvite(member.id)}
-                                  title="Cancel Invitation"
-                                >
-                                  <Trash className="h-4 w-4 text-red-500" />
-                                </Button>
-                              ) : (
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  onClick={() => deleteMember(member.id)}
-                                  title="Remove Member"
-                                >
-                                  <Trash className="h-4 w-4 text-red-500" />
-                                </Button>
-                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => deleteMember(member.id)}
+                                title="Remove Member"
+                              >
+                                <Trash className="h-4 w-4 text-red-500" />
+                              </Button>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </>
+                )}
+                
+                {members.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="p-2">
+                      <p className="text-sm text-muted-foreground p-2">Pending Invitations</p>
+                      <div>
+                        {members.map((member) => (
+                          <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
+                            <div>
+                              <p className="font-medium">
+                                {member.email || "No email specified"}
+                              </p>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <span className="capitalize">{member.role}</span>
+                                <Badge variant="waiting" className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 mr-1" /> waiting response
+                                </Badge>
+                                <span>&bull;</span>
+                                <span>{member.expires_at ? calculateExpiryStatus(member.expires_at) : 'No expiry'}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {member.email && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => resendInvite(member.id, member.email)}
+                                  title="Resend Invitation"
+                                  className="text-xs"
+                                >
+                                  Resend
+                                </Button>
+                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => cancelInvite(member.id)}
+                                title="Cancel Invitation"
+                              >
+                                <Trash className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {loading && (
+                  <div className="p-4 flex justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                )}
+                
+                {!loading && members.length === 0 && activeTeamMembers.length === 0 && (
+                  <div className="p-6 text-center text-muted-foreground">
+                    <p>No team members or pending invitations found.</p>
+                  </div>
                 )}
                 
                 <Separator />
