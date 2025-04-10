@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -62,40 +63,35 @@ const InviteRegistration = () => {
           body: JSON.stringify({
             invite_token: inviteToken
           })
-        }).catch(() => {
-          // Mock response for development
-          return {
-            ok: true,
-            json: () => Promise.resolve({
-              valid: true,
-              team_name: "webxpujan's Team",
-              role: "admin",
-              email: "invited@example.com"
-            })
-          };
         });
+
+        if (!response.ok) {
+          // Handle HTTP errors
+          const errorText = await response.text();
+          console.error("Token validation error:", errorText);
+          setTokenValid(false);
+          throw new Error(`HTTP error ${response.status}: ${errorText}`);
+        }
 
         const data = await response.json();
         
-        if (response.ok && data.valid) {
+        if (data.valid) {
+          console.log("Token validation successful:", data);
           setTokenValid(true);
           setInvitedEmail(data.email);
           setBusinessName(data.team_name);
           setUserRole(data.role);
         } else {
+          console.error("Invalid token:", data);
           setTokenValid(false);
-          toast({
-            title: "Invalid Invitation",
-            description: "This invitation link is invalid or has expired.",
-            variant: "destructive",
-          });
+          throw new Error(data.error || "Invalid invitation token");
         }
       } catch (error) {
         console.error("Token validation error:", error);
         setTokenValid(false);
         toast({
-          title: "Validation Error",
-          description: "Could not validate the invitation. Please try again.",
+          title: "Invalid Invitation",
+          description: error instanceof Error ? error.message : "This invitation link is invalid or has expired.",
           variant: "destructive",
         });
       } finally {
@@ -132,27 +128,17 @@ const InviteRegistration = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-      }).catch(() => {
-        return {
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            user: {
-              id: '123',
-              name: values.name,
-              email: invitedEmail,
-              role: userRole
-            },
-            accessToken: 'mock-token',
-            refreshToken: 'mock-refresh-token',
-            isVerified: true
-          })
-        };
       });
+
+      if (!response.ok) {
+        // Handle HTTP errors
+        const errorData = await response.json().catch(() => ({ message: "An error occurred" }));
+        throw new Error(errorData.message || `HTTP error ${response.status}`);
+      }
 
       const data = await response.json();
       
-      if (response.ok && data.success) {
+      if (data.success) {
         toast({
           title: "Registration Successful",
           description: "Your account has been created successfully.",
@@ -168,17 +154,13 @@ const InviteRegistration = () => {
         
         navigate('/dashboard');
       } else {
-        toast({
-          title: "Registration Failed",
-          description: data.message || "Failed to complete registration. Please try again.",
-          variant: "destructive",
-        });
+        throw new Error(data.message || "Failed to complete registration");
       }
     } catch (error) {
       console.error("Registration error:", error);
       toast({
-        title: "Registration Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Registration Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
