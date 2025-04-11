@@ -1079,7 +1079,7 @@ const AgentEdit = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-0 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="h-[calc(100vh-140px)] sticky top-[0px]">
+          <div className="h-[calc(100vh-140px)] sticky top-[10px]">
             {renderChatPreview()}
           </div>
           
@@ -1091,7 +1091,7 @@ const AgentEdit = () => {
               onValueChange={setActiveTab}
             >
               <div className="sticky top-[73px] z-10 border-b">
-                <TabsList variant="github" className="w-full mb-0 pl-0 bg-transparent">
+                <TabsList variant="github" className="w-full mb-0 pl-0">
                   <TabsTrigger value="general" variant="github">
                     <Bot className="h-4 w-4 mr-2" />
                     General
