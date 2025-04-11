@@ -1091,7 +1091,7 @@ const AgentEdit = () => {
               onValueChange={setActiveTab}
             >
               <div className="sticky top-[73px] z-10 border-b">
-                <TabsList variant="github" className="w-full mb-0 pl-0" style={`background:none`}>
+                <TabsList variant="github" className="w-full mb-0 pl-0 bg-transparent">
                   <TabsTrigger value="general" variant="github">
                     <Bot className="h-4 w-4 mr-2" />
                     General
