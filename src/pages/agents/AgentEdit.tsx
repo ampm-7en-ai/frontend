@@ -1090,7 +1090,7 @@ const AgentEdit = () => {
               value={activeTab}
               onValueChange={setActiveTab}
             >
-              <div className="sticky top-[73px] bg-background z-10 border-b">
+              <div className="sticky top-[73px] z-10 border-b pl-0">
                 <TabsList variant="github" className="w-full mb-0">
                   <TabsTrigger value="general" variant="github">
                     <Bot className="h-4 w-4 mr-2" />
@@ -1122,7 +1122,7 @@ const AgentEdit = () => {
                   scrollable={true} 
                   hideScrollbar={true}
                 >
-                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                  <ScrollArea className="h-full" hideScrollbar={true}>
                     {renderGeneralContent()}
                   </ScrollArea>
                 </TabsContent>
@@ -1133,7 +1133,7 @@ const AgentEdit = () => {
                   scrollable={true} 
                   hideScrollbar={true}
                 >
-                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                  <ScrollArea className="h-full" hideScrollbar={true}>
                     {renderAppearanceContent()}
                   </ScrollArea>
                 </TabsContent>
@@ -1144,7 +1144,7 @@ const AgentEdit = () => {
                   scrollable={true} 
                   hideScrollbar={true}
                 >
-                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                  <ScrollArea className="h-full" hideScrollbar={true}>
                     {renderAdvancedContent()}
                   </ScrollArea>
                 </TabsContent>
@@ -1155,7 +1155,7 @@ const AgentEdit = () => {
                   scrollable={true}
                   hideScrollbar={true}
                 >
-                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                  <ScrollArea className="h-full" hideScrollbar={true}>
                     {renderKnowledgeContent()}
                   </ScrollArea>
                 </TabsContent>
@@ -1166,7 +1166,7 @@ const AgentEdit = () => {
                   scrollable={true}
                   hideScrollbar={true}
                 >
-                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                  <ScrollArea className="h-full" hideScrollbar={true}>
                     {renderIntegrationsContent()}
                   </ScrollArea>
                 </TabsContent>
