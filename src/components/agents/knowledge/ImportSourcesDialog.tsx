@@ -54,6 +54,15 @@ export const ImportSourcesDialog = ({
   const [urlKeyMap, setUrlKeyMap] = useState<Record<string, string>>({});
   const thirdPanelRef = useRef<HTMLDivElement>(null);
 
+  const scrollToTop = () => {
+    if (thirdPanelRef.current) {
+      thirdPanelRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       setSelectedSources(new Set());
