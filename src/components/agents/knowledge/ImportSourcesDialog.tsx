@@ -58,7 +58,7 @@ export const ImportSourcesDialog = ({
   const scrollToTop = () => {
     if (thirdPanelRef.current) {
       thirdPanelRef.current.scrollTo({
-        top: 1000,
+        top: 0,
         behavior: 'smooth'
       });
     }
@@ -174,6 +174,7 @@ export const ImportSourcesDialog = ({
   useEffect(() => {
     const handleScroll = () => {
       if (thirdPanelRef.current) {
+        console.log("scroll top:",thirdPanelRef.current.scrollTop);
         setShowScrollToTop(thirdPanelRef.current.scrollTop > 100);
       }
     };
