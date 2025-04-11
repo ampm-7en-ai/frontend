@@ -1061,7 +1061,7 @@ const AgentEdit = () => {
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="h-[500px] sticky top-[90px]">
+          <div className="h-full sticky top-[90px]">
             {renderChatPreviewSkeleton()}
           </div>
           
@@ -1078,8 +1078,8 @@ const AgentEdit = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="h-[calc(100vh-140px)] sticky top-[90px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-0 flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="h-[calc(100vh-140px)] sticky top-[0px]">
             {renderChatPreview()}
           </div>
           
