@@ -840,7 +840,7 @@ const AgentEdit = () => {
 
   const renderChatPreview = () => {
     return (
-      <div className="dotted-background h-full w-full flex items-center justify-center p-4 rounded-lg">
+      <div className="dotted-background h-full w-full flex items-center justify-center p-4 rounded-lg pb-16">
         <div className="w-[420px] max-w-full h-full shadow-lg">
           <ChatboxPreview
             primaryColor={agent.primaryColor}
@@ -1079,7 +1079,7 @@ const AgentEdit = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-0 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="sticky top-[90px] h-[calc(100vh-200px)] pb-16">
+          <div className="sticky top-[90px] h-[calc(100vh-200px)]">
             {renderChatPreview()}
           </div>
           
