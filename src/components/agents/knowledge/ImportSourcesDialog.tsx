@@ -656,8 +656,10 @@ export const ImportSourcesDialog = ({
               
               <div className="flex flex-col flex-1">
                 <span className="flex items-center text-sm overflow-hidden text-ellipsis">
-                  <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0 text-blue-600" />
                   {urlNode.title || urlNode.url}
+                  <a href={urlNode.url} target={"_blank"}>
+                    <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0 text-blue-600" />
+                  </a>
                 </span>
                 {urlNode.url && (
                   <span className="text-xs text-muted-foreground truncate max-w-[300px]">{urlNode.url}</span>
