@@ -179,6 +179,7 @@ export const ImportSourcesDialog = ({
     };
     
     const currentRef = thirdPanelRef.current;
+    console.log(currentRef);
     if (currentRef) {
       currentRef.addEventListener('scroll', handleScroll);
     }
