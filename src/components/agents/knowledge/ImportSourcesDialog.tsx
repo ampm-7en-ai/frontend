@@ -53,6 +53,7 @@ export const ImportSourcesDialog = ({
   const [excludedUrls, setExcludedUrls] = useState<Set<string>>(new Set());
   const [urlKeyMap, setUrlKeyMap] = useState<Record<string, string>>({});
   const thirdPanelRef = useRef<HTMLDivElement>(null);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
 
   const scrollToTop = () => {
     if (thirdPanelRef.current) {
@@ -62,7 +63,7 @@ export const ImportSourcesDialog = ({
       });
     }
   };
-
+  
   useEffect(() => {
     if (isOpen) {
       setSelectedSources(new Set());
@@ -169,6 +170,25 @@ export const ImportSourcesDialog = ({
       }
     }
   }, [selectedSubUrls, selectedFiles, externalSources]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (thirdPanelRef.current) {
+        setShowScrollToTop(thirdPanelRef.current.scrollTop > 100);
+      }
+    };
+    
+    const currentRef = thirdPanelRef.current;
+    if (currentRef) {
+      currentRef.addEventListener('scroll', handleScroll);
+    }
+    
+    return () => {
+      if (currentRef) {
+        currentRef.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [thirdPanelRef.current]);
 
   const sourceTypes = useMemo(() => {
     const counts = {
@@ -1112,7 +1132,7 @@ export const ImportSourcesDialog = ({
                     )}
                   </div>
                   
-                  {selectedKnowledgeBase && (
+                  {selectedKnowledgeBase && showScrollToTop && (
                     <div className="sticky bottom-4 right-4 flex justify-end p-4">
                       <Button 
                         variant="outline" 
