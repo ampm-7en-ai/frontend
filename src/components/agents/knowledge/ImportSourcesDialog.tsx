@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown, ArrowUp } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint, addKnowledgeSourcesToAgent } from '@/utils/api-config';
@@ -52,6 +52,7 @@ export const ImportSourcesDialog = ({
   const [showOnlySelected, setShowOnlySelected] = useState(false);
   const [excludedUrls, setExcludedUrls] = useState<Set<string>>(new Set());
   const [urlKeyMap, setUrlKeyMap] = useState<Record<string, string>>({});
+  const thirdPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -1054,7 +1055,7 @@ export const ImportSourcesDialog = ({
             
             <ResizablePanel minSize={30} defaultSize={50}>
               <div className="h-full flex flex-col">
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1" ref={thirdPanelRef}>
                   <div className="p-4">
                     {selectedKnowledgeBase ? (
                       <div>
@@ -1101,6 +1102,20 @@ export const ImportSourcesDialog = ({
                       </div>
                     )}
                   </div>
+                  
+                  {selectedKnowledgeBase && (
+                    <div className="sticky bottom-4 right-4 flex justify-end p-4">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-10 w-10 rounded-full shadow-md hover:shadow-lg bg-background"
+                        onClick={scrollToTop}
+                        title="Back to top"
+                      >
+                        <ArrowUp className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  )}
                 </ScrollArea>
               </div>
             </ResizablePanel>
