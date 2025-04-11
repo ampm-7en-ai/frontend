@@ -996,7 +996,7 @@ export const ImportSourcesDialog = ({
             
             <ResizablePanel minSize={25} defaultSize={30}>
               <div className="h-full flex flex-col">
-                <ScrollArea className="flex-1 pr-2" ref={thirdPanelRef}>
+                <ScrollArea className="flex-1 pr-2">
                   <div className="p-2 space-y-2">
                     {filteredSources.length === 0 ? (
                       <div className="flex items-center justify-center h-full py-20">
@@ -1085,7 +1085,7 @@ export const ImportSourcesDialog = ({
             
             <ResizablePanel minSize={30} defaultSize={50}>
               <div className="h-full flex flex-col">
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1" ref={thirdPanelRef}>
                   <div className="p-4">
                     {selectedKnowledgeBase ? (
                       <div>
