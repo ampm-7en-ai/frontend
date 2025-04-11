@@ -57,10 +57,14 @@ export const ImportSourcesDialog = ({
 
   const scrollToTop = () => {
     if (thirdPanelRef.current) {
-      thirdPanelRef.current.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      // Find the actual scrollable element (the Viewport) inside the ScrollArea
+      const scrollableElement = thirdPanelRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollableElement) {
+        scrollableElement.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
     }
   };
   
@@ -173,24 +177,28 @@ export const ImportSourcesDialog = ({
 
   useEffect(() => {
     const handleScroll = () => {
-       console.log("scroll top:",thirdPanelRef.current.scrollTop);
-      if (thirdPanelRef.current) {
-       
-        setShowScrollToTop(thirdPanelRef.current.scrollTop > 100);
-      }
+        // Find the scrollable element
+        if (thirdPanelRef.current) {
+          const scrollableElement = thirdPanelRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (scrollableElement) {
+            setShowScrollToTop(scrollableElement.scrollTop > 100);
+          }
+        }
     };
     
     const currentRef = thirdPanelRef.current;
     console.log(currentRef);
-    if (currentRef) {
-      currentRef.addEventListener('scroll', handleScroll);
+     if (currentRef) {
+    // Attach the event listener to the scrollable element
+    const scrollableElement = currentRef.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollableElement) {
+      scrollableElement.addEventListener('scroll', handleScroll);
+      
+      return () => {
+        scrollableElement.removeEventListener('scroll', handleScroll);
+      };
     }
-    
-    return () => {
-      if (currentRef) {
-        currentRef.removeEventListener('scroll', handleScroll);
-      }
-    };
+  }
   }, [thirdPanelRef.current]);
 
   const sourceTypes = useMemo(() => {
