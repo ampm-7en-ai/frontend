@@ -293,17 +293,17 @@ const AgentEdit = () => {
         customAvatarFile
       };
 
-      if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
-        const kbId = agentKnowledgeSources && agentKnowledgeSources.length > 0
-          ? agentKnowledgeSources[0].id
-          : "20";
+      // if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
+      //   const kbId = agentKnowledgeSources && agentKnowledgeSources.length > 0
+      //     ? agentKnowledgeSources[0].id
+      //     : "20";
           
-        payload.settings = {
-          knowledge_source_filters: {
-            [kbId]: agent.knowledgeSources
-          }
-        };
-      }
+      //   payload.settings = {
+      //     knowledge_source_filters: {
+      //       [kbId]: agent.knowledgeSources
+      //     }
+      //   };
+      // }
 
       await updateAgent(agentId || '', payload);
       
