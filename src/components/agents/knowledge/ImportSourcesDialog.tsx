@@ -58,7 +58,7 @@ export const ImportSourcesDialog = ({
   const scrollToTop = () => {
     if (thirdPanelRef.current) {
       thirdPanelRef.current.scrollTo({
-        top: 0,
+        top: 1000,
         behavior: 'smooth'
       });
     }
