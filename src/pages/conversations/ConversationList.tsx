@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -88,7 +89,7 @@ const ConversationList = () => {
 
   if (isDesktop) {
     return (
-      <div className="h-[calc(100vh-4rem)] overflow-hidden max-w-[1440px] mx-auto">
+      <div className="h-[calc(100vh-4rem)] overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
             <ConversationListPanel 
