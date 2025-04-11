@@ -841,7 +841,7 @@ const AgentEdit = () => {
   const renderChatPreview = () => {
     return (
       <div className="dotted-background h-full w-full flex items-center justify-center p-4 rounded-lg">
-        <div className="w-[320px] max-w-full h-[500px] shadow-lg">
+        <div className="w-[420px] max-w-full h-full shadow-lg">
           <ChatboxPreview
             primaryColor={agent.primaryColor}
             secondaryColor={agent.secondaryColor}
@@ -1083,7 +1083,7 @@ const AgentEdit = () => {
             {renderChatPreview()}
           </div>
           
-          <div className="col-span-2 h-full flex flex-col">
+          <div className="col-span-2 h-full flex flex-col w-800">
             <Tabs 
               defaultValue="general" 
               className="w-full flex flex-col h-full"
