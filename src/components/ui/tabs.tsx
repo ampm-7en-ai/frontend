@@ -71,13 +71,15 @@ const TabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content> & {
     scrollable?: boolean;
+    hideScrollbar?: boolean;
   }
->(({ className, scrollable = false, ...props }, ref) => (
+>(({ className, scrollable = false, hideScrollbar = false, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
       "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       scrollable ? "overflow-auto" : "",
+      hideScrollbar ? "scrollbar-hide" : "",
       className
     )}
     {...props}

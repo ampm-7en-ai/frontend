@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
 import { cva } from "class-variance-authority"
@@ -9,13 +10,15 @@ const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Root> & {
     fixed?: boolean;
+    sticky?: boolean;
   }
->(({ className, children, fixed = false, ...props }, ref) => (
+>(({ className, children, fixed = false, sticky = false, ...props }, ref) => (
   <NavigationMenuPrimitive.Root
     ref={ref}
     className={cn(
       "relative z-10 flex max-w-max flex-1 items-center justify-center",
-      fixed && "sticky top-0 left-0 right-0 z-50 border-b border-border bg-background",
+      fixed && "fixed top-0 left-0 right-0 z-50 border-b border-border bg-background",
+      sticky && "sticky top-0 left-0 right-0 z-50 border-b border-border bg-background",
       className
     )}
     {...props}

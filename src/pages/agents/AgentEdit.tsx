@@ -22,6 +22,7 @@ import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, updateAgent } 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -1022,8 +1023,8 @@ const AgentEdit = () => {
   }
 
   return (
-    <div className="h-full">
-      <div className="flex items-center justify-between border-b pb-4">
+    <div className="h-full flex flex-col">
+      <div className="flex items-center justify-between border-b pb-4 sticky top-0 bg-background z-20">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -1058,12 +1059,12 @@ const AgentEdit = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
-          <div className="h-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2 flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="h-[500px] sticky top-[90px]">
             {renderChatPreviewSkeleton()}
           </div>
           
-          <div className="col-span-2 h-full overflow-y-auto">
+          <div className="col-span-2 h-full">
             <div className="flex justify-start mb-6">
               <div className="bg-muted rounded-lg p-1 flex items-center">
                 {["general", "appearance", "advanced", "knowledge", "integrations"].map((tab) => (
@@ -1076,8 +1077,8 @@ const AgentEdit = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 h-[calc(100vh-180px)] max-w-[1440px] mx-auto px-4">
-          <div className="h-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2 flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="h-[500px] sticky top-[90px]">
             {renderChatPreview()}
           </div>
           
@@ -1088,7 +1089,7 @@ const AgentEdit = () => {
               value={activeTab}
               onValueChange={setActiveTab}
             >
-              <div className="sticky top-0 bg-background z-10 border-b">
+              <div className="sticky top-[73px] bg-background z-10 border-b">
                 <TabsList variant="github" className="w-full mb-0">
                   <TabsTrigger value="general" variant="github">
                     <Bot className="h-4 w-4 mr-2" />
@@ -1113,25 +1114,60 @@ const AgentEdit = () => {
                 </TabsList>
               </div>
               
-              <div className="flex-1 overflow-y-auto">
-                <TabsContent value="general" className="mt-4 pb-6 h-full overflow-y-auto">
-                  {renderGeneralContent()}
+              <div className="flex-1 overflow-hidden">
+                <TabsContent 
+                  value="general" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true} 
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                    {renderGeneralContent()}
+                  </ScrollArea>
                 </TabsContent>
                 
-                <TabsContent value="appearance" className="mt-4 pb-6 h-full overflow-y-auto">
-                  {renderAppearanceContent()}
+                <TabsContent 
+                  value="appearance" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true} 
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                    {renderAppearanceContent()}
+                  </ScrollArea>
                 </TabsContent>
                 
-                <TabsContent value="advanced" className="mt-4 pb-6 h-full overflow-y-auto">
-                  {renderAdvancedContent()}
+                <TabsContent 
+                  value="advanced" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true} 
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                    {renderAdvancedContent()}
+                  </ScrollArea>
                 </TabsContent>
                 
-                <TabsContent value="knowledge" className="mt-4 pb-6 h-full overflow-y-auto">
-                  {renderKnowledgeContent()}
+                <TabsContent 
+                  value="knowledge" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true}
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                    {renderKnowledgeContent()}
+                  </ScrollArea>
                 </TabsContent>
 
-                <TabsContent value="integrations" className="mt-4 pb-6 h-full overflow-y-auto">
-                  {renderIntegrationsContent()}
+                <TabsContent 
+                  value="integrations" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true}
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full pr-4" hideScrollbar={true}>
+                    {renderIntegrationsContent()}
+                  </ScrollArea>
                 </TabsContent>
               </div>
             </Tabs>
