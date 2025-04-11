@@ -1079,7 +1079,7 @@ const AgentEdit = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-0 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="h-[calc(100vh-140px)] sticky top-[10px]">
+          <div className="sticky top-[90px] h-[calc(100vh-200px)]">
             {renderChatPreview()}
           </div>
           
