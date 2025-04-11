@@ -3,6 +3,14 @@ import React, { useEffect } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
+export const dottedBackgroundStyle = `
+  .dotted-background {
+    background-color: #f8f9fa;
+    background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+`;
+
 export function TestPageLayout() {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
@@ -30,13 +38,7 @@ export function TestPageLayout() {
       </div>
       
       {/* Add the dotted background pattern styling */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .dotted-background {
-          background-color: #f8f9fa;
-          background-image: radial-gradient(#d1d5db 1px, transparent 1px);
-          background-size: 20px 20px;
-        }
-      `}} />
+      <style dangerouslySetInnerHTML={{ __html: dottedBackgroundStyle }} />
     </div>
   );
 }

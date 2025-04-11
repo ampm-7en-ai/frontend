@@ -23,6 +23,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { dottedBackgroundStyle } from '@/components/layout/TestPageLayout';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -839,8 +840,8 @@ const AgentEdit = () => {
 
   const renderChatPreview = () => {
     return (
-      <div className="h-full flex flex-col">
-        <div className="flex-1">
+      <div className="dotted-background h-full w-full flex items-center justify-center p-4 rounded-lg">
+        <div className="w-[320px] max-w-full h-[500px] shadow-lg">
           <ChatboxPreview
             primaryColor={agent.primaryColor}
             secondaryColor={agent.secondaryColor}
@@ -1078,7 +1079,7 @@ const AgentEdit = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="h-[500px] sticky top-[90px]">
+          <div className="h-[calc(100vh-140px)] sticky top-[90px]">
             {renderChatPreview()}
           </div>
           
@@ -1174,6 +1175,8 @@ const AgentEdit = () => {
           </div>
         </div>
       )}
+
+      <style dangerouslySetInnerHTML={{ __html: dottedBackgroundStyle }} />
 
       <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
         {selectedIntegration && (
