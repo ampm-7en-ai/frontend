@@ -656,7 +656,7 @@ export const ImportSourcesDialog = ({
               
               <div className="flex flex-col flex-1">
                 <span className="flex items-center text-sm overflow-hidden text-ellipsis">
-                  <Globe className="h-4 w-4 mr-2 text-green-600" />
+                  <Globe className="h-2 w-2 mr-2 text-green-600" />
                   {urlNode.title || urlNode.url}
                 </span>
                 {urlNode.url && (
