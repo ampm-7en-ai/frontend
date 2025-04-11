@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown, ArrowUp } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown, ArrowUp, ExternalLink } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, getKnowledgeBaseEndpoint, addKnowledgeSourcesToAgent } from '@/utils/api-config';
@@ -656,14 +656,14 @@ export const ImportSourcesDialog = ({
               
               <div className="flex flex-col flex-1">
                 <span className="flex items-center text-sm overflow-hidden text-ellipsis">
-                  <Globe className="h-2 w-2 mr-2 text-green-600" />
+                  <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0 text-blue-600" />
                   {urlNode.title || urlNode.url}
                 </span>
                 {urlNode.url && (
-                  <span className="text-xs text-muted-foreground ml-6 truncate max-w-[300px]">{urlNode.url}</span>
+                  <span className="text-xs text-muted-foreground truncate max-w-[300px]">{urlNode.url}</span>
                 )}
                 {urlNode.chars !== undefined && (
-                  <span className="text-xs text-muted-foreground ml-6">
+                  <span className="text-xs text-muted-foreground">
                     {urlNode.chars === 0 ? "0 characters" : `${urlNode.chars.toLocaleString()} characters`}
                   </span>
                 )}
