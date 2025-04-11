@@ -1025,7 +1025,7 @@ const AgentEdit = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between border-b pb-4 sticky top-0 bg-background z-20">
+      <div className="flex items-center justify-between border-b pb-4 sticky top-0 bg-background z-20 pr-24">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -1090,8 +1090,8 @@ const AgentEdit = () => {
               value={activeTab}
               onValueChange={setActiveTab}
             >
-              <div className="sticky top-[73px] z-10 border-b pl-0">
-                <TabsList variant="github" className="w-full mb-0">
+              <div className="sticky top-[73px] z-10 border-b">
+                <TabsList variant="github" className="w-full mb-0 pl-0 bg-none">
                   <TabsTrigger value="general" variant="github">
                     <Bot className="h-4 w-4 mr-2" />
                     General
