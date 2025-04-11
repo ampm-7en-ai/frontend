@@ -1086,7 +1086,7 @@ export const ImportSourcesDialog = ({
             
             <ResizablePanel minSize={30} defaultSize={50}>
               <div className="h-full flex flex-col">
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1" ref={thirdPanelRef}>
                   <div className="p-4">
                     {selectedKnowledgeBase ? (
                       <div>
