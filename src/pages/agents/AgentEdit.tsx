@@ -1081,57 +1081,59 @@ const AgentEdit = () => {
             {renderChatPreview()}
           </div>
           
-          <div className="col-span-2 h-full overflow-y-auto">
+          <div className="col-span-2 h-full flex flex-col">
             <Tabs 
               defaultValue="general" 
-              className="w-full"
+              className="w-full flex flex-col h-full"
               value={activeTab}
               onValueChange={setActiveTab}
             >
-              <div className="flex justify-start mb-6">
-                <TabsList size="xs" className="w-auto">
-                  <TabsTrigger value="general" size="xs">
+              <div className="sticky top-0 bg-background z-10 border-b">
+                <TabsList variant="github" className="w-full mb-0">
+                  <TabsTrigger value="general" variant="github">
                     <Bot className="h-4 w-4 mr-2" />
                     General
                   </TabsTrigger>
-                  <TabsTrigger value="appearance" size="xs">
+                  <TabsTrigger value="appearance" variant="github">
                     <Palette className="h-4 w-4 mr-2" />
                     Appearance
                   </TabsTrigger>
-                  <TabsTrigger value="advanced" size="xs">
+                  <TabsTrigger value="advanced" variant="github">
                     <Sliders className="h-4 w-4 mr-2" />
                     Advanced Settings
                   </TabsTrigger>
-                  <TabsTrigger value="knowledge" size="xs">
+                  <TabsTrigger value="knowledge" variant="github">
                     <FileText className="h-4 w-4 mr-2" />
                     Knowledge
                   </TabsTrigger>
-                  <TabsTrigger value="integrations" size="xs">
+                  <TabsTrigger value="integrations" variant="github">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Integrations
                   </TabsTrigger>
                 </TabsList>
               </div>
               
-              <TabsContent value="general" className="mt-0">
-                {renderGeneralContent()}
-              </TabsContent>
-              
-              <TabsContent value="appearance" className="mt-0">
-                {renderAppearanceContent()}
-              </TabsContent>
-              
-              <TabsContent value="advanced" className="mt-0">
-                {renderAdvancedContent()}
-              </TabsContent>
-              
-              <TabsContent value="knowledge" className="mt-0">
-                {renderKnowledgeContent()}
-              </TabsContent>
+              <div className="flex-1 overflow-y-auto">
+                <TabsContent value="general" className="mt-4 pb-6 h-full overflow-y-auto">
+                  {renderGeneralContent()}
+                </TabsContent>
+                
+                <TabsContent value="appearance" className="mt-4 pb-6 h-full overflow-y-auto">
+                  {renderAppearanceContent()}
+                </TabsContent>
+                
+                <TabsContent value="advanced" className="mt-4 pb-6 h-full overflow-y-auto">
+                  {renderAdvancedContent()}
+                </TabsContent>
+                
+                <TabsContent value="knowledge" className="mt-4 pb-6 h-full overflow-y-auto">
+                  {renderKnowledgeContent()}
+                </TabsContent>
 
-              <TabsContent value="integrations" className="mt-0">
-                {renderIntegrationsContent()}
-              </TabsContent>
+                <TabsContent value="integrations" className="mt-4 pb-6 h-full overflow-y-auto">
+                  {renderIntegrationsContent()}
+                </TabsContent>
+              </div>
             </Tabs>
           </div>
         </div>
