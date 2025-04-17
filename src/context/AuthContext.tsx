@@ -40,6 +40,7 @@ interface AuthData {
   userId: number;
   role: UserRole;
   isVerified?: boolean;
+  email: string | null;
 }
 
 // Create the context with a default value
@@ -141,7 +142,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userData = {
           id: authData.userId.toString(),
           name: username,
-          email: `${username}@example.com`, // This would come from the API in a real app
+          email: authData.email, // This would come from the API in a real app
           role: authData.role,
           accessToken: authData.accessToken,
           refreshToken: authData.refreshToken,

@@ -104,7 +104,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             if (response.ok && data.data.access) {
               const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
               
-              await login(data.username || data.email || "Google User", "", {
+              await login(data.data.userData.username || data.data.userData.email || "Google User", "", {
                 accessToken: data.data.access,
                 refreshToken: data.refresh || null,
                 userId: data.data.user_id,
@@ -225,10 +225,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       if (response.ok && data.data.access) {
         const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
         
-        await login(values.username, values.password, {
+        await login(data.data.userData.username, values.password, {
           accessToken: data.data.access,
           refreshToken: data.refresh || null,
           userId: data.data.user_id,
+          email: data.data.userData.email,
           role: userRole,
           isVerified: true
         });
