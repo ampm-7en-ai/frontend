@@ -295,7 +295,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       }
       
     } catch (error) {
-      console.error("Login error:", error);
+      console.log("Login error:", error);
       toast({
         title: "Login Failed",
         description: "Could not connect to the server. Please try again later.",
