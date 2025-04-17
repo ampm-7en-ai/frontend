@@ -171,11 +171,20 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
     }
     
     if (!data.username && !data.email && data.error.message) {
-      toast({
-        title: "Registration Failed",
-        description: data.error.message,
-        variant: "destructive",
-      });
+      if(data.error.fields.hasOwnProperty("username")){
+         toast({
+          title: "Registration Failed",
+          description: data.error.fields.username[0],
+          variant: "destructive",
+        });
+      }else if(data.error.fields.hasOwnProperty("email")){
+        toast({
+          title: "Registration Failed",
+          description: data.error.fields.email[0],
+          variant: "destructive",
+        });
+      }
+     
     } else if (!data.username && !data.email && !data.error.message) {
       toast({
         title: "Registration Failed",
