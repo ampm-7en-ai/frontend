@@ -150,7 +150,7 @@ export const useAgentTest = (initialAgentId: string) => {
         console.log('All agents data received:', data);
         
         // Transform the API response to match our UI needs
-        return data.agents?.map((agent: any) => ({
+        return data.data?.map((agent: any) => ({
           id: agent.id.toString(),
           name: agent.name,
           model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
