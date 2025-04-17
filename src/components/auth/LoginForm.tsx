@@ -214,7 +214,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         
         toast({
           title: "Account Not Verified",
-          description: data.error,
+          description: data.error.message,
           variant: "destructive",
         });
         
@@ -250,8 +250,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       }
       
       if (!response.ok) {
-        if (data.non_field_errors) {
-          if (data.non_field_errors.includes("Please verify your account first")) {
+        if (data.fields.non_field_errors) {
+          if (data.fields.non_field_errors.includes("Please verify your account first")) {
             const email = data.email || values.username;
             
             setPendingVerificationEmail(email);
@@ -265,23 +265,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               variant: "destructive",
             });
             return;
-          } else if (data.non_field_errors.includes("Invalid login credentials")) {
+          } else if (data.fields.non_field_errors.includes("Invalid login credentials")) {
             form.setError("root", { 
               message: "Invalid username or password" 
             });
           } else {
             form.setError("root", { 
-              message: data.non_field_errors[0] 
+              message: data.fields.non_field_errors[0] 
             });
           }
         } else if (data.error) {
           form.setError("root", { 
-            message: data.error 
+            message: data.error.message 
           });
           
           toast({
             title: "Login Failed",
-            description: data.error,
+            description: data.error.message,
             variant: "destructive",
           });
         } else {
