@@ -46,10 +46,10 @@ const AgentList = () => {
       throw new Error(`Failed to fetch agents: ${response.status}`);
     }
 
-    const data: ApiResponse = await response.json();
+    const data: ApiResponse = await response.json().data;
     
     // Transform API response to match our Agent interface
-    return data.data.agents.map((agent: any) => ({
+    return data.agents.map((agent: any) => ({
       id: agent.id.toString(),
       name: agent.name,
       description: agent.description || '',
