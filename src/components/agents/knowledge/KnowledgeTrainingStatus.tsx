@@ -98,7 +98,7 @@ const KnowledgeTrainingStatus = ({
       }
 
       const data = await response.json();
-      return data.knowledge_bases || [];
+      return data.data.knowledge_bases || [];
     } catch (error) {
       console.error('Error fetching agent knowledge bases:', error);
       throw error;
