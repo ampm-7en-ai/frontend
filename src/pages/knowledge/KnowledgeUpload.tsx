@@ -273,8 +273,8 @@ const KnowledgeUpload = () => {
       setProgress(100);
       
       if (response) {
-        storeNewKnowledgeBase(response);
-        console.log('Knowledge base created and stored:', response.id);
+        storeNewKnowledgeBase(response.data);
+        console.log('Knowledge base created and stored:', response.data.id);
       }
       
       toast({
