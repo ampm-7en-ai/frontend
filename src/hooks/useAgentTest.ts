@@ -173,7 +173,7 @@ export const useAgentTest = (initialAgentId: string) => {
       try {
         const result = await fetchAgentDetails(selectedAgentId);
         console.log("Agent details fetch result:", result);
-        return result;
+        return result.data;
       } catch (error) {
         console.error("Error fetching agent details:", error);
         throw error;
