@@ -222,13 +222,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
-      if (response.ok && data.access) {
-        const userRole = data.user_type === "business" ? "admin" : data.user_type;
+      if (response.ok && data.data.access) {
+        const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
         
         await login(values.username, values.password, {
-          accessToken: data.access,
+          accessToken: data.data.access,
           refreshToken: data.refresh || null,
-          userId: data.user_id,
+          userId: data.data.user_id,
           role: userRole,
           isVerified: true
         });
