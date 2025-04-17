@@ -101,13 +101,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             const data = await response.json();
             console.log("Google SSO login response:", data);
             
-            if (response.ok && data.access) {
-              const userRole = data.user_type === "business" ? "admin" : data.user_type;
+            if (response.ok && data.data.access) {
+              const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
               
               await login(data.username || data.email || "Google User", "", {
-                accessToken: data.access,
+                accessToken: data.data.access,
                 refreshToken: data.refresh || null,
-                userId: data.user_id,
+                userId: data.data.user_id,
                 role: userRole,
                 isVerified: true
               });
