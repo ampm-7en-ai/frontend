@@ -49,7 +49,7 @@ const AgentList = () => {
     const data: ApiResponse = await response.json().data;
     
     // Transform API response to match our Agent interface
-    return data.agents.map((agent: any) => ({
+    return data.data.map((agent: any) => ({
       id: agent.id.toString(),
       name: agent.name,
       description: agent.description || '',
