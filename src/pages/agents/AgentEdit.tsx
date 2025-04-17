@@ -128,7 +128,8 @@ const AgentEdit = () => {
         throw new Error(`Failed to fetch agent data: ${response.status}`);
       }
       
-      return response.json().data;
+      const data = await response.json();
+      return data.data;
     },
     staleTime: 30 * 1000, // 30 seconds stale time to reduce frequent refetches
   });
