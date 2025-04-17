@@ -206,7 +206,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       const data = await response.json();
       console.log("Login response:", data);
       
-      if (data.error && data.error.includes("User not verified")) {
+      if (data.error && data.error.message.includes("User not verified")) {
         const email = data.email || values.username;
         
         setPendingVerificationEmail(email);
