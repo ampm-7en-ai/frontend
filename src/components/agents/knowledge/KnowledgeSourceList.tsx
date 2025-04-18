@@ -284,20 +284,7 @@ const KnowledgeBaseCard = ({
                 <CircleAlert fill="#f00" color="#fff" className="h-4 w-4 rounded-md ml-2 inline-flex items-center justify-center hover:bg-red-200"/>
               </TooltipTrigger>
               <TooltipContent>
-                This knowledge is deleted.
-              </TooltipContent>
-            </Tooltip>
-           </TooltipProvider>
-        );
-      case 'issues':
-        return (
-           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <CircleAlert fill="#fd0" color="#fff" className="h-4 w-4 rounded-md ml-2 inline-flex items-center justify-center hover:bg-red-200"/>
-              </TooltipTrigger>
-              <TooltipContent>
-                Some of the sources is deleted.
+                Some of the sources might be deleted.
               </TooltipContent>
             </Tooltip>
            </TooltipProvider>
@@ -311,7 +298,7 @@ const KnowledgeBaseCard = ({
       name: source.title || "Unknown",
       type: source.metadata?.format?.toLowerCase() || knowledgeBase.type,
       id: source.id || 0,
-      hasError: knowledgeBase.status === 'deleted',
+      hasError: source.status === 'deleted',
       linkBroken: source.url && !source.url.startsWith('http')
     };
   };
