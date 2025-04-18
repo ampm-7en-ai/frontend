@@ -281,7 +281,7 @@ const KnowledgeBaseCard = ({
            <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <OctagonAlert className="h-4 w-4"/>
+                <OctagonAlert className="h-4 w-4 rounded-md inline-flex items-center justify-center hover:bg-red-200"/>
               </TooltipTrigger>
               <TooltipContent>
                 Some of the sources might be deleted.
