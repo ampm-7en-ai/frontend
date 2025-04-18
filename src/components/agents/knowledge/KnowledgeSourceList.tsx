@@ -280,7 +280,7 @@ const KnowledgeBaseCard = ({
       name: source.title || "Unknown",
       type: source.metadata?.format?.toLowerCase() || knowledgeBase.type,
       id: source.id || 0,
-      hasError: source.status === 'error',
+      hasError: source.status === 'deleted',
       linkBroken: source.url && !source.url.startsWith('http')
     };
   };
