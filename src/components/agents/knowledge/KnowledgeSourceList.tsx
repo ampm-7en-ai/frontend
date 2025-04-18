@@ -281,7 +281,7 @@ const KnowledgeBaseCard = ({
            <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <span><OctagonAlert /></span>
+                <span><OctagonAlert className="h-4 w-4"/></span>
               </TooltipTrigger>
               <TooltipContent>
                 Some of the sources might be deleted.
