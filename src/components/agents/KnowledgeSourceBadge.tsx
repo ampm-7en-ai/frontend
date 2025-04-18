@@ -64,7 +64,7 @@ const KnowledgeSourceBadge = ({ source, onClick, size = 'md' }: KnowledgeSourceB
     if (source.linkBroken) {
       return 'Knowledge source link is broken';
     } else if (source.hasError) {
-      return 'Knowledge source needs retraining';
+      return 'Knowledge source is deleted';
     } else {
       return `Type: ${source.type}`;
     }
