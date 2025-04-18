@@ -44,7 +44,7 @@ const KnowledgeBase = () => {
       }
 
       console.log('Fetching knowledge bases from API');
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`, {
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active&status=issues`, {
         headers: getAuthHeaders(token),
       });
 
