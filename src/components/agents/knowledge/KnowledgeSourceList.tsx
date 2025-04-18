@@ -451,7 +451,7 @@ const KnowledgeBaseCard = ({
                     {/* {index < knowledgeBase.knowledge_sources.length - 1 && (
                       <Separator className="mt-2 bg-gray-100" />
                     )} */}
-                  </div>
+                  </>
                 );
               })}
             </div>
