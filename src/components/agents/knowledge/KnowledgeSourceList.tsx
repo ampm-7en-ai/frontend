@@ -425,10 +425,12 @@ const KnowledgeBaseCard = ({
                             </div>
                           </div>
                         )}
+                        <Separator className="mt-2 bg-gray-100" />
                       </>
                     ) : (
                     
                       source.is_selected &&  (
+                        <>
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2">
                               <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
@@ -440,14 +442,16 @@ const KnowledgeBaseCard = ({
                               )}
                             </div>
                           </div>
+                          <Separator className="mt-2 bg-gray-100" />
+                        </>
                       )
                     
                       
                     )}
                     
-                    {index < knowledgeBase.knowledge_sources.length - 1 && (
+                    {/* {index < knowledgeBase.knowledge_sources.length - 1 && (
                       <Separator className="mt-2 bg-gray-100" />
-                    )}
+                    )} */}
                   </div>
                 );
               })}
