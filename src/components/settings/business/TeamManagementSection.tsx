@@ -85,10 +85,10 @@ const TeamManagementSection = () => {
       setShowTeamManagement(true);
       
       const inviteData = await response.json();
-      console.log("Team invites fetched:", inviteData);
+      console.log("Team invites fetched:", inviteData.data);
       
       // Format the invites as members with active/pending status based on 'used' property
-      const formattedMembers: Member[] = inviteData.map((invite: any) => ({
+      const formattedMembers: Member[] = inviteData.data.map((invite: any) => ({
         id: invite.id.toString(),
         email: invite.email,
         role: invite.role,
