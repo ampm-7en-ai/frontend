@@ -4,7 +4,7 @@ import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link, ExternalLink, OctagonAlert } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -271,7 +277,19 @@ const KnowledgeBaseCard = ({
   const getBadgeForDeleted = (status: string) => {
     switch (status) {
       case 'deleted':
-        return <Badge variant="danger" className="text-xs font-medium">Deleted</Badge>;
+        return (
+           <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <OctagonAlert />
+              </TooltipTrigger>
+              <TooltipContent>
+                Some of the sources might be deleted.
+              </TooltipContent>
+            </Tooltip>
+           </TooltipProvider>
+        );
+        
     }
   };
 
