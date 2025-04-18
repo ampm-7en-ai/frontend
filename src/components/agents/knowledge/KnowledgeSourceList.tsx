@@ -284,7 +284,20 @@ const KnowledgeBaseCard = ({
                 <CircleAlert fill="#f00" color="#fff" className="h-4 w-4 rounded-md ml-2 inline-flex items-center justify-center hover:bg-red-200"/>
               </TooltipTrigger>
               <TooltipContent>
-                Some of the sources might be deleted.
+                This Knowledge is deleted.
+              </TooltipContent>
+            </Tooltip>
+           </TooltipProvider>
+        );
+      case 'issues':
+        return (
+           <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <CircleAlert fill="#fd0" color="#fff" className="h-4 w-4 rounded-md ml-2 inline-flex items-center justify-center hover:bg-red-200"/>
+              </TooltipTrigger>
+              <TooltipContent>
+                Some of the sources is deleted.
               </TooltipContent>
             </Tooltip>
            </TooltipProvider>
