@@ -280,7 +280,7 @@ const KnowledgeBaseCard = ({
         return (
            <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <span><OctagonAlert /></span>
               </TooltipTrigger>
               <TooltipContent>
