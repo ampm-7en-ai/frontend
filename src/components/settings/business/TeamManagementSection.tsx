@@ -211,10 +211,12 @@ const TeamManagementSection = () => {
       
       if (!response.ok) {
         if (responseData.error) {
-          setInviteApiError(responseData.error);
+            if(responseData.error.fields.hasOwnProperty("email")){
+                setInviteApiError(responseData.error.fields.email[0]);
+            }
           return;
         } else {
-          throw new Error(responseData.message || `Failed to send invitation: ${response.status}`);
+          throw new Error(responseData.error.message || `Failed to send invitation: ${response.status}`);
         }
       }
       
