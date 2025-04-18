@@ -263,6 +263,8 @@ const KnowledgeBaseCard = ({
         return <Badge variant="success" className="text-xs font-medium">Trained</Badge>;
       case 'training':
         return <Badge variant="secondary" className="text-xs font-medium">Training</Badge>;
+      case 'deleted':
+        return <Badge variant="danger" className="text-xs font-medium">Deleted</Badge>;
       default:
         return <Badge variant="outline" className="text-xs font-medium">Untrained</Badge>;
     }
