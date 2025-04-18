@@ -71,10 +71,10 @@ const KnowledgeTrainingStatus = ({
 
       const data = await response.json();
       
-      cachedKnowledgeBases.current = data;
+      cachedKnowledgeBases.current = data.data;
       setKnowledgeBasesLoaded(true);
       
-      return data;
+      return data.data;
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
       throw error;
