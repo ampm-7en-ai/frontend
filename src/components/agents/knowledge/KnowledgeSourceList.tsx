@@ -4,7 +4,7 @@ import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link, ExternalLink, OctagonAlert } from 'lucide-react';
+import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link, ExternalLink, CircleAlert } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -281,7 +281,7 @@ const KnowledgeBaseCard = ({
            <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <OctagonAlert fill="#f00" color="#fff" strokeWidth={0} className="h-4 w-4 rounded-md ml-2 inline-flex items-center justify-center hover:bg-red-200"/>
+                <CircleAlert fill="#f00" color="#fff" strokeWidth={1} className="h-4 w-4 rounded-md ml-2 inline-flex items-center justify-center hover:bg-red-200"/>
               </TooltipTrigger>
               <TooltipContent>
                 Some of the sources might be deleted.
