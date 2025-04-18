@@ -64,7 +64,7 @@ const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
     case 'pdf':
     case 'docs':
     case 'csv':
-      const fileCount = knowledgeBase.knowledge_sources.length;
+      const fileCount = knowledgeBase.knowledge_sources.filter(source => source.is_selected).length;
       return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
       
     case 'website':
@@ -358,9 +358,9 @@ const KnowledgeBaseCard = ({
                 const isWebsite = knowledgeBase.type.toLowerCase() === 'website';
                 
                 return (
-                  <div key={source.id} className="py-2">
+                  <>
                     {isWebsite ? (
-                      <>
+                      <div key={source.id} className="py-2">
                         {source.metadata?.sub_urls?.children && source.metadata.sub_urls.children.some(subUrl => subUrl.is_selected) ? (
                           <div className="space-y-1.5">
                             {source.metadata.sub_urls.children
@@ -425,12 +425,11 @@ const KnowledgeBaseCard = ({
                             </div>
                           </div>
                         )}
-                        <Separator className="mt-2 bg-gray-100" />
-                      </>
+                      </div>
                     ) : (
                     
                       source.is_selected &&  (
-                        <>
+                        <div key={source.id} className="py-2">
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2">
                               <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
@@ -443,7 +442,7 @@ const KnowledgeBaseCard = ({
                             </div>
                           </div>
                           <Separator className="mt-2 bg-gray-100" />
-                        </>
+                        </div>
                       )
                     
                       
