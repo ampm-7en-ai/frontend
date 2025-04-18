@@ -263,10 +263,15 @@ const KnowledgeBaseCard = ({
         return <Badge variant="success" className="text-xs font-medium">Trained</Badge>;
       case 'training':
         return <Badge variant="secondary" className="text-xs font-medium">Training</Badge>;
-      case 'deleted':
-        return <Badge variant="danger" className="text-xs font-medium">Deleted</Badge>;
       default:
         return <Badge variant="outline" className="text-xs font-medium">Untrained</Badge>;
+    }
+  };
+
+  const getBadgeForDeleted = (status: string) => {
+    switch (status) {
+      case 'deleted':
+        return <Badge variant="danger" className="text-xs font-medium">Deleted</Badge>;
     }
   };
 
@@ -289,7 +294,7 @@ const KnowledgeBaseCard = ({
               <div className="flex items-center justify-center w-6 h-6 bg-white rounded-md border">
                 {getIconForType(knowledgeBase.type)}
               </div>
-              <h3 className="font-medium text-sm">{knowledgeBase.name}</h3>
+              <h3 className="font-medium text-sm">{knowledgeBase.name}{getBadgeForDeleted(knowledgeBase.status)}</h3>
             </div>
             
             <div className="flex items-center gap-2">
