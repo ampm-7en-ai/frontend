@@ -427,7 +427,7 @@ const KnowledgeBaseCard = ({
                         )}
                       </>
                     ) : (
-                    {
+                    
                       source.is_selected &&  (
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2">
@@ -441,7 +441,7 @@ const KnowledgeBaseCard = ({
                             </div>
                           </div>
                       )
-                    }
+                    
                       
                     )}
                     
