@@ -61,7 +61,8 @@ const AgentList = () => {
         name: kb.name || `Source ${index + 1}`,
         type: kb.type || 'document',
         icon: 'BookOpen',
-        hasError: kb.status === 'deleted'
+        hasError: kb.status === 'deleted',
+        hasIssue: kb.status === 'issues'
       })) || [],
       model: agent.model?.name || 'gpt-3.5',
       isDeployed: agent.status === 'Live',
