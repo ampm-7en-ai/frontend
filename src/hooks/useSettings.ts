@@ -31,16 +31,19 @@ async function fetchSettings(): Promise<BusinessSettings> {
     throw new Error('Authentication token not found');
   }
 
+  console.log('Fetching settings data from API...');
   const response = await fetch(`${BASE_URL}settings/`, {
     method: 'GET',
     headers: getAuthHeaders(token),
   });
 
   if (!response.ok) {
+    console.error(`Settings API error: ${response.status}`);
     throw new Error('Failed to fetch settings');
   }
 
   const data = await response.json();
+  console.log('Settings data received:', data);
   return data.data;
 }
 
@@ -48,5 +51,8 @@ export function useSettings() {
   return useQuery({
     queryKey: ['settings'],
     queryFn: fetchSettings,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: true,
+    retry: 2,
   });
 }

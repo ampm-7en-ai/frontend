@@ -9,7 +9,15 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-const UsageSection = () => {
+interface UsageSectionProps {
+  usageMetrics?: {
+    websites_crawled: number;
+    tokens_used: number;
+    credits_used: number;
+  };
+}
+
+const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
   return (
     <section>
       <h2 className="text-xl font-semibold mb-4">Usage</h2>
@@ -19,7 +27,7 @@ const UsageSection = () => {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-medium flex items-center">
-                  Message credits consumed: <span className="font-bold ml-2">5/50</span>
+                  Message credits consumed: <span className="font-bold ml-2">{usageMetrics?.credits_used || 0}/50</span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -44,7 +52,7 @@ const UsageSection = () => {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-medium flex items-center">
-                  Web pages crawled this month: <span className="font-bold ml-2">11/50</span>
+                  Web pages crawled this month: <span className="font-bold ml-2">{usageMetrics?.websites_crawled || 0}/50</span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

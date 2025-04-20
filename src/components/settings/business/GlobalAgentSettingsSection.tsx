@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit, Save } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,32 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from "@/hooks/use-toast";
 
-const GlobalAgentSettingsSection = () => {
+interface GlobalAgentSettingsProps {
+  initialSettings?: {
+    defaultModel: string;
+    maxContextLength: number;
+    defaultTemperature: number;
+  };
+}
+
+const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
   const [globalSettings, setGlobalSettings] = useState({
-    defaultModel: 'GPT-4',
-    maxContextLength: 8000,
-    defaultTemperature: 0.7,
+    defaultModel: initialSettings?.defaultModel || 'GPT-4',
+    maxContextLength: initialSettings?.maxContextLength || 8000,
+    defaultTemperature: initialSettings?.defaultTemperature || 0.7,
   });
+
+  // Update state when props change
+  useEffect(() => {
+    if (initialSettings) {
+      setGlobalSettings({
+        defaultModel: initialSettings.defaultModel || 'GPT-4',
+        maxContextLength: initialSettings.maxContextLength || 8000,
+        defaultTemperature: initialSettings.defaultTemperature || 0.7,
+      });
+    }
+  }, [initialSettings]);
 
   const saveGlobalSettings = () => {
     toast({
