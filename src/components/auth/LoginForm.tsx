@@ -44,7 +44,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     try {
       setIsGoogleLoading(true);
       
-      // Initialize Google Sign-In
       const googleAuth = (window as any).google?.accounts?.oauth2;
       
       if (!googleAuth) {
@@ -57,9 +56,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
-      console.log("Using redirect URI:", GOOGLE_AUTH_CONFIG.REDIRECT_URI);
-      
-      // Configure Google OAuth 2.0 flow with authorization code flow
       const client = googleAuth.initTokenClient({
         client_id: GOOGLE_AUTH_CONFIG.CLIENT_ID,
         scope: GOOGLE_OAUTH_SCOPES,
@@ -79,14 +75,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           }
           
           try {
-            // Create form data for API request
             const formData = new FormData();
             formData.append('sso_token', tokenResponse.access_token);
             formData.append('provider', 'google');
             
             console.log("Sending SSO request to endpoint:", API_ENDPOINTS.SSO_LOGIN);
             
-            // Send request to the API
             const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
             console.log("Full API URL:", apiUrl);
             
@@ -103,11 +97,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             if (response.ok && data.data.access) {
               const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
               
-              await login(data.data.userData.username || data.data.userData.email || "Google User", "", {
+              await login(data.data.userData.username || "Google User", "", {
                 accessToken: data.data.access,
                 refreshToken: data.refresh || null,
                 userId: data.data.user_id,
                 role: userRole,
+                email: data.data.userData.email || "google_user@example.com",
                 isVerified: true
               });
               
@@ -150,7 +145,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         }
       });
       
-      // Prompt the user to select a Google account and get token
       client.requestAccessToken();
       
     } catch (error) {
@@ -164,7 +158,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   };
 
-  // Load Google Identity Services script
   useEffect(() => {
     const loadGoogleScript = () => {
       const script = document.createElement('script');
