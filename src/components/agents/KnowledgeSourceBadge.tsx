@@ -6,7 +6,6 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from '@/components/ui/tooltip';
-import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 export interface KnowledgeSourceBadgeProps {
   source: {
