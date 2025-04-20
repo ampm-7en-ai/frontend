@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -45,9 +46,9 @@ const AgentList = () => {
       throw new Error(`Failed to fetch agents: ${response.status}`);
     }
 
-    const data: ApiResponse = await response.json();
+    const responseData: ApiResponse = await response.json();
     
-    return data.agents.map((agent: any) => ({
+    return responseData.agents.map((agent: any) => ({
       id: agent.id.toString(),
       name: agent.name,
       description: agent.description || '',
@@ -91,13 +92,16 @@ const AgentList = () => {
     setModelFilter
   });
 
-  if (error) {
-    toast({
-      title: "Error fetching agents",
-      description: error instanceof Error ? error.message : "Unknown error occurred",
-      variant: "destructive"
-    });
-  }
+  // Move the error toast to useEffect to prevent render-time state updates
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error fetching agents",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
 
   return (
     <div className="space-y-6">
