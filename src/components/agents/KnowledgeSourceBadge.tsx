@@ -18,6 +18,7 @@ export interface KnowledgeSourceBadgeProps {
     trainingStatus?: 'idle' | 'training' | 'success' | 'error';
     linkBroken?: boolean;
     hasError?: boolean;
+    hasIssue?: boolean;
   };
   onClick?: () => void;
   size?: 'sm' | 'md';
@@ -41,7 +42,7 @@ const KnowledgeSourceBadge = ({ source, onClick, size = 'md' }: KnowledgeSourceB
   };
 
   const getBadgeStyle = () => {
-    if (source.linkBroken) {
+    if (source.linkBroken || source.hasIssue) {
       return 'bg-orange-50 text-orange-700 hover:bg-orange-100';
     } else if (source.hasError) {
       return 'bg-red-50 text-red-700 hover:bg-red-100';
@@ -55,7 +56,9 @@ const KnowledgeSourceBadge = ({ source, onClick, size = 'md' }: KnowledgeSourceB
       return 'text-orange-500';
     } else if (source.hasError) {
       return 'text-red-500';
-    } else {
+    } else if (source.hasIssue) {
+      return 'text-orange-500';
+    }  else {
       return 'text-primary';
     }
   };
@@ -65,6 +68,8 @@ const KnowledgeSourceBadge = ({ source, onClick, size = 'md' }: KnowledgeSourceB
       return 'Knowledge source link is broken';
     } else if (source.hasError) {
       return 'Knowledge source is deleted';
+    } else if (source.hasIssue) {
+      return 'Some source is deleted';
     } else {
       return `Type: ${source.type}`;
     }
