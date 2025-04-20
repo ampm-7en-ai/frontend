@@ -1,97 +1,37 @@
 
-import React, { useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useSettings } from "@/hooks/useSettings";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { useToast } from "@/hooks/use-toast";
-import BusinessProfileSection from "@/components/settings/business/BusinessProfileSection";
-import GlobalAgentSettingsSection from "@/components/settings/business/GlobalAgentSettingsSection";
-import TeamManagementSection from "@/components/settings/business/TeamManagementSection";
-import UsageSection from "@/components/settings/business/UsageSection";
+import React from 'react';
+import { useAuth } from '@/context/AuthContext';
+import UsageSection from '@/components/settings/business/UsageSection';
+import ConnectedAccountsSection from '@/components/settings/business/ConnectedAccountsSection';
+import ApiKeysSection from '@/components/settings/business/ApiKeysSection';
+import BusinessProfileSection from '@/components/settings/business/BusinessProfileSection';
+import TeamManagementSection from '@/components/settings/business/TeamManagementSection';
+import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAgentSettingsSection';
 
 const BusinessSettings = () => {
-  const { data: settings, isLoading, error, refetch } = useSettings();
-  const { toast } = useToast();
+  const { user } = useAuth();
   
-  useEffect(() => {
-    console.log("Business settings component mounted, fetching data...");
-    refetch();
-  }, [refetch]);
-  
-  useEffect(() => {
-    if (error) {
-      console.error("Error loading settings:", error);
-      toast({
-        title: "Error loading settings",
-        description: error instanceof Error ? error.message : "Failed to load settings. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-10 space-y-8">
-        <div className="flex justify-center items-center h-64">
-          <LoadingSpinner size="lg" text="Loading settings..." />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto py-10 space-y-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            Failed to load settings. Please try again later.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (!settings) {
-    return (
-      <div className="container mx-auto py-10 space-y-8">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>No Settings Found</AlertTitle>
-          <AlertDescription>
-            No business settings found. Please refresh or contact support.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const initialProfileData = {
+    businessName: user?.role === 'admin' ? 'Your Business' : 'Platform Admin',
+    adminEmail: user?.email || '',
+  };
 
   return (
-    <div className="container mx-auto py-10 space-y-8">
-      <h1 className="text-2xl font-bold">Business Settings</h1>
-      
+    <div className="container mx-auto py-8 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground mt-2">
+          Settings for your organization. You can manage your organization details, plan, connected accounts, and API keys here.
+        </p>
+      </div>
+
       <div className="space-y-8">
-        <BusinessProfileSection initialData={{
-          businessName: settings.business_details.business_name || "",
-          adminEmail: settings.business_details.email || ""
-        }} />
         
-        <GlobalAgentSettingsSection 
-          initialSettings={{
-            defaultModel: settings.global_agent_settings.response_model,
-            maxContextLength: settings.global_agent_settings.token_length,
-            defaultTemperature: settings.global_agent_settings.temperature
-          }}
-        />
-        
-        <UsageSection usageMetrics={settings.usage_metrics} />
-        
-        {settings?.permissions.can_manage_team && (
-          <TeamManagementSection />
-        )}
+        <ConnectedAccountsSection />
+        <ApiKeysSection />
+        <BusinessProfileSection initialData={initialProfileData} />
+        <TeamManagementSection />
+        <GlobalAgentSettingsSection />
       </div>
     </div>
   );
