@@ -138,6 +138,7 @@ const InviteRegistration = () => {
         accessToken: data.access,
         refreshToken: null,
         userId: Number(data.user_id),
+        email: invitedEmail,
         role: data.user_role,
         isVerified: true
       });

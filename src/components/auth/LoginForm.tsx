@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -229,7 +228,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           accessToken: data.data.access,
           refreshToken: data.refresh || null,
           userId: data.data.user_id,
-          email: data.data.userData.email,
+          email: data.data.userData.email || values.username,
           role: userRole,
           isVerified: true
         });

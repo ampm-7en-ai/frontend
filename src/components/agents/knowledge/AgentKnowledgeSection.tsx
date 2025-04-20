@@ -29,7 +29,8 @@ const AgentKnowledgeSection = ({
   
   const displayedSources = knowledgeSources.slice(0, 3);
   const remainingSources = knowledgeSources.length - 3;
-  const hasErrorSources = knowledgeSources.some(source => source.status === "deleted");
+  // Update this line to check hasError property instead of status
+  const hasErrorSources = knowledgeSources.some(source => source.hasError);
   const isEmpty = knowledgeSources.length === 0;
   
   const handleSourceClick = (source: KnowledgeSource) => {

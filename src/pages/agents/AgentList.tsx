@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,8 +47,7 @@ const AgentList = () => {
 
     const data: ApiResponse = await response.json();
     
-    // Transform API response to match our Agent interface
-    return data.data.map((agent: any) => ({
+    return data.agents.map((agent: any) => ({
       id: agent.id.toString(),
       name: agent.name,
       description: agent.description || '',

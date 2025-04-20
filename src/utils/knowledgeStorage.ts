@@ -22,12 +22,12 @@ const EXPIRATION_TIME = 1000 * 60 * 5; // 5 minutes in milliseconds
 export const storeNewKnowledgeBase = (knowledgeBase: KnowledgeBaseItem): void => {
   try {
     const storageItem = {
-      data: knowledgeBase.data,
+      data: knowledgeBase,
       timestamp: Date.now(),
       expiration: Date.now() + EXPIRATION_TIME
     };
     localStorage.setItem(KNOWLEDGE_STORAGE_KEY, JSON.stringify(storageItem));
-    console.log('Knowledge base stored in localStorage:', knowledgeBase.data.id);
+    console.log('Knowledge base stored in localStorage:', knowledgeBase.id);
   } catch (error) {
     console.error('Error storing knowledge base in localStorage:', error);
   }
