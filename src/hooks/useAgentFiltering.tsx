@@ -61,11 +61,11 @@ export const useAgentFiltering = ({
 
   const getStatusBadgeColor = (status: string) => {
     const statusLower = status.toLowerCase();
-    if (statusLower === 'live') {
+    if (statusLower === 'active') {
       return 'bg-green-50 text-green-700 border-green-200';
     } else if (statusLower === 'training') {
       return 'bg-blue-50 text-blue-700 border-blue-200';
-    } else if (statusLower === 'deleted') {
+    } else if (statusLower === 'issues') {
       return 'bg-red-50 text-red-700 border-red-200';
     } else if (statusLower === 'pending') {
       return 'bg-yellow-50 text-yellow-700 border-yellow-200';
