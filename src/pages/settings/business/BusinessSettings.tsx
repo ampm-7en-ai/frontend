@@ -1,11 +1,7 @@
 
 import React, { useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { AlertCircle, Building, Users, Lock, Settings, CreditCard, MessageCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSettings } from "@/hooks/useSettings";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -77,40 +73,26 @@ const BusinessSettings = () => {
     <div className="container mx-auto py-10 space-y-8">
       <h1 className="text-2xl font-bold">Business Settings</h1>
       
-      <Tabs defaultValue="business">
-        <TabsList className="mb-4 w-full max-w-md">
-          <TabsTrigger value="business" className="flex-1">Business Profile</TabsTrigger>
-          <TabsTrigger value="agent" className="flex-1">Agent Settings</TabsTrigger>
-          {settings?.permissions.can_manage_team && (
-            <TabsTrigger value="team" className="flex-1">Team Management</TabsTrigger>
-          )}
-        </TabsList>
+      <div className="space-y-8">
+        <BusinessProfileSection initialData={{
+          businessName: settings.business_details.business_name || "",
+          adminEmail: settings.business_details.email || ""
+        }} />
         
-        <TabsContent value="business" className="space-y-6">
-          <BusinessProfileSection initialData={{
-            businessName: settings.business_details.business_name || "",
-            adminEmail: settings.business_details.email || ""
-          }} />
-          
-          <UsageSection usageMetrics={settings.usage_metrics} />
-        </TabsContent>
+        <GlobalAgentSettingsSection 
+          initialSettings={{
+            defaultModel: settings.global_agent_settings.response_model,
+            maxContextLength: settings.global_agent_settings.token_length,
+            defaultTemperature: settings.global_agent_settings.temperature
+          }}
+        />
         
-        <TabsContent value="agent" className="space-y-6">
-          <GlobalAgentSettingsSection 
-            initialSettings={{
-              defaultModel: settings.global_agent_settings.response_model,
-              maxContextLength: settings.global_agent_settings.token_length,
-              defaultTemperature: settings.global_agent_settings.temperature
-            }}
-          />
-        </TabsContent>
+        <UsageSection usageMetrics={settings.usage_metrics} />
         
         {settings?.permissions.can_manage_team && (
-          <TabsContent value="team" className="space-y-6">
-            <TeamManagementSection />
-          </TabsContent>
+          <TeamManagementSection />
         )}
-      </Tabs>
+      </div>
     </div>
   );
 };
