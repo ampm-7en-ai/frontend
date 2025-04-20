@@ -43,7 +43,7 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
     <>
       <div className="flex flex-col gap-2 w-full">
         {
-          agent.status === 'active' || agent.status === 'training' ? (
+          agent.status === 'active' || agent.status === 'Training' ? (
             <Button variant="outline" size="sm" className="w-full" asChild>
               <Link 
                 to={`/agents/${agent.id}/test`} 
