@@ -1,6 +1,6 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
+import { useAuth } from "@/context/AuthContext";
 
 export interface BusinessSettings {
   business_details: {
@@ -26,7 +26,7 @@ export interface BusinessSettings {
 }
 
 async function fetchSettings(): Promise<BusinessSettings> {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
   if (!token) {
     throw new Error('Authentication token not found');
   }
@@ -48,11 +48,14 @@ async function fetchSettings(): Promise<BusinessSettings> {
 }
 
 export function useSettings() {
+  const { isAuthenticated, getToken } = useAuth();
+
   return useQuery({
     queryKey: ['settings'],
     queryFn: fetchSettings,
     staleTime: 60000, // 1 minute
     refetchOnWindowFocus: true,
     retry: 2,
+    enabled: isAuthenticated, // Only fetch if user is authenticated
   });
 }
