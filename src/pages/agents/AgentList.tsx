@@ -38,17 +38,36 @@ const AgentList = () => {
 
   const fetchAgents = async (): Promise<Agent[]> => {
     const token = getAccessToken();
+    console.log('Fetching agents with token:', token ? 'Token exists' : 'No token');
+    
+    if (!token) {
+      console.error('No authentication token found for agent fetch');
+      throw new Error('Authentication required');
+    }
+    
+    console.log('Fetching agents from:', getApiUrl(API_ENDPOINTS.AGENTS));
+    
     const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
-      headers: getAuthHeaders(token || '')
+      headers: getAuthHeaders(token)
     });
+    
+    console.log('Agent fetch response status:', response.status);
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to fetch agents: ${response.status}`, errorText);
       throw new Error(`Failed to fetch agents: ${response.status}`);
     }
 
-    const responseData: ApiResponse = await response.json();
+    const responseData = await response.json();
+    console.log('Agent data received:', responseData);
     
-    return responseData.agents.map((agent: any) => ({
+    if (!responseData.data) {
+      console.error('Invalid response format, missing data property:', responseData);
+      return [];
+    }
+    
+    return responseData.data.map((agent: any) => ({
       id: agent.id.toString(),
       name: agent.name,
       description: agent.description || '',
@@ -63,7 +82,7 @@ const AgentList = () => {
         hasError: kb.status === 'deleted',
         hasIssue: kb.status === 'issues'
       })) || [],
-      model: agent.model?.name || 'gpt-3.5',
+      model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
       isDeployed: agent.status === 'Live',
       status: agent.status || 'Draft'
     }));
@@ -72,13 +91,33 @@ const AgentList = () => {
   const { 
     data: agents = [],
     isLoading, 
-    error 
+    error,
+    refetch
   } = useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    retry: 3
   });
+
+  // Fetch agents on component mount
+  useEffect(() => {
+    console.log('AgentList component mounted, fetching agents...');
+    refetch();
+  }, [refetch]);
+
+  // Move the error toast to useEffect to prevent render-time state updates
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching agents:', error);
+      toast({
+        title: "Error fetching agents",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
 
   const { 
     filteredAgents, 
@@ -91,17 +130,6 @@ const AgentList = () => {
     setSearchQuery,
     setModelFilter
   });
-
-  // Move the error toast to useEffect to prevent render-time state updates
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error fetching agents",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive"
-      });
-    }
-  }, [error, toast]);
 
   return (
     <div className="space-y-6">
