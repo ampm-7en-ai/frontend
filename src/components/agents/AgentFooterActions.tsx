@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, Rocket, Check, Refresh } from 'lucide-react';
+import { Play, Rocket, Check, FolderSync  } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeploymentDialog from './DeploymentDialog';
 import { Agent } from '@/hooks/useAgentFiltering';
@@ -63,7 +63,7 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
                 rel="noopener noreferrer" 
                 className="flex items-center justify-center"
               >
-                <Refresh className="h-3.5 w-3.5 mr-1" />
+                <FolderSync className="h-3.5 w-3.5 mr-1" />
                 Retrain
               </Link>
             </Button>
