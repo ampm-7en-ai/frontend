@@ -19,18 +19,18 @@ interface GlobalAgentSettingsProps {
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
   const [globalSettings, setGlobalSettings] = useState({
-    defaultModel: initialSettings?.defaultModel || 'GPT-4',
-    maxContextLength: initialSettings?.maxContextLength || 8000,
-    defaultTemperature: initialSettings?.defaultTemperature || 0.7,
+    defaultModel: initialSettings?.response_model || 'GPT-4',
+    maxContextLength: initialSettings?.token_length || 8000,
+    defaultTemperature: initialSettings?.temperature || 0.7,
   });
 
   // Update state when props change
   useEffect(() => {
     if (initialSettings) {
       setGlobalSettings({
-        defaultModel: initialSettings.defaultModel || 'GPT-4',
-        maxContextLength: initialSettings.maxContextLength || 8000,
-        defaultTemperature: initialSettings.defaultTemperature || 0.7,
+          defaultModel: initialSettings?.response_model || 'GPT-4',
+          maxContextLength: initialSettings?.token_length || 8000,
+          defaultTemperature: initialSettings?.temperature || 0.7,
       });
     }
   }, [initialSettings]);
