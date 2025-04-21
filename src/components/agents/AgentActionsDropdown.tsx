@@ -52,7 +52,8 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
       toast({
         title: "Agent deleted",
         description: "The agent has been successfully deleted.",
-        variant: "success"
+        // Changed 'success' variant to 'default' to fix TS error
+        variant: "default"
       });
       if (onDelete) {
         onDelete(agentId);
