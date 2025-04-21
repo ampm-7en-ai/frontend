@@ -192,7 +192,6 @@ const KnowledgeBase = () => {
     
     return matchesSearch && matchesType;
   });
-   console.log("checking...",documents);
 
   const knowledgeStats = useMemo(() => {
     if (isLoading || !documents.length) {
