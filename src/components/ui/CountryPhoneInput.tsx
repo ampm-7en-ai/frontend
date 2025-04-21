@@ -80,7 +80,7 @@ const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
           {countryData.map((c) => (
             <SelectItem key={c.code} value={c.code}>
               <span className="flex items-center gap-2">
-                <span style={{backgroundImage:`url(${selectedCountry.flag})`,display:'inline-block',width:'20px',height:'20px'}}></span>
+                <span style={{backgroundImage:`url(${c.flag})`,display:'inline-block',width:'20px',height:'20px'}}></span>
                 <span>{c.name}</span>
                 <span className="ml-auto text-muted-foreground text-xs">+{c.dial_code.replace("+", "")}</span>
               </span>
