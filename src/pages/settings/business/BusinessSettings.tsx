@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useSettings } from '@/hooks/useSettings';
 import UsageSection from '@/components/settings/business/UsageSection';
 import ConnectedAccountsSection from '@/components/settings/business/ConnectedAccountsSection';
 import ApiKeysSection from '@/components/settings/business/ApiKeysSection';
@@ -10,6 +11,8 @@ import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAge
 
 const BusinessSettings = () => {
   const { user } = useAuth();
+  const {fetchSettings} = useSettings();
+  const settingsData = await fetchSettings();
   
   const initialProfileData = {
     businessName: user?.role === 'admin' ? 'Your Business' : 'Platform Admin',
@@ -26,7 +29,7 @@ const BusinessSettings = () => {
       </div>
 
       <div className="space-y-8">
-        
+        <UsageSection usageMetrics={settingsData.usage_metrics}/>
         <ConnectedAccountsSection />
         <ApiKeysSection />
         <BusinessProfileSection initialData={initialProfileData} />
