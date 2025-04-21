@@ -475,3 +475,24 @@ export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSourc
     throw error;
   }
 };
+
+// PATCH settings API call
+export const updateSettings = async (payload: any): Promise<any> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
+  const response = await fetch(`${BASE_URL}settings/`, {
+    method: "PATCH",
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
+    throw new Error(errorData.message || `Failed to update settings: ${response.status}`);
+  }
+
+  return response.json();
+};

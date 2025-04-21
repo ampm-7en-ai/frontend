@@ -9,10 +9,13 @@ import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { updateSettings } from "@/utils/api-config";
 
 const profileFormSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
   adminEmail: z.string().email("Invalid email address."),
+  adminPhone: z.string().optional().nullable(),
+  adminWebsite: z.string().optional().nullable(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -35,12 +38,41 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
     defaultValues: initialData,
   });
 
-  const onProfileSubmit = (data: ProfileFormValues) => {
-    toast({
-      title: "Profile updated",
-      description: "Your business profile has been updated successfully.",
-    });
-    setIsEditingProfile(false);
+  const onProfileSubmit = async (data: ProfileFormValues) => {
+    try {
+      const payload = {
+        business_details: {
+          business_name: data.businessName,
+          phone_number: data.adminPhone,
+          website: data.adminWebsite,
+        },
+      };
+      const res = await updateSettings(payload);
+
+      toast({
+        title: "Profile updated",
+        description: res.message || "Your business profile has been updated successfully.",
+      });
+
+      // Update form values with response data if available
+      if (res.data && res.data.business_details) {
+        profileForm.reset({
+          businessName: res.data.business_details.business_name || "",
+          adminEmail: res.data.business_details.email || "",
+          adminPhone: res.data.business_details.phone_number || "",
+          adminWebsite: res.data.business_details.website || "",
+        });
+      }
+
+      setIsEditingProfile(false);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error updating profile",
+        description: error?.message || "Failed to update business profile.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -94,7 +126,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                     <FormItem>
                       <FormLabel>Admin Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="admin@example.com" {...field} />
+                        <Input placeholder="admin@example.com" {...field} disabled />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from "@/hooks/use-toast";
+import { updateSettings } from "@/utils/api-config";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
 interface GlobalAgentSettingsProps {
   initialSettings?: {
@@ -16,31 +21,74 @@ interface GlobalAgentSettingsProps {
   };
 }
 
+const globalSettingsSchema = z.object({
+  defaultModel: z.string().min(2, "Select a model"),
+  maxContextLength: z.coerce.number().int().min(4000, "Must be >= 4000"),
+  defaultTemperature: z.coerce.number().min(0, "Must be >= 0").max(1, "Must be <= 1"),
+});
+type GlobalSettingsFormValues = z.infer<typeof globalSettingsSchema>;
+
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
-  const [globalSettings, setGlobalSettings] = useState({
-    defaultModel: initialSettings?.response_model || 'GPT-4',
-    maxContextLength: initialSettings?.token_length || 8000,
-    defaultTemperature: initialSettings?.temperature || 0.7,
+
+  const globalSettingsForm = useForm<GlobalSettingsFormValues>({
+    resolver: zodResolver(globalSettingsSchema),
+    defaultValues: {
+      defaultModel: initialSettings?.response_model || 'GPT-4',
+      maxContextLength: initialSettings?.token_length || 8000,
+      defaultTemperature: initialSettings?.temperature || 0.7,
+    },
+    values: {
+      defaultModel: initialSettings?.response_model || 'GPT-4',
+      maxContextLength: initialSettings?.token_length || 8000,
+      defaultTemperature: initialSettings?.temperature || 0.7,
+    }
   });
 
-  // Update state when props change
+  // Reset form when prop changes
   useEffect(() => {
     if (initialSettings) {
-      setGlobalSettings({
-          defaultModel: initialSettings?.response_model || 'GPT-4',
-          maxContextLength: initialSettings?.token_length || 8000,
-          defaultTemperature: initialSettings?.temperature || 0.7,
+      globalSettingsForm.reset({
+        defaultModel: initialSettings?.response_model || 'GPT-4',
+        maxContextLength: initialSettings?.token_length || 8000,
+        defaultTemperature: initialSettings?.temperature || 0.7,
       });
     }
   }, [initialSettings]);
 
-  const saveGlobalSettings = () => {
-    toast({
-      title: "Global settings updated",
-      description: "Your global agent settings have been updated successfully.",
-    });
-    setIsEditingGlobalSettings(false);
+  const onGlobalSettingsSubmit = async (data: GlobalSettingsFormValues) => {
+    try {
+      const payload = {
+        global_agent_settings: {
+          response_model: data.defaultModel,
+          token_length: data.maxContextLength,
+          temperature: data.defaultTemperature,
+        },
+      };
+
+      const res = await updateSettings(payload);
+      toast({
+        title: "Global settings updated",
+        description: res.message || "Your global agent settings have been updated successfully.",
+      });
+
+      // Update form values with response data if present
+      if (res.data && res.data.global_agent_settings) {
+        globalSettingsForm.reset({
+          defaultModel: res.data.global_agent_settings.response_model || "GPT-4",
+          maxContextLength: res.data.global_agent_settings.token_length || 8000,
+          defaultTemperature: res.data.global_agent_settings.temperature ?? 0.7,
+        });
+      }
+
+      setIsEditingGlobalSettings(false);
+    } catch (error: any) {
+      toast({
+        title: "Error updating global agent settings",
+        description: error?.message || "Failed to update settings.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -70,77 +118,100 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
       <Card>
         <CardContent className="pt-6 space-y-4">
           {isEditingGlobalSettings ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="defaultModel">Default Response Model</Label>
-                <Select 
-                  value={globalSettings.defaultModel} 
-                  onValueChange={(value) => setGlobalSettings({...globalSettings, defaultModel: value})}
-                >
-                  <SelectTrigger id="defaultModel">
-                    <SelectValue placeholder="Select model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="GPT-4">GPT-4</SelectItem>
-                    <SelectItem value="GPT-3.5">GPT-3.5</SelectItem>
-                    <SelectItem value="Claude">Claude</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="maxContext">Maximum Context Length</Label>
-                <Select 
-                  value={globalSettings.maxContextLength.toString()} 
-                  onValueChange={(value) => setGlobalSettings({...globalSettings, maxContextLength: parseInt(value)})}
-                >
-                  <SelectTrigger id="maxContext">
-                    <SelectValue placeholder="Select context length" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="4000">4,000 tokens</SelectItem>
-                    <SelectItem value="8000">8,000 tokens</SelectItem>
-                    <SelectItem value="16000">16,000 tokens</SelectItem>
-                    <SelectItem value="32000">32,000 tokens</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="defaultTemp">Default Temperature</Label>
-                <div className="flex items-center gap-4">
-                  <Input 
-                    id="defaultTemp" 
-                    type="number" 
-                    min="0" 
-                    max="1" 
-                    step="0.1" 
-                    value={globalSettings.defaultTemperature} 
-                    onChange={(e) => setGlobalSettings({...globalSettings, defaultTemperature: parseFloat(e.target.value)})}
-                    className="w-24"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    Lower values produce more deterministic responses, higher values produce more creative ones.
-                  </span>
+            <Form {...globalSettingsForm}>
+              <form onSubmit={globalSettingsForm.handleSubmit(onGlobalSettingsSubmit)} className="space-y-4">
+                <FormField
+                  control={globalSettingsForm.control}
+                  name="defaultModel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Response Model</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger id="defaultModel">
+                          <SelectValue placeholder="Select model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="GPT-4">GPT-4</SelectItem>
+                          <SelectItem value="GPT-3.5">GPT-3.5</SelectItem>
+                          <SelectItem value="Claude">Claude</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={globalSettingsForm.control}
+                  name="maxContextLength"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Context Length</FormLabel>
+                      <Select
+                        value={field.value?.toString() || ""}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                      >
+                        <SelectTrigger id="maxContext">
+                          <SelectValue placeholder="Select context length" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="4000">4,000 tokens</SelectItem>
+                          <SelectItem value="8000">8,000 tokens</SelectItem>
+                          <SelectItem value="16000">16,000 tokens</SelectItem>
+                          <SelectItem value="32000">32,000 tokens</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={globalSettingsForm.control}
+                  name="defaultTemperature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Temperature</FormLabel>
+                      <div className="flex items-center gap-4">
+                        <FormControl>
+                          <Input 
+                            id="defaultTemp"
+                            type="number"
+                            min={0}
+                            max={1}
+                            step={0.1}
+                            {...field}
+                          />
+                        </FormControl>
+                        <span className="text-sm text-muted-foreground">
+                          Lower values produce more deterministic responses, higher values produce more creative ones.
+                        </span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end pt-2">
+                  <Button type="submit" className="flex items-center gap-1">
+                    <Save className="h-4 w-4" /> Save Settings
+                  </Button>
                 </div>
-              </div>
-              <div className="flex justify-end pt-2">
-                <Button onClick={saveGlobalSettings} className="flex items-center gap-1">
-                  <Save className="h-4 w-4" /> Save Settings
-                </Button>
-              </div>
-            </div>
+              </form>
+            </Form>
           ) : (
             <>
               <div>
                 <h3 className="font-medium">Default Response Model</h3>
-                <p className="text-muted-foreground">{globalSettings.defaultModel}</p>
+                <p className="text-muted-foreground">{globalSettingsForm.getValues().defaultModel}</p>
               </div>
               <div>
                 <h3 className="font-medium">Maximum Context Length</h3>
-                <p className="text-muted-foreground">{globalSettings.maxContextLength.toLocaleString()} tokens</p>
+                <p className="text-muted-foreground">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
               </div>
               <div>
                 <h3 className="font-medium">Default Temperature</h3>
-                <p className="text-muted-foreground">{globalSettings.defaultTemperature}</p>
+                <p className="text-muted-foreground">{globalSettingsForm.getValues().defaultTemperature}</p>
               </div>
             </>
           )}
