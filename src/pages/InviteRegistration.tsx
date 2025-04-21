@@ -66,12 +66,12 @@ const InviteRegistration = () => {
 
         const data = await response.json();
         
-        if (response.ok && data.valid) {
+        if (response.ok && data.data.valid) {
           console.log("Token validation successful:", data);
           setTokenValid(true);
-          setInvitedEmail(data.email);
-          setBusinessName(data.team_name);
-          setUserRole(data.role);
+          setInvitedEmail(data.data.email);
+          setBusinessName(data.data.team_name);
+          setUserRole(data.data.role);
         } else {
           console.error("Invalid token:", data);
           setTokenValid(false);
