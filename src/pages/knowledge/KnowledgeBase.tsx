@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,258 +35,6 @@ const KnowledgeBase = () => {
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
   const [hasProcessedLocalStorage, setHasProcessedLocalStorage] = useState(false);
-
-  // Function to handle clicking on a knowledge base to view its details
-  const handleKnowledgeBaseClick = (knowledgeBase) => {
-    setSelectedKnowledgeBase(knowledgeBase);
-    setViewMode('detail');
-  };
-
-  // Function to go back to the main view
-  const handleBackToMainView = () => {
-    setViewMode('main');
-    setSelectedKnowledgeBase(null);
-  };
-
-  // Function to handle deleting a knowledge base
-  const handleDeleteKnowledgeBase = async (knowledgeBaseId) => {
-    if (!window.confirm('Are you sure you want to delete this knowledge base? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await deleteKnowledgeBase(knowledgeBaseId);
-      
-      if (response) {
-        toast({
-          title: "Knowledge base deleted",
-          description: "The knowledge base has been successfully deleted.",
-          variant: "default"
-        });
-        
-        // Remove the deleted knowledge base from the query cache
-        queryClient.setQueryData(['knowledgeBases'], (oldData) => {
-          return oldData.filter(kb => kb.id !== knowledgeBaseId);
-        });
-        
-        // Also update the local state
-        setKnowledgeBases(prevState => prevState.filter(kb => kb.id !== knowledgeBaseId));
-      }
-    } catch (error) {
-      toast({
-        title: "Error deleting knowledge base",
-        description: error instanceof Error ? error.message : "An error occurred while deleting the knowledge base.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Function to get appropriate file accept types based on source type
-  const getFileAcceptTypes = (sourceType) => {
-    if (!sourceType) return '*/*';
-    
-    switch (sourceType.toLowerCase()) {
-      case 'docs':
-        return '.pdf,.doc,.docx,.txt,.rtf';
-      case 'csv':
-        return '.csv,.xlsx,.xls';
-      case 'plain_text':
-        return '.txt,.md';
-      default:
-        return '*/*';
-    }
-  };
-
-  // Function to handle file upload
-  const handleFileUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file || !selectedKnowledgeBase) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      toast({
-        title: "Uploading file",
-        description: `Uploading ${file.name}. Please wait...`,
-        variant: "default"
-      });
-
-      const response = await addFileToKnowledgeBase(selectedKnowledgeBase.id, formData);
-      
-      if (response) {
-        toast({
-          title: "File uploaded",
-          description: `${file.name} has been successfully uploaded.`,
-          variant: "default"
-        });
-        
-        // Refetch the knowledge base to update the UI
-        refetch();
-      }
-    } catch (error) {
-      toast({
-        title: "Error uploading file",
-        description: error instanceof Error ? error.message : "An error occurred while uploading the file.",
-        variant: "destructive"
-      });
-    }
-    
-    // Reset the file input
-    event.target.value = "";
-  };
-
-  // Function to handle downloading a file
-  const handleDownloadFile = async (source) => {
-    if (!source || !source.id) {
-      toast({
-        title: "Error",
-        description: "Invalid file source.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(`${BASE_URL}knowledge/sources/${source.id}/download/`, {
-        headers: getAuthHeaders(token),
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = source.title || source.name || `file-${source.id}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-      } else {
-        throw new Error('Failed to download the file');
-      }
-    } catch (error) {
-      toast({
-        title: "Error downloading file",
-        description: error instanceof Error ? error.message : "An error occurred while downloading the file.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Function to handle deleting a file
-  const handleDeleteFile = async (sourceId) => {
-    if (!window.confirm('Are you sure you want to delete this file? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await deleteKnowledgeSource(sourceId);
-      
-      if (response) {
-        toast({
-          title: "File deleted",
-          description: "The file has been successfully deleted.",
-          variant: "default"
-        });
-        
-        // Refetch the knowledge base to update the UI
-        refetch();
-      }
-    } catch (error) {
-      toast({
-        title: "Error deleting file",
-        description: error instanceof Error ? error.message : "An error occurred while deleting the file.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Function to display metadata for a knowledge source
-  const getMetadataDisplay = (doc) => {
-    if (!doc) return null;
-    
-    const sourceType = doc.sourceType || 'unknown';
-    
-    if (sourceType.toLowerCase() === 'website') {
-      return (
-        <span className="text-xs text-muted-foreground">{doc.metadata?.url || 'No URL'}</span>
-      );
-    } else if (sourceType.toLowerCase() === 'plain_text') {
-      const charCount = doc.metadata?.no_of_chars || doc.pages || '0';
-      return (
-        <span className="text-xs text-muted-foreground">{parseInt(charCount).toLocaleString()} characters</span>
-      );
-    } else {
-      return (
-        <span className="text-xs text-muted-foreground">
-          {doc.fileCount || doc.knowledge_sources?.length || 0} {doc.fileCount === 1 ? 'file' : 'files'} · {doc.size || 'Unknown size'}
-        </span>
-      );
-    }
-  };
-
-  // Function to get content measurements for a source
-  const getContentMeasure = (source) => {
-    if (!source || !source.metadata) return 'N/A';
-    
-    // Based on source type, return different content measurements
-    if (source.type === 'docs' || source.metadata.format === 'pdf') {
-      return source.metadata.no_of_pages ? `${source.metadata.no_of_pages} pages` : 'N/A';
-    } else if (source.type === 'csv' || source.metadata.format === 'csv') {
-      return source.metadata.no_of_rows ? `${source.metadata.no_of_rows} rows` : 'N/A';
-    } else if (source.type === 'plain_text') {
-      return source.metadata.no_of_chars ? `${source.metadata.no_of_chars} chars` : 'N/A';
-    } 
-    
-    return 'N/A';
-  };
-
-  // Function to get a color for an agent avatar
-  const getAgentColor = (agentName) => {
-    if (!agentName) return 'bg-gray-500';
-    
-    // Create a simple hash of the agent name to determine color
-    const sum = agentName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const colors = [
-      'bg-blue-500', 'bg-green-500', 'bg-red-500', 'bg-purple-500', 
-      'bg-yellow-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
-    ];
-    
-    return colors[sum % colors.length];
-  };
-
-  // Function to get initials for an agent
-  const getAgentInitials = (agentName) => {
-    if (!agentName) return '?';
-    
-    const words = agentName.split(' ');
-    if (words.length === 1) {
-      return agentName.substring(0, 2).toUpperCase();
-    }
-    
-    return (words[0][0] + words[1][0]).toUpperCase();
-  };
 
   const fetchKnowledgeBases = async () => {
     try {
@@ -329,21 +76,26 @@ const KnowledgeBase = () => {
 
   useEffect(() => {
     if (data && !hasProcessedLocalStorage) {
+      // Check if there's a newly added knowledge base in localStorage
       const newKnowledgeBase = getNewKnowledgeBase();
       
       if (newKnowledgeBase) {
         console.log('Found new knowledge base in localStorage:', newKnowledgeBase.id);
         
+        // Check if this knowledge base already exists in our data
         const exists = data.some(kb => kb.id === newKnowledgeBase.id);
         
         if (!exists) {
+          // Add the new knowledge base to our existing data
           const updatedData = [newKnowledgeBase, ...data];
           setKnowledgeBases(updatedData);
           console.log('Added new knowledge base from localStorage');
           
+          // Update the React Query cache with the new data
           queryClient.setQueryData(['knowledgeBases'], updatedData);
         }
         
+        // Clear the storage to prevent adding it multiple times
         clearNewKnowledgeBase();
       } else {
         setKnowledgeBases(data);
@@ -355,6 +107,8 @@ const KnowledgeBase = () => {
 
   useEffect(() => {
     if (data && hasProcessedLocalStorage) {
+      // Only update if we've already processed localStorage data
+      // This prevents overwriting our merged data on subsequent renders
       setKnowledgeBases(data);
       
       if (selectedKnowledgeBase) {
@@ -411,8 +165,8 @@ const KnowledgeBase = () => {
       return {
         id: kb.id,
         title: kb.name,
-        type: kb.type || 'unknown',  // Add fallback for type
-        sourceType: kb.type || 'unknown',  // Add fallback for sourceType
+        type: kb.type,
+        sourceType: kb.type,
         fileFormat: fileFormat,
         size: metadataInfo.size,
         pages: metadataInfo.count,
@@ -429,6 +183,7 @@ const KnowledgeBase = () => {
   };
 
   const documents = isLoading ? [] : formatKnowledgeBaseData(knowledgeBases);
+ console.log("checking...",documents);
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       doc.type.toLowerCase().includes(searchQuery.toLowerCase());
@@ -488,14 +243,11 @@ const KnowledgeBase = () => {
   }, [documents, isLoading]);
 
   const canShowNestedView = (sourceType) => {
-    if (!sourceType) return false;
-    return sourceType.toLowerCase() !== 'website' && sourceType.toLowerCase() !== 'plain_text';
+    return sourceType !== 'website' && sourceType !== 'plain_text';
   };
 
   const renderSourceIcon = (doc) => {
-    const sourceType = doc.sourceType || 'unknown';
-    
-    switch (sourceType.toLowerCase()) {
+    switch (doc.sourceType) {
       case 'docs':
         return <FileText className="h-4 w-4 text-blue-600" />;
       case 'website':
@@ -530,9 +282,7 @@ const KnowledgeBase = () => {
   };
 
   const getIconBackground = (doc) => {
-    const sourceType = doc.sourceType || 'unknown';
-    
-    switch (sourceType.toLowerCase()) {
+    switch (doc.sourceType) {
       case 'docs':
         return 'bg-blue-100';
       case 'website':
@@ -553,6 +303,244 @@ const KnowledgeBase = () => {
       default:
         return 'bg-gray-100';
     }
+  };
+
+  const getAgentColor = (agentName) => {
+    if (!agentName || typeof agentName !== 'string') return 'bg-blue-500';
+    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-teal-500'];
+    const charCode = agentName.charCodeAt(0) || 0;
+    const index = Math.floor(charCode % colors.length);
+    return colors[index];
+  };
+
+  const getAgentInitials = (agentName) => {
+    if (!agentName || typeof agentName !== 'string') return '';
+    return agentName.split(' ').map(n => n[0] || '').join('').toUpperCase();
+  };
+
+  const handleKnowledgeBaseClick = (doc) => {
+    if (!canShowNestedView(doc.sourceType)) {
+      toast({
+        title: "Info",
+        description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`
+      });
+      return;
+    }
+    
+    setSelectedKnowledgeBase(doc);
+    setViewMode('detail');
+  };
+
+  const handleBackToMainView = () => {
+    setSelectedKnowledgeBase(null);
+    setViewMode('main');
+  };
+
+  const getFileAcceptTypes = (sourceType) => {
+    switch (sourceType) {
+      case 'docs':
+        return '.pdf,.docx,.txt';
+      case 'csv':
+        return '.csv,.xlsx,.xls';
+      default:
+        return '*';
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    if (!selectedKnowledgeBase || !selectedKnowledgeBase.id) {
+      toast({
+        title: "Error",
+        description: "Cannot upload file: No knowledge base selected",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      toast({
+        title: "Uploading file...",
+        description: "Please wait while the file is being uploaded."
+      });
+      
+      await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
+      
+      toast({
+        title: "Success",
+        description: "File has been successfully uploaded."
+      });
+      
+      await refetch();
+      
+      if (data) {
+        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
+        if (updatedKnowledgeBase) {
+          setSelectedKnowledgeBase(updatedKnowledgeBase);
+        }
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "There was an error uploading the file. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteFile = async (sourceId) => {
+    if (!sourceId) {
+      toast({
+        title: "Error",
+        description: "Cannot delete file: Missing source ID",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Deleting file...",
+        description: "Please wait while the file is being deleted."
+      });
+
+      await deleteKnowledgeSource(sourceId);
+      
+      toast({
+        title: "Success",
+        description: "File has been successfully deleted."
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
+      
+      if (selectedKnowledgeBase && 
+          selectedKnowledgeBase.knowledge_sources && 
+          selectedKnowledgeBase.knowledge_sources.length === 1) {
+        handleBackToMainView();
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      toast({
+        title: "Delete failed",
+        description: error.message || "There was an error deleting the file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteKnowledgeBase = async (knowledgeBaseId) => {
+    if (!knowledgeBaseId) {
+      toast({
+        title: "Error",
+        description: "Cannot delete knowledge base: Missing ID",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Deleting knowledge base...",
+        description: "Please wait while the knowledge base is being deleted."
+      });
+
+      await deleteKnowledgeBase(knowledgeBaseId);
+      
+      toast({
+        title: "Success",
+        description: "Knowledge base has been successfully deleted."
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
+    } catch (error) {
+      console.error("Error deleting knowledge base:", error);
+      toast({
+        title: "Delete failed",
+        description: error.message || "There was an error deleting the knowledge base. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDownloadFile = (file) => {
+    if (!file || !file.file) {
+      toast({
+        title: "Download error",
+        description: "No file URL available for download.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Downloading file",
+      description: `Downloading file: ${file.title || 'Unnamed file'}`
+    });
+    
+    try {
+      window.open(file.file, '_blank');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading the file.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getMetadataDisplay = (doc) => {
+    if (doc.sourceType === 'website') {
+      const subUrls = doc.metadata?.sub_urls;
+      const pagesCount = subUrls ? 
+        (Array.isArray(subUrls?.children) ? subUrls.children.length : 0) : 
+        0;
+      const totalChars = subUrls ? subUrls.chars || 0 : 0;
+      
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5">
+          {pagesCount} pages • {totalChars.toLocaleString()} characters
+        </div>
+      );
+    } else if (doc.sourceType === 'plain_text') {
+      const chars = doc.metadata?.no_of_chars || 0;
+      
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5">
+          {chars.toLocaleString()} characters
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5">
+          {doc.fileCount > 0 ? 
+            `${doc.fileCount} ${doc.fileCount === 1 ? 'file' : 'files'}` : 
+            'No files'
+          }
+        </div>
+      );
+    }
+  };
+
+  const getContentMeasure = (source) => {
+    if (!source || !source.metadata) return "N/A";
+    
+    const format = source.metadata.format?.toLowerCase();
+    
+    if (format === 'csv' || format === 'xlsx' || format === 'xls') {
+      return source.metadata.no_of_rows ? `${source.metadata.no_of_rows} rows` : "N/A";
+    } else if (format === 'txt' || format === 'plain_text') {
+      return source.metadata.no_of_chars ? `${source.metadata.no_of_chars.toLocaleString()} chars` : "N/A";
+    } else if (format === 'pdf' || format === 'docx' || format === 'doc') {
+      return source.metadata.no_of_pages ? `${source.metadata.no_of_pages} pages` : "N/A";
+    }
+    
+    return source.metadata.no_of_pages || "N/A";
   };
 
   const renderMainView = () => {
