@@ -17,6 +17,7 @@ export interface User {
   accessToken?: string;
   refreshToken?: string;
   isVerified?: boolean;  // Added verification status
+  teamRole: string;
 }
 
 // Define auth context interface
@@ -41,6 +42,7 @@ interface AuthData {
   role: UserRole;
   isVerified?: boolean;
   email: string | null;
+  teamRole: string;
 }
 
 // Create the context with a default value
@@ -148,7 +150,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           refreshToken: authData.refreshToken,
           avatar: `https://ui-avatars.com/api/?name=${username}&background=0D8ABC&color=fff`,
           ...(authData.role === 'admin' ? { businessId: 'b1' } : {}),
-          isVerified: isVerified
+          isVerified: isVerified,
+          teamRole: authData.teamRole
         };
         
         setUser(userData);
