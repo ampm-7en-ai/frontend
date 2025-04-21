@@ -96,7 +96,7 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
                 Playground
               </Link>
             </Button>
-          ) : agent.status === 'issues' ? (
+          ) : agent.status === 'Issues' ? (
             <Button
               variant="outline"
               size="sm"
@@ -108,16 +108,8 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
               {retraining ? 'Retraining...' : 'Retrain'}
             </Button>
           ) : (
-            <Button variant="outline" size="sm" className="w-full" asChild>
-              <Link
-                to={`/agents/${agent.id}/test`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center"
-              >
-                <FolderSync className="h-3.5 w-3.5 mr-1" />
-                Retrain
-              </Link>
+            <Button variant="disabled" size="sm" className="w-full" asChild>
+             
             </Button>
           )
         }
