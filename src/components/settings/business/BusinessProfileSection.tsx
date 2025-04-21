@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Edit, Save } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,11 +9,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { updateSettings } from "@/utils/api-config";
+import PhoneInputField from "@/components/ui/PhoneInputField";
 
 const profileFormSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
   adminEmail: z.string().email("Invalid email address."),
-  adminPhone: z.string().optional().nullable(),
+  adminPhone: z
+    .string()
+    .nullable()
+    .refine(val => !val || val.length >= 8, {
+      message: "Phone number must be at least 8 digits.",
+    }),
   adminWebsite: z.string().optional().nullable(),
 });
 
@@ -54,7 +59,6 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
         description: res.message || "Your business profile has been updated successfully.",
       });
 
-      // Update form values with response data if available
       if (res.data && res.data.business_details) {
         profileForm.reset({
           businessName: res.data.business_details.business_name || "",
@@ -65,7 +69,6 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
       }
 
       setIsEditingProfile(false);
-      
     } catch (error: any) {
       toast({
         title: "Error updating profile",
@@ -148,11 +151,17 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                 <FormField
                   control={profileForm.control}
                   name="adminPhone"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="business number" {...field} />
+                        <PhoneInputField
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          error={!!fieldState.error}
+                          placeholder="Enter phone number"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
