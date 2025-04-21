@@ -59,7 +59,11 @@ const BusinessSettings = () => {
         {
           settingsData?.permissions.can_manage_team && <TeamManagementSection />
         }
-        <GlobalAgentSettingsSection />
+        <GlobalAgentSettingsSection initialSettings={settingsData?.global_agent_settings || {
+          response_model: "default_model",
+          token_length: 512,
+          temperature: 0.7
+        }}/>
       </div>
     </div>
   );
