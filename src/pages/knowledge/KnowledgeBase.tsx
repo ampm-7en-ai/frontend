@@ -183,7 +183,7 @@ const KnowledgeBase = () => {
   };
 
   const documents = isLoading ? [] : formatKnowledgeBaseData(knowledgeBases);
- console.log("checking...",documents);
+
   const filteredDocuments = isLoading ? [] : documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       doc.type.toLowerCase().includes(searchQuery.toLowerCase());
@@ -192,6 +192,7 @@ const KnowledgeBase = () => {
     
     return matchesSearch && matchesType;
   });
+   console.log("checking...",documents);
 
   const knowledgeStats = useMemo(() => {
     if (isLoading || !documents.length) {
