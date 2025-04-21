@@ -184,7 +184,7 @@ const KnowledgeBase = () => {
 
   const documents = isLoading ? [] : formatKnowledgeBaseData(knowledgeBases);
  console.log("checking...",documents);
-  const filteredDocuments = documents.length > 0 && documents.filter(doc => {
+  const filteredDocuments = isLoading ? [] : documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       doc.type.toLowerCase().includes(searchQuery.toLowerCase());
     
