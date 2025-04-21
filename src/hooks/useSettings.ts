@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +23,7 @@ export interface BusinessSettings {
   permissions: {
     can_manage_team: boolean;
     can_manage_payment: boolean;
+    can_manage_business_details?: boolean; // Added missing permission
   };
 }
 

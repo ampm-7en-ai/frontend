@@ -177,7 +177,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=0D8ABC&color=fff',
           accessToken: 'mock-token',
           refreshToken: 'mock-refresh-token',
-          isVerified: true
+          isVerified: true,
+          teamRole: 'owner' // Adding missing teamRole property
         };
         setUser(superAdminUser);
         setIsAuthenticated(true);
@@ -193,7 +194,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           avatar: 'https://ui-avatars.com/api/?name=Business+Admin&background=0D8ABC&color=fff',
           accessToken: 'mock-token',
           refreshToken: 'mock-refresh-token',
-          isVerified: true
+          isVerified: true,
+          teamRole: 'admin' // Adding missing teamRole property
         };
         setUser(adminUser);
         setIsAuthenticated(true);
