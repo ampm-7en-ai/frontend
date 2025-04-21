@@ -167,7 +167,7 @@ const TeamManagementSection = () => {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to remove team member: ${response.status}`);
+        throw new Error(errorData.error.message || `Failed to remove team member: ${response.status}`);
       }
       
       // For now, just remove from local state for mock implementation
