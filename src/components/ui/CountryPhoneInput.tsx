@@ -72,7 +72,7 @@ const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
       >
         <SelectTrigger className={`w-32 ${error ? "border-red-500" : ""}`}>
           <span className="flex items-center gap-1">
-            <span className="text-xl">{selectedCountry.flag}</span>
+            <span className="text-xl" style={{backgroundImage:`url(${selectedCountry.flag})`,display:'inline-block',width:'20px',height:'20px'}}>{selectedCountry.flag}</span>
             <span className="text-sm">+{selectedCountry.dial_code.replace("+", "")}</span>
           </span>
         </SelectTrigger>
