@@ -76,26 +76,21 @@ const KnowledgeBase = () => {
 
   useEffect(() => {
     if (data && !hasProcessedLocalStorage) {
-      // Check if there's a newly added knowledge base in localStorage
       const newKnowledgeBase = getNewKnowledgeBase();
       
       if (newKnowledgeBase) {
         console.log('Found new knowledge base in localStorage:', newKnowledgeBase.id);
         
-        // Check if this knowledge base already exists in our data
         const exists = data.some(kb => kb.id === newKnowledgeBase.id);
         
         if (!exists) {
-          // Add the new knowledge base to our existing data
           const updatedData = [newKnowledgeBase, ...data];
           setKnowledgeBases(updatedData);
           console.log('Added new knowledge base from localStorage');
           
-          // Update the React Query cache with the new data
           queryClient.setQueryData(['knowledgeBases'], updatedData);
         }
         
-        // Clear the storage to prevent adding it multiple times
         clearNewKnowledgeBase();
       } else {
         setKnowledgeBases(data);
@@ -107,8 +102,6 @@ const KnowledgeBase = () => {
 
   useEffect(() => {
     if (data && hasProcessedLocalStorage) {
-      // Only update if we've already processed localStorage data
-      // This prevents overwriting our merged data on subsequent renders
       setKnowledgeBases(data);
       
       if (selectedKnowledgeBase) {
@@ -165,8 +158,8 @@ const KnowledgeBase = () => {
       return {
         id: kb.id,
         title: kb.name,
-        type: kb.type,
-        sourceType: kb.type,
+        type: kb.type || 'unknown',  // Add fallback for type
+        sourceType: kb.type || 'unknown',  // Add fallback for sourceType
         fileFormat: fileFormat,
         size: metadataInfo.size,
         pages: metadataInfo.count,
@@ -183,7 +176,6 @@ const KnowledgeBase = () => {
   };
 
   const documents = isLoading ? [] : formatKnowledgeBaseData(knowledgeBases);
- console.log("checking...",documents);
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       doc.type.toLowerCase().includes(searchQuery.toLowerCase());
@@ -243,11 +235,14 @@ const KnowledgeBase = () => {
   }, [documents, isLoading]);
 
   const canShowNestedView = (sourceType) => {
-    return sourceType !== 'website' && sourceType !== 'plain_text';
+    if (!sourceType) return false;
+    return sourceType.toLowerCase() !== 'website' && sourceType.toLowerCase() !== 'plain_text';
   };
 
   const renderSourceIcon = (doc) => {
-    switch (doc.sourceType) {
+    const sourceType = doc.sourceType || 'unknown';
+    
+    switch (sourceType.toLowerCase()) {
       case 'docs':
         return <FileText className="h-4 w-4 text-blue-600" />;
       case 'website':
@@ -282,7 +277,9 @@ const KnowledgeBase = () => {
   };
 
   const getIconBackground = (doc) => {
-    switch (doc.sourceType) {
+    const sourceType = doc.sourceType || 'unknown';
+    
+    switch (sourceType.toLowerCase()) {
       case 'docs':
         return 'bg-blue-100';
       case 'website':
@@ -303,244 +300,6 @@ const KnowledgeBase = () => {
       default:
         return 'bg-gray-100';
     }
-  };
-
-  const getAgentColor = (agentName) => {
-    if (!agentName || typeof agentName !== 'string') return 'bg-blue-500';
-    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-teal-500'];
-    const charCode = agentName.charCodeAt(0) || 0;
-    const index = Math.floor(charCode % colors.length);
-    return colors[index];
-  };
-
-  const getAgentInitials = (agentName) => {
-    if (!agentName || typeof agentName !== 'string') return '';
-    return agentName.split(' ').map(n => n[0] || '').join('').toUpperCase();
-  };
-
-  const handleKnowledgeBaseClick = (doc) => {
-    if (!canShowNestedView(doc.sourceType)) {
-      toast({
-        title: "Info",
-        description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`
-      });
-      return;
-    }
-    
-    setSelectedKnowledgeBase(doc);
-    setViewMode('detail');
-  };
-
-  const handleBackToMainView = () => {
-    setSelectedKnowledgeBase(null);
-    setViewMode('main');
-  };
-
-  const getFileAcceptTypes = (sourceType) => {
-    switch (sourceType) {
-      case 'docs':
-        return '.pdf,.docx,.txt';
-      case 'csv':
-        return '.csv,.xlsx,.xls';
-      default:
-        return '*';
-    }
-  };
-
-  const handleFileUpload = async (e) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    if (!selectedKnowledgeBase || !selectedKnowledgeBase.id) {
-      toast({
-        title: "Error",
-        description: "Cannot upload file: No knowledge base selected",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      toast({
-        title: "Uploading file...",
-        description: "Please wait while the file is being uploaded."
-      });
-      
-      await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
-      
-      toast({
-        title: "Success",
-        description: "File has been successfully uploaded."
-      });
-      
-      await refetch();
-      
-      if (data) {
-        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
-        if (updatedKnowledgeBase) {
-          setSelectedKnowledgeBase(updatedKnowledgeBase);
-        }
-      }
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast({
-        title: "Upload failed",
-        description: error.message || "There was an error uploading the file. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      e.target.value = '';
-    }
-  };
-
-  const handleDeleteFile = async (sourceId) => {
-    if (!sourceId) {
-      toast({
-        title: "Error",
-        description: "Cannot delete file: Missing source ID",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      toast({
-        title: "Deleting file...",
-        description: "Please wait while the file is being deleted."
-      });
-
-      await deleteKnowledgeSource(sourceId);
-      
-      toast({
-        title: "Success",
-        description: "File has been successfully deleted."
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
-      
-      if (selectedKnowledgeBase && 
-          selectedKnowledgeBase.knowledge_sources && 
-          selectedKnowledgeBase.knowledge_sources.length === 1) {
-        handleBackToMainView();
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      toast({
-        title: "Delete failed",
-        description: error.message || "There was an error deleting the file. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteKnowledgeBase = async (knowledgeBaseId) => {
-    if (!knowledgeBaseId) {
-      toast({
-        title: "Error",
-        description: "Cannot delete knowledge base: Missing ID",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      toast({
-        title: "Deleting knowledge base...",
-        description: "Please wait while the knowledge base is being deleted."
-      });
-
-      await deleteKnowledgeBase(knowledgeBaseId);
-      
-      toast({
-        title: "Success",
-        description: "Knowledge base has been successfully deleted."
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
-    } catch (error) {
-      console.error("Error deleting knowledge base:", error);
-      toast({
-        title: "Delete failed",
-        description: error.message || "There was an error deleting the knowledge base. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDownloadFile = (file) => {
-    if (!file || !file.file) {
-      toast({
-        title: "Download error",
-        description: "No file URL available for download.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    toast({
-      title: "Downloading file",
-      description: `Downloading file: ${file.title || 'Unnamed file'}`
-    });
-    
-    try {
-      window.open(file.file, '_blank');
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      toast({
-        title: "Download failed",
-        description: "There was an error downloading the file.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getMetadataDisplay = (doc) => {
-    if (doc.sourceType === 'website') {
-      const subUrls = doc.metadata?.sub_urls;
-      const pagesCount = subUrls ? 
-        (Array.isArray(subUrls?.children) ? subUrls.children.length : 0) : 
-        0;
-      const totalChars = subUrls ? subUrls.chars || 0 : 0;
-      
-      return (
-        <div className="text-xs text-muted-foreground mt-0.5">
-          {pagesCount} pages • {totalChars.toLocaleString()} characters
-        </div>
-      );
-    } else if (doc.sourceType === 'plain_text') {
-      const chars = doc.metadata?.no_of_chars || 0;
-      
-      return (
-        <div className="text-xs text-muted-foreground mt-0.5">
-          {chars.toLocaleString()} characters
-        </div>
-      );
-    } else {
-      return (
-        <div className="text-xs text-muted-foreground mt-0.5">
-          {doc.fileCount > 0 ? 
-            `${doc.fileCount} ${doc.fileCount === 1 ? 'file' : 'files'}` : 
-            'No files'
-          }
-        </div>
-      );
-    }
-  };
-
-  const getContentMeasure = (source) => {
-    if (!source || !source.metadata) return "N/A";
-    
-    const format = source.metadata.format?.toLowerCase();
-    
-    if (format === 'csv' || format === 'xlsx' || format === 'xls') {
-      return source.metadata.no_of_rows ? `${source.metadata.no_of_rows} rows` : "N/A";
-    } else if (format === 'txt' || format === 'plain_text') {
-      return source.metadata.no_of_chars ? `${source.metadata.no_of_chars.toLocaleString()} chars` : "N/A";
-    } else if (format === 'pdf' || format === 'docx' || format === 'doc') {
-      return source.metadata.no_of_pages ? `${source.metadata.no_of_pages} pages` : "N/A";
-    }
-    
-    return source.metadata.no_of_pages || "N/A";
   };
 
   const renderMainView = () => {
