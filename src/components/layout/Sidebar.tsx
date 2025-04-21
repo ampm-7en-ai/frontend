@@ -104,19 +104,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create agent');
+        throw new Error(data.error.message || 'Failed to create agent');
       }
       
       toast({
         title: "Agent Created",
-        description: data.message || `${newAgentName} has been successfully created.`,
+        description: data.data.message || `${newAgentName} has been successfully created.`,
         variant: "default"
       });
       
       setNewAgentName('');
       // Navigate to the edit page for the newly created agent if the id is present
-      if (data.id) {
-        navigate(`/agents/${data.id}/edit`);
+      if (data.data.id) {
+        navigate(`/agents/${data.data.id}/edit`);
       } else {
         navigate('/agents');
       }
