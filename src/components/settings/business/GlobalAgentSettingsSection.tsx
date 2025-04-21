@@ -10,9 +10,9 @@ import { toast } from "@/hooks/use-toast";
 
 interface GlobalAgentSettingsProps {
   initialSettings?: {
-    defaultModel: string;
-    maxContextLength: number;
-    defaultTemperature: number;
+    response_model: string;
+    token_length: number;
+    temperature: number;
   };
 }
 
