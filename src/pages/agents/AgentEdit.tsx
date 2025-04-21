@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams  } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
@@ -62,10 +62,11 @@ const integrationOptions = [
 ];
 
 const AgentEdit = () => {
-  const { agentId, tab } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState(tab || "general");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "general");
   const queryClient = useQueryClient();
   
   const [agent, setAgent] = useState({
@@ -98,7 +99,7 @@ const AgentEdit = () => {
     agentType: 'support',
     systemPrompt: agentTypeSystemPrompts.support
   });
-  
+
   const [isRetraining, setIsRetraining] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [customAvatarFile, setCustomAvatarFile] = useState<File | null>(null);
