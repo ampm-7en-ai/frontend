@@ -66,16 +66,16 @@ const InviteRegistration = () => {
 
         const data = await response.json();
         
-        if (response.ok && data.valid) {
-          console.log("Token validation successful:", data);
+        if (response.ok && data.data.valid) {
+          console.log("Token validation successful:", data.data);
           setTokenValid(true);
-          setInvitedEmail(data.email);
-          setBusinessName(data.team_name);
-          setUserRole(data.role);
+          setInvitedEmail(data.data.email);
+          setBusinessName(data.data.team_name);
+          setUserRole(data.data.role);
         } else {
-          console.error("Invalid token:", data);
+          console.error("Invalid token:", data.message);
           setTokenValid(false);
-          const errorMessage = data.error || "This invitation link is invalid or has expired.";
+          const errorMessage = data.error.message || "This invitation link is invalid or has expired.";
           throw new Error(errorMessage);
         }
       } catch (error) {
