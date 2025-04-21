@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Home,
@@ -113,7 +114,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       });
       
       setNewAgentName('');
-      navigate('/agents');
+      // Navigate to the edit page for the newly created agent if the id is present
+      if (data.id) {
+        navigate(`/agents/${data.id}/edit`);
+      } else {
+        navigate('/agents');
+      }
     } catch (error) {
       console.error('Error creating agent:', error);
       toast({
@@ -378,3 +384,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 };
 
 export default Sidebar;
+
