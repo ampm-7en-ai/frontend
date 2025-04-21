@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -36,19 +37,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useDeleteAgent } from '@/hooks/useDeleteAgent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Trash } from "lucide-react";
+import { Agent } from '@/hooks/useAgentFiltering';
 
 interface AgentTableProps {
-  agents: Array<{
-    id: string;
-    name: string;
-    description: string;
-    conversations: number;
-    lastModified: string;
-    averageRating: number;
-    knowledgeSources: KnowledgeSource[];
-    model: string;
-    isDeployed: boolean;
-  }>;
+  agents: Agent[];
   getModelBadgeColor: (model: string) => string;
   onAgentDeleted?: (agentId: string) => void;
 }
@@ -124,7 +116,7 @@ const AgentTable = ({ agents, getModelBadgeColor, onAgentDeleted }: AgentTablePr
                   )}
                 </div>
               </TableCell>
-              <TableCell>{agent.conversations.toLocaleString()}</TableCell>
+              <TableCell>{(agent.conversations || 0).toLocaleString()}</TableCell>
               <TableCell>
                 {agent.isDeployed ? (
                   <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
