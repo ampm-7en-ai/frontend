@@ -23,6 +23,7 @@ interface BusinessProfileSectionProps {
     adminEmail: string;
     adminPhone: string;
     adminWebsite: string;
+    isAllowed: boolean;
   };
 }
 
@@ -46,7 +47,8 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
     <section>
       <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
         <span>Business Profile</span>
-        {!isEditingProfile ? (
+        {
+          isAllowed && (!isEditingProfile ? (
           <Button 
             variant="ghost" 
             size="sm" 
@@ -64,7 +66,8 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
           >
             Cancel
           </Button>
-        )}
+        ))
+        }
       </h2>
       <Card>
         {isEditingProfile ? (
