@@ -97,6 +97,32 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={profileForm.control}
+                  name="adminWebsite"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={profileForm.control}
+                  name="adminPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="business number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div>
                   <FormLabel>Subscription Plan</FormLabel>
                   <p className="text-muted-foreground mt-1">Free Tier</p>
@@ -118,6 +144,14 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
             <div>
               <h3 className="font-medium">Admin Email</h3>
               <p className="text-muted-foreground">{profileForm.getValues().adminEmail}</p>
+            </div>
+            <div>
+              <h3 className="font-medium">Admin Website</h3>
+              <p className="text-muted-foreground">{profileForm.getValues().adminWebsite}</p>
+            </div>
+            <div>
+              <h3 className="font-medium">Admin Phone</h3>
+              <p className="text-muted-foreground">{profileForm.getValues().adminPhone}</p>
             </div>
             <div>
               <h3 className="font-medium">Subscription Plan</h3>
