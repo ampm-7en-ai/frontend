@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bot, Search } from 'lucide-react';
 import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
-import AgentTable from '@/components/agents/AgentTable';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -101,11 +101,13 @@ const AgentList = () => {
     retry: 3
   });
 
+  // Fetch agents on component mount
   useEffect(() => {
     console.log('AgentList component mounted, fetching agents...');
     refetch();
   }, [refetch]);
 
+  // Move the error toast to useEffect to prevent render-time state updates
   useEffect(() => {
     if (error) {
       console.error('Error fetching agents:', error);
@@ -128,10 +130,6 @@ const AgentList = () => {
     setSearchQuery,
     setModelFilter
   });
-
-  function handleAgentDeleted() {
-    refetch();
-  }
 
   return (
     <div className="space-y-6">
@@ -191,11 +189,16 @@ const AgentList = () => {
               <Button>Create Agent</Button>
             </div>
           ) : (
-            <AgentTable 
-              agents={filteredAgents} 
-              getModelBadgeColor={getModelBadgeColor}
-              onAgentDeleted={handleAgentDeleted}
-            />
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAgents.map((agent) => (
+                <AgentCard 
+                  key={agent.id} 
+                  agent={agent}
+                  getModelBadgeColor={getModelBadgeColor}
+                  getStatusBadgeColor={getStatusBadgeColor}
+                />
+              ))}
+            </div>
           )}
         </>
       )}

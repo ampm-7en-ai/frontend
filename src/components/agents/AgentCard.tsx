@@ -44,7 +44,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor }: AgentCard
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 mt-1">
           <div className="flex items-center gap-1">
             <MessageSquare className="h-3 w-3" />
-            <span className="font-medium">{(agent.conversations || 0).toLocaleString()}</span>
+            <span className="font-medium">{agent.conversations?.toLocaleString() || '0'}</span>
           </div>
           <div className="flex items-center gap-1">
             <CalendarClock className="h-3 w-3" />
