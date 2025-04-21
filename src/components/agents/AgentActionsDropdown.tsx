@@ -45,7 +45,7 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
         let detail;
         try {
           const errJson = await response.json();
-          detail = (errJson && errJson.detail) || await response.text();
+          detail = (errJson && errJson.error.message) || await response.text();
         } catch { /* ignore */ }
         throw new Error(detail || response.statusText || 'Failed to delete agent');
       }
