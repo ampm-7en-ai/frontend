@@ -152,25 +152,23 @@ const TeamManagementSection = () => {
 
   const removeActiveMember = async (memberId: string) => {
     try {
-      // This is a placeholder for the actual API call to remove active members
-      // Replace with actual endpoint when available
-      // const token = getToken();
-      // if (!token) {
-      //   throw new Error("You must be logged in to remove team members");
-      // }
+      const token = getToken();
+      if (!token) {
+        throw new Error("You must be logged in to remove team members");
+      }
       
-      // const response = await fetch(getApiUrl('users/remove_team_member/'), {
-      //   method: 'DELETE',
-      //   headers: getAuthHeaders(token),
-      //   body: JSON.stringify({
-      //     member_id: memberId
-      //   })
-      // });
+      const response = await fetch(getApiUrl('users/remove_from_team/'), {
+        method: 'DELETE',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          invite_id: memberId
+        })
+      });
       
-      // if (!response.ok) {
-      //   const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
-      //   throw new Error(errorData.error || `Failed to remove team member: ${response.status}`);
-      // }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
+        throw new Error(errorData.error || `Failed to remove team member: ${response.status}`);
+      }
       
       // For now, just remove from local state for mock implementation
       setTeamMembers(teamMembers.filter(member => member.id !== memberId));
