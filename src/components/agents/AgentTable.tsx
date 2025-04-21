@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +32,10 @@ import {
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { useToast } from '@/hooks/use-toast';
+import { useDeleteAgent } from '@/hooks/useDeleteAgent';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Trash } from "lucide-react";
 
 interface AgentTableProps {
   agents: Array<{
@@ -47,15 +50,32 @@ interface AgentTableProps {
     isDeployed: boolean;
   }>;
   getModelBadgeColor: (model: string) => string;
+  onAgentDeleted?: (agentId: string) => void;
 }
 
-const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
+const AgentTable = ({ agents, getModelBadgeColor, onAgentDeleted }: AgentTableProps) => {
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<{id: string, name: string} | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{id: string, name: string} | null>(null);
+  const { toast } = useToast();
+  const { deleting, deleteAgent } = useDeleteAgent();
 
   const openDeploymentDialog = (agent: {id: string, name: string}) => {
     setSelectedAgent(agent);
     setDeploymentDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return;
+    const { id, name } = confirmDelete;
+    const res = await deleteAgent(id);
+    if (res.success) {
+      toast({ title: "Deleted", description: `${name} has been deleted.` });
+      setConfirmDelete(null);
+      if (onAgentDeleted) onAgentDeleted(id);
+    } else {
+      toast({ title: "Delete failed", description: res.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -160,9 +180,13 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                         Duplicate
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-500">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                      <DropdownMenuItem
+                        className="text-red-500"
+                        onClick={() => setConfirmDelete({id: agent.id, name: agent.name})}
+                        disabled={deleting === agent.id}
+                      >
+                        <Trash className="h-4 w-4 mr-2" />
+                        {deleting === agent.id ? "Deleting..." : "Delete"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -180,6 +204,28 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
           agent={selectedAgent} 
         />
       )}
+
+      <Dialog open={!!confirmDelete} onOpenChange={(open) => {!open && setConfirmDelete(null);}}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash className="h-5 w-5" />
+              Delete Agent?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mb-4">
+            Are you sure you want to delete <span className="font-semibold">{confirmDelete?.name}</span>? This action cannot be undone.
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)} disabled={deleting === confirmDelete?.id}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleting === confirmDelete?.id}>
+              {deleting === confirmDelete?.id ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
