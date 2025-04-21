@@ -35,7 +35,7 @@ const BusinessSettings = () => {
     adminEmail: settingsData?.business_details?.email || '',
     adminPhone: settingsData?.business_details?.phone_number || '',
     adminWebsite: settingsData?.business_details?.website || '',
-    isAllowed: settingsData?.permissions?.can_manage_business_details || false
+    isAllowed: settingsData?.permissions?.can_manage_business_detail || false
   }
 
   return (

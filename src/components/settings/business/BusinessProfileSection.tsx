@@ -48,7 +48,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
       <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
         <span>Business Profile</span>
         {
-          isAllowed && (!isEditingProfile ? (
+          initialData.isAllowed && (!isEditingProfile ? (
           <Button 
             variant="ghost" 
             size="sm" 
