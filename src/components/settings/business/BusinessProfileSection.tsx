@@ -142,15 +142,15 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
               <p className="text-muted-foreground">{profileForm.getValues().businessName}</p>
             </div>
             <div>
-              <h3 className="font-medium">Admin Email</h3>
+              <h3 className="font-medium">Email</h3>
               <p className="text-muted-foreground">{profileForm.getValues().adminEmail}</p>
             </div>
             <div>
-              <h3 className="font-medium">Admin Website</h3>
+              <h3 className="font-medium">Website</h3>
               <p className="text-muted-foreground">{profileForm.getValues().adminWebsite}</p>
             </div>
             <div>
-              <h3 className="font-medium">Admin Phone</h3>
+              <h3 className="font-medium">Phone</h3>
               <p className="text-muted-foreground">{profileForm.getValues().adminPhone}</p>
             </div>
             <div>
