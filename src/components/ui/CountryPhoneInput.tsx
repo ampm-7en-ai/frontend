@@ -72,7 +72,7 @@ const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
       >
         <SelectTrigger className={`w-32 ${error ? "border-red-500" : ""}`}>
           <span className="flex items-center gap-1">
-            <span className="text-xl" style={{backgroundImage:`url(${selectedCountry.flag})`,display:'inline-block',width:'20px',height:'20px'}}>{selectedCountry.flag}</span>
+            <span className="text-xl" style={{backgroundImage:`url(${selectedCountry.flag})`,display:'inline-block',width:'20px',height:'20px'}}></span>
             <span className="text-sm">+{selectedCountry.dial_code.replace("+", "")}</span>
           </span>
         </SelectTrigger>
@@ -80,7 +80,7 @@ const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
           {countryData.map((c) => (
             <SelectItem key={c.code} value={c.code}>
               <span className="flex items-center gap-2">
-                <span>{c.flag}</span>
+                <span style={{backgroundImage:`url(${selectedCountry.flag})`,display:'inline-block',width:'20px',height:'20px'}}></span>
                 <span>{c.name}</span>
                 <span className="ml-auto text-muted-foreground text-xs">+{c.dial_code.replace("+", "")}</span>
               </span>
