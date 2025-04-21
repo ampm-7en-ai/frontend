@@ -62,10 +62,10 @@ const integrationOptions = [
 ];
 
 const AgentEdit = () => {
-  const { agentId } = useParams();
+  const { agentId, tab } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState(tab || "general");
   const queryClient = useQueryClient();
   
   const [agent, setAgent] = useState({
