@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/hooks/useSettings';
 import UsageSection from '@/components/settings/business/UsageSection';
 import ConnectedAccountsSection from '@/components/settings/business/ConnectedAccountsSection';
@@ -11,14 +10,8 @@ import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAge
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const BusinessSettings = () => {
-  const { user } = useAuth();
   const { data: settingsData, isLoading, error } = useSettings();
   
-  const initialProfileData = {
-    businessName: user?.role === 'admin' ? 'Your Business' : 'Platform Admin',
-    adminEmail: user?.email || '',
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 flex justify-center items-center h-64">
@@ -35,6 +28,13 @@ const BusinessSettings = () => {
         </div>
       </div>
     );
+  }
+
+   const initialProfileData = {
+    businessName: data?.business_details?.business_name || '',
+    adminEmail: data?.business_details?.email || '',
+    adminPhone: data?.business_details?.phone_number || '',
+    adminWebsite: data?.business_details?.website || ''
   }
 
   return (

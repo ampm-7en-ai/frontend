@@ -21,6 +21,8 @@ interface BusinessProfileSectionProps {
   initialData: {
     businessName: string;
     adminEmail: string;
+    adminPhone: string;
+    adminWebsite: string;
   };
 }
 
