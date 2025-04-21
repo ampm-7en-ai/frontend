@@ -157,7 +157,7 @@ const TeamManagementSection = () => {
         throw new Error("You must be logged in to remove team members");
       }
       
-      const response = await fetch(getApiUrl('users/remove_from_team/'), {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.REMOVE_MEMBER), {
         method: 'DELETE',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
