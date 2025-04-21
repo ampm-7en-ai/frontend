@@ -102,6 +102,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                 refreshToken: data.refresh || null,
                 userId: data.data.user_id,
                 role: userRole,
+                teamRole: data.data.userData.team_role || null,
                 email: data.data.userData.email || "google_user@example.com",
                 isVerified: true
               });
@@ -223,6 +224,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           userId: data.data.user_id,
           email: data.data.userData.email || values.username,
           role: userRole,
+          teamRole: data.data.userData.team_role || null,
           isVerified: true
         });
         
