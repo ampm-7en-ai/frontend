@@ -166,7 +166,7 @@ const TeamManagementSection = () => {
       });
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
+        const errorData = await response.json();
         throw new Error(errorData.error || `Failed to remove team member: ${response.status}`);
       }
       
