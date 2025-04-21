@@ -56,9 +56,7 @@ const BusinessSettings = () => {
         <ConnectedAccountsSection />
         <ApiKeysSection />
         <BusinessProfileSection initialData={initialProfileData} />
-        {
-          settingsData?.permissions.can_manage_team && <TeamManagementSection />
-        }
+        <TeamManagementSection isAllowed={settingsData?.permissions.can_manage_team} />
         <GlobalAgentSettingsSection />
       </div>
     </div>
