@@ -131,6 +131,11 @@ const AgentList = () => {
     setModelFilter
   });
 
+  const handleDeleteAgent = async (_agentId: string) => {
+    // We just refetch to refresh the list. (Better than filtering locally unless you want instant feedback)
+    refetch();
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -196,6 +201,7 @@ const AgentList = () => {
                   agent={agent}
                   getModelBadgeColor={getModelBadgeColor}
                   getStatusBadgeColor={getStatusBadgeColor}
+                  onDelete={handleDeleteAgent}
                 />
               ))}
             </div>

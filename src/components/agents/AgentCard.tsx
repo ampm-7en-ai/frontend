@@ -20,9 +20,10 @@ interface AgentCardProps {
   agent: Agent;
   getModelBadgeColor: (model: string) => string;
   getStatusBadgeColor: (status: string) => string;
+  onDelete?: (agentId: string) => void;
 }
 
-const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor }: AgentCardProps) => {
+const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }: AgentCardProps) => {
   // Format the date to be more readable (Dec 10, 2023)
   const formattedDate = agent.lastModified ? 
     format(new Date(agent.lastModified), 'MMM d, yyyy') : 
@@ -36,7 +37,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor }: AgentCard
             <CardTitle className="text-base font-semibold mb-0.5">{agent.name}</CardTitle>
             <CardDescription className="line-clamp-2">{agent.description}</CardDescription>
           </div>
-          <AgentActionsDropdown agentId={agent.id} />
+          <AgentActionsDropdown agentId={agent.id} onDelete={onDelete} />
         </div>
       </CardHeader>
       
