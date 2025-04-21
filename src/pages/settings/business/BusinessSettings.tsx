@@ -31,10 +31,10 @@ const BusinessSettings = () => {
   }
 
    const initialProfileData = {
-    businessName: data?.business_details?.business_name || '',
-    adminEmail: data?.business_details?.email || '',
-    adminPhone: data?.business_details?.phone_number || '',
-    adminWebsite: data?.business_details?.website || ''
+    businessName: settingsData?.business_details?.business_name || '',
+    adminEmail: settingsData?.business_details?.email || '',
+    adminPhone: settingsData?.business_details?.phone_number || '',
+    adminWebsite: settingsData?.business_details?.website || ''
   }
 
   return (
