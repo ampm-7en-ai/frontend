@@ -66,16 +66,16 @@ const InviteRegistration = () => {
 
         const data = await response.json();
         
-        if (response.ok && data.data.valid) {
-          console.log("Token validation successful:", data.data);
+        if (response.ok && data.valid) {
+          console.log("Token validation successful:", data);
           setTokenValid(true);
-          setInvitedEmail(data.data.email);
-          setBusinessName(data.data.team_name);
-          setUserRole(data.data.role);
+          setInvitedEmail(data.email);
+          setBusinessName(data.team_name);
+          setUserRole(data.role);
         } else {
-          console.error("Invalid token:", data.message);
+          console.error("Invalid token:", data);
           setTokenValid(false);
-          const errorMessage = data.error.message || "This invitation link is invalid or has expired.";
+          const errorMessage = data.error || "This invitation link is invalid or has expired.";
           throw new Error(errorMessage);
         }
       } catch (error) {
@@ -135,12 +135,13 @@ const InviteRegistration = () => {
       });
       
       await login(values.username, values.password, {
-        accessToken: data.access,
+        accessToken: data.data.access,
         refreshToken: null,
-        userId: Number(data.user_id),
-        email: invitedEmail,
-        role: data.user_role,
-        isVerified: true
+        userId: Number(data.data.user_id),
+        email: data.data.userData.email,
+        role: data.data.userData.user_role,
+        isVerified: true,
+        teamRole: data.data.userData.team_role
       });
       
       if (data.user_role === 'superadmin') {
