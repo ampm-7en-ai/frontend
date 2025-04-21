@@ -12,7 +12,7 @@ import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAge
 const BusinessSettings = () => {
   const { user } = useAuth();
   const {fetchSettings} = useSettings();
-  const settingsData = await fetchSettings();
+  const settingsData = fetchSettings();
   
   const initialProfileData = {
     businessName: user?.role === 'admin' ? 'Your Business' : 'Platform Admin',
