@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { updateSettings } from "@/utils/api-config";
 import PhoneInputField from "@/components/ui/PhoneInputField";
+import CountryPhoneInput from "@/components/ui/CountryPhoneInput";
 
 const profileFormSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
@@ -155,10 +156,9 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <PhoneInputField
+                        <CountryPhoneInput
                           value={field.value || ""}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
+                          onChange={(val: string) => field.onChange(val)}
                           error={!!fieldState.error}
                           placeholder="Enter phone number"
                         />
