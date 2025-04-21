@@ -36,7 +36,7 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
         setDeleting(false);
         return;
       }
-      const endpoint = getApiUrl(`${API_ENDPOINTS.AGENTS}/${agentId}/`);
+      const endpoint = getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`);
       const response = await fetch(endpoint, {
         method: 'DELETE',
         headers: getAuthHeaders(token),
