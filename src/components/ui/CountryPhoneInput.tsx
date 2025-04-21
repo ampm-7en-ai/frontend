@@ -75,7 +75,6 @@ const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
             <span className="text-xl">{selectedCountry.flag}</span>
             <span className="text-sm">+{selectedCountry.dial_code.replace("+", "")}</span>
           </span>
-          <ChevronDown className="ml-auto w-4 h-4" />
         </SelectTrigger>
         <SelectContent>
           {countryData.map((c) => (
