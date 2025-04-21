@@ -108,8 +108,8 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
               {retraining ? 'Retraining...' : 'Retrain'}
             </Button>
           ) : (
-            <Button variant="disabled" size="sm" className="w-full" asChild>
-             
+            <Button variant="outline" size="sm" className="w-full opacity-50" disabled>
+              {/* Empty button that is disabled */}
             </Button>
           )
         }
@@ -158,4 +158,3 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
 };
 
 export default AgentFooterActions;
-
