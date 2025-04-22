@@ -1,7 +1,7 @@
 
 import React from 'react';
 import './App.css';
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -225,6 +225,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/verify" element={<Verify />} />
                 <Route path="/invitation" element={<InviteRegistration />} />
+                {/* Use element directly instead of children prop for Route */}
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
               <Toaster />
