@@ -1,4 +1,3 @@
-
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { webSocketService } from './WebSocketService';
 import { toast } from '@/hooks/use-toast';

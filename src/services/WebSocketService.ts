@@ -1,143 +1,85 @@
-import { toast } from '@/hooks/use-toast';
-
-type TrainingStatus = 'started' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-
-interface TrainingUpdate {
-  type: 'training_update';
-  agentId: string;
-  status: TrainingStatus;
-  progress?: number;
-  message?: string;
-}
-
-class WebSocketService {
+export class WebSocketService {
   private socket: WebSocket | null = null;
+  private listeners: Map<string, Function[]> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectTimeout = 1000;
-  private messageHandlers: Set<(event: MessageEvent) => void> = new Set();
+
+  constructor(private url: string) {}
 
   connect() {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      console.log('WebSocket already connected');
-      return;
-    }
-
-    const token = localStorage.getItem('auth_token');
-    const wsUrl = import.meta.env.VITE_WS_URL || 'wss://your-api-domain.com/ws';
+    if (this.socket?.readyState === WebSocket.OPEN) return;
     
-    try {
-      this.socket = new WebSocket(`${wsUrl}?token=${token}`);
-      
-      this.socket.onopen = () => {
-        console.log('WebSocket connected');
-        this.reconnectAttempts = 0;
-      };
-
-      this.socket.onmessage = (event) => {
-        // Notify all handlers
-        this.messageHandlers.forEach(handler => handler(event));
-        
-        try {
-          const data = JSON.parse(event.data) as TrainingUpdate;
-          if (data.type === 'training_update') {
-            this.handleTrainingUpdate(data);
-          }
-        } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
+    this.socket = new WebSocket(this.url);
+    
+    this.socket.onopen = () => {
+      console.log('WebSocket connection established');
+      this.reconnectAttempts = 0;
+      this.emit('connection', { status: 'connected' });
+    };
+    
+    this.socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type) {
+          this.emit(data.type, data);
         }
-      };
-
-      this.socket.onclose = () => {
-        console.log('WebSocket disconnected');
-        this.handleReconnect();
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-    } catch (error) {
-      console.error('Failed to establish WebSocket connection:', error);
-    }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+    
+    this.socket.onclose = () => {
+      console.log('WebSocket connection closed');
+      this.handleReconnect();
+    };
+    
+    this.socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      this.socket?.close();
+    };
   }
-
-  private handleTrainingUpdate(update: TrainingUpdate) {
-    // Show different toasts based on training status
-    switch (update.status) {
-      case 'started':
-        toast({
-          title: "Training Started",
-          description: update.message || "Agent training has started",
-        });
-        break;
-        
-      case 'in_progress':
-        if (update.progress && update.progress % 25 === 0) { // Show progress at 25%, 50%, 75%
-          toast({
-            title: "Training Progress",
-            description: `Training is ${update.progress}% complete`,
-          });
-        }
-        break;
-        
-      case 'completed':
-        toast({
-          title: "Training Complete",
-          description: update.message || "Agent training has completed successfully",
-          variant: "default"
-        });
-        break;
-        
-      case 'failed':
-        toast({
-          title: "Training Failed",
-          description: update.message || "There was an error during training",
-          variant: "destructive"
-        });
-        break;
-        
-      case 'cancelled':
-        toast({
-          title: "Training Cancelled",
-          description: "Agent training was cancelled",
-          variant: "default"
-        });
-        break;
-    }
-  }
-
+  
   private handleReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      const delay = this.reconnectTimeout * Math.pow(2, this.reconnectAttempts - 1);
+      const timeout = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
       
-      console.log(`Attempting to reconnect in ${delay}ms...`);
-      setTimeout(() => this.connect(), delay);
+      console.log(`Attempting to reconnect in ${timeout}ms...`);
+      setTimeout(() => this.connect(), timeout);
     } else {
-      console.error('Max reconnection attempts reached');
-      toast({
-        title: "Connection Lost",
-        description: "Failed to maintain connection to training service. Please refresh the page.",
-        variant: "destructive"
-      });
+      this.emit('connection', { status: 'disconnected', error: 'Max reconnect attempts reached' });
     }
   }
 
+  on(event: string, callback: Function) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    this.listeners.get(event)?.push(callback);
+  }
+  
+  off(event: string, callback: Function) {
+    if (!this.listeners.has(event)) return;
+    
+    const callbacks = this.listeners.get(event) || [];
+    this.listeners.set(
+      event,
+      callbacks.filter(cb => cb !== callback)
+    );
+  }
+  
+  private emit(event: string, data: any) {
+    const callbacks = this.listeners.get(event) || [];
+    callbacks.forEach(callback => callback(data));
+  }
+  
   disconnect() {
     if (this.socket) {
       this.socket.close();
       this.socket = null;
     }
   }
-
-  addEventListener(handler: (event: MessageEvent) => void) {
-    this.messageHandlers.add(handler);
-  }
-
-  removeEventListener(handler: (event: MessageEvent) => void) {
-    this.messageHandlers.delete(handler);
-  }
 }
 
-// Export a singleton instance
-export const webSocketService = new WebSocketService();
+// Create and export a singleton instance
+export const webSocketService = new WebSocketService('wss://api.7en.ai/ws');

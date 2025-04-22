@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { webSocketService } from '@/services/WebSocketService';
 import { useToast } from '@/hooks/use-toast';
@@ -29,72 +28,58 @@ export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = (
   const { toast } = useToast();
 
   useEffect(() => {
-    // Establish WebSocket connection when the component mounts and user is authenticated
+    // Only connect to WebSocket if user is authenticated
     if (user) {
       webSocketService.connect();
-
-      // Clean up WebSocket connection on unmount
+      
+      // Listen for training updates
+      webSocketService.on('agent_training_update', handleTrainingUpdate);
+      
+      // Cleanup on unmount
       return () => {
-        webSocketService.disconnect();
+        webSocketService.off('agent_training_update', handleTrainingUpdate);
       };
     }
   }, [user]);
 
-  // Handle training updates from WebSocket messages
-  useEffect(() => {
-    const handleTrainingUpdate = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type !== 'training_update') return;
-
-        const { agentId, status, progress, message } = data;
+  const handleTrainingUpdate = (data: any) => {
+    const { agentId, progress, status, error } = data;
+    
+    setTrainingProcesses(prevProcesses => {
+      const existingProcessIndex = prevProcesses.findIndex(p => p.agentId === agentId);
+      
+      if (existingProcessIndex === -1) return prevProcesses;
+      
+      const updatedProcesses = [...prevProcesses];
+      const process = {...updatedProcesses[existingProcessIndex]};
+      
+      process.progress = progress;
+      process.status = status;
+      
+      if (status === 'completed' || status === 'failed') {
+        process.endTime = new Date();
+        if (error) process.error = error;
         
-        setTrainingProcesses(prevProcesses => {
-          const existingProcessIndex = prevProcesses.findIndex(p => p.agentId === agentId);
-          
-          if (existingProcessIndex === -1) return prevProcesses;
-          
-          const updatedProcesses = [...prevProcesses];
-          const process = {...updatedProcesses[existingProcessIndex]};
-          
-          switch (status) {
-            case 'started':
-              process.status = 'training';
-              process.progress = 0;
-              break;
-            case 'in_progress':
-              process.status = 'training';
-              process.progress = progress || 0;
-              break;
-            case 'completed':
-              process.status = 'completed';
-              process.progress = 100;
-              process.endTime = new Date();
-              break;
-            case 'failed':
-              process.status = 'failed';
-              process.endTime = new Date();
-              process.error = message;
-              break;
-          }
-          
-          updatedProcesses[existingProcessIndex] = process;
-          return updatedProcesses;
-        });
-      } catch (error) {
-        console.error('Error handling training update:', error);
+        // Show a toast when training completes
+        if (status === 'completed') {
+          toast({
+            title: 'Training Complete',
+            description: `Agent "${process.agentName}" training has completed successfully.`,
+            variant: 'default',
+          });
+        } else {
+          toast({
+            title: 'Training Failed',
+            description: error || `Agent "${process.agentName}" training has failed.`,
+            variant: 'destructive',
+          });
+        }
       }
-    };
-
-    // Add the event listener to the WebSocket instance
-    if (user) {
-      webSocketService.connect();
-    }
-
-    return () => {
-      webSocketService.disconnect();
-    };
-  }, [user]);
+      
+      updatedProcesses[existingProcessIndex] = process;
+      return updatedProcesses;
+    });
+  };
 
   const startTraining = (agentId: string, agentName: string) => {
     setTrainingProcesses(prev => [
