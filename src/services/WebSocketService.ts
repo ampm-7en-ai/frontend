@@ -1,4 +1,3 @@
-
 import { toast } from '@/hooks/use-toast';
 
 type TrainingStatus = 'started' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
@@ -15,7 +14,8 @@ class WebSocketService {
   private socket: WebSocket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectTimeout = 1000; // Start with 1s, will increase exponentially
+  private reconnectTimeout = 1000;
+  private messageHandlers: Set<(event: MessageEvent) => void> = new Set();
 
   connect() {
     if (this.socket?.readyState === WebSocket.OPEN) {
@@ -23,7 +23,7 @@ class WebSocketService {
       return;
     }
 
-    const token = localStorage.getItem('auth_token'); // Or however you store your auth token
+    const token = localStorage.getItem('auth_token');
     const wsUrl = import.meta.env.VITE_WS_URL || 'wss://your-api-domain.com/ws';
     
     try {
@@ -35,9 +35,11 @@ class WebSocketService {
       };
 
       this.socket.onmessage = (event) => {
+        // Notify all handlers
+        this.messageHandlers.forEach(handler => handler(event));
+        
         try {
           const data = JSON.parse(event.data) as TrainingUpdate;
-          
           if (data.type === 'training_update') {
             this.handleTrainingUpdate(data);
           }
@@ -126,6 +128,14 @@ class WebSocketService {
       this.socket.close();
       this.socket = null;
     }
+  }
+
+  addEventListener(handler: (event: MessageEvent) => void) {
+    this.messageHandlers.add(handler);
+  }
+
+  removeEventListener(handler: (event: MessageEvent) => void) {
+    this.messageHandlers.delete(handler);
   }
 }
 
