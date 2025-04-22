@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,9 @@ import {
 } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
+import { useTrainingStatus } from '@/context/TrainingStatusContext';
+import { TrainingProgressIndicator } from '@/components/ui/training-progress';
+import websocketService from '@/services/websocket';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -47,6 +51,12 @@ const KnowledgeTrainingStatus = ({
   const skipNextInvalidationRef = useRef(false);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Get training status from context
+  const { trainingStatuses } = useTrainingStatus();
+  const anyTrainingInProgress = Object.values(trainingStatuses.knowledgeBases).some(
+    status => status.status === 'started' || status.status === 'in_progress'
+  );
+
   const fetchAvailableKnowledgeBases = async () => {
     if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
       console.log("Using cached knowledge bases instead of fetching");
@@ -190,8 +200,9 @@ const KnowledgeTrainingStatus = ({
     // The ImportSourcesDialog component now handles the refresh after import
   };
 
-  const trainAllSources = () => {
-    if (agentKnowledgeBases.length === 0) {
+  // Modified to use WebSockets
+  const trainAllSources = async () => {
+    if (!agentKnowledgeBases || agentKnowledgeBases.length === 0) {
       toast({
         title: "No sources selected",
         description: "Please import at least one knowledge source to train.",
@@ -205,20 +216,92 @@ const KnowledgeTrainingStatus = ({
     
     toast({
       title: "Training all sources",
-      description: `Processing ${agentKnowledgeBases.length} knowledge sources. This may take a moment.`
+      description: `Processing ${agentKnowledgeBases.length} knowledge sources. You'll receive updates as training progresses.`
     });
 
-    setTimeout(() => {
-      setIsTrainingAll(false);
-      setNeedsRetraining(false);
-      setShowTrainingAlert(false);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
       
-      toast({
-        title: "Training complete",
-        description: "All knowledge sources have been processed."
+      // Make API request to start training all knowledge bases
+      const response = await fetch(`${BASE_URL}agents/${agentId}/train-knowledge/`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          knowledge_base_ids: agentKnowledgeBases.map(kb => kb.id)
+        })
       });
-    }, 4000);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Training request failed.");
+      }
+      
+      // We'll get updates via WebSocket, so we don't need to update the state immediately
+    } catch (error) {
+      toast({
+        title: "Training failed to start",
+        description: error instanceof Error ? error.message : "An error occurred while starting training.",
+        variant: "destructive"
+      });
+      setIsTrainingAll(false);
+      setShowTrainingAlert(false);
+    }
   };
+
+  // Subscribe to training status updates for all knowledge bases
+  useEffect(() => {
+    if (!agentKnowledgeBases) return;
+    
+    // Set up subscriptions for each knowledge base
+    const unsubscribes = agentKnowledgeBases.map(kb => {
+      return websocketService.subscribeToKnowledgeTraining(kb.id, (data) => {
+        if (data.status === 'completed') {
+          toast({
+            title: "Knowledge base trained",
+            description: `Knowledge base "${kb.name}" has been successfully trained.`,
+            variant: "default"
+          });
+        } else if (data.status === 'failed') {
+          toast({
+            title: "Knowledge base training failed",
+            description: data.error || `There was an error training knowledge base "${kb.name}".`,
+            variant: "destructive"
+          });
+        }
+      });
+    });
+    
+    // When all knowledge bases are done training, update UI
+    const allStatusesUnsubscribe = websocketService.subscribe('knowledge:training-status', (data) => {
+      // Check if all knowledge bases are done training
+      const allCompleted = agentKnowledgeBases.every(kb => {
+        const status = trainingStatuses.knowledgeBases[kb.id];
+        return status && (status.status === 'completed' || status.status === 'failed');
+      });
+      
+      if (allCompleted) {
+        setIsTrainingAll(false);
+        setShowTrainingAlert(false);
+        setNeedsRetraining(false);
+        
+        toast({
+          title: "All training completed",
+          description: "All knowledge sources have been processed."
+        });
+        
+        // Refresh the knowledge bases to get updated statuses
+        triggerRefresh();
+      }
+    });
+    
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+      allStatusesUnsubscribe();
+    };
+  }, [agentKnowledgeBases, toast, trainingStatuses.knowledgeBases, triggerRefresh]);
 
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
     console.log("Knowledge base removed, id:", id);
@@ -304,16 +387,16 @@ const KnowledgeTrainingStatus = ({
           </Button>
           <Button 
             onClick={trainAllSources} 
-            disabled={isTrainingAll || (!isLoadingAgentKnowledgeBases && (!agentKnowledgeBases || agentKnowledgeBases.length === 0))}
+            disabled={isTrainingAll || anyTrainingInProgress || (!isLoadingAgentKnowledgeBases && (!agentKnowledgeBases || agentKnowledgeBases.length === 0))}
             size="sm"
             className="flex items-center gap-1"
           >
-            {isTrainingAll ? (
+            {(isTrainingAll || anyTrainingInProgress) ? (
               <LoaderCircle className="h-4 w-4 animate-spin" />
             ) : (
               <Zap className="h-4 w-4" />
             )}
-            {isTrainingAll ? 'Training...' : 'Train All'}
+            {(isTrainingAll || anyTrainingInProgress) ? 'Training...' : 'Train All'}
           </Button>
         </div>
       </CardHeader>
@@ -321,9 +404,30 @@ const KnowledgeTrainingStatus = ({
         {showTrainingAlert && (
           <div className="mb-4">
             <AlertBanner 
-              message="Training started! It will just take a minute or so, depending on the number of pages."
+              message="Training started! Progress updates will appear as training continues."
               variant="info"
             />
+          </div>
+        )}
+        
+        {/* Training Progress Indicators for Knowledge Bases */}
+        {agentKnowledgeBases && agentKnowledgeBases.length > 0 && (
+          <div className="space-y-2 mb-4">
+            {agentKnowledgeBases.map(kb => {
+              const kbStatus = trainingStatuses.knowledgeBases[kb.id];
+              if (kbStatus && kbStatus.status !== 'idle') {
+                return (
+                  <TrainingProgressIndicator 
+                    key={`training-${kb.id}`}
+                    status={kbStatus.status}
+                    progress={kbStatus.progress}
+                    message={`Training "${kb.name}": ${kbStatus.message || ''}`}
+                    error={kbStatus.error}
+                  />
+                );
+              }
+              return null;
+            })}
           </div>
         )}
         
