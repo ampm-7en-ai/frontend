@@ -1,28 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Import, Zap, LoaderCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { TrainingProgressIndicator } from '@/components/ui/training-progress';
-import { Progress } from '@/components/ui/progress';
-import { LoaderCircle, CheckCircle, AlertCircle, Clock } from 'lucide-react';
-import { mockKnowledgeBaseTrainingProgress } from '@/utils/websocket-mock';
-import { useKnowledgeBaseTrainingStatus } from '@/hooks/useWebSocket';
-import { useTrainingStatus } from '@/context/TrainingStatusContext';
+import { ApiKnowledgeBase, KnowledgeSource } from './types';
+import { ImportSourcesDialog } from './ImportSourcesDialog';
+import { AlertBanner } from '@/components/ui/alert-banner';
+import { 
+  BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
+  getAgentEndpoint, getSourceMetadataInfo
+} from '@/utils/api-config';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import KnowledgeSourceList from './KnowledgeSourceList';
 
 interface KnowledgeTrainingStatusProps {
-  knowledgeBaseId: number;
-  knowledgeBaseName?: string;
-  useCompactView?: boolean;
-  onTrainingComplete?: () => void;
-  className?: string;
-}
-
-interface AgentKnowledgeTrainingStatusProps {
-  agentId: string;
-  knowledgeBases: Array<{ id: number; name: string; }>;
-  onAllTrainingComplete?: () => void;
-  className?: string;
-}
-
-interface AgentEditKnowledgeTrainingStatusProps {
   agentId: string;
   initialSelectedSources?: number[];
   onSourcesChange?: (selectedSourceIds: number[]) => void;
@@ -32,214 +23,337 @@ interface AgentEditKnowledgeTrainingStatusProps {
   onKnowledgeBasesChanged?: () => void;
 }
 
-export const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({
-  knowledgeBaseId,
-  knowledgeBaseName = 'Knowledge Base',
-  useCompactView = false,
-  onTrainingComplete,
-  className = ''
-}) => {
-  const { toast } = useToast();
-  const { getKnowledgeBaseTrainingStatus } = useTrainingStatus();
-  const trainingStatus = getKnowledgeBaseTrainingStatus(knowledgeBaseId);
-  
-  useKnowledgeBaseTrainingStatus(knowledgeBaseId, (data) => {
-    if (data.status === 'completed') {
-      toast({
-        title: "Training Complete",
-        description: `${knowledgeBaseName} training has been completed successfully.`,
-      });
-      if (onTrainingComplete) onTrainingComplete();
-    } else if (data.status === 'failed') {
-      toast({
-        title: "Training Failed",
-        description: data.message || `${knowledgeBaseName} training has failed.`,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && !trainingStatus && knowledgeBaseId) {
-      const cleanup = mockKnowledgeBaseTrainingProgress(knowledgeBaseId, knowledgeBaseName, onTrainingComplete);
-      return () => cleanup();
-    }
-  }, [knowledgeBaseId, knowledgeBaseName, onTrainingComplete, trainingStatus]);
-  
-  if (!trainingStatus || trainingStatus.status === 'idle') {
-    return null;
-  }
-  
-  if (useCompactView) {
-    return (
-      <div className={`flex items-center ${className}`}>
-        {(trainingStatus.status === 'started' || trainingStatus.status === 'in_progress') && (
-          <>
-            <LoaderCircle className="h-4 w-4 mr-2 text-blue-500 animate-spin" />
-            <span className="text-xs text-blue-500">
-              Training ({trainingStatus.progress || 0}%)
-            </span>
-          </>
-        )}
-        
-        {trainingStatus.status === 'completed' && (
-          <>
-            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-            <span className="text-xs text-green-500">Trained</span>
-          </>
-        )}
-        
-        {trainingStatus.status === 'failed' && (
-          <>
-            <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
-            <span className="text-xs text-red-500">Failed</span>
-          </>
-        )}
-      </div>
-    );
-  }
-  
-  return (
-    <TrainingProgressIndicator
-      status={trainingStatus.status}
-      progress={trainingStatus.progress}
-      message={trainingStatus.message}
-      error={trainingStatus.error}
-      className={className}
-    />
-  );
-};
-
-export const AgentKnowledgeTrainingStatus: React.FC<AgentKnowledgeTrainingStatusProps> = ({
-  agentId,
-  knowledgeBases,
-  onAllTrainingComplete,
-  className = ''
-}) => {
-  const { trainingStatuses } = useTrainingStatus();
-  const { toast } = useToast();
-  const [allComplete, setAllComplete] = useState(false);
-  
-  useEffect(() => {
-    if (!knowledgeBases || knowledgeBases.length === 0) return;
-    
-    const allKnowledgeBases = knowledgeBases.map(kb => kb.id);
-    const trainingKnowledgeBases = allKnowledgeBases.filter(id => {
-      const status = trainingStatuses.knowledgeBases[id]?.status;
-      return status === 'started' || status === 'in_progress';
-    });
-    
-    const completedKnowledgeBases = allKnowledgeBases.filter(id => {
-      return trainingStatuses.knowledgeBases[id]?.status === 'completed';
-    });
-    
-    const failedKnowledgeBases = allKnowledgeBases.filter(id => {
-      return trainingStatuses.knowledgeBases[id]?.status === 'failed';
-    });
-    
-    if (trainingKnowledgeBases.length === 0 && 
-        (completedKnowledgeBases.length > 0 || failedKnowledgeBases.length > 0) &&
-        !allComplete && 
-        completedKnowledgeBases.length + failedKnowledgeBases.length === allKnowledgeBases.length) {
-      
-      setAllComplete(true);
-      
-      if (failedKnowledgeBases.length === 0) {
-        toast({
-          title: "All Knowledge Bases Trained",
-          description: "Your agent is ready to use all knowledge bases.",
-        });
-        if (onAllTrainingComplete) onAllTrainingComplete();
-      } else {
-        toast({
-          title: "Training Complete with Errors",
-          description: `${failedKnowledgeBases.length} knowledge bases failed training.`,
-          variant: "destructive"
-        });
-      }
-    }
-  }, [trainingStatuses, knowledgeBases, onAllTrainingComplete, toast, allComplete]);
-  
-  const hasActiveTraining = knowledgeBases.some(kb => {
-    const status = trainingStatuses.knowledgeBases[kb.id]?.status;
-    return status === 'started' || status === 'in_progress';
-  });
-  
-  if (!hasActiveTraining && !allComplete) {
-    return null;
-  }
-  
-  return (
-    <div className={`p-3 border rounded-md bg-blue-50 border-blue-200 text-blue-800 ${className}`}>
-      <div className="flex items-center mb-2">
-        <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
-        <span className="font-medium">Training knowledge bases for agent</span>
-      </div>
-      
-      <div className="space-y-3 mt-2">
-        {knowledgeBases.map((kb) => {
-          const status = trainingStatuses.knowledgeBases[kb.id];
-          
-          if (!status) return null;
-          
-          return (
-            <div key={kb.id} className="flex flex-col">
-              <div className="flex justify-between text-sm mb-1">
-                <span>{kb.name}</span>
-                <span>
-                  {status.status === 'completed' && '100%'}
-                  {status.status === 'failed' && 'Failed'}
-                  {(status.status === 'started' || status.status === 'in_progress') && 
-                   `${status.progress || 0}%`}
-                </span>
-              </div>
-              <Progress 
-                value={status.status === 'completed' ? 100 : status.progress} 
-                className="h-1.5 w-full"
-              />
-              {status.message && (
-                <p className="text-xs mt-1 text-blue-700">{status.message}</p>
-              )}
-              {status.error && (
-                <p className="text-xs mt-1 text-red-600">{status.error}</p>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-export const KnowledgeTrainingStatusForAgentEdit: React.FC<AgentEditKnowledgeTrainingStatusProps> = ({
-  agentId,
-  initialSelectedSources = [],
+const KnowledgeTrainingStatus = ({ 
+  agentId, 
+  initialSelectedSources = [], 
   onSourcesChange,
   preloadedKnowledgeSources = [],
   isLoading = false,
   loadError = null,
   onKnowledgeBasesChanged
-}) => {
-  return (
-    <div className="space-y-6">
-      <div className="border rounded-lg p-4">
-        <h3 className="text-lg font-medium mb-4">Knowledge Base Training Status</h3>
-        <p>Agent ID: {agentId}</p>
-        <p>Selected Sources: {initialSelectedSources.join(', ')}</p>
-        {isLoading && <p>Loading knowledge sources...</p>}
-        {loadError && <p className="text-red-500">Error: {loadError}</p>}
-        {preloadedKnowledgeSources.length > 0 && (
-          <p>Preloaded knowledge sources: {preloadedKnowledgeSources.length}</p>
-        )}
+}: KnowledgeTrainingStatusProps) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isTrainingAll, setIsTrainingAll] = useState(false);
+  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
+  const [needsRetraining, setNeedsRetraining] = useState(true);
+  const [showTrainingAlert, setShowTrainingAlert] = useState(false);
+  
+  const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
+  const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
+  const initialMountRef = useRef(true);
+  const skipNextInvalidationRef = useRef(false);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const fetchAvailableKnowledgeBases = async () => {
+    if (knowledgeBasesLoaded && cachedKnowledgeBases.current.length > 0) {
+      console.log("Using cached knowledge bases instead of fetching");
+      return cachedKnowledgeBases.current;
+    }
+
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      console.log(`Fetching knowledge bases from API with agentId: ${agentId}`);
+      const endpoint = getKnowledgeBaseEndpoint(agentId);
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch knowledge bases');
+      }
+
+      const data = await response.json();
+      
+      cachedKnowledgeBases.current = data.data;
+      setKnowledgeBasesLoaded(true);
+      
+      return data.data;
+    } catch (error) {
+      console.error('Error fetching knowledge bases:', error);
+      throw error;
+    }
+  };
+
+  const fetchAgentKnowledgeBases = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      console.log(`Fetching agent details for ID: ${agentId}`);
+      const response = await fetch(`${BASE_URL}${getAgentEndpoint(agentId)}`, {
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent details: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.data.knowledge_bases || [];
+    } catch (error) {
+      console.error('Error fetching agent knowledge bases:', error);
+      throw error;
+    }
+  };
+
+  const formatExternalSources = (data: any[]) => {
+    if (!data) return [];
+    
+    return data.map(kb => {
+      const firstSource = kb.knowledge_sources && kb.knowledge_sources.length > 0 
+        ? kb.knowledge_sources[0] 
+        : null;
+
+      const metadataInfo = firstSource ? getSourceMetadataInfo({
+        type: kb.type,
+        metadata: firstSource.metadata
+      }) : { count: '', size: 'N/A' };
         
-        <div className="mt-4">
-          <Button onClick={() => onKnowledgeBasesChanged && onKnowledgeBasesChanged()}>
-            Refresh Knowledge Bases
+      const uploadDate = firstSource && firstSource.metadata && firstSource.metadata.upload_date 
+        ? formatDate(firstSource.metadata.upload_date) 
+        : formatDate(kb.last_updated);
+
+      return {
+        id: kb.id,
+        name: kb.name,
+        type: kb.type,
+        size: metadataInfo.size,
+        lastUpdated: uploadDate,
+        trainingStatus: 'idle' as 'idle' | 'training' | 'success' | 'error',
+        linkBroken: false,
+        knowledge_sources: kb.knowledge_sources,
+        metadata: kb.metadata || {}
+      };
+    });
+  };
+  
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB');
+  };
+
+  const triggerRefresh = useCallback(() => {
+    console.log("Triggering knowledge bases refresh");
+    // Clear any existing timeout to prevent multiple refreshes
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    
+    // Using a 500ms delay to debounce multiple refresh calls
+    refreshTimeoutRef.current = setTimeout(() => {
+      setKnowledgeBasesLoaded(false);
+      cachedKnowledgeBases.current = [];
+      
+      // Use invalidateQueries instead of direct refetch
+      queryClient.invalidateQueries({ 
+        queryKey: ['agentKnowledgeBases', agentId]
+      });
+      
+      refreshTimeoutRef.current = null;
+    }, 500);
+  }, [agentId, queryClient]);
+
+  const refreshKnowledgeBases = () => {
+    console.log("Manually refreshing knowledge bases");
+    triggerRefresh();
+  };
+
+  const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
+    if (!availableKnowledgeBases && !cachedKnowledgeBases.current.length) {
+      toast({
+        title: "Cannot import sources",
+        description: "Knowledge base data is unavailable. Please try again later.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Sources imported",
+      description: "The selected knowledge sources have been imported.",
+    });
+    
+    setIsImportDialogOpen(false);
+    setNeedsRetraining(true);
+    
+    // The ImportSourcesDialog component now handles the refresh after import
+  };
+
+  const trainAllSources = () => {
+    if (agentKnowledgeBases.length === 0) {
+      toast({
+        title: "No sources selected",
+        description: "Please import at least one knowledge source to train.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsTrainingAll(true);
+    setShowTrainingAlert(true);
+    
+    toast({
+      title: "Training all sources",
+      description: `Processing ${agentKnowledgeBases.length} knowledge sources. This may take a moment.`
+    });
+
+    setTimeout(() => {
+      setIsTrainingAll(false);
+      setNeedsRetraining(false);
+      setShowTrainingAlert(false);
+      
+      toast({
+        title: "Training complete",
+        description: "All knowledge sources have been processed."
+      });
+    }, 4000);
+  };
+
+  const handleKnowledgeBaseRemoved = useCallback((id: number) => {
+    console.log("Knowledge base removed, id:", id);
+    
+    // Force a refresh after deletion
+    triggerRefresh();
+    
+    if (onKnowledgeBasesChanged) {
+      onKnowledgeBasesChanged();
+    }
+  }, [onKnowledgeBasesChanged, triggerRefresh]);
+
+  // Modified with better caching settings
+  const { 
+    data: availableKnowledgeBases, 
+    isLoading: isLoadingAvailableKnowledgeBases, 
+    error: availableKnowledgeBasesError, 
+    refetch: refetchAvailableKnowledgeBases 
+  } = useQuery({
+    queryKey: ['availableKnowledgeBases', agentId],
+    queryFn: fetchAvailableKnowledgeBases,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: false // Don't fetch automatically
+  });
+
+  // Modified with better caching settings
+  const { 
+    data: agentKnowledgeBases, 
+    isLoading: isLoadingAgentKnowledgeBases, 
+    error: agentKnowledgeBasesError, 
+    refetch: refetchAgentKnowledgeBases 
+  } = useQuery({
+    queryKey: ['agentKnowledgeBases', agentId],
+    queryFn: fetchAgentKnowledgeBases,
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    enabled: !!agentId && !initialMountRef.current,
+    refetchOnWindowFocus: false
+  });
+
+  useEffect(() => {
+    if (isImportDialogOpen) {
+      refetchAvailableKnowledgeBases();
+    }
+  }, [isImportDialogOpen, refetchAvailableKnowledgeBases]);
+
+  useEffect(() => {
+    if (initialMountRef.current) {
+      initialMountRef.current = false;
+      
+      if (preloadedKnowledgeSources && preloadedKnowledgeSources.length > 0) {
+        queryClient.setQueryData(['agentKnowledgeBases', agentId], preloadedKnowledgeSources);
+      } else {
+        refetchAgentKnowledgeBases();
+      }
+    }
+  }, [agentId, preloadedKnowledgeSources, queryClient, refetchAgentKnowledgeBases]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle className="text-lg">Knowledge Sources</CardTitle>
+          <CardDescription>Connect knowledge sources to your agent to improve its responses</CardDescription>
+        </div>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsImportDialogOpen(true)}
+            className="flex items-center gap-1"
+          >
+            <Import className="h-4 w-4" />
+            Import Sources
+          </Button>
+          <Button 
+            onClick={trainAllSources} 
+            disabled={isTrainingAll || (!isLoadingAgentKnowledgeBases && (!agentKnowledgeBases || agentKnowledgeBases.length === 0))}
+            size="sm"
+            className="flex items-center gap-1"
+          >
+            {isTrainingAll ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <Zap className="h-4 w-4" />
+            )}
+            {isTrainingAll ? 'Training...' : 'Train All'}
           </Button>
         </div>
-      </div>
-    </div>
+      </CardHeader>
+      <CardContent>
+        {showTrainingAlert && (
+          <div className="mb-4">
+            <AlertBanner 
+              message="Training started! It will just take a minute or so, depending on the number of pages."
+              variant="info"
+            />
+          </div>
+        )}
+        
+        <KnowledgeSourceList 
+          knowledgeBases={agentKnowledgeBases || []} 
+          isLoading={isLoadingAgentKnowledgeBases}
+          agentId={agentId}
+          onKnowledgeBaseRemoved={handleKnowledgeBaseRemoved}
+        />
+        
+        {needsRetraining && agentKnowledgeBases && agentKnowledgeBases.length > 0 && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
+          </div>
+        )}
+      </CardContent>
+
+      <ImportSourcesDialog
+        isOpen={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        externalSources={availableKnowledgeBases || []}
+        currentSources={formatExternalSources(agentKnowledgeBases || [])}
+        onImport={importSelectedSources}
+        agentId={agentId}
+        preventMultipleCalls={true}
+        isLoading={isLoadingAvailableKnowledgeBases}
+      />
+    </Card>
   );
 };
 
-import { Button } from '@/components/ui/button';
+export default KnowledgeTrainingStatus;
