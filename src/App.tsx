@@ -1,4 +1,3 @@
-
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom';
@@ -225,7 +224,6 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/verify" element={<Verify />} />
                 <Route path="/invitation" element={<InviteRegistration />} />
-                {/* Use element directly instead of children prop for Route */}
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
               <Toaster />
