@@ -845,6 +845,7 @@ const AgentEdit = () => {
       <div className="dotted-background h-full w-full flex items-center justify-center p-4 rounded-lg pb-1">
         <div className="w-[420px] max-w-full h-full shadow-lg">
           <ChatboxPreview
+            agentId={agentId}
             primaryColor={agent.primaryColor}
             secondaryColor={agent.secondaryColor}
             fontFamily={agent.fontFamily}
