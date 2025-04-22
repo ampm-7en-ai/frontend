@@ -1,10 +1,9 @@
-
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { TrainingStatusProvider } from '@/context/TrainingStatusContext';
 import { Toaster } from '@/components/ui/toaster';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -33,7 +32,6 @@ import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
 import { ProtectedRoute } from './utils/routeUtils';
-import { useAuth } from '@/context/AuthContext';
 import { getDashboardPath } from './utils/routeUtils';
 
 const queryClient = new QueryClient({
@@ -47,7 +45,8 @@ const queryClient = new QueryClient({
 
 // Create a protected routes component
 const ProtectedRoutes = () => {
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userRole = user?.role;
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -60,13 +59,6 @@ const ProtectedRoutes = () => {
         <ProtectedRoute allowedRoles={['superadmin']} userRole={userRole} fallbackPath="/dashboard/admin">
           <MainLayout>
             <SuperAdminDashboard />
-          </MainLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/dashboard/admin" element={
-        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole} fallbackPath="/dashboard/user">
-          <MainLayout>
-            <AdminDashboard />
           </MainLayout>
         </ProtectedRoute>
       } />
