@@ -19,7 +19,7 @@ export class ChatWebSocketService {
   private events: ChatWebSocketEvents = {};
   
   constructor(agentId: string) {
-    this.ws = new WebSocketService(`wss://api.7en.ai/ws/chat/agent/${agentId}`);
+    this.ws = new WebSocketService(`wss://api.7en.ai/ws/chat/${agentId}/`);
     
     this.ws.on('message', this.handleMessage.bind(this));
     this.ws.on('typing_start', () => this.events.onTypingStart?.());
