@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { TrainingProgressIndicator } from '@/components/ui/training-progress';
@@ -16,6 +15,23 @@ interface KnowledgeTrainingStatusProps {
   className?: string;
 }
 
+interface AgentKnowledgeTrainingStatusProps {
+  agentId: string;
+  knowledgeBases: Array<{ id: number; name: string; }>;
+  onAllTrainingComplete?: () => void;
+  className?: string;
+}
+
+interface AgentEditKnowledgeTrainingStatusProps {
+  agentId: string;
+  initialSelectedSources?: number[];
+  onSourcesChange?: (selectedSourceIds: number[]) => void;
+  preloadedKnowledgeSources?: any[];
+  isLoading?: boolean;
+  loadError?: string | null;
+  onKnowledgeBasesChanged?: () => void;
+}
+
 export const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = ({
   knowledgeBaseId,
   knowledgeBaseName = 'Knowledge Base',
@@ -27,9 +43,7 @@ export const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = (
   const { getKnowledgeBaseTrainingStatus } = useTrainingStatus();
   const trainingStatus = getKnowledgeBaseTrainingStatus(knowledgeBaseId);
   
-  // Setup WebSocket subscription for this knowledge base
   useKnowledgeBaseTrainingStatus(knowledgeBaseId, (data) => {
-    // WebSocket update received, no need to handle here as the TrainingStatusContext will update
     if (data.status === 'completed') {
       toast({
         title: "Training Complete",
@@ -45,9 +59,7 @@ export const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = (
     }
   });
   
-  // If we're in development mode and don't have real WebSocket data, use the mock
   useEffect(() => {
-    // Only use mock if no WebSocket connection and in development
     if (process.env.NODE_ENV === 'development' && !trainingStatus && knowledgeBaseId) {
       const cleanup = mockKnowledgeBaseTrainingProgress(knowledgeBaseId, knowledgeBaseName, onTrainingComplete);
       return () => cleanup();
@@ -59,7 +71,6 @@ export const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = (
   }
   
   if (useCompactView) {
-    // Compact view for tables and lists
     return (
       <div className={`flex items-center ${className}`}>
         {(trainingStatus.status === 'started' || trainingStatus.status === 'in_progress') && (
@@ -88,7 +99,6 @@ export const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = (
     );
   }
   
-  // Standard view with more details
   return (
     <TrainingProgressIndicator
       status={trainingStatus.status}
@@ -100,15 +110,12 @@ export const KnowledgeTrainingStatus: React.FC<KnowledgeTrainingStatusProps> = (
   );
 };
 
-/**
- * Used to display the training status for all knowledge bases connected to an agent
- */
-export const AgentKnowledgeTrainingStatus: React.FC<{
-  agentId: string;
-  knowledgeBases: Array<{ id: number; name: string; }>;
-  onAllTrainingComplete?: () => void;
-  className?: string;
-}> = ({ agentId, knowledgeBases, onAllTrainingComplete, className = '' }) => {
+export const AgentKnowledgeTrainingStatus: React.FC<AgentKnowledgeTrainingStatusProps> = ({
+  agentId,
+  knowledgeBases,
+  onAllTrainingComplete,
+  className = ''
+}) => {
   const { trainingStatuses } = useTrainingStatus();
   const { toast } = useToast();
   const [allComplete, setAllComplete] = useState(false);
@@ -116,7 +123,6 @@ export const AgentKnowledgeTrainingStatus: React.FC<{
   useEffect(() => {
     if (!knowledgeBases || knowledgeBases.length === 0) return;
     
-    // Check if all knowledge bases have completed training
     const allKnowledgeBases = knowledgeBases.map(kb => kb.id);
     const trainingKnowledgeBases = allKnowledgeBases.filter(id => {
       const status = trainingStatuses.knowledgeBases[id]?.status;
@@ -131,7 +137,6 @@ export const AgentKnowledgeTrainingStatus: React.FC<{
       return trainingStatuses.knowledgeBases[id]?.status === 'failed';
     });
     
-    // If nothing is training and we have completed bases, and we haven't already fired the event
     if (trainingKnowledgeBases.length === 0 && 
         (completedKnowledgeBases.length > 0 || failedKnowledgeBases.length > 0) &&
         !allComplete && 
@@ -155,7 +160,6 @@ export const AgentKnowledgeTrainingStatus: React.FC<{
     }
   }, [trainingStatuses, knowledgeBases, onAllTrainingComplete, toast, allComplete]);
   
-  // If no knowledge bases or none are training, don't show anything
   const hasActiveTraining = knowledgeBases.some(kb => {
     const status = trainingStatuses.knowledgeBases[kb.id]?.status;
     return status === 'started' || status === 'in_progress';
@@ -206,3 +210,36 @@ export const AgentKnowledgeTrainingStatus: React.FC<{
     </div>
   );
 };
+
+export const KnowledgeTrainingStatusForAgentEdit: React.FC<AgentEditKnowledgeTrainingStatusProps> = ({
+  agentId,
+  initialSelectedSources = [],
+  onSourcesChange,
+  preloadedKnowledgeSources = [],
+  isLoading = false,
+  loadError = null,
+  onKnowledgeBasesChanged
+}) => {
+  return (
+    <div className="space-y-6">
+      <div className="border rounded-lg p-4">
+        <h3 className="text-lg font-medium mb-4">Knowledge Base Training Status</h3>
+        <p>Agent ID: {agentId}</p>
+        <p>Selected Sources: {initialSelectedSources.join(', ')}</p>
+        {isLoading && <p>Loading knowledge sources...</p>}
+        {loadError && <p className="text-red-500">Error: {loadError}</p>}
+        {preloadedKnowledgeSources.length > 0 && (
+          <p>Preloaded knowledge sources: {preloadedKnowledgeSources.length}</p>
+        )}
+        
+        <div className="mt-4">
+          <Button onClick={() => onKnowledgeBasesChanged && onKnowledgeBasesChanged()}>
+            Refresh Knowledge Bases
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+import { Button } from '@/components/ui/button';

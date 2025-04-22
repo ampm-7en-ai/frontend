@@ -1,3 +1,4 @@
+
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
@@ -59,6 +60,14 @@ const ProtectedRoutes = () => {
         <ProtectedRoute allowedRoles={['superadmin']} userRole={userRole} fallbackPath="/dashboard/admin">
           <MainLayout>
             <SuperAdminDashboard />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/dashboard/admin" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole} fallbackPath="/dashboard/user">
+          <MainLayout>
+            <AdminDashboard />
           </MainLayout>
         </ProtectedRoute>
       } />
