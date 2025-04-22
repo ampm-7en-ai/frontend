@@ -89,7 +89,6 @@ const ProtectedRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        
         <Route path="/agents" element={<AgentList />} />
         <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
         
