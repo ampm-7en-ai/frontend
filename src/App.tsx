@@ -30,6 +30,7 @@ import { ProtectedRoute } from './utils/routeUtils';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
+import { TrainingStatusProvider } from './context/TrainingStatusContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -180,13 +181,15 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <Router>
           <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/verify" element={<Verify />} />
-              <Route path="/invitation" element={<InviteRegistration />} />
-              <Route path="/*" element={<ProtectedRoutes />} />
-            </Routes>
-            <Toaster />
+            <TrainingStatusProvider>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/verify" element={<Verify />} />
+                <Route path="/invitation" element={<InviteRegistration />} />
+                <Route path="/*" element={<ProtectedRoutes />} />
+              </Routes>
+              <Toaster />
+            </TrainingStatusProvider>
           </AuthProvider>
         </Router>
       </QueryClientProvider>
