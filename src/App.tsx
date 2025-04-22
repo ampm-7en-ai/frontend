@@ -1,3 +1,4 @@
+
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
@@ -6,8 +7,8 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { TrainingStatusProvider } from '@/context/TrainingStatusContext';
 import { Toaster } from '@/components/ui/toaster';
-import MainLayout from '@/components/layout/MainLayout';
-import TestPageLayout from '@/components/layout/TestPageLayout';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { TestPageLayout } from '@/components/layout/TestPageLayout';
 import Login from './pages/Login';
 import Verify from './pages/Verify';
 import InviteRegistration from './pages/InviteRegistration';
@@ -32,6 +33,8 @@ import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
 import { ProtectedRoute } from './utils/routeUtils';
+import { useAuth } from '@/context/AuthContext';
+import { getDashboardPath } from './utils/routeUtils';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,11 +45,179 @@ const queryClient = new QueryClient({
   },
 });
 
+// Create a protected routes component
+const ProtectedRoutes = () => {
+  const { isAuthenticated, userRole } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return (
+    <Routes>
+      {/* Dashboard Routes */}
+      <Route path="/dashboard/superadmin" element={
+        <ProtectedRoute allowedRoles={['superadmin']} userRole={userRole} fallbackPath="/dashboard/admin">
+          <MainLayout>
+            <SuperAdminDashboard />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/dashboard/admin" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole} fallbackPath="/dashboard/user">
+          <MainLayout>
+            <AdminDashboard />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Agent Routes */}
+      <Route path="/agents" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin', 'user']} userRole={userRole}>
+          <MainLayout>
+            <AgentList />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/agents/:agentId/edit" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <AgentEdit />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/agents/:agentId/test" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin', 'user']} userRole={userRole}>
+          <TestPageLayout>
+            <AgentTest />
+          </TestPageLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Business Routes */}
+      <Route path="/businesses" element={
+        <ProtectedRoute allowedRoles={['superadmin']} userRole={userRole}>
+          <MainLayout>
+            <BusinessList />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/businesses/:businessId" element={
+        <ProtectedRoute allowedRoles={['superadmin']} userRole={userRole}>
+          <MainLayout>
+            <BusinessDetail />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* User Routes */}
+      <Route path="/users" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <UserList />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/users/:userId" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <UserDetail />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Settings Routes */}
+      <Route path="/settings/business" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <BusinessSettings />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/settings/platform/general" element={
+        <ProtectedRoute allowedRoles={['superadmin']} userRole={userRole}>
+          <MainLayout>
+            <GeneralSettings />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/settings/platform/billing" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <BillingSettings />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Analytics Routes */}
+      <Route path="/analytics" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <PlatformAnalytics />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Conversation Routes */}
+      <Route path="/conversations" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin', 'user']} userRole={userRole}>
+          <MainLayout>
+            <ConversationList />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/conversations/:conversationId" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin', 'user']} userRole={userRole}>
+          <MainLayout>
+            <ConversationDetail />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Knowledge Base Routes */}
+      <Route path="/knowledge" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <KnowledgeBase />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/knowledge/upload" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin']} userRole={userRole}>
+          <MainLayout>
+            <KnowledgeUpload />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Help Routes */}
+      <Route path="/help/docs" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin', 'user']} userRole={userRole}>
+          <MainLayout>
+            <Documentation />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/help/support" element={
+        <ProtectedRoute allowedRoles={['admin', 'superadmin', 'user']} userRole={userRole}>
+          <MainLayout>
+            <SupportTicket />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Fallback routes */}
+      <Route path="/" element={<Navigate to={getDashboardPath(userRole)} replace />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeProvider defaultTheme="light" storageKey="7en-ui-theme">
+        <ThemeProvider>
           <AuthProvider>
             <TrainingStatusProvider>
               <Routes>

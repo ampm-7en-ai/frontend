@@ -25,6 +25,17 @@ interface TrainingStatusContextType {
   clearKnowledgeBaseTrainingStatus: (knowledgeBaseId: number) => void;
 }
 
+// Define the type for training status updates from WebSocket
+interface TrainingStatusUpdate {
+  agentId?: string;
+  knowledgeBaseId?: number;
+  status: 'started' | 'in_progress' | 'completed' | 'failed';
+  progress?: number;
+  message?: string;
+  error?: string;
+  timestamp: number;
+}
+
 const defaultTrainingStatusMap: TrainingStatusMap = {
   agents: {},
   knowledgeBases: {}
@@ -37,7 +48,7 @@ export const TrainingStatusProvider: React.FC<{ children: ReactNode }> = ({ chil
 
   useEffect(() => {
     // Subscribe to all agent training status updates
-    const agentTrainingUnsubscribe = websocketService.subscribe('agent:training-status', (data) => {
+    const agentTrainingUnsubscribe = websocketService.subscribe<TrainingStatusUpdate>('agent:training-status', (data) => {
       if (data.agentId) {
         setTrainingStatuses(prev => ({
           ...prev,
@@ -57,7 +68,7 @@ export const TrainingStatusProvider: React.FC<{ children: ReactNode }> = ({ chil
     });
 
     // Subscribe to all knowledge base training status updates
-    const knowledgeTrainingUnsubscribe = websocketService.subscribe('knowledge:training-status', (data) => {
+    const knowledgeTrainingUnsubscribe = websocketService.subscribe<TrainingStatusUpdate>('knowledge:training-status', (data) => {
       if (data.knowledgeBaseId) {
         setTrainingStatuses(prev => ({
           ...prev,
