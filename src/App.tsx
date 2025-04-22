@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -194,6 +193,5 @@ function App() {
     </ThemeProvider>
   );
 }
-
 
 export default App;
