@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Rocket, Check, FolderSync } from 'lucide-react';
@@ -108,8 +107,9 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
               {retraining ? 'Retraining...' : 'Retrain'}
             </Button>
           ) : (
-            <Button variant="disabled" size="sm" className="w-full" asChild>
-             
+            <Button variant="outline" size="sm" className="w-full opacity-50" disabled>
+              <Play className="h-3.5 w-3.5 mr-1" />
+              Playground
             </Button>
           )
         }
@@ -158,4 +158,3 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
 };
 
 export default AgentFooterActions;
-
