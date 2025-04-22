@@ -5,8 +5,16 @@ import { cn } from '@/lib/utils';
 import { Bot, Send, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ChatWebSocketService } from '@/services/ChatWebSocketService';
+
+interface Message {
+  type: 'user' | 'bot';
+  content: string;
+  timestamp: string;
+}
 
 interface ChatboxPreviewProps {
+  agentId: string;
   primaryColor: string;
   secondaryColor: string;
   fontFamily: string;
@@ -20,6 +28,7 @@ interface ChatboxPreviewProps {
 }
 
 export const ChatboxPreview = ({
+  agentId,
   primaryColor = '#9b87f5',
   secondaryColor = '#ffffff',
   fontFamily = 'Inter',
@@ -31,9 +40,10 @@ export const ChatboxPreview = ({
   suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
   avatarSrc
 }: ChatboxPreviewProps) => {
-  const [messages, setMessages] = useState([
-    { type: 'bot', text: welcomeMessage }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -49,21 +59,58 @@ export const ChatboxPreview = ({
     }
   }, [messages]);
 
+  //iniTIALIZE CHAT SOCKET
+   useEffect(() => {
+      // Initialize chat service
+      chatServiceRef.current = new ChatWebSocketService(agentId);
+      
+      // Set up event handlers
+      chatServiceRef.current.on({
+        onMessage: (message) => {
+          setMessages(prev => [...prev, message]);
+        },
+        onTypingStart: () => setIsTyping(true),
+        onTypingEnd: () => setIsTyping(false),
+        onError: (error) => {
+          console.error('Chat error:', error);
+          setIsConnected(false);
+        }
+      });
+      
+      // Connect
+      chatServiceRef.current.connect();
+      setIsConnected(true);
+      
+      // Cleanup
+      return () => {
+        chatServiceRef.current?.disconnect();
+      };
+    }, [agentId]);  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!chatServiceRef.current || !isConnected) return;
+    
     if (inputValue.trim()) {
-      setMessages([...messages, { type: 'user', text: inputValue }]);
+     const newMessage: Message = {
+        type: 'user',
+        inputValue,
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      chatServiceRef.current.sendMessage(inputValue);
       setInputValue('');
       
       setShowTypingIndicator(true);
       
-      setTimeout(() => {
-        setShowTypingIndicator(false);
-        setMessages(prev => [...prev, { 
-          type: 'bot', 
-          text: "Thank you for your message! This is a simulated response in the preview. In the actual chatbox, this would be a response from your AI assistant." 
-        }]);
-      }, 1500);
+      // setTimeout(() => {
+      //   setShowTypingIndicator(false);
+      //   setMessages(prev => [...prev, { 
+      //     type: 'bot', 
+      //     text: "Thank you for your message! This is a simulated response in the preview. In the actual chatbox, this would be a response from your AI assistant." 
+      //   }]);
+      // }, 1500);
     }
   };
 
