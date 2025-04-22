@@ -1,3 +1,10 @@
+interface WebSocketMessage {
+  type: string;
+  content?: string;
+  timestamp?: string;
+  [key: string]: any;
+}
+
 export class WebSocketService {
   private socket: WebSocket | null = null;
   private listeners: Map<string, Function[]> = new Map();
@@ -66,6 +73,23 @@ export class WebSocketService {
       event,
       callbacks.filter(cb => cb !== callback)
     );
+  }
+
+  send(message: WebSocketMessage): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket is not connected');
+      }
+      
+      try {
+        this.socket.send(JSON.stringify(message));
+      } catch (error) {
+        console.error('Error sending message:', error);
+        this.emit('error', 'Failed to send message');
+      }
+  }
+  
+  isConnected(): boolean {
+    return this.socket?.readyState === WebSocket.OPEN;
   }
   
   private emit(event: string, data: any) {
