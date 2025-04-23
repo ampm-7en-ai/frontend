@@ -139,16 +139,32 @@ const KnowledgeUpload = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const fileList = Array.from(e.target.files);
-      console.log(fileList);
+      const newFiles = Array.from(e.target.files);
       
-      setFiles(fileList);
+      // Filter out duplicates by comparing file names and sizes
+      const uniqueNewFiles = newFiles.filter(newFile => {
+        return !files.some(existingFile => 
+          existingFile.name === newFile.name && 
+          existingFile.size === newFile.size
+        );
+      });
+
+      // Append unique new files to existing files
+      setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
+
+      if (uniqueNewFiles.length < newFiles.length) {
+        toast({
+          title: "Duplicate files detected",
+          description: "Some files were skipped because they were already selected.",
+          variant: "warning"
+        });
+      }
     }
   };
 
   const removeFile = (index: number, e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent the form submission
-    e.stopPropagation(); // Stop event propagation
+    e.preventDefault();
+    e.stopPropagation();
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
