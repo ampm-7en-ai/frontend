@@ -500,20 +500,11 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      // Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
-      //   if (urlSet && urlSet instanceof Set) {
-      //     urlSet.forEach(url => {
-      //       const key = urlKeyMap[url] || url;
-      //       allSelectedIds.push(key);
-      //      // allSelectedIds.push(sourceId);
-      //     });
-      //   }
-      // });
+      
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
         if (fileSet && fileSet instanceof Set) {
           fileSet.forEach(fileId => {
             allSelectedIds.push(fileId);
-           // allSelectedIds.push(sourceId);
           });
         }
       });
