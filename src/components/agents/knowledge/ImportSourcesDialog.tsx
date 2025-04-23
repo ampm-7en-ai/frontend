@@ -525,7 +525,7 @@ export const ImportSourcesDialog = ({
               
               if(key && source.knowledge_sources.length > 0) { 
                 allSelectedIds.push(key);
-                allSelectedIds.push(source.knowledge_sources[0].id.toString());
+                (!allSelectedIds.includes(source.knowledge_sources[0].id.toString())) && allSelectedIds.push(source.knowledge_sources[0].id.toString());
               }else{
                 allSelectedIds.push(sourceId);
               }
