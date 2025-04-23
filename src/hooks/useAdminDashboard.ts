@@ -37,6 +37,7 @@ export interface AdminDashboardData {
   usage_history: UsageHistoryItem[];
 }
 
+
 async function fetchAdminDashboard(): Promise<AdminDashboardData> {
   const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
   if (!token) {

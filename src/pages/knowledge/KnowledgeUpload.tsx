@@ -137,8 +137,11 @@ const KnowledgeUpload = () => {
   }, [sourceType, url, importAllPages, plainText]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
+      console.log(fileList);
+      
       setFiles(fileList);
     }
   };

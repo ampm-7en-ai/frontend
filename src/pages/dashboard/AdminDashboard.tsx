@@ -39,6 +39,7 @@ const AdminDashboard = () => {
         <AgentPerformanceSummary
           agentPerformanceSummary={data.agent_performance_summary}
           agentPerformanceComparison={data.agent_performance_comparison}
+          conversationChannel={data.conversation_channel}
         />
         <UsageStatsCard
           agentUse={data.agent_use}

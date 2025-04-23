@@ -2,11 +2,12 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Clock, MessageSquare, Activity } from 'lucide-react';
-import { AgentPerformanceSummary as AgentPerformanceSummaryType, AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
+import { AgentPerformanceSummary as AgentPerformanceSummaryType, AgentPerformanceComparison, AdminDashboardData } from '@/hooks/useAdminDashboard';
 
 type AgentPerformanceSummaryProps = {
   agentPerformanceSummary: AgentPerformanceSummaryType;
   agentPerformanceComparison: AgentPerformanceComparison[];
+  conversationChannel: AdminDashboardData.conversation_channel;
 };
 
 // Sample data for channel statistics
@@ -19,7 +20,8 @@ const channelStats = [
 
 const AgentPerformanceSummary = ({ 
   agentPerformanceSummary, 
-  agentPerformanceComparison 
+  agentPerformanceComparison,
+  conversationChannel 
 }: AgentPerformanceSummaryProps) => {
   return (
     <Card className="lg:col-span-2">
@@ -35,7 +37,7 @@ const AgentPerformanceSummary = ({
                 <div>
                   <p className="text-sm text-muted-foreground">Avg. Response Time</p>
                   <h3 className="text-2xl font-bold mt-1">{agentPerformanceSummary.avg_response_time.value}s</h3>
-                  <p className={`text-xs flex items-center mt-1 ${agentPerformanceSummary.avg_response_time.change_direction === 'decrease' ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-xs flex items-center mt-1 ${agentPerformanceSummary.avg_response_time.change_direction === 'decrease' ? 'text-red-600' : 'text-green-600'}`}>
                     {agentPerformanceSummary.avg_response_time.change_direction === 'decrease' ? (
                       <ArrowDown className="h-3 w-3 mr-1" />
                     ) : (
