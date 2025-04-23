@@ -24,7 +24,7 @@ export const API_ENDPOINTS = {
 // Function to get knowledge base endpoint with optional agent ID
 export const getKnowledgeBaseEndpoint = (agentId?: string): string => {
   const baseEndpoint = `${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`;
-  return agentId ? `${baseEndpoint}&agent_id=${agentId}` : baseEndpoint;
+  return agentId ? `${baseEndpoint}&agent_id=${agentId}&status=issues` : baseEndpoint;
 };
 
 // Function to get agent endpoint for a specific agent ID
