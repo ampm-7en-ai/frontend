@@ -2,12 +2,12 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Clock, MessageSquare, Activity } from 'lucide-react';
-import { AgentPerformanceSummary as AgentPerformanceSummaryType, AgentPerformanceComparison, AdminDashboardData } from '@/hooks/useAdminDashboard';
+import { AgentPerformanceSummary as AgentPerformanceSummaryType, AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 
 type AgentPerformanceSummaryProps = {
   agentPerformanceSummary: AgentPerformanceSummaryType;
   agentPerformanceComparison: AgentPerformanceComparison[];
-  conversationChannel: AdminDashboardData.conversation_channel;
+  conversationChannel: Record<string, number>; // Changed to match the data type in AdminDashboardData
 };
 
 // Sample data for channel statistics
