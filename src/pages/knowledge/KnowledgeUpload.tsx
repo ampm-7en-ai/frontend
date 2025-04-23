@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +60,7 @@ const KnowledgeUpload = () => {
       color: "bg-blue-50 text-blue-600"
     },
     slack: {
-      icon: <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>,
+      icon: <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.521-2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>,
       name: "Slack",
       description: "Import conversations and files from Slack",
       color: "bg-pink-50 text-pink-600"
@@ -156,7 +155,7 @@ const KnowledgeUpload = () => {
         toast({
           title: "Duplicate files detected",
           description: "Some files were skipped because they were already selected.",
-          variant: "warning"
+          variant: "default"
         });
       }
     }
@@ -417,7 +416,7 @@ const KnowledgeUpload = () => {
               <Button 
                 variant="outline" 
                 className="flex items-center gap-1" 
-                type="button" // Ensure it's type button to prevent form submission
+                type="button" 
                 onClick={() => document.getElementById('file-upload')?.click()}
               >
                 <Upload className="h-4 w-4" />
@@ -449,7 +448,7 @@ const KnowledgeUpload = () => {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        type="button" // Ensure it's type button to prevent form submission
+                        type="button" 
                         onClick={(e) => removeFile(index, e)} 
                         className="h-8 w-8"
                       >
@@ -499,7 +498,7 @@ const KnowledgeUpload = () => {
                         variant="outline"
                         className={`flex items-center gap-2 h-12 px-3 ${provider.color} hover:bg-opacity-80 border`}
                         onClick={() => handleQuickConnect(id as ThirdPartyProvider)}
-                        type="button" // Ensure it's type button to prevent form submission
+                        type="button"
                       >
                         <div className="w-6 h-6 flex items-center justify-center rounded-full bg-white/90">
                           {provider.icon}
@@ -525,7 +524,7 @@ const KnowledgeUpload = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    type="button" // Ensure it's type button to prevent form submission
+                    type="button"
                     onClick={() => {
                       setSelectedProvider(null);
                       setSelectedFiles([]);
@@ -550,7 +549,7 @@ const KnowledgeUpload = () => {
                         variant="outline" 
                         size="sm" 
                         className="text-xs"
-                        type="button" // Ensure it's type button to prevent form submission
+                        type="button"
                         onClick={() => handleQuickConnect(selectedProvider)}
                       >
                         Refresh Files
@@ -568,7 +567,7 @@ const KnowledgeUpload = () => {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              type="button" // Ensure it's type button to prevent form submission
+                              type="button"
                               onClick={() => handleRemoveSelectedFile(index)}
                               className="h-8 w-8"
                             >
@@ -585,7 +584,7 @@ const KnowledgeUpload = () => {
                           variant="outline" 
                           size="sm" 
                           className="mt-4"
-                          type="button" // Ensure it's type button to prevent form submission
+                          type="button"
                           onClick={() => handleQuickConnect(selectedProvider)}
                         >
                           Import Files
