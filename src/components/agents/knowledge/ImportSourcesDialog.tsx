@@ -1075,9 +1075,9 @@ export const ImportSourcesDialog = ({
                                     const newSelectedSources = new Set(selectedSources);
                                     
                                     if (checked) {
-                                      newSelectedSources.add(source.id);
+                                      newSelectedSources.add(source.knowledge_sources[0].id);
                                     } else {
-                                      newSelectedSources.delete(source.id);
+                                      newSelectedSources.delete(source[0].knowledge_sources[0].id);
                                     }
                                     
                                     setSelectedSources(newSelectedSources);
