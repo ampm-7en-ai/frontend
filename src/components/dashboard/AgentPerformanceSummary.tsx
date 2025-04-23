@@ -2,28 +2,12 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Clock, MessageSquare, Activity } from 'lucide-react';
+import { AgentPerformanceSummary as AgentPerformanceSummaryType, AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 
-// Sample data for agent performance comparison
-const agentPerformanceData = [
-  { 
-    agent: 'Customer Support Agent', 
-    conversations: 1203, 
-    responseTime: '1.2s',
-    satisfaction: 92
-  },
-  { 
-    agent: 'Sales Assistant', 
-    conversations: 845, 
-    responseTime: '1.5s',
-    satisfaction: 88
-  },
-  { 
-    agent: 'Technical Support', 
-    conversations: 532, 
-    responseTime: '2.1s',
-    satisfaction: 85
-  },
-];
+type AgentPerformanceSummaryProps = {
+  agentPerformanceSummary: AgentPerformanceSummaryType;
+  agentPerformanceComparison: AgentPerformanceComparison[];
+};
 
 // Sample data for channel statistics
 const channelStats = [
@@ -33,7 +17,10 @@ const channelStats = [
   { channel: 'Freshdesk', count: 11, percentage: 9 },
 ];
 
-const AgentPerformanceSummary = () => {
+const AgentPerformanceSummary = ({ 
+  agentPerformanceSummary, 
+  agentPerformanceComparison 
+}: AgentPerformanceSummaryProps) => {
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
@@ -47,10 +34,15 @@ const AgentPerformanceSummary = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm text-muted-foreground">Avg. Response Time</p>
-                  <h3 className="text-2xl font-bold mt-1">1.5s</h3>
-                  <p className="text-xs text-green-600 flex items-center mt-1">
-                    <ArrowDown className="h-3 w-3 mr-1" />
-                    -0.3s from last month
+                  <h3 className="text-2xl font-bold mt-1">{agentPerformanceSummary.avg_response_time.value}s</h3>
+                  <p className={`text-xs flex items-center mt-1 ${agentPerformanceSummary.avg_response_time.change_direction === 'decrease' ? 'text-green-600' : 'text-red-600'}`}>
+                    {agentPerformanceSummary.avg_response_time.change_direction === 'decrease' ? (
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                    )}
+                    {agentPerformanceSummary.avg_response_time.change_direction === 'decrease' ? '-' : '+'}
+                    {agentPerformanceSummary.avg_response_time.change}s from last month
                   </p>
                 </div>
                 <div className="p-2 rounded-md bg-blue-100">
@@ -65,10 +57,21 @@ const AgentPerformanceSummary = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Conversations</p>
-                  <h3 className="text-2xl font-bold mt-1">2,580</h3>
-                  <p className="text-xs text-green-600 flex items-center mt-1">
-                    <ArrowUp className="h-3 w-3 mr-1" />
-                    +12% from last month
+                  <h3 className="text-2xl font-bold mt-1">{agentPerformanceSummary.total_conversations.value.toLocaleString()}</h3>
+                  <p className={`text-xs flex items-center mt-1 ${agentPerformanceSummary.total_conversations.change_direction === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
+                    {agentPerformanceSummary.total_conversations.change_direction === 'increase' ? (
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    )}
+                    {agentPerformanceSummary.total_conversations.change !== 0 ? (
+                      <>
+                        {agentPerformanceSummary.total_conversations.change_direction === 'increase' ? '+' : '-'}
+                        {agentPerformanceSummary.total_conversations.change}% from last month
+                      </>
+                    ) : (
+                      'No change from last month'
+                    )}
                   </p>
                 </div>
                 <div className="p-2 rounded-md bg-green-100">
@@ -83,10 +86,21 @@ const AgentPerformanceSummary = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm text-muted-foreground">User Satisfaction</p>
-                  <h3 className="text-2xl font-bold mt-1">88%</h3>
-                  <p className="text-xs text-green-600 flex items-center mt-1">
-                    <ArrowUp className="h-3 w-3 mr-1" />
-                    +3% from last month
+                  <h3 className="text-2xl font-bold mt-1">{agentPerformanceSummary.user_satisfaction.value}%</h3>
+                  <p className={`text-xs flex items-center mt-1 ${agentPerformanceSummary.user_satisfaction.change_direction === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
+                    {agentPerformanceSummary.user_satisfaction.change_direction === 'increase' ? (
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    )}
+                    {agentPerformanceSummary.user_satisfaction.change !== 0 ? (
+                      <>
+                        {agentPerformanceSummary.user_satisfaction.change_direction === 'increase' ? '+' : '-'}
+                        {agentPerformanceSummary.user_satisfaction.change}% from last month
+                      </>
+                    ) : (
+                      'No change from last month'
+                    )}
                   </p>
                 </div>
                 <div className="p-2 rounded-md bg-amber-100">
@@ -134,11 +148,11 @@ const AgentPerformanceSummary = () => {
                 </tr>
               </thead>
               <tbody>
-                {agentPerformanceData.map((agent, index) => (
+                {agentPerformanceComparison.map((agent, index) => (
                   <tr key={index} className="border-b border-gray-100 text-sm">
-                    <td className="py-3 font-medium">{agent.agent}</td>
+                    <td className="py-3 font-medium">{agent.agent_name}</td>
                     <td className="py-3">{agent.conversations}</td>
-                    <td className="py-3">{agent.responseTime}</td>
+                    <td className="py-3">{agent.avg_response_time}s</td>
                     <td className="py-3">
                       <div className="flex items-center gap-2">
                         <span>{agent.satisfaction}%</span>
