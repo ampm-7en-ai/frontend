@@ -50,7 +50,7 @@ export const ChatboxPreview = ({
 
   // Update welcome message when prop changes
   useEffect(() => {
-    setMessages([{ type: 'bot', text: welcomeMessage }]);
+    setMessages([{ type: 'bot', content: welcomeMessage, timestamp: new Date().toISOString() }]);
   }, [welcomeMessage]);
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export const ChatboxPreview = ({
     if (inputValue.trim()) {
      const newMessage: Message = {
         type: 'user',
-        inputValue,
+        content: inputValue,
         timestamp: new Date().toISOString()
       };
       
@@ -115,7 +115,11 @@ export const ChatboxPreview = ({
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setMessages([...messages, { type: 'user', text: suggestion }]);
+    setMessages([...messages, { 
+      type: 'user', 
+      content: suggestion, 
+      timestamp: new Date().toISOString() 
+    }]);
     
     setShowTypingIndicator(true);
     
@@ -123,7 +127,8 @@ export const ChatboxPreview = ({
       setShowTypingIndicator(false);
       setMessages(prev => [...prev, { 
         type: 'bot', 
-        text: `This is a simulated response to your question: "${suggestion}". In the actual chatbox, this would be a response from your AI assistant.` 
+        content: `This is a simulated response to your question: "${suggestion}". In the actual chatbox, this would be a response from your AI assistant.`,
+        timestamp: new Date().toISOString()
       }]);
     }, 1500);
   };
@@ -210,7 +215,7 @@ export const ChatboxPreview = ({
                   backgroundColor: message.type === 'bot' ? `${primaryColor}15` : '',
                 }}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               </div>
               
               {message.type === 'user' && (

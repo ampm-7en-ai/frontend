@@ -57,7 +57,6 @@ export const ImportSourcesDialog = ({
 
   const scrollToTop = () => {
     if (thirdPanelRef.current) {
-      // Find the actual scrollable element (the Viewport) inside the ScrollArea
       const scrollableElement = thirdPanelRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollableElement) {
         scrollableElement.scrollTo({
@@ -177,28 +176,26 @@ export const ImportSourcesDialog = ({
 
   useEffect(() => {
     const handleScroll = () => {
-        // Find the scrollable element
-        if (thirdPanelRef.current) {
-          const scrollableElement = thirdPanelRef.current.querySelector('[data-radix-scroll-area-viewport]');
-          if (scrollableElement) {
-            setShowScrollToTop(scrollableElement.scrollTop > 100);
-          }
+      if (thirdPanelRef.current) {
+        const scrollableElement = thirdPanelRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollableElement) {
+          setShowScrollToTop(scrollableElement.scrollTop > 100);
         }
+      }
     };
     
     const currentRef = thirdPanelRef.current;
     console.log(currentRef);
      if (currentRef) {
-    // Attach the event listener to the scrollable element
-    const scrollableElement = currentRef.querySelector('[data-radix-scroll-area-viewport]');
-    if (scrollableElement) {
-      scrollableElement.addEventListener('scroll', handleScroll);
-      
-      return () => {
-        scrollableElement.removeEventListener('scroll', handleScroll);
-      };
+      const scrollableElement = currentRef.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollableElement) {
+        scrollableElement.addEventListener('scroll', handleScroll);
+        
+        return () => {
+          scrollableElement.removeEventListener('scroll', handleScroll);
+        };
+      }
     }
-  }
   }, [thirdPanelRef.current]);
 
   const sourceTypes = useMemo(() => {
@@ -527,7 +524,7 @@ export const ImportSourcesDialog = ({
                 allSelectedIds.push(key);
                 (!allSelectedIds.includes(source.knowledge_sources[0].id.toString())) && allSelectedIds.push(source.knowledge_sources[0].id.toString());
               }else{
-                allSelectedIds.push(sourceId);
+                allSelectedIds.push(sourceId.toString());
               }
             });
           }
