@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -137,7 +138,6 @@ const KnowledgeUpload = () => {
   }, [sourceType, url, importAllPages, plainText]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
       console.log(fileList);
@@ -146,7 +146,9 @@ const KnowledgeUpload = () => {
     }
   };
 
-  const removeFile = (index: number) => {
+  const removeFile = (index: number, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent the form submission
+    e.stopPropagation(); // Stop event propagation
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -396,7 +398,12 @@ const KnowledgeUpload = () => {
               <p className="text-xs text-center text-muted-foreground mb-4">
                 {sourceType === 'document' ? 'PDF, DOCX, TXT up to 10MB' : 'CSV, XLSX, XLS up to 10MB'}
               </p>
-              <Button variant="outline" className="flex items-center gap-1" onClick={() => document.getElementById('file-upload')?.click()}>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-1" 
+                type="button" // Ensure it's type button to prevent form submission
+                onClick={() => document.getElementById('file-upload')?.click()}
+              >
                 <Upload className="h-4 w-4" />
                 Select Files
               </Button>
@@ -423,7 +430,13 @@ const KnowledgeUpload = () => {
                           <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => removeFile(index)} className="h-8 w-8">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        type="button" // Ensure it's type button to prevent form submission
+                        onClick={(e) => removeFile(index, e)} 
+                        className="h-8 w-8"
+                      >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -470,6 +483,7 @@ const KnowledgeUpload = () => {
                         variant="outline"
                         className={`flex items-center gap-2 h-12 px-3 ${provider.color} hover:bg-opacity-80 border`}
                         onClick={() => handleQuickConnect(id as ThirdPartyProvider)}
+                        type="button" // Ensure it's type button to prevent form submission
                       >
                         <div className="w-6 h-6 flex items-center justify-center rounded-full bg-white/90">
                           {provider.icon}
@@ -495,6 +509,7 @@ const KnowledgeUpload = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
+                    type="button" // Ensure it's type button to prevent form submission
                     onClick={() => {
                       setSelectedProvider(null);
                       setSelectedFiles([]);
@@ -519,6 +534,7 @@ const KnowledgeUpload = () => {
                         variant="outline" 
                         size="sm" 
                         className="text-xs"
+                        type="button" // Ensure it's type button to prevent form submission
                         onClick={() => handleQuickConnect(selectedProvider)}
                       >
                         Refresh Files
@@ -536,6 +552,7 @@ const KnowledgeUpload = () => {
                             <Button 
                               variant="ghost" 
                               size="icon" 
+                              type="button" // Ensure it's type button to prevent form submission
                               onClick={() => handleRemoveSelectedFile(index)}
                               className="h-8 w-8"
                             >
@@ -552,6 +569,7 @@ const KnowledgeUpload = () => {
                           variant="outline" 
                           size="sm" 
                           className="mt-4"
+                          type="button" // Ensure it's type button to prevent form submission
                           onClick={() => handleQuickConnect(selectedProvider)}
                         >
                           Import Files
