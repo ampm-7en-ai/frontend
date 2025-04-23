@@ -2,27 +2,23 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AgentPerformanceChart } from './AgentPerformanceChart';
-import { Bot, CreditCard, History } from 'lucide-react';
+import { Bot, CreditCard } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Sample data for the usage history
-const usageHistoryData = [
-  { name: '1', value: 0, day: 'Mar 1' },
-  { name: '3', value: 0, day: 'Mar 3' },
-  { name: '5', value: 0, day: 'Mar 5' },
-  { name: '7', value: 0, day: 'Mar 7' },
-  { name: '9', value: 0, day: 'Mar 9' },
-  { name: '11', value: 0, day: 'Mar 11' },
-  { name: '13', value: 0, day: 'Mar 13' },
-  { name: '15', value: 0, day: 'Mar 15' },
-  { name: '17', value: 0, day: 'Mar 17' },
-  { name: '19', value: 0, day: 'Mar 19' },
-  { name: '21', value: 12, day: 'Mar 21' },
-  { name: '23', value: 0, day: 'Mar 23' },
-  { name: '25', value: 0, day: 'Mar 25' },
-];
+type UsageStatsCardProps = {
+  agentUse: {
+    credits_used: number;
+    credits_total: number;
+    agents_used: number;
+  };
+  usageHistory: {
+    day: string;
+    count: number;
+  }[];
+};
 
-const UsageStatsCard = () => {
+const UsageStatsCard = ({ agentUse, usageHistory }: UsageStatsCardProps) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -51,10 +47,10 @@ const UsageStatsCard = () => {
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div className="flex-1">
-                  <h3 className="text-4xl font-bold mb-1">9</h3>
+                  <h3 className="text-4xl font-bold mb-1">{agentUse.credits_used}</h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <span>Credits used</span>
-                    <span className="text-xs ml-2">/ 100</span>
+                    <span className="text-xs ml-2">/ {agentUse.credits_total}</span>
                   </div>
                 </div>
                 <div className="p-3 rounded-full bg-blue-100">
@@ -68,7 +64,7 @@ const UsageStatsCard = () => {
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div className="flex-1">
-                  <h3 className="text-4xl font-bold mb-1">1</h3>
+                  <h3 className="text-4xl font-bold mb-1">{agentUse.agents_used}</h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <span>Agents used</span>
                     <span className="text-xs ml-2">/ 1</span>
@@ -88,7 +84,22 @@ const UsageStatsCard = () => {
             <button className="text-primary text-sm">View details</button>
           </div>
           <div className="h-48 w-full">
-            <AgentPerformanceChart type="trend" className="h-full" />
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={usageHistory}>
+                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+                  }}
+                  formatter={(value: number) => [`${value} usage`, '']}
+                />
+                <Bar dataKey="count" fill="#6366F1" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </CardContent>

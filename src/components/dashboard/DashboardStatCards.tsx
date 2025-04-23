@@ -5,7 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Bot, MessageSquare, ChevronRight, Book, Users } from 'lucide-react';
 
-const DashboardStatCards = () => {
+type DashboardStatCardsProps = {
+  myAgents: number;
+  conversations: number;
+  knowledgeBase: number;
+  teamMembers: number;
+};
+
+const DashboardStatCards = ({
+  myAgents,
+  conversations,
+  knowledgeBase,
+  teamMembers,
+}: DashboardStatCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
@@ -16,7 +28,7 @@ const DashboardStatCards = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">5</div>
+          <div className="text-3xl font-bold">{myAgents}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">All active agents</p>
             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
@@ -36,7 +48,7 @@ const DashboardStatCards = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">128</div>
+          <div className="text-3xl font-bold">{conversations}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">Last 30 days</p>
             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
@@ -56,7 +68,7 @@ const DashboardStatCards = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">24</div>
+          <div className="text-3xl font-bold">{knowledgeBase}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">Documents</p>
             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
@@ -76,7 +88,7 @@ const DashboardStatCards = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">7</div>
+          <div className="text-3xl font-bold">{teamMembers}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">Domain experts</p>
             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
