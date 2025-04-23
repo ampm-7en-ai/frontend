@@ -505,6 +505,7 @@ export const ImportSourcesDialog = ({
           urlSet.forEach(url => {
             const key = urlKeyMap[url] || url;
             allSelectedIds.push(key);
+            allSelectedIds.push(sourceId);
           });
         }
       });
@@ -513,6 +514,7 @@ export const ImportSourcesDialog = ({
         if (fileSet && fileSet instanceof Set) {
           fileSet.forEach(fileId => {
             allSelectedIds.push(fileId);
+            allSelectedIds.push(sourceId);
           });
         }
       });
