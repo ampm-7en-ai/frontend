@@ -500,24 +500,49 @@ export const ImportSourcesDialog = ({
       setIsImporting(true);
       const allSelectedIds: string[] = [];
       
-      Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
-        if (urlSet && urlSet instanceof Set) {
-          urlSet.forEach(url => {
-            const key = urlKeyMap[url] || url;
-            allSelectedIds.push(key);
-            allSelectedIds.push(sourceId);
-          });
-        }
-      });
-      
+      // Object.entries(selectedSubUrls).forEach(([sourceId, urlSet]) => {
+      //   if (urlSet && urlSet instanceof Set) {
+      //     urlSet.forEach(url => {
+      //       const key = urlKeyMap[url] || url;
+      //       allSelectedIds.push(key);
+      //      // allSelectedIds.push(sourceId);
+      //     });
+      //   }
+      // });
       Object.entries(selectedFiles).forEach(([sourceId, fileSet]) => {
         if (fileSet && fileSet instanceof Set) {
           fileSet.forEach(fileId => {
             allSelectedIds.push(fileId);
-            allSelectedIds.push(sourceId);
+           // allSelectedIds.push(sourceId);
           });
         }
       });
+
+      // Handle selected sources based on type
+      sourceIdsToImport.forEach(sourceId => {
+        const source = externalSources.find(s => s.id === sourceId);
+        
+        if (source?.type === 'plain_text') {
+          // For plain text, use knowledge_sources[0].id
+          allSelectedIds.push(source.knowledge_sources[0].id.toString());
+        } else if (source?.type === 'website') {
+          // For website, include both suburl key and knowledge_sources[0].id
+          const urlSet = selectedSubUrls[sourceId];
+          if (urlSet && urlSet instanceof Set) {
+            urlSet.forEach(url => {
+              const key = urlKeyMap[url] || url;
+              
+              if(key && source.knowledge_sources.length > 0) { 
+                allSelectedIds.push(key);
+                allSelectedIds.push(source.knowledge_sources[0].id.toString());
+              }else{
+                allSelectedIds.push(sourceId);
+              }
+            });
+          }
+        }
+      });
+
       
       toast({
         title: "Importing knowledge sources",
@@ -1075,9 +1100,9 @@ export const ImportSourcesDialog = ({
                                     const newSelectedSources = new Set(selectedSources);
                                     
                                     if (checked) {
-                                      newSelectedSources.add(source.knowledge_sources[0].id);
+                                      newSelectedSources.add(source.id);
                                     } else {
-                                      newSelectedSources.delete(source[0].knowledge_sources[0].id);
+                                      newSelectedSources.delete(source.id);
                                     }
                                     
                                     setSelectedSources(newSelectedSources);
