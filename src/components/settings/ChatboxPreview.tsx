@@ -68,9 +68,10 @@ export const ChatboxPreview = ({
       chatServiceRef.current.on({
         onMessage: (message) => {
           setMessages(prev => [...prev, message]);
+          setShowTypingIndicator(false); 
         },
-        onTypingStart: () => setIsTyping(true),
-        onTypingEnd: () => setIsTyping(false),
+        onTypingStart: () => setShowTypingIndicator(true),
+        onTypingEnd: () => setShowTypingIndicator(false),
         onError: (error) => {
           console.error('Chat error:', error);
           setIsConnected(false);
@@ -99,22 +100,15 @@ export const ChatboxPreview = ({
       };
       
       setMessages(prev => [...prev, newMessage]);
+      setShowTypingIndicator(true);
       chatServiceRef.current.sendMessage(inputValue);
       setInputValue('');
       
-      setShowTypingIndicator(true);
-      
-      // setTimeout(() => {
-      //   setShowTypingIndicator(false);
-      //   setMessages(prev => [...prev, { 
-      //     type: 'bot', 
-      //     text: "Thank you for your message! This is a simulated response in the preview. In the actual chatbox, this would be a response from your AI assistant." 
-      //   }]);
-      // }, 1500);
     }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
+    if (!chatServiceRef.current || !isConnected) return;
     setMessages([...messages, { 
       type: 'user', 
       content: suggestion, 
@@ -122,16 +116,8 @@ export const ChatboxPreview = ({
     }]);
     
     setShowTypingIndicator(true);
-    
-    setTimeout(() => {
-      setShowTypingIndicator(false);
-      setMessages(prev => [...prev, { 
-        type: 'bot', 
-        content: `This is a simulated response to your question: "${suggestion}". In the actual chatbox, this would be a response from your AI assistant.`,
-        timestamp: new Date().toISOString()
-      }]);
-    }, 1500);
-  };
+    chatServiceRef.current.sendMessage(suggestion);
+    };
 
   return (
     <Card 

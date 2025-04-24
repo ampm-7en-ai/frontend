@@ -106,4 +106,4 @@ export class WebSocketService {
 }
 
 // Create and export a singleton instance
-export const webSocketService = new WebSocketService('wss://api.7en.ai/ws');
+export const webSocketService = new WebSocketService('');
