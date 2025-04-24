@@ -213,7 +213,7 @@ const KnowledgeTrainingStatus = ({
       // Extract the knowledge source IDs from the agent knowledge bases
       const knowledgeSourceIds = agentKnowledgeBases
         .flatMap(kb => kb.knowledge_sources || [])
-        .map(source => source.id);
+        .filter(source => source.is_selected !== false).map(s => s.id);
       
       // Call the trainAgent method from AgentTrainingService
       await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds);
