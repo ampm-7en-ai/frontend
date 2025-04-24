@@ -2,10 +2,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User } from 'lucide-react';
+import { Bot, Send, User, WifiOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   type: 'user' | 'bot';
@@ -41,12 +43,13 @@ export const ChatboxPreview = ({
   avatarSrc
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   // Update welcome message when prop changes
   useEffect(() => {
@@ -57,43 +60,73 @@ export const ChatboxPreview = ({
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, showTypingIndicator]);
 
-  //iniTIALIZE CHAT SOCKET
-   useEffect(() => {
-      // Initialize chat service
-      chatServiceRef.current = new ChatWebSocketService(agentId);
-      
-      // Set up event handlers
-      chatServiceRef.current.on({
-        onMessage: (message) => {
-          setMessages(prev => [...prev, message]);
-          setShowTypingIndicator(false); 
-        },
-        onTypingStart: () => setShowTypingIndicator(true),
-        onTypingEnd: () => setShowTypingIndicator(false),
-        onError: (error) => {
-          console.error('Chat error:', error);
-          setIsConnected(false);
-        }
-      });
-      
-      // Connect
-      chatServiceRef.current.connect();
-      setIsConnected(true);
-      
-      // Cleanup
-      return () => {
-        chatServiceRef.current?.disconnect();
-      };
-    }, [agentId]);  
+  // Initialize chat socket
+  useEffect(() => {
+    console.log("Initializing ChatWebSocketService with agent ID:", agentId);
+    
+    // Create chat service
+    chatServiceRef.current = new ChatWebSocketService(agentId);
+    
+    // Set up event handlers
+    chatServiceRef.current.on({
+      onMessage: (message) => {
+        console.log("Received message:", message);
+        setMessages(prev => [...prev, message]);
+        setShowTypingIndicator(false);
+      },
+      onTypingStart: () => {
+        console.log("Typing indicator started");
+        setShowTypingIndicator(true);
+      },
+      onTypingEnd: () => {
+        console.log("Typing indicator ended");
+        setShowTypingIndicator(false);
+      },
+      onError: (error) => {
+        console.error('Chat error:', error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to connect to chat service. Please try again.",
+          variant: "destructive",
+        });
+        setIsConnected(false);
+      },
+      onConnectionChange: (status) => {
+        console.log("Connection status changed:", status);
+        setIsConnected(status);
+        setIsInitializing(false);
+      }
+    });
+    
+    // Connect
+    chatServiceRef.current.connect();
+    
+    // Cleanup
+    return () => {
+      console.log("Cleaning up ChatWebSocketService");
+      if (chatServiceRef.current) {
+        chatServiceRef.current.disconnect();
+        chatServiceRef.current = null;
+      }
+    };
+  }, [agentId, toast]);  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatServiceRef.current || !isConnected) return;
+    
+    if (!chatServiceRef.current || !isConnected) {
+      toast({
+        title: "Not connected",
+        description: "Cannot send message while disconnected",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (inputValue.trim()) {
-     const newMessage: Message = {
+      const newMessage: Message = {
         type: 'user',
         content: inputValue,
         timestamp: new Date().toISOString()
@@ -101,23 +134,56 @@ export const ChatboxPreview = ({
       
       setMessages(prev => [...prev, newMessage]);
       setShowTypingIndicator(true);
-      chatServiceRef.current.sendMessage(inputValue);
-      setInputValue('');
       
+      try {
+        chatServiceRef.current.sendMessage(inputValue);
+        console.log("Message sent:", inputValue);
+      } catch (error) {
+        console.error("Error sending message:", error);
+        toast({
+          title: "Send Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive",
+        });
+        setShowTypingIndicator(false);
+      }
+      
+      setInputValue('');
     }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    if (!chatServiceRef.current || !isConnected) return;
-    setMessages([...messages, { 
+    if (!chatServiceRef.current || !isConnected) {
+      toast({
+        title: "Not connected",
+        description: "Cannot send message while disconnected",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const newMessage: Message = { 
       type: 'user', 
       content: suggestion, 
       timestamp: new Date().toISOString() 
-    }]);
-    
-    setShowTypingIndicator(true);
-    chatServiceRef.current.sendMessage(suggestion);
     };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setShowTypingIndicator(true);
+    
+    try {
+      chatServiceRef.current.sendMessage(suggestion);
+      console.log("Suggestion sent:", suggestion);
+    } catch (error) {
+      console.error("Error sending suggestion:", error);
+      toast({
+        title: "Send Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+      setShowTypingIndicator(false);
+    }
+  };
 
   return (
     <Card 
@@ -151,6 +217,16 @@ export const ChatboxPreview = ({
           </div>
           <span className="font-medium text-white text-base">{chatbotName}</span>
         </div>
+        
+        {/* Connection status indicator */}
+        {isInitializing ? (
+          <LoadingSpinner size="sm" className="text-white/70" />
+        ) : !isConnected ? (
+          <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
+            <WifiOff size={14} className="text-white/90" />
+            <span className="text-xs text-white/90">Disconnected</span>
+          </div>
+        ) : null}
       </div>
       
       <CardContent className="p-0 flex-1 flex flex-col">
@@ -218,8 +294,9 @@ export const ChatboxPreview = ({
             </div>
           ))}
           
+          {/* Typing indicator */}
           {showTypingIndicator && (
-            <div className="flex gap-2 items-start">
+            <div className="flex gap-2 items-start animate-fade-in">
               <div className="flex-shrink-0 mt-1">
                 {avatarSrc ? (
                   <Avatar className="w-8 h-8">
@@ -292,6 +369,7 @@ export const ChatboxPreview = ({
               style={{ 
                 borderColor: `${primaryColor}30`,
               }}
+              disabled={!isConnected}
             />
             <button 
               type="submit" 
@@ -299,8 +377,10 @@ export const ChatboxPreview = ({
               style={{ 
                 backgroundColor: primaryColor,
                 color: secondaryColor,
-                boxShadow: `0 2px 5px ${primaryColor}40`
+                boxShadow: `0 2px 5px ${primaryColor}40`,
+                opacity: isConnected ? 1 : 0.5,
               }}
+              disabled={!isConnected}
             >
               <Send size={16} />
             </button>
