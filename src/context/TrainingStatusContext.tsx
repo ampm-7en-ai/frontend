@@ -1,12 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { webSocketService } from '@/services/WebSocketService';
+
+import React, { createContext, useContext, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 
 interface TrainingProcess {
   agentId: string;
   agentName: string;
-  progress: number;
   status: 'pending' | 'training' | 'completed' | 'failed';
   startTime: Date;
   endTime?: Date;
@@ -16,6 +15,7 @@ interface TrainingProcess {
 interface TrainingStatusContextType {
   trainingProcesses: TrainingProcess[];
   startTraining: (agentId: string, agentName: string) => void;
+  completeTraining: (agentId: string, success: boolean, error?: string) => void;
   getTrainingProcess: (agentId: string) => TrainingProcess | undefined;
   isTraining: (agentId: string) => boolean;
 }
@@ -27,24 +27,19 @@ export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = (
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Only connect to WebSocket if user is authenticated
-    if (user) {
-      webSocketService.connect();
-      
-      // Listen for training updates
-      webSocketService.on('agent_training_update', handleTrainingUpdate);
-      
-      // Cleanup on unmount
-      return () => {
-        webSocketService.off('agent_training_update', handleTrainingUpdate);
-      };
-    }
-  }, [user]);
+  const startTraining = (agentId: string, agentName: string) => {
+    setTrainingProcesses(prev => [
+      ...prev.filter(p => p.agentId !== agentId),
+      {
+        agentId,
+        agentName,
+        status: 'training',
+        startTime: new Date(),
+      }
+    ]);
+  };
 
-  const handleTrainingUpdate = (data: any) => {
-    const { agentId, progress, status, error } = data;
-    
+  const completeTraining = (agentId: string, success: boolean, error?: string) => {
     setTrainingProcesses(prevProcesses => {
       const existingProcessIndex = prevProcesses.findIndex(p => p.agentId === agentId);
       
@@ -53,45 +48,31 @@ export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = (
       const updatedProcesses = [...prevProcesses];
       const process = {...updatedProcesses[existingProcessIndex]};
       
-      process.progress = progress;
-      process.status = status;
+      process.status = success ? 'completed' : 'failed';
+      process.endTime = new Date();
       
-      if (status === 'completed' || status === 'failed') {
-        process.endTime = new Date();
-        if (error) process.error = error;
-        
-        // Show a toast when training completes
-        if (status === 'completed') {
-          toast({
-            title: 'Training Complete',
-            description: `Agent "${process.agentName}" training has completed successfully.`,
-            variant: 'default',
-          });
-        } else {
-          toast({
-            title: 'Training Failed',
-            description: error || `Agent "${process.agentName}" training has failed.`,
-            variant: 'destructive',
-          });
-        }
+      if (!success && error) {
+        process.error = error;
+      }
+      
+      // Show a toast notification when training completes
+      if (success) {
+        toast({
+          title: 'Training Complete',
+          description: `Agent "${process.agentName}" training has completed successfully.`,
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: 'Training Failed',
+          description: error || `Agent "${process.agentName}" training has failed.`,
+          variant: 'destructive',
+        });
       }
       
       updatedProcesses[existingProcessIndex] = process;
       return updatedProcesses;
     });
-  };
-
-  const startTraining = (agentId: string, agentName: string) => {
-    setTrainingProcesses(prev => [
-      ...prev.filter(p => p.agentId !== agentId),
-      {
-        agentId,
-        agentName,
-        progress: 0,
-        status: 'pending',
-        startTime: new Date(),
-      }
-    ]);
   };
 
   const getTrainingProcess = (agentId: string) => {
@@ -107,6 +88,7 @@ export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = (
     <TrainingStatusContext.Provider value={{
       trainingProcesses,
       startTraining,
+      completeTraining,
       getTrainingProcess,
       isTraining,
     }}>

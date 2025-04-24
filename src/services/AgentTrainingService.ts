@@ -1,9 +1,14 @@
+
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
-import { webSocketService } from './WebSocketService';
 import { toast } from '@/hooks/use-toast';
 
+export interface TrainingResponse {
+  message: string;
+  vector_store: string;
+}
+
 export const AgentTrainingService = {
-  async trainAgent(agentId: string, includeEmail: boolean = true): Promise<boolean> {
+  async trainAgent(agentId: string, knowledgeSources: number[] = []): Promise<boolean> {
     const token = getAccessToken();
     if (!token) {
       throw new Error("Authentication required");
@@ -15,10 +20,7 @@ export const AgentTrainingService = {
         headers: getAuthHeaders(token),
         body: JSON.stringify({
           agent_id: agentId,
-          notification_preferences: {
-            email: includeEmail,
-            in_app: true
-          }
+          knowledge_sources: knowledgeSources
         })
       });
       
@@ -27,23 +29,20 @@ export const AgentTrainingService = {
         throw new Error(errorText || "Train agent request failed.");
       }
       
-      const data = await response.json();
+      const data: TrainingResponse = await response.json();
       
-      // Show initial toast
+      // Show success toast with the message from the response
       toast({
-        title: "Training started",
-        description: "Agent training is running in the background. You'll be notified when it's complete.",
+        title: "Training Complete",
+        description: data.message,
         variant: "default"
       });
-      
-      // Make sure WebSocket connection is established to receive updates
-      webSocketService.connect();
       
       return true;
     } catch (error) {
       toast({
-        title: "Training failed to start",
-        description: error instanceof Error ? error.message : "An error occurred while starting agent training.",
+        title: "Training failed",
+        description: error instanceof Error ? error.message : "An error occurred while training agent.",
         variant: "destructive"
       });
       

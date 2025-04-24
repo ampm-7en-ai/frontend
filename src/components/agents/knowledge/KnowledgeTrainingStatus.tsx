@@ -12,6 +12,7 @@ import {
 } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
+import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -190,8 +191,8 @@ const KnowledgeTrainingStatus = ({
     // The ImportSourcesDialog component now handles the refresh after import
   };
 
-  const trainAllSources = () => {
-    if (agentKnowledgeBases.length === 0) {
+  const trainAllSources = async () => {
+    if (!agentKnowledgeBases || agentKnowledgeBases.length === 0) {
       toast({
         title: "No sources selected",
         description: "Please import at least one knowledge source to train.",
@@ -204,20 +205,26 @@ const KnowledgeTrainingStatus = ({
     setShowTrainingAlert(true);
     
     toast({
-      title: "Training all sources",
-      description: `Processing ${agentKnowledgeBases.length} knowledge sources. This may take a moment.`
+      title: "Training started",
+      description: `Processing ${agentKnowledgeBases.length} knowledge sources. This may take a while.`
     });
 
-    setTimeout(() => {
-      setIsTrainingAll(false);
-      setNeedsRetraining(false);
-      setShowTrainingAlert(false);
+    try {
+      // Extract the knowledge source IDs from the agent knowledge bases
+      const knowledgeSourceIds = agentKnowledgeBases
+        .flatMap(kb => kb.knowledge_sources || [])
+        .map(source => source.id);
       
-      toast({
-        title: "Training complete",
-        description: "All knowledge sources have been processed."
-      });
-    }, 4000);
+      // Call the trainAgent method from AgentTrainingService
+      await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds);
+      
+      setNeedsRetraining(false);
+    } catch (error) {
+      console.error("Error training agent:", error);
+    } finally {
+      setIsTrainingAll(false);
+      setShowTrainingAlert(false);
+    }
   };
 
   const handleKnowledgeBaseRemoved = useCallback((id: number) => {
@@ -231,7 +238,6 @@ const KnowledgeTrainingStatus = ({
     }
   }, [onKnowledgeBasesChanged, triggerRefresh]);
 
-  // Modified with better caching settings
   const { 
     data: availableKnowledgeBases, 
     isLoading: isLoadingAvailableKnowledgeBases, 
@@ -244,7 +250,6 @@ const KnowledgeTrainingStatus = ({
     enabled: false // Don't fetch automatically
   });
 
-  // Modified with better caching settings
   const { 
     data: agentKnowledgeBases, 
     isLoading: isLoadingAgentKnowledgeBases, 
@@ -276,7 +281,6 @@ const KnowledgeTrainingStatus = ({
     }
   }, [agentId, preloadedKnowledgeSources, queryClient, refetchAgentKnowledgeBases]);
 
-  // Clean up timeout on unmount
   useEffect(() => {
     return () => {
       if (refreshTimeoutRef.current) {
@@ -321,7 +325,7 @@ const KnowledgeTrainingStatus = ({
         {showTrainingAlert && (
           <div className="mb-4">
             <AlertBanner 
-              message="Training started! It will just take a minute or so, depending on the number of pages."
+              message="Training started! It will take some time depending on the number of pages."
               variant="info"
             />
           </div>
