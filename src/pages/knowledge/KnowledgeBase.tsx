@@ -495,6 +495,7 @@ const KnowledgeBase = () => {
   };
 
   const getMetadataDisplay = (doc) => {
+    const deletedFiles = doc.knowledge_sources.length > 0 ? doc.knowledge_sources.filter(source => source.status === "deleted").length : 0; 
     if (doc.sourceType === 'website') {
       const subUrls = doc.metadata?.sub_urls;
       const pagesCount = subUrls ? 
@@ -519,7 +520,7 @@ const KnowledgeBase = () => {
       return (
         <div className="text-xs text-muted-foreground mt-0.5">
           {doc.fileCount > 0 ? 
-            `${doc.fileCount} ${doc.fileCount === 1 ? 'file' : 'files'}` : 
+            `${doc.fileCount - deletedFiles} ${(doc.fileCount - deletedFiles) === 1 ? 'file' : 'files'}` : 
             'No files'
           }
         </div>
@@ -776,7 +777,7 @@ const KnowledgeBase = () => {
   const renderDetailView = () => {
     if (!selectedKnowledgeBase) return null;
 
-    const knowledgeSources = selectedKnowledgeBase.knowledge_sources || [];
+    const knowledgeSources = selectedKnowledgeBase.knowledge_sources.filter(source => source.status !== "deleted")  || [];
     const sourceType = selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown";
     
     const formattedSourceType = sourceType.charAt(0).toUpperCase() + sourceType.slice(1);
