@@ -15,7 +15,7 @@ export const AgentTrainingService = {
     }
     
     try {
-      const response = await fetch(`${BASE_URL}ai/train-agent`, {
+      const response = await fetch(`${BASE_URL}ai/train-agent/`, {
         method: "POST",
         headers: getAuthHeaders(token),
         body: JSON.stringify({
