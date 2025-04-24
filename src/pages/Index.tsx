@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
-  // Redirect to the dashboard page
+  // Redirect to the dashboard 
   return <Navigate to="/dashboard" replace />;
 };
 
