@@ -225,7 +225,7 @@ export const ChatboxPreview = ({
       <CardContent className="p-0 flex-1 flex flex-col">
         <ScrollArea 
           className="flex-1"
-          style={{ height: 'calc(100% - 90px)' }}
+          style={{ height: 'calc(100vh - 90px)' }}
         >
           <div className="p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white min-h-full">
             {messages.map((message, index) => (
