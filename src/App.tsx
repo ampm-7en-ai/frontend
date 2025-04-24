@@ -33,7 +33,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { TrainingStatusProvider } from './context/TrainingStatusContext';
 import { NotificationProvider } from './context/NotificationContext';
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

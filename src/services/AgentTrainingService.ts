@@ -2,7 +2,7 @@
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/context/NotificationContext';
-
+import { NotificationTypes } from '@/types/notification';
 
 export interface TrainingResponse {
   message: string;
@@ -10,16 +10,26 @@ export interface TrainingResponse {
 }
 
 export const AgentTrainingService = {
-  async trainAgent(agentId: string, knowledgeSources: number[] = [],agentName: string): Promise<boolean> {
-    console.log("is it started");
+  async trainAgent(agentId: string, knowledgeSources: number[] = [], agentName: string): Promise<boolean> {
+    console.log("Training agent started:", { agentId, agentName, knowledgeSources });
     
-    const { addNotification } = useNotifications();
+    // Problem: We can't use hooks like useNotifications inside a regular function
+    // Solution: We need to accept the addNotification function as a parameter
     const token = getAccessToken();
     if (!token) {
+      console.error("Authentication required for training agent");
+      toast({
+        title: "Authentication required",
+        description: "Please log in again to continue.",
+        variant: "destructive"
+      });
       throw new Error("Authentication required");
     }
     
     try {
+      // Add a training started notification
+      // This needs to be done by the calling component
+      
       const response = await fetch(`${BASE_URL}ai/train-agent/`, {
         method: "POST",
         headers: getAuthHeaders(token),
@@ -29,25 +39,27 @@ export const AgentTrainingService = {
         })
       });
       
+      console.log("Training API response status:", response.status);
+      
       if (!response.ok) {
         const errorText = await response.text();
+        console.error("Train agent request failed:", errorText);
         throw new Error(errorText || "Train agent request failed.");
       }
       
       const data: TrainingResponse = await response.json();
+      console.log("Training completed successfully:", data);
       
-      
-       //Add success notification
-       addNotification({
-        title: 'Training Complete',
-        message: data.message,
-        type: 'training_completed',
-        agentId,
-        agentName
-       });
+      // The notification should be added by the calling component
+      toast({
+        title: "Training Complete",
+        description: data.message || `${agentName} training completed successfully.`,
+        variant: "default"
+      });
       
       return true;
     } catch (error) {
+      console.error("Training failed:", error);
       toast({
         title: "Training failed",
         description: error instanceof Error ? error.message : "An error occurred while training agent.",

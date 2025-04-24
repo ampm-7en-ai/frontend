@@ -33,10 +33,10 @@ type HeaderProps = {
 export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: HeaderProps) {
   const { logout } = useAuth();
   const { notifications, markAllAsRead, markAsRead } = useNotifications();
+  
+  console.log("Current notifications in Header:", notifications);
 
   const unreadCount = notifications.filter(n => !n.read).length;
-
-
 
   // Use the passed onLogout function if provided, otherwise use the one from context
   const handleLogout = onLogout || logout;
@@ -108,26 +108,32 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
               </Button>
             </div>
             <div className="max-h-[280px] overflow-y-auto py-1">
-            {notifications.map((notification: Notification) => (
-              <DropdownMenuItem 
-                key={notification.id} 
-                className="py-1.5 px-3 flex flex-col items-start focus:bg-accent"
-                onClick={() => markAsRead(notification.id)}
-              >
-                <div className="flex items-start justify-between w-full">
-                  <span className={`font-medium text-xs ${notification.read ? 'text-dark-gray' : 'text-black'}`}>
-                    {notification.title}
-                  </span>
-                  {!notification.read && (
-                    <span className="h-1.5 w-1.5 bg-primary rounded-full mt-1"></span>
-                  )}
+              {notifications.length === 0 ? (
+                <div className="p-3 text-center text-sm text-gray-500">
+                  No notifications
                 </div>
-                <span className="text-xs text-dark-gray/80 mt-0.5">{notification.message}</span>
-                <span className="text-[10px] text-dark-gray mt-0.5">
-                  {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
-                </span>
-              </DropdownMenuItem>
-            ))}
+              ) : (
+                notifications.map((notification: Notification) => (
+                  <DropdownMenuItem 
+                    key={notification.id} 
+                    className="py-1.5 px-3 flex flex-col items-start focus:bg-accent"
+                    onClick={() => markAsRead(notification.id)}
+                  >
+                    <div className="flex items-start justify-between w-full">
+                      <span className={`font-medium text-xs ${notification.read ? 'text-dark-gray' : 'text-black'}`}>
+                        {notification.title}
+                      </span>
+                      {!notification.read && (
+                        <span className="h-1.5 w-1.5 bg-primary rounded-full mt-1"></span>
+                      )}
+                    </div>
+                    <span className="text-xs text-dark-gray/80 mt-0.5">{notification.message}</span>
+                    <span className="text-[10px] text-dark-gray mt-0.5">
+                      {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
+                    </span>
+                  </DropdownMenuItem>
+                ))
+              )}
             </div>
             <DropdownMenuSeparator className="my-0.5" />
             <DropdownMenuItem className="py-1.5 text-center justify-center text-xs text-primary hover:text-primary-hover hover:bg-accent">

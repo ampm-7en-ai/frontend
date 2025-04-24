@@ -13,6 +13,8 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
+import { useNotifications } from '@/context/NotificationContext';
+import { NotificationTypes } from '@/types/notification';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -37,6 +39,7 @@ const KnowledgeTrainingStatus = ({
 }: KnowledgeTrainingStatusProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { addNotification } = useNotifications();
   
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isTrainingAll, setIsTrainingAll] = useState(false);
@@ -206,6 +209,15 @@ const KnowledgeTrainingStatus = ({
     setIsTrainingAll(true);
     setShowTrainingAlert(true);
     
+    // Add notification for training started
+    addNotification({
+      title: 'Training Started',
+      message: `Processing ${agentName} with ${agentKnowledgeBases.length} knowledge sources`,
+      type: 'training_started',
+      agentId,
+      agentName
+    });
+    
     toast({
       title: "Training started",
       description: `Processing ${agentKnowledgeBases.length} knowledge sources. This may take a while.`
@@ -217,12 +229,42 @@ const KnowledgeTrainingStatus = ({
         .flatMap(kb => kb.knowledge_sources || [])
         .filter(source => source.is_selected !== false).map(s => s.id);
       
+      console.log("Training with knowledge sources:", knowledgeSourceIds);
+      
       // Call the trainAgent method from AgentTrainingService
-      await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds, agentName);
+      const success = await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds, agentName);
+      
+      // Add notification for training completion based on result
+      if (success) {
+        addNotification({
+          title: 'Training Complete',
+          message: `Agent "${agentName}" training has completed successfully.`,
+          type: 'training_completed',
+          agentId,
+          agentName
+        });
+      } else {
+        addNotification({
+          title: 'Training Failed',
+          message: `Agent "${agentName}" training has failed.`,
+          type: 'training_failed',
+          agentId,
+          agentName
+        });
+      }
       
       setNeedsRetraining(false);
     } catch (error) {
       console.error("Error training agent:", error);
+      
+      // Add notification for training failure
+      addNotification({
+        title: 'Training Failed',
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        type: 'training_failed',
+        agentId,
+        agentName
+      });
     } finally {
       setIsTrainingAll(false);
       setShowTrainingAlert(false);
