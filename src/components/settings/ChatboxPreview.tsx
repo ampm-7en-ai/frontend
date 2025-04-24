@@ -48,7 +48,8 @@ export const ChatboxPreview = ({
   const [inputValue, setInputValue] = useState('');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,8 +57,8 @@ export const ChatboxPreview = ({
   }, [welcomeMessage]);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, showTypingIndicator]);
 
@@ -182,7 +183,7 @@ export const ChatboxPreview = ({
   return (
     <Card 
       className={cn(
-        "h-full flex flex-col overflow-hidden shadow-xl animate-fade-in",
+        "h-full flex flex-col overflow-hidden shadow-xl animate-fade-in relative",
         className
       )}
       style={{ 
@@ -222,10 +223,10 @@ export const ChatboxPreview = ({
         ) : null}
       </div>
       
-      <CardContent className="p-0 flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <ScrollArea 
-          className="flex-1"
-          style={{ height: 'calc(100vh - 90px)' }}
+          className="flex-1 relative"
+          style={{ height: 'calc(100vh - 180px)' }}
         >
           <div className="p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white min-h-full">
             {messages.map((message, index) => (
@@ -350,11 +351,13 @@ export const ChatboxPreview = ({
                 ))}
               </div>
             )}
+            
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
         
-        <form onSubmit={handleSubmit} className="border-t p-3 bg-white">
-          <div className="relative">
+        <div className="border-t p-3 bg-white mt-auto">
+          <form onSubmit={handleSubmit} className="relative">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -378,12 +381,12 @@ export const ChatboxPreview = ({
             >
               <Send size={16} />
             </button>
-          </div>
+          </form>
           <div className="text-center mt-2 text-xs text-gray-400">
             powered by 7en.ai
           </div>
-        </form>
-      </CardContent>
+        </div>
+      </div>
     </Card>
   );
 };
