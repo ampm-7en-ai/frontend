@@ -831,6 +831,7 @@ const AgentEdit = () => {
   const renderKnowledgeContent = () => (
     <KnowledgeTrainingStatus 
       agentId={agentId || '1'} 
+      agentName={agent.name || 'agent'}
       initialSelectedSources={agent.knowledgeSources}
       onSourcesChange={handleKnowledgeSourcesChange}
       preloadedKnowledgeSources={agentKnowledgeSources}

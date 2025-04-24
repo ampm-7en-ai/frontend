@@ -16,6 +16,7 @@ import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
+  agentName: string;
   initialSelectedSources?: number[];
   onSourcesChange?: (selectedSourceIds: number[]) => void;
   preloadedKnowledgeSources?: any[];
@@ -25,7 +26,8 @@ interface KnowledgeTrainingStatusProps {
 }
 
 const KnowledgeTrainingStatus = ({ 
-  agentId, 
+  agentId,
+  agentName, 
   initialSelectedSources = [], 
   onSourcesChange,
   preloadedKnowledgeSources = [],
@@ -216,7 +218,7 @@ const KnowledgeTrainingStatus = ({
         .filter(source => source.is_selected !== false).map(s => s.id);
       
       // Call the trainAgent method from AgentTrainingService
-      await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds);
+      await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds, agentName);
       
       setNeedsRetraining(false);
     } catch (error) {

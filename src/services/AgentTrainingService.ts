@@ -1,6 +1,8 @@
 
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
+import { useNotifications } from '@/context/NotificationContext';
+
 
 export interface TrainingResponse {
   message: string;
@@ -8,7 +10,10 @@ export interface TrainingResponse {
 }
 
 export const AgentTrainingService = {
-  async trainAgent(agentId: string, knowledgeSources: number[] = []): Promise<boolean> {
+  async trainAgent(agentId: string, knowledgeSources: number[] = [],agentName: string): Promise<boolean> {
+    console.log("is it started");
+    
+    const { addNotification } = useNotifications();
     const token = getAccessToken();
     if (!token) {
       throw new Error("Authentication required");
@@ -31,12 +36,15 @@ export const AgentTrainingService = {
       
       const data: TrainingResponse = await response.json();
       
-      // Show success toast with the message from the response
-      toast({
-        title: "Training Complete",
-        description: data.message,
-        variant: "default"
-      });
+      
+       //Add success notification
+       addNotification({
+        title: 'Training Complete',
+        message: data.message,
+        type: 'training_completed',
+        agentId,
+        agentName
+       });
       
       return true;
     } catch (error) {
