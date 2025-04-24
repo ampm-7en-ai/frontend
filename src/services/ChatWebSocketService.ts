@@ -18,6 +18,7 @@ interface ChatWebSocketEvents {
 export class ChatWebSocketService {
   private ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
+  private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
   
   constructor(agentId: string) {
     this.ws = new WebSocketService(`wss://api.7en.ai/ws/chat/${agentId}/`);
@@ -52,6 +53,32 @@ export class ChatWebSocketService {
   
   private handleMessage(data: any) {
     console.log('Received WebSocket data:', data);
+    
+    // Skip if not a valid message
+    if (!data || (!data.type && !data.content)) {
+      return;
+    }
+    
+    // Generate a consistent ID for deduplication
+    const messageId = data.id || 
+                     `${data.content}-${data.timestamp || new Date().toISOString()}`;
+                     
+    // Skip if we've already processed this message
+    if (this.processedMessageIds.has(messageId)) {
+      console.log('Skipping duplicate message:', messageId);
+      return;
+    }
+    
+    // Add to processed messages
+    this.processedMessageIds.add(messageId);
+    
+    // Limit the size of the set to prevent memory issues
+    if (this.processedMessageIds.size > 100) {
+      // Remove the oldest entries (convert to array, slice, and convert back)
+      this.processedMessageIds = new Set(
+        Array.from(this.processedMessageIds).slice(-50)
+      );
+    }
     
     if (data.type === 'bot_response' || data.content) {
       this.events.onMessage?.({

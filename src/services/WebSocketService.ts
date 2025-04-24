@@ -1,4 +1,3 @@
-
 interface WebSocketMessage {
   type: string;
   content?: string;
@@ -11,6 +10,7 @@ export class WebSocketService {
   private listeners: Map<string, Function[]> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private processedMessages: Set<string> = new Set();
 
   constructor(private url: string) {}
 
@@ -32,6 +32,26 @@ export class WebSocketService {
       try {
         const data = JSON.parse(event.data);
         console.log('WebSocket parsed message:', data);
+        
+        // Generate a message ID for deduplication
+        const messageId = data.id || 
+                         `${data.type}-${data.content || ''}-${data.timestamp || ''}`;
+        
+        // Skip duplicate processing within a short time window
+        if (this.processedMessages.has(messageId)) {
+          console.log('Skipping duplicate WebSocket message:', messageId);
+          return;
+        }
+        
+        // Add to processed messages
+        this.processedMessages.add(messageId);
+        
+        // Clean up old entries periodically
+        if (this.processedMessages.size > 100) {
+          this.processedMessages = new Set(
+            Array.from(this.processedMessages).slice(-50)
+          );
+        }
         
         if (data.type) {
           // Emit the specific event type
@@ -90,15 +110,15 @@ export class WebSocketService {
   send(message: WebSocketMessage): void {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected');
-      }
+    }
       
-      try {
-        console.log('WebSocket sending message:', message);
-        this.socket.send(JSON.stringify(message));
-      } catch (error) {
-        console.error('Error sending message:', error);
-        this.emit('error', 'Failed to send message');
-      }
+    try {
+      console.log('WebSocket sending message:', message);
+      this.socket.send(JSON.stringify(message));
+    } catch (error) {
+      console.error('Error sending message:', error);
+      this.emit('error', 'Failed to send message');
+    }
   }
   
   isConnected(): boolean {

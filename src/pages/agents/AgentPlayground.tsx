@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { fetchAgentDetails } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 
 type Message = {
   id: string;
@@ -42,9 +42,10 @@ const AgentPlayground = () => {
   });
   
   const [messages, setMessages] = useState<Message[]>([]);
-  
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   
   useEffect(() => {
     // Fetch agent details when component mounts
@@ -54,17 +55,6 @@ const AgentPlayground = () => {
         if (agentId) {
           const agentData = await fetchAgentDetails(agentId);
           setAgent(agentData);
-          
-          // Initialize with welcome message from agent appearance data
-          const welcomeMessage = agentData.appearance?.welcomeMessage || 
-            "Hello! I'm an AI assistant. How can I help you today?";
-            
-          setMessages([{
-            id: '1',
-            sender: 'agent',
-            text: welcomeMessage,
-            timestamp: new Date(),
-          }]);
         }
       } catch (error) {
         console.error('Failed to fetch agent details:', error);
@@ -82,6 +72,75 @@ const AgentPlayground = () => {
   }, [agentId, toast]);
   
   useEffect(() => {
+    // Initialize chat service when component mounts and agentId is available
+    if (agentId) {
+      console.log(`Initializing ChatWebSocketService with agent ID: ${agentId}`);
+      chatServiceRef.current = new ChatWebSocketService(agentId);
+      
+      chatServiceRef.current.on({
+        onMessage: (message) => {
+          console.log("Received message:", message);
+          setMessages(prev => [
+            ...prev, 
+            {
+              id: Date.now().toString(),
+              sender: 'agent',
+              text: message.content,
+              timestamp: new Date(message.timestamp)
+            }
+          ]);
+          setIsTyping(false);
+        },
+        onTypingStart: () => {
+          console.log("Typing indicator started");
+          setIsTyping(true);
+        },
+        onTypingEnd: () => {
+          console.log("Typing indicator ended");
+          setIsTyping(false);
+        },
+        onError: (error) => {
+          console.error('Chat error:', error);
+          toast({
+            title: "Connection Error",
+            description: error || "Failed to connect to chat service",
+            variant: "destructive",
+          });
+          setIsTyping(false);
+          setIsConnected(false);
+        },
+        onConnectionChange: (status) => {
+          console.log("Connection status changed:", status);
+          setIsConnected(status);
+          
+          if (status && !messages.length) {
+            // Add welcome message when connected
+            if (agent?.appearance?.welcomeMessage) {
+              setMessages([{
+                id: '1',
+                sender: 'agent',
+                text: agent.appearance.welcomeMessage,
+                timestamp: new Date(),
+              }]);
+            }
+          }
+        }
+      });
+      
+      // Connect
+      chatServiceRef.current.connect();
+      
+      // Cleanup on unmount
+      return () => {
+        console.log("Cleaning up ChatWebSocketService");
+        if (chatServiceRef.current) {
+          chatServiceRef.current.disconnect();
+        }
+      };
+    }
+  }, [agentId, toast, agent?.appearance?.welcomeMessage, messages.length, agent]);
+  
+  useEffect(() => {
     // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -91,10 +150,11 @@ const AgentPlayground = () => {
     inputRef.current?.focus();
   }, []);
   
+  // Handle sending a message
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !isConnected) return;
     
-    // Add user message
+    // Add user message to the chat
     const userMessage: Message = {
       id: Date.now().toString(),
       sender: 'user',
@@ -106,33 +166,21 @@ const AgentPlayground = () => {
     setInputValue('');
     setIsTyping(true);
     
-    // Simulate agent typing and response
-    setTimeout(() => {
-      // Mock response - in a real app, this would be an API call
-      const agentMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'agent',
-        text: getAgentResponse(inputValue),
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, agentMessage]);
+    // Send message via WebSocket
+    try {
+      if (chatServiceRef.current) {
+        chatServiceRef.current.sendMessage(inputValue);
+        console.log("Message sent:", inputValue);
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
       setIsTyping(false);
-    }, 1500);
-  };
-  
-  // Simple mock function to generate responses
-  const getAgentResponse = (input: string): string => {
-    const responses = [
-      "Thank you for your question. I'd be happy to help with that.",
-      "I understand what you're looking for. Here's what I can tell you...",
-      "That's a great question. Based on the information I have...",
-      "I can certainly assist with that. Here's what you need to know...",
-      "Thanks for reaching out. Let me look into that for you."
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)] + 
-      " This is a simulated response in the test environment.";
+    }
   };
   
   if (loading) {
@@ -260,21 +308,28 @@ const AgentPlayground = () => {
                 ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type your message..."
+                placeholder={isConnected ? "Type your message..." : "Connecting to agent..."}
                 className="flex-1"
+                disabled={!isConnected || isTyping}
               />
               <Button 
                 type="submit" 
-                disabled={!inputValue.trim() || isTyping}
+                disabled={!inputValue.trim() || !isConnected || isTyping}
                 style={{ backgroundColor: primaryColor }}
               >
                 <SendHorizontal className="h-4 w-4 mr-2" />
                 Send
               </Button>
             </form>
+            {!isConnected && (
+              <p className="text-xs text-center mt-2 text-muted-foreground">
+                {loading ? "Connecting to agent..." : "Not connected to agent. Please try refreshing."}
+              </p>
+            )}
           </div>
         </div>
         
+        {/* Sidebar */}
         <div className="w-1/3 p-6 overflow-y-auto">
           <h3 className="text-lg font-semibold mb-4">Agent Information</h3>
           <Card>
