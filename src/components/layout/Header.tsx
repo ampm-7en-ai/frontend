@@ -36,9 +36,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // const markAllAsRead = () => {
-  //   setNotifications(notifications.map(n => ({ ...n, read: true })));
-  // };
+
 
   // Use the passed onLogout function if provided, otherwise use the one from context
   const handleLogout = onLogout || logout;
