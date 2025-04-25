@@ -274,8 +274,10 @@ export const ChatboxPreview = ({
                     backgroundColor: message.type === 'bot' ? `${primaryColor}15` : '',
                   }}
                 >
-                  <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  <div className="text-sm prose prose-sm max-w-none markdown-content">
+                    <ReactMarkdown>
+                      {message.content}
+                    </ReactMarkdown>
                   </div>
                   <p className="text-xs mt-1 text-gray-400">
                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

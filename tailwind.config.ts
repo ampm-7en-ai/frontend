@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -170,8 +169,79 @@ export default {
 			},
 			backgroundImage: {
 				'blue-gradient': 'linear-gradient(90deg, #0066FF 0%, #0052CC 100%)',
-			}
+			},
+			typography: (theme: any) => ({
+				DEFAULT: {
+					css: {
+						maxWidth: '100%',
+						color: 'inherit',
+						p: {
+							marginTop: '0.5em',
+							marginBottom: '0.5em',
+						},
+						'ul, ol': {
+							paddingLeft: '1.5em',
+							marginTop: '0.5em',
+							marginBottom: '0.5em',
+						},
+						li: {
+							marginTop: '0.25em',
+							marginBottom: '0.25em',
+						},
+						'li > p': {
+							marginTop: '0',
+							marginBottom: '0',
+						},
+						'li > ul, li > ol': {
+							marginTop: '0.25em',
+							marginBottom: '0.25em',
+						},
+						h1: {
+							fontSize: '1.5em',
+							marginTop: '1em',
+							marginBottom: '0.5em',
+							fontWeight: '600',
+						},
+						h2: {
+							fontSize: '1.25em',
+							marginTop: '1em',
+							marginBottom: '0.5em',
+							fontWeight: '600',
+						},
+						h3: {
+							fontSize: '1.125em',
+							marginTop: '1em',
+							marginBottom: '0.5em',
+							fontWeight: '600',
+						},
+						code: {
+							padding: '0.2em 0.4em',
+							backgroundColor: theme('colors.gray.100'),
+							borderRadius: '3px',
+							fontSize: '0.875em',
+						},
+						pre: {
+							backgroundColor: theme('colors.gray.100'),
+							borderRadius: '3px',
+							padding: '0.75em 1em',
+							overflowX: 'auto',
+						},
+						'pre code': {
+							backgroundColor: 'transparent',
+							padding: '0',
+						},
+					}
+				},
+				sm: {
+					css: {
+						fontSize: '0.875rem',
+					}
+				}
+			}),
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		require('@tailwindcss/typography'),
+	],
 } satisfies Config;
