@@ -201,8 +201,7 @@ const KnowledgeTrainingStatus = ({
   const hasProblematicSources = (knowledgeBases: ApiKnowledgeBase[]) => {
     return knowledgeBases.some(kb => 
       kb.status === 'deleted' || 
-      kb.status === 'issues' ||
-      kb.knowledge_sources.some(source => source.status === 'deleted')
+      kb.knowledge_sources.some(source => source.status === 'deleted' && source.is_selected == true)
     );
   };
 
@@ -380,7 +379,7 @@ const KnowledgeTrainingStatus = ({
             ) : (
               <Zap className="h-4 w-4" />
             )}
-            {isTrainingAll ? 'Training...' : 'Train All'}
+            {isTrainingAll ? 'Training...' : hasProblematicSources ? 'Retrain': 'Train Agent'}
           </Button>
         </div>
       </CardHeader>
@@ -406,12 +405,12 @@ const KnowledgeTrainingStatus = ({
           onOpenChange={setShowCleanupDialog}
           knowledgeSources={
             agentKnowledgeBases?.flatMap(kb => 
-              kb.knowledge_sources.map(source => ({
+              kb.knowledge_sources.filter(s => s.is_selected === true).map(source => ({
                 id: source.id,
                 name: source.title,
                 type: kb.type,
                 hasError: source.status === 'deleted' || kb.status === 'deleted',
-                hasIssue: kb.status === 'issues'
+                hasIssue: source.status === 'deleted'
               }))
             ).filter(source => source.hasError || source.hasIssue) || []
           }

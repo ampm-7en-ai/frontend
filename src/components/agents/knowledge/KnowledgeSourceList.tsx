@@ -265,12 +265,14 @@ const KnowledgeBaseCard = ({
 
   const getBadgeForStatus = (status: string) => {
     switch (status) {
-      case 'success':
-        return <Badge variant="success" className="text-xs font-medium">Trained</Badge>;
-      case 'training':
-        return <Badge variant="secondary" className="text-xs font-medium">Training</Badge>;
+      case 'Active':
+        return <Badge variant="success" className="text-[10px]">Trained</Badge>;
+      case 'Training':
+        return <Badge variant="secondary" className="text-[10px]">Training</Badge>;
+      case 'Issues':
+        return <Badge variant="waiting" className="text-[10px]">Issues</Badge>
       default:
-        return <Badge variant="outline" className="text-xs font-medium">Untrained</Badge>;
+        return <Badge variant="outline" className="text-[10px]">Untrained</Badge>;
     }
   };
 
@@ -436,9 +438,7 @@ const KnowledgeBaseCard = ({
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
-                              {source.is_selected && (
-                                <Badge variant="success" className="text-[10px]">Selected</Badge>
-                              )}
+                              { getBadgeForStatus(source.training_status) }
                             </div>
                           </div>
                           <Separator className="mt-2 bg-gray-100" />

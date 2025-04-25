@@ -166,6 +166,7 @@ export interface ApiKnowledgeSource {
   file: string | null;
   title: string;
   status: string;
+  training_status: string;
   knowledge_base: number;
   parent_knowledge_source: number | null;
   metadata: any;

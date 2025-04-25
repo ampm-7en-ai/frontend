@@ -212,7 +212,7 @@ export default {
 							},
 						},
 						code: {
-							backgroundColor: theme('colors.gray.100'),
+							backgroundColor: theme('colors.black.100'),
 							color: theme('colors.primary.DEFAULT'),
 							borderRadius: '0.25rem',
 							padding: '0.2em 0.4em',
