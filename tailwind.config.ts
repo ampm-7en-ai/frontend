@@ -208,7 +208,7 @@ export default {
 								backgroundColor: 'transparent',
 								padding: '0',
 								color: 'inherit',
-								fontSize: '0.875em',
+								fontSize: '1.2em',
 							},
 						},
 						code: {
