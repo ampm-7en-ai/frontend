@@ -8,6 +8,7 @@ export interface KnowledgeSource {
   progress?: number;
   linkBroken?: boolean;
   hasError?: boolean;
+  hasIssue?: boolean;
   content?: string;
   insideLinks?: {
     url: string;
