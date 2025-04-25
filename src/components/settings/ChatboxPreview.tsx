@@ -277,11 +277,15 @@ export const ChatboxPreview = ({
                   <div className="text-sm prose prose-sm max-w-none markdown-content">
                     <ReactMarkdown
                       components={{
-                        code({ node, inline, className, children, ...props }) {
+                        code({ node, className, children, ...props }) {
                           const match = /language-(\w+)/.exec(className || '');
                           const language = match ? match[1] : '';
                           
-                          if (inline) {
+                          // Fix: checking inline property correctly by examining props and node structure
+                          // Instead of using `inline` directly, check if there's no language specified and it's a short code block
+                          const isInline = !match && children.toString().split('\n').length === 1;
+                          
+                          if (isInline) {
                             return (
                               <code
                                 className="px-1.5 py-0.5 rounded-md bg-gray-100 font-mono text-sm"
