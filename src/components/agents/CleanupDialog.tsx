@@ -13,6 +13,7 @@ import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import { useToast } from "@/hooks/use-toast";
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 interface CleanupDialogProps {
   open: boolean;
@@ -71,28 +72,25 @@ const CleanupDialog = ({
 
   const handleRetrain = async () => {
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
+      // Get knowledge source IDs from the problematic sources
+      const knowledgeSourceIds = problematicSources
+        .filter(source => !source.hasError && !source.hasIssue)
+        .map(source => source.id);
+
+      const success = await AgentTrainingService.trainAgent(
+        agentId, 
+        knowledgeSourceIds,
+        "Agent" // Generic name since we don't have access to agent name here
+      );
+
+      if (success) {
+        toast({
+          title: "Retraining started",
+          description: "Agent retraining is running in the background.",
+          variant: "default"
+        });
+        onOpenChange(false);
       }
-
-      const response = await fetch(`${BASE_URL}agents/${agentId}/retrain/`, {
-        method: "POST",
-        headers: getAuthHeaders(token)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Retrain request failed.");
-      }
-
-      toast({
-        title: "Retraining started",
-        description: "Agent retraining is running in the background.",
-        variant: "default"
-      });
-
-      onOpenChange(false);
 
     } catch (error) {
       toast({
