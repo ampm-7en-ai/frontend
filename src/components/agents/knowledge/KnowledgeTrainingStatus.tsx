@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ApiKnowledgeBase, KnowledgeSource, ApiKnowledgeSource } from './types';
+import { ApiKnowledgeBase, KnowledgeSource } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { 
@@ -15,7 +15,6 @@ import KnowledgeSourceList from './KnowledgeSourceList';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { NotificationTypes } from '@/types/notification';
-import CleanupDialog from '@/components/agents/CleanupDialog';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -47,7 +46,6 @@ const KnowledgeTrainingStatus = ({
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
   const [needsRetraining, setNeedsRetraining] = useState(true);
   const [showTrainingAlert, setShowTrainingAlert] = useState(false);
-  const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false);
   
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
@@ -198,55 +196,6 @@ const KnowledgeTrainingStatus = ({
     // The ImportSourcesDialog component now handles the refresh after import
   };
 
-  const convertToKnowledgeSource = (source: ApiKnowledgeSource): KnowledgeSource => {
-    const metadataInfo = source.metadata ? getSourceMetadataInfo({
-      type: source.metadata.type || 'unknown',
-      metadata: source.metadata
-    }) : { count: '', size: 'N/A' };
-
-    return {
-      id: source.id,
-      name: source.title || `Source ${source.id}`,
-      type: source.metadata?.type || 'unknown',
-      size: metadataInfo.size,
-      lastUpdated: source.metadata?.last_updated || 'Unknown',
-      trainingStatus: 'idle',
-      hasError: source.status === 'error',
-      hasIssue: source.status === 'issues', 
-      linkBroken: source.status === 'deleted',
-      is_selected: source.is_selected
-    };
-  };
-
-  const hasProblematicSources = (knowledgeBases: ApiKnowledgeBase[]): boolean => {
-    return knowledgeBases.some(kb => {
-      // Check knowledge base status
-      if (kb.status === 'deleted' || kb.status === 'issues') {
-        return true;
-      }
-      
-      // Check individual sources
-      return kb.knowledge_sources.some(source => 
-        source.status === 'deleted' || 
-        source.status === 'error' || 
-        source.status === 'issues'
-      );
-    });
-  };
-
-  const getProblematicSources = (knowledgeBases: ApiKnowledgeBase[]): KnowledgeSource[] => {
-    const problematicApiSources = knowledgeBases.flatMap(kb => 
-      kb.knowledge_sources.filter(source => 
-        source.status === 'deleted' || 
-        source.status === 'error' || 
-        source.status === 'issues'
-      )
-    );
-    
-    // Convert ApiKnowledgeSource[] to KnowledgeSource[]
-    return problematicApiSources.map(convertToKnowledgeSource);
-  };
-
   const trainAllSources = async () => {
     if (!agentKnowledgeBases || agentKnowledgeBases.length === 0) {
       toast({
@@ -257,14 +206,6 @@ const KnowledgeTrainingStatus = ({
       return;
     }
 
-    // Check for problematic sources
-    if (hasProblematicSources(agentKnowledgeBases)) {
-      // Open the cleanup dialog if there are problematic sources
-      setCleanupDialogOpen(true);
-      return;
-    }
-
-    // Continue with training if no problematic sources
     setIsTrainingAll(true);
     setShowTrainingAlert(true);
     
@@ -458,13 +399,6 @@ const KnowledgeTrainingStatus = ({
         agentId={agentId}
         preventMultipleCalls={true}
         isLoading={isLoadingAvailableKnowledgeBases}
-      />
-
-      <CleanupDialog
-        open={cleanupDialogOpen}
-        onOpenChange={setCleanupDialogOpen}
-        knowledgeSources={getProblematicSources(agentKnowledgeBases || [])}
-        agentId={agentId}
       />
     </Card>
   );
