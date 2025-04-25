@@ -13,6 +13,8 @@ import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import { useToast } from "@/hooks/use-toast";
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
+import { useNotifications } from '@/context/NotificationContext';
+import { NotificationTypes } from '@/types/notification';
 
 interface CleanupDialogProps {
   open: boolean;
@@ -28,6 +30,7 @@ const CleanupDialog = ({
   agentId,
 }: CleanupDialogProps) => {
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const [isCleanupDone, setIsCleanupDone] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const problematicSources = knowledgeSources.filter(source => source.hasError || source.hasIssue);
@@ -90,6 +93,15 @@ const CleanupDialog = ({
         throw new Error("No valid knowledge sources found");
       }
 
+      // Add notification for training started
+      addNotification({
+        title: "Agent Training Started",
+        message: `Retraining agent with cleaned up knowledge sources`,
+        type: NotificationTypes.TRAINING_STARTED,
+        agentId: agentId,
+        agentName: "Agent" // Since we don't have access to agent name here
+      });
+
       const success = await AgentTrainingService.trainAgent(
         agentId, 
         knowledgeSourceIds,
@@ -106,6 +118,15 @@ const CleanupDialog = ({
       }
 
     } catch (error) {
+      // Add notification for training failed
+      addNotification({
+        title: "Agent Training Failed",
+        message: error instanceof Error ? error.message : "An error occurred during retraining",
+        type: NotificationTypes.TRAINING_FAILED,
+        agentId: agentId,
+        agentName: "Agent"
+      });
+
       toast({
         title: "Retraining failed",
         description: error instanceof Error ? error.message : "An error occurred during retraining.",
