@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Import, Zap, LoaderCircle, AlertCircle } from 'lucide-react';
+import { Import, Zap, LoaderCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ApiKnowledgeBase, KnowledgeSource } from './types';
+import { ApiKnowledgeBase } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { 
   BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
-  getAgentEndpoint, getSourceMetadataInfo
+  getAgentEndpoint
 } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
-import { NotificationTypes } from '@/types/notification';
+import CleanupDialog from '../CleanupDialog';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -46,6 +46,7 @@ const KnowledgeTrainingStatus = ({
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
   const [needsRetraining, setNeedsRetraining] = useState(true);
   const [showTrainingAlert, setShowTrainingAlert] = useState(false);
+  const [showCleanupDialog, setShowCleanupDialog] = useState(false);
   
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
@@ -196,6 +197,14 @@ const KnowledgeTrainingStatus = ({
     // The ImportSourcesDialog component now handles the refresh after import
   };
 
+  const hasProblematicSources = (knowledgeBases: ApiKnowledgeBase[]) => {
+    return knowledgeBases.some(kb => 
+      kb.status === 'deleted' || 
+      kb.status === 'issues' ||
+      kb.knowledge_sources.some(source => source.status === 'deleted')
+    );
+  };
+
   const trainAllSources = async () => {
     if (!agentKnowledgeBases || agentKnowledgeBases.length === 0) {
       toast({
@@ -206,10 +215,14 @@ const KnowledgeTrainingStatus = ({
       return;
     }
 
+    if (hasProblematicSources(agentKnowledgeBases)) {
+      setShowCleanupDialog(true);
+      return;
+    }
+
     setIsTrainingAll(true);
     setShowTrainingAlert(true);
     
-    // Add notification for training started
     addNotification({
       title: 'Training Started',
       message: `Processing ${agentName} with ${agentKnowledgeBases.length} knowledge sources`,
@@ -224,17 +237,15 @@ const KnowledgeTrainingStatus = ({
     });
 
     try {
-      // Extract the knowledge source IDs from the agent knowledge bases
       const knowledgeSourceIds = agentKnowledgeBases
         .flatMap(kb => kb.knowledge_sources || [])
-        .filter(source => source.is_selected !== false).map(s => s.id);
+        .filter(source => source.is_selected !== false)
+        .map(s => s.id);
       
       console.log("Training with knowledge sources:", knowledgeSourceIds);
       
-      // Call the trainAgent method from AgentTrainingService
       const success = await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds, agentName);
       
-      // Add notification for training completion based on result
       if (success) {
         addNotification({
           title: 'Training Complete',
@@ -257,7 +268,6 @@ const KnowledgeTrainingStatus = ({
     } catch (error) {
       console.error("Error training agent:", error);
       
-      // Add notification for training failure
       addNotification({
         title: 'Training Failed',
         message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -281,6 +291,14 @@ const KnowledgeTrainingStatus = ({
       onKnowledgeBasesChanged();
     }
   }, [onKnowledgeBasesChanged, triggerRefresh]);
+
+  const handleCleanupCompleted = () => {
+    setShowCleanupDialog(false);
+    // Refresh the knowledge bases after cleanup
+    queryClient.invalidateQueries({ 
+      queryKey: ['agentKnowledgeBases', agentId] 
+    });
+  };
 
   const { 
     data: availableKnowledgeBases, 
@@ -381,25 +399,35 @@ const KnowledgeTrainingStatus = ({
           agentId={agentId}
           onKnowledgeBaseRemoved={handleKnowledgeBaseRemoved}
         />
-        
-        {needsRetraining && agentKnowledgeBases && agentKnowledgeBases.length > 0 && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center">
-            <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>Some knowledge sources need training for your agent to use them. Click "Train All" to process them.</span>
-          </div>
-        )}
-      </CardContent>
 
-      <ImportSourcesDialog
-        isOpen={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        externalSources={availableKnowledgeBases || []}
-        currentSources={formatExternalSources(agentKnowledgeBases || [])}
-        onImport={importSelectedSources}
-        agentId={agentId}
-        preventMultipleCalls={true}
-        isLoading={isLoadingAvailableKnowledgeBases}
-      />
+        <CleanupDialog
+          open={showCleanupDialog}
+          onOpenChange={setShowCleanupDialog}
+          knowledgeSources={
+            agentKnowledgeBases?.flatMap(kb => 
+              kb.knowledge_sources.map(source => ({
+                id: source.id,
+                name: source.title,
+                type: kb.type,
+                hasError: source.status === 'deleted' || kb.status === 'deleted',
+                hasIssue: kb.status === 'issues'
+              }))
+            ).filter(source => source.hasError || source.hasIssue) || []
+          }
+          agentId={agentId}
+        />
+        
+        <ImportSourcesDialog
+          isOpen={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+          externalSources={availableKnowledgeBases || []}
+          currentSources={formatExternalSources(agentKnowledgeBases || [])}
+          onImport={importSelectedSources}
+          agentId={agentId}
+          preventMultipleCalls={true}
+          isLoading={isLoadingAvailableKnowledgeBases}
+        />
+      </CardContent>
     </Card>
   );
 };
