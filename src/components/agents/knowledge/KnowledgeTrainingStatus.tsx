@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ApiKnowledgeBase, KnowledgeSource } from './types';
+import { ApiKnowledgeBase, KnowledgeSource, ApiKnowledgeSource } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { 
@@ -198,7 +198,27 @@ const KnowledgeTrainingStatus = ({
     // The ImportSourcesDialog component now handles the refresh after import
   };
 
-  const hasProblematicSources = (knowledgeBases: ApiKnowledgeBase[]) => {
+  const convertToKnowledgeSource = (source: ApiKnowledgeSource): KnowledgeSource => {
+    const metadataInfo = source.metadata ? getSourceMetadataInfo({
+      type: source.metadata.type || 'unknown',
+      metadata: source.metadata
+    }) : { count: '', size: 'N/A' };
+
+    return {
+      id: source.id,
+      name: source.title || `Source ${source.id}`,
+      type: source.metadata?.type || 'unknown',
+      size: metadataInfo.size,
+      lastUpdated: source.metadata?.last_updated || 'Unknown',
+      trainingStatus: 'idle',
+      hasError: source.status === 'error',
+      hasIssue: source.status === 'issues', 
+      linkBroken: source.status === 'deleted',
+      is_selected: source.is_selected
+    };
+  };
+
+  const hasProblematicSources = (knowledgeBases: ApiKnowledgeBase[]): boolean => {
     return knowledgeBases.some(kb => {
       // Check knowledge base status
       if (kb.status === 'deleted' || kb.status === 'issues') {
@@ -208,22 +228,23 @@ const KnowledgeTrainingStatus = ({
       // Check individual sources
       return kb.knowledge_sources.some(source => 
         source.status === 'deleted' || 
-        source.hasError || 
-        source.hasIssue ||
-        (source.is_selected && source.linkBroken)
+        source.status === 'error' || 
+        source.status === 'issues'
       );
     });
   };
 
-  const getProblematicSources = (knowledgeBases: ApiKnowledgeBase[]) => {
-    return knowledgeBases.flatMap(kb => 
+  const getProblematicSources = (knowledgeBases: ApiKnowledgeBase[]): KnowledgeSource[] => {
+    const problematicApiSources = knowledgeBases.flatMap(kb => 
       kb.knowledge_sources.filter(source => 
         source.status === 'deleted' || 
-        source.hasError || 
-        source.hasIssue ||
-        (source.is_selected && source.linkBroken)
+        source.status === 'error' || 
+        source.status === 'issues'
       )
     );
+    
+    // Convert ApiKnowledgeSource[] to KnowledgeSource[]
+    return problematicApiSources.map(convertToKnowledgeSource);
   };
 
   const trainAllSources = async () => {
