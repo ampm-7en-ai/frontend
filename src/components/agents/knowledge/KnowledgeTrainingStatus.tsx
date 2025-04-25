@@ -1,14 +1,15 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ApiKnowledgeBase } from './types';
+import { ApiKnowledgeBase, KnowledgeSource } from './types';
 import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { 
   BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
-  getAgentEndpoint
+  getAgentEndpoint, getSourceMetadataInfo
 } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceList from './KnowledgeSourceList';
