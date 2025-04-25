@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,6 @@ interface CleanupDialogProps {
   onOpenChange: (open: boolean) => void;
   knowledgeSources: KnowledgeSource[];
   agentId: string;
-  onCleanupComplete: () => void;
 }
 
 const CleanupDialog = ({ 
@@ -27,12 +26,14 @@ const CleanupDialog = ({
   onOpenChange, 
   knowledgeSources,
   agentId,
-  onCleanupComplete 
 }: CleanupDialogProps) => {
   const { toast } = useToast();
+  const [isCleanupDone, setIsCleanupDone] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const problematicSources = knowledgeSources.filter(source => source.hasError || source.hasIssue);
 
   const handleCleanup = async () => {
+    setIsLoading(true);
     try {
       const token = getAccessToken();
       if (!token) {
@@ -50,18 +51,53 @@ const CleanupDialog = ({
       }
 
       toast({
-        title: "Cleanup initiated",
-        description: "Knowledge base cleanup is in progress.",
+        title: "Cleanup successful",
+        description: "Knowledge base has been cleaned up successfully.",
         variant: "default"
       });
 
-      onCleanupComplete();
-      onOpenChange(false);
+      setIsCleanupDone(true);
 
     } catch (error) {
       toast({
         title: "Cleanup failed",
         description: error instanceof Error ? error.message : "An error occurred during cleanup.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRetrain = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(`${BASE_URL}agents/${agentId}/retrain/`, {
+        method: "POST",
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Retrain request failed.");
+      }
+
+      toast({
+        title: "Retraining started",
+        description: "Agent retraining is running in the background.",
+        variant: "default"
+      });
+
+      onOpenChange(false);
+
+    } catch (error) {
+      toast({
+        title: "Retraining failed",
+        description: error instanceof Error ? error.message : "An error occurred during retraining.",
         variant: "destructive"
       });
     }
@@ -83,13 +119,19 @@ const CleanupDialog = ({
           ))}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCleanup}>
-            Clean Up Knowledge Base
-          </Button>
+          {!isCleanupDone ? (
+            <Button onClick={handleCleanup} disabled={isLoading}>
+              {isLoading ? "Cleaning up..." : "Clean Up Knowledge Base"}
+            </Button>
+          ) : (
+            <Button onClick={handleRetrain}>
+              Retrain Agent
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

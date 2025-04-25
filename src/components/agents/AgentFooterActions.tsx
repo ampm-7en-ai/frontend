@@ -23,7 +23,6 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
   const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
   const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false);
   const [retraining, setRetraining] = useState(false);
-  const [hasCompletedCleanup, setHasCompletedCleanup] = useState(false);
   const { toast } = useToast();
 
   // Check if there are any problematic knowledge sources
@@ -32,32 +31,35 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
   const handleRetrain = async () => {
     if (retraining) return;
     
-    // If there are problematic sources and cleanup hasn't been done, show the dialog
-    if (hasProblematicSources && !hasCompletedCleanup) {
+    // If there are problematic sources, show the cleanup dialog
+    if (hasProblematicSources) {
       setCleanupDialogOpen(true);
       return;
     }
 
+    // If no problems, proceed with retraining directly
     setRetraining(true);
-    toast({
-      title: "Retraining started",
-      description: "Agent retraining is running in the background. You may continue using the app.",
-      variant: "default"
-    });
-
     try {
       const token = getAccessToken();
       if (!token) {
         throw new Error("Authentication required");
       }
+
       const response = await fetch(`${BASE_URL}agents/${agent.id}/retrain/`, {
         method: "POST",
         headers: getAuthHeaders(token)
       });
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Retrain request failed.");
       }
+
+      toast({
+        title: "Retraining started",
+        description: "Agent retraining is running in the background. You may continue using the app.",
+        variant: "default"
+      });
     } catch (error) {
       toast({
         title: "Retraining failed",
@@ -103,27 +105,16 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
             </Link>
           </Button>
         ) : agent.status === 'Issues' ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full flex items-center justify-center"
-                  onClick={handleRetrain}
-                  disabled={retraining || (hasProblematicSources && !hasCompletedCleanup)}
-                >
-                  <FolderSync className={`h-3.5 w-3.5 mr-1 ${retraining ? 'animate-spin' : ''}`} />
-                  {retraining ? 'Retraining...' : 'Retrain'}
-                </Button>
-              </TooltipTrigger>
-              {hasProblematicSources && !hasCompletedCleanup && (
-                <TooltipContent>
-                  <p>Cleanup required before retraining</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full flex items-center justify-center"
+            onClick={handleRetrain}
+            disabled={retraining}
+          >
+            <FolderSync className={`h-3.5 w-3.5 mr-1 ${retraining ? 'animate-spin' : ''}`} />
+            {retraining ? 'Retraining...' : 'Retrain'}
+          </Button>
         ) : (
           <Button variant="outline" size="sm" className="w-full opacity-50" disabled>
             <Play className="h-3.5 w-3.5 mr-1" />
@@ -176,7 +167,6 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
         onOpenChange={setCleanupDialogOpen}
         knowledgeSources={agent.knowledgeSources || []}
         agentId={agent.id}
-        onCleanupComplete={() => setHasCompletedCleanup(true)}
       />
     </>
   );
