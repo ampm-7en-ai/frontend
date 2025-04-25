@@ -15,6 +15,7 @@ import KnowledgeSourceList from './KnowledgeSourceList';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { NotificationTypes } from '@/types/notification';
+import CleanupDialog from '@/components/agents/CleanupDialog';
 
 interface KnowledgeTrainingStatusProps {
   agentId: string;
@@ -46,6 +47,7 @@ const KnowledgeTrainingStatus = ({
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
   const [needsRetraining, setNeedsRetraining] = useState(true);
   const [showTrainingAlert, setShowTrainingAlert] = useState(false);
+  const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false);
   
   const [knowledgeBasesLoaded, setKnowledgeBasesLoaded] = useState(false);
   const cachedKnowledgeBases = useRef<ApiKnowledgeBase[]>([]);
@@ -206,6 +208,18 @@ const KnowledgeTrainingStatus = ({
       return;
     }
 
+    // Check for problematic sources
+    const problematicSources = agentKnowledgeBases.flatMap(kb => 
+      (kb.knowledge_sources || []).filter(source => source.hasError || source.hasIssue)
+    );
+    
+    if (problematicSources && problematicSources.length > 0) {
+      // Open the cleanup dialog if there are problematic sources
+      setCleanupDialogOpen(true);
+      return;
+    }
+
+    // Continue with training if no problematic sources
     setIsTrainingAll(true);
     setShowTrainingAlert(true);
     
@@ -399,6 +413,15 @@ const KnowledgeTrainingStatus = ({
         agentId={agentId}
         preventMultipleCalls={true}
         isLoading={isLoadingAvailableKnowledgeBases}
+      />
+
+      <CleanupDialog
+        open={cleanupDialogOpen}
+        onOpenChange={setCleanupDialogOpen}
+        knowledgeSources={agentKnowledgeBases?.flatMap(kb => 
+          (kb.knowledge_sources || []).filter(source => source.hasError || source.hasIssue)
+        ) || []}
+        agentId={agentId}
       />
     </Card>
   );
