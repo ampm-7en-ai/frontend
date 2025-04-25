@@ -8,6 +8,7 @@ import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   type: 'user' | 'bot';
@@ -273,7 +274,12 @@ export const ChatboxPreview = ({
                     backgroundColor: message.type === 'bot' ? `${primaryColor}15` : '',
                   }}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                  <p className="text-xs mt-1 text-gray-400">
+                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
                 
                 {message.type === 'user' && (
