@@ -24,6 +24,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { dottedBackgroundStyle } from '@/components/layout/TestPageLayout';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import CleanupDialog from '@/components/agents/CleanupDialog';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -112,6 +114,7 @@ const AgentEdit = () => {
   const [isLoadingAgentData, setIsLoadingAgentData] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false);
 
   const { data: agentData, isLoading, isError, error } = useQuery({
     queryKey: ['agent', agentId],
@@ -206,6 +209,15 @@ const AgentEdit = () => {
   };
   
   const handleRetrainAI = () => {
+    const hasProblematicSources = agentKnowledgeSources.some((source: KnowledgeSource) => 
+      source.hasError || source.hasIssue
+    );
+
+    if (hasProblematicSources) {
+      setCleanupDialogOpen(true);
+      return;
+    }
+
     setIsRetraining(true);
     
     setTimeout(() => {
@@ -296,18 +308,6 @@ const AgentEdit = () => {
         knowledge_bases: agentKnowledgeSources,
         customAvatarFile
       };
-
-      // if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
-      //   const kbId = agentKnowledgeSources && agentKnowledgeSources.length > 0
-      //     ? agentKnowledgeSources[0].id
-      //     : "20";
-          
-      //   payload.settings = {
-      //     knowledge_source_filters: {
-      //       [kbId]: agent.knowledgeSources
-      //     }
-      //   };
-      // }
 
       await updateAgent(agentId || '', payload);
       
@@ -1297,6 +1297,15 @@ const AgentEdit = () => {
           </DialogContent>
         )}
       </Dialog>
+
+      <CleanupDialog
+        open={cleanupDialogOpen}
+        onOpenChange={setCleanupDialogOpen}
+        knowledgeSources={agentKnowledgeSources.filter((source: KnowledgeSource) => 
+          source.hasError || source.hasIssue
+        )}
+        agentId={agentId || ''}
+      />
     </div>
   );
 };
