@@ -84,8 +84,7 @@ const CleanupDialog = ({
       
       // Extract knowledge source IDs from knowledge_links
       const knowledgeSourceIds = agentData.data.knowledge_links
-        ?.map((link: any) => link.knowledge_source?.id)
-        .filter((id: number) => id !== undefined);
+        ?.map((link: any) => link.knowledge_source);
 
       if (!knowledgeSourceIds?.length) {
         throw new Error("No valid knowledge sources found");
