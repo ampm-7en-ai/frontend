@@ -198,6 +198,34 @@ const KnowledgeTrainingStatus = ({
     // The ImportSourcesDialog component now handles the refresh after import
   };
 
+  const hasProblematicSources = (knowledgeBases: ApiKnowledgeBase[]) => {
+    return knowledgeBases.some(kb => {
+      // Check knowledge base status
+      if (kb.status === 'deleted' || kb.status === 'issues') {
+        return true;
+      }
+      
+      // Check individual sources
+      return kb.knowledge_sources.some(source => 
+        source.status === 'deleted' || 
+        source.hasError || 
+        source.hasIssue ||
+        (source.is_selected && source.linkBroken)
+      );
+    });
+  };
+
+  const getProblematicSources = (knowledgeBases: ApiKnowledgeBase[]) => {
+    return knowledgeBases.flatMap(kb => 
+      kb.knowledge_sources.filter(source => 
+        source.status === 'deleted' || 
+        source.hasError || 
+        source.hasIssue ||
+        (source.is_selected && source.linkBroken)
+      )
+    );
+  };
+
   const trainAllSources = async () => {
     if (!agentKnowledgeBases || agentKnowledgeBases.length === 0) {
       toast({
@@ -209,11 +237,7 @@ const KnowledgeTrainingStatus = ({
     }
 
     // Check for problematic sources
-    const problematicSources = agentKnowledgeBases.flatMap(kb => 
-      (kb.knowledge_sources || []).filter(source => source.hasError || source.hasIssue)
-    );
-    
-    if (problematicSources && problematicSources.length > 0) {
+    if (hasProblematicSources(agentKnowledgeBases)) {
       // Open the cleanup dialog if there are problematic sources
       setCleanupDialogOpen(true);
       return;
@@ -418,9 +442,7 @@ const KnowledgeTrainingStatus = ({
       <CleanupDialog
         open={cleanupDialogOpen}
         onOpenChange={setCleanupDialogOpen}
-        knowledgeSources={agentKnowledgeBases?.flatMap(kb => 
-          (kb.knowledge_sources || []).filter(source => source.hasError || source.hasIssue)
-        ) || []}
+        knowledgeSources={getProblematicSources(agentKnowledgeBases || [])}
         agentId={agentId}
       />
     </Card>
