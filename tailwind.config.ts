@@ -176,36 +176,83 @@ export default {
 						maxWidth: '100%',
 						color: 'inherit',
 						p: {
-							marginTop: '0.5em',
-							marginBottom: '0.5em',
+							marginTop: '0.75em',
+							marginBottom: '0.75em',
 						},
 						'ul, ol': {
 							paddingLeft: '1.5em',
-							marginTop: '0.5em',
-							marginBottom: '0.5em',
+							marginTop: '0.75em',
+							marginBottom: '0.75em',
 						},
 						li: {
-							marginTop: '0.25em',
-							marginBottom: '0.25em',
+							marginTop: '0.375em',
+							marginBottom: '0.375em',
 						},
 						'li > p': {
-							marginTop: '0',
-							marginBottom: '0',
-						},
-						'li > ul, li > ol': {
 							marginTop: '0.25em',
 							marginBottom: '0.25em',
+						},
+						'li > ul, li > ol': {
+							marginTop: '0.375em',
+							marginBottom: '0.375em',
+						},
+						pre: {
+							backgroundColor: theme('colors.gray.50'),
+							color: theme('colors.gray.900'),
+							borderRadius: '0.5rem',
+							padding: '1rem',
+							border: '1px solid',
+							borderColor: theme('colors.gray.200'),
+							overflowX: 'auto',
+							code: {
+								backgroundColor: 'transparent',
+								padding: '0',
+								color: 'inherit',
+								fontSize: '0.875em',
+							},
+						},
+						code: {
+							backgroundColor: theme('colors.gray.100'),
+							color: theme('colors.primary.DEFAULT'),
+							borderRadius: '0.25rem',
+							padding: '0.2em 0.4em',
+							fontSize: '0.875em',
+							'&::before': {
+								content: 'none !important',
+							},
+							'&::after': {
+								content: 'none !important',
+							},
+						},
+						'code .keyword': {
+							color: theme('colors.code.keyword'),
+						},
+						'code .string': {
+							color: theme('colors.code.string'),
+						},
+						'code .function': {
+							color: theme('colors.code.function'),
+						},
+						'code .comment': {
+							color: theme('colors.code.comment'),
+							fontStyle: 'italic',
+						},
+						'code .operator': {
+							color: theme('colors.code.operator'),
+						},
+						'code .variable': {
+							color: theme('colors.code.variable'),
 						},
 						h1: {
 							fontSize: '1.5em',
-							marginTop: '1em',
-							marginBottom: '0.5em',
+							marginTop: '1.5em',
+							marginBottom: '0.75em',
 							fontWeight: '600',
 						},
 						h2: {
 							fontSize: '1.25em',
-							marginTop: '1em',
-							marginBottom: '0.5em',
+							marginTop: '1.25em',
+							marginBottom: '0.75em',
 							fontWeight: '600',
 						},
 						h3: {
@@ -214,29 +261,13 @@ export default {
 							marginBottom: '0.5em',
 							fontWeight: '600',
 						},
-						code: {
-							padding: '0.2em 0.4em',
-							backgroundColor: theme('colors.gray.100'),
-							borderRadius: '3px',
-							fontSize: '0.875em',
-						},
-						pre: {
-							backgroundColor: theme('colors.gray.100'),
-							borderRadius: '3px',
-							padding: '0.75em 1em',
-							overflowX: 'auto',
-						},
-						'pre code': {
-							backgroundColor: 'transparent',
-							padding: '0',
-						},
-					}
+					},
 				},
 				sm: {
 					css: {
 						fontSize: '0.875rem',
-					}
-				}
+					},
+				},
 			}),
 		}
 	},

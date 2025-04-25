@@ -275,7 +275,63 @@ export const ChatboxPreview = ({
                   }}
                 >
                   <div className="text-sm prose prose-sm max-w-none markdown-content">
-                    <ReactMarkdown>
+                    <ReactMarkdown
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const language = match ? match[1] : '';
+                          
+                          if (inline) {
+                            return (
+                              <code
+                                className="px-1.5 py-0.5 rounded-md bg-gray-100 font-mono text-sm"
+                                style={{ color: primaryColor }}
+                                {...props}
+                              >
+                                {children}
+                              </code>
+                            );
+                          }
+
+                          return (
+                            <div className="relative">
+                              {language && (
+                                <div 
+                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono text-white"
+                                  style={{ backgroundColor: primaryColor }}
+                                >
+                                  {language}
+                                </div>
+                              )}
+                              <pre className="!mt-0 !bg-gray-50 border border-gray-200 rounded-md overflow-x-auto">
+                                <code className="block p-4 text-sm font-mono" {...props}>
+                                  {children}
+                                </code>
+                              </pre>
+                            </div>
+                          );
+                        },
+                        ul({ children }) {
+                          return <ul className="list-disc pl-4 space-y-1">{children}</ul>;
+                        },
+                        ol({ children }) {
+                          return <ol className="list-decimal pl-4 space-y-1">{children}</ol>;
+                        },
+                        a({ children, href }) {
+                          return (
+                            <a
+                              href={href}
+                              className="underline"
+                              style={{ color: primaryColor }}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {children}
+                            </a>
+                          );
+                        },
+                      }}
+                    >
                       {message.content}
                     </ReactMarkdown>
                   </div>
