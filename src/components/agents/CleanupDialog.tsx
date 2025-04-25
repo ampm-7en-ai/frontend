@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -72,10 +71,25 @@ const CleanupDialog = ({
 
   const handleRetrain = async () => {
     try {
-      // Get knowledge source IDs from the problematic sources
-      const knowledgeSourceIds = problematicSources
-        .filter(source => !source.hasError && !source.hasIssue)
-        .map(source => source.id);
+      // Get knowledge source IDs from the agent's knowledge links
+      const response = await fetch(`${BASE_URL}agents/${agentId}/`, {
+        headers: getAuthHeaders(getAccessToken() || '')
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch agent details");
+      }
+
+      const agentData = await response.json();
+      
+      // Extract knowledge source IDs from knowledge_links
+      const knowledgeSourceIds = agentData.data.knowledge_links
+        ?.map((link: any) => link.knowledge_source?.id)
+        .filter((id: number) => id !== undefined);
+
+      if (!knowledgeSourceIds?.length) {
+        throw new Error("No valid knowledge sources found");
+      }
 
       const success = await AgentTrainingService.trainAgent(
         agentId, 
