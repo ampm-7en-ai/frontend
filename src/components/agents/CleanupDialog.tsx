@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -15,6 +16,9 @@ import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { NotificationTypes } from '@/types/notification';
+import { AlertBanner } from '@/components/ui/alert-banner';
+import { useNavigate } from 'react-router-dom';
+import { AlertTriangle } from 'lucide-react';
 
 interface CleanupDialogProps {
   open: boolean;
@@ -31,12 +35,15 @@ const CleanupDialog = ({
 }: CleanupDialogProps) => {
   const { toast } = useToast();
   const { addNotification } = useNotifications();
+  const navigate = useNavigate();
   const [isCleanupDone, setIsCleanupDone] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [noValidSources, setNoValidSources] = useState(false);
   const problematicSources = knowledgeSources.filter(source => source.hasError || source.hasIssue);
 
   const handleCleanup = async () => {
     setIsLoading(true);
+    setNoValidSources(false);
     try {
       const token = getAccessToken();
       if (!token) {
@@ -72,8 +79,16 @@ const CleanupDialog = ({
     }
   };
 
+  const handleGoToKnowledgeTab = () => {
+    navigate(`/agents/${agentId}/edit?tab=knowledge`);
+    onOpenChange(false);
+  };
+
   const handleRetrain = async () => {
     try {
+      // Clear previous toasts
+      toast.dismiss();
+      
       // Get knowledge source IDs from the agent's knowledge links
       const response = await fetch(`${BASE_URL}agents/${agentId}/`, {
         headers: getAuthHeaders(getAccessToken() || '')
@@ -90,7 +105,8 @@ const CleanupDialog = ({
         ?.map((link: any) => link.knowledge_source);
 
       if (!knowledgeSourceIds?.length) {
-        throw new Error("No valid knowledge sources found");
+        setNoValidSources(true);
+        return;
       }
 
       // Add notification for training started
@@ -99,13 +115,13 @@ const CleanupDialog = ({
         message: `Retraining agent with cleaned up knowledge sources`,
         type: NotificationTypes.TRAINING_STARTED,
         agentId: agentId,
-        agentName: "Agent" // Since we don't have access to agent name here
+        agentName: agentData.data.name || "Agent"
       });
 
       const success = await AgentTrainingService.trainAgent(
         agentId, 
         knowledgeSourceIds,
-        "Agent" // Generic name since we don't have access to agent name here
+        agentData.data.name || "Agent"
       );
 
       if (success) {
@@ -150,6 +166,15 @@ const CleanupDialog = ({
             <KnowledgeSourceBadge key={source.id} source={source} />
           ))}
         </div>
+        
+        {noValidSources && (
+          <AlertBanner 
+            message="After cleanup, there are no more knowledge bases given to this agent."
+            variant="warning"
+            icon={<AlertTriangle className="h-4 w-4" />}
+            className="mb-4"
+          />
+        )}
 
         <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -158,6 +183,10 @@ const CleanupDialog = ({
           {!isCleanupDone ? (
             <Button onClick={handleCleanup} disabled={isLoading}>
               {isLoading ? "Cleaning up..." : "Clean Up Knowledge Base"}
+            </Button>
+          ) : noValidSources ? (
+            <Button onClick={handleGoToKnowledgeTab}>
+              Import Knowledge
             </Button>
           ) : (
             <Button onClick={handleRetrain}>
