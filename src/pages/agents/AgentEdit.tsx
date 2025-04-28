@@ -142,12 +142,8 @@ const AgentEdit = () => {
       }
       
       const knowledgeSourceIds = [];
-      if (agentData.settings && agentData.settings.knowledge_source_filters) {
-        Object.values(agentData.settings.knowledge_source_filters).forEach(sources => {
-          if (Array.isArray(sources)) {
-            knowledgeSourceIds.push(...sources);
-          }
-        });
+      if (agentData.settings && agentData.settings.selected_knowledge_sources) {
+        knowledgeSourceIds.push(...agentData.settings.selected_knowledge_sources);
       }
       
       setAgent({
@@ -169,16 +165,24 @@ const AgentEdit = () => {
         autoShowAfter: agentData.behavior?.autoShowAfter ?? agent.autoShowAfter,
         suggestions: agentData.behavior?.suggestions || agent.suggestions,
         
-        selectedModel: agentData.settings?.response_model || agent.selectedModel,
-        temperature: agentData.settings?.temperature ?? agent.temperature,
-        maxResponseLength: agentData.settings?.token_length || agent.maxResponseLength,
+        selectedModel: agentData.settings?.response_model || agentData.model?.selectedModel || agent.selectedModel,
+        temperature: agentData.settings?.temperature ?? agentData.model?.temperature ?? agent.temperature,
+        maxResponseLength: agentData.settings?.token_length?.toString() || agentData.model?.maxResponseLength || agent.maxResponseLength,
         
         agentType: agentData.agentType || agent.agentType,
         systemPrompt: agentData.systemPrompt || agent.systemPrompt,
         
         knowledgeSources: knowledgeSourceIds.length > 0 
           ? knowledgeSourceIds 
-          : agentData.knowledge_bases?.map(kb => kb.id) || agent.knowledgeSources
+          : agentData.selected_knowledge_sources || 
+            agentData.knowledge_bases?.map(kb => kb.id) || 
+            agent.knowledgeSources
+      });
+      
+      console.log('Agent data loaded:', {
+        responseModel: agentData.settings?.response_model,
+        temperature: agentData.settings?.temperature,
+        tokenLength: agentData.settings?.token_length
       });
     }
   }, [agentData]);
@@ -302,18 +306,6 @@ const AgentEdit = () => {
           temperature: agent.temperature
         }
       };
-
-      // if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
-      //   const kbId = agentKnowledgeSources && agentKnowledgeSources.length > 0
-      //     ? agentKnowledgeSources[0].id
-      //     : "20";
-          
-      //   payload.settings = {
-      //     knowledge_source_filters: {
-      //       [kbId]: agent.knowledgeSources
-      //     }
-      //   };
-      // }
 
       await updateAgent(agentId || '', payload);
       
@@ -642,9 +634,8 @@ const AgentEdit = () => {
           <div className="space-y-2">
             <Label htmlFor="model">AI Model</Label>
             <Select 
-            defaultValue="gpt4"
-            value={agent.selectedModel} 
-            onValueChange={(value) => handleChange('selectedModel', value)}
+              value={agent.selectedModel} 
+              onValueChange={(value) => handleChange('selectedModel', value)}
             >
               <SelectTrigger id="model">
                 <SelectValue placeholder="Select a model" />
@@ -689,7 +680,7 @@ const AgentEdit = () => {
           <div className="space-y-2">
             <Label htmlFor="max-response-length">Maximum Response Length</Label>
             <Select 
-              value={agent.maxResponseLength} 
+              value={agent.maxResponseLength.toString()} 
               onValueChange={(value) => handleChange('maxResponseLength', value)}
             >
               <SelectTrigger id="max-response-length">

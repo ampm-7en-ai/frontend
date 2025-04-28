@@ -31,25 +31,36 @@ type GlobalSettingsFormValues = z.infer<typeof globalSettingsSchema>;
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
 
+  // Map API response model value to dropdown value
+  const mapResponseModelToDropdownValue = (apiModelValue: string): string => {
+    const modelMapping: Record<string, string> = {
+      'GPT-4': 'gpt4',
+      'GPT-3.5': 'gpt35',
+      'gpt4': 'gpt4',
+      'gpt35': 'gpt35',
+      'claude': 'claude',
+      'gemini': 'gemini',
+      'mistral': 'mistral',
+      'llama': 'llama'
+    };
+    return modelMapping[apiModelValue] || 'gpt4';
+  };
+
   const globalSettingsForm = useForm<GlobalSettingsFormValues>({
     resolver: zodResolver(globalSettingsSchema),
     defaultValues: {
-      defaultModel: initialSettings?.response_model || 'GPT-4',
+      defaultModel: mapResponseModelToDropdownValue(initialSettings?.response_model || 'GPT-4'),
       maxContextLength: initialSettings?.token_length || 8000,
       defaultTemperature: initialSettings?.temperature || 0.7,
     },
-    values: {
-      defaultModel: initialSettings?.response_model || 'GPT-4',
-      maxContextLength: initialSettings?.token_length || 8000,
-      defaultTemperature: initialSettings?.temperature || 0.7,
-    }
   });
 
   // Reset form when prop changes
   useEffect(() => {
     if (initialSettings) {
+      console.log('Global settings updated:', initialSettings);
       globalSettingsForm.reset({
-        defaultModel: initialSettings?.response_model || 'GPT-4',
+        defaultModel: mapResponseModelToDropdownValue(initialSettings?.response_model || 'GPT-4'),
         maxContextLength: initialSettings?.token_length || 8000,
         defaultTemperature: initialSettings?.temperature || 0.7,
       });
@@ -75,7 +86,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
       // Update form values with response data if present
       if (res.data && res.data.global_agent_settings) {
         globalSettingsForm.reset({
-          defaultModel: res.data.global_agent_settings.response_model || "GPT-4",
+          defaultModel: mapResponseModelToDropdownValue(res.data.global_agent_settings.response_model || "GPT-4"),
           maxContextLength: res.data.global_agent_settings.token_length || 8000,
           defaultTemperature: res.data.global_agent_settings.temperature ?? 0.7,
         });
@@ -127,7 +138,6 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                     <FormItem>
                       <FormLabel>Default Response Model</FormLabel>
                       <Select
-                        defaultValue='gpt4'
                         value={field.value}
                         onValueChange={field.onChange}
                       >
@@ -136,11 +146,11 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                         </SelectTrigger>
                         <SelectContent>
                            <SelectItem value="gpt4">GPT-4 (OpenAI)</SelectItem>
-                              <SelectItem value="gpt35">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                              <SelectItem value="claude">Claude 3 (Anthropic)</SelectItem>
-                              <SelectItem value="gemini">Gemini Pro (Google)</SelectItem>
-                              <SelectItem value="mistral">Mistral Large (Mistral AI)</SelectItem>
-                              <SelectItem value="llama">Llama 2 (Meta AI)</SelectItem>
+                           <SelectItem value="gpt35">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                           <SelectItem value="claude">Claude 3 (Anthropic)</SelectItem>
+                           <SelectItem value="gemini">Gemini Pro (Google)</SelectItem>
+                           <SelectItem value="mistral">Mistral Large (Mistral AI)</SelectItem>
+                           <SelectItem value="llama">Llama 2 (Meta AI)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -207,7 +217,15 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
             <>
               <div>
                 <h3 className="font-medium">Default Response Model</h3>
-                <p className="text-muted-foreground">{globalSettingsForm.getValues().defaultModel}</p>
+                <p className="text-muted-foreground">{
+                  globalSettingsForm.getValues().defaultModel === 'gpt4' ? 'GPT-4 (OpenAI)' :
+                  globalSettingsForm.getValues().defaultModel === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
+                  globalSettingsForm.getValues().defaultModel === 'claude' ? 'Claude 3 (Anthropic)' :
+                  globalSettingsForm.getValues().defaultModel === 'gemini' ? 'Gemini Pro (Google)' :
+                  globalSettingsForm.getValues().defaultModel === 'mistral' ? 'Mistral Large (Mistral AI)' :
+                  globalSettingsForm.getValues().defaultModel === 'llama' ? 'Llama 2 (Meta AI)' :
+                  globalSettingsForm.getValues().defaultModel
+                }</p>
               </div>
               <div>
                 <h3 className="font-medium">Maximum Context Length</h3>
