@@ -379,7 +379,7 @@ const KnowledgeTrainingStatus = ({
             ) : (
               <Zap className="h-4 w-4" />
             )}
-            {isTrainingAll ? 'Training...' : hasProblematicSources ? 'Retrain': 'Train Agent'}
+            {isTrainingAll ? 'Training...' : hasProblematicSources ? 'Train': 'Train Agent'}
           </Button>
         </div>
       </CardHeader>

@@ -641,12 +641,12 @@ const AgentEdit = () => {
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="gpt4">GPT-4 (OpenAI)</SelectItem>
-                <SelectItem value="gpt35">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                <SelectItem value="claude">Claude 3 (Anthropic)</SelectItem>
-                <SelectItem value="gemini">Gemini Pro (Google)</SelectItem>
-                <SelectItem value="mistral">Mistral Large (Mistral AI)</SelectItem>
-                <SelectItem value="llama">Llama 2 (Meta AI)</SelectItem>
+                <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
+                <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                <SelectItem value="mistral-large-latest">Mistral Large (Mistral AI)</SelectItem>
+                <SelectItem value="mistral-medium-latest">Mistral Medium (Mistral AI)</SelectItem>
+                <SelectItem value="mistral-small-latest">Mistral Small (Mistral AI)</SelectItem>
               </SelectContent>
             </Select>
             <Button 

@@ -31,25 +31,11 @@ type GlobalSettingsFormValues = z.infer<typeof globalSettingsSchema>;
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
 
-  // Map API response model value to dropdown value
-  const mapResponseModelToDropdownValue = (apiModelValue: string): string => {
-    const modelMapping: Record<string, string> = {
-      'GPT-4': 'gpt4',
-      'GPT-3.5': 'gpt35',
-      'gpt4': 'gpt4',
-      'gpt35': 'gpt35',
-      'claude': 'claude',
-      'gemini': 'gemini',
-      'mistral': 'mistral',
-      'llama': 'llama'
-    };
-    return modelMapping[apiModelValue] || 'gpt4';
-  };
 
   const globalSettingsForm = useForm<GlobalSettingsFormValues>({
     resolver: zodResolver(globalSettingsSchema),
     defaultValues: {
-      defaultModel: mapResponseModelToDropdownValue(initialSettings?.response_model || 'GPT-4'),
+      defaultModel: 'gpt-4-turbo',
       maxContextLength: initialSettings?.token_length || 8000,
       defaultTemperature: initialSettings?.temperature || 0.7,
     },
@@ -60,7 +46,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
     if (initialSettings) {
       console.log('Global settings updated:', initialSettings);
       globalSettingsForm.reset({
-        defaultModel: mapResponseModelToDropdownValue(initialSettings?.response_model || 'GPT-4'),
+        defaultModel: 'gpt-4-turbo',
         maxContextLength: initialSettings?.token_length || 8000,
         defaultTemperature: initialSettings?.temperature || 0.7,
       });
@@ -86,7 +72,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
       // Update form values with response data if present
       if (res.data && res.data.global_agent_settings) {
         globalSettingsForm.reset({
-          defaultModel: mapResponseModelToDropdownValue(res.data.global_agent_settings.response_model || "GPT-4"),
+          defaultModel: "gpt-4-turbo",
           maxContextLength: res.data.global_agent_settings.token_length || 8000,
           defaultTemperature: res.data.global_agent_settings.temperature ?? 0.7,
         });
@@ -145,12 +131,12 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                           <SelectValue placeholder="Select model" />
                         </SelectTrigger>
                         <SelectContent>
-                           <SelectItem value="gpt4">GPT-4 (OpenAI)</SelectItem>
-                           <SelectItem value="gpt35">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                           <SelectItem value="claude">Claude 3 (Anthropic)</SelectItem>
-                           <SelectItem value="gemini">Gemini Pro (Google)</SelectItem>
-                           <SelectItem value="mistral">Mistral Large (Mistral AI)</SelectItem>
-                           <SelectItem value="llama">Llama 2 (Meta AI)</SelectItem>
+                            <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
+                            <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
+                            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                            <SelectItem value="mistral-large-latest">Mistral Large (Mistral AI)</SelectItem>
+                            <SelectItem value="mistral-medium-latest">Mistral Medium (Mistral AI)</SelectItem>
+                            <SelectItem value="mistral-small-latest">Mistral Small (Mistral AI)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -218,12 +204,12 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
               <div>
                 <h3 className="font-medium">Default Response Model</h3>
                 <p className="text-muted-foreground">{
-                  globalSettingsForm.getValues().defaultModel === 'gpt4' ? 'GPT-4 (OpenAI)' :
-                  globalSettingsForm.getValues().defaultModel === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
-                  globalSettingsForm.getValues().defaultModel === 'claude' ? 'Claude 3 (Anthropic)' :
-                  globalSettingsForm.getValues().defaultModel === 'gemini' ? 'Gemini Pro (Google)' :
-                  globalSettingsForm.getValues().defaultModel === 'mistral' ? 'Mistral Large (Mistral AI)' :
-                  globalSettingsForm.getValues().defaultModel === 'llama' ? 'Llama 2 (Meta AI)' :
+                  globalSettingsForm.getValues().defaultModel === 'gpt-4o' ? 'GPT-4o (OpenAI)' :
+                  globalSettingsForm.getValues().defaultModel === 'gpt-4-turbo' ? 'GPT-4 Turbo (OpenAI)' :
+                  globalSettingsForm.getValues().defaultModel === 'gpt-3.5-turbo' ? 'GPT-3.5 Turbo (OpenAI)' :
+                  globalSettingsForm.getValues().defaultModel === 'mistral-large-latest' ? 'Mistral Large (Mistral AI)' :
+                  globalSettingsForm.getValues().defaultModel === 'mistral-medium-latest' ? 'Mistral Medium (Mistral AI)' :
+                  globalSettingsForm.getValues().defaultModel === 'mistral-small-latest' ? 'Mistral Small (Mistral AI)' :
                   globalSettingsForm.getValues().defaultModel
                 }</p>
               </div>
