@@ -72,7 +72,7 @@ const AgentList = () => {
       name: agent.name,
       description: agent.description || '',
       conversations: agent.conversations || 0,
-      lastModified: agent.last_modified,
+      lastModified: agent.created_at,
       averageRating: agent.average_rating || 0,
       knowledgeSources: agent.knowledge_bases?.map((kb: any, index: number) => ({
         id: kb.id || index,

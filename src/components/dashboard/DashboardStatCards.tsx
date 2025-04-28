@@ -12,12 +12,15 @@ type DashboardStatCardsProps = {
   teamMembers: number;
 };
 
+
+
 const DashboardStatCards = ({
   myAgents,
   conversations,
   knowledgeBase,
   teamMembers,
 }: DashboardStatCardsProps) => {
+  const userPermissions = JSON.parse(localStorage.getItem('user'))?.permission || {};
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
@@ -31,11 +34,12 @@ const DashboardStatCards = ({
           <div className="text-3xl font-bold">{myAgents}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">All active agents</p>
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+            {userPermissions.agents && (<Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
               <Link to="/agents" className="flex items-center">
                 View all <ChevronRight className="ml-1 h-3 w-3" />
               </Link>
-            </Button>
+            </Button>)
+            } 
           </div>
         </CardContent>
       </Card>
@@ -51,11 +55,11 @@ const DashboardStatCards = ({
           <div className="text-3xl font-bold">{conversations}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">Last 30 days</p>
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+            {userPermissions.conversation && (<Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
               <Link to="/conversations" className="flex items-center">
                 View all <ChevronRight className="ml-1 h-3 w-3" />
               </Link>
-            </Button>
+            </Button>)}
           </div>
         </CardContent>
       </Card>
@@ -71,11 +75,11 @@ const DashboardStatCards = ({
           <div className="text-3xl font-bold">{knowledgeBase}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">Documents</p>
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+            {userPermissions.knowledgebase && (<Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
               <Link to="/knowledge" className="flex items-center">
                 Manage <ChevronRight className="ml-1 h-3 w-3" />
               </Link>
-            </Button>
+            </Button>)}
           </div>
         </CardContent>
       </Card>
@@ -91,11 +95,11 @@ const DashboardStatCards = ({
           <div className="text-3xl font-bold">{teamMembers}</div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">Domain experts</p>
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+            {userPermissions.team && (<Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
               <Link to="/settings/business/team" className="flex items-center">
                 Manage <ChevronRight className="ml-1 h-3 w-3" />
               </Link>
-            </Button>
+            </Button>)}
           </div>
         </CardContent>
       </Card>

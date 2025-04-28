@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Home,
   LayoutDashboard,
@@ -35,20 +35,31 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { log } from 'console';
 
 interface SidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
 }
 
+const UserPermissions = {
+  conversation: 'conversation',
+  knowledgebase: 'knowledgebase',
+  agents: 'agents',
+  settings: 'settings',
+  dashboard: 'dashboard',
+  superadmin: 'superadmin'
+} as const;
 interface SidebarItem {
   id: string;
   label: string;
   href: string;
   icon: React.ElementType;
-  children?: { label: string; href: string }[];
+  children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
   action?: React.ReactNode;
+  permission?: keyof typeof UserPermissions;
 }
+
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { user } = useAuth();
@@ -59,6 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const [newAgentName, setNewAgentName] = useState('');
   const [agentNameError, setAgentNameError] = useState(false);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  const [loginUser,setLoginUser] = useState({});
 
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
@@ -130,22 +142,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     } finally {
       setIsCreatingAgent(false);
     }
-  };
+  }; 
+
+
+   
 
   const commonItems: SidebarItem[] = [
-    { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home },
+    { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
   ];
 
   const adminItems: SidebarItem[] = [
-    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare },
-    { 
-      id: 'agents', 
-      label: 'Agents', 
-      href: '/agents', 
-      icon: Bot
-    },
-    { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book },
-    { id: 'settings', label: 'Settings', href: '/settings', icon: Settings },
+    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
+    { id: 'agents', label: 'Agents', href: '/agents',  icon: Bot, permission: 'agents' },
+    { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book, permission: 'knowledgebase' },
+    { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
   ];
 
@@ -154,32 +164,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       id: 'business-management',
       label: 'Businesses', 
       href: '/businesses', 
-      icon: Building
+      icon: Building,
+      permission: 'superadmin'
     },
     {
       id: 'user-management',
       label: 'Domain Experts',
       href: '/users',
-      icon: Users
+      icon: Users,
+      permission: 'superadmin'
     },
     { 
       id: 'platform-analytics',
       label: 'Platform Analytics', 
       href: '/analytics', 
-      icon: BarChart2 
+      icon: BarChart2,
+      permission: 'superadmin' 
     },
     { 
       id: 'platform',
       label: 'Platform Settings', 
       href: '/settings', 
-      icon: LayoutDashboard, 
+      icon: LayoutDashboard,
+      permission: 'superadmin', 
       children: [
-        { label: 'General', href: '/settings/platform/general' },
-        { label: 'Security', href: '/settings/platform/security' },
-        { label: 'LLM Providers', href: '/settings/platform/llm-providers' },
-        { label: 'Compliance', href: '/settings/platform/compliance' },
-        { label: 'Billing & Subscriptions', href: '/settings/platform/billing' },
-        { label: 'Customization', href: '/settings/platform/customization' },
+        { label: 'General', href: '/settings/platform/general',permission: 'superadmin' },
+        { label: 'Security', href: '/settings/platform/security',permission: 'superadmin' },
+        { label: 'LLM Providers', href: '/settings/platform/llm-providers',permission: 'superadmin' },
+        { label: 'Compliance', href: '/settings/platform/compliance',permission: 'superadmin' },
+        { label: 'Billing & Subscriptions', href: '/settings/platform/billing',permission: 'superadmin' },
+        { label: 'Customization', href: '/settings/platform/customization',permission: 'superadmin' },
       ]
     },
   ];
@@ -187,6 +201,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const roleBasedItems = userRole === "superadmin" 
     ? [...superAdminItems] 
     : adminItems;
+
+  const userPermissions = JSON.parse(localStorage.getItem('user'))?.permission || {};
+
+  //Filtering rolesBasedItems with permsision
+  const filteredRoleBasedItems = roleBasedItems.filter(item => !item.permission || userPermissions[item.permission]).map(item => ({
+    ...item,
+    children: item.children?.filter(child => !child.permission || userPermissions[child.permission]    ) 
+  }))
 
   return (
     <div className="relative flex">
@@ -251,7 +273,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             ))}
           </div>
           
-          {roleBasedItems.length > 0 && (
+          {filteredRoleBasedItems.length > 0 && (
             <div className="pt-4">
               {!isCollapsed && (
                 <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-2">
@@ -259,7 +281,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 </div>
               )}
               <div className="space-y-1">
-                {roleBasedItems.map((item) => (
+                {filteredRoleBasedItems.map((item) => (
                   <div key={item.id}>
                     {item.children ? (
                       <>

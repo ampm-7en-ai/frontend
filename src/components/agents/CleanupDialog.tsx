@@ -86,6 +86,7 @@ const CleanupDialog = ({
 
   const handleRetrain = async () => {
     try {
+      setIsLoading(true);
       // Clear previous toasts
       dismissToast();
       
@@ -131,6 +132,7 @@ const CleanupDialog = ({
           variant: "default"
         });
         onOpenChange(false);
+        setIsLoading(false);
       }
 
     } catch (error) {
@@ -190,7 +192,7 @@ const CleanupDialog = ({
             </Button>
           ) : (
             <Button onClick={handleRetrain}>
-              Retrain Agent
+              {isLoading ? "Retraining..." : "Retrain Agent"}
             </Button>
           )}
         </DialogFooter>

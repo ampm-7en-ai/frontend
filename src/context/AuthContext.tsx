@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
+import { permission } from 'process';
 
 // Define user role types
 export type UserRole = 'user' | 'admin' | 'superadmin';
@@ -18,6 +19,7 @@ export interface User {
   refreshToken?: string;
   isVerified?: boolean;  // Added verification status
   teamRole: string;
+  permission: {};
 }
 
 // Define auth context interface
@@ -43,7 +45,9 @@ interface AuthData {
   isVerified?: boolean;
   email: string | null;
   teamRole: string;
+  permissions: {};
 }
+
 
 // Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -151,7 +155,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           avatar: `https://ui-avatars.com/api/?name=${username}&background=0D8ABC&color=fff`,
           ...(authData.role === 'admin' ? { businessId: 'b1' } : {}),
           isVerified: isVerified,
-          teamRole: authData.teamRole
+          teamRole: authData.teamRole,
+          permission: authData.permissions
         };
         
         setUser(userData);
@@ -178,7 +183,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           accessToken: 'mock-token',
           refreshToken: 'mock-refresh-token',
           isVerified: true,
-          teamRole: 'owner' // Adding missing teamRole property
+          teamRole: 'owner',
+          permission: {} // Adding missing teamRole property
         };
         setUser(superAdminUser);
         setIsAuthenticated(true);
@@ -195,7 +201,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           accessToken: 'mock-token',
           refreshToken: 'mock-refresh-token',
           isVerified: true,
-          teamRole: 'admin' // Adding missing teamRole property
+          teamRole: 'admin',
+          permission: {} // Adding missing teamRole property
         };
         setUser(adminUser);
         setIsAuthenticated(true);

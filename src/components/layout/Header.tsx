@@ -31,7 +31,7 @@ type HeaderProps = {
 };
 
 export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: HeaderProps) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { notifications, markAllAsRead, markAsRead } = useNotifications();
   
   console.log("Current notifications in Header:", notifications);
@@ -160,16 +160,16 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
                 <AvatarFallback>A</AvatarFallback>
               </Avatar>
               <div className="hidden md:block text-left">
-                <p className="text-xs font-medium text-black leading-none">Admin User</p>
-                <p className="text-[10px] text-dark-gray mt-0.5">Admin</p>
+                <p className="text-xs font-medium text-black leading-none">{user.name}</p>
+                <p className="text-[10px] text-dark-gray mt-0.5">{user.email}</p>
               </div>
               <ChevronDown size={12} className="hidden md:block text-dark-gray" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 mt-1">
             <div className="px-3 pt-2 pb-1">
-              <p className="text-xs font-medium text-black">Admin User</p>
-              <p className="text-[10px] text-dark-gray">admin@example.com</p>
+              <p className="text-xs font-medium text-black">{user.name}</p>
+              <p className="text-[10px] text-dark-gray">{user.email}</p>
             </div>
             <DropdownMenuSeparator className="my-0.5" />
             <DropdownMenuItem className="py-1.5 text-xs">Profile</DropdownMenuItem>

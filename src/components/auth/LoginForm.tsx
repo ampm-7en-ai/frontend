@@ -104,7 +104,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                 role: userRole,
                 teamRole: data.data.userData.team_role || null,
                 email: data.data.userData.email || "google_user@example.com",
-                isVerified: true
+                isVerified: true,
+                permissions: data.data.userData.permissions || {}
               });
               
               toast({
@@ -225,7 +226,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           email: data.data.userData.email || values.username,
           role: userRole,
           teamRole: data.data.userData.team_role || null,
-          isVerified: true
+          isVerified: true,
+          permissions: data.data.userData.permissions || {}
         });
         
         toast({

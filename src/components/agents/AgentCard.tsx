@@ -52,7 +52,17 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
             <span>{formattedDate}</span>
           </div>
           <div>
-            <AgentModelBadge model={agent.model} getModelBadgeColor={getModelBadgeColor} />
+            <AgentModelBadge 
+            model={
+              agent.model === 'gpt4' ? 'GPT-4 (OpenAI)' :
+              agent.model === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
+              agent.model === 'claude' ? 'Claude 3 (Anthropic)' :
+              agent.model === 'gemini' ? 'Gemini Pro (Google)' :
+              agent.model === 'mistral' ? 'Mistral Large (Mistral AI)' :
+              agent.model === 'llama' ? 'Llama 2 (Meta AI)' :
+              agent.model
+            } 
+            getModelBadgeColor={getModelBadgeColor} />
           </div>
         </div>
         
