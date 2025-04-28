@@ -169,9 +169,9 @@ const AgentEdit = () => {
         autoShowAfter: agentData.behavior?.autoShowAfter ?? agent.autoShowAfter,
         suggestions: agentData.behavior?.suggestions || agent.suggestions,
         
-        selectedModel: agentData.model?.selectedModel || agent.selectedModel,
-        temperature: agentData.model?.temperature ?? agent.temperature,
-        maxResponseLength: agentData.model?.maxResponseLength || agent.maxResponseLength,
+        selectedModel: agentData.settings?.response_model || agent.selectedModel,
+        temperature: agentData.settings?.temperature ?? agent.temperature,
+        maxResponseLength: agentData.settings?.token_length || agent.maxResponseLength,
         
         agentType: agentData.agentType || agent.agentType,
         systemPrompt: agentData.systemPrompt || agent.systemPrompt,
@@ -261,9 +261,10 @@ const AgentEdit = () => {
         systemPrompt: string;
         knowledge_bases: any[];
         customAvatarFile: File | null;
-        settings?: {
-          knowledge_source_filters?: Record<string, number[]>;
-          [key: string]: any;
+        settings: {
+          response_model: string;
+          token_length: string;
+          temperature: number;
         };
       }
 
@@ -294,7 +295,12 @@ const AgentEdit = () => {
         agentType: agent.agentType,
         systemPrompt: agent.systemPrompt,
         knowledge_bases: agentKnowledgeSources,
-        customAvatarFile
+        customAvatarFile,
+        settings: {
+          response_model: agent.selectedModel,
+          token_length: agent.maxResponseLength,
+          temperature: agent.temperature
+        }
       };
 
       // if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
@@ -635,7 +641,11 @@ const AgentEdit = () => {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="model">AI Model</Label>
-            <Select defaultValue="gpt4">
+            <Select 
+            defaultValue="gpt4"
+            value={agent.selectedModel} 
+            onValueChange={(value) => handleChange('selectedModel', value)}
+            >
               <SelectTrigger id="model">
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
@@ -686,9 +696,10 @@ const AgentEdit = () => {
                 <SelectValue placeholder="Select length" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="short">Short (1-2 sentences)</SelectItem>
-                <SelectItem value="medium">Medium (3-5 sentences)</SelectItem>
-                <SelectItem value="long">Long (6+ sentences)</SelectItem>
+                  <SelectItem value="4000">4,000 tokens</SelectItem>
+                  <SelectItem value="8000">8,000 tokens</SelectItem>
+                  <SelectItem value="16000">16,000 tokens</SelectItem>
+                  <SelectItem value="32000">32,000 tokens</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">

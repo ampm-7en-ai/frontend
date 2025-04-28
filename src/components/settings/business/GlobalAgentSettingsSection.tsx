@@ -127,6 +127,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                     <FormItem>
                       <FormLabel>Default Response Model</FormLabel>
                       <Select
+                        defaultValue='gpt4'
                         value={field.value}
                         onValueChange={field.onChange}
                       >
@@ -134,9 +135,12 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                           <SelectValue placeholder="Select model" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="GPT-4">GPT-4</SelectItem>
-                          <SelectItem value="GPT-3.5">GPT-3.5</SelectItem>
-                          <SelectItem value="Claude">Claude</SelectItem>
+                           <SelectItem value="gpt4">GPT-4 (OpenAI)</SelectItem>
+                              <SelectItem value="gpt35">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                              <SelectItem value="claude">Claude 3 (Anthropic)</SelectItem>
+                              <SelectItem value="gemini">Gemini Pro (Google)</SelectItem>
+                              <SelectItem value="mistral">Mistral Large (Mistral AI)</SelectItem>
+                              <SelectItem value="llama">Llama 2 (Meta AI)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
