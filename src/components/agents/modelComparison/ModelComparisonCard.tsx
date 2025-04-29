@@ -1,6 +1,6 @@
 
 import React, { useRef } from 'react';
-import { Bot, Sliders, Save } from 'lucide-react';
+import { Bot, Sliders, Save, WifiOff } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { ModelMessage } from './ModelMessage';
 import { ModelConfigPopover } from './ModelConfigPopover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ModelComparisonCardProps {
   index: number;
@@ -26,6 +27,8 @@ interface ModelComparisonCardProps {
   modelOptions: Record<string, { name: string; provider: string }>;
   primaryColor: string;
   avatarSrc?: string;
+  isConnected?: boolean;
+  isSaving?: boolean;
 }
 
 export const ModelComparisonCard = ({
@@ -41,7 +44,9 @@ export const ModelComparisonCard = ({
   onSaveConfig,
   modelOptions,
   primaryColor,
-  avatarSrc
+  avatarSrc,
+  isConnected = true,
+  isSaving = false
 }: ModelComparisonCardProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -101,6 +106,13 @@ export const ModelComparisonCard = ({
               onOpenSystemPrompt={onOpenSystemPrompt}
             />
           </Popover>
+          
+          {!isConnected && (
+            <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
+              <WifiOff size={14} className="text-red-500" />
+              <span className="text-xs text-red-500">Disconnected</span>
+            </div>
+          )}
         </div>
         
         {onSaveConfig && (
@@ -110,8 +122,13 @@ export const ModelComparisonCard = ({
                 variant="ghost" 
                 className="h-8 flex items-center gap-1" 
                 onClick={onSaveConfig}
+                disabled={isSaving || !isConnected}
               >
-                <Save className="h-4 w-4 mr-1" />
+                {isSaving ? (
+                  <LoadingSpinner size="sm" className="mr-1" />
+                ) : (
+                  <Save className="h-4 w-4 mr-1" />
+                )}
                 Save Config
               </Button>
             </TooltipTrigger>

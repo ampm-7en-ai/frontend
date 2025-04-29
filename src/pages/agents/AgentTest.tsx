@@ -28,6 +28,9 @@ const AgentTest = () => {
     numModels,
     allAgents,
     primaryColors,
+    modelConnections,
+    isSaving,
+    isProcessing,
     isLoadingAgents,
     isLoadingAgent,
     handleAgentChange,
@@ -39,17 +42,9 @@ const AgentTest = () => {
     handleViewKnowledgeSources,
     handleViewSource,
     setIsModalOpen,
-    setIsSystemPromptOpen
+    setIsSystemPromptOpen,
+    handleSaveConfig
   } = useAgentTest(agentId || "1");
-
-  const handleSaveConfig = (index: number) => {
-    // Here you would implement the actual saving logic
-    // For now we'll just show a toast confirmation
-    toast({
-      title: `Configuration saved for ${getModelDisplay(chatConfigs[index].model)}`,
-      description: "Agent settings have been updated with this configuration.",
-    });
-  };
 
   if (isLoadingAgent || isLoadingAgents) {
     return (
@@ -104,6 +99,8 @@ const AgentTest = () => {
                 modelOptions={MODELS}
                 primaryColor={primaryColor}
                 avatarSrc={agent?.avatarSrc}
+                isConnected={modelConnections[index]}
+                isSaving={isSaving === index}
               />
             );
           })}
@@ -112,6 +109,7 @@ const AgentTest = () => {
         <ChatInput 
           onSendMessage={handleSendMessage}
           primaryColor={primaryColors[0] || '#9b87f5'}
+          isDisabled={isProcessing || modelConnections.some(status => !status)}
         />
 
         <SystemPromptDialog 

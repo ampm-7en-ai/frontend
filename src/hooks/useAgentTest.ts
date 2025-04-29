@@ -1,11 +1,11 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Agent, Message, ChatConfig } from '@/components/agents/modelComparison/types';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
+import { ModelWebSocketService } from '@/services/ModelWebSocketService';
 
 // Mock data for fallback
 const mockAgents = [
@@ -122,6 +122,11 @@ export const useAgentTest = (initialAgentId: string) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
   const [primaryColors, setPrimaryColors] = useState<string[]>(['#9b87f5', '#33C3F0', '#6E59A5']);
+  const [modelConnections, setModelConnections] = useState<boolean[]>([false, false, false]);
+  const [isSaving, setIsSaving] = useState<number | null>(null); // Track which model config is being saved
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const webSocketRefs = useRef<ModelWebSocketService[]>([]);
 
   // Fetch all agents
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
@@ -243,6 +248,99 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   }, [agentData, selectedAgentId, numModels]);
 
+  // Initialize WebSocket connections when agent is loaded
+  useEffect(() => {
+    if (!agent || !selectedAgentId) return;
+    
+    console.log("Initializing WebSocket connections for agent", selectedAgentId);
+    
+    // Clean up previous connections
+    webSocketRefs.current.forEach(ws => {
+      if (ws) ws.disconnect();
+    });
+    
+    // Initialize new connections
+    const newConnections: ModelWebSocketService[] = [];
+    const connectionStatus: boolean[] = Array(numModels).fill(false);
+    
+    for (let i = 0; i < numModels; i++) {
+      const ws = new ModelWebSocketService(selectedAgentId, chatConfigs[i], i);
+      
+      ws.on({
+        onMessage: (message) => {
+          console.log(`Received message for model ${i}:`, message);
+          setMessages(prev => {
+            const newMessages = [...prev];
+            newMessages[i] = [...newMessages[i], {
+              ...message,
+              id: Date.now() + i + 1,
+              sender: `agent${i+1}` as 'agent1' | 'agent2' | 'agent3',
+              model: chatConfigs[i].model,
+              timestamp: new Date(),
+              avatarSrc: agent?.avatarSrc
+            }];
+            return newMessages;
+          });
+          // If all models have responded, set processing to false
+          if (i === numModels - 1) {
+            setIsProcessing(false);
+          }
+        },
+        onTypingStart: () => {
+          console.log(`Typing indicator started for model ${i}`);
+        },
+        onTypingEnd: () => {
+          console.log(`Typing indicator ended for model ${i}`);
+        },
+        onError: (error) => {
+          console.error(`Chat error for model ${i}:`, error);
+          toast({
+            title: "Connection Error",
+            description: `Failed to connect model ${chatConfigs[i].model}. Please try again.`,
+            variant: "destructive",
+          });
+          setModelConnections(prev => {
+            const newStatus = [...prev];
+            newStatus[i] = false;
+            return newStatus;
+          });
+        },
+        onConnectionChange: (status) => {
+          console.log(`Connection status changed for model ${i}:`, status);
+          setModelConnections(prev => {
+            const newStatus = [...prev];
+            newStatus[i] = status;
+            return newStatus;
+          });
+        }
+      });
+      
+      ws.connect();
+      newConnections.push(ws);
+    }
+    
+    webSocketRefs.current = newConnections;
+    setModelConnections(connectionStatus);
+    
+    // Cleanup function
+    return () => {
+      console.log("Cleaning up WebSocket connections");
+      webSocketRefs.current.forEach(ws => {
+        if (ws) ws.disconnect();
+      });
+      webSocketRefs.current = [];
+    };
+  }, [selectedAgentId, agent, numModels, chatConfigs, toast]);
+
+  // Update WebSocket configs when chat configs change
+  useEffect(() => {
+    webSocketRefs.current.forEach((ws, index) => {
+      if (ws) {
+        ws.updateConfig(chatConfigs[index]);
+      }
+    });
+  }, [chatConfigs]);
+
   // Helper function to adjust colors
   const adjustColor = (color: string, amount: number): string => {
     try {
@@ -333,6 +431,28 @@ export const useAgentTest = (initialAgentId: string) => {
   };
 
   const handleSendMessage = (messageText: string) => {
+    // Skip if any model is not connected
+    if (modelConnections.some(status => !status)) {
+      toast({
+        title: "Not connected",
+        description: "One or more models are not connected. Please wait.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Skip if already processing
+    if (isProcessing) {
+      toast({
+        title: "Processing",
+        description: "Please wait for the current responses to complete.",
+        variant: "warning",
+      });
+      return;
+    }
+    
+    setIsProcessing(true);
+    
     const userMessage: Message = {
       id: Date.now(),
       content: messageText,
@@ -340,48 +460,25 @@ export const useAgentTest = (initialAgentId: string) => {
       timestamp: new Date(),
     };
     
+    // Add user message to all model conversations
     setMessages(prev => prev.map(msgArray => [...msgArray, userMessage]));
     
-    for (let i = 0; i < numModels; i++) {
-      setTimeout(() => {
-        let responseContent = "";
-        
-        if (chatConfigs[i].model === "llama") {
-          responseContent = "It seems like you might have entered 'CV,' which can refer to a few things, such as 'Curriculum Vitae,' a document detailing your education, work experience, and skills.\n\nIf you're looking for information on how to create a CV, I'd be happy to provide guidance. Alternatively, if 'CV' stands for something else in your context, please provide more details so I can offer a more relevant response.";
-        } else if (chatConfigs[i].model === "deepseek") {
-          responseContent = "Hello! It looks like you're referring to \"CV,\" which can have multiple meanings depending on the context. Here are a few common interpretations:\n\n1. Curriculum Vitae (CV):\n   • A detailed document highlighting your academic and professional history\n   • Need help crafting or reviewing a CV? Let me know!\n\n2. Computer Vision (CV):\n   • A field of artificial intelligence (AI) focused on enabling machines to interpret and analyze visual data (images, videos). Applications include facial recognition, object detection, and autonomous vehicles.\n   • Are you working on a computer vision project?\n\n3. Coefficient of Variation (CV):\n   • A statistical measure of data dispersion, calculated as the ratio of the standard deviation to the mean. It's often used to compare variability across datasets.\n   • Need help with statistics or data analysis?\n\n4. Cyclonic Vortex (CV):\n   • A meteorological term related to weather systems.";
-        } else {
-          responseContent = "CV could refer to:\n\n- Curriculum Vitae: A comprehensive document outlining your professional and academic history\n- Computer Vision: A field of AI that enables computers to derive meaningful information from digital images\n- Coefficient of Variation: A statistical measure\n\nCould you please specify which meaning of CV you're referring to so I can better assist you?";
+    // Send message to all WebSocket connections
+    webSocketRefs.current.forEach((ws, i) => {
+      if (ws) {
+        try {
+          ws.sendMessage(messageText);
+          console.log(`Message sent to model ${i}:`, messageText);
+        } catch (error) {
+          console.error(`Error sending message to model ${i}:`, error);
+          toast({
+            title: "Send Error",
+            description: `Failed to send message to ${chatConfigs[i].model}. Please try again.`,
+            variant: "destructive",
+          });
         }
-        
-        if (chatConfigs[i].temperature > 0.8) {
-          responseContent += " By the way, is there anything else you'd like to know about these topics?";
-        } else if (chatConfigs[i].temperature < 0.4) {
-          responseContent = responseContent.split('. ').join('.\n\n');
-        }
-        
-        if (chatConfigs[i].maxLength < 400 && responseContent.length > chatConfigs[i].maxLength) {
-          responseContent = responseContent.substring(0, chatConfigs[i].maxLength) + "...";
-        }
-        
-        const senderType = `agent${i+1}` as 'agent1' | 'agent2' | 'agent3';
-        
-        const agentMessage: Message = {
-          id: Date.now() + i + 1,
-          content: responseContent,
-          sender: senderType,
-          model: chatConfigs[i].model,
-          timestamp: new Date(),
-          avatarSrc: agent?.avatarSrc  // Add the agent's avatar to the message
-        };
-        
-        setMessages(prev => {
-          const newMessages = [...prev];
-          newMessages[i] = [...newMessages[i], agentMessage];
-          return newMessages;
-        });
-      }, 1000 + (i * 500));
-    }
+      }
+    });
   };
 
   const handleClearChat = () => {
@@ -401,6 +498,74 @@ export const useAgentTest = (initialAgentId: string) => {
     setIsModalOpen(true);
   };
 
+  const handleSaveConfig = async (index: number) => {
+    if (!agent) return;
+    
+    setIsSaving(index);
+    
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to save configurations",
+          variant: "destructive",
+        });
+        setIsSaving(null);
+        return;
+      }
+      
+      const config = chatConfigs[index];
+      
+      const response = await fetch(getApiUrl(API_ENDPOINTS.AGENT_DETAIL.replace(':id', selectedAgentId)), {
+        method: 'PATCH',
+        headers: {
+          ...getAuthHeaders(token),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: {
+            selectedModel: config.model,
+            temperature: config.temperature,
+            maxLength: config.maxLength,
+          },
+          systemPrompt: config.systemPrompt
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to save configuration: ${response.status}`);
+      }
+      
+      toast({
+        title: "Configuration Saved",
+        description: `Agent settings have been updated with ${config.model} configuration.`,
+      });
+      
+      // Update the main agent model if we're saving the first model config
+      if (index === 0 && agent) {
+        setAgent(prev => prev ? {
+          ...prev,
+          model: config.model,
+          systemPrompt: config.systemPrompt
+        } : null);
+      }
+      
+      // Refetch agent details to get updated data
+      refetchAgent();
+      
+    } catch (error) {
+      console.error("Error saving configuration:", error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save configuration. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(null);
+    }
+  };
+
   return {
     // State
     selectedAgentId,
@@ -413,6 +578,9 @@ export const useAgentTest = (initialAgentId: string) => {
     numModels,
     allAgents,
     primaryColors,
+    modelConnections,
+    isSaving,
+    isProcessing,
     
     // Loading states
     isLoadingAgents,
@@ -429,6 +597,7 @@ export const useAgentTest = (initialAgentId: string) => {
     handleViewSource,
     setIsModalOpen,
     setIsSystemPromptOpen,
+    handleSaveConfig,
     
     // Utilities
     refetchAgent
