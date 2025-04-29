@@ -431,11 +431,12 @@ export const ChatboxPreview = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
-              className="pr-12 text-sm border-2 rounded-full pl-4 shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0"
+              className="pr-12 text-sm border-2 pl-4 focus-visible:ring-offset-0"
               style={{ 
                 borderColor: `${primaryColor}30`,
                 minHeight: "46px",
-                maxHeight: "120px"
+                maxHeight: "120px",
+                width: "calc(100% - 40px)"
               }}
               disabled={!isConnected}
               expandable={true}
@@ -449,7 +450,7 @@ export const ChatboxPreview = ({
             />
             <button 
               type="submit" 
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
+              className="absolute right-[0px] top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
               style={{ 
                 backgroundColor: primaryColor,
                 color: secondaryColor,
