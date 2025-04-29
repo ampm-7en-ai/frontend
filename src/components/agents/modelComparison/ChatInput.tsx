@@ -27,6 +27,8 @@ export const ChatInput = ({ onSendMessage, primaryColor }: ChatInputProps) => {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         className="min-h-20 resize-none pr-12 border rounded-lg"
+        expandable={true}
+        maxExpandedHeight="120px"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();

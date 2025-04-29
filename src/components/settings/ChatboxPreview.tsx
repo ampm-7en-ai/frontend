@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Bot, Send, User, WifiOff } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Message {
   type: 'user' | 'bot';
@@ -427,15 +427,25 @@ export const ChatboxPreview = ({
         
         <div className="border-t p-3 bg-white mt-auto">
           <form onSubmit={handleSubmit} className="relative">
-            <Input
+            <Textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
               className="pr-12 text-sm border-2 rounded-full pl-4 shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0"
               style={{ 
                 borderColor: `${primaryColor}30`,
+                minHeight: "46px",
+                maxHeight: "120px"
               }}
               disabled={!isConnected}
+              expandable={true}
+              maxExpandedHeight="120px"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
             />
             <button 
               type="submit" 
