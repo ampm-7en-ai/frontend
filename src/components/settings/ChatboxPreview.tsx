@@ -11,7 +11,7 @@ import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
 
 interface Message {
-  type: 'user' | 'bot';
+  type: string;  // Changed from 'user' | 'bot' to string to accommodate any message types from the WebSocket
   content: string;
   timestamp: string;
 }
@@ -71,7 +71,12 @@ export const ChatboxPreview = ({
     chatServiceRef.current.on({
       onMessage: (message) => {
         console.log("Received message:", message);
-        setMessages(prev => [...prev, message]);
+        // Make sure to transform the incoming message to match our Message type
+        setMessages(prev => [...prev, {
+          type: message.type || 'bot', // Use incoming type or default to 'bot'
+          content: message.content,
+          timestamp: message.timestamp
+        }]);
         setShowTypingIndicator(false);
       },
       onTypingStart: () => {
