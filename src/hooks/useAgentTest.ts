@@ -446,7 +446,7 @@ export const useAgentTest = (initialAgentId: string) => {
       toast({
         title: "Processing",
         description: "Please wait for the current responses to complete.",
-        variant: "warning",
+        variant: "destructive",
       });
       return;
     }
@@ -517,7 +517,9 @@ export const useAgentTest = (initialAgentId: string) => {
       
       const config = chatConfigs[index];
       
-      const response = await fetch(getApiUrl(API_ENDPOINTS.AGENT_DETAIL.replace(':id', selectedAgentId)), {
+      // Update the API endpoint to use the correct path
+      // API_ENDPOINTS.AGENT_DETAIL doesn't exist, so we construct the path directly
+      const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${selectedAgentId}/`), {
         method: 'PATCH',
         headers: {
           ...getAuthHeaders(token),

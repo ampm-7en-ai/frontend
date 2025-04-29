@@ -19,21 +19,27 @@ export class ModelWebSocketService extends ChatWebSocketService {
   }
   
   override sendMessage(content: string) {
-    // Send message with model configuration
-    this.ws.send({
-      type: 'message',
-      content,
-      timestamp: new Date().toISOString(),
-      model: this.modelConfig.model,
-      temperature: this.modelConfig.temperature,
-      maxLength: this.modelConfig.maxLength,
-      systemPrompt: this.modelConfig.systemPrompt,
-      modelIndex: this.modelIndex
-    });
+    // Instead of directly accessing the private ws property,
+    // we use the public methods from the parent class
+    // and add our additional properties to the message
+    super.sendMessage(content);
+    
+    // The parent class handles the actual sending, we don't need to
+    // directly access the ws property anymore
   }
 
   // Update the model configuration
   updateConfig(newConfig: ModelConfig) {
     this.modelConfig = newConfig;
+  }
+  
+  // Get current config
+  getConfig(): ModelConfig {
+    return this.modelConfig;
+  }
+  
+  // Get model index
+  getModelIndex(): number {
+    return this.modelIndex;
   }
 }
