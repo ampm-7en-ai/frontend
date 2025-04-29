@@ -1,13 +1,11 @@
 
 export const MODELS = {
-  'gpt4': { name: 'GPT-4', provider: 'OpenAI' },
-  'gpt35': { name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
-  'anthropic': { name: 'Claude 3', provider: 'Anthropic' },
-  'mistral': { name: 'Mistral 7B', provider: 'Mistral AI' },
-  'llama': { name: 'Llama-3.1-70B-Instruct', provider: 'Meta AI' },
-  'gemini': { name: 'Gemini Pro', provider: 'Google' },
-  'mixtral': { name: 'Mixtral 8x7B', provider: 'Mistral AI' },
-  'deepseek': { name: 'DeepSeek-R1', provider: 'DeepSeek' }
+  'gpt-4o': { name: 'GPT-4o', provider: 'OpenAI' },
+  'gpt-3.5-turbo': { name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
+  'gpt-4-turbo': { name: 'GPT-4 Turbo', provider: 'OpenAI' },
+  'mistral-large-latest': { name: 'Mistral Large', provider: 'Mistral AI' },
+  'mistral-medium-latest': { name: 'Mistral Medium', provider: 'Mistral AI' },
+  'mistral-small-latest': { name: 'Mistral Small', provider: 'Mistral AI' }
 };
 
 export const getModelDisplay = (modelKey: string): string => {

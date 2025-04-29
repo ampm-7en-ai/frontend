@@ -1,4 +1,5 @@
 
+import { string } from 'zod';
 import { WebSocketService } from './WebSocketService';
 
 interface ChatMessage {
@@ -20,9 +21,9 @@ export class ChatWebSocketService {
   private events: ChatWebSocketEvents = {};
   private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
   
-  constructor(agentId: string) {
+  constructor(agentId: string, url: string) {
     // Updated URL format
-    this.ws = new WebSocketService(`wss://api.7en.ai/test/${agentId}`);
+    this.ws = new WebSocketService(url === "playground" ?  `wss://api.7en.ai/ws/chat-playground/${agentId}/` : `wss://api.7en.ai/ws/chat/${agentId}/`);
     
     this.ws.on('message', this.handleMessage.bind(this));
     this.ws.on('bot_response', this.handleMessage.bind(this));

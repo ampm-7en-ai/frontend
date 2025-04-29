@@ -66,17 +66,18 @@ export const ChatboxPreview = ({
   useEffect(() => {
     console.log("Initializing ChatWebSocketService with agent ID:", agentId);
     
-    chatServiceRef.current = new ChatWebSocketService(agentId);
+    chatServiceRef.current = new ChatWebSocketService(agentId,"");
     
     chatServiceRef.current.on({
       onMessage: (message) => {
         console.log("Received message:", message);
         // Make sure to transform the incoming message to match our Message type
-        setMessages(prev => [...prev, {
-          type: message.type || 'bot', // Use incoming type or default to 'bot'
-          content: message.content,
-          timestamp: message.timestamp
-        }]);
+        setMessages(prev => [...prev,message]); 
+        // setMessages(prev => [...prev, {
+        //   type: message.type || 'bot', // Use incoming type or default to 'bot'
+        //   content: message.content,
+        //   timestamp: message.timestamp
+        // }]);
         setShowTypingIndicator(false);
       },
       onTypingStart: () => {

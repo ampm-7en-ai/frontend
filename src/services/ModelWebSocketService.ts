@@ -15,7 +15,7 @@ export class ModelWebSocketService extends ChatWebSocketService {
   constructor(agentId: string, modelConfig: ModelConfig, modelIndex: number) {
     // Connect to the new URL format with chat1, chat2, chat3 based on model index
     const chatEndpoint = `chat${modelIndex + 1}`;
-    super(`${agentId}/${chatEndpoint}`);
+    super(`${agentId}/${chatEndpoint}`,"playground");
     
     this.modelConfig = modelConfig;
     this.modelIndex = modelIndex;
@@ -30,7 +30,7 @@ export class ModelWebSocketService extends ChatWebSocketService {
         type: "user"
       },
       config: {
-        model: this.modelConfig.model,
+        response_model: this.modelConfig.model,
         temperature: this.modelConfig.temperature,
         system_prompt: this.modelConfig.systemPrompt
       }
