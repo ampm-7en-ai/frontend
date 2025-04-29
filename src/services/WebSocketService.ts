@@ -1,3 +1,4 @@
+
 interface WebSocketMessage {
   type: string;
   content?: string;
@@ -11,8 +12,11 @@ export class WebSocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private processedMessages: Set<string> = new Set();
+  private url: string;
 
-  constructor(private url: string) {}
+  constructor(url: string) {
+    this.url = url;
+  }
 
   connect() {
     if (this.socket?.readyState === WebSocket.OPEN) return;
@@ -107,7 +111,7 @@ export class WebSocketService {
     );
   }
 
-  send(message: WebSocketMessage): void {
+  send(message: any): void {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected');
     }
@@ -139,6 +143,3 @@ export class WebSocketService {
     }
   }
 }
-
-// Create and export a singleton instance
-export const webSocketService = new WebSocketService('');

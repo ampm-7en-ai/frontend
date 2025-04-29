@@ -2,9 +2,9 @@
 import { WebSocketService } from './WebSocketService';
 
 interface ChatMessage {
-  type: 'user' | 'bot';
   content: string;
   timestamp: string;
+  type: string;
 }
 
 interface ChatWebSocketEvents {
@@ -16,12 +16,13 @@ interface ChatWebSocketEvents {
 }
 
 export class ChatWebSocketService {
-  private ws: WebSocketService;
+  protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
   private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
   
   constructor(agentId: string) {
-    this.ws = new WebSocketService(`wss://api.7en.ai/ws/chat/${agentId}/`);
+    // Updated URL format
+    this.ws = new WebSocketService(`wss://api.7en.ai/test/${agentId}`);
     
     this.ws.on('message', this.handleMessage.bind(this));
     this.ws.on('bot_response', this.handleMessage.bind(this));
@@ -39,12 +40,21 @@ export class ChatWebSocketService {
     this.ws.disconnect();
   }
   
+  isConnected(): boolean {
+    return this.ws.isConnected();
+  }
+  
   sendMessage(content: string) {
     this.ws.send({
       type: 'message',
       content,
       timestamp: new Date().toISOString()
     });
+  }
+  
+  // Allow sending arbitrary data to the WebSocket
+  send(data: any) {
+    this.ws.send(data);
   }
   
   on(events: ChatWebSocketEvents) {
@@ -54,15 +64,19 @@ export class ChatWebSocketService {
   private handleMessage(data: any) {
     console.log('Received WebSocket data:', data);
     
+    // Extract message content based on the new response format
+    const messageContent = data.content || '';
+    const messageType = data.type || 'bot_response';
+    const messageTimestamp = data.timestamp || new Date().toISOString();
+    
     // Skip if not a valid message
-    if (!data || (!data.type && !data.content)) {
+    if (!messageContent) {
       return;
     }
     
     // Generate a consistent ID for deduplication
-    const messageId = data.id || 
-                     `${data.content}-${data.timestamp || new Date().toISOString()}`;
-                     
+    const messageId = `${messageContent}-${messageTimestamp}`;
+    
     // Skip if we've already processed this message
     if (this.processedMessageIds.has(messageId)) {
       console.log('Skipping duplicate message:', messageId);
@@ -80,15 +94,11 @@ export class ChatWebSocketService {
       );
     }
     
-    if (data.type === 'bot_response' || data.content) {
-      this.events.onMessage?.({
-        type: 'bot',
-        content: data.content || '',
-        timestamp: data.timestamp || new Date().toISOString()
-      });
-      
-      // End typing when message is received
-      this.events.onTypingEnd?.();
-    }
+    // Emit the message event
+    this.events.onMessage?.({
+      type: messageType,
+      content: messageContent,
+      timestamp: messageTimestamp
+    });
   }
 }

@@ -13,19 +13,46 @@ export class ModelWebSocketService extends ChatWebSocketService {
   private modelIndex: number;
   
   constructor(agentId: string, modelConfig: ModelConfig, modelIndex: number) {
-    super(agentId);
+    // Connect to the new URL format with chat1, chat2, chat3 based on model index
+    const chatEndpoint = `chat${modelIndex + 1}`;
+    super(`${agentId}/${chatEndpoint}`);
+    
     this.modelConfig = modelConfig;
     this.modelIndex = modelIndex;
   }
   
   override sendMessage(content: string) {
-    // Instead of directly accessing the private ws property,
-    // we use the public methods from the parent class
-    // and add our additional properties to the message
-    super.sendMessage(content);
+    // Use the new message structure with separate message and config objects
+    const messagePayload = {
+      message: {
+        content,
+        timestamp: new Date().toISOString(),
+        type: "user"
+      },
+      config: {
+        model: this.modelConfig.model,
+        temperature: this.modelConfig.temperature,
+        system_prompt: this.modelConfig.systemPrompt
+      }
+    };
     
-    // The parent class handles the actual sending, we don't need to
-    // directly access the ws property anymore
+    // Send the structured message
+    this.sendStructuredMessage(messagePayload);
+  }
+
+  // Helper method to send the structured message
+  private sendStructuredMessage(messagePayload: any) {
+    // Use parent class method to send, avoiding direct access to private ws property
+    if (this.isConnected()) {
+      try {
+        // Extract the raw WebSocket instance and send the message
+        this.send(messagePayload);
+      } catch (error) {
+        console.error('Error sending structured message:', error);
+      }
+    } else {
+      console.error('Cannot send message: WebSocket not connected');
+    }
   }
 
   // Update the model configuration
