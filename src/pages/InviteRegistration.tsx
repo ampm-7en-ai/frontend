@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -134,6 +135,7 @@ const InviteRegistration = () => {
         description: "Your account has been created successfully.",
       });
       
+      // Fix: Add the missing permissions property
       await login(values.username, values.password, {
         accessToken: data.data.access,
         refreshToken: null,
@@ -141,7 +143,8 @@ const InviteRegistration = () => {
         email: data.data.userData.email,
         role: data.data.userData.user_role,
         isVerified: true,
-        teamRole: data.data.userData.team_role
+        teamRole: data.data.userData.team_role,
+        permissions: data.data.userData.permissions || {} // Add the missing permissions property
       });
       
       if (data.user_role === 'superadmin') {
