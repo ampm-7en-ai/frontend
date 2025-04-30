@@ -36,13 +36,13 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
   (function () {
     var script = document.createElement('script');
     script.type = "text/javascript";
-    script.setAttribute("chatbot_id", "${agent.id}");
+    script.setAttribute("data-agent-id", "${agent.id}");
     script.setAttribute("data-type", "${selectedViewType}");
     
-    script.src = "https://cdn.example.com/agent-widget.min.js";
+    script.src = "https://api.7en.ai/static/agent.js";
     document.body.appendChild(script);
   })();
-</script>`;
+</script>`; 
 
   const shareableLink = `https://app.example.com/chat/preview/iframe.html?bot=${agent.id}&type=${selectedViewType}`;
 
