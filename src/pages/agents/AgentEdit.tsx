@@ -24,6 +24,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { dottedBackgroundStyle } from '@/components/layout/TestPageLayout';
+import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -97,7 +98,8 @@ const AgentEdit = () => {
       src: ''
     },
     agentType: 'support',
-    systemPrompt: agentTypeSystemPrompts.support
+    systemPrompt: agentTypeSystemPrompts.support,
+    guidelines: { dos: [] as string[], donts: [] as string[] },
   });
 
   const [isRetraining, setIsRetraining] = useState(false);
@@ -176,7 +178,9 @@ const AgentEdit = () => {
           ? knowledgeSourceIds 
           : agentData.selected_knowledge_sources || 
             agentData.knowledge_bases?.map(kb => kb.id) || 
-            agent.knowledgeSources
+            agent.knowledgeSources,
+        
+        guidelines: agentData.behavior?.guidelines || { dos: [], donts: [] },
       });
       
       console.log('Agent data loaded:', {
@@ -255,6 +259,7 @@ const AgentEdit = () => {
           collectVisitorData: boolean;
           autoShowAfter: number;
           suggestions: string[];
+          guidelines?: { dos: string[], donts: string[] };
         };
         model: {
           selectedModel: string;
@@ -289,7 +294,8 @@ const AgentEdit = () => {
           showOnMobile: agent.showOnMobile,
           collectVisitorData: agent.collectVisitorData,
           autoShowAfter: agent.autoShowAfter,
-          suggestions: agent.suggestions
+          suggestions: agent.suggestions,
+          guidelines: agent.guidelines
         },
         model: {
           selectedModel: agent.selectedModel,
@@ -776,6 +782,11 @@ const AgentEdit = () => {
           </div>
         </CardContent>
       </Card>
+      
+      <GuidelinesSection
+        initialGuidelines={agent.guidelines}
+        onChange={handleGuidelinesChange}
+      />
       
       <Card>
         <CardHeader>
