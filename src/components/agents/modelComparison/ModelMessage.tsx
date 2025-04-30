@@ -76,32 +76,90 @@ export const ModelMessage = ({
             </span>
           )}
         </div>
-        <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
+        <div className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown
             components={{
-              pre: ({ node, ...props }) => (
-                <pre
-                  className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 overflow-x-auto my-2 border border-gray-200 dark:border-gray-700"
+              h1: ({ node, ...props }) => <h1 className="text-xl font-bold my-4" {...props} />,
+              h2: ({ node, ...props }) => <h2 className="text-lg font-bold my-3" {...props} />,
+              h3: ({ node, ...props }) => <h3 className="text-base font-bold my-2" {...props} />,
+              h4: ({ node, ...props }) => <h4 className="text-sm font-bold my-2" {...props} />,
+              p: ({ node, ...props }) => <p className="my-2" {...props} />,
+              a: ({ node, href, ...props }) => (
+                <a 
+                  href={href}
+                  className="text-blue-600 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: primaryColor }}
                   {...props}
                 />
               ),
+              ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-2 space-y-1" {...props} />,
+              ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-2 space-y-1" {...props} />,
+              li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+              blockquote: ({ node, ...props }) => (
+                <blockquote 
+                  className="border-l-4 pl-4 italic my-2"
+                  style={{ borderColor: primaryColor }}
+                  {...props}
+                />
+              ),
+              hr: () => <hr className="my-4 border-gray-200 dark:border-gray-700" />,
+              table: ({ node, ...props }) => (
+                <div className="overflow-x-auto my-2">
+                  <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-700" {...props} />
+                </div>
+              ),
+              thead: ({ node, ...props }) => <thead className="bg-gray-100 dark:bg-gray-800" {...props} />,
+              tbody: ({ node, ...props }) => <tbody {...props} />,
+              tr: ({ node, ...props }) => <tr className="border-b border-gray-300 dark:border-gray-700" {...props} />,
+              th: ({ node, ...props }) => <th className="border px-3 py-2 text-left font-semibold" {...props} />,
+              td: ({ node, ...props }) => <td className="border px-3 py-2" {...props} />,
+              img: ({ node, src, alt, ...props }) => (
+                <img 
+                  src={src} 
+                  alt={alt || ""} 
+                  className="rounded-md max-w-full my-2"
+                  {...props}
+                />
+              ),
+              pre: ({ node, ...props }) => (
+                <div className="relative group/code my-4">
+                  <pre
+                    className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 overflow-x-auto border border-gray-200 dark:border-gray-700 text-sm"
+                    {...props}
+                  />
+                </div>
+              ),
               code: ({ node, className, children, ...props }) => {
                 const match = /language-(\w+)/.exec(className || '');
+                const language = match ? match[1] : '';
                 const isInline = !match && !className?.includes('contains-task-list');
+                
                 return isInline ? (
                   <code
-                    className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs"
+                    className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs"
+                    style={{ color: adjustColor(primaryColor, -40) }}
                     {...props}
                   >
                     {children}
                   </code>
                 ) : (
-                  <code
-                    className="bg-transparent p-0 text-xs font-mono"
-                    {...props}
-                  >
-                    {children}
-                  </code>
+                  <div className="relative">
+                    {language && (
+                      <div 
+                        className="absolute right-2 top-1 text-xs text-gray-500 dark:text-gray-400 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded"
+                      >
+                        {language}
+                      </div>
+                    )}
+                    <code
+                      className="bg-transparent p-0 text-xs font-mono block"
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  </div>
                 );
               }
             }}
@@ -116,7 +174,7 @@ export const ModelMessage = ({
         <Button 
           size="sm"
           variant="secondary" 
-          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full py-0.5 px-1.5 text-xs flex items-center gap-1 shadow-sm"
+          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full p-1 text-xs flex items-center gap-1 shadow-sm"
           onClick={copyMessageToClipboard}
           style={{
             backgroundColor: `${primaryColor}30`,
@@ -125,7 +183,7 @@ export const ModelMessage = ({
           }}
         >
           <Copy size={10} />
-          <span className="text-xs">Copy prompt</span>
+          <span className="text-xs">Copy</span>
         </Button>
       </div>
     </div>
