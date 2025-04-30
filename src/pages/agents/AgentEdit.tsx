@@ -782,5 +782,143 @@ const AgentEdit = () => {
                   className="min-h-[150px] font-mono text-sm"
                   placeholder="Enter instructions for how your AI agent should behave..."
                 />
-                <p className="text-xs text-muted-foreground">
-                  This is the instruction set that guides how your AI agent behaves. It's sent with every conversation to define the agent's role and
+                <p className="text-xs text-muted-foreground mt-1">
+                  This is the instruction set that guides how your AI agent behaves. It's sent with every conversation to define the agent's role and personality.
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <GuidelinesSection
+        initialGuidelines={agent.guidelines}
+        onChange={handleGuidelinesChange}
+      />
+    </div>
+  );
+
+  return (
+    <div className="container mt-4 pb-16 max-w-7xl">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" onClick={goBack} className="mr-2">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">Edit Agent</h1>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={goToTestPage}
+            className="flex items-center"
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Test Agent
+            <ExternalLink className="ml-1 h-3 w-3" />
+          </Button>
+          
+          <Button
+            onClick={handleSaveChanges}
+            className="flex items-center"
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <LoadingSpinner className="mr-2 h-4 w-4" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            Save Changes
+          </Button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => {
+              setActiveTab(value);
+              setSearchParams({ tab: value });
+            }}
+            className="space-y-4"
+          >
+            <TabsList className="sticky top-16 z-30 bg-background" variant="github">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="appearance">Appearance</TabsTrigger>
+              <TabsTrigger value="knowledge">Knowledge</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="general" className="space-y-4">
+              {renderGeneralContent()}
+            </TabsContent>
+            
+            <TabsContent value="appearance" className="space-y-4">
+              {renderAppearanceContent()}
+            </TabsContent>
+            
+            <TabsContent value="knowledge" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Book className="mr-2 h-5 w-5" />
+                    Knowledge Sources
+                  </CardTitle>
+                  <CardDescription>
+                    Select the knowledge sources to train your agent on
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Knowledge sources content would go here */}
+                  {/* For now, we've simplified this section */}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="advanced" className="space-y-4">
+              {renderAdvancedContent()}
+            </TabsContent>
+            
+            <TabsContent value="integrations" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Sliders className="mr-2 h-5 w-5" />
+                    Platform Integrations
+                  </CardTitle>
+                  <CardDescription>
+                    Connect your agent to other platforms
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Integrations content would go here */}
+                  {/* For now, we've simplified this section */}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        <div className="hidden lg:block">
+          <div className="sticky top-24">
+            <ChatboxPreview
+              primaryColor={agent.primaryColor}
+              secondaryColor={agent.secondaryColor}
+              fontFamily={agent.fontFamily}
+              chatbotName={agent.chatbotName}
+              welcomeMessage={agent.welcomeMessage}
+              buttonText={agent.buttonText}
+              position={agent.position}
+              avatar={agent.avatar}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AgentEdit;
