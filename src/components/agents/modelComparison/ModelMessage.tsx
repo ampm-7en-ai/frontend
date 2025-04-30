@@ -85,18 +85,25 @@ export const ModelMessage = ({
                   {...props}
                 />
               ),
-              code: ({ node, inline, ...props }) =>
-                inline ? (
+              code: ({ node, className, children, ...props }) => {
+                const match = /language-(\w+)/.exec(className || '');
+                const isInline = !match && !className?.includes('contains-task-list');
+                return isInline ? (
                   <code
                     className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs"
                     {...props}
-                  />
+                  >
+                    {children}
+                  </code>
                 ) : (
                   <code
                     className="bg-transparent p-0 text-xs font-mono"
                     {...props}
-                  />
-                ),
+                  >
+                    {children}
+                  </code>
+                );
+              }
             }}
           >
             {message.content || ""}
@@ -124,4 +131,3 @@ export const ModelMessage = ({
     </div>
   );
 };
-
