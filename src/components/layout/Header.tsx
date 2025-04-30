@@ -42,7 +42,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
   const handleLogout = onLogout || logout;
 
   return (
-    <header className="h-16 bg-white border-b border-medium-gray/10 px-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+    <header className="h-16 bg-white border-b border-medium-gray/10 px-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden h-8 w-8">
           <Menu className="h-4 w-4 text-dark-gray" />

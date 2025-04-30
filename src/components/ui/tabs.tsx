@@ -12,9 +12,8 @@ const TabsList = React.forwardRef<
     size?: "default" | "sm" | "xs";
     orientation?: "horizontal" | "vertical";
     variant?: "default" | "github";
-    sticky?: boolean;
   }
->(({ className, size = "default", orientation = "horizontal", variant = "default", sticky, ...props }, ref) => {
+>(({ className, size = "default", orientation = "horizontal", variant = "default", ...props }, ref) => {
   const sizeClasses = {
     default: "h-10",
     sm: "h-8",
@@ -30,7 +29,6 @@ const TabsList = React.forwardRef<
         variant === "github" 
           ? "inline-flex w-full border-b border-border bg-background gap-1 px-4" 
           : "inline-flex items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-        sticky && "sticky top-0 z-30 bg-background",
         className
       )}
       {...props}
