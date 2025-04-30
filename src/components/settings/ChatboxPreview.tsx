@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff } from 'lucide-react';
+import { Bot, Send, User, WifiOff, Copy } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -9,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 interface Message {
   type: string;  // Changed from 'user' | 'bot' to string to accommodate any message types from the WebSocket
@@ -53,6 +55,24 @@ export const ChatboxPreview = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  const copyMessageToClipboard = (content: string) => {
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        toast({
+          title: "Copied",
+          description: "Message copied to clipboard",
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to copy text: ", error);
+        toast({
+          title: "Error",
+          description: "Failed to copy text",
+          variant: "destructive",
+        });
+      });
+  };
+
   useEffect(() => {
     setMessages([{ type: 'bot', content: welcomeMessage, timestamp: new Date().toISOString() }]);
   }, [welcomeMessage]);
@@ -66,7 +86,7 @@ export const ChatboxPreview = ({
   useEffect(() => {
     console.log("Initializing ChatWebSocketService with agent ID:", agentId);
     
-    chatServiceRef.current = new ChatWebSocketService(agentId, "");
+    chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
     
     chatServiceRef.current.on({
       onMessage: (message) => {
@@ -265,7 +285,7 @@ export const ChatboxPreview = ({
                 
                 <div
                   className={cn(
-                    "rounded-lg p-3 max-w-[80%] shadow-sm",
+                    "rounded-lg p-3 max-w-[80%] shadow-sm relative",
                     message.type === 'user' 
                       ? 'bg-gray-100 text-gray-800' 
                       : 'text-gray-800'
@@ -342,6 +362,23 @@ export const ChatboxPreview = ({
                   <p className="text-xs mt-1 text-gray-400">
                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
+                  
+                  {message.type === 'bot' && (
+                    <Button 
+                      size="sm"
+                      variant="secondary" 
+                      className="absolute bottom-2 right-2 opacity-70 hover:opacity-100 transition-opacity rounded-full py-1 px-2 text-xs flex items-center gap-1 shadow-sm"
+                      onClick={() => copyMessageToClipboard(message.content)}
+                      style={{
+                        backgroundColor: `${primaryColor}30`,
+                        color: adjustColor(primaryColor, -60),
+                        transform: 'translateY(100%)'
+                      }}
+                    >
+                      <Copy size={12} />
+                      <span>Copy prompt</span>
+                    </Button>
+                  )}
                 </div>
                 
                 {message.type === 'user' && (

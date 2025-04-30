@@ -161,6 +161,7 @@ export const ModelComparisonCard = ({
                   model={getModelDisplay(message.model || '')}
                   primaryColor={primaryColor}
                   adjustColor={adjustColor}
+                  temperature={temperature}
                 />
               );
             }

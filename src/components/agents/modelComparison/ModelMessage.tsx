@@ -1,22 +1,48 @@
 
 import React from 'react';
-import { Bot } from 'lucide-react';
+import { Bot, Copy } from 'lucide-react';
 import { Message } from './types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface ModelMessageProps {
   message: Message;
   model: string;
   primaryColor: string;
   adjustColor: (color: string, amount: number) => string;
+  temperature?: number;
 }
 
 export const ModelMessage = ({ 
   message, 
   model, 
   primaryColor,
-  adjustColor
+  adjustColor,
+  temperature
 }: ModelMessageProps) => {
+  const { toast } = useToast();
+
+  const copyMessageToClipboard = () => {
+    if (message.content) {
+      navigator.clipboard.writeText(message.content)
+        .then(() => {
+          toast({
+            title: "Copied",
+            description: "Message copied to clipboard",
+          });
+        })
+        .catch((error) => {
+          console.error("Failed to copy text: ", error);
+          toast({
+            title: "Error",
+            description: "Failed to copy text",
+            variant: "destructive",
+          });
+        });
+    }
+  };
+
   return (
     <div key={message.id} className="flex gap-2 items-start animate-fade-in">
       <div className="flex-shrink-0 mt-1">
@@ -36,18 +62,38 @@ export const ModelMessage = ({
         </Avatar>
       </div>
       <div
-        className="rounded-lg p-3 max-w-[80%] shadow-sm"
+        className="rounded-lg p-3 max-w-[80%] shadow-sm relative"
         style={{ 
           backgroundColor: `${primaryColor}15`,
         }}
       >
-        <div className="text-xs font-medium mb-1 text-gray-600">
-          {model}
+        <div className="text-xs font-medium mb-1 text-gray-600 flex items-center">
+          <span>{model}</span>
+          {temperature !== undefined && (
+            <span className="ml-2 px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">
+              T: {temperature.toFixed(1)}
+            </span>
+          )}
         </div>
         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
         <div className="text-xs mt-1 text-gray-400">
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
+        
+        <Button 
+          size="sm"
+          variant="secondary" 
+          className="absolute bottom-2 right-2 opacity-70 hover:opacity-100 transition-opacity rounded-full py-1 px-2 text-xs flex items-center gap-1 shadow-sm"
+          onClick={copyMessageToClipboard}
+          style={{
+            backgroundColor: `${primaryColor}30`,
+            color: adjustColor(primaryColor, -60),
+            transform: 'translateY(100%)'
+          }}
+        >
+          <Copy size={12} />
+          <span>Copy prompt</span>
+        </Button>
       </div>
     </div>
   );
