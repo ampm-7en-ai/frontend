@@ -45,8 +45,8 @@ export class ModelWebSocketService extends ChatWebSocketService {
     // Use parent class method to send, avoiding direct access to private ws property
     if (this.isConnected()) {
       try {
-        // Extract the raw WebSocket instance and send the message
-        this.send(messagePayload);
+        // Send the message using the parent class send method
+        super.send(messagePayload);
       } catch (error) {
         console.error('Error sending structured message:', error);
       }
@@ -55,7 +55,7 @@ export class ModelWebSocketService extends ChatWebSocketService {
     }
   }
 
-  // Update the model configuration
+  // Update the model configuration without reconnecting
   updateConfig(newConfig: ModelConfig) {
     this.modelConfig = newConfig;
   }

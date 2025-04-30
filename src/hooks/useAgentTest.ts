@@ -127,6 +127,7 @@ export const useAgentTest = (initialAgentId: string) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const webSocketRefs = useRef<ModelWebSocketService[]>([]);
+  const webSocketsInitialized = useRef<boolean>(false);
 
   // Fetch all agents
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
@@ -237,6 +238,7 @@ export const useAgentTest = (initialAgentId: string) => {
       
       setPrimaryColors(newPrimaryColors);
       
+      // Update the config but don't recreate WebSockets
       setChatConfigs(prev => prev.map((config, index) => ({
         ...config,
         systemPrompt: transformedAgent.systemPrompt || "",
@@ -248,7 +250,7 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   }, [agentData, selectedAgentId, numModels]);
 
-  // Initialize WebSocket connections when agent is loaded
+  // Initialize WebSocket connections only once when agent is loaded or when agent changes
   useEffect(() => {
     if (!agent || !selectedAgentId) return;
     
@@ -320,6 +322,7 @@ export const useAgentTest = (initialAgentId: string) => {
     }
     
     webSocketRefs.current = newConnections;
+    webSocketsInitialized.current = true;
     setModelConnections(connectionStatus);
     
     // Cleanup function
@@ -329,16 +332,20 @@ export const useAgentTest = (initialAgentId: string) => {
         if (ws) ws.disconnect();
       });
       webSocketRefs.current = [];
+      webSocketsInitialized.current = false;
     };
-  }, [selectedAgentId, agent, numModels, chatConfigs, toast]);
+  }, [selectedAgentId, agent, numModels]);
 
-  // Update WebSocket configs when chat configs change
+  // Update WebSocket configs when chat configs change,
+  // but don't recreate the connections
   useEffect(() => {
-    webSocketRefs.current.forEach((ws, index) => {
-      if (ws) {
-        ws.updateConfig(chatConfigs[index]);
-      }
-    });
+    if (webSocketsInitialized.current) {
+      webSocketRefs.current.forEach((ws, index) => {
+        if (ws && index < chatConfigs.length) {
+          ws.updateConfig(chatConfigs[index]);
+        }
+      });
+    }
   }, [chatConfigs]);
 
   // Helper function to adjust colors
