@@ -54,14 +54,6 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
     onChange(newGuidelines);
   };
 
-  // Function to convert guidelines array to the required JSON format
-  export const guidelinesToJson = (guidelines: Guideline[]): GuidelineData => {
-    return {
-      dos: guidelines.map(g => g.dos).filter(text => text.trim() !== ''),
-      donts: guidelines.map(g => g.donts).filter(text => text.trim() !== '')
-    };
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -127,6 +119,7 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
   );
 };
 
+// Moving the export function outside of the component
 export const formatGuidelinesForApi = (guidelines: Guideline[]): GuidelineData => {
   return {
     dos: guidelines.map(g => g.dos).filter(text => text.trim() !== ''),
