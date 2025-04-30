@@ -331,6 +331,14 @@ const AgentEdit = () => {
     }
   };
 
+  const handleGuidelinesChange = (guidelines: { dos: string[], donts: string[] }) => {
+    setAgent({
+      ...agent,
+      guidelines
+    });
+    console.log("Guidelines updated:", guidelines);
+  };
+
   const goBack = () => {
     navigate('/agents');
   };
