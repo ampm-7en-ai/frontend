@@ -50,8 +50,14 @@ export class ModelWebSocketService extends ChatWebSocketService {
     // Use parent class method to send, avoiding direct access to private ws property
     if (this.isConnected()) {
       try {
+        // Add model metadata to ensure it's included in the response handling
+        const enrichedPayload = {
+          ...messagePayload,
+          model: this.modelConfig.model  // Add model at top level for easier extraction
+        };
+        
         // Send the message using the parent class send method
-        super.send(messagePayload);
+        super.send(enrichedPayload);
       } catch (error) {
         console.error('Error sending structured message:', error);
       }

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Bot, Copy } from 'lucide-react';
 import { Message } from './types';
@@ -45,18 +44,24 @@ export const ModelMessage = ({
   };
 
   const getModelBadge = (modelName: string) => {
-    switch(modelName){
-      case "gpt-4-turbo":
+    // Make sure we're working with a valid string
+    if (!modelName) return <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">Unknown</span>;
+    
+    // Convert to lowercase for case-insensitive comparison
+    const modelNameLower = modelName.toLowerCase();
+    
+    switch(true){
+      case modelNameLower.includes('gpt-4-turbo'):
         return <span className="px-1.5 py-0.5 bg-yellow-100 rounded-full text-xs">{modelName}</span>
-      case "gpt-4o":
+      case modelNameLower.includes('gpt-4o'):
         return <span className="px-1.5 py-0.5 bg-pink-100 rounded-full text-xs">{modelName}</span>
-      case "gpt-3.5-turbo":
+      case modelNameLower.includes('gpt-3.5'):
         return <span className="px-1.5 py-0.5 bg-orange-100 rounded-full text-xs">{modelName}</span>
-      case "mistral-large-latest":
+      case modelNameLower.includes('mistral-large'):
         return <span className="px-1.5 py-0.5 bg-blue-100 rounded-full text-xs">{modelName}</span>
-      case "mistral-medium-latest":
+      case modelNameLower.includes('mistral-medium'):
         return <span className="px-1.5 py-0.5 bg-purple-100 rounded-full text-xs">{modelName}</span>
-      case "mistral-small-latest":
+      case modelNameLower.includes('mistral-small'):
         return <span className="px-1.5 py-0.5 bg-red-100 rounded-full text-xs">{modelName}</span>
       default:
         return <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">{modelName}</span>
@@ -65,6 +70,9 @@ export const ModelMessage = ({
 
   // For debugging purposes
   console.log("Message in ModelMessage:", message);
+  console.log("Model from props:", model);
+  console.log("Model from message:", message.model);
+  console.log("Temperature from message:", message.temperature);
 
   return (
     <div key={message.id} className="flex gap-2 items-start animate-fade-in">
@@ -92,7 +100,7 @@ export const ModelMessage = ({
       >
         <div className={`text-xs font-medium mb-1 flex items-center gap-2 flex-wrap`}>
           {/* Display model from message if available, otherwise fall back to passed model prop */}
-          {message.model ? getModelBadge(message.model) : getModelBadge(model)}
+          {getModelBadge(message.model || model)}
           {message.temperature !== undefined && (
             <span className="px-1.5 py-0.5 bg-green-100 rounded-full text-xs">
               T: {message.temperature.toFixed(1)}

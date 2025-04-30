@@ -72,9 +72,13 @@ export class ChatWebSocketService {
     const messageContent = data.content || '';
     const messageType = data.type || 'bot_response';
     const messageTimestamp = data.timestamp || new Date().toISOString();
-    const messageModel = data.model || '';
-    const messagePrompt = data.prompt || '';
-    const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : undefined;
+    
+    // Extract model information correctly from the response
+    // Check different possible locations where the model might be in the response
+    const messageModel = data.model || data.config?.response_model || data.response_model || '';
+    const messagePrompt = data.prompt || data.system_prompt || '';
+    const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : 
+                              data.config?.temperature !== undefined ? Number(data.config.temperature) : undefined;
     
     // Skip if not a valid message
     if (!messageContent) {
