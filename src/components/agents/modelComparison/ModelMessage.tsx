@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
-import { log } from 'console';
 
 interface ModelMessageProps {
   message: Message;
@@ -59,6 +58,8 @@ export const ModelMessage = ({
         return <span className="px-1.5 py-0.5 bg-purple-100 rounded-full text-xs">{modelName}</span>
       case "mistral-small-latest":
         return <span className="px-1.5 py-0.5 bg-red-100 rounded-full text-xs">{modelName}</span>
+      default:
+        return <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">{modelName}</span>
     }
   }
 
@@ -86,10 +87,11 @@ export const ModelMessage = ({
           backgroundColor: `${primaryColor}15`,
         }}
       >
-        <div className={`text-xs font-medium mb-1 flex items-center`}>
-          { JSON.stringify(message) }
+        <div className={`text-xs font-medium mb-1 flex items-center gap-2 flex-wrap`}>
+          {/* Display model from message if available, otherwise fall back to passed model prop */}
+          {message.model && getModelBadge(message.model)}
           {message.temperature !== undefined && (
-            <span className="ml-2 px-1.5 py-0.5 bg-green-100 rounded-full text-xs">
+            <span className="px-1.5 py-0.5 bg-green-100 rounded-full text-xs">
               T: {message.temperature.toFixed(1)}
             </span>
           )}
