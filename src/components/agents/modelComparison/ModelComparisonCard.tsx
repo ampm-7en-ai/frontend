@@ -79,9 +79,9 @@ export const ModelComparisonCard = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <Select value={model} onValueChange={onModelChange}>
+          <Select defaultValue={`gpt-4o`} onValueChange={onModelChange}>
             <SelectTrigger className="w-[190px] h-8">
-              <SelectValue placeholder="Select model" />
+              <SelectValue defaultValue={`gpt-4o`}/>
             </SelectTrigger>
             <SelectContent>
               {Object.entries(modelOptions).map(([key, model]) => (
@@ -158,7 +158,7 @@ export const ModelComparisonCard = ({
                 <ModelMessage 
                   key={message.id} 
                   message={messageWithAvatar} 
-                  model={getModelDisplay(message.model || '')}
+                  model={model}
                   primaryColor={primaryColor}
                   adjustColor={adjustColor}
                   temperature={temperature}
