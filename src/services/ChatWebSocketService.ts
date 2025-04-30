@@ -73,8 +73,8 @@ export class ChatWebSocketService {
     const messageType = data.type || 'bot_response';
     const messageTimestamp = data.timestamp || new Date().toISOString();
     const messageModel = data.model || '';
-    const messageTemperature = data.temperature || '';
     const messagePrompt = data.prompt || '';
+    const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : undefined;
     
     // Skip if not a valid message
     if (!messageContent) {
@@ -100,6 +100,10 @@ export class ChatWebSocketService {
         Array.from(this.processedMessageIds).slice(-50)
       );
     }
+    
+    // Log the model and temperature for debugging
+    console.log('Message model:', messageModel);
+    console.log('Message temperature:', messageTemperature);
     
     // Emit the message event
     this.events.onMessage?.({

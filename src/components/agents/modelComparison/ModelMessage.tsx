@@ -63,6 +63,9 @@ export const ModelMessage = ({
     }
   }
 
+  // For debugging purposes
+  console.log("Message in ModelMessage:", message);
+
   return (
     <div key={message.id} className="flex gap-2 items-start animate-fade-in">
       <div className="flex-shrink-0 mt-1">
@@ -89,7 +92,7 @@ export const ModelMessage = ({
       >
         <div className={`text-xs font-medium mb-1 flex items-center gap-2 flex-wrap`}>
           {/* Display model from message if available, otherwise fall back to passed model prop */}
-          {message.model && getModelBadge(message.model)}
+          {message.model ? getModelBadge(message.model) : getModelBadge(model)}
           {message.temperature !== undefined && (
             <span className="px-1.5 py-0.5 bg-green-100 rounded-full text-xs">
               T: {message.temperature.toFixed(1)}

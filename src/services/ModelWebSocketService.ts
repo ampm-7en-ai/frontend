@@ -19,6 +19,9 @@ export class ModelWebSocketService extends ChatWebSocketService {
     
     this.modelConfig = modelConfig;
     this.modelIndex = modelIndex;
+
+    // Log the initial model configuration
+    console.log(`ModelWebSocketService initialized with model: ${this.modelConfig.model}`);
   }
   
   override sendMessage(content: string) {
@@ -35,6 +38,8 @@ export class ModelWebSocketService extends ChatWebSocketService {
         system_prompt: this.modelConfig.systemPrompt
       }
     };
+    
+    console.log(`Sending message with model: ${this.modelConfig.model}`);
     
     // Send the structured message
     this.sendStructuredMessage(messagePayload);
@@ -57,6 +62,7 @@ export class ModelWebSocketService extends ChatWebSocketService {
 
   // Update the model configuration without reconnecting
   updateConfig(newConfig: ModelConfig) {
+    console.log(`Updating model config from ${this.modelConfig.model} to ${newConfig.model}`);
     this.modelConfig = newConfig;
   }
   
