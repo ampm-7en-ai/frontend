@@ -5,6 +5,7 @@ import { Message } from './types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import ReactMarkdown from 'react-markdown';
 
 interface ModelMessageProps {
   message: Message;
@@ -62,7 +63,7 @@ export const ModelMessage = ({
         </Avatar>
       </div>
       <div
-        className="rounded-lg p-3 max-w-[80%] shadow-sm relative"
+        className="rounded-lg p-3 max-w-[80%] shadow-sm relative group"
         style={{ 
           backgroundColor: `${primaryColor}15`,
         }}
@@ -75,7 +76,32 @@ export const ModelMessage = ({
             </span>
           )}
         </div>
-        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
+          <ReactMarkdown
+            components={{
+              pre: ({ node, ...props }) => (
+                <pre
+                  className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 overflow-x-auto my-2 border border-gray-200 dark:border-gray-700"
+                  {...props}
+                />
+              ),
+              code: ({ node, inline, ...props }) =>
+                inline ? (
+                  <code
+                    className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs"
+                    {...props}
+                  />
+                ) : (
+                  <code
+                    className="bg-transparent p-0 text-xs font-mono"
+                    {...props}
+                  />
+                ),
+            }}
+          >
+            {message.content || ""}
+          </ReactMarkdown>
+        </div>
         <div className="text-xs mt-1 text-gray-400">
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
@@ -83,7 +109,7 @@ export const ModelMessage = ({
         <Button 
           size="sm"
           variant="secondary" 
-          className="absolute bottom-2 right-2 opacity-70 hover:opacity-100 transition-opacity rounded-full py-1 px-2 text-xs flex items-center gap-1 shadow-sm"
+          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full py-0.5 px-1.5 text-xs flex items-center gap-1 shadow-sm"
           onClick={copyMessageToClipboard}
           style={{
             backgroundColor: `${primaryColor}30`,
@@ -91,10 +117,11 @@ export const ModelMessage = ({
             transform: 'translateY(100%)'
           }}
         >
-          <Copy size={12} />
-          <span>Copy prompt</span>
+          <Copy size={10} />
+          <span className="text-xs">Copy prompt</span>
         </Button>
       </div>
     </div>
   );
 };
+
