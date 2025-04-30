@@ -71,18 +71,7 @@ export const ChatboxPreview = ({
     chatServiceRef.current.on({
       onMessage: (message) => {
         console.log("Received message:", message);
-<<<<<<< Updated upstream
         setMessages(prev => [...prev, message]); 
-=======
-        // Make sure to transform the incoming message to match our Message type
-
-        setMessages(prev => [...prev,message]); 
-        // setMessages(prev => [...prev, {
-        //   type: message.type || 'bot', // Use incoming type or default to 'bot'
-        //   content: message.content,
-        //   timestamp: message.timestamp
-        // }]);
->>>>>>> Stashed changes
         setShowTypingIndicator(false);
       },
       onTypingStart: () => {
