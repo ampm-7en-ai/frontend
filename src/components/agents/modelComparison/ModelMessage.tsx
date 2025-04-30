@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
+import { log } from 'console';
 
 interface ModelMessageProps {
   message: Message;
@@ -25,8 +26,8 @@ export const ModelMessage = ({
   const { toast } = useToast();
 
   const copyMessageToClipboard = () => {
-    if (message.content) {
-      navigator.clipboard.writeText(message.content)
+    if (message.prompt) {
+      navigator.clipboard.writeText(message.prompt)
         .then(() => {
           toast({
             title: "Copied",
@@ -43,6 +44,23 @@ export const ModelMessage = ({
         });
     }
   };
+
+  const getModelBadge = (modelName: string) => {
+    switch(modelName){
+      case "gpt-4-turbo":
+        return <span className="px-1.5 py-0.5 bg-yellow-100 rounded-full text-xs">{modelName}</span>
+      case "gpt-4o":
+        return <span className="px-1.5 py-0.5 bg-pink-100 rounded-full text-xs">{modelName}</span>
+      case "gpt-3.5-turbo":
+        return <span className="px-1.5 py-0.5 bg-orange-100 rounded-full text-xs">{modelName}</span>
+      case "mistral-large-latest":
+        return <span className="px-1.5 py-0.5 bg-blue-100 rounded-full text-xs">{modelName}</span>
+      case "mistral-medium-latest":
+        return <span className="px-1.5 py-0.5 bg-purple-100 rounded-full text-xs">{modelName}</span>
+      case "mistral-small-latest":
+        return <span className="px-1.5 py-0.5 bg-red-100 rounded-full text-xs">{modelName}</span>
+    }
+  }
 
   return (
     <div key={message.id} className="flex gap-2 items-start animate-fade-in">
@@ -68,21 +86,21 @@ export const ModelMessage = ({
           backgroundColor: `${primaryColor}15`,
         }}
       >
-        <div className="text-xs font-medium mb-1 text-gray-600 flex items-center">
-          <span>{model}</span>
-          {temperature !== undefined && (
-            <span className="ml-2 px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">
-              T: {temperature.toFixed(1)}
+        <div className={`text-xs font-medium mb-1 flex items-center`}>
+          { JSON.stringify(message) }
+          {message.temperature !== undefined && (
+            <span className="ml-2 px-1.5 py-0.5 bg-green-100 rounded-full text-xs">
+              T: {message.temperature.toFixed(1)}
             </span>
           )}
         </div>
         <div className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown
             components={{
-              h1: ({ node, ...props }) => <h1 className="text-xl font-bold my-4" {...props} />,
-              h2: ({ node, ...props }) => <h2 className="text-lg font-bold my-3" {...props} />,
-              h3: ({ node, ...props }) => <h3 className="text-base font-bold my-2" {...props} />,
-              h4: ({ node, ...props }) => <h4 className="text-sm font-bold my-2" {...props} />,
+              h1: ({ node, ...props }) => <h1 className="text-xl font-bold my-0" {...props} />,
+              h2: ({ node, ...props }) => <h2 className="text-lg font-bold my-0" {...props} />,
+              h3: ({ node, ...props }) => <h3 className="text-base font-bold my-0" {...props} />,
+              h4: ({ node, ...props }) => <h4 className="text-sm font-bold my-0" {...props} />,
               p: ({ node, ...props }) => <p className="my-2" {...props} />,
               a: ({ node, href, ...props }) => (
                 <a 
@@ -94,9 +112,9 @@ export const ModelMessage = ({
                   {...props}
                 />
               ),
-              ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-2 space-y-1" {...props} />,
-              ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-2 space-y-1" {...props} />,
-              li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+              ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-0 space-y-1" {...props} />,
+              ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-0 space-y-1" {...props} />,
+              li: ({ node, ...props }) => <li className="mb-0" {...props} />,
               blockquote: ({ node, ...props }) => (
                 <blockquote 
                   className="border-l-4 pl-4 italic my-2"
@@ -174,7 +192,7 @@ export const ModelMessage = ({
         <Button 
           size="sm"
           variant="secondary" 
-          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full p-1 text-xs flex items-center gap-1 shadow-sm"
+          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full py-0 text-xs flex items-center gap-1 shadow-sm"
           onClick={copyMessageToClipboard}
           style={{
             backgroundColor: `${primaryColor}30`,
@@ -183,7 +201,7 @@ export const ModelMessage = ({
           }}
         >
           <Copy size={10} />
-          <span className="text-xs">Copy</span>
+          <span className="text-xs">Copy prompt</span>
         </Button>
       </div>
     </div>

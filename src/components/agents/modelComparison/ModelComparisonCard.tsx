@@ -140,7 +140,7 @@ export const ModelComparisonCard = ({
       </CardHeader>
                 
       <ScrollArea 
-        className="flex-1 p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white"
+        className="flex-1 p-4 space-y-0 bg-gradient-to-b from-gray-50 to-white"
         style={{
           '--scrollbar-color': primaryColor + '50',
         } as React.CSSProperties}

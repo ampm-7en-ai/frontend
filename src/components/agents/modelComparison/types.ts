@@ -6,6 +6,8 @@ export type Message = {
   model?: string;
   timestamp: Date;
   avatarSrc?: string;
+  prompt?: string;
+  temperature?: number;
 };
 
 export type ChatConfig = {

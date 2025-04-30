@@ -6,6 +6,9 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   type: string;
+  model: string;
+  prompt: string;
+  temperature: number;
 }
 
 interface ChatWebSocketEvents {
@@ -69,6 +72,9 @@ export class ChatWebSocketService {
     const messageContent = data.content || '';
     const messageType = data.type || 'bot_response';
     const messageTimestamp = data.timestamp || new Date().toISOString();
+    const messageModel = data.model || '';
+    const messageTemperature = data.temperature || '';
+    const messagePrompt = data.prompt || '';
     
     // Skip if not a valid message
     if (!messageContent) {
@@ -99,7 +105,10 @@ export class ChatWebSocketService {
     this.events.onMessage?.({
       type: messageType,
       content: messageContent,
-      timestamp: messageTimestamp
+      timestamp: messageTimestamp,
+      model: messageModel,
+      temperature: messageTemperature,
+      prompt: messagePrompt
     });
   }
 }
