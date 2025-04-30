@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,7 @@ const AgentPlayground = () => {
     // Initialize chat service when component mounts and agentId is available
     if (agentId) {
       console.log(`Initializing ChatWebSocketService with agent ID: ${agentId}`);
-      chatServiceRef.current = new ChatWebSocketService(agentId);
+      chatServiceRef.current = new ChatWebSocketService(agentId, "playground");
       
       chatServiceRef.current.on({
         onMessage: (message) => {
