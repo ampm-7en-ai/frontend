@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -113,9 +114,9 @@ export const useAgentTest = (initialAgentId: string) => {
   const [agent, setAgent] = useState<Agent | null>(null);
   const [numModels, setNumModels] = useState(3);
   const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>([
-    { model: "llama", temperature: 0.6, systemPrompt: "", maxLength: 512 },
-    { model: "deepseek", temperature: 0.7, systemPrompt: "", maxLength: 512 },
-    { model: "anthropic", temperature: 0.7, systemPrompt: "", maxLength: 512 }
+    { model: "gpt-4-turbo", temperature: 0.6, systemPrompt: "", maxLength: 512 },
+    { model: "gpt-3.5-turbo", temperature: 0.7, systemPrompt: "", maxLength: 512 },
+    { model: "mistral-large-latest", temperature: 0.7, systemPrompt: "", maxLength: 512 }
   ]);
   const [messages, setMessages] = useState<Message[][]>([[], [], []]);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
