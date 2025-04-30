@@ -278,7 +278,7 @@ export const useAgentTest = (initialAgentId: string) => {
               ...message,
               id: Date.now() + i + 1,
               sender: `agent${i+1}` as 'agent1' | 'agent2' | 'agent3',
-              model: chatConfigs[i].model,
+              model: message.model || chatConfigs[i].model,
               timestamp: new Date(),
               avatarSrc: agent?.avatarSrc
             }];
