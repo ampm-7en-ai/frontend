@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, Bot, BarChart2, Settings as SettingsIcon, Clock, MessageSquare, Sparkles, Shield, ExternalLink, Link, Instagram, Slack, Smartphone } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { GuidelinesSection, Guideline, formatGuidelinesForApi } from '@/components/agents/edit/GuidelinesSection';
 
 const agentsData = [
   { 
@@ -57,6 +58,7 @@ const AgentSettings = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
+  const [guidelines, setGuidelines] = useState<Guideline[]>([{ dos: '', donts: '' }]);
 
   const toggleAgentStatus = (id: number) => {
     setAgents(agents.map(agent => 
@@ -99,6 +101,23 @@ const AgentSettings = () => {
     { id: 'slack', name: 'Slack', icon: Slack, description: 'Integrate with Slack to collaborate with your team', connected: true },
     { id: 'instagram', name: 'Instagram', icon: Instagram, description: 'Connect to Instagram to respond to direct messages', connected: false },
   ];
+
+  const handleSaveAgent = () => {
+    // Format guidelines for API
+    const guidelinesData = formatGuidelinesForApi(guidelines);
+    console.log('Guidelines data for API:', guidelinesData);
+    
+    // Here you would include the guidelines in your API payload
+    // const payload = {
+    //   ...otherAgentData,
+    //   behavior: {
+    //     ...otherBehaviorData,
+    //     guidelines: guidelinesData
+    //   }
+    // }
+    
+    setIsDialogOpen(false);
+  };
 
   return (
     <div className="flex-1 p-6">
@@ -459,6 +478,15 @@ const AgentSettings = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
+              {/* Guidelines Section */}
+              <div className="col-span-4 mt-4">
+                <GuidelinesSection 
+                  guidelines={guidelines}
+                  onChange={setGuidelines}
+                  maxGuidelines={10}
+                />
+              </div>
             </div>
             <DialogFooter className="flex justify-between">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -471,7 +499,7 @@ const AgentSettings = () => {
                 }}>
                   Advanced Settings
                 </Button>
-                <Button onClick={() => setIsDialogOpen(false)}>Save Changes</Button>
+                <Button onClick={handleSaveAgent}>Save Changes</Button>
               </div>
             </DialogFooter>
           </DialogContent>
