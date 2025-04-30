@@ -243,8 +243,8 @@ export const useAgentTest = (initialAgentId: string) => {
       setChatConfigs(prev => prev.map((config, index) => ({
         ...config,
         systemPrompt: transformedAgent.systemPrompt || "",
-        model: index === 0 ? transformedAgent.model : config.model,
-        temperature: index === 0 ? (agentData.model?.temperature || 0.7) : config.temperature
+        model: config.model,
+        temperature: config.temperature
       })));
       
       setMessages(Array(numModels).fill(null).map(() => []));
