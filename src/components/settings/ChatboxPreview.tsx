@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, Copy } from 'lucide-react';
+import { Bot, Send, User, WifiOff } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -362,23 +361,6 @@ export const ChatboxPreview = ({
                   <p className="text-xs mt-1 text-gray-400">
                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
-                  
-                  {message.type === 'bot' && (
-                    <Button 
-                      size="sm"
-                      variant="secondary" 
-                      className="absolute bottom-2 right-2 opacity-70 hover:opacity-100 transition-opacity rounded-full py-1 px-2 text-xs flex items-center gap-1 shadow-sm"
-                      onClick={() => copyMessageToClipboard(message.content)}
-                      style={{
-                        backgroundColor: `${primaryColor}30`,
-                        color: adjustColor(primaryColor, -60),
-                        transform: 'translateY(100%)'
-                      }}
-                    >
-                      <Copy size={12} />
-                      <span>Copy prompt</span>
-                    </Button>
-                  )}
                 </div>
                 
                 {message.type === 'user' && (
