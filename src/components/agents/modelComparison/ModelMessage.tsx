@@ -101,7 +101,7 @@ export const ModelMessage = ({
             </span>
           )}
         </div>
-        <div className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none">
+        <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown
             components={{
               h1: ({ node, ...props }) => <h1 className="text-xl font-bold my-0" {...props} />,
@@ -151,7 +151,7 @@ export const ModelMessage = ({
               pre: ({ node, ...props }) => (
                 <div className="relative group/code my-4">
                   <pre
-                    className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 overflow-x-auto border border-gray-200 dark:border-gray-700 text-sm"
+                    className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 overflow-x-auto border border-gray-200 dark:border-gray-700 text-[10px]"
                     {...props}
                   />
                 </div>
