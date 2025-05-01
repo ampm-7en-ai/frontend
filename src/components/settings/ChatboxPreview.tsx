@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -51,7 +52,7 @@ export const ChatboxPreview = ({
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
  
@@ -59,11 +60,22 @@ export const ChatboxPreview = ({
     setMessages([{ type: 'bot_response', content: welcomeMessage, timestamp: new Date().toISOString() }]);
   }, [welcomeMessage]);
 
+  // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (scrollViewportRef.current) {
+      scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
     }
   }, [messages, showTypingIndicator]);
+
+  // Store a reference to the scroll viewport when the ScrollArea is mounted
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        scrollViewportRef.current = viewport as HTMLDivElement;
+      }
+    }
+  }, []);
 
   useEffect(() => {
     console.log("Initializing ChatWebSocketService with agent ID:", agentId);
@@ -422,8 +434,6 @@ export const ChatboxPreview = ({
                 ))}
               </div>
             )}
-            
-            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
         

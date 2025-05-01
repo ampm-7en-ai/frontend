@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { Bot, Sliders, Save, WifiOff } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
@@ -49,16 +50,24 @@ export const ModelComparisonCard = ({
 }: ModelComparisonCardProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  
+  // Store a reference to the scroll viewport when the ScrollArea is mounted
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        scrollViewportRef.current = viewport as HTMLDivElement;
+      }
+    }
+  }, []);
   
   // Effect to scroll to the bottom when new messages are added
   useEffect(() => {
-    if (scrollAreaRef.current && messages.length > 0) {
+    if (scrollViewportRef.current && messages.length > 0) {
       setTimeout(() => {
-        if (scrollAreaRef.current) {
-          const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-          if (scrollContainer) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight;
-          }
+        if (scrollViewportRef.current) {
+          scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
         }
       }, 100);
     }
