@@ -32,7 +32,7 @@ async function fetchCurrentSubscription(): Promise<Subscription | null> {
 
   console.log('Fetching subscription data from API...');
   try {
-    const response = await fetch(`${BASE_URL}subscriptions/current`, {
+    const response = await fetch(`${BASE_URL}subscriptions/current/`, {
       method: 'GET',
       headers: getAuthHeaders(token),
     });

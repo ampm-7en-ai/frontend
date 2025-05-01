@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Calendar } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
-import { usePricingModal } from '@/hooks/usePricingModal';
+import { usePricingModal } from '@/hooks/usePricingModal'; 
 import { format, differenceInDays } from 'date-fns';
 
 export const CurrentPlanCard = () => {
@@ -24,7 +24,7 @@ export const CurrentPlanCard = () => {
   
   // Determine if it's a free plan or a paid subscription
   const isPaidPlan = subscription?.plan?.price && parseFloat(subscription.plan.price) > 0;
-  const planName = subscription?.plan?.name || "Free Tier";
+  const planName = subscription?.plan?.name || "Free Plan";
   const planPrice = subscription?.plan?.price || "0";
   
   return (

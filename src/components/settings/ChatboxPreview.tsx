@@ -54,26 +54,9 @@ export const ChatboxPreview = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const copyMessageToClipboard = (content: string) => {
-    navigator.clipboard.writeText(content)
-      .then(() => {
-        toast({
-          title: "Copied",
-          description: "Message copied to clipboard",
-        });
-      })
-      .catch((error) => {
-        console.error("Failed to copy text: ", error);
-        toast({
-          title: "Error",
-          description: "Failed to copy text",
-          variant: "destructive",
-        });
-      });
-  };
-
+ 
   useEffect(() => {
-    setMessages([{ type: 'bot', content: welcomeMessage, timestamp: new Date().toISOString() }]);
+    setMessages([{ type: 'bot_response', content: welcomeMessage, timestamp: new Date().toISOString() }]);
   }, [welcomeMessage]);
 
   useEffect(() => {
@@ -255,7 +238,7 @@ export const ChatboxPreview = ({
                 key={index} 
                 className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : ''}`}
               >
-                {message.type === 'bot' && (
+                {message.type === 'bot_response' && (
                   <div className="flex-shrink-0 mt-1">
                     {avatarSrc ? (
                       <Avatar className="w-8 h-8">
@@ -290,7 +273,7 @@ export const ChatboxPreview = ({
                       : 'text-gray-800'
                   )}
                   style={{ 
-                    backgroundColor: message.type === 'bot' ? `${primaryColor}15` : '',
+                    backgroundColor: message.type === 'bot_response' ? `${primaryColor}15` : '',
                   }}
                 >
                   <div className="text-sm prose prose-sm max-w-none markdown-content">

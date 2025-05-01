@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChatConfig } from './types';
+import { ExponentialSlider } from '@/components/ui/ExponentialSlider';
 
 interface ModelConfigPopoverProps {
   temperature: number;
@@ -35,7 +36,7 @@ export const ModelConfigPopover = ({
           </div>
           <Slider
             min={0}
-            max={2}
+            max={1}
             step={0.1}
             value={[temperature]}
             onValueChange={([value]) => onUpdateConfig('temperature', value)}
@@ -48,15 +49,22 @@ export const ModelConfigPopover = ({
         
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label>Output length</Label>
+            <Label>Token length</Label>
             <span className="text-sm text-muted-foreground">{maxLength}</span>
           </div>
-          <Slider
-            min={128}
-            max={2048}
-            step={128}
+          {/* <Slider
+            min={4000}
+            max={32000}
+            step={Math.pow(2, 4)}
             value={[maxLength]}
             onValueChange={([value]) => onUpdateConfig('maxLength', value)}
+          /> */}
+          <ExponentialSlider
+            minValue={4000}
+            maxValue={32000}
+            value={maxLength}
+            onChange={(value) => onUpdateConfig('maxLength', value)}
+            className="w-full"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Short</span>

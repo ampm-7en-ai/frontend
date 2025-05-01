@@ -534,10 +534,10 @@ export const useAgentTest = (initialAgentId: string) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: {
-            selectedModel: config.model,
+          settings: {
+            response_model: config.model,
             temperature: config.temperature,
-            maxLength: config.maxLength,
+            token_length: config.maxLength,
           },
           systemPrompt: config.systemPrompt
         }),
@@ -562,7 +562,7 @@ export const useAgentTest = (initialAgentId: string) => {
       }
       
       // Refetch agent details to get updated data
-      refetchAgent();
+     // refetchAgent();
       
     } catch (error) {
       console.error("Error saving configuration:", error);
