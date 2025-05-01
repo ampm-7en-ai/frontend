@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Bot, Copy } from 'lucide-react';
 import { Message } from './types';
@@ -68,12 +69,6 @@ export const ModelMessage = ({
     }
   }
 
-  // For debugging purposes
-  console.log("Message in ModelMessage:", message);
-  console.log("Model from props:", model);
-  console.log("Model from message:", message.model);
-  console.log("Temperature from message:", message.temperature);
-
   return (
     <div key={message.id} className="flex gap-2 items-start animate-fade-in">
       <div className="flex-shrink-0 mt-1">
@@ -99,7 +94,6 @@ export const ModelMessage = ({
         }}
       >
         <div className={`text-xs font-medium mb-1 flex items-center gap-2 flex-wrap`}>
-          {/* Display model from message if available, otherwise fall back to passed model prop */}
           {getModelBadge(message.model || model)}
           {message.temperature !== undefined && (
             <span className="px-1.5 py-0.5 bg-green-100 rounded-full text-xs">
