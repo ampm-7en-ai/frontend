@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Info } from 'lucide-react';
+import { Info, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Tooltip,
@@ -8,6 +8,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { usePricingModal } from '@/hooks/usePricingModal';
 
 interface UsageSectionProps {
   usageMetrics?: {
@@ -18,9 +20,21 @@ interface UsageSectionProps {
 }
 
 const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
+  const { openPricingModal } = usePricingModal();
+
   return (
     <section>
-      <h2 className="text-xl font-semibold mb-4">Usage</h2>
+      <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
+        <span>Usage</span>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={openPricingModal}
+          className="flex items-center gap-1"
+        >
+          Upgrade Plan <ChevronRight className="h-3 w-3" />
+        </Button>
+      </h2>
       <div className="space-y-4">
         <Card>
           <CardContent className="pt-6">

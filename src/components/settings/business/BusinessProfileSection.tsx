@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Edit, Save } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -167,10 +168,6 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                     </FormItem>
                   )}
                 />
-                <div>
-                  <FormLabel>Subscription Plan</FormLabel>
-                  <p className="text-muted-foreground mt-1">Free Tier</p>
-                </div>
                 <div className="flex justify-end pt-2">
                   <Button type="submit" className="flex items-center gap-1">
                     <Save className="h-4 w-4" /> Save Changes
@@ -196,10 +193,6 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
             <div>
               <h3 className="font-medium">Phone</h3>
               <p className="text-muted-foreground">{profileForm.getValues().adminPhone}</p>
-            </div>
-            <div>
-              <h3 className="font-medium">Subscription Plan</h3>
-              <p className="text-muted-foreground">Free Tier</p>
             </div>
           </CardContent>
         )}
