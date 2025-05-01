@@ -1,5 +1,4 @@
-
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Bot, Sliders, Save, WifiOff } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,6 +48,21 @@ export const ModelComparisonCard = ({
   isSaving = false
 }: ModelComparisonCardProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  // Effect to scroll to the bottom when new messages are added
+  useEffect(() => {
+    if (scrollAreaRef.current && messages.length > 0) {
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+        }
+      }, 100);
+    }
+  }, [messages]);
 
   const getModelDisplay = (modelKey: string) => {
     return modelOptions[modelKey]?.name || modelKey;
@@ -140,12 +154,13 @@ export const ModelComparisonCard = ({
       </CardHeader>
                 
       <ScrollArea 
+        ref={scrollAreaRef}
         className="flex-1 p-4 space-y-0 bg-gradient-to-b from-gray-50 to-white"
         style={{
           '--scrollbar-color': primaryColor + '50',
         } as React.CSSProperties}
       >
-        <div className="space-y-4 pr-2">
+        <div className="space-y-4 pr-2" ref={messageContainerRef}>
           {messages.map((message) => {
             if (message.sender === 'user') {
               return <UserMessage key={message.id} message={message} />;
