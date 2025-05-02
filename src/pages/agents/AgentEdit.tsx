@@ -1125,7 +1125,7 @@ const AgentEdit = () => {
             {renderChatPreviewSkeleton()}
           </div>
           
-          <div className="col-span-2 h-full">
+          <div className="col-span-2 h-full ">
             <div className="flex justify-start mb-6">
               <div className="bg-muted rounded-lg p-1 flex items-center">
                 {["general", "appearance", "advanced", "knowledge", "integrations"].map((tab) => (
