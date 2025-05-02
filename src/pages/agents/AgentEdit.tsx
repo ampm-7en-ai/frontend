@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams  } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -1050,7 +1051,7 @@ const AgentEdit = () => {
 
   return (
     <div className="h-full flex flex-col w-full relative" style={{"transform":"translateZ(0)"}}>
-      <div className="flex items-center justify-between w-full h-[80px] border-b border-t pb-4 fixed top-0 left-0 bg-background z-20 pr-[24px]">
+      <div className="flex items-center justify-between w-full h-[80px] border-b border-t pb-4 fixed top-0 left-0 right-0 bg-background z-50 px-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -1085,7 +1086,7 @@ const AgentEdit = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2 flex-1 max-w-[1440px] mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 flex-1 max-w-[1440px] mx-auto px-4">
           <div className="h-[calc(100vh-200px)] sticky top-[90px]">
             {renderChatPreviewSkeleton()}
           </div>
@@ -1103,7 +1104,7 @@ const AgentEdit = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-0 flex-1 max-w-[1440px] mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 flex-1 max-w-[1440px] mx-auto px-4">
           <div className="sticky top-[90px] h-[calc(100vh-200px)]">
             {renderChatPreview()}
           </div>
@@ -1115,7 +1116,7 @@ const AgentEdit = () => {
               value={activeTab}
               onValueChange={setActiveTab}
             >
-              <div className="sticky top-[73px] z-10 border-b">
+              <div className="sticky top-[80px] z-10 border-b bg-background">
                 <TabsList variant="github" className="w-full mb-0 pl-0">
                   <TabsTrigger value="general" variant="github">
                     <Bot className="h-4 w-4 mr-2" />
