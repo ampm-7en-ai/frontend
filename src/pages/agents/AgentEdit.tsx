@@ -1091,28 +1091,30 @@ const AgentEdit = () => {
         {/* Tab navigation - only show when not loading and for medium screens and up */}
         {!isLoading && (
           <div className="hidden md:block border-b bg-background">
-            <TabsList variant="github" className="w-full mb-0 pl-6" stickyOffset="top-[70px]">
-              <TabsTrigger value="general" variant="github">
-                <Bot className="h-4 w-4 mr-2" />
-                General
-              </TabsTrigger>
-              <TabsTrigger value="appearance" variant="github">
-                <Palette className="h-4 w-4 mr-2" />
-                Appearance
-              </TabsTrigger>
-              <TabsTrigger value="advanced" variant="github">
-                <Sliders className="h-4 w-4 mr-2" />
-                Advanced Settings
-              </TabsTrigger>
-              <TabsTrigger value="knowledge" variant="github">
-                <FileText className="h-4 w-4 mr-2" />
-                Knowledge
-              </TabsTrigger>
-              <TabsTrigger value="integrations" variant="github">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Integrations
-              </TabsTrigger>
-            </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList variant="github" className="w-full mb-0 pl-6" stickyOffset="top-[70px]">
+                <TabsTrigger value="general" variant="github">
+                  <Bot className="h-4 w-4 mr-2" />
+                  General
+                </TabsTrigger>
+                <TabsTrigger value="appearance" variant="github">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Appearance
+                </TabsTrigger>
+                <TabsTrigger value="advanced" variant="github">
+                  <Sliders className="h-4 w-4 mr-2" />
+                  Advanced Settings
+                </TabsTrigger>
+                <TabsTrigger value="knowledge" variant="github">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Knowledge
+                </TabsTrigger>
+                <TabsTrigger value="integrations" variant="github">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Integrations
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { useAuth } from '@/context/AuthContext';
 import Sidebar from './Sidebar';
+import { Tabs } from '@/components/ui/tabs';
 
 export type MainLayoutProps = {
   pageTitle?: string;
