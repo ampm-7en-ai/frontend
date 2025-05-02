@@ -1050,9 +1050,9 @@ const AgentEdit = () => {
   }
 
   return (
-    <div className="h-full flex flex-col w-full relative" style={{"transform":"translateZ(0)"}}>
+    <div className="h-full flex flex-col w-full relative">
       {/* Fixed header group that contains both title header and tab navigation */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background flex flex-col">
+      <div className="sticky top-0 left-0 right-0 z-50 bg-background flex flex-col">
         {/* Title header */}
         <div className="flex items-center justify-between w-full h-[70px] border-b border-t pb-3 pt-3 px-6">
           <div className="flex items-center gap-4">
@@ -1120,8 +1120,8 @@ const AgentEdit = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[130px] flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="h-[calc(100vh-200px)] sticky top-[140px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[0px] flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="h-[calc(100vh-200px)] sticky top-[111px]">
             {renderChatPreviewSkeleton()}
           </div>
           
@@ -1138,8 +1138,8 @@ const AgentEdit = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[130px] flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="sticky top-[140px] h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[0px] flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="sticky top-[111px] h-[calc(100vh-200px)]">
             {renderChatPreview()}
           </div>
           
