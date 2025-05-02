@@ -1049,8 +1049,8 @@ const AgentEdit = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between border-b pb-4 sticky top-0 bg-background z-20 pr-[24px]">
+    <div className="h-full flex flex-col w-full relative" style={{"transform":"translateZ(0)"}}>
+      <div className="flex items-center justify-between w-full h-[80px] border-b border-t pb-4 fixed top-0 left-0 bg-background z-20 pr-[24px]">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
