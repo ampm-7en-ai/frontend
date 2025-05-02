@@ -1051,43 +1051,75 @@ const AgentEdit = () => {
 
   return (
     <div className="h-full flex flex-col w-full relative" style={{"transform":"translateZ(0)"}}>
-      <div className="flex items-center justify-between w-full h-[80px] border-b border-t pb-4 fixed top-0 left-0 right-0 bg-background z-50 px-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={goBack}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            {isLoading ? (
+      {/* Fixed header group that contains both title header and tab navigation */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background flex flex-col">
+        {/* Title header */}
+        <div className="flex items-center justify-between w-full h-[70px] border-b border-t pb-3 pt-3 px-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={goBack}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-8 w-[200px] mb-1" />
+                  <Skeleton className="h-4 w-[300px]" />
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
+                  <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
+                </>
+              )}
+            </div>
+          </div>
+          <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
+            {isSaving ? (
               <>
-                <Skeleton className="h-8 w-[200px] mb-1" />
-                <Skeleton className="h-4 w-[300px]" />
+                <LoadingSpinner size="sm" className="mr-2" />
+                Saving...
               </>
             ) : (
               <>
-                <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
-                <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
               </>
             )}
-          </div>
+          </Button>
         </div>
-        <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
-          {isSaving ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </Button>
+        
+        {/* Tab navigation - only show when not loading and for medium screens and up */}
+        {!isLoading && (
+          <div className="hidden md:block border-b bg-background">
+            <TabsList variant="github" className="w-full mb-0 pl-6" stickyOffset="top-[70px]">
+              <TabsTrigger value="general" variant="github">
+                <Bot className="h-4 w-4 mr-2" />
+                General
+              </TabsTrigger>
+              <TabsTrigger value="appearance" variant="github">
+                <Palette className="h-4 w-4 mr-2" />
+                Appearance
+              </TabsTrigger>
+              <TabsTrigger value="advanced" variant="github">
+                <Sliders className="h-4 w-4 mr-2" />
+                Advanced Settings
+              </TabsTrigger>
+              <TabsTrigger value="knowledge" variant="github">
+                <FileText className="h-4 w-4 mr-2" />
+                Knowledge
+              </TabsTrigger>
+              <TabsTrigger value="integrations" variant="github">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Integrations
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        )}
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="h-[calc(100vh-200px)] sticky top-[90px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[130px] flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="h-[calc(100vh-200px)] sticky top-[140px]">
             {renderChatPreviewSkeleton()}
           </div>
           
@@ -1104,8 +1136,8 @@ const AgentEdit = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 flex-1 max-w-[1440px] mx-auto px-4">
-          <div className="sticky top-[90px] h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[130px] flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="sticky top-[140px] h-[calc(100vh-200px)]">
             {renderChatPreview()}
           </div>
           
@@ -1116,32 +1148,19 @@ const AgentEdit = () => {
               value={activeTab}
               onValueChange={setActiveTab}
             >
-              <div className="sticky top-[80px] z-10 border-b bg-background">
-                <TabsList variant="github" className="w-full mb-0 pl-0">
-                  <TabsTrigger value="general" variant="github">
-                    <Bot className="h-4 w-4 mr-2" />
-                    General
-                  </TabsTrigger>
-                  <TabsTrigger value="appearance" variant="github">
-                    <Palette className="h-4 w-4 mr-2" />
-                    Appearance
-                  </TabsTrigger>
-                  <TabsTrigger value="advanced" variant="github">
-                    <Sliders className="h-4 w-4 mr-2" />
-                    Advanced Settings
-                  </TabsTrigger>
-                  <TabsTrigger value="knowledge" variant="github">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Knowledge
-                  </TabsTrigger>
-                  <TabsTrigger value="integrations" variant="github">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Integrations
-                  </TabsTrigger>
+              {/* Mobile tab list - only show on smaller screens */}
+              <div className="block md:hidden">
+                <TabsList className="w-full mb-4">
+                  <TabsTrigger value="general">General</TabsTrigger>
+                  <TabsTrigger value="appearance">Style</TabsTrigger>
+                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                  <TabsTrigger value="knowledge">Knowledge</TabsTrigger>
+                  <TabsTrigger value="integrations">Integrations</TabsTrigger>
                 </TabsList>
               </div>
               
               <div className="flex-1 overflow-hidden">
+                {/* Tab content area - no changes to the content, just the outer container */}
                 <TabsContent 
                   value="general" 
                   className="mt-4 pb-6 h-full" 

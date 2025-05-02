@@ -13,8 +13,9 @@ const TabsList = React.forwardRef<
     orientation?: "horizontal" | "vertical";
     variant?: "default" | "github";
     sticky?: boolean;
+    stickyOffset?: string;
   }
->(({ className, size = "default", orientation = "horizontal", variant = "default", sticky = false, ...props }, ref) => {
+>(({ className, size = "default", orientation = "horizontal", variant = "default", sticky = false, stickyOffset = "top-16", ...props }, ref) => {
   const sizeClasses = {
     default: "h-10",
     sm: "h-8",
@@ -30,7 +31,7 @@ const TabsList = React.forwardRef<
         variant === "github" 
           ? "inline-flex w-full border-b border-border bg-background gap-1 px-4" 
           : "inline-flex items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-        sticky && "sticky top-16 z-40 bg-background", // Set top-16 to account for the header height when sticky is true
+        sticky && `sticky ${stickyOffset} z-40 bg-background`, // Allow customizing the sticky offset
         className
       )}
       {...props}
