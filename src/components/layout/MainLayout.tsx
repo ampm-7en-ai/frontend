@@ -53,14 +53,14 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
   return (
     <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full">
       <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         <Header 
           pageTitle={derivedTitle}
           breadcrumbs={defaultBreadcrumbs}
           onLogout={logout}
           toggleSidebar={toggleSidebar}
         />
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage || isAgentEditPage ? 'p-0' : 'p-6'}`}>
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto pt-4 ${isConversationsPage || isAgentEditPage ? 'p-0' : 'p-6'}`}>
           {children || <Outlet />}
         </main>
       </div>
