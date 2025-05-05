@@ -248,7 +248,7 @@ export const ChatboxPreview = ({
             {messages.map((message, index) => (
               <div 
                 key={index} 
-                className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : ''}`}
+                className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
               >
                 {message.type === 'bot_response' && (
                   <div className="flex-shrink-0 mt-1">
@@ -279,10 +279,10 @@ export const ChatboxPreview = ({
                 
                 <div
                   className={cn(
-                    "rounded-lg p-3 max-w-[80%] shadow-sm relative",
-                    message.type === 'user' 
-                      ? 'bg-gray-100 text-gray-800' 
-                      : 'text-gray-800'
+                    "rounded-lg p-3 max-w-[80%] relative",
+                    message.type === 'bot_response' 
+                      ? 'bg-gray-100 text-gray-800 shadow-sm' 
+                      : message.type === 'system_message' ? ` ` : 'bg-gray-100 text-gray-800 '
                   )}
                   style={{ 
                     backgroundColor: message.type === 'bot_response' ? `${primaryColor}15` : '',
@@ -348,14 +348,27 @@ export const ChatboxPreview = ({
                             </a>
                           );
                         },
+                        p({children}){
+                          return message.type === 'system_message' ? (
+                            <p style={{fontSize:"10px",color:`${primaryColor}`}}>{children}</p>
+                          ) : (<p>{children}</p>)
+                        }
                       }}
                     >
                       {message.content}
                     </ReactMarkdown>
                   </div>
-                  <p className="text-xs mt-1 text-gray-400">
-                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                  {
+                    message.type === "bot_response" || message.type === "user" ? (
+                      <p className="text-xs mt-1 text-gray-400">
+                      {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    ):
+                    (
+                      <>
+                      </>
+                    )
+                  }
                 </div>
                 
                 {message.type === 'user' && (

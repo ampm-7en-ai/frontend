@@ -86,9 +86,9 @@ const AgentEdit = () => {
     collectVisitorData: true,
     autoShowAfter: 30,
     knowledgeSources: [1, 3],
-    selectedModel: 'gpt4',
+    selectedModel: 'gpt-4-turbo',
     temperature: 0.7,
-    maxResponseLength: 'medium',
+    maxResponseLength: '4000',
     suggestions: [
       'How can I get started?',
       'What features do you offer?',
