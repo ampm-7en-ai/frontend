@@ -355,7 +355,7 @@ export const ChatboxPreview = ({
                         }
                       }}
                     >
-                      {message.content}
+                      {message.content} 
                     </ReactMarkdown>
                   </div>
                   {
