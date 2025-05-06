@@ -22,7 +22,8 @@ const LLMProvidersSettings = () => {
   const systemPrompts = {
     support: "You are a helpful customer support AI assistant. Help users with their questions and provide accurate information about our products and services.",
     technical: "You are a technical support AI assistant with detailed knowledge about our systems. Provide troubleshooting steps and technical guidance to users.",
-    sales: "You are a sales AI assistant focused on helping potential customers understand the benefits and features of our products to assist them in making purchase decisions."
+    sales: "You are a sales AI assistant focused on helping potential customers understand the benefits and features of our products to assist them in making purchase decisions.",
+    custom: "Custom system prompt for specialized use cases. Configure this prompt based on your specific requirements."
   };
 
   const handleAgentTypeChange = (value) => {
@@ -74,14 +75,6 @@ const LLMProvidersSettings = () => {
                   </Select>
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleAnalyticsView('openai')}
-                    className="flex items-center gap-1"
-                  >
-                    <FileChartLine size={16} />
-                    <span>Analytics</span>
-                  </Button>
                   <Button size="sm">Update</Button>
                 </div>
               </div>
@@ -115,14 +108,6 @@ const LLMProvidersSettings = () => {
                   </Select>
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleAnalyticsView('anthropic')}
-                    className="flex items-center gap-1"
-                  >
-                    <FileChartLine size={16} />
-                    <span>Analytics</span>
-                  </Button>
                   <Button size="sm">Update</Button>
                 </div>
               </div>
@@ -155,15 +140,6 @@ const LLMProvidersSettings = () => {
                   </Select>
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleAnalyticsView('google')}
-                    className="flex items-center gap-1"
-                    disabled
-                  >
-                    <FileChartLine size={16} />
-                    <span>Analytics</span>
-                  </Button>
                   <Button size="sm">Connect</Button>
                 </div>
               </div>
@@ -197,15 +173,6 @@ const LLMProvidersSettings = () => {
                   </Select>
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleAnalyticsView('mistral')}
-                    className="flex items-center gap-1"
-                    disabled
-                  >
-                    <FileChartLine size={16} />
-                    <span>Analytics</span>
-                  </Button>
                   <Button size="sm">Connect</Button>
                 </div>
               </div>
@@ -233,6 +200,7 @@ const LLMProvidersSettings = () => {
                   <SelectItem value="support">Customer Support</SelectItem>
                   <SelectItem value="technical">Technical Support</SelectItem>
                   <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -316,7 +284,14 @@ const LLMProvidersSettings = () => {
           
           <div className="mt-4 flex justify-end gap-2">
             <Button variant="outline">Export Report</Button>
-            <Button variant="outline">View Detailed Analytics</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => handleAnalyticsView('all')}
+              className="flex items-center gap-1"
+            >
+              <FileChartLine size={16} />
+              <span>View Detailed Analytics</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -325,7 +300,7 @@ const LLMProvidersSettings = () => {
       <Dialog open={openAnalyticsDialog} onOpenChange={setOpenAnalyticsDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedProvider ? `${selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)} Analytics` : 'Provider Analytics'}</DialogTitle>
+            <DialogTitle>{selectedProvider === 'all' ? 'Platform Analytics' : `${selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)} Analytics`}</DialogTitle>
             <DialogDescription>
               Detailed usage information and analytics
             </DialogDescription>
@@ -409,6 +384,20 @@ const LLMProvidersSettings = () => {
                       <TableCell>200K</TableCell>
                       <TableCell>$23.66</TableCell>
                     </TableRow>
+                    <TableRow>
+                      <TableCell>Claude 3 Opus</TableCell>
+                      <TableCell>5,489</TableCell>
+                      <TableCell>1.5M</TableCell>
+                      <TableCell>950K</TableCell>
+                      <TableCell>$98.50</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Claude 3 Sonnet</TableCell>
+                      <TableCell>3,232</TableCell>
+                      <TableCell>1.3M</TableCell>
+                      <TableCell>600K</TableCell>
+                      <TableCell>$41.50</TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </CardContent>
@@ -452,6 +441,13 @@ const LLMProvidersSettings = () => {
                       <TableCell>1.5s</TableCell>
                       <TableCell>$9.80</TableCell>
                     </TableRow>
+                    <TableRow>
+                      <TableCell>Custom</TableCell>
+                      <TableCell>985</TableCell>
+                      <TableCell>350K</TableCell>
+                      <TableCell>2.1s</TableCell>
+                      <TableCell>$8.20</TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </CardContent>
@@ -468,6 +464,58 @@ const LLMProvidersSettings = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Provider Comparison */}
+            {selectedProvider === 'all' && (
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-lg">Provider Comparison</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Provider</TableHead>
+                        <TableHead>Success Rate</TableHead>
+                        <TableHead>Avg. Latency</TableHead>
+                        <TableHead>Cost Efficiency</TableHead>
+                        <TableHead>Usage Trend</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium">OpenAI</TableCell>
+                        <TableCell>99.8%</TableCell>
+                        <TableCell>1.2s</TableCell>
+                        <TableCell>High</TableCell>
+                        <TableCell>Increasing</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Anthropic</TableCell>
+                        <TableCell>99.5%</TableCell>
+                        <TableCell>1.8s</TableCell>
+                        <TableCell>Medium</TableCell>
+                        <TableCell>Stable</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Google AI</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Mistral AI</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
           </div>
           
           <div className="flex justify-end gap-2 mt-4">
