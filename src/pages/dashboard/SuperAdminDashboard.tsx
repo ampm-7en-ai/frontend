@@ -11,18 +11,16 @@ import {
   Bot, 
   MessageSquare, 
   ChevronRight, 
-  BarChart2, 
-  Zap, 
   Shield, 
+  Zap, 
   Server, 
   Database,
-  RefreshCw,
   AlertCircle,
   CheckCircle,
-  MonitorCheck,
   WifiHigh
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BusinessAdminStats } from '@/components/dashboard/BusinessAdminStats';
 
 const SuperAdminDashboard = () => {
   return (
@@ -123,121 +121,66 @@ const SuperAdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Service Status & Quick Actions */}
+      {/* Business Admin Stats & System Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Quick Access Card - Replacing Platform Insights */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Access</CardTitle>
-            <CardDescription>Essential platform management tools</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button variant="outline" className="h-auto py-3 justify-start gap-3" asChild>
-                <Link to="/settings/platform/security">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <div className="text-left">
-                    <div className="font-medium">Security</div>
-                    <div className="text-xs text-muted-foreground">Manage platform security</div>
-                  </div>
-                </Link>
-              </Button>
-              
-              <Button variant="outline" className="h-auto py-3 justify-start gap-3" asChild>
-                <Link to="/settings/platform/llm-providers">
-                  <Bot className="h-5 w-5 text-primary" />
-                  <div className="text-left">
-                    <div className="font-medium">LLM Providers</div>
-                    <div className="text-xs text-muted-foreground">Configure AI services</div>
-                  </div>
-                </Link>
-              </Button>
-              
-              <Button variant="outline" className="h-auto py-3 justify-start gap-3" asChild>
-                <Link to="/settings/platform/billing">
-                  <Zap className="h-5 w-5 text-primary" />
-                  <div className="text-left">
-                    <div className="font-medium">Billing</div>
-                    <div className="text-xs text-muted-foreground">Manage subscription & usage</div>
-                  </div>
-                </Link>
-              </Button>
-              
-              <Button variant="outline" className="h-auto py-3 justify-start gap-3" asChild>
-                <Link to="/settings/platform/customization">
-                  <Users className="h-5 w-5 text-primary" />
-                  <div className="text-left">
-                    <div className="font-medium">Customization</div>
-                    <div className="text-xs text-muted-foreground">Brand & UI settings</div>
-                  </div>
-                </Link>
-              </Button>
-            </div>
-            
-            <div className="flex justify-end pt-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/settings/platform/general" className="flex items-center">
-                  All settings <ChevronRight className="ml-1 h-3 w-3" />
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Business Admin Stats Card - Replacing Quick Access */}
+        <BusinessAdminStats />
         
-        {/* Redesigned System Status Card */}
+        {/* Redesigned System Status Card - More minimal and cleaner */}
         <Card>
           <CardHeader>
             <CardTitle>System Status</CardTitle>
             <CardDescription>Service health overview</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
-              <div className="flex items-center justify-between p-2 rounded-md bg-card/50 hover:bg-accent/5">
-                <div className="flex items-center gap-3">
-                  <Server className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="text-sm font-medium">API Services</div>
-                    <div className="text-xs text-muted-foreground">124ms response time</div>
-                  </div>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">API Services</span>
+                  <Badge variant="outline" className="bg-green-100 text-green-800">Healthy</Badge>
                 </div>
-                <Badge variant="outline" className="bg-green-100 text-green-800">Healthy</Badge>
+                <Progress value={98} className="h-1.5" />
               </div>
               
-              <div className="flex items-center justify-between p-2 rounded-md bg-card/50 hover:bg-accent/5">
-                <div className="flex items-center gap-3">
-                  <Database className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="text-sm font-medium">Database</div>
-                    <div className="text-xs text-muted-foreground">47ms query time</div>
-                  </div>
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Database</span>
+                  <Badge variant="outline" className="bg-green-100 text-green-800">Healthy</Badge>
                 </div>
-                <Badge variant="outline" className="bg-green-100 text-green-800">Healthy</Badge>
+                <Progress value={99} className="h-1.5" />
               </div>
               
-              <div className="flex items-center justify-between p-2 rounded-md bg-card/50 hover:bg-accent/5">
-                <div className="flex items-center gap-3">
-                  <Bot className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="text-sm font-medium">LLM Services</div>
-                    <div className="text-xs text-muted-foreground">1.2s inference time</div>
-                  </div>
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">LLM Services</span>
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Degraded</Badge>
                 </div>
-                <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Degraded</Badge>
+                <Progress value={72} className="h-1.5" />
               </div>
               
-              <div className="flex items-center justify-between p-2 rounded-md bg-card/50 hover:bg-accent/5">
-                <div className="flex items-center gap-3">
-                  <MonitorCheck className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="text-sm font-medium">Monitoring</div>
-                    <div className="text-xs text-muted-foreground">All checks passing</div>
-                  </div>
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Storage</span>
+                  <Badge variant="outline" className="bg-green-100 text-green-800">Healthy</Badge>
                 </div>
-                <Badge variant="outline" className="bg-green-100 text-green-800">Healthy</Badge>
+                <Progress value={95} className="h-1.5" />
               </div>
             </div>
             
-            <div className="flex justify-end pt-2">
+            <div className="bg-muted/40 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <WifiHigh className="h-4 w-4 text-primary" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">System Uptime</span>
+                    <span className="text-sm">99.98%</span>
+                  </div>
+                  <Progress value={99.98} className="h-1.5 mt-1" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
               <Button variant="outline" size="sm" asChild>
                 <Link to="/system-health" className="flex items-center gap-1">
                   <Shield className="h-4 w-4" />
