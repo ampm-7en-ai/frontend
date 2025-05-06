@@ -1,234 +1,401 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Upload, Shield, FileCheck } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ComplianceSettings = () => {
   return (
-    <div className="space-y-6">
-      <h2 className="text-heading-3">Compliance Settings</h2>
-      <p className="text-dark-gray mb-6">Configure compliance features to meet European regulatory requirements.</p>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            <span>GDPR Compliance</span>
-          </CardTitle>
-          <CardDescription>Configure General Data Protection Regulation settings</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="data-retention">Enable Data Retention Policies</Label>
-              <p className="text-sm text-muted-foreground">
-                Automatically delete data after a specified period
-              </p>
-            </div>
-            <Switch id="data-retention" defaultChecked />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="retention-period">Data Retention Period</Label>
-            <Select defaultValue="90">
-              <SelectTrigger id="retention-period">
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="30">30 days</SelectItem>
-                <SelectItem value="60">60 days</SelectItem>
-                <SelectItem value="90">90 days</SelectItem>
-                <SelectItem value="180">180 days</SelectItem>
-                <SelectItem value="365">1 year</SelectItem>
-                <SelectItem value="730">2 years</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="user-data-requests">Enable User Data Request Processing</Label>
-              <p className="text-sm text-muted-foreground">
-                Allow users to request their data or deletion under GDPR
-              </p>
-            </div>
-            <Switch id="user-data-requests" defaultChecked />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Privacy Policy</Label>
-            <div className="flex gap-2">
-              <Input 
-                id="privacy-url" 
-                placeholder="https://7en.ai/privacy-policy" 
-                defaultValue="https://7en.ai/privacy-policy"
-                className="flex-1"
-              />
-              <Button variant="outline" size="icon">
-                <Upload className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileCheck className="h-5 w-5 text-primary" />
-            <span>Data Sovereignty</span>
-          </CardTitle>
-          <CardDescription>Configure data storage and processing locations</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="data-region">Data Storage Region</Label>
-            <Select defaultValue="eu-central">
-              <SelectTrigger id="data-region">
-                <SelectValue placeholder="Select region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="eu-central">EU Central (Frankfurt)</SelectItem>
-                <SelectItem value="eu-west">EU West (Ireland)</SelectItem>
-                <SelectItem value="eu-north">EU North (Stockholm)</SelectItem>
-                <SelectItem value="eu-south">EU South (Milan)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              All data will be stored and processed within this region
-            </p>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="eu-only-processing">EU-Only Data Processing</Label>
-              <p className="text-sm text-muted-foreground">
-                Restrict all data processing to European Union territory
-              </p>
-            </div>
-            <Switch id="eu-only-processing" defaultChecked />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="data-residency">Enforce Data Residency</Label>
-              <p className="text-sm text-muted-foreground">
-                Prevent any data from leaving the selected region
-              </p>
-            </div>
-            <Switch id="data-residency" defaultChecked />
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Audit Logging</CardTitle>
-          <CardDescription>Configure audit trails for compliance and security</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="enable-audit">Enable Comprehensive Audit Logging</Label>
-              <p className="text-sm text-muted-foreground">
-                Log all user actions for compliance and security purposes
-              </p>
-            </div>
-            <Switch id="enable-audit" defaultChecked />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Log Categories</Label>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="log-auth" defaultChecked />
-                <Label htmlFor="log-auth">Authentication events</Label>
+    <PlatformSettingsLayout
+      title="Compliance Settings"
+      description="Manage compliance features and regulatory requirements"
+    >
+      <Tabs defaultValue="privacy">
+        <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsTrigger value="privacy">Privacy Settings</TabsTrigger>
+          <TabsTrigger value="data">Data Management</TabsTrigger>
+          <TabsTrigger value="gdpr">GDPR / CCPA</TabsTrigger>
+          <TabsTrigger value="aiact">AI Act</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="privacy">
+          <Card>
+            <CardHeader>
+              <CardTitle>Privacy Configuration</CardTitle>
+              <CardDescription>Configure data privacy settings and policies</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch id="dataRetention" defaultChecked />
+                  <div>
+                    <Label htmlFor="dataRetention">Data Retention Controls</Label>
+                    <p className="text-sm text-muted-foreground">Enable automatic data deletion after specified period</p>
+                  </div>
+                </div>
+                
+                <div className="pl-6 space-y-2">
+                  <Label htmlFor="retentionPeriod">Retention Period (days)</Label>
+                  <Input id="retentionPeriod" type="number" defaultValue="180" />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="anonymization" defaultChecked />
+                  <div>
+                    <Label htmlFor="anonymization">Data Anonymization</Label>
+                    <p className="text-sm text-muted-foreground">Automatically anonymize personal data in logs and analytics</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="piiDetection" defaultChecked />
+                  <div>
+                    <Label htmlFor="piiDetection">PII Detection</Label>
+                    <p className="text-sm text-muted-foreground">Scan conversations for personally identifiable information</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="encryptData" defaultChecked />
+                  <div>
+                    <Label htmlFor="encryptData">Data Encryption</Label>
+                    <p className="text-sm text-muted-foreground">Enable end-to-end encryption for sensitive data</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="log-data" defaultChecked />
-                <Label htmlFor="log-data">Data access and modification</Label>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Privacy Policy</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="privacyUrl">Privacy Policy URL</Label>
+                  <Input id="privacyUrl" defaultValue="https://example.com/privacy" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="privacyNotice">Privacy Notice for Users</Label>
+                  <Textarea
+                    id="privacyNotice"
+                    className="h-40"
+                    defaultValue="Your privacy is important to us. This platform collects and processes data in accordance with our privacy policy. You can request deletion of your data at any time."
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="showPrivacyNotice" defaultChecked />
+                  <Label htmlFor="showPrivacyNotice">Show privacy notice during onboarding</Label>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="log-admin" defaultChecked />
-                <Label htmlFor="log-admin">Admin actions</Label>
+              
+              <Button>Save Privacy Settings</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="data">
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Management</CardTitle>
+              <CardDescription>Configure data handling and storage policies</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dataStorage">Data Storage Location</Label>
+                  <Select defaultValue="eu">
+                    <SelectTrigger id="dataStorage">
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="eu">European Union (EU)</SelectItem>
+                      <SelectItem value="us">United States (US)</SelectItem>
+                      <SelectItem value="ap">Asia Pacific (AP)</SelectItem>
+                      <SelectItem value="ca">Canada (CA)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Primary storage location for user data</p>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="dataResidency" defaultChecked />
+                  <div>
+                    <Label htmlFor="dataResidency">Strict Data Residency</Label>
+                    <p className="text-sm text-muted-foreground">Enforce that data never leaves selected region</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="backupSchedule">Backup Schedule</Label>
+                  <Select defaultValue="daily">
+                    <SelectTrigger id="backupSchedule">
+                      <SelectValue placeholder="Select schedule" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hourly">Hourly</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="backupRetention">Backup Retention (days)</Label>
+                  <Input id="backupRetention" type="number" defaultValue="30" />
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="log-ai" defaultChecked />
-                <Label htmlFor="log-ai">AI agent interactions</Label>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Data Processing Controls</h3>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="thirdPartySharing" />
+                  <div>
+                    <Label htmlFor="thirdPartySharing">Allow Third Party Data Sharing</Label>
+                    <p className="text-sm text-muted-foreground">Allow data to be shared with third-party services</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="modelTraining" />
+                  <div>
+                    <Label htmlFor="modelTraining">Allow Data Usage for Model Training</Label>
+                    <p className="text-sm text-muted-foreground">Allow user data to be used for improving AI models</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="analyticsCollection" defaultChecked />
+                  <div>
+                    <Label htmlFor="analyticsCollection">Collect Usage Analytics</Label>
+                    <p className="text-sm text-muted-foreground">Collect anonymized usage statistics</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="log-retention">Log Retention Period</Label>
-            <Select defaultValue="365">
-              <SelectTrigger id="log-retention">
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="90">90 days</SelectItem>
-                <SelectItem value="180">180 days</SelectItem>
-                <SelectItem value="365">1 year</SelectItem>
-                <SelectItem value="730">2 years</SelectItem>
-                <SelectItem value="1095">3 years</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex justify-between">
-            <Button variant="outline" className="gap-1">
-              <Download className="h-4 w-4" />
-              Export Audit Logs
-            </Button>
-            <Button variant="outline">Configure External Logging</Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Certifications & Compliance Reports</CardTitle>
-          <CardDescription>View and download compliance documentation</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 border rounded-md">
-              <div>
-                <p className="font-medium">GDPR Compliance Statement</p>
-                <p className="text-sm text-muted-foreground">Last updated: April 18, 2024</p>
+              
+              <Button>Save Data Settings</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="gdpr">
+          <Card>
+            <CardHeader>
+              <CardTitle>GDPR / CCPA Compliance</CardTitle>
+              <CardDescription>Configure settings for compliance with data protection regulations</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch id="gdprEnabled" defaultChecked />
+                  <div>
+                    <Label htmlFor="gdprEnabled">Enable GDPR Features</Label>
+                    <p className="text-sm text-muted-foreground">Activate tools for GDPR compliance</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="ccpaEnabled" defaultChecked />
+                  <div>
+                    <Label htmlFor="ccpaEnabled">Enable CCPA Features</Label>
+                    <p className="text-sm text-muted-foreground">Activate tools for CCPA compliance</p>
+                  </div>
+                </div>
               </div>
-              <Button variant="outline" size="sm">Download</Button>
-            </div>
-            
-            <div className="flex justify-between items-center p-3 border rounded-md">
-              <div>
-                <p className="font-medium">ISO 27001 Certificate</p>
-                <p className="text-sm text-muted-foreground">Issued: January 10, 2024</p>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Data Subject Rights</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="dpoEmail">Data Protection Officer Email</Label>
+                  <Input id="dpoEmail" type="email" defaultValue="dpo@example.com" />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="selfServiceDeletion" defaultChecked />
+                  <div>
+                    <Label htmlFor="selfServiceDeletion">Allow Self-Service Data Deletion</Label>
+                    <p className="text-sm text-muted-foreground">Users can delete their own data from account settings</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="dataExport" defaultChecked />
+                  <div>
+                    <Label htmlFor="dataExport">Allow Self-Service Data Export</Label>
+                    <p className="text-sm text-muted-foreground">Users can export their data in machine-readable format</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="requestProcessTime">Max Request Processing Time (days)</Label>
+                  <Input id="requestProcessTime" type="number" defaultValue="30" />
+                  <p className="text-xs text-muted-foreground">Maximum time to process data subject requests</p>
+                </div>
               </div>
-              <Button variant="outline" size="sm">Download</Button>
-            </div>
-            
-            <div className="flex justify-between items-center p-3 border rounded-md">
-              <div>
-                <p className="font-medium">SOC 2 Type II Report</p>
-                <p className="text-sm text-muted-foreground">Valid through: December 31, 2024</p>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Consent Management</h3>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="consentRequired" defaultChecked />
+                  <div>
+                    <Label htmlFor="consentRequired">Require Explicit Consent</Label>
+                    <p className="text-sm text-muted-foreground">Require users to explicitly opt-in to data processing</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="consentAudit" defaultChecked />
+                  <div>
+                    <Label htmlFor="consentAudit">Audit Consent Changes</Label>
+                    <p className="text-sm text-muted-foreground">Log all changes to user consent preferences</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="consentText">Consent Request Text</Label>
+                  <Textarea
+                    id="consentText"
+                    className="h-24"
+                    defaultValue="We process your data to provide our services. You can withdraw consent at any time. See our privacy policy for details."
+                  />
+                </div>
               </div>
-              <Button variant="outline" size="sm">Download</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-end">
-        <Button>Save Changes</Button>
-      </div>
-    </div>
+              
+              <Button>Save GDPR/CCPA Settings</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="aiact">
+          <Card>
+            <CardHeader>
+              <CardTitle>EU AI Act Compliance</CardTitle>
+              <CardDescription>Configure settings for compliance with the EU AI Act</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Risk Assessment</h3>
+                
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>System Component</TableHead>
+                      <TableHead>Risk Level</TableHead>
+                      <TableHead>Compliance Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Agent Response System</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Medium</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-green-50 text-green-700">Compliant</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">View Report</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Content Moderation</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-orange-50 text-orange-700">High</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700">In Review</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">View Report</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Knowledge Management</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-green-50 text-green-700">Low</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-green-50 text-green-700">Compliant</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">View Report</Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+                
+                <Button variant="outline" className="mt-2">Run New Risk Assessment</Button>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Transparency Documentation</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="technicalDoc">Technical Documentation</Label>
+                  <div className="flex gap-2">
+                    <Input id="technicalDoc" defaultValue="AI_System_Technical_Doc_v1.3.pdf" readOnly className="flex-1" />
+                    <Button variant="outline">Upload New</Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="riskAssessmentDoc">Risk Assessment Documentation</Label>
+                  <div className="flex gap-2">
+                    <Input id="riskAssessmentDoc" defaultValue="Risk_Assessment_Report_Q2_2025.pdf" readOnly className="flex-1" />
+                    <Button variant="outline">Upload New</Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="userManual">User Instructions</Label>
+                  <div className="flex gap-2">
+                    <Input id="userManual" defaultValue="Platform_User_Manual.pdf" readOnly className="flex-1" />
+                    <Button variant="outline">Upload New</Button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Human Oversight</h3>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="humanReview" defaultChecked />
+                  <div>
+                    <Label htmlFor="humanReview">Enable Human Review</Label>
+                    <p className="text-sm text-muted-foreground">Flag high-risk decisions for human review</p>
+                  </div>
+                </div>
+                
+                <div className="pl-6 space-y-2">
+                  <Label htmlFor="reviewThreshold">Review Threshold (%)</Label>
+                  <Input id="reviewThreshold" type="number" defaultValue="85" min="0" max="100" />
+                  <p className="text-xs text-muted-foreground">Confidence threshold for automatic approvals</p>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="notifyOversight" defaultChecked />
+                  <div>
+                    <Label htmlFor="notifyOversight">Notify Oversight Team</Label>
+                    <p className="text-sm text-muted-foreground">Send notifications when human review is needed</p>
+                  </div>
+                </div>
+              </div>
+              
+              <Button>Save AI Act Settings</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </PlatformSettingsLayout>
   );
 };
 

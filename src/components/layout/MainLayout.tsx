@@ -50,6 +50,24 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
 
   const isConversationsPage = location.pathname.includes('/conversations');
   const isAgentEditPage = location.pathname.includes('/agents') && location.pathname.includes('/edit');
+  const isPlatformSettingsPage = location.pathname.includes('/settings/platform/');
+
+  // Use a centered, full-width layout without sidebar for platform settings pages
+  if (isPlatformSettingsPage) {
+    return (
+      <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full flex-col">
+        <Header 
+          pageTitle={derivedTitle}
+          breadcrumbs={defaultBreadcrumbs}
+          onLogout={logout}
+          toggleSidebar={toggleSidebar}
+        />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          {children || <Outlet />}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full">
