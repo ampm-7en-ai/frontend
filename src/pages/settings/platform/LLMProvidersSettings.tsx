@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,8 +9,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import { FileChartLine } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const LLMProvidersSettings = () => {
+  const [selectedAgentType, setSelectedAgentType] = useState('support');
+  const [openAnalyticsDialog, setOpenAnalyticsDialog] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('');
+
+  // System prompts by agent type
+  const systemPrompts = {
+    support: "You are a helpful customer support AI assistant. Help users with their questions and provide accurate information about our products and services.",
+    technical: "You are a technical support AI assistant with detailed knowledge about our systems. Provide troubleshooting steps and technical guidance to users.",
+    sales: "You are a sales AI assistant focused on helping potential customers understand the benefits and features of our products to assist them in making purchase decisions."
+  };
+
+  const handleAgentTypeChange = (value) => {
+    setSelectedAgentType(value);
+  };
+
+  const handleAnalyticsView = (provider) => {
+    setSelectedProvider(provider);
+    setOpenAnalyticsDialog(true);
+  };
+
   return (
     <PlatformSettingsLayout
       title="LLM Providers Settings"
@@ -50,7 +73,15 @@ const LLMProvidersSettings = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleAnalyticsView('openai')}
+                    className="flex items-center gap-1"
+                  >
+                    <FileChartLine size={16} />
+                    <span>Analytics</span>
+                  </Button>
                   <Button size="sm">Update</Button>
                 </div>
               </div>
@@ -83,7 +114,15 @@ const LLMProvidersSettings = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleAnalyticsView('anthropic')}
+                    className="flex items-center gap-1"
+                  >
+                    <FileChartLine size={16} />
+                    <span>Analytics</span>
+                  </Button>
                   <Button size="sm">Update</Button>
                 </div>
               </div>
@@ -115,7 +154,16 @@ const LLMProvidersSettings = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleAnalyticsView('google')}
+                    className="flex items-center gap-1"
+                    disabled
+                  >
+                    <FileChartLine size={16} />
+                    <span>Analytics</span>
+                  </Button>
                   <Button size="sm">Connect</Button>
                 </div>
               </div>
@@ -148,7 +196,16 @@ const LLMProvidersSettings = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleAnalyticsView('mistral')}
+                    className="flex items-center gap-1"
+                    disabled
+                  >
+                    <FileChartLine size={16} />
+                    <span>Analytics</span>
+                  </Button>
                   <Button size="sm">Connect</Button>
                 </div>
               </div>
@@ -161,44 +218,43 @@ const LLMProvidersSettings = () => {
       
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle>Default Configuration</CardTitle>
-          <CardDescription>Set platform-wide LLM defaults</CardDescription>
+          <CardTitle>Agent System Prompts</CardTitle>
+          <CardDescription>Configure system prompts by agent type</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="defaultProvider">Default Provider</Label>
-              <Select defaultValue="openai">
-                <SelectTrigger id="defaultProvider">
-                  <SelectValue placeholder="Select provider" />
+              <Label htmlFor="agentType">Agent Type</Label>
+              <Select defaultValue={selectedAgentType} onValueChange={handleAgentTypeChange}>
+                <SelectTrigger id="agentType">
+                  <SelectValue placeholder="Select agent type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="openai">OpenAI</SelectItem>
-                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                  <SelectItem value="support">Customer Support</SelectItem>
+                  <SelectItem value="technical">Technical Support</SelectItem>
+                  <SelectItem value="sales">Sales</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="maxTokens">Max Response Tokens</Label>
-              <Input id="maxTokens" type="number" defaultValue="1024" />
+              <Label htmlFor="systemPrompt">System Prompt</Label>
+              <Textarea 
+                id="systemPrompt" 
+                expandable={true}
+                maxExpandedHeight="300px"
+                defaultValue={systemPrompts[selectedAgentType]}
+                className="min-h-[150px]"
+              />
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="systemPrompt">Default System Prompt</Label>
-            <Input 
-              id="systemPrompt" 
-              defaultValue="You are a helpful AI assistant that provides accurate information to user queries."
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-2">
             <Switch id="fallbackProvider" defaultChecked />
             <Label htmlFor="fallbackProvider">Enable fallback provider if primary fails</Label>
           </div>
           
-          <Button>Save Default Settings</Button>
+          <Button>Save Configuration</Button>
         </CardContent>
       </Card>
       
@@ -264,6 +320,166 @@ const LLMProvidersSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Detailed Analytics Dialog */}
+      <Dialog open={openAnalyticsDialog} onOpenChange={setOpenAnalyticsDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedProvider ? `${selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)} Analytics` : 'Provider Analytics'}</DialogTitle>
+            <DialogDescription>
+              Detailed usage information and analytics
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Time Period Selector */}
+            <div className="flex justify-end">
+              <Select defaultValue="30d">
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">Last 7 days</SelectItem>
+                  <SelectItem value="30d">Last 30 days</SelectItem>
+                  <SelectItem value="90d">Last 90 days</SelectItem>
+                  <SelectItem value="custom">Custom Range</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Usage Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base">Total Requests</CardTitle>
+                </CardHeader>
+                <CardContent className="py-1">
+                  <div className="text-2xl font-bold">15,234</div>
+                  <p className="text-xs text-muted-foreground">+12% from previous period</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base">Total Tokens</CardTitle>
+                </CardHeader>
+                <CardContent className="py-1">
+                  <div className="text-2xl font-bold">4.3M</div>
+                  <p className="text-xs text-muted-foreground">+8% from previous period</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base">Total Cost</CardTitle>
+                </CardHeader>
+                <CardContent className="py-1">
+                  <div className="text-2xl font-bold">$86.00</div>
+                  <p className="text-xs text-muted-foreground">+10% from previous period</p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Usage by Model */}
+            <Card>
+              <CardHeader className="py-4">
+                <CardTitle className="text-lg">Usage by Model</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Model</TableHead>
+                      <TableHead>Requests</TableHead>
+                      <TableHead>Input Tokens</TableHead>
+                      <TableHead>Output Tokens</TableHead>
+                      <TableHead>Cost</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>GPT-4o</TableCell>
+                      <TableCell>8,542</TableCell>
+                      <TableCell>2.1M</TableCell>
+                      <TableCell>1.2M</TableCell>
+                      <TableCell>$62.34</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>GPT-3.5 Turbo</TableCell>
+                      <TableCell>6,692</TableCell>
+                      <TableCell>800K</TableCell>
+                      <TableCell>200K</TableCell>
+                      <TableCell>$23.66</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+            
+            {/* Usage by Agent Type */}
+            <Card>
+              <CardHeader className="py-4">
+                <CardTitle className="text-lg">Usage by Agent Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Agent Type</TableHead>
+                      <TableHead>Requests</TableHead>
+                      <TableHead>Tokens</TableHead>
+                      <TableHead>Avg. Response Time</TableHead>
+                      <TableHead>Cost</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Customer Support</TableCell>
+                      <TableCell>7,820</TableCell>
+                      <TableCell>2.2M</TableCell>
+                      <TableCell>1.8s</TableCell>
+                      <TableCell>$43.80</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Technical Support</TableCell>
+                      <TableCell>5,214</TableCell>
+                      <TableCell>1.6M</TableCell>
+                      <TableCell>2.3s</TableCell>
+                      <TableCell>$32.40</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Sales</TableCell>
+                      <TableCell>2,200</TableCell>
+                      <TableCell>500K</TableCell>
+                      <TableCell>1.5s</TableCell>
+                      <TableCell>$9.80</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+            
+            {/* Daily Usage Chart would go here */}
+            <Card>
+              <CardHeader className="py-4">
+                <CardTitle className="text-lg">Daily Usage Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full flex items-center justify-center bg-muted rounded-md">
+                  <p className="text-muted-foreground">Chart visualization would be rendered here</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setOpenAnalyticsDialog(false)}>
+              Close
+            </Button>
+            <Button variant="outline">
+              Export Data
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PlatformSettingsLayout>
   );
 };
