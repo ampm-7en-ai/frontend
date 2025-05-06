@@ -91,7 +91,6 @@ export function BusinessAdminStats() {
                 <Progress 
                   value={item.value / mockPriorityData.reduce((acc, i) => acc + i.value, 0) * 100} 
                   className="h-1.5" 
-                  // Apply different colors based on priority
                   style={{ 
                     '--progress-background': item.status === 'critical' ? '#ef4444' : 
                       item.status === 'high' ? '#f59e0b' : 
