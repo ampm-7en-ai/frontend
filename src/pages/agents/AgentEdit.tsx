@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams  } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -138,8 +137,6 @@ const AgentEdit = () => {
     staleTime: 30 * 1000, // 30 seconds stale time to reduce frequent refetches
   });
 
-
-
   React.useEffect(() => {
     if (agentData) {
       if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
@@ -189,10 +186,11 @@ const AgentEdit = () => {
       console.log('Agent data loaded:', {
         responseModel: agentData.settings?.response_model,
         temperature: agentData.settings?.temperature,
-        tokenLength: agentData.settings?.token_length
+        tokenLength: agentData.settings?.token_length,
+        systemPrompt: agentData.systemPrompt // Log the system prompt value
       });
     }
-  }, [agentData,agentData.systemPrompt]);
+  }, [agentData]);
 
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -316,7 +314,18 @@ const AgentEdit = () => {
         }
       };
 
-      await updateAgent(agentId || '', payload);
+      const response = await updateAgent(agentId || '', payload);
+      
+      // If the update is successful and we get back a systemPrompt in the response
+      if (response.data && response.data.systemPrompt) {
+        // Update the system prompt directly from the response
+        setAgent(prevAgent => ({
+          ...prevAgent,
+          systemPrompt: response.data.systemPrompt
+        }));
+        
+        console.log('System prompt updated from response:', response.data.systemPrompt);
+      }
       
       toast({
         title: "Changes saved",
@@ -332,7 +341,6 @@ const AgentEdit = () => {
       });
     } finally {
       setIsSaving(false);
-      handleChange('systemPrompt',agent.systemPrompt); 
     }
   };
 
@@ -353,12 +361,18 @@ const AgentEdit = () => {
   };
 
   const handleAgentTypeChange = (type: string) => {
-    const systemPrompt = type === agentData.agentType ? agentData.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
+    // If switching to the same agent type, keep the current system prompt
+    const systemPrompt = type === agent.agentType 
+      ? agent.systemPrompt 
+      : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
+    
     setAgent({
       ...agent,
       agentType: type,
       systemPrompt: systemPrompt
     });
+
+    console.log('Agent type changed to:', type, 'with system prompt:', systemPrompt);
   };
 
   const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
