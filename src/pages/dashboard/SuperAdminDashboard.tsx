@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,7 @@ import {
   Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { PlatformInsightsCard } from '@/components/dashboard/PlatformInsightsCard';
 
 const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -181,47 +181,10 @@ const SuperAdminDashboard = () => {
           
           {/* Key Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="mr-2 h-5 w-5" />
-                  Platform Settings
-                </CardTitle>
-                <CardDescription>Quick access to platform configuration</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center text-center" asChild>
-                    <Link to="/settings/platform/general">
-                      <Settings className="h-6 w-6 mb-2" />
-                      <span className="text-sm">General Settings</span>
-                    </Link>
-                  </Button>
-                  
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center text-center" asChild>
-                    <Link to="/settings/platform/security">
-                      <Shield className="h-6 w-6 mb-2" />
-                      <span className="text-sm">Security</span>
-                    </Link>
-                  </Button>
-                  
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center text-center" asChild>
-                    <Link to="/settings/platform/llm-providers">
-                      <Bot className="h-6 w-6 mb-2" />
-                      <span className="text-sm">LLM Providers</span>
-                    </Link>
-                  </Button>
-                  
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center text-center" asChild>
-                    <Link to="/settings/platform/billing">
-                      <Zap className="h-6 w-6 mb-2" />
-                      <span className="text-sm">Billing</span>
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Replace Platform Settings with Platform Insights */}
+            <PlatformInsightsCard />
             
+            {/* Keep Recent Alerts */}
             <Card>
               <CardHeader>
                 <CardTitle>Recent Alerts</CardTitle>
