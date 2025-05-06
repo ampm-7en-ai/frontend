@@ -17,8 +17,7 @@ import BillingSettings from './pages/settings/platform/BillingSettings';
 import GeneralSettings from './pages/settings/platform/GeneralSettings';
 import BusinessList from './pages/businesses/BusinessList';
 import BusinessDetail from './pages/businesses/BusinessDetail';
-import UserList from './pages/users/UserList';
-import UserDetail from './pages/users/UserDetail';
+import SystemHealth from './pages/system/SystemHealth';
 import PlatformAnalytics from './pages/analytics/PlatformAnalytics';
 import ConversationList from './pages/conversations/ConversationList';
 import ConversationDetail from './pages/conversations/ConversationDetail';
@@ -115,18 +114,10 @@ const ProtectedRoutes = () => {
         />
         
         <Route 
-          path="/users" 
+          path="/system-health" 
           element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <UserList />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/users/:userId" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <UserDetail />
+              <SystemHealth />
             </ProtectedRoute>
           } 
         />
@@ -200,7 +191,6 @@ const ProtectedRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        {/* <Route path="/settings/*" element={<Navigate to="/settings" replace />} /> */}
         
         <Route path="*" element={<NotFound />} />
       </Route>

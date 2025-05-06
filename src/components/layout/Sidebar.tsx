@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Home,
@@ -168,10 +167,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       permission: 'dashboard'
     },
     {
-      id: 'user-management',
-      label: 'Domain Experts',
-      href: '/users',
-      icon: Users,
+      id: 'system-health',
+      label: 'System Health',
+      href: '/system-health',
+      icon: AlertCircle,
       permission: 'dashboard'
     },
     { 
@@ -344,4 +343,3 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 };
 
 export default Sidebar;
-
