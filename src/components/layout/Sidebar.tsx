@@ -165,35 +165,35 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       label: 'Businesses', 
       href: '/businesses', 
       icon: Building,
-      permission: 'superadmin'
+      permission: 'dashboard'
     },
     {
       id: 'user-management',
       label: 'Domain Experts',
       href: '/users',
       icon: Users,
-      permission: 'superadmin'
+      permission: 'dashboard'
     },
     { 
       id: 'platform-analytics',
       label: 'Platform Analytics', 
       href: '/analytics', 
       icon: BarChart2,
-      permission: 'superadmin' 
+      permission: 'dashboard' 
     },
     { 
       id: 'platform',
       label: 'Platform Settings', 
       href: '/settings', 
       icon: LayoutDashboard,
-      permission: 'superadmin', 
+      permission: 'dashboard', 
       children: [
-        { label: 'General', href: '/settings/platform/general',permission: 'superadmin' },
-        { label: 'Security', href: '/settings/platform/security',permission: 'superadmin' },
-        { label: 'LLM Providers', href: '/settings/platform/llm-providers',permission: 'superadmin' },
-        { label: 'Compliance', href: '/settings/platform/compliance',permission: 'superadmin' },
-        { label: 'Billing & Subscriptions', href: '/settings/platform/billing',permission: 'superadmin' },
-        { label: 'Customization', href: '/settings/platform/customization',permission: 'superadmin' },
+        { label: 'General', href: '/settings/platform/general',permission: 'dashboard' },
+        { label: 'Security', href: '/settings/platform/security',permission: 'dashboard' },
+        { label: 'LLM Providers', href: '/settings/platform/llm-providers',permission: 'dashboard' },
+        { label: 'Compliance', href: '/settings/platform/compliance',permission: 'dashboard' },
+        { label: 'Billing & Subscriptions', href: '/settings/platform/billing',permission: 'dashboard' },
+        { label: 'Customization', href: '/settings/platform/customization',permission: 'dashboard' },
       ]
     },
   ];

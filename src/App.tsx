@@ -32,6 +32,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { TrainingStatusProvider } from './context/TrainingStatusContext';
 import { NotificationProvider } from './context/NotificationContext';
+import SecuritySettings from './pages/settings/platform/SecuritySettings';
+import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
+import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
+import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -164,7 +168,39 @@ const ProtectedRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        <Route path="/settings/*" element={<Navigate to="/settings" replace />} />
+        <Route 
+          path="/settings/platform/security" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <SecuritySettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/llm-providers" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <LLMProvidersSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/compliance" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <ComplianceSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/customization" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <CustomizationSettings />
+            </ProtectedRoute>
+          } 
+        />
+        {/* <Route path="/settings/*" element={<Navigate to="/settings" replace />} /> */}
         
         <Route path="*" element={<NotFound />} />
       </Route>

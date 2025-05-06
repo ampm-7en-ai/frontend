@@ -36,6 +36,7 @@ type HeaderProps = {
 
 export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: HeaderProps) {
   const { logout, user } = useAuth();
+  const userRole = user?.role;
   const { toast } = useToast();
   const navigate  = useNavigate();
   const { notifications, markAllAsRead, markAsRead } = useNotifications();
@@ -160,7 +161,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
             placeholder="Search..." 
             className="h-8 pl-8 pr-4 rounded-md border border-medium-gray/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm w-60 bg-light-gray/50"
           /> */}
-          <div className="mt-auto p-4 pr-0 border-t border-medium-gray/10">
+          {userRole === "admin" && (<div className="mt-auto p-4 pr-0 border-t border-medium-gray/10">
             <DropdownMenu onOpenChange={handleOpen} open={isOpen}>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -216,6 +217,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          )}
         </div>
         
         <DropdownMenu>

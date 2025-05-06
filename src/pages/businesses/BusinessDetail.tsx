@@ -55,15 +55,7 @@ const BusinessDetail = () => {
   };
 
   return (
-    <MainLayout 
-      pageTitle={business.name}
-      breadcrumbs={[
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Businesses', href: '/businesses' },
-        { label: business.name, href: `/businesses/${businessId}` },
-      ]}
-    >
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" asChild>
             <Link to="/businesses" className="flex items-center gap-1">
@@ -294,8 +286,7 @@ const BusinessDetail = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </MainLayout>
+    </div>
   );
 };
 
