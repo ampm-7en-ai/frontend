@@ -239,8 +239,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         <div className="px-3 py-2 mb-4">
           {!isCollapsed ? (
             <div className="flex items-center px-2">
-              <Avatar className="h-10 w-10 bg-primary/90 text-white">
-                <AvatarFallback className="text-sm">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+              <Avatar className="h-10 w-10 bg-primary/90 text-gray-400 p-[1px]">
+                <AvatarFallback className="text-sm">{user?.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
               <div className="ml-3">
                 <p className="text-sm font-medium text-black leading-tight">{user?.name || 'User'}</p>
@@ -338,68 +338,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             </div>
           )}
         </nav>
-
-        <div className="mt-auto p-4 mx-2 mb-2 border-t border-medium-gray/10">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="default"
-                className={`w-full ${isCollapsed ? 'p-2' : ''} flex items-center justify-center gap-2 rounded-lg shadow-sm`}
-              >
-                {isCollapsed ? (
-                  <Plus className="h-4.5 w-4.5" />
-                ) : (
-                  <>
-                    <Plus className="h-4.5 w-4.5" />
-                    New Agent
-                  </>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[300px] p-4 shadow-md rounded-lg">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Bot className="h-5 w-5" />
-                  <h3 className="text-lg font-semibold">Create New Agent</h3>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="agentName">Agent Name</Label>
-                  <Input
-                    id="agentName"
-                    placeholder="Enter agent name"
-                    value={newAgentName}
-                    onChange={(e) => {
-                      setNewAgentName(e.target.value);
-                      setAgentNameError(false);
-                    }}
-                    className={agentNameError ? "border-red-500" : ""}
-                    disabled={isCreatingAgent}
-                  />
-                  {agentNameError && (
-                    <p className="text-sm text-red-500 flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-1" />
-                      Please enter an agent name
-                    </p>
-                  )}
-                </div>
-                <Button 
-                  onClick={handleCreateAgent} 
-                  className="w-full rounded-lg shadow-sm"
-                  disabled={isCreatingAgent}
-                >
-                  {isCreatingAgent ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create Agent"
-                  )}
-                </Button>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </div>
     </div>
   );

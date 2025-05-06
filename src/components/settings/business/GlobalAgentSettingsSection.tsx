@@ -35,7 +35,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
   const globalSettingsForm = useForm<GlobalSettingsFormValues>({
     resolver: zodResolver(globalSettingsSchema),
     defaultValues: {
-      defaultModel: 'gpt-4-turbo',
+      defaultModel: initialSettings?.response_model || 'gpt-4-turbo',
       maxContextLength: initialSettings?.token_length || 8000,
       defaultTemperature: initialSettings?.temperature || 0.7,
     },
@@ -46,7 +46,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
     if (initialSettings) {
       console.log('Global settings updated:', initialSettings);
       globalSettingsForm.reset({
-        defaultModel: 'gpt-4-turbo',
+        defaultModel: initialSettings?.response_model || 'gpt-4-turbo',
         maxContextLength: initialSettings?.token_length || 8000,
         defaultTemperature: initialSettings?.temperature || 0.7,
       });

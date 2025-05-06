@@ -77,14 +77,15 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
     name: agent.name
   };
 
-  const canDeploy = agent.status !== 'Training' && agent.status !== 'issues';
-  const isDeployed = agent.isDeployed || agent.status === 'active';
+  const canDeploy = agent.status !== 'Training' && agent.status !== 'Issues' && agent.status !== 'Idle';
 
   const getDeployDisabledReason = () => {
     if (agent.status === 'Training') {
       return 'Agent is currently training. Please wait until training is complete.';
-    } else if (agent.status === 'issues') {
-      return 'Agent has errors that need to be resolved before deployment.';
+    } else if (agent.status === 'Issues') {
+      return 'Some knowledge sources given have issues. Retrain to resolve.';
+    } else if (agent.status === 'Idle') {
+      return 'Train the agent by providing knowledge sources first.'
     }
     return '';
   };
@@ -127,18 +128,13 @@ const AgentFooterActions = ({ agent }: AgentFooterActionsProps) => {
             <TooltipTrigger asChild>
               <div className="w-full">
                 <Button
-                  variant={isDeployed ? "secondary" : "default"}
+                  variant={"default"}
                   size="sm"
                   className="w-full"
                   onClick={() => setDeploymentDialogOpen(true)}
                   disabled={!canDeploy}
                 >
-                  {isDeployed ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 mr-1" />
-                      Deployed
-                    </>
-                  ) : (
+                  {(
                     <>
                       <Rocket className="h-3.5 w-3.5 mr-1" />
                       Deploy

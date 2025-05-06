@@ -86,7 +86,7 @@ export const ChatboxPreview = ({
       onMessage: (message) => {
         console.log("Received message:", message);
         setMessages(prev => [...prev, message]); 
-        setShowTypingIndicator(false);
+        message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
       },
       onTypingStart: () => {
         console.log("Typing indicator started");

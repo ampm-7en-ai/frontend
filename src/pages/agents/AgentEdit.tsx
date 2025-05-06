@@ -38,7 +38,7 @@ const agentTypeSystemPrompts = {
   support: "You are a helpful customer support assistant. Your goal is to assist users with their questions and problems related to our products and services. Be friendly, patient, and informative.",
   sales: "You are a knowledgeable sales assistant. Your goal is to help potential customers understand our products, answer their questions, and guide them towards making a purchase decision. Be enthusiastic but not pushy.",
   technical: "You are a technical support specialist. Your goal is to help users troubleshoot and resolve technical issues with our products. Be precise, thorough, and explain technical concepts clearly.",
-  custom: ""
+  custom: "Your custom prompt"
 };
 
 const predefinedAvatars = [
@@ -99,7 +99,7 @@ const AgentEdit = () => {
       src: ''
     },
     agentType: 'support',
-    systemPrompt: agentTypeSystemPrompts.support,
+    systemPrompt: agentTypeSystemPrompts.custom,
     guidelines: { dos: [] as string[], donts: [] as string[] },
   });
 
@@ -137,6 +137,8 @@ const AgentEdit = () => {
     },
     staleTime: 30 * 1000, // 30 seconds stale time to reduce frequent refetches
   });
+
+
 
   React.useEffect(() => {
     if (agentData) {
@@ -190,7 +192,7 @@ const AgentEdit = () => {
         tokenLength: agentData.settings?.token_length
       });
     }
-  }, [agentData]);
+  }, [agentData,agentData.systemPrompt]);
 
   const handleChange = (name: string, value: any) => {
     setAgent({
@@ -320,6 +322,7 @@ const AgentEdit = () => {
         title: "Changes saved",
         description: "Your agent settings have been updated successfully.",
       });
+      
     } catch (error) {
       console.error('Error saving agent:', error);
       toast({
@@ -329,6 +332,7 @@ const AgentEdit = () => {
       });
     } finally {
       setIsSaving(false);
+      handleChange('systemPrompt',agent.systemPrompt); 
     }
   };
 
@@ -349,11 +353,11 @@ const AgentEdit = () => {
   };
 
   const handleAgentTypeChange = (type: string) => {
-    const systemPrompt = type === 'custom' ? agent.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
+    const systemPrompt = type === agentData.agentType ? agentData.systemPrompt : agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
     setAgent({
       ...agent,
       agentType: type,
-      systemPrompt
+      systemPrompt: systemPrompt
     });
   };
 
@@ -1067,8 +1071,7 @@ const AgentEdit = () => {
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold tracking-tight">Edit Agent: {agent.name}</h2>
-                  <p className="text-muted-foreground">Customize your agent's appearance and behavior</p>
+                  <h2 className="text-2xl font-bold tracking-tight">{agent.name}</h2>
                 </>
               )}
             </div>
