@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   Building, 
   Users, 
@@ -18,7 +17,6 @@ import {
   Server, 
   Database,
   RefreshCw,
-  Plus,
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
@@ -230,73 +228,6 @@ const SuperAdminDashboard = () => {
               <Link to="/system-health">
                 View all alerts <ChevronRight className="ml-1 h-3 w-3" />
               </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Key Businesses Management */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Business Management</CardTitle>
-            <CardDescription>Businesses registered on the platform</CardDescription>
-          </div>
-          <Button asChild>
-            <Link to="/businesses/add" className="flex items-center gap-1">
-              <Plus className="h-4 w-4" />
-              Add Business
-            </Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Business Name</TableHead>
-                <TableHead>Industry</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Agents</TableHead>
-                <TableHead>Users</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[
-                { id: 'b1', name: 'Acme Corporation', industry: 'Technology', agents: 12, users: 8, status: 'active' },
-                { id: 'b2', name: 'Globex Industries', industry: 'Manufacturing', agents: 8, users: 5, status: 'active' },
-                { id: 'b3', name: 'Soylent Corp', industry: 'Food & Beverage', agents: 5, users: 4, status: 'pending' },
-                { id: 'b4', name: 'Initech Solutions', industry: 'Consulting', agents: 3, users: 2, status: 'active' },
-                { id: 'b5', name: 'Wayne Enterprises', industry: 'Conglomerate', agents: 14, users: 9, status: 'active' },
-              ].map((business) => (
-                <TableRow key={business.id}>
-                  <TableCell className="font-medium">{business.name}</TableCell>
-                  <TableCell>{business.industry}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={
-                      business.status === 'active' ? 'bg-green-100 text-green-800' : 
-                      business.status === 'pending' ? 'bg-amber-100 text-amber-800' : 
-                      'bg-red-100 text-red-800'
-                    }>
-                      {business.status.charAt(0).toUpperCase() + business.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{business.agents}</TableCell>
-                  <TableCell>{business.users}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/businesses/${business.id}`}>
-                        Manage <ChevronRight className="ml-1 h-3 w-3" />
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="mt-4 text-center">
-            <Button variant="outline" asChild>
-              <Link to="/businesses">View All Businesses</Link>
             </Button>
           </div>
         </CardContent>
