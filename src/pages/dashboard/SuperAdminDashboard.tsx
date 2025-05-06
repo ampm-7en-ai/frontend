@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Building, Users, Bot, MessageSquare, ChevronRight, BarChart2, Zap, Shield, User } from 'lucide-react';
+import { Building, Users, Bot, MessageSquare, ChevronRight, BarChart2, Zap, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SuperAdminDashboard = () => {
@@ -23,26 +24,6 @@ const SuperAdminDashboard = () => {
               <p className="text-xs text-muted-foreground">+3 from last month</p>
               <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
                 <Link to="/businesses" className="flex items-center">
-                  View all <ChevronRight className="ml-1 h-3 w-3" />
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <Users className="mr-2 h-4 w-4 text-primary" />
-              Domain Experts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">48</div>
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-muted-foreground">+7 from last month</p>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                <Link to="/users" className="flex items-center">
                   View all <ChevronRight className="ml-1 h-3 w-3" />
                 </Link>
               </Button>
@@ -92,7 +73,7 @@ const SuperAdminDashboard = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Business Management</CardTitle>
             <CardDescription>Latest businesses added to the platform</CardDescription>
@@ -138,41 +119,6 @@ const SuperAdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Domain Experts</CardTitle>
-            <CardDescription>Recently added domain specialists</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { id: 'u1', name: 'Jane Doe', role: 'Marketing Specialist', business: 'Acme Corp' },
-                { id: 'u2', name: 'John Smith', role: 'Technical Support', business: 'Globex Industries' },
-                { id: 'u3', name: 'Alice Johnson', role: 'HR Manager', business: 'Initech Solutions' },
-                { id: 'u4', name: 'Bob Williams', role: 'Sales Expert', business: 'Soylent Corp' },
-              ].map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 border border-border rounded-md bg-card/50 hover:bg-accent/5 transition-colors">
-                  <div>
-                    <h3 className="font-medium text-sm">{user.name}</h3>
-                    <p className="text-xs text-muted-foreground">{user.role}</p>
-                    <p className="text-xs text-muted-foreground">{user.business}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
-                    <Link to={`/users/${user.id}`}>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 text-center">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/users">View All Experts</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -213,31 +159,29 @@ const SuperAdminDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Shield className="mr-2 h-5 w-5" />
-              User Management
+              System Security
             </CardTitle>
-            <CardDescription>Domain experts by specialty</CardDescription>
+            <CardDescription>Platform health and security status</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[
-                { specialty: 'Marketing', count: 12, icon: User },
-                { specialty: 'Technical Support', count: 9, icon: User },
-                { specialty: 'HR', count: 6, icon: User },
-                { specialty: 'Finance', count: 7, icon: User },
-                { specialty: 'Sales', count: 14, icon: User },
-              ].map((category, index) => (
+                { metric: 'System Uptime', value: '99.98%', status: 'healthy' },
+                { metric: 'API Response Time', value: '120ms', status: 'healthy' },
+                { metric: 'Failed Login Attempts', value: '12', status: 'warning' },
+                { metric: 'Database Performance', value: 'Optimal', status: 'healthy' },
+                { metric: 'Security Updates', value: 'Up to date', status: 'healthy' },
+              ].map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <category.icon className="h-4 w-4 mr-2 text-primary" />
-                    <span className="text-sm">{category.specialty}</span>
-                  </div>
+                  <span className="text-sm">{item.metric}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium">{category.count} experts</span>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" asChild>
-                      <Link to={`/users?specialty=${category.specialty.toLowerCase()}`}>
-                        <ChevronRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      item.status === 'healthy' ? 'bg-green-100 text-green-700' : 
+                      item.status === 'warning' ? 'bg-amber-100 text-amber-700' : 
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {item.value}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -245,7 +189,7 @@ const SuperAdminDashboard = () => {
             <Separator className="my-4" />
             <div className="mt-4 text-center">
               <Button variant="outline" asChild>
-                <Link to="/users">Manage Domain Experts</Link>
+                <Link to="/system-health">View System Health</Link>
               </Button>
             </div>
           </CardContent>
