@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,7 +29,7 @@ import {
   PaginationPrevious 
 } from '@/components/ui/pagination';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
-import { CreateSubscriptionPlanDialog } from '@/components/settings/platform/CreateSubscriptionPlanDialog';
+import { Link, useNavigate } from 'react-router-dom';
 import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoiceDialog';
 
 interface SubscriptionPlan {
@@ -54,7 +53,7 @@ interface Invoice {
 
 const BillingSettings = () => {
   const { toast } = useToast();
-  const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
+  const navigate = useNavigate();
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([
     { 
@@ -121,45 +120,6 @@ const BillingSettings = () => {
   const currentInvoices = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
-  const handleCreatePlan = async (plan: Omit<SubscriptionPlan, 'id' | 'stripe_product_id' | 'stripe_price_id'>) => {
-    try {
-      const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-      
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-      
-      const response = await fetch(`${BASE_URL}subscriptions/create/`, {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(plan)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create subscription plan');
-      }
-      
-      const result = await response.json();
-      
-      setSubscriptionPlans([...subscriptionPlans, result.data]);
-      
-      toast({
-        title: "Plan Created",
-        description: "Subscription plan has been created successfully.",
-      });
-      
-    } catch (error) {
-      console.error('Error creating plan:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create subscription plan.",
-        variant: "destructive"
-      });
-    }
-    
-    setIsCreatePlanOpen(false);
-  };
-
   const handleDeletePlan = async (planId: number) => {
     // In a real application, we would call an API to delete the plan
     setSubscriptionPlans(subscriptionPlans.filter(plan => plan.id !== planId));
@@ -213,6 +173,14 @@ const BillingSettings = () => {
     setIsCreateInvoiceOpen(false);
   };
 
+  const handleCreatePlan = () => {
+    navigate('/settings/platform/subscription-plan');
+  };
+
+  const handleEditPlan = (planId: number) => {
+    navigate(`/settings/platform/subscription-plan/${planId}`);
+  };
+
   return (
     <PlatformSettingsLayout
       title="Billing Settings"
@@ -233,7 +201,7 @@ const BillingSettings = () => {
                   <CardTitle>Subscription Plans</CardTitle>
                   <CardDescription>Manage plans and pricing packages</CardDescription>
                 </div>
-                <Button onClick={() => setIsCreatePlanOpen(true)}>
+                <Button onClick={handleCreatePlan}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Plan
                 </Button>
@@ -250,7 +218,11 @@ const BillingSettings = () => {
                           <div className="text-2xl font-bold mt-1">${plan.price}<span className="text-sm font-normal text-muted-foreground">/month</span></div>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditPlan(plan.id)}
+                          >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
@@ -512,12 +484,6 @@ const BillingSettings = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      
-      <CreateSubscriptionPlanDialog
-        open={isCreatePlanOpen}
-        onOpenChange={setIsCreatePlanOpen}
-        onSubmit={handleCreatePlan}
-      />
       
       <CreateInvoiceDialog
         open={isCreateInvoiceOpen}

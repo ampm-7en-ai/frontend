@@ -35,6 +35,7 @@ import SecuritySettings from './pages/settings/platform/SecuritySettings';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
 import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+import SubscriptionPlanEditor from './pages/settings/platform/SubscriptionPlanEditor';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -148,6 +149,22 @@ const ProtectedRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
               <BillingSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/subscription-plan" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <SubscriptionPlanEditor />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/subscription-plan/:planId" 
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+              <SubscriptionPlanEditor />
             </ProtectedRoute>
           } 
         />
