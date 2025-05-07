@@ -27,9 +27,9 @@ const MessageContainer = ({
 
   // Effect to scroll to agent messages when selectedAgent changes
   useEffect(() => {
-    if (selectedAgent && messageContainerRef.current) {
+    if (selectedAgent && messageContainerRef.current && conversation?.messages) {
       // Find the first message from the selected agent
-      const firstAgentMessage = conversation?.messages.find(
+      const firstAgentMessage = conversation.messages.find(
         (msg: any) => msg.sender === 'bot' && msg.agent === selectedAgent
       );
       
@@ -71,7 +71,7 @@ const MessageContainer = ({
         ref={messageContainerRef}
         className="flex-1 overflow-y-auto p-3 bg-slate-50"
       >
-        {conversation.messages.map((message: any) => (
+        {conversation.messages && conversation.messages.map((message: any) => (
           <MessageList 
             key={message.id}
             message={message}

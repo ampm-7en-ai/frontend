@@ -17,7 +17,17 @@ export interface Conversation {
   topic: string[];
   channel: string;
   agentType: "human" | "ai" | null;
-  messages?: Array<any>; // Keep compatibility with the existing code
+  messages?: Array<{
+    id: string;
+    content: string;
+    sender: string;
+    timestamp: string;
+    agent?: string;
+    type?: string;
+    from?: string;
+    to?: string;
+    reason?: string;
+  }>;
 }
 
 interface ConversationsResponse {
@@ -47,7 +57,14 @@ async function fetchConversations(): Promise<Conversation[]> {
 
     const data: ConversationsResponse = await response.json();
     console.log('Conversations data received:', data);
-    return data.data;
+    
+    // Ensure each conversation has at least an empty messages array
+    const conversationsWithMessages = data.data.map(conversation => ({
+      ...conversation,
+      messages: conversation.messages || []
+    }));
+    
+    return conversationsWithMessages;
   } catch (error) {
     console.error('Error fetching conversations:', error);
     return [];

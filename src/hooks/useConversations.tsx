@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useConversationsApi, Conversation } from './useConversationsApi';
 
@@ -7,6 +8,8 @@ export function useConversations() {
   // We map the API data to our expected format but keep the original structure
   const conversations = data.map(conversation => ({
     ...conversation,
+    // Ensure messages array always exists
+    messages: conversation.messages || [],
     // Ensure any specific mappings needed for backward compatibility
     status: conversation.status === "completed" ? "resolved" : conversation.status
   }));
