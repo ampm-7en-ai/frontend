@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -5,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useConversationUtils } from '@/hooks/useConversationUtils';
 import { useConversations } from '@/hooks/useConversations';
+import { useChatSessionsWebSocket } from '@/hooks/useChatSessionsWebSocket';
 
 import ConversationListPanel from '@/components/conversations/ConversationListPanel';
 import MessageContainer from '@/components/conversations/MessageContainer';
@@ -33,9 +35,10 @@ const ConversationList = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { conversations, isLoading: isLoadingConversations } = useConversations();
+  const { conversations: initialConversations, isLoading: isLoadingConversations } = useConversations();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('unresolved');
@@ -44,6 +47,56 @@ const ConversationList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+
+  // Initialize conversations from the API data
+  useEffect(() => {
+    if (initialConversations.length > 0) {
+      setConversations(initialConversations);
+    }
+  }, [initialConversations]);
+  
+  // Set up WebSocket for the selected conversation
+  const { isConnected, isTyping, sendMessage } = useChatSessionsWebSocket({
+    sessionId: selectedConversation || '',
+    onMessage: (message) => {
+      console.log('WebSocket message received in ConversationList:', message);
+      // Update conversation when a new message is received
+      if (selectedConversation && message.content) {
+        setConversations(prevConversations => 
+          prevConversations.map(conv => 
+            conv.id === selectedConversation 
+              ? { 
+                  ...conv, 
+                  lastMessage: message.content,
+                  time: 'Just now'
+                } 
+              : conv
+          )
+        );
+      }
+    },
+    onTypingStart: () => {
+      console.log('Typing started in conversation', selectedConversation);
+    },
+    onTypingEnd: () => {
+      console.log('Typing ended in conversation', selectedConversation);
+    },
+    onSessionUpdate: (sessionData) => {
+      console.log('Session update received:', sessionData);
+      // Update conversation status or other metadata when session is updated
+      if (selectedConversation && sessionData) {
+        setConversations(prevConversations => 
+          prevConversations.map(conv => 
+            conv.id === selectedConversation 
+              ? { ...conv, ...sessionData } 
+              : conv
+          )
+        );
+      }
+    },
+    // Only connect when a conversation is selected
+    autoConnect: !!selectedConversation
+  });
   
   useEffect(() => {
     const handleResize = () => {
@@ -78,6 +131,9 @@ const ConversationList = () => {
   const handleSendMessage = (message: string) => {
     if (!selectedConversation) return;
     
+    // Use WebSocket to send message
+    sendMessage(message);
+    
     toast({
       title: "Message sent",
       description: "Your message has been sent to the customer.",
@@ -93,6 +149,14 @@ const ConversationList = () => {
     });
   };
 
+  // Handle conversation selection
+  const handleConversationSelect = (convId: string) => {
+    // If selecting a different conversation, set the new selection
+    if (convId !== selectedConversation) {
+      setSelectedConversation(convId);
+    }
+  };
+
   if (isDesktop) {
     return (
       <div className="h-[calc(100vh-4rem)] overflow-hidden">
@@ -105,7 +169,7 @@ const ConversationList = () => {
               setSearchQuery={setSearchQuery}
               filteredConversations={filteredConversations}
               selectedConversation={selectedConversation}
-              setSelectedConversation={setSelectedConversation}
+              setSelectedConversation={handleConversationSelect}
               channelFilter={channelFilter}
               setChannelFilter={setChannelFilter}
               agentTypeFilter={agentTypeFilter}
@@ -124,6 +188,7 @@ const ConversationList = () => {
               onInfoClick={() => setSidebarOpen(true)}
               getStatusBadge={getStatusBadge}
               onSendMessage={handleSendMessage}
+              isTyping={isTyping}
             />
           </ResizablePanel>
           
@@ -151,6 +216,7 @@ const ConversationList = () => {
     );
   }
 
+  // Mobile/Tablet layout
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden">
       <div className="flex h-full">
@@ -162,7 +228,7 @@ const ConversationList = () => {
             setSearchQuery={setSearchQuery}
             filteredConversations={filteredConversations}
             selectedConversation={selectedConversation}
-            setSelectedConversation={setSelectedConversation}
+            setSelectedConversation={handleConversationSelect}
             channelFilter={channelFilter}
             setChannelFilter={setChannelFilter}
             agentTypeFilter={agentTypeFilter}
@@ -178,6 +244,7 @@ const ConversationList = () => {
             onInfoClick={() => setSidebarOpen(true)}
             getStatusBadge={getStatusBadge}
             onSendMessage={handleSendMessage}
+            isTyping={isTyping}
           />
         </div>
       </div>

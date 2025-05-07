@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
@@ -10,12 +9,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader } from 'lucide-react';
 
 interface MessageContainerProps {
-  conversation: any;
+  conversation: {
+    id: string;
+    customer: string;
+    status: string;
+    // ... other properties
+  } | null;
   selectedAgent: string | null;
   setSelectedAgent: (agent: string | null) => void;
   onInfoClick: () => void;
   getStatusBadge: (status: string) => React.ReactNode;
   onSendMessage: (message: string) => void;
+  isTyping?: boolean; // New prop to show typing indicator
 }
 
 const MessageContainer = ({
@@ -24,7 +29,8 @@ const MessageContainer = ({
   setSelectedAgent,
   onInfoClick,
   getStatusBadge,
-  onSendMessage
+  onSendMessage,
+  isTyping
 }: MessageContainerProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -104,6 +110,7 @@ const MessageContainer = ({
                       message={message}
                       selectedAgent={selectedAgent}
                       messageContainerRef={messageContainerRef}
+                      isTyping={isTyping} // Pass the isTyping prop to the MessageList
                     />
                   ))}
                   <div ref={messagesEndRef} className="h-4" />
