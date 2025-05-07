@@ -75,13 +75,13 @@ const MessageContainer = ({
         messageCount={messages?.filter(m => m.sender !== "system").length}
       />
       
-      <div className="flex-1 overflow-hidden bg-slate-50"> 
+      <div className="flex-1 overflow-hidden bg-slate-50 dark:bg-slate-900"> 
         <ScrollArea 
-          className="h-[calc(100vh-12rem)]" 
+          className="h-[calc(100vh-12rem)]"
           style={{ height: "calc(100vh - 12rem)" }}
         >
           <div className="p-4 md:p-6">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-3xl mx-auto">
               {isLoadingMessages ? (
                 // Show loading skeletons while messages are loading
                 <div className="space-y-6">
@@ -97,16 +97,18 @@ const MessageContainer = ({
                 </div>
               ) : (
                 // Render actual messages
-                messages && messages.map((message: any) => (
-                  <MessageList 
-                    key={message.id}
-                    message={message}
-                    selectedAgent={selectedAgent}
-                    messageContainerRef={messageContainerRef}
-                  />
-                ))
+                <div className="space-y-4" ref={messageContainerRef}>
+                  {messages && messages.map((message: any) => (
+                    <MessageList 
+                      key={message.id}
+                      message={message}
+                      selectedAgent={selectedAgent}
+                      messageContainerRef={messageContainerRef}
+                    />
+                  ))}
+                  <div ref={messagesEndRef} className="h-4" />
+                </div>
               )}
-              <div ref={messagesEndRef} />
             </div>
           </div>
         </ScrollArea>
