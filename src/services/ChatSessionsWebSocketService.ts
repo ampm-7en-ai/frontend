@@ -43,7 +43,9 @@ export class ChatSessionsWebSocketService {
     // Set authentication headers immediately if token is available
     if (this.authToken) {
       this.ws.setAuthHeaders({
-        'Authorization': `Bearer ${this.authToken}`
+        'Authorization': `Bearer ${this.authToken}`,
+        'Sec-WebSocket-Extensions': 'permessage-deflate; client_max_window_bits',
+        'Sec-WebSocket-Version': '13'
       });
     }
     
@@ -56,9 +58,9 @@ export class ChatSessionsWebSocketService {
     this.ws.on('connection', (data) => {
       if (data.status === 'connected') {
         // Send authentication message on connection
-        if (this.authToken) {
-          this.authenticate();
-        }
+        // if (this.authToken) {
+        //   this.authenticate();
+        // }
       }
       this.events.onConnectionChange?.(data.status === 'connected');
     });
