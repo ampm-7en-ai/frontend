@@ -68,7 +68,7 @@ export function useChatSessionsWebSocket({
         wsRef.current = null;
       }
     };
-  }, [sessionId, onMessage, onTypingStart, onTypingEnd, onSessionUpdate, autoConnect]);
+  }, [sessionId]);
   
   // Function to send messages
   const sendMessage = useCallback((content: string) => {

@@ -1,4 +1,5 @@
 
+import { Header } from '@/components/layout/Header';
 import { WebSocketService } from './WebSocketService';
 
 interface ChatSessionMessage {
@@ -32,11 +33,13 @@ export class ChatSessionsWebSocketService {
   
   constructor(sessionId: string) {
     // Use the new WebSocket endpoint
-    const endpoint = `wss://api.7en.ai/ws/chat/chatsessions/${sessionId}/`;
+    const endpoint = `wss://api.7en.ai/ws/chat/chatsessions/`;
+    // Get auth token from localStorage
+    this.authToken = JSON.parse(localStorage.getItem('user')).accessToken;
+
     this.ws = new WebSocketService(endpoint);
     
-    // Get auth token from localStorage
-    this.authToken = localStorage.getItem('accessToken');
+    
     
     // Set up event handlers
     this.ws.on('message', this.handleMessage.bind(this));
@@ -75,10 +78,16 @@ export class ChatSessionsWebSocketService {
       return;
     }
     
+    // this.ws.send({
+    //   type: 'authorization',
+    //   token: `Bearer ${this.authToken}`
+    // });
+    this.ws.setAuthHeaders({
+        'Authorization': `Bearer ${this.authToken}`
+      });
     this.ws.send({
-      type: 'authenticate',
-      token: this.authToken,
-      timestamp: new Date().toISOString()
+      type: 'authorization',
+      token: `Bearer ${this.authToken}`
     });
   }
   
