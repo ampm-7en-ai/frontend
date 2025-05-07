@@ -31,18 +31,8 @@ import {
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoiceDialog';
-import { useSubscription } from '@/hooks/useSubscription';
-
-interface SubscriptionPlan {
-  id: number;
-  name: string;
-  description: string;
-  price: string;
-  stripe_product_id: string;
-  stripe_price_id: string;
-  duration_days: number;
-  features?: string[];
-}
+import { useQuery } from "@tanstack/react-query";
+import { SubscriptionPlan } from '@/hooks/useSubscription';
 
 interface Invoice {
   id: string;
@@ -52,11 +42,64 @@ interface Invoice {
   date: string;
 }
 
+// Function to fetch subscription plans directly in the BillingSettings component
+const fetchSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
+  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
+  if (!token) {
+    throw new Error('Authentication token not found');
+  }
+
+  console.log('Fetching subscription plans data directly from BillingSettings...');
+  try {
+    const response = await fetch(`${BASE_URL}subscriptions/`, {
+      method: 'GET',
+      headers: getAuthHeaders(token),
+    });
+
+    if (!response.ok) {
+      console.error(`Subscription plans API error: ${response.status}`);
+      throw new Error('Failed to fetch subscription plans');
+    }
+
+    const data = await response.json();
+    console.log('Subscription plans data received:', data);
+    
+    // Extract unique plans from the subscriptions data
+    const plansMap = new Map<number, SubscriptionPlan>();
+    data.forEach((subscription: any) => {
+      if (subscription.plan && !plansMap.has(subscription.plan.id)) {
+        plansMap.set(subscription.plan.id, {
+          ...subscription.plan,
+          // Convert features from description if needed
+          features: subscription.plan.description?.split('\n').filter((line: string) => line.trim() !== '') || []
+        });
+      }
+    });
+    
+    return Array.from(plansMap.values());
+  } catch (error) {
+    console.error('Error fetching subscription plans:', error);
+    return [];
+  }
+};
+
 const BillingSettings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
-  const { subscriptionPlans, isLoadingSubscriptionPlans, refetchSubscriptionPlans } = useSubscription();
+  
+  // Use React Query to fetch subscription plans directly
+  const { 
+    data: subscriptionPlans = [], 
+    isLoading: isLoadingSubscriptionPlans,
+    refetch: refetchSubscriptionPlans
+  } = useQuery({
+    queryKey: ['subscriptionPlans'],
+    queryFn: fetchSubscriptionPlans,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
 
   // Invoice management state
   const [invoices, setInvoices] = useState<Invoice[]>([
