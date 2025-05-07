@@ -24,9 +24,27 @@ export class ChatWebSocketService {
   private events: ChatWebSocketEvents = {};
   private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
   
-  constructor(agentId: string, url: string) {
-    // Updated URL format
-    this.ws = new WebSocketService(url === "playground" ?  `wss://api.7en.ai/ws/chat-playground/${agentId}/` : `wss://api.7en.ai/ws/chat/${agentId}/`);
+  constructor(sessionId: string, url: string = 'chat') {
+    // Support different connection types: chat sessions or playground
+    if (url === "playground") {
+      this.ws = new WebSocketService(`wss://api.7en.ai/ws/chat-playground/${sessionId}/`);
+    } else if (url === "chat") {
+      this.ws = new WebSocketService(`wss://api.7en.ai/ws/chat/${sessionId}/`);
+    } else if (url === "chatsessions") {
+      // New endpoint for chat sessions
+      const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
+      
+      if (!token) {
+        console.error("No authorization token available for WebSocket connection");
+        this.ws = new WebSocketService(`wss://api.7en.ai/ws/chatsessions/${sessionId}/`);
+      } else {
+        // Include the authorization token in the WebSocket URL
+        this.ws = new WebSocketService(`wss://api.7en.ai/ws/chatsessions/${sessionId}/?token=${token}`);
+      }
+    } else {
+      // Default case - use the provided URL directly
+      this.ws = new WebSocketService(url);
+    }
     
     this.ws.on('message', this.handleMessage.bind(this));
     this.ws.on('bot_response', this.handleMessage.bind(this));
