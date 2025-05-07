@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Loader } from 'lucide-react';
 
 interface ConversationListPanelProps {
   filterStatus: string;
@@ -34,6 +35,41 @@ const ConversationListPanel = ({
   setAgentTypeFilter,
   isLoading = false
 }: ConversationListPanelProps) => {
+  const [displayCount, setDisplayCount] = useState(10);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const visibleConversations = filteredConversations.slice(0, displayCount);
+  const hasMore = displayCount < filteredConversations.length;
+
+  // Set up intersection observer for infinite scrolling
+  useEffect(() => {
+    const currentRef = loadMoreRef.current;
+    
+    if (!currentRef || !hasMore) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !isLoading) {
+          setDisplayCount(prev => prev + 10);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(currentRef);
+    
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, isLoading, filteredConversations.length]);
+
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(10);
+  }, [filterStatus, channelFilter, agentTypeFilter, searchQuery]);
+
   const renderContent = () => {
     if (isLoading) {
       return Array(5).fill(0).map((_, index) => (
@@ -64,15 +100,30 @@ const ConversationListPanel = ({
       );
     }
 
-    return filteredConversations.map((conversation) => (
-      <div key={conversation.id} className='px-[5px] my-1'>
-        <ConversationCard 
-          conversation={conversation}
-          isSelected={selectedConversation === conversation.id}
-          onClick={() => setSelectedConversation(conversation.id)}
-        />
-      </div>
-    ));
+    return (
+      <>
+        {visibleConversations.map((conversation) => (
+          <div key={conversation.id} className='px-[5px] my-1'>
+            <ConversationCard 
+              conversation={conversation}
+              isSelected={selectedConversation === conversation.id}
+              onClick={() => setSelectedConversation(conversation.id)}
+            />
+          </div>
+        ))}
+        
+        {/* Load more indicator */}
+        {hasMore && (
+          <div 
+            ref={loadMoreRef} 
+            className="flex justify-center items-center p-3"
+          >
+            <Loader className="h-5 w-5 animate-spin text-gray-400" />
+            <span className="ml-2 text-sm text-gray-500">Loading more...</span>
+          </div>
+        )}
+      </>
+    );
   };
 
   return (
