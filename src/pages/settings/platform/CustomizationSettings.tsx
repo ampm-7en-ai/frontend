@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,10 +11,19 @@ import PlatformSettingsLayout from '@/components/settings/platform/PlatformSetti
 import { useToast } from "@/hooks/use-toast";
 import { useState } from 'react';
 import { CreateEmailTemplateDialog } from '@/components/settings/platform/CreateEmailTemplateDialog';
+import { UploadCloud, FileImage } from 'lucide-react';
 
 const CustomizationSettings = () => {
   const { toast } = useToast();
   const [isEmailTemplateDialogOpen, setIsEmailTemplateDialogOpen] = useState(false);
+  
+  // Platform branding state
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+  const [fontImportUrl, setFontImportUrl] = useState<string>('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  const [fontFamily, setFontFamily] = useState<string>('Inter, sans-serif');
   
   const handleSaveSettings = (section: string) => {
     toast({
@@ -24,15 +32,50 @@ const CustomizationSettings = () => {
     });
   };
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        const result = e.target?.result as string;
+        setLogoPreview(result);
+      };
+      fileReader.readAsDataURL(file);
+      
+      toast({
+        title: "Logo Updated",
+        description: "Logo has been uploaded successfully.",
+      });
+    }
+  };
+
+  const handleFaviconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFaviconFile(file);
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        const result = e.target?.result as string;
+        setFaviconPreview(result);
+      };
+      fileReader.readAsDataURL(file);
+      
+      toast({
+        title: "Favicon Updated",
+        description: "Favicon has been uploaded successfully.",
+      });
+    }
+  };
+
   return (
     <PlatformSettingsLayout
       title="Customization Settings"
       description="Personalize your platform's look and feel"
     >
       <Tabs defaultValue="branding">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-2 mb-8">
           <TabsTrigger value="branding">Branding</TabsTrigger>
-          <TabsTrigger value="themes">Themes</TabsTrigger>
           <TabsTrigger value="emails">Email Templates</TabsTrigger>
         </TabsList>
         
@@ -47,10 +90,32 @@ const CustomizationSettings = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Platform Logo</Label>
-                    <div className="flex items-center justify-center h-40 bg-muted rounded-md">
-                      <div className="text-center">
-                        <div className="text-4xl font-bold mb-2">7en AI</div>
-                        <Button variant="outline" size="sm">Upload Logo</Button>
+                    <div className="flex items-center justify-center h-40 bg-muted rounded-md overflow-hidden relative">
+                      {logoPreview ? (
+                        <img 
+                          src={logoPreview} 
+                          alt="Logo Preview" 
+                          className="object-contain h-full w-full" 
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <div className="text-4xl font-bold mb-2">7en AI</div>
+                          <div className="text-sm text-muted-foreground">Recommended size: 200x60px</div>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200">
+                        <label htmlFor="logo-upload" className="cursor-pointer">
+                          <div className="bg-background p-2 rounded-md shadow-md">
+                            <UploadCloud className="h-5 w-5 text-primary" />
+                          </div>
+                          <input 
+                            id="logo-upload" 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleLogoChange}
+                          />
+                        </label>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">Recommended size: 200x60px (SVG or PNG)</p>
@@ -58,10 +123,32 @@ const CustomizationSettings = () => {
                 
                   <div className="space-y-2">
                     <Label>Favicon</Label>
-                    <div className="flex items-center justify-center h-20 w-20 mx-auto bg-muted rounded-md">
-                      <Button variant="outline" size="sm">Upload</Button>
+                    <div className="flex items-center justify-center h-20 w-20 mx-auto bg-muted rounded-md overflow-hidden relative">
+                      {faviconPreview ? (
+                        <img 
+                          src={faviconPreview} 
+                          alt="Favicon Preview" 
+                          className="object-cover h-full w-full" 
+                        />
+                      ) : (
+                        <FileImage className="h-8 w-8 text-muted-foreground" />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200">
+                        <label htmlFor="favicon-upload" className="cursor-pointer">
+                          <div className="bg-background p-1 rounded-md shadow-md">
+                            <UploadCloud className="h-3 w-3 text-primary" />
+                          </div>
+                          <input 
+                            id="favicon-upload" 
+                            type="file" 
+                            accept="image/png, image/jpeg, image/svg+xml" 
+                            className="hidden" 
+                            onChange={handleFaviconChange}
+                          />
+                        </label>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground text-center">Recommended size: 32x32px</p>
+                    <p className="text-xs text-muted-foreground text-center">Recommended size: 32x32px (PNG)</p>
                   </div>
                 </div>
                 
@@ -91,18 +178,31 @@ const CustomizationSettings = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="fontFamily">Font Family</Label>
-                    <Select defaultValue="inter">
-                      <SelectTrigger id="fontFamily">
-                        <SelectValue placeholder="Select font" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="inter">Inter</SelectItem>
-                        <SelectItem value="roboto">Roboto</SelectItem>
-                        <SelectItem value="opensans">Open Sans</SelectItem>
-                        <SelectItem value="montserrat">Montserrat</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="fontImport">Google Font Import URL</Label>
+                    <Input 
+                      id="fontImport" 
+                      value={fontImportUrl}
+                      onChange={(e) => setFontImportUrl(e.target.value)}
+                      placeholder="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Get URL from <a href="https://fonts.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Fonts</a>
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="fontFamily">Font Family CSS</Label>
+                    <Input 
+                      id="fontFamily" 
+                      value={fontFamily}
+                      onChange={(e) => setFontFamily(e.target.value)}
+                      placeholder="Roboto, sans-serif"
+                      className="font-mono text-sm"
+                    />
+                    <div className="mt-2 p-3 border rounded-md">
+                      <p style={{ fontFamily }}>This is preview text using your selected font family</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -124,97 +224,6 @@ const CustomizationSettings = () => {
               </div>
               
               <Button onClick={() => handleSaveSettings("Branding")}>Save Branding Settings</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="themes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Theme Settings</CardTitle>
-              <CardDescription>Configure light and dark mode themes</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Light Mode</h3>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="lightBackground">Background Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="lightBackground" defaultValue="#FFFFFF" className="w-20 h-10" />
-                      <Input defaultValue="#FFFFFF" className="flex-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="lightText">Text Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="lightText" defaultValue="#1A1F2C" className="w-20 h-10" />
-                      <Input defaultValue="#1A1F2C" className="flex-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="lightCardBg">Card Background</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="lightCardBg" defaultValue="#F6F6F7" className="w-20 h-10" />
-                      <Input defaultValue="#F6F6F7" className="flex-1" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Dark Mode</h3>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="darkBackground">Background Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="darkBackground" defaultValue="#1A1F2C" className="w-20 h-10" />
-                      <Input defaultValue="#1A1F2C" className="flex-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="darkText">Text Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="darkText" defaultValue="#F6F6F7" className="w-20 h-10" />
-                      <Input defaultValue="#F6F6F7" className="flex-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="darkCardBg">Card Background</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="darkCardBg" defaultValue="#222222" className="w-20 h-10" />
-                      <Input defaultValue="#222222" className="flex-1" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="defaultTheme">Default Theme</Label>
-                  <Select defaultValue="system">
-                    <SelectTrigger id="defaultTheme">
-                      <SelectValue placeholder="Select default theme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="system">System</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="allowUserThemeSwitching" defaultChecked />
-                  <Label htmlFor="allowUserThemeSwitching">Allow users to switch themes</Label>
-                </div>
-              </div>
-              
-              <Button onClick={() => handleSaveSettings("Theme")}>Save Theme Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
