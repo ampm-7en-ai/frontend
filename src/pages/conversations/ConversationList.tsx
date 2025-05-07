@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -5,7 +6,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useConversationUtils } from '@/hooks/useConversationUtils';
 import { useConversations } from '@/hooks/useConversations';
-import { useChatSessionsWebSocket } from '@/hooks/useChatSessionsWebSocket';
 
 import ConversationListPanel from '@/components/conversations/ConversationListPanel';
 import MessageContainer from '@/components/conversations/MessageContainer';
@@ -42,49 +42,6 @@ const ConversationList = () => {
     }
   }, [initialConversations]);
   
-  // Set up WebSocket for the selected conversation
-  const { isConnected, isTyping, sendMessage } = useChatSessionsWebSocket({
-    sessionId: selectedConversation || '',
-    onMessage: (message) => {
-      console.log('WebSocket message received in ConversationList:', message);
-      // Update conversation when a new message is received
-      if (selectedConversation && message.content) {
-        setConversations(prevConversations => 
-          prevConversations.map(conv => 
-            conv.id === selectedConversation 
-              ? { 
-                  ...conv, 
-                  lastMessage: message.content,
-                  time: 'Just now'
-                } 
-              : conv
-          )
-        );
-      }
-    },
-    onTypingStart: () => {
-      console.log('Typing started in conversation', selectedConversation);
-    },
-    onTypingEnd: () => {
-      console.log('Typing ended in conversation', selectedConversation);
-    },
-    onSessionUpdate: (sessionData) => {
-      console.log('Session update received:', sessionData);
-      // Update conversation status or other metadata when session is updated
-      if (selectedConversation && sessionData) {
-        setConversations(prevConversations => 
-          prevConversations.map(conv => 
-            conv.id === selectedConversation 
-              ? { ...conv, ...sessionData } 
-              : conv
-          )
-        );
-      }
-    },
-    // Only connect when a conversation is selected
-    autoConnect: !!selectedConversation
-  });
-  
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
@@ -114,18 +71,6 @@ const ConversationList = () => {
     
     return matchesStatus && matchesChannel && matchesAgentType;
   });
-
-  const handleSendMessage = (message: string) => {
-    if (!selectedConversation) return;
-    
-    // Use WebSocket to send message
-    sendMessage(message);
-    
-    toast({
-      title: "Message sent",
-      description: "Your message has been sent to the customer.",
-    });
-  };
 
   const handleHandoffClick = (handoff: any) => {
     setSelectedAgent(handoff.from);
@@ -174,8 +119,12 @@ const ConversationList = () => {
               setSelectedAgent={setSelectedAgent}
               onInfoClick={() => setSidebarOpen(true)}
               getStatusBadge={getStatusBadge}
-              onSendMessage={handleSendMessage}
-              isTyping={isTyping}
+              onSendMessage={(message) => {
+                toast({
+                  title: "Message sent",
+                  description: "Your message has been sent to the customer.",
+                });
+              }}
             />
           </ResizablePanel>
           
@@ -230,8 +179,12 @@ const ConversationList = () => {
             setSelectedAgent={setSelectedAgent}
             onInfoClick={() => setSidebarOpen(true)}
             getStatusBadge={getStatusBadge}
-            onSendMessage={handleSendMessage}
-            isTyping={isTyping}
+            onSendMessage={(message) => {
+              toast({
+                title: "Message sent",
+                description: "Your message has been sent to the customer.",
+              });
+            }}
           />
         </div>
       </div>

@@ -5,6 +5,8 @@ import ConversationFilters from './ConversationFilters';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader } from 'lucide-react';
+import { useChatSessionsWebSocket } from '@/hooks/useChatSessionsWebSocket';
+import { useToast } from "@/hooks/use-toast";
 
 interface ConversationListPanelProps {
   filterStatus: string;
@@ -39,6 +41,29 @@ const ConversationListPanel = ({
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const visibleConversations = filteredConversations.slice(0, displayCount);
   const hasMore = displayCount < filteredConversations.length;
+  const { toast } = useToast();
+  
+  // Set up WebSocket for the selected conversation
+  const { isConnected, isTyping, sendMessage } = useChatSessionsWebSocket({
+    sessionId: selectedConversation || '',
+    onMessage: (message) => {
+      console.log('WebSocket message received in ConversationListPanel:', message);
+      // You could add logic here to update the conversation list if needed
+      // For example, marking conversations as updated when new messages arrive
+    },
+    onTypingStart: () => {
+      console.log('Typing started in conversation', selectedConversation);
+    },
+    onTypingEnd: () => {
+      console.log('Typing ended in conversation', selectedConversation);
+    },
+    onSessionUpdate: (sessionData) => {
+      console.log('Session update received:', sessionData);
+      // Handle session updates if needed
+    },
+    // Only connect when a conversation is selected
+    autoConnect: !!selectedConversation
+  });
 
   // Set up intersection observer for infinite scrolling
   useEffect(() => {
@@ -69,6 +94,23 @@ const ConversationListPanel = ({
   useEffect(() => {
     setDisplayCount(10);
   }, [filterStatus, channelFilter, agentTypeFilter, searchQuery]);
+
+  // Log WebSocket connection status changes
+  useEffect(() => {
+    console.log('WebSocket connection status in ConversationListPanel:', isConnected);
+  }, [isConnected]);
+
+  const handleSendMessage = (message: string) => {
+    if (!selectedConversation) return;
+    
+    // Use WebSocket to send message
+    sendMessage(message);
+    
+    toast({
+      title: "Message sent",
+      description: "Your message has been sent to the customer.",
+    });
+  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -139,6 +181,14 @@ const ConversationListPanel = ({
           setAgentTypeFilter={setAgentTypeFilter}
         />
       </div>
+      
+      {/* WebSocket Status Indicator (optional) */}
+      {selectedConversation && (
+        <div className={`px-4 py-1 text-xs ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
+          {isConnected ? 'Connected' : 'Connecting...'}
+          {isTyping && isConnected && <span className="ml-2">User is typing...</span>}
+        </div>
+      )}
       
       {/* Conversation List - Use ScrollArea with proper styling */}
       <div className="flex-1 overflow-hidden">
