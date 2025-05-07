@@ -166,20 +166,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       icon: Building,
       permission: 'dashboard'
     },
-    {
-      id: 'system-health',
-      label: 'System Health',
-      href: '/system-health',
-      icon: AlertCircle,
-      permission: 'dashboard'
-    },
-    { 
-      id: 'platform-analytics',
-      label: 'Platform Analytics', 
-      href: '/analytics', 
-      icon: BarChart2,
-      permission: 'dashboard' 
-    },
     { 
       id: 'platform',
       label: 'Platform Settings', 

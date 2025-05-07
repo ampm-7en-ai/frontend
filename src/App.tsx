@@ -113,7 +113,7 @@ const ProtectedRoutes = () => {
           } 
         />
         
-        <Route 
+        {/* <Route 
           path="/system-health" 
           element={
             <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
@@ -129,7 +129,7 @@ const ProtectedRoutes = () => {
               <PlatformAnalytics />
             </ProtectedRoute>
           } 
-        />
+        /> */}
         
         <Route path="/conversations" element={<ConversationList />} />
         <Route path="/conversations/:conversationId" element={<ConversationDetail />} />

@@ -257,64 +257,7 @@ const SuperAdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Platform User Distribution */}
         <BusinessAdminStats />
-        
-        {/* Redesigned System Status Card - More minimal and cleaner */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle>System Status</CardTitle>
-              <Badge variant="success" className="font-normal">Operational</Badge>
-            </div>
-            <CardDescription>Real-time platform health</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            <div className="space-y-2">
-              {[
-                { name: 'API Services', status: 'healthy', value: 98 },
-                { name: 'Database', status: 'healthy', value: 99 },
-                { name: 'LLM Services', status: 'degraded', value: 72 },
-                { name: 'Storage', status: 'healthy', value: 95 },
-              ].map((service, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
-                    style={{
-                      backgroundColor: service.status === 'healthy' ? '#22c55e' : '#f59e0b'
-                    }}
-                  ></div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{service.name}</span>
-                      <span className="text-xs text-muted-foreground">{service.value}%</span>
-                    </div>
-                    <Progress value={service.value} className="h-1 mt-1" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="bg-muted/40 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <WifiHigh className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">System Uptime</span>
-                </div>
-                <Badge variant="outline" className="text-xs font-normal">99.98%</Badge>
-              </div>
-            </div>
-            
-            <div className="flex justify-end">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/system-health" className="flex items-center gap-1 text-xs">
-                  <Shield className="h-3.5 w-3.5" />
-                  View detailed status
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Recent Alerts */}
+        {/* Recent Alerts */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Alerts</CardTitle>
@@ -364,6 +307,7 @@ const SuperAdminDashboard = () => {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
