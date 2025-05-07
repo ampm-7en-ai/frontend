@@ -1,15 +1,10 @@
 
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, RefreshCw, User, Info, Copy, Edit, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Bot, RefreshCw, User, Info, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
-import { 
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+import { Button } from "@/components/ui/button";
 import { 
   Tooltip,
   TooltipContent,
@@ -87,7 +82,7 @@ const MessageList = ({
   // Determine message style based on sender
   const userMessageStyle = "bg-primary text-primary-foreground dark:bg-blue-600";
   const botMessageStyle = isHighlighted 
-    ? "border-slate-200 dark:border-slate-700" 
+    ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50" 
     : "border-slate-200 dark:border-slate-700";
   
   return (
@@ -142,105 +137,112 @@ const MessageList = ({
             </div>
           </div>
         ) : (
-          <ContextMenu>
-            <ContextMenuTrigger>
-              <div 
-                className={cn(
-                  "p-4 transition-all",
-                  "rounded-2xl rounded-tl-sm bg-transparent",
-                  botMessageStyle,
-                  "border prose dark:prose-invert"
+          <div className="flex flex-col">
+            <div 
+              className={cn(
+                "p-4 transition-all",
+                "rounded-2xl rounded-tl-sm bg-transparent",
+                "border prose dark:prose-invert"
+              )}
+            >
+              <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
+                {typeof message.content === 'string' && (
+                  <ReactMarkdown>
+                    {message.content}
+                  </ReactMarkdown>
                 )}
-              >
-                <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
-                  {typeof message.content === 'string' && (
-                    <ReactMarkdown>
-                      {message.content}
-                    </ReactMarkdown>
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-xs mt-2 text-slate-500">
-                    {message.timestamp}
-                  </div>
-                  
-                  {showControls && (
-                    <div className="flex gap-2 mt-2 text-slate-400">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button onClick={handleCopy} className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-                              <Copy className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Copy message</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-                              <Edit className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Revise message</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="hover:text-green-500 transition-colors">
-                              <ThumbsUp className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Mark as helpful</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="hover:text-red-500 transition-colors">
-                              <ThumbsDown className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Mark as unhelpful</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  )}
-                </div>
               </div>
-            </ContextMenuTrigger>
-            <ContextMenuContent className="min-w-[160px]">
-              <ContextMenuItem onClick={handleCopy}>
-                <Copy className="mr-2 h-4 w-4" />
-                <span>Copy message</span>
-              </ContextMenuItem>
-              <ContextMenuItem>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>Revise</span>
-              </ContextMenuItem>
-              <ContextMenuItem>
-                <ThumbsUp className="mr-2 h-4 w-4" />
-                <span>Mark as helpful</span>
-              </ContextMenuItem>
-              <ContextMenuItem>
-                <ThumbsDown className="mr-2 h-4 w-4" />
-                <span>Mark as unhelpful</span>
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
+              <div className="text-xs mt-2 text-slate-500">
+                {message.timestamp}
+              </div>
+            </div>
+            
+            {/* Action buttons at bottom of message */}
+            {showControls && (
+              <div className="flex items-center gap-1 mt-1.5 ml-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={handleCopy} 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                        <Copy className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy response</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                        <RotateCcw className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Regenerate response</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                        <ThumbsUp className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Mark as helpful</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                        <ThumbsDown className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Mark as unhelpful</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                        <MoreHorizontal className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>More options</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+          </div>
         )}
       </div>
       
