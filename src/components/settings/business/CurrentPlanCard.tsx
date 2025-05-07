@@ -8,14 +8,14 @@ import { usePricingModal } from '@/hooks/usePricingModal';
 import { format, differenceInDays } from 'date-fns';
 
 export const CurrentPlanCard = () => {
-  const { data: subscription, isLoading } = useSubscription();
+  const { currentSubscription, isLoadingCurrentSubscription } = useSubscription();
   const { openPricingModal } = usePricingModal();
   
   // Calculate days remaining until renewal
   const getRemainingDays = () => {
-    if (!subscription?.ended_at) return null;
+    if (!currentSubscription?.ended_at) return null;
     
-    const endDate = new Date(subscription.ended_at);
+    const endDate = new Date(currentSubscription.ended_at);
     const today = new Date();
     return differenceInDays(endDate, today);
   };
@@ -23,9 +23,9 @@ export const CurrentPlanCard = () => {
   const remainingDays = getRemainingDays();
   
   // Determine if it's a free plan or a paid subscription
-  const isPaidPlan = subscription?.plan?.price && parseFloat(subscription.plan.price) > 0;
-  const planName = subscription?.plan?.name || "Free Plan";
-  const planPrice = subscription?.plan?.price || "0";
+  const isPaidPlan = currentSubscription?.plan?.price && parseFloat(currentSubscription.plan.price) > 0;
+  const planName = currentSubscription?.plan?.name || "Free Plan";
+  const planPrice = currentSubscription?.plan?.price || "0";
   
   return (
     <Card className="mb-8">
