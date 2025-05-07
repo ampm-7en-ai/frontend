@@ -94,7 +94,7 @@ export function CreateEmailTemplateDialog({ open, onOpenChange }: CreateEmailTem
               maxExpandedHeight="300px" 
             />
             <p className="text-xs text-muted-foreground">
-              Use {{user.name}}, {{user.email}}, etc. as variables that will be replaced with actual values.
+              Use {'{{'} user.name {'}}' }, {'{{'} user.email {'}}' }, etc. as variables that will be replaced with actual values.
             </p>
           </div>
           
