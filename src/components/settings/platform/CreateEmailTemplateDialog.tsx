@@ -18,6 +18,7 @@ export function CreateEmailTemplateDialog({ open, onOpenChange }: CreateEmailTem
   const [templateName, setTemplateName] = useState('');
   const [templateSubject, setTemplateSubject] = useState('');
   const [templateContent, setTemplateContent] = useState('<p>Hello {{user.name}},</p>\n<p>Your message here.</p>\n<p>Best regards,<br>The 7en AI Team</p>');
+  const [isHtmlEmail, setIsHtmlEmail] = useState(true);
   
   const handleCreate = () => {
     if (!templateName.trim()) {
@@ -98,7 +99,11 @@ export function CreateEmailTemplateDialog({ open, onOpenChange }: CreateEmailTem
           </div>
           
           <div className="flex items-center space-x-2">
-            <Switch id="newHtmlEmail" defaultChecked />
+            <Switch 
+              id="newHtmlEmail" 
+              checked={isHtmlEmail}
+              onCheckedChange={setIsHtmlEmail}
+            />
             <Label htmlFor="newHtmlEmail">Send as HTML email</Label>
           </div>
         </div>
