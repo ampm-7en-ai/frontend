@@ -35,11 +35,17 @@ export class ChatSessionsWebSocketService {
     // Use the new WebSocket endpoint
     const endpoint = `wss://api.7en.ai/ws/chat/chatsessions/`;
     // Get auth token from localStorage
-    this.authToken = JSON.parse(localStorage.getItem('user')).accessToken;
+    this.authToken = JSON.parse(localStorage.getItem('user') || '{}')?.accessToken || null;
 
+    // Initialize WebSocket with auth headers
     this.ws = new WebSocketService(endpoint);
     
-    
+    // Set authentication headers immediately if token is available
+    if (this.authToken) {
+      this.ws.setAuthHeaders({
+        'Authorization': `Bearer ${this.authToken}`
+      });
+    }
     
     // Set up event handlers
     this.ws.on('message', this.handleMessage.bind(this));
@@ -78,13 +84,7 @@ export class ChatSessionsWebSocketService {
       return;
     }
     
-    // this.ws.send({
-    //   type: 'authorization',
-    //   token: `Bearer ${this.authToken}`
-    // });
-    this.ws.setAuthHeaders({
-        'Authorization': `Bearer ${this.authToken}`
-      });
+    // Send auth message to WebSocket server
     this.ws.send({
       type: 'authorization',
       token: `Bearer ${this.authToken}`
@@ -109,6 +109,7 @@ export class ChatSessionsWebSocketService {
     this.events = { ...this.events, ...events };
   }
   
+  // Handle incoming messages
   private handleMessage(data: any) {
     console.log('Received ChatSessions WebSocket data:', data);
     
