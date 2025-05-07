@@ -31,8 +31,7 @@ import {
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoiceDialog';
-import { useQuery } from "@tanstack/react-query";
-import { SubscriptionPlan } from '@/hooks/useSubscription';
+import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 
 interface Invoice {
   id: string;
@@ -88,18 +87,12 @@ const BillingSettings = () => {
   const navigate = useNavigate();
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
   
-  // Use React Query to fetch subscription plans directly
+  // Use the updated useSubscription hook with options
   const { 
-    data: subscriptionPlans = [], 
-    isLoading: isLoadingSubscriptionPlans,
-    refetch: refetchSubscriptionPlans
-  } = useQuery({
-    queryKey: ['subscriptionPlans'],
-    queryFn: fetchSubscriptionPlans,
-    staleTime: 60000, // 1 minute
-    refetchOnWindowFocus: true,
-    retry: 1,
-  });
+    subscriptionPlans, 
+    isLoadingSubscriptionPlans,
+    refetchSubscriptionPlans
+  } = useSubscription({ fetchCurrent: false, fetchAllPlans: true });
 
   // Invoice management state
   const [invoices, setInvoices] = useState<Invoice[]>([

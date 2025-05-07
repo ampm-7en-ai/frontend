@@ -8,7 +8,12 @@ import { usePricingModal } from '@/hooks/usePricingModal';
 import { format, differenceInDays } from 'date-fns';
 
 export const CurrentPlanCard = () => {
-  const { currentSubscription, isLoadingCurrentSubscription } = useSubscription();
+  // Only fetch current subscription, not all plans
+  const { currentSubscription, isLoadingCurrentSubscription } = useSubscription({ 
+    fetchCurrent: true, 
+    fetchAllPlans: false 
+  });
+  
   const { openPricingModal } = usePricingModal();
   
   // Calculate days remaining until renewal

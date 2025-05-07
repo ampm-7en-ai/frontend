@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
 
@@ -22,6 +23,11 @@ export interface Subscription {
   ended_at: string;
   duration_days: number;
   is_expired: boolean;
+}
+
+interface UseSubscriptionOptions {
+  fetchCurrent?: boolean;
+  fetchAllPlans?: boolean;
 }
 
 async function fetchCurrentSubscription(): Promise<Subscription | null> {
@@ -79,12 +85,12 @@ async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     
     // Extract unique plans from the subscriptions data
     const plansMap = new Map<number, SubscriptionPlan>();
-    data.forEach((subscription: Subscription) => {
+    data.forEach((subscription: any) => {
       if (subscription.plan && !plansMap.has(subscription.plan.id)) {
         plansMap.set(subscription.plan.id, {
           ...subscription.plan,
           // Convert features from description if needed
-          features: subscription.plan.description?.split('\n').filter(line => line.trim() !== '') || []
+          features: subscription.plan.description?.split('\n').filter((line: string) => line.trim() !== '') || []
         });
       }
     });
@@ -96,13 +102,16 @@ async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
   }
 }
 
-export function useSubscription() {
+export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent: true, fetchAllPlans: true }) {
+  const { fetchCurrent = true, fetchAllPlans = true } = options;
+  
   const currentSubscriptionQuery = useQuery({
     queryKey: ['subscription'],
     queryFn: fetchCurrentSubscription,
     staleTime: 60000, // 1 minute
     refetchOnWindowFocus: true,
     retry: 1,
+    enabled: fetchCurrent, // Only fetch if option is true
   });
   
   const subscriptionPlansQuery = useQuery({
@@ -111,6 +120,7 @@ export function useSubscription() {
     staleTime: 60000, // 1 minute
     refetchOnWindowFocus: true,
     retry: 1,
+    enabled: fetchAllPlans, // Only fetch if option is true
   });
   
   return {
@@ -120,6 +130,7 @@ export function useSubscription() {
     subscriptionPlans: subscriptionPlansQuery.data || [],
     isLoadingSubscriptionPlans: subscriptionPlansQuery.isLoading,
     subscriptionPlansError: subscriptionPlansQuery.error,
+    refetchCurrentSubscription: currentSubscriptionQuery.refetch,
     refetchSubscriptionPlans: subscriptionPlansQuery.refetch,
   };
 }
