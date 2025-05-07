@@ -284,7 +284,7 @@ const SuperAdminDashboard = () => {
               <Tooltip 
                 formatter={(value, name) => [
                   `${value} members`, 
-                  name.charAt(0).toUpperCase() + name.slice(1)
+                  typeof name === 'string' ? name.charAt(0).toUpperCase() + name.slice(1) : name
                 ]}
                 contentStyle={{ 
                   borderRadius: '8px',
