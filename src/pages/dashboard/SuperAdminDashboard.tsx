@@ -29,12 +29,6 @@ const SuperAdminDashboard = () => {
           <h2 className="text-2xl font-bold">Platform Dashboard</h2>
           <p className="text-muted-foreground">Overview of your entire platform</p>
         </div>
-        <Button asChild>
-          <Link to="/system-health" className="flex items-center gap-1">
-            <Shield className="h-4 w-4" />
-            System Health
-          </Link>
-        </Button>
       </div>
 
       {/* Key Metrics */}

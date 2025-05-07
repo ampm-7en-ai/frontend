@@ -4,17 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
-import { Users, ChartBar, UserPlus, UserX } from 'lucide-react';
+import { Users, UserPlus, UserX } from 'lucide-react';
 
-// Mock data for admin activity metrics
-const mockActivityData = [
-  { name: 'Mon', value: 12 },
-  { name: 'Tue', value: 19 },
-  { name: 'Wed', value: 14 },
-  { name: 'Thu', value: 22 },
-  { name: 'Fri', value: 18 },
-  { name: 'Sat', value: 8 },
-  { name: 'Sun', value: 5 },
+// Mock data for team members status for bar chart
+const mockTeamStatusData = [
+  { name: 'Active', value: 28, color: '#10b981' },  // Green
+  { name: 'Inactive', value: 5, color: '#9ca3af' }, // Gray
+  { name: 'New', value: 3, color: '#3b82f6' }       // Blue
 ];
 
 // Mock data for team members
@@ -29,21 +25,21 @@ export function BusinessAdminStats() {
     <Card>
       <CardHeader>
         <CardTitle>Business Admin Activity</CardTitle>
-        <CardDescription>Weekly activity and team metrics</CardDescription>
+        <CardDescription>Team member status and metrics</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Admin Activity */}
+        {/* Team Member Status Bar Chart */}
         <div>
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
-              <ChartBar className="h-4 w-4 text-primary" />
-              <h4 className="font-medium text-sm">Admin Activity (Last 7 Days)</h4>
+              <Users className="h-4 w-4 text-primary" />
+              <h4 className="font-medium text-sm">Team Member Status</h4>
             </div>
-            <Badge variant="outline" className="font-normal">Total: 98 actions</Badge>
+            <Badge variant="outline" className="font-normal">Total: 36 admins</Badge>
           </div>
           <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockActivityData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+              <BarChart data={mockTeamStatusData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
@@ -52,7 +48,7 @@ export function BusinessAdminStats() {
                   tickMargin={8}
                 />
                 <Tooltip 
-                  formatter={(value) => [`${value} actions`, 'Count']}
+                  formatter={(value) => [`${value} admins`, 'Count']}
                   contentStyle={{ 
                     borderRadius: '8px',
                     border: '1px solid #e2e8f0',
@@ -60,10 +56,10 @@ export function BusinessAdminStats() {
                   }}
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                  {mockActivityData.map((entry, index) => (
+                  {mockTeamStatusData.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={entry.value > 18 ? '#8B5CF6' : '#D6BCFA'}
+                      fill={entry.color}
                     />
                   ))}
                 </Bar>
@@ -72,12 +68,12 @@ export function BusinessAdminStats() {
           </div>
         </div>
         
-        {/* Team Member Status */}
+        {/* Team Member Status Progress */}
         <div>
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              <h4 className="font-medium text-sm">Team Member Status</h4>
+              <h4 className="font-medium text-sm">Team Member Distribution</h4>
             </div>
             <span className="text-xs text-muted-foreground">36 total admins</span>
           </div>
