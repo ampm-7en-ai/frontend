@@ -17,12 +17,14 @@ interface MessageProps {
   message: any;
   selectedAgent: string | null;
   messageContainerRef: React.RefObject<HTMLDivElement>;
+  isTyping?: boolean; // Added isTyping prop
 }
 
 const MessageList = ({ 
   message, 
   selectedAgent,
-  messageContainerRef 
+  messageContainerRef,
+  isTyping 
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);

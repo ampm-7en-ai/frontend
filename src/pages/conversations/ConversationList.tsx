@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -12,23 +11,10 @@ import ConversationListPanel from '@/components/conversations/ConversationListPa
 import MessageContainer from '@/components/conversations/MessageContainer';
 import ConversationDetailsPanel from '@/components/conversations/ConversationDetailsPanel';
 import ConversationSidebar from '@/components/conversations/ConversationSidebar';
+import { Conversation } from '@/hooks/useConversationsApi'; // Import Conversation type
 
-interface Conversation {
-  id: string;
-  customer: string;
-  email: string;
-  lastMessage: string;
-  time: string;
-  status: string;
-  agent: string;
-  satisfaction: string;
-  priority: string;
-  duration: string;
-  handoffCount: number;
-  topic: string;
-  channel: string;
-  messages: Array<any>;
-  agentType?: 'human' | 'ai';
+interface LocalConversation extends Omit<Conversation, 'topic'> {
+  topic: string | string[];
 }
 
 const ConversationList = () => {
@@ -38,7 +24,7 @@ const ConversationList = () => {
   const { conversations: initialConversations, isLoading: isLoadingConversations } = useConversations();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<LocalConversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('unresolved');
@@ -51,7 +37,8 @@ const ConversationList = () => {
   // Initialize conversations from the API data
   useEffect(() => {
     if (initialConversations.length > 0) {
-      setConversations(initialConversations);
+      // Make sure we convert the data to match our LocalConversation type
+      setConversations(initialConversations as LocalConversation[]);
     }
   }, [initialConversations]);
   
