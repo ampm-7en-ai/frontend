@@ -22,7 +22,6 @@ import {
   CreditCard
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { BusinessAdminStats } from '@/components/dashboard/BusinessAdminStats';
 import {
   LineChart,
   Line,
@@ -37,6 +36,11 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
+import { 
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent
+} from '@/components/ui/chart';
 
 const SuperAdminDashboard = () => {
   // Sample data for charts (imported from PlatformAnalytics)
@@ -69,6 +73,18 @@ const SuperAdminDashboard = () => {
     { month: 'May', revenue: 110000 },
     { month: 'Jun', revenue: 118000 },
     { month: 'Jul', revenue: 126580 }
+  ];
+
+  // New data for business team members chart
+  const businessTeamMembersData = [
+    { month: 'Jan', active: 52, inactive: 8, new: 5 },
+    { month: 'Feb', active: 58, inactive: 7, new: 6 },
+    { month: 'Mar', active: 62, inactive: 9, new: 4 },
+    { month: 'Apr', active: 67, inactive: 6, new: 8 },
+    { month: 'May', active: 72, inactive: 8, new: 5 },
+    { month: 'Jun', active: 75, inactive: 10, new: 7 },
+    { month: 'Jul', active: 78, inactive: 9, new: 9 },
+    { month: 'Aug', active: 83, inactive: 7, new: 6 }
   ];
 
   return (
@@ -253,61 +269,58 @@ const SuperAdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Platform User Distribution & System Status */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Platform User Distribution */}
-        <BusinessAdminStats />
-        {/* Recent Alerts */}
-      <Card>
+      {/* Business Team Members Chart - Full Width */}
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle>Recent Alerts</CardTitle>
-          <CardDescription>System notifications from the last 24 hours</CardDescription>
+          <CardTitle>Business Team Member Status</CardTitle>
+          <CardDescription>Active, inactive and new team members across businesses</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {[
-            { 
-              title: 'High Memory Usage',
-              description: 'LLM Service worker process exceeded memory threshold',
-              time: '12 minutes ago',
-              severity: 'warning',
-            },
-            { 
-              title: 'API Rate Limit',
-              description: 'Business ID B1023 exceeded API rate limits',
-              time: '43 minutes ago',
-              severity: 'warning',
-            },
-            { 
-              title: 'Database Backup Completed',
-              description: 'Weekly backup completed successfully',
-              time: '2 hours ago',
-              severity: 'success',
-            },
-          ].map((alert, index) => (
-            <div key={index} className="flex items-start gap-3 p-2 border-b last:border-b-0 border-border">
-              {alert.severity === 'warning' ? (
-                <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-              ) : (
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-              )}
-              <div>
-                <h3 className="font-medium text-sm">{alert.title}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>
-                <p className="text-xs text-muted-foreground mt-1">{alert.time}</p>
-              </div>
-            </div>
-          ))}
-          
-          <div className="flex justify-end pt-2">
-            <Button variant="ghost" size="sm" className="flex items-center gap-1" asChild>
-              <Link to="/system-health">
-                View all alerts <ChevronRight className="ml-1 h-3 w-3" />
-              </Link>
-            </Button>
-          </div>
+        <CardContent className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={businessTeamMembersData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip 
+                formatter={(value, name) => [
+                  `${value} members`, 
+                  name.charAt(0).toUpperCase() + name.slice(1)
+                ]}
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="active"
+                name="Active"
+                stroke="#10b981"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 8 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="inactive"
+                name="Inactive"
+                stroke="#9ca3af"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="new"
+                name="New"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
-      </div>
     </div>
   );
 };
