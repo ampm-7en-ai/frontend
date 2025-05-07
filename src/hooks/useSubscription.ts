@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
 
@@ -10,6 +9,7 @@ export interface SubscriptionPlan {
   stripe_product_id: string;
   stripe_price_id: string;
   duration_days: number;
+  features?: string[];
 }
 
 export interface Subscription {
@@ -56,12 +56,70 @@ async function fetchCurrentSubscription(): Promise<Subscription | null> {
   }
 }
 
+async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
+  if (!token) {
+    throw new Error('Authentication token not found');
+  }
+
+  console.log('Fetching all subscription plans data from API...');
+  try {
+    const response = await fetch(`${BASE_URL}subscriptions/`, {
+      method: 'GET',
+      headers: getAuthHeaders(token),
+    });
+
+    if (!response.ok) {
+      console.error(`Subscription plans API error: ${response.status}`);
+      throw new Error('Failed to fetch subscription plans');
+    }
+
+    const data = await response.json();
+    console.log('Subscription plans data received:', data);
+    
+    // Extract unique plans from the subscriptions data
+    const plansMap = new Map<number, SubscriptionPlan>();
+    data.forEach((subscription: Subscription) => {
+      if (subscription.plan && !plansMap.has(subscription.plan.id)) {
+        plansMap.set(subscription.plan.id, {
+          ...subscription.plan,
+          // Convert features from description if needed
+          features: subscription.plan.description?.split('\n').filter(line => line.trim() !== '') || []
+        });
+      }
+    });
+    
+    return Array.from(plansMap.values());
+  } catch (error) {
+    console.error('Error fetching subscription plans:', error);
+    return [];
+  }
+}
+
 export function useSubscription() {
-  return useQuery({
+  const currentSubscriptionQuery = useQuery({
     queryKey: ['subscription'],
     queryFn: fetchCurrentSubscription,
     staleTime: 60000, // 1 minute
     refetchOnWindowFocus: true,
     retry: 1,
   });
+  
+  const subscriptionPlansQuery = useQuery({
+    queryKey: ['subscriptionPlans'],
+    queryFn: fetchAllSubscriptionPlans,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
+  
+  return {
+    currentSubscription: currentSubscriptionQuery.data,
+    isLoadingCurrentSubscription: currentSubscriptionQuery.isLoading,
+    currentSubscriptionError: currentSubscriptionQuery.error,
+    subscriptionPlans: subscriptionPlansQuery.data || [],
+    isLoadingSubscriptionPlans: subscriptionPlansQuery.isLoading,
+    subscriptionPlansError: subscriptionPlansQuery.error,
+    refetchSubscriptionPlans: subscriptionPlansQuery.refetch,
+  };
 }

@@ -118,10 +118,12 @@ const SubscriptionPlanEditor = () => {
         .filter(line => line.trim() !== '')
         .map(line => line.trim());
       
+      // Prepare the payload based on the API requirements
       const submitData = {
-        ...plan,
-        price: parseFloat(plan.price).toString(),
-        features
+        name: plan.name,
+        description: features.join('\n'), // Store features as newline-separated text in description
+        price: parseFloat(plan.price),
+        duration_days: plan.duration_days
       };
       
       const url = isEditMode 
@@ -232,19 +234,6 @@ const SubscriptionPlanEditor = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea 
-                id="description"
-                name="description"
-                value={plan.description}
-                onChange={handleChange}
-                placeholder="Describe the benefits of this plan"
-                rows={3}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
               <Label htmlFor="features">Features (one per line)</Label>
               <Textarea 
                 id="features"
@@ -252,6 +241,7 @@ const SubscriptionPlanEditor = () => {
                 onChange={handleFeaturesChange}
                 placeholder="e.g., 5 Agents&#10;10GB Storage&#10;24/7 Support"
                 rows={6}
+                required
               />
               <p className="text-xs text-muted-foreground">
                 Enter each feature on a separate line. These will be displayed as badges.

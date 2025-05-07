@@ -31,6 +31,7 @@ import {
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoiceDialog';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface SubscriptionPlan {
   id: number;
@@ -55,38 +56,7 @@ const BillingSettings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([
-    { 
-      id: 1, 
-      name: "Starter", 
-      description: "Basic features for small teams", 
-      price: "49.00", 
-      stripe_product_id: "prod_123", 
-      stripe_price_id: "price_123", 
-      duration_days: 30,
-      features: ["1 Agent", "5,000 Queries/mo", "1GB Storage"] 
-    },
-    { 
-      id: 2, 
-      name: "Business", 
-      description: "Advanced features for growing businesses", 
-      price: "199.00", 
-      stripe_product_id: "prod_456", 
-      stripe_price_id: "price_456", 
-      duration_days: 30,
-      features: ["5 Agents", "25,000 Queries/mo", "10GB Storage"] 
-    },
-    { 
-      id: 3, 
-      name: "Enterprise", 
-      description: "Complete solution for large organizations", 
-      price: "499.00", 
-      stripe_product_id: "prod_789", 
-      stripe_price_id: "price_789", 
-      duration_days: 30,
-      features: ["Unlimited Agents", "100,000 Queries/mo", "50GB Storage"] 
-    }
-  ]);
+  const { subscriptionPlans, isLoadingSubscriptionPlans, refetchSubscriptionPlans } = useSubscription();
 
   // Invoice management state
   const [invoices, setInvoices] = useState<Invoice[]>([
@@ -121,13 +91,37 @@ const BillingSettings = () => {
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
   const handleDeletePlan = async (planId: number) => {
-    // In a real application, we would call an API to delete the plan
-    setSubscriptionPlans(subscriptionPlans.filter(plan => plan.id !== planId));
-    
-    toast({
-      title: "Plan Deleted",
-      description: "Subscription plan has been deleted successfully.",
-    });
+    try {
+      const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
+      
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      const response = await fetch(`${BASE_URL}subscriptions/delete/${planId}/`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete subscription plan');
+      }
+      
+      // Refetch subscription plans after deletion
+      refetchSubscriptionPlans();
+      
+      toast({
+        title: "Plan Deleted",
+        description: "Subscription plan has been deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete subscription plan.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleExportCsv = () => {
@@ -209,49 +203,57 @@ const BillingSettings = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {subscriptionPlans.map((plan) => (
-                  <Card key={plan.id} className="border">
-                    <div className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold">{plan.name}</h3>
-                          <div className="text-2xl font-bold mt-1">${plan.price}<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+                {isLoadingSubscriptionPlans ? (
+                  <div className="text-center py-8">Loading subscription plans...</div>
+                ) : subscriptionPlans.length > 0 ? (
+                  subscriptionPlans.map((plan) => (
+                    <Card key={plan.id} className="border">
+                      <div className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">{plan.name}</h3>
+                            <div className="text-2xl font-bold mt-1">${plan.price}<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditPlan(plan.id)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-500 hover:bg-red-50"
+                              onClick={() => handleDeletePlan(plan.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleEditPlan(plan.id)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-red-500 hover:bg-red-50"
-                            onClick={() => handleDeletePlan(plan.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
+                        
+                        <p className="text-muted-foreground mb-4">{plan.description}</p>
+                        
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {plan.features?.map((feature, i) => (
+                            <Badge key={i} variant="outline">{feature}</Badge>
+                          ))}
+                        </div>
+                        
+                        <div className="text-sm text-muted-foreground">
+                          Duration: {plan.duration_days} days
                         </div>
                       </div>
-                      
-                      <p className="text-muted-foreground mb-4">{plan.description}</p>
-                      
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {plan.features?.map((feature, i) => (
-                          <Badge key={i} variant="outline">{feature}</Badge>
-                        ))}
-                      </div>
-                      
-                      <div className="text-sm text-muted-foreground">
-                        Duration: {plan.duration_days} days
-                      </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No subscription plans found. Create your first plan to get started.
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
