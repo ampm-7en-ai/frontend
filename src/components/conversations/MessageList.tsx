@@ -3,6 +3,7 @@ import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, RefreshCw, User, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 
 interface MessageProps {
   message: any;
@@ -61,15 +62,18 @@ const MessageList = ({
     );
   }
 
+  // Determine a consistent border radius for messages
+  const messageRadiusClasses = "rounded-2xl";
+  
   return (
     <div 
       key={message.id} 
-      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+      className={`mb-6 ${message.sender === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
       id={`message-${message.id}`}
     >
       {message.sender === 'bot' && (
         <Avatar className={cn(
-          "h-8 w-8 mr-2",
+          "h-8 w-8 mr-3",
           isHighlighted ? "bg-primary ring-2 ring-primary/30" : "bg-primary"
         )}>
           <AvatarFallback>
@@ -77,31 +81,43 @@ const MessageList = ({
           </AvatarFallback>
         </Avatar>
       )}
-      <div 
-        className={cn(
-          "max-w-[80%] p-3 rounded-lg transition-all",
-          message.sender === 'user' 
-            ? "bg-primary text-primary-foreground rounded-tr-none" 
-            : isHighlighted
-              ? "bg-primary/5 border-2 border-primary/20 rounded-tl-none"
-              : "bg-white border border-gray-200 rounded-tl-none"
-        )}
-      >
+      
+      <div className="flex flex-col max-w-[75%]">
         {message.sender === 'bot' && message.agent && (
           <div className={cn(
-            "text-xs font-medium mb-1",
+            "text-xs font-medium mb-1 ml-1",
             isHighlighted ? "text-primary" : "text-muted-foreground"
           )}>
             {message.agent}
           </div>
         )}
-        <p className="break-words text-sm">{message.content}</p>
-        <div className="text-xs mt-1 opacity-70">
-          {message.timestamp}
+        
+        <div 
+          className={cn(
+            "p-4 transition-all",
+            messageRadiusClasses,
+            message.sender === 'user' 
+              ? "bg-primary text-primary-foreground" 
+              : isHighlighted
+                ? "bg-slate-100 border border-slate-200"
+                : "bg-slate-100 border border-slate-200"
+          )}
+        >
+          <div className="prose-sm max-w-none break-words">
+            {typeof message.content === 'string' && (
+              <ReactMarkdown>
+                {message.content}
+              </ReactMarkdown>
+            )}
+          </div>
+          <div className="text-xs mt-2 opacity-70">
+            {message.timestamp}
+          </div>
         </div>
       </div>
+      
       {message.sender === 'user' && (
-        <Avatar className="h-8 w-8 ml-2 bg-purple-500">
+        <Avatar className="h-8 w-8 ml-3 bg-purple-500">
           <AvatarFallback>
             <User className="h-4 w-4" />
           </AvatarFallback>
