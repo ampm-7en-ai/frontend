@@ -4,6 +4,8 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ConversationHeader from './ConversationHeader';
 import ConversationEmptyState from './ConversationEmptyState';
+import { useChatMessagesApi } from '@/hooks/useChatMessagesApi';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MessageContainerProps {
   conversation: any;
@@ -24,12 +26,15 @@ const MessageContainer = ({
 }: MessageContainerProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch messages for the selected conversation
+  const { data: messages = [], isLoading: isLoadingMessages } = useChatMessagesApi(conversation?.id || null);
 
   // Effect to scroll to agent messages when selectedAgent changes
   useEffect(() => {
-    if (selectedAgent && messageContainerRef.current && conversation?.messages) {
+    if (selectedAgent && messageContainerRef.current && messages) {
       // Find the first message from the selected agent
-      const firstAgentMessage = conversation.messages.find(
+      const firstAgentMessage = messages.find(
         (msg: any) => msg.sender === 'bot' && msg.agent === selectedAgent
       );
       
@@ -44,14 +49,14 @@ const MessageContainer = ({
         }
       }
     }
-  }, [selectedAgent, conversation?.messages]);
+  }, [selectedAgent, messages]);
 
   // Effect to scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current && !selectedAgent) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [conversation?.messages?.length, selectedAgent]);
+  }, [messages?.length, selectedAgent]);
 
   if (!conversation) {
     return <ConversationEmptyState />;
@@ -71,14 +76,30 @@ const MessageContainer = ({
         ref={messageContainerRef}
         className="flex-1 overflow-y-auto p-3 bg-slate-50"
       >
-        {conversation.messages && conversation.messages.map((message: any) => (
-          <MessageList 
-            key={message.id}
-            message={message}
-            selectedAgent={selectedAgent}
-            messageContainerRef={messageContainerRef}
-          />
-        ))}
+        {isLoadingMessages ? (
+          // Show loading skeletons while messages are loading
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-start gap-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Render actual messages
+          messages && messages.map((message: any) => (
+            <MessageList 
+              key={message.id}
+              message={message}
+              selectedAgent={selectedAgent}
+              messageContainerRef={messageContainerRef}
+            />
+          ))
+        )}
         <div ref={messagesEndRef} />
       </div>
       

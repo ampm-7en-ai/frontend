@@ -89,10 +89,12 @@ const ConversationListPanel = ({
         />
       </div>
       
-      {/* Conversation List */}
-      <ScrollArea className="flex-1" hideScrollbar={true}>
-        {renderContent()}
-      </ScrollArea>
+      {/* Conversation List - Use ScrollArea with proper styling */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-[calc(100vh-12rem)]" style={{ height: "calc(100vh - 12rem)" }}>
+          {renderContent()}
+        </ScrollArea>
+      </div>
     </div>
   );
 };

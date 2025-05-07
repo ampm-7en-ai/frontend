@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, RefreshCw, User } from 'lucide-react';
+import { Bot, RefreshCw, User, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MessageProps {
@@ -17,6 +17,23 @@ const MessageList = ({
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
 
+  // Handle system messages
+  if (message.sender === 'system') {
+    return (
+      <div 
+        key={message.id} 
+        id={`message-${message.id}`}
+        className="flex justify-center my-3"
+      >
+        <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 max-w-[80%] flex items-center gap-1.5">
+          <Info className="h-3.5 w-3.5 text-gray-500" />
+          <div>{message.content}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle transfer messages
   if (message.type === 'transfer') {
     const isTransferHighlighted = selectedAgent && 
       (message.from === selectedAgent || message.to === selectedAgent);
