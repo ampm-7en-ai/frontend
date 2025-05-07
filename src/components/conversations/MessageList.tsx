@@ -81,17 +81,12 @@ const MessageList = ({
 
   // Determine message style based on sender
   const userMessageStyle = "bg-primary text-primary-foreground dark:bg-blue-600";
-  const botMessageStyle = isHighlighted 
-    ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50" 
-    : "border-slate-200 dark:border-slate-700";
   
   return (
     <div 
       key={message.id} 
       id={`message-${message.id}`}
       className={`mb-6 ${message.sender === 'user' ? 'flex justify-end' : 'flex justify-start'} px-1`}
-      onMouseEnter={() => message.sender === 'bot' && setShowControls(true)}
-      onMouseLeave={() => message.sender === 'bot' && setShowControls(false)}
     >
       {message.sender === 'bot' && (
         <Avatar className={cn(
@@ -137,7 +132,11 @@ const MessageList = ({
             </div>
           </div>
         ) : (
-          <div className="flex flex-col">
+          <div 
+            className="flex flex-col group relative"
+            onMouseEnter={() => setShowControls(true)}
+            onMouseLeave={() => setShowControls(false)}
+          >
             <div 
               className={cn(
                 "p-4 transition-all",
@@ -157,91 +156,95 @@ const MessageList = ({
               </div>
             </div>
             
-            {/* Action buttons at bottom of message */}
-            {showControls && (
-              <div className="flex items-center gap-1 mt-1.5 ml-1">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        onClick={handleCopy} 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
-                        <Copy className="h-4 w-4 text-slate-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Copy response</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
-                        <RotateCcw className="h-4 w-4 text-slate-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Regenerate response</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
-                        <ThumbsUp className="h-4 w-4 text-slate-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Mark as helpful</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
-                        <ThumbsDown className="h-4 w-4 text-slate-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Mark as unhelpful</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
-                        <MoreHorizontal className="h-4 w-4 text-slate-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>More options</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
+            {/* Action buttons at bottom of message - visible on hover */}
+            <div 
+              className={cn(
+                "flex items-center gap-1 mt-1.5 ml-1",
+                showControls ? "opacity-100" : "opacity-0",
+                "transition-opacity duration-150"
+              )}
+            >
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={handleCopy} 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      <Copy className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Copy response</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      <RotateCcw className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Regenerate response</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      <ThumbsUp className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mark as helpful</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      <ThumbsDown className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mark as unhelpful</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      <MoreHorizontal className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>More options</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         )}
       </div>
