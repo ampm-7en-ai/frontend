@@ -1,9 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, RefreshCw, User, Info } from 'lucide-react';
+import { Bot, RefreshCw, User, Info, Copy, Edit, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { 
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 interface MessageProps {
   message: any;
@@ -17,6 +30,15 @@ const MessageList = ({
   messageContainerRef 
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
+  const [showControls, setShowControls] = useState(false);
+
+  // Handle message actions
+  const handleCopy = () => {
+    if (typeof message.content === 'string') {
+      navigator.clipboard.writeText(message.content);
+      toast.success("Message copied to clipboard");
+    }
+  };
 
   // Handle system messages
   if (message.sender === 'system') {
@@ -65,14 +87,16 @@ const MessageList = ({
   // Determine message style based on sender
   const userMessageStyle = "bg-primary text-primary-foreground dark:bg-blue-600";
   const botMessageStyle = isHighlighted 
-    ? "bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700" 
-    : "bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700";
+    ? "border-slate-200 dark:border-slate-700" 
+    : "border-slate-200 dark:border-slate-700";
   
   return (
     <div 
       key={message.id} 
       id={`message-${message.id}`}
       className={`mb-6 ${message.sender === 'user' ? 'flex justify-end' : 'flex justify-start'} px-1`}
+      onMouseEnter={() => message.sender === 'bot' && setShowControls(true)}
+      onMouseLeave={() => message.sender === 'bot' && setShowControls(false)}
     >
       {message.sender === 'bot' && (
         <Avatar className={cn(
@@ -80,7 +104,7 @@ const MessageList = ({
           isHighlighted ? "bg-primary ring-2 ring-primary/30" : "bg-slate-700"
         )}>
           <AvatarFallback>
-            <Bot className="h-4 w-4" />
+            <Bot className="h-4 w-4 text-white" />
           </AvatarFallback>
         </Avatar>
       )}
@@ -98,30 +122,126 @@ const MessageList = ({
           </div>
         )}
         
-        <div 
-          className={cn(
-            "p-4 transition-all shadow-sm",
-            message.sender === 'user' ? "rounded-2xl rounded-tr-sm" : "rounded-2xl rounded-tl-sm",
-            message.sender === 'user' ? userMessageStyle : botMessageStyle
-          )}
-        >
-          <div className={cn(
-            "prose-sm max-w-none break-words",
-            message.sender === 'user' ? "text-white" : "text-slate-800 dark:text-slate-200"
-          )}>
-            {typeof message.content === 'string' && (
-              <ReactMarkdown>
-                {message.content}
-              </ReactMarkdown>
+        {message.sender === 'user' ? (
+          <div 
+            className={cn(
+              "p-4 transition-all shadow-sm",
+              "rounded-2xl rounded-tr-sm",
+              userMessageStyle
             )}
+          >
+            <div className="prose-sm max-w-none break-words text-white">
+              {typeof message.content === 'string' && (
+                <ReactMarkdown>
+                  {message.content}
+                </ReactMarkdown>
+              )}
+            </div>
+            <div className="text-xs mt-2 opacity-70 text-right">
+              {message.timestamp}
+            </div>
           </div>
-          <div className={cn(
-            "text-xs mt-2",
-            message.sender === 'user' ? "opacity-70 text-right" : "text-slate-500"
-          )}>
-            {message.timestamp}
-          </div>
-        </div>
+        ) : (
+          <ContextMenu>
+            <ContextMenuTrigger>
+              <div 
+                className={cn(
+                  "p-4 transition-all",
+                  "rounded-2xl rounded-tl-sm bg-transparent",
+                  botMessageStyle,
+                  "border prose dark:prose-invert"
+                )}
+              >
+                <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
+                  {typeof message.content === 'string' && (
+                    <ReactMarkdown>
+                      {message.content}
+                    </ReactMarkdown>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs mt-2 text-slate-500">
+                    {message.timestamp}
+                  </div>
+                  
+                  {showControls && (
+                    <div className="flex gap-2 mt-2 text-slate-400">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button onClick={handleCopy} className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                              <Copy className="h-4 w-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Copy message</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Revise message</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="hover:text-green-500 transition-colors">
+                              <ThumbsUp className="h-4 w-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Mark as helpful</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="hover:text-red-500 transition-colors">
+                              <ThumbsDown className="h-4 w-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Mark as unhelpful</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="min-w-[160px]">
+              <ContextMenuItem onClick={handleCopy}>
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Copy message</span>
+              </ContextMenuItem>
+              <ContextMenuItem>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Revise</span>
+              </ContextMenuItem>
+              <ContextMenuItem>
+                <ThumbsUp className="mr-2 h-4 w-4" />
+                <span>Mark as helpful</span>
+              </ContextMenuItem>
+              <ContextMenuItem>
+                <ThumbsDown className="mr-2 h-4 w-4" />
+                <span>Mark as unhelpful</span>
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        )}
       </div>
       
       {message.sender === 'user' && (
