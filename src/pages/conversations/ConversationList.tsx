@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -34,12 +33,10 @@ const ConversationList = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { conversations: originalConversations } = useConversations();
+  const { conversations, isLoading: isLoadingConversations } = useConversations();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
-  const conversations = originalConversations;
-  
-  const [selectedConversation, setSelectedConversation] = useState<string | null>('conv1');
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('unresolved');
   const [channelFilter, setChannelFilter] = useState('all');
@@ -57,12 +54,21 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Set a default selected conversation if there are conversations and none is selected
+  useEffect(() => {
+    if (conversations.length > 0 && !selectedConversation) {
+      setSelectedConversation(conversations[0].id);
+    }
+  }, [conversations, selectedConversation]);
+
   const activeConversation = conversations.find(c => c.id === selectedConversation) || null;
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 
   const filteredConversations = conversations.filter(conv => {
-    const matchesStatus = filterStatus === 'all' || conv.status === filterStatus;
+    // For the status filter, map 'completed' from API to 'resolved' for UI
+    const convStatus = conv.status === 'completed' ? 'resolved' : conv.status;
+    const matchesStatus = filterStatus === 'all' || convStatus === filterStatus;
     const matchesChannel = channelFilter === 'all' || conv.channel === channelFilter;
     const matchesAgentType = agentTypeFilter === 'all' || conv.agentType === agentTypeFilter;
     
@@ -104,6 +110,7 @@ const ConversationList = () => {
               setChannelFilter={setChannelFilter}
               agentTypeFilter={agentTypeFilter}
               setAgentTypeFilter={setAgentTypeFilter}
+              isLoading={isLoadingConversations}
             />
           </ResizablePanel>
           

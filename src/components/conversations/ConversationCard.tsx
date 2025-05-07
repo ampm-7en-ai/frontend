@@ -8,18 +8,19 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 interface Conversation {
   id: string;
   customer: string;
-  email: string;
+  email: string | null;
   lastMessage: string;
   time: string;
-  status: 'active' | 'pending' | 'closed';
+  status: string;
   agent: string;
-  satisfaction: 'high' | 'medium' | 'low';
-  priority: 'high' | 'normal' | 'low';
+  satisfaction: string;
+  priority: string;
   duration: string;
   handoffCount: number;
-  topic: string;
-  messages: any[];
-  channel?: string;
+  topic: string[];
+  channel: string;
+  agentType?: "human" | "ai" | null;
+  messages?: Array<any>;
 }
 
 interface ConversationCardProps {
@@ -70,15 +71,11 @@ const ConversationCard = ({
             <Instagram className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
+      case 'website':
       case 'whatsapp':
-        return (
-          <div className="bg-green-500 w-full h-full flex items-center justify-center rounded-sm">
-            <MessageSquare className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </div>
-        );
       default:
         return (
-          <div className="bg-gray-600 w-full h-full flex items-center justify-center rounded-sm">
+          <div className="bg-green-500 w-full h-full flex items-center justify-center rounded-sm">
             <MessageSquare className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
         );
@@ -142,6 +139,18 @@ const ConversationCard = ({
                     <Users className="h-3 w-3 mr-1 text-gray-400" />
                     {conversation.handoffCount}
                   </div>
+                )}
+              </div>
+              <div className="flex items-center text-xs">
+                {conversation.agentType && (
+                  <span className={cn(
+                    "px-1.5 py-0.5 rounded text-xs font-medium",
+                    conversation.agentType === "ai" 
+                      ? "bg-purple-100 text-purple-700"
+                      : "bg-blue-100 text-blue-700"
+                  )}>
+                    {conversation.agentType === "ai" ? "AI" : "Human"}
+                  </span>
                 )}
               </div>
             </div>
