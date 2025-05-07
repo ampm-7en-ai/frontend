@@ -9,19 +9,31 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
+import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { CreateEmailTemplateDialog } from '@/components/settings/platform/CreateEmailTemplateDialog';
 
 const CustomizationSettings = () => {
+  const { toast } = useToast();
+  const [isEmailTemplateDialogOpen, setIsEmailTemplateDialogOpen] = useState(false);
+  
+  const handleSaveSettings = (section: string) => {
+    toast({
+      title: "Settings Saved",
+      description: `${section} settings have been saved successfully.`,
+    });
+  };
+
   return (
     <PlatformSettingsLayout
       title="Customization Settings"
       description="Personalize your platform's look and feel"
     >
       <Tabs defaultValue="branding">
-        <TabsList className="grid w-full grid-cols-4 mb-8">
+        <TabsList className="grid w-full grid-cols-3 mb-8">
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="themes">Themes</TabsTrigger>
           <TabsTrigger value="emails">Email Templates</TabsTrigger>
-          <TabsTrigger value="widgets">Widgets</TabsTrigger>
         </TabsList>
         
         <TabsContent value="branding">
@@ -111,7 +123,7 @@ const CustomizationSettings = () => {
                 </div>
               </div>
               
-              <Button>Save Branding Settings</Button>
+              <Button onClick={() => handleSaveSettings("Branding")}>Save Branding Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -202,16 +214,19 @@ const CustomizationSettings = () => {
                 </div>
               </div>
               
-              <Button>Save Theme Settings</Button>
+              <Button onClick={() => handleSaveSettings("Theme")}>Save Theme Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="emails">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Templates</CardTitle>
-              <CardDescription>Customize email notifications and templates</CardDescription>
+          <Card className="mb-6">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Email Templates</CardTitle>
+                <CardDescription>Customize email notifications and templates</CardDescription>
+              </div>
+              <Button onClick={() => setIsEmailTemplateDialogOpen(true)}>Create New Template</Button>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
@@ -265,114 +280,40 @@ const CustomizationSettings = () => {
               
               <div className="flex items-center gap-4">
                 <Button variant="outline">Preview Template</Button>
-                <Button>Save Template</Button>
+                <Button onClick={() => handleSaveSettings("Email Template")}>Save Template</Button>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="widgets">
+          
           <Card>
             <CardHeader>
-              <CardTitle>Chat Widget Customization</CardTitle>
-              <CardDescription>Configure the appearance of customer-facing chat widgets</CardDescription>
+              <CardTitle>Available Templates</CardTitle>
+              <CardDescription>Manage your email templates</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Chat Widget Preview</Label>
-                    <div className="border rounded-lg h-96 p-4 relative bg-white">
-                      <div className="bg-primary text-white p-3 rounded-t-lg">
-                        <h3 className="font-medium">Chat with our AI Assistant</h3>
-                      </div>
-                      <div className="h-64 p-4 overflow-y-auto bg-gray-50 border-x">
-                        <div className="flex gap-2 mb-4">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                            🤖
-                          </div>
-                          <div className="bg-primary/10 p-3 rounded-lg max-w-[80%]">
-                            <p className="text-sm">Hello! How can I help you today?</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 mb-4 justify-end">
-                          <div className="bg-primary/20 p-3 rounded-lg max-w-[80%]">
-                            <p className="text-sm">I have a question about your services.</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                            🤖
-                          </div>
-                          <div className="bg-primary/10 p-3 rounded-lg max-w-[80%]">
-                            <p className="text-sm">I'd be happy to help with that! What would you like to know about our services?</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-3 border flex gap-2 rounded-b-lg">
-                        <Input placeholder="Type your message..." className="flex-1" />
-                        <Button size="sm">Send</Button>
-                      </div>
+            <CardContent>
+              <div className="space-y-4">
+                {["Welcome Email", "Email Verification", "Password Reset", "Invoice Notification", "Subscription Renewal"].map((template, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-md">
+                    <div>
+                      <h4 className="font-medium">{template}</h4>
+                      <p className="text-sm text-muted-foreground">Last edited: May 1, 2025</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm">Edit</Button>
+                      <Button variant="outline" size="sm">Duplicate</Button>
                     </div>
                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="widgetPosition">Widget Position</Label>
-                    <Select defaultValue="bottom-right">
-                      <SelectTrigger id="widgetPosition">
-                        <SelectValue placeholder="Select position" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                        <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                        <SelectItem value="top-right">Top Right</SelectItem>
-                        <SelectItem value="top-left">Top Left</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="widgetColor">Widget Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="widgetColor" defaultValue="#8B5CF6" className="w-20 h-10" />
-                      <Input defaultValue="#8B5CF6" className="flex-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="widgetTitle">Widget Title</Label>
-                    <Input id="widgetTitle" defaultValue="Chat with our AI Assistant" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="welcomeMessage">Welcome Message</Label>
-                    <Input id="welcomeMessage" defaultValue="Hello! How can I help you today?" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="placeholderText">Input Placeholder</Label>
-                    <Input id="placeholderText" defaultValue="Type your message..." />
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 pt-2">
-                    <Switch id="showAgentAvatar" defaultChecked />
-                    <Label htmlFor="showAgentAvatar">Show Agent Avatar</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch id="showTimestamps" />
-                    <Label htmlFor="showTimestamps">Show Message Timestamps</Label>
-                  </div>
-                </div>
+                ))}
               </div>
-              
-              <Button>Save Widget Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <CreateEmailTemplateDialog 
+        open={isEmailTemplateDialogOpen} 
+        onOpenChange={setIsEmailTemplateDialogOpen}
+      />
     </PlatformSettingsLayout>
   );
 };
