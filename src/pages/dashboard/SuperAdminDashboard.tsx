@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +17,60 @@ import {
   Database,
   AlertCircle,
   CheckCircle,
-  WifiHigh
+  WifiHigh,
+  TrendingUp,
+  CreditCard
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BusinessAdminStats } from '@/components/dashboard/BusinessAdminStats';
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
 
 const SuperAdminDashboard = () => {
+  // Sample data for charts (imported from PlatformAnalytics)
+  const growthData = [
+    { month: 'Jan', businesses: 95, users: 1800 },
+    { month: 'Feb', businesses: 102, users: 2100 },
+    { month: 'Mar', businesses: 108, users: 2300 },
+    { month: 'Apr', businesses: 118, users: 2450 },
+    { month: 'May', businesses: 125, users: 2600 },
+    { month: 'Jun', businesses: 132, users: 2700 },
+    { month: 'Jul', businesses: 142, users: 2843 }
+  ];
+
+  const conversationData = [
+    { week: 'W1', conversations: 2800 },
+    { week: 'W2', conversations: 3200 },
+    { week: 'W3', conversations: 3500 },
+    { week: 'W4', conversations: 3700 },
+    { week: 'W5', conversations: 3400 },
+    { week: 'W6', conversations: 3800 },
+    { week: 'W7', conversations: 4100 },
+    { week: 'W8', conversations: 4500 }
+  ];
+
+  const revenueData = [
+    { month: 'Jan', revenue: 85000 },
+    { month: 'Feb', revenue: 90000 },
+    { month: 'Mar', revenue: 98000 },
+    { month: 'Apr', revenue: 102000 },
+    { month: 'May', revenue: 110000 },
+    { month: 'Jun', revenue: 118000 },
+    { month: 'Jul', revenue: 126580 }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -110,6 +159,96 @@ const SuperAdminDashboard = () => {
                 </Link>
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics Overview Charts from PlatformAnalytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Platform Growth</CardTitle>
+            <CardDescription>Business and user growth over time</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={growthData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="month" />
+                <YAxis yAxisId="left" orientation="left" stroke="#0088FE" />
+                <YAxis yAxisId="right" orientation="right" stroke="#00C49F" />
+                <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                <Legend />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="users" 
+                  stroke="#00C49F" 
+                  strokeWidth={2} 
+                  activeDot={{ r: 8 }} 
+                  name="Users"
+                />
+                <Line 
+                  yAxisId="left"
+                  type="monotone" 
+                  dataKey="businesses" 
+                  stroke="#0088FE" 
+                  strokeWidth={2} 
+                  name="Businesses"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversation Volume</CardTitle>
+            <CardDescription>Total conversations by week</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={conversationData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="week" />
+                <YAxis />
+                <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                <Area 
+                  type="monotone" 
+                  dataKey="conversations" 
+                  stroke="#8884d8" 
+                  fill="#8884d8" 
+                  fillOpacity={0.3} 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trends</CardTitle>
+            <CardDescription>Monthly recurring revenue</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="month" />
+                <YAxis 
+                  tickFormatter={(value) => `$${value/1000}k`}
+                />
+                <Tooltip 
+                  formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']}
+                  contentStyle={{ borderRadius: '8px' }}
+                />
+                <Bar 
+                  dataKey="revenue" 
+                  fill="#82ca9d" 
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
