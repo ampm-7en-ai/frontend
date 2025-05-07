@@ -41,7 +41,7 @@ const ConversationFilters = ({
   setAgentTypeFilter
 }: ConversationFiltersProps) => {
   return (
-    <div className="bg-white rounded-lg p-4 mb-4">
+    <div className="bg-white rounded-lg p-4 mb-0 pb-3">
       {/* Centered Tabs at the top */}
       <div className="flex justify-center items-center mb-4">
         <Tabs 
@@ -67,9 +67,10 @@ const ConversationFilters = ({
               <SelectContent>
                 <SelectItem value="all">All Channels</SelectItem>
                 <SelectItem value="website">Website</SelectItem>
-                <SelectItem value="mobile">Mobile App</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="social">Social Media</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="whatsapp">Whatsapp</SelectItem>
+                <SelectItem value="messenger">Messenger</SelectItem>
+                <SelectItem value="slack">Slack</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -70,6 +70,7 @@ const MessageContainer = ({
         setSelectedAgent={setSelectedAgent}
         onInfoClick={onInfoClick}
         getStatusBadge={getStatusBadge}
+        messageCount={messages?.filter(m => m.sender !== "system").length}
       />
       
       <div 

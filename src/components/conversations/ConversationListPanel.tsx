@@ -65,7 +65,7 @@ const ConversationListPanel = ({
     }
 
     return filteredConversations.map((conversation) => (
-      <div key={conversation.id}>
+      <div key={conversation.id} className='px-[5px] my-1'>
         <ConversationCard 
           conversation={conversation}
           isSelected={selectedConversation === conversation.id}

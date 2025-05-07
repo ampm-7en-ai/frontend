@@ -67,7 +67,7 @@ const ConversationList = () => {
 
   const filteredConversations = conversations.filter(conv => {
     // For the status filter, map 'completed' from API to 'resolved' for UI
-    const convStatus = conv.status === 'completed' ? 'resolved' : conv.status;
+    const convStatus = conv.status;
     const matchesStatus = filterStatus === 'all' || convStatus === filterStatus;
     const matchesChannel = channelFilter === 'all' || conv.channel === channelFilter;
     const matchesAgentType = agentTypeFilter === 'all' || conv.agentType === agentTypeFilter;

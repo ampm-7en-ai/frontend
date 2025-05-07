@@ -13,7 +13,9 @@ import {
   Slack, 
   MessageSquare, 
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  Instagram,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -31,6 +33,7 @@ interface ConversationHeaderProps {
   setSelectedAgent: (agent: string | null) => void;
   onInfoClick: () => void;
   getStatusBadge: (status: string) => React.ReactNode;
+  messageCount: number;
 }
 
 const ConversationHeader = ({ 
@@ -38,7 +41,8 @@ const ConversationHeader = ({
   selectedAgent, 
   setSelectedAgent, 
   onInfoClick,
-  getStatusBadge 
+  getStatusBadge,
+  messageCount 
 }: ConversationHeaderProps) => {
   const [showHandoffDialog, setShowHandoffDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState('');
@@ -46,6 +50,8 @@ const ConversationHeader = ({
 
   // Get channel icon with brand-appropriate colors
   const getChannelIcon = () => {
+    console.log(conversation);
+    
     switch (conversation.channel?.toLowerCase()) {
       case 'email':
         return (
@@ -55,26 +61,34 @@ const ConversationHeader = ({
         );
       case 'phone':
         return (
-          <div className="bg-green-600 w-full h-full flex items-center justify-center rounded-sm">
-            <Phone className="h-5 w-5 text-white" strokeWidth={2.5} />
+          <div className="bg-blue-100 w-full h-full flex items-center justify-center rounded-sm">
+            <Phone className="h-5 w-5 text-blue-500" strokeWidth={2.5} />
           </div>
         );
       case 'slack':
         return (
-          <div className="bg-purple-700 w-full h-full flex items-center justify-center rounded-sm">
-            <Slack className="h-5 w-5 text-white" strokeWidth={2.5} />
+          <div className="bg-purple-100 w-full h-full flex items-center justify-center rounded-sm">
+            <Slack className="h-5 w-5 text-purple-500" strokeWidth={2.5} />
           </div>
         );
       case 'instagram':
         return (
-          <div className="bg-pink-600 w-full h-full flex items-center justify-center rounded-sm">
-            <Mail className="h-5 w-5 text-white" strokeWidth={2.5} />
+          <div className="bg-pink-100 w-full h-full flex items-center justify-center rounded-sm">
+            <Instagram className="h-5 w-5 text-pink-500" strokeWidth={2.5} />
           </div>
         );
+      case 'website':
+        return (
+          <div className="bg-green-100 w-full h-full flex items-center justify-center rounded-sm">
+            <Globe className="h-5 w-5 text-green-500" strokeWidth={2.5} />
+          </div>
+        )
+      case 'whatsapp':
       default:
         return (
-          <div className="bg-gray-600 w-full h-full flex items-center justify-center rounded-sm">
+          <div className="bg-green-500 w-full h-full flex items-center justify-center rounded-sm">
             <MessageSquare className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <span className='absolute bottom-[-8px] text-[9px] text-gray-600 bg-white px-0.5 py-0.25 shadow-md rounded-sm'>{conversation.agentType}</span>
           </div>
         );
     }
@@ -102,7 +116,7 @@ const ConversationHeader = ({
             <h2 className="text-base font-semibold">{conversation.customer}</h2>
             <div className="ml-2">{getStatusBadge(conversation.status)}</div>
           </div>
-          <div className="text-xs text-muted-foreground">{conversation.email}</div>
+          <div className="text-xs text-muted-foreground">{conversation.time} | {messageCount} messages</div>
         </div>
       </div>
       <div className="flex items-center gap-2">
