@@ -13,9 +13,15 @@ export class WebSocketService {
   private maxReconnectAttempts = 5;
   private processedMessages: Set<string> = new Set();
   private url: string;
+  private authHeaders: Record<string, string> = {};
 
   constructor(url: string) {
     this.url = url;
+  }
+
+  // Add method to set auth headers
+  setAuthHeaders(headers: Record<string, string>) {
+    this.authHeaders = headers;
   }
 
   connect() {
