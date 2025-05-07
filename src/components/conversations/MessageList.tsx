@@ -140,7 +140,7 @@ const MessageList = ({
             <div 
               className={cn(
                 "p-4 transition-all",
-                "rounded-2xl rounded-tl-sm bg-transparent",
+                "rounded-2xl rounded-tl-sm bg-slate-50 bg-opacity-90",
                 "border prose dark:prose-invert"
               )}
             >
@@ -171,7 +171,7 @@ const MessageList = ({
                       onClick={handleCopy} 
                       size="icon" 
                       variant="ghost" 
-                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-slate-800">
                       <Copy className="h-4 w-4 text-slate-500" />
                     </Button>
                   </TooltipTrigger>
@@ -187,12 +187,12 @@ const MessageList = ({
                     <Button 
                       size="icon" 
                       variant="ghost" 
-                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-slate-800">
                       <RotateCcw className="h-4 w-4 text-slate-500" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Regenerate response</p>
+                    <p>Revise</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -203,7 +203,7 @@ const MessageList = ({
                     <Button 
                       size="icon" 
                       variant="ghost" 
-                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-slate-800">
                       <ThumbsUp className="h-4 w-4 text-slate-500" />
                     </Button>
                   </TooltipTrigger>
@@ -219,28 +219,12 @@ const MessageList = ({
                     <Button 
                       size="icon" 
                       variant="ghost" 
-                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
+                      className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-slate-800">
                       <ThumbsDown className="h-4 w-4 text-slate-500" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Mark as unhelpful</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800">
-                      <MoreHorizontal className="h-4 w-4 text-slate-500" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>More options</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -250,7 +234,7 @@ const MessageList = ({
       </div>
       
       {message.sender === 'user' && (
-        <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-purple-500">
+        <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-purple-500 p-[1px]">
           <AvatarFallback>
             <User className="h-4 w-4" />
           </AvatarFallback>

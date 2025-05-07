@@ -116,7 +116,7 @@ const ConversationHeader = ({
             <h2 className="text-base font-semibold">{conversation.customer}</h2>
             <div className="ml-2">{getStatusBadge(conversation.status)}</div>
           </div>
-          <div className="text-xs text-muted-foreground">{conversation.time} | {messageCount} messages</div>
+          <div className="text-xs text-muted-foreground">{conversation.time} . {messageCount} messages</div>
         </div>
       </div>
       <div className="flex items-center gap-2">

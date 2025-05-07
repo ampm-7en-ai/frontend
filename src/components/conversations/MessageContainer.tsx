@@ -75,7 +75,7 @@ const MessageContainer = ({
         messageCount={messages?.filter(m => m.sender !== "system").length}
       />
       
-      <div className="flex-1 overflow-hidden bg-slate-50 dark:bg-slate-900"> 
+      <div className="flex-1 overflow-hidden" style={{background: "#f2f2f2"}}> 
         <ScrollArea 
           className="h-[calc(100vh-12rem)]"
           style={{ height: "calc(100vh - 12rem)" }}
