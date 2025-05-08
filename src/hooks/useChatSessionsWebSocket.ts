@@ -28,7 +28,8 @@ export function useChatSessionsWebSocket({
   useEffect(() => {
     if (!sessionId) return;
     
-    wsRef.current = new ChatSessionsWebSocketService(sessionId);
+    // Create the service without passing sessionId to constructor
+    wsRef.current = new ChatSessionsWebSocketService();
     
     wsRef.current.on({
       onMessage: (message) => {
@@ -83,12 +84,13 @@ export function useChatSessionsWebSocket({
     }
     
     try {
-      wsRef.current.sendMessage(content);
+      // Fix: Pass sessionId as the first argument to sendMessage
+      wsRef.current.sendMessage(sessionId, content);
     } catch (err) {
       console.error('Error sending message:', err);
       setError('Failed to send message');
     }
-  }, []);
+  }, [sessionId]); // Add sessionId to dependencies
   
   // Function to send custom data
   const send = useCallback((data: any) => {
