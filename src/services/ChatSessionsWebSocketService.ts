@@ -32,10 +32,12 @@ export class ChatSessionsWebSocketService {
   private authToken: string | null = null;
   
   constructor(sessionId: string) {
-    // Use the new WebSocket endpoint
-    const endpoint = `wss://api.7en.ai/ws/chat/chatsessions/`;
     // Get auth token from localStorage
     this.authToken = JSON.parse(localStorage.getItem('user') || '{}')?.accessToken || null;
+
+    // Use the new WebSocket endpoint
+    const endpoint = `wss://api.7en.ai/ws/chat/sessions/?token=${this.authToken}`;
+   
 
     // Initialize WebSocket with auth headers
     this.ws = new WebSocketService(endpoint);
