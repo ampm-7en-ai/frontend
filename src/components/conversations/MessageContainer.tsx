@@ -37,6 +37,9 @@ const MessageContainer = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<any[]>([]);
   
+  // Use our WebSocket hook with memoized conversation ID
+  const conversationId = conversation?.id || null;
+  
   // Use our new WebSocket hook to fetch messages for the selected conversation
   const { 
     messages: wsMessages, 
@@ -44,8 +47,8 @@ const MessageContainer = ({
     isConnected,
     sendMessage
   } = useChatMessagesWebSocket({
-    sessionId: conversation?.id || null,
-    autoConnect: !!conversation?.id,
+    sessionId: conversationId,
+    autoConnect: !!conversationId,
     onMessagesReceived: (receivedMessages) => {
       console.log("Received initial messages:", receivedMessages);
       setMessages(receivedMessages);

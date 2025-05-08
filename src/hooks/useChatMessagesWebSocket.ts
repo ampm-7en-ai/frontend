@@ -33,22 +33,32 @@ export function useChatMessagesWebSocket({
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocketService | null>(null);
+  const currentSessionId = useRef<string | null>(null);
   
   // Initialize the WebSocket service
   useEffect(() => {
-    if (!sessionId) {
-      // Clean up any existing connection if sessionId becomes null
-      if (wsRef.current) {
-        wsRef.current.disconnect();
-        wsRef.current = null;
-      }
+    // If no session ID or it's the same as current, don't reconnect
+    if (!sessionId || sessionId === currentSessionId.current) {
       return;
     }
+    
+    // Clean up any existing connection
+    if (wsRef.current) {
+      console.log(`Disconnecting from previous websocket for session ${currentSessionId.current}`);
+      wsRef.current.disconnect();
+      wsRef.current = null;
+    }
+    
+    // Update current session ID
+    currentSessionId.current = sessionId;
     
     // Create WebSocket URL with sessionId
     const wsUrl = `wss://api.7en.ai/ws/chat/messages/${sessionId}/`;
     console.log(`Connecting to messages WebSocket for session ${sessionId}`);
     wsRef.current = new WebSocketService(wsUrl);
+    
+    // Reset messages when changing sessions
+    setMessages([]);
     
     // Set up event handlers
     wsRef.current.on('messages', (data) => {
@@ -97,10 +107,11 @@ export function useChatMessagesWebSocket({
     
     // Cleanup function
     return () => {
-      if (wsRef.current) {
+      if (wsRef.current && currentSessionId.current === sessionId) {
         console.log(`Disconnecting from messages WebSocket for session ${sessionId}`);
         wsRef.current.disconnect();
         wsRef.current = null;
+        currentSessionId.current = null;
       }
     };
   }, [sessionId, onMessage, onMessagesReceived, onTypingStart, onTypingEnd, autoConnect]);
@@ -140,6 +151,7 @@ export function useChatMessagesWebSocket({
   const disconnect = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.disconnect();
+      currentSessionId.current = null;
     }
   }, []);
   
