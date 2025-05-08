@@ -45,7 +45,7 @@ export class WebSocketService {
         
         // Generate a message ID for deduplication
         const messageId = data.id || 
-                         `${data.type}-${data.content || ''}-${data.timestamp || ''}`;
+                         `${data.type}-${JSON.stringify(data.data || {})}-${new Date().getTime()}`;
         
         // Skip duplicate processing within a short time window
         if (this.processedMessages.has(messageId)) {

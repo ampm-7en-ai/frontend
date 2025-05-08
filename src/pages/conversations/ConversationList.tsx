@@ -5,26 +5,20 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useConversationUtils } from '@/hooks/useConversationUtils';
-import { useConversations } from '@/hooks/useConversations';
+import { useChatSessions } from '@/hooks/useChatSessions';
 
 import ConversationListPanel from '@/components/conversations/ConversationListPanel';
 import MessageContainer from '@/components/conversations/MessageContainer';
 import ConversationDetailsPanel from '@/components/conversations/ConversationDetailsPanel';
 import ConversationSidebar from '@/components/conversations/ConversationSidebar';
-import { Conversation } from '@/hooks/useConversationsApi'; // Import Conversation type
-
-interface LocalConversation extends Omit<Conversation, 'topic'> {
-  topic: string | string[];
-}
 
 const ConversationList = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { conversations: initialConversations, isLoading: isLoadingConversations } = useConversations();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
-  const [conversations, setConversations] = useState<LocalConversation[]>([]);
+  // State for conversation filters and selection
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('unresolved');
@@ -34,13 +28,8 @@ const ConversationList = () => {
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
-  // Initialize conversations from the API data
-  useEffect(() => {
-    if (initialConversations.length > 0) {
-      // Make sure we convert the data to match our LocalConversation type
-      setConversations(initialConversations as LocalConversation[]);
-    }
-  }, [initialConversations]);
+  // Get the sessions from our WebSocket hook
+  const { sessions } = useChatSessions();
   
   useEffect(() => {
     const handleResize = () => {
@@ -51,26 +40,10 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Set a default selected conversation if there are conversations and none is selected
-  useEffect(() => {
-    if (conversations.length > 0 && !selectedConversation) {
-      setSelectedConversation(conversations[0].id);
-    }
-  }, [conversations, selectedConversation]);
-
-  const activeConversation = conversations.find(c => c.id === selectedConversation) || null;
+  // Find the active conversation
+  const activeConversation = sessions.find(c => c.id === selectedConversation) || null;
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
-
-  const filteredConversations = conversations.filter(conv => {
-    // For the status filter, map 'completed' from API to 'resolved' for UI
-    const convStatus = conv.status;
-    const matchesStatus = filterStatus === 'all' || convStatus === filterStatus;
-    const matchesChannel = channelFilter === 'all' || conv.channel === channelFilter;
-    const matchesAgentType = agentTypeFilter === 'all' || conv.agentType === agentTypeFilter;
-    
-    return matchesStatus && matchesChannel && matchesAgentType;
-  });
 
   const handleHandoffClick = (handoff: any) => {
     setSelectedAgent(handoff.from);
@@ -99,14 +72,12 @@ const ConversationList = () => {
               setFilterStatus={setFilterStatus}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              filteredConversations={filteredConversations}
               selectedConversation={selectedConversation}
               setSelectedConversation={handleConversationSelect}
               channelFilter={channelFilter}
               setChannelFilter={setChannelFilter}
               agentTypeFilter={agentTypeFilter}
               setAgentTypeFilter={setAgentTypeFilter}
-              isLoading={isLoadingConversations}
             />
           </ResizablePanel>
           
@@ -162,7 +133,6 @@ const ConversationList = () => {
             setFilterStatus={setFilterStatus}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
-            filteredConversations={filteredConversations}
             selectedConversation={selectedConversation}
             setSelectedConversation={handleConversationSelect}
             channelFilter={channelFilter}

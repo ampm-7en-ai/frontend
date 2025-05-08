@@ -4,8 +4,9 @@ import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader } from 'lucide-react';
-import { useChatSessionsWebSocket } from '@/hooks/useChatSessionsWebSocket';
+import { Loader, RefreshCw } from 'lucide-react';
+import { useChatSessions } from '@/hooks/useChatSessions';
+import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 
 interface ConversationListPanelProps {
@@ -13,13 +14,12 @@ interface ConversationListPanelProps {
   setFilterStatus: (status: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  filteredConversations: any[];
-  selectedConversation: string | null;
-  setSelectedConversation: (id: string) => void;
   channelFilter: string;
   setChannelFilter: (channel: string) => void;
   agentTypeFilter: string;
   setAgentTypeFilter: (type: string) => void;
+  selectedConversation: string | null;
+  setSelectedConversation: (id: string) => void;
   isLoading?: boolean;
 }
 
@@ -28,42 +28,78 @@ const ConversationListPanel = ({
   setFilterStatus,
   searchQuery,
   setSearchQuery,
-  filteredConversations,
-  selectedConversation,
-  setSelectedConversation,
   channelFilter,
   setChannelFilter,
   agentTypeFilter,
   setAgentTypeFilter,
-  isLoading = false
+  selectedConversation,
+  setSelectedConversation,
+  isLoading: externalLoading = false
 }: ConversationListPanelProps) => {
   const [displayCount, setDisplayCount] = useState(10);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const visibleConversations = filteredConversations.slice(0, displayCount);
-  const hasMore = displayCount < filteredConversations.length;
   const { toast } = useToast();
   
-  // Set up WebSocket for the selected conversation
-  const { isConnected, isTyping, sendMessage } = useChatSessionsWebSocket({
-    sessionId: selectedConversation || '',
-    onMessage: (message) => {
-      console.log('WebSocket message received in ConversationListPanel:', message);
-      // You could add logic here to update the conversation list if needed
-      // For example, marking conversations as updated when new messages arrive
-    },
-    onTypingStart: () => {
-      console.log('Typing started in conversation', selectedConversation);
-    },
-    onTypingEnd: () => {
-      console.log('Typing ended in conversation', selectedConversation);
-    },
-    onSessionUpdate: (sessionData) => {
-      console.log('Session update received:', sessionData);
-      // Handle session updates if needed
-    },
-    // Only connect when a conversation is selected
-    autoConnect: !!selectedConversation
-  });
+  // Use our new WebSocket sessions hook
+  const { 
+    sessions, 
+    isLoading: sessionsLoading, 
+    isConnected, 
+    error, 
+    refreshSessions,
+    filterSessionsByStatus,
+    filterSessionsByChannel,
+    filterSessionsByAgentType,
+    filterSessionsBySearch
+  } = useChatSessions();
+  
+  // Apply all filters
+  const filteredSessions = React.useMemo(() => {
+    let result = sessions;
+    
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      result = filterSessionsByStatus(filterStatus);
+    }
+    
+    // Apply channel filter
+    if (channelFilter !== 'all') {
+      result = filterSessionsByChannel(channelFilter);
+    }
+    
+    // Apply agent type filter
+    if (agentTypeFilter !== 'all') {
+      result = filterSessionsByAgentType(agentTypeFilter);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      result = filterSessionsBySearch(searchQuery);
+    }
+    
+    return result;
+  }, [
+    sessions, 
+    filterStatus, 
+    channelFilter, 
+    agentTypeFilter, 
+    searchQuery,
+    filterSessionsByStatus,
+    filterSessionsByChannel,
+    filterSessionsByAgentType,
+    filterSessionsBySearch
+  ]);
+  
+  const visibleSessions = filteredSessions.slice(0, displayCount);
+  const hasMore = displayCount < filteredSessions.length;
+  const isLoadingState = externalLoading || sessionsLoading;
+  
+  // Set a default selected conversation if there are sessions and none is selected
+  useEffect(() => {
+    if (filteredSessions.length > 0 && !selectedConversation) {
+      setSelectedConversation(filteredSessions[0].id);
+    }
+  }, [filteredSessions, selectedConversation, setSelectedConversation]);
 
   // Set up intersection observer for infinite scrolling
   useEffect(() => {
@@ -74,7 +110,7 @@ const ConversationListPanel = ({
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && !isLoading) {
+        if (entry.isIntersecting && !isLoadingState) {
           setDisplayCount(prev => prev + 10);
         }
       },
@@ -88,32 +124,34 @@ const ConversationListPanel = ({
         observer.unobserve(currentRef);
       }
     };
-  }, [hasMore, isLoading, filteredConversations.length]);
+  }, [hasMore, isLoadingState, filteredSessions.length]);
 
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(10);
   }, [filterStatus, channelFilter, agentTypeFilter, searchQuery]);
-
-  // Log WebSocket connection status changes
+  
+  // Show error if WebSocket fails
   useEffect(() => {
-    console.log('WebSocket connection status in ConversationListPanel:', isConnected);
-  }, [isConnected]);
+    if (error) {
+      toast({
+        title: "Connection Error",
+        description: error,
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
 
-  const handleSendMessage = (message: string) => {
-    if (!selectedConversation) return;
-    
-    // Use WebSocket to send message
-    sendMessage(message);
-    
+  const handleRefresh = () => {
+    refreshSessions();
     toast({
-      title: "Message sent",
-      description: "Your message has been sent to the customer.",
+      title: "Refreshing sessions",
+      description: "Getting the latest conversations...",
     });
   };
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoadingState) {
       return Array(5).fill(0).map((_, index) => (
         <div key={`skeleton-${index}`} className="p-3">
           <div className="flex items-start gap-3">
@@ -132,24 +170,33 @@ const ConversationListPanel = ({
       ));
     }
 
-    if (filteredConversations.length === 0) {
+    if (filteredSessions.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center p-4">
           <p className="text-sm text-gray-500 mt-1">
-            No conversations found. Try adjusting your filters.
+            No conversations found. Try adjusting your filters or refreshing.
           </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh} 
+            className="mt-2 flex items-center gap-1"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Refresh
+          </Button>
         </div>
       );
     }
 
     return (
       <>
-        {visibleConversations.map((conversation) => (
-          <div key={conversation.id} className='px-[5px] my-1'>
+        {visibleSessions.map((session) => (
+          <div key={session.id} className='px-[5px] my-1'>
             <ConversationCard 
-              conversation={conversation}
-              isSelected={selectedConversation === conversation.id}
-              onClick={() => setSelectedConversation(conversation.id)}
+              conversation={session}
+              isSelected={selectedConversation === session.id}
+              onClick={() => setSelectedConversation(session.id)}
             />
           </div>
         ))}
@@ -182,15 +229,22 @@ const ConversationListPanel = ({
         />
       </div>
       
-      {/* WebSocket Status Indicator (optional) */}
-      {selectedConversation && (
-        <div className={`px-4 py-1 text-xs ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
+      {/* WebSocket Status Indicator */}
+      <div className="px-4 py-1 flex items-center justify-between">
+        <div className={`text-xs ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
           {isConnected ? 'Connected' : 'Connecting...'}
-          {isTyping && isConnected && <span className="ml-2">User is typing...</span>}
         </div>
-      )}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleRefresh} 
+          disabled={!isConnected}
+        >
+          <RefreshCw className="h-3 w-3" />
+        </Button>
+      </div>
       
-      {/* Conversation List - Use ScrollArea with proper styling */}
+      {/* Conversation List */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-[calc(100vh-12rem)]" style={{ height: "calc(100vh - 12rem)" }}>
           {renderContent()}
