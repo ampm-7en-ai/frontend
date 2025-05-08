@@ -34,37 +34,21 @@ const MessageContainer = ({
 }: MessageContainerProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = useState<any[]>([]);
   
-  // Use our WebSocket hook with memoized conversation ID
+  // Use conversation ID as key to force WebSocket hook to reinitialize when conversation changes
   const conversationId = conversation?.id || null;
   
-  // Use our new WebSocket hook to fetch messages for the selected conversation
+  // Use our WebSocket hook to fetch messages for the selected conversation
   const { 
-    messages: wsMessages, 
+    messages, 
     isTyping: wsIsTyping,
     isConnected,
     sendMessage
   } = useChatMessagesWebSocket({
     sessionId: conversationId,
-    autoConnect: !!conversationId,
-    onMessagesReceived: (receivedMessages) => {
-      console.log("Received initial messages:", receivedMessages);
-      setMessages(receivedMessages);
-    },
-    onMessage: (newMessage) => {
-      console.log("Received new message:", newMessage);
-      // New messages will be handled by the messages state from the hook
-    }
+    autoConnect: !!conversationId
   });
   
-  // Use messages from WebSocket
-  useEffect(() => {
-    if (wsMessages.length > 0) {
-      setMessages(wsMessages);
-    }
-  }, [wsMessages]);
-
   // Effect to scroll to agent messages when selectedAgent changes
   useEffect(() => {
     if (selectedAgent && messageContainerRef.current && messages) {

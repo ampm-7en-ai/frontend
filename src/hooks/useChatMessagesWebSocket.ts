@@ -34,12 +34,26 @@ export function useChatMessagesWebSocket({
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocketService | null>(null);
   const currentSessionId = useRef<string | null>(null);
+  const messagesMapRef = useRef<Map<string, Message[]>>(new Map());
   
   // Initialize the WebSocket service
   useEffect(() => {
     // If no session ID, don't connect
     if (!sessionId) {
+      setMessages([]);
       return;
+    }
+    
+    console.log(`Session change detected: ${currentSessionId.current} -> ${sessionId}`);
+    
+    // Immediately set messages from cache if available to prevent flicker
+    const cachedMessages = messagesMapRef.current.get(sessionId);
+    if (cachedMessages) {
+      console.log(`Using cached messages for session ${sessionId}`, cachedMessages.length);
+      setMessages(cachedMessages);
+    } else {
+      console.log(`No cached messages for session ${sessionId}, clearing messages`);
+      setMessages([]);
     }
     
     // If it's the same session ID and already connected, don't reconnect
@@ -55,9 +69,6 @@ export function useChatMessagesWebSocket({
       wsRef.current = null;
     }
     
-    // Reset messages when changing sessions
-    setMessages([]);
-    
     // Update current session ID
     currentSessionId.current = sessionId;
     
@@ -68,45 +79,74 @@ export function useChatMessagesWebSocket({
     
     // Set up event handlers
     wsRef.current.on('messages', (data) => {
-      console.log('Messages received:', data);
+      console.log(`Messages received for session ${sessionId}:`, data);
       if (data.data && Array.isArray(data.data)) {
         const validMessages = data.data.filter((msg: any) => 
           msg && msg.content && typeof msg.content === 'string' && msg.content.trim() !== ''
         );
-        setMessages(validMessages);
-        onMessagesReceived?.(validMessages);
+        
+        // Only update if this is still the current session
+        if (sessionId === currentSessionId.current) {
+          setMessages(validMessages);
+          onMessagesReceived?.(validMessages);
+        }
+        
+        // Cache messages for this session ID
+        messagesMapRef.current.set(sessionId, validMessages);
       }
     });
     
     wsRef.current.on('message', (data) => {
-      console.log('New message received:', data);
+      console.log(`New message received for session ${sessionId}:`, data);
       if (data && data.content && typeof data.content === 'string' && data.content.trim() !== '') {
-        onMessage?.(data);
-        // Update messages array with the new message
-        setMessages(prev => [...prev, data]);
+        // Only update if this is still the current session
+        if (sessionId === currentSessionId.current) {
+          onMessage?.(data);
+          // Update messages array with the new message
+          setMessages(prev => {
+            const updated = [...prev, data];
+            // Update cache
+            messagesMapRef.current.set(sessionId, updated);
+            return updated;
+          });
+        } else {
+          // If message is for a different session, just update the cache
+          const cachedSessionMessages = messagesMapRef.current.get(data.sessionId) || [];
+          messagesMapRef.current.set(data.sessionId, [...cachedSessionMessages, data]);
+        }
       }
     });
     
     wsRef.current.on('typing_start', () => {
-      console.log('Typing started');
-      setIsTyping(true);
-      onTypingStart?.();
+      console.log(`Typing started in session ${sessionId}`);
+      // Only update typing status if this is the current session
+      if (sessionId === currentSessionId.current) {
+        setIsTyping(true);
+        onTypingStart?.();
+      }
     });
     
     wsRef.current.on('typing_end', () => {
-      console.log('Typing ended');
-      setIsTyping(false);
-      onTypingEnd?.();
+      console.log(`Typing ended in session ${sessionId}`);
+      // Only update typing status if this is the current session
+      if (sessionId === currentSessionId.current) {
+        setIsTyping(false);
+        onTypingEnd?.();
+      }
     });
     
     wsRef.current.on('error', (err) => {
-      console.error('WebSocket error:', err);
-      setError(err);
+      console.error(`WebSocket error for session ${sessionId}:`, err);
+      if (sessionId === currentSessionId.current) {
+        setError(err);
+      }
     });
     
     wsRef.current.on('connection', (data) => {
-      console.log('WebSocket connection status:', data);
-      setIsConnected(data.status === 'connected');
+      console.log(`WebSocket connection status for session ${sessionId}:`, data);
+      if (sessionId === currentSessionId.current) {
+        setIsConnected(data.status === 'connected');
+      }
     });
     
     // Connect if autoConnect is true
