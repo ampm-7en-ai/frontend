@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from 'react';
+
+import React, { useRef, useEffect, useState } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ConversationHeader from './ConversationHeader';
 import ConversationEmptyState from './ConversationEmptyState';
-import { useChatMessagesApi } from '@/hooks/useChatMessagesApi';
+import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader } from 'lucide-react';
@@ -30,13 +31,37 @@ const MessageContainer = ({
   onInfoClick,
   getStatusBadge,
   onSendMessage,
-  isTyping
+  isTyping: externalIsTyping
 }: MessageContainerProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<any[]>([]);
   
-  // Fetch messages for the selected conversation
-  const { data: messages = [], isLoading: isLoadingMessages } = useChatMessagesApi(conversation?.id || null);
+  // Use our new WebSocket hook to fetch messages for the selected conversation
+  const { 
+    messages: wsMessages, 
+    isTyping: wsIsTyping,
+    isConnected,
+    sendMessage
+  } = useChatMessagesWebSocket({
+    sessionId: conversation?.id || null,
+    autoConnect: !!conversation?.id,
+    onMessagesReceived: (receivedMessages) => {
+      console.log("Received initial messages:", receivedMessages);
+      setMessages(receivedMessages);
+    },
+    onMessage: (newMessage) => {
+      console.log("Received new message:", newMessage);
+      // New messages will be handled by the messages state from the hook
+    }
+  });
+  
+  // Use messages from WebSocket
+  useEffect(() => {
+    if (wsMessages.length > 0) {
+      setMessages(wsMessages);
+    }
+  }, [wsMessages]);
 
   // Effect to scroll to agent messages when selectedAgent changes
   useEffect(() => {
@@ -66,6 +91,18 @@ const MessageContainer = ({
     }
   }, [messages?.length, selectedAgent]);
 
+  // Handle sending messages through the WebSocket
+  const handleSendMessage = (content: string) => {
+    sendMessage(content);
+    onSendMessage(content);
+  };
+
+  // Determine if there are messages loading
+  const isLoading = conversation && messages.length === 0 && !isConnected;
+
+  // Use either the external isTyping prop or the one from the WebSocket
+  const isTyping = externalIsTyping !== undefined ? externalIsTyping : wsIsTyping;
+
   if (!conversation) {
     return <ConversationEmptyState />;
   }
@@ -88,7 +125,7 @@ const MessageContainer = ({
         >
           <div className="p-4 md:p-6">
             <div className="max-w-3xl mx-auto">
-              {isLoadingMessages ? (
+              {isLoading ? (
                 // Show loading skeletons while messages are loading
                 <div className="space-y-6">
                   {[1, 2, 3, 4].map((i) => (
@@ -110,7 +147,7 @@ const MessageContainer = ({
                       message={message}
                       selectedAgent={selectedAgent}
                       messageContainerRef={messageContainerRef}
-                      isTyping={isTyping} // Pass the isTyping prop to the MessageList
+                      isTyping={isTyping} 
                     />
                   ))}
                   <div ref={messagesEndRef} className="h-4" />
@@ -121,7 +158,7 @@ const MessageContainer = ({
         </ScrollArea>
       </div>
       
-      <MessageInput onSendMessage={onSendMessage} />
+      <MessageInput onSendMessage={handleSendMessage} />
     </div>
   );
 };

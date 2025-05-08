@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -21,6 +20,8 @@ import { ChevronLeft, Send, Paperclip, ThumbsUp, ThumbsDown, Bot, User2, MoreHor
   TicketCheck, MessageSquare, ArrowRightLeft, Activity } from 'lucide-react';
 import { AgentHandoffNotification } from '@/components/conversations/AgentHandoffNotification';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { useChatSessions } from '@/hooks/useChatSessions';
+import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
 
 // Define interface for message to include optional type property
 interface Message {
@@ -56,161 +57,64 @@ const ConversationDetail = () => {
   const [isContextPanelOpen, setIsContextPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Initial conversation state with mock data
-  const [conversation, setConversation] = useState({
-    id: conversationId,
-    customer: 'John Doe',
-    email: 'john.doe@example.com',
-    status: 'active',
-    agent: 'Sales Bot',
-    satisfaction: 'high',
-    startedAt: '2023-06-10T14:30:00',
-    duration: '45 minutes',
-    category: 'Account Setup',
-    priority: 'medium',
-    messages: [
-      {
-        id: 'm1',
-        sender: 'user',
-        content: 'Hello, I need help with setting up my account.',
-        timestamp: '2023-06-10T14:30:00',
-      },
-      {
-        id: 'm2',
-        sender: 'bot',
-        content: 'Hi John! I\'d be happy to help you set up your account. Can you tell me what specific step you\'re having trouble with?',
-        timestamp: '2023-06-10T14:31:00',
-        agent: 'General Bot'
-      },
-      {
-        id: 'm3',
-        sender: 'user',
-        content: 'I can\'t seem to verify my email address. I\'ve clicked the link in the email multiple times but it says the link is invalid.',
-        timestamp: '2023-06-10T14:32:00',
-      },
-      {
-        id: 'm4',
-        sender: 'bot',
-        content: 'I understand the frustration. Let me help you with that. Sometimes the verification links can expire after 24 hours. When did you receive the verification email?',
-        timestamp: '2023-06-10T14:34:00',
-        agent: 'Sales Bot'
-      },
-      {
-        id: 'm5',
-        sender: 'user',
-        content: 'I just received it about an hour ago.',
-        timestamp: '2023-06-10T14:35:00',
-      },
-      {
-        id: 'm6',
-        sender: 'bot',
-        content: 'Thanks for confirming. In that case, let\'s try requesting a new verification email. Would you like me to do that for you?',
-        timestamp: '2023-06-10T14:37:00',
-        agent: 'Technical Support Bot'
-      },
-      {
-        id: 'm7',
-        sender: 'user',
-        content: 'Yes, please. That would be helpful.',
-        timestamp: '2023-06-10T14:38:00',
-      },
-      {
-        id: 'm8',
-        sender: 'bot',
-        content: 'Great! I\'ve sent a new verification email to john.doe@example.com. Please check your inbox (and spam folder, just in case) in the next few minutes. Let me know if you receive it and if you\'re able to complete the verification process.',
-        timestamp: '2023-06-10T14:39:00',
-        agent: 'Technical Support Bot'
-      },
-    ] as Message[],
-    tags: ['Account Setup', 'Email Verification', 'New User'],
-    handoffHistory: [
-      {
-        id: 'h1',
-        from: 'General Bot',
-        to: 'Sales Bot',
-        timestamp: '2023-06-10T14:33:00',
-        reason: 'Topic specialized to sales inquiries',
-        type: 'ai-to-ai'
-      },
-      {
-        id: 'h2',
-        from: 'Sales Bot',
-        to: 'Technical Support Bot',
-        timestamp: '2023-06-10T14:36:00',
-        reason: 'Technical troubleshooting required',
-        type: 'ai-to-ai'
-      }
-    ] as HandoffRecord[]
-  });
-
-  // Scroll to bottom of messages when new ones are added
+  // Use the WebSocket hook for chat sessions to get session details
+  const { 
+    sessions, 
+    isLoading: isLoadingSessions 
+  } = useChatSessions();
+  
+  // Find the current conversation from the sessions
+  const [conversation, setConversation] = useState<any>(null);
+  
+  // Set conversation when sessions are loaded
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation.messages]);
-
-  // Mock responses based on user input
-  const generateBotResponse = (userMessage: string) => {
-    let responseContent = "Thank you for your message. How else can I assist you today?";
-    const currentAgent = conversation.messages.filter(m => m.sender === 'bot').pop()?.agent || conversation.agent;
-    
-    // Simple response logic based on user message content
-    if (userMessage.toLowerCase().includes('email') || userMessage.toLowerCase().includes('verification')) {
-      responseContent = "I see you're still having issues with email verification. Let me check the status of your account. It appears that the new verification email has been sent successfully. Please allow up to 5 minutes for it to arrive.";
-    } else if (userMessage.toLowerCase().includes('thank')) {
-      responseContent = "You're welcome! Is there anything else you need help with today?";
-    } else if (userMessage.toLowerCase().includes('password')) {
-      responseContent = "If you need to reset your password, I can help with that. Would you like me to send a password reset link to your email address?";
-    } else if (userMessage.toLowerCase().includes('account')) {
-      responseContent = "Your account is currently in the verification stage. Once you verify your email, you'll have full access to all features of our platform.";
+    if (sessions.length > 0 && conversationId) {
+      const currentConversation = sessions.find(s => s.id === conversationId);
+      if (currentConversation) {
+        setConversation({
+          id: currentConversation.id,
+          customer: currentConversation.customer,
+          email: currentConversation.email,
+          status: currentConversation.status,
+          agent: currentConversation.agent,
+          satisfaction: currentConversation.satisfaction || 'medium',
+          startedAt: new Date().toISOString(), // Use current time as fallback
+          duration: currentConversation.duration || '0 minutes',
+          category: 'Support', // Default category
+          priority: currentConversation.priority || 'medium',
+          tags: [],
+          handoffHistory: []
+        });
+      }
     }
-    
-    return {
-      id: `m${Date.now()}`,
-      sender: 'bot',
-      content: responseContent,
-      timestamp: new Date().toISOString(),
-      agent: currentAgent
-    };
-  };
-
+  }, [sessions, conversationId]);
+  
+  // Use the WebSocket hook for specific conversation messages
+  const { 
+    sendMessage: sendWebSocketMessage,
+    isTyping
+  } = useChatMessagesWebSocket({
+    sessionId: conversationId || null,
+    autoConnect: !!conversationId
+  });
+  
+  // Handle sending new message
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
     
-    // Add user message to conversation
-    const userMessage = {
-      id: `m${Date.now()}`,
-      sender: 'user',
-      content: newMessage,
-      timestamp: new Date().toISOString(),
-    };
-    
-    // Update conversation with new user message
-    setConversation(prev => ({
-      ...prev,
-      messages: [...prev.messages, userMessage]
-    }));
+    // Send the message via WebSocket
+    sendWebSocketMessage(newMessage);
     
     // Clear input field
     setNewMessage('');
     
-    // Simulate bot response after a short delay
-    setTimeout(() => {
-      const botResponse = generateBotResponse(userMessage.content);
-      
-      // Update conversation with bot response
-      setConversation(prev => ({
-        ...prev,
-        messages: [...prev.messages, botResponse]
-      }));
-      
-      // Trigger toast notification for new message
-      toast({
-        title: "New message",
-        description: `${botResponse.agent || conversation.agent} has responded to your message.`,
-        duration: 3000,
-      });
-    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds for realism
+    // Show toast notification
+    toast({
+      title: "Message sent",
+      description: "Your message has been sent successfully.",
+      duration: 3000,
+    });
   };
 
   // Handle initiating a handoff to another agent
@@ -422,12 +326,16 @@ const ConversationDetail = () => {
           </Link>
         </Button>
         <div className="flex gap-2">
-          <Badge variant={getBadgeVariant(conversation.status)}>
-            {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
-          </Badge>
-          <Badge className={getPriorityColor(conversation.priority)}>
-            {conversation.priority.charAt(0).toUpperCase() + conversation.priority.slice(1)} Priority
-          </Badge>
+          {conversation && (
+            <>
+              <Badge variant={getBadgeVariant(conversation.status)}>
+                {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
+              </Badge>
+              <Badge className={getPriorityColor(conversation.priority)}>
+                {conversation.priority.charAt(0).toUpperCase() + conversation.priority.slice(1)} Priority
+              </Badge>
+            </>
+          )}
           <Button 
             variant="outline" 
             size="sm"
@@ -527,10 +435,10 @@ const ConversationDetail = () => {
                   </Avatar>
                   <div>
                     <div className="flex items-center">
-                      <CardTitle className="text-lg">{conversation.customer}</CardTitle>
+                      <CardTitle className="text-lg">{conversation?.customer}</CardTitle>
                       <Badge variant="outline" className="ml-2 text-xs">#{conversationId}</Badge>
                     </div>
-                    <CardDescription>{conversation.email}</CardDescription>
+                    <CardDescription>{conversation?.email}</CardDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -546,28 +454,28 @@ const ConversationDetail = () => {
               <div className="flex flex-wrap items-center gap-4 mt-1 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
-                  Started: {new Date(conversation.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  Started: {new Date(conversation?.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-1">
                   <Tag className="h-3.5 w-3.5" />
-                  {conversation.category}
+                  {conversation?.category}
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="h-3.5 w-3.5" />
-                  {conversation.messages.length} messages
+                  {conversation?.messages.length} messages
                 </div>
                 <div className="flex items-center gap-1">
                   <Activity className="h-3.5 w-3.5" />
-                  {conversation.handoffHistory.length} handoffs
+                  {conversation?.handoffHistory.length} handoffs
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-0 flex-grow overflow-y-auto">
               <div className="p-4 space-y-4">
-                {conversation.messages.map(message => renderMessageItem(message))}
+                {conversation?.messages.map(message => renderMessageItem(message))}
                 
                 {/* Insert handoff notifications between messages based on timestamps */}
-                {conversation.handoffHistory.map((handoff, index) => {
+                {conversation?.handoffHistory.map((handoff, index) => {
                   // Find the messages that come before and after this handoff based on timestamp
                   const handoffTime = new Date(handoff.timestamp).getTime();
                   
@@ -635,18 +543,18 @@ const ConversationDetail = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium">{conversation.agent}</p>
+                  <p className="font-medium">{conversation?.agent}</p>
                   <p className="text-xs text-muted-foreground">AI Agent</p>
                 </div>
               </div>
               
-              {conversation.handoffHistory.length > 0 && (
+              {conversation?.handoffHistory.length > 0 && (
                 <>
                   <Separator className="my-1" />
                   <div>
                     <h3 className="text-sm font-medium mb-2">Handoff History</h3>
                     <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                      {conversation.handoffHistory.map((handoff) => (
+                      {conversation?.handoffHistory.map((handoff) => (
                         <AgentHandoffNotification
                           key={handoff.id}
                           from={handoff.from}
@@ -818,7 +726,7 @@ const ConversationDetail = () => {
                   <div>
                     <p className="text-xs font-medium">Detected Topics</p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {conversation.tags.map(tag => (
+                      {conversation?.tags.map(tag => (
                         <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
                       ))}
                     </div>
@@ -894,184 +802,3 @@ const ConversationDetail = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-              
-              {handoffType === 'internal' && (
-                <Select onValueChange={setHandoffDestination}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select team member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableAgents.internal.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.name}>
-                        {agent.name} - {agent.department}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              
-              {handoffType === 'external' && (
-                <Select onValueChange={setHandoffDestination}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select external system" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableAgents.external.map((system) => (
-                      <SelectItem key={system.id} value={system.name} disabled={system.status === 'disconnected'}>
-                        {system.name} ({system.status === 'disconnected' ? 'Unavailable' : 'Available'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Handoff Notes (Optional)</Label>
-              <Textarea
-                placeholder="Provide context for the handoff..."
-                value={handoffNotes}
-                onChange={(e) => setHandoffNotes(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="includeAttachments">Include Attachments</Label>
-                <Switch
-                  id="includeAttachments"
-                  checked={includeAttachments}
-                  onCheckedChange={setIncludeAttachments}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="includeMetadata">Include Metadata</Label>
-                <Switch
-                  id="includeMetadata"
-                  checked={includeMetadata}
-                  onCheckedChange={setIncludeMetadata}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsHandoffDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" onClick={handleHandoffSubmit} disabled={!handoffDestination}>
-              <PhoneForwarded className="h-4 w-4 mr-2" />
-              Transfer Conversation
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-const getBadgeVariant = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'default';
-    case 'pending':
-      return 'secondary';
-    default:
-      return 'secondary';
-  }
-};
-
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case 'low':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'medium':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'high':
-      return 'bg-red-100 text-red-800 border-red-200';
-    case 'critical':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
-
-const getAgentStatusColor = (status: string) => {
-  switch (status) {
-    case 'available':
-      return 'text-green-600';
-    case 'busy':
-      return 'text-amber-600';
-    case 'away':
-      return 'text-gray-400';
-    case 'offline':
-      return 'text-red-600';
-    default:
-      return 'text-gray-600';
-  }
-};
-
-const getHandoffColor = (to: string) => {
-  if (to.includes('Freshdesk') || to.includes('External')) {
-    return 'bg-red-100 text-red-800 border-red-200';
-  } else if (to.includes('Support')) {
-    return 'bg-blue-100 text-blue-800 border-blue-200';
-  } else {
-    return 'bg-amber-100 text-amber-800 border-amber-200';
-  }
-};
-
-const renderMessageItem = (item: any) => {
-  return (
-    <div
-      key={item.id}
-      className={`flex ${item.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
-    >
-      <div
-        className={`flex gap-3 max-w-[80%] ${item.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-      >
-        <Avatar className={item.sender === 'user' ? 'bg-secondary' : 'bg-primary'}>
-          <AvatarFallback>
-            {item.sender === 'user' ? <User2 className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="flex items-center mb-1">
-            <span className="text-xs font-medium">
-              {item.sender === 'user' ? 'John Doe' : item.agent || 'AI Assistant'}
-            </span>
-            {item.sender === 'bot' && (
-              <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4">
-                AI
-              </Badge>
-            )}
-          </div>
-          <div
-            className={`rounded-lg p-3 ${
-              item.sender === 'user'
-                ? 'bg-secondary text-secondary-foreground'
-                : 'bg-primary text-primary-foreground'
-            }`}
-          >
-            {item.content}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {item.sender === 'bot' && (
-              <div className="flex space-x-1">
-                <button className="hover:text-primary transition-colors">
-                  <ThumbsUp className="h-3 w-3" />
-                </button>
-                <button className="hover:text-primary transition-colors">
-                  <ThumbsDown className="h-3 w-3" />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ConversationDetail;
