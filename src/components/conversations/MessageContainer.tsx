@@ -117,23 +117,31 @@ const MessageContainer = ({
         >
           <div className="p-4 md:p-6">
             <div className="max-w-3xl mx-auto">
-              {isLoading ? (
+              {isLoading || validMessages.length === 0 ? (
                 // Show loading skeletons while messages are loading
                 <div className="space-y-6">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <div className="space-y-2 w-2/3">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-16 w-full rounded-xl" />
+                    i%2 == 0 ? (
+                      <div key={i} className="flex items-start gap-3">
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200" />
+                        <div className="space-y-2 w-2/3">
+                          <Skeleton className="h-16 w-full rounded-xl bg-gray-200" />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div key={i} className="flex items-start gap-3 justify-end">
+                        <div className="space-y-2 w-2/3">
+                          <Skeleton className="h-16 w-full rounded-xl bg-gray-200" />
+                        </div>
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200" />
+                      </div>
+                    )
                   ))}
                 </div>
               ) : (
                 // Render actual messages
                 <div className="space-y-4" ref={messageContainerRef}>
-                  {validMessages.length > 0 ? (
+                {  
                     validMessages.map((message: any) => (
                       <MessageList 
                         key={message.id}
@@ -143,11 +151,7 @@ const MessageContainer = ({
                         isTyping={isTyping} 
                       />
                     ))
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      No messages yet. Start the conversation!
-                    </div>
-                  )}
+                }
                   <div ref={messagesEndRef} className="h-4" />
                 </div>
               )}

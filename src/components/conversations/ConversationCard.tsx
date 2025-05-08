@@ -151,7 +151,7 @@ const ConversationCard = ({
                 <div className="text-xs text-gray-600 whitespace-nowrap">
                   <p className={cn(
                     "text-xs text-gray-400 mt-0.5",
-                    conversation.isUnread && "font-medium text-gray-600"
+                    conversation.isUnread && "font-medium text-primary"
                   )}>
                     {reformatTimeAgo(conversation.time)}
                   </p>

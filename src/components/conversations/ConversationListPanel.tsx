@@ -308,11 +308,11 @@ const ConversationListPanel = ({
       </div>
       
       {/* WebSocket Status Indicator */}
-      <div className="px-4 py-1 flex items-center justify-between">
+      {/* <div className="px-4 py-1 flex items-center justify-between">
         <div className={`text-xs ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
           {isConnected ? 'Connected' : 'Connecting...'}
         </div>
-      </div>
+      </div> */}
       
       {/* Conversation List */}
       <div className="flex-1 overflow-hidden">
