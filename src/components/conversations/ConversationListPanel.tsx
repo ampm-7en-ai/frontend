@@ -147,7 +147,7 @@ const ConversationListPanel = ({
           // Add updated entry with current timestamp
           return [...filtered, { 
             id: selectedConversation,
-            lastMessageTimestamp: session.time 
+            lastMessageTimestamp: session.time
           }];
         });
       }

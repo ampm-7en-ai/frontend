@@ -129,7 +129,7 @@ const ConversationCard = ({
         isSelected 
           ? "bg-accent" 
           : "bg-transparent",
-        isUnread && !isSelected ? "border-l-4 border-l-primary" : ""
+        isUnread && !isSelected ? "" : ""
       )}
       onClick={onClick}
     >

@@ -163,7 +163,7 @@ export function useChatMessagesWebSocket({
         currentSessionId.current = null;
       }
     };
-  }, [sessionId, autoConnect, onMessagesReceived, onMessage, onTypingStart, onTypingEnd]);
+  }, [sessionId]);
   
   // Function to send a message
   const sendMessage = useCallback((content: string) => {
