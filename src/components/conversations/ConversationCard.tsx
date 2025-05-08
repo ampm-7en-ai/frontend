@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe } from 'lucide-react';
@@ -22,6 +21,7 @@ interface Conversation {
   channel: string;
   agentType?: "human" | "ai" | null;
   messages?: Array<any>;
+  isUnread?: boolean; // Added isUnread property
 }
 
 interface ConversationCardProps {
@@ -97,28 +97,29 @@ const ConversationCard = ({
 
   //reformat date timestamp 
   const reformatTimeAgo = (timeString) => {
-  
-  // Extract all numbers followed by time units
-  const matches = timeString.match(/(\d+)\s*(day|hour|minute|d|h|m)s?/gi);
-  let result = '';
-  
-  if (!matches) return 'Just now';
-  
-  matches.forEach(match => {
-    const [_, number, unit] = match.match(/(\d+)\s*(day|hour|minute|d|h|m)s?/i);
+    // Extract all numbers followed by time units
+    const matches = timeString.match(/(\d+)\s*(day|hour|minute|d|h|m)s?/gi);
+    let result = '';
     
-    if (unit.toLowerCase().startsWith('d')) {
-      result += `${number}d `;
-    } else if (unit.toLowerCase().startsWith('h')) {
-      result += `${number}h `;
-    } else if (unit.toLowerCase().startsWith('m')) {
-      result += `${number}m `;
-    }
-  });
-  
-  return result.trim() + ' ago';
-
+    if (!matches) return 'Just now';
+    
+    matches.forEach(match => {
+      const [_, number, unit] = match.match(/(\d+)\s*(day|hour|minute|d|h|m)s?/i);
+      
+      if (unit.toLowerCase().startsWith('d')) {
+        result += `${number}d `;
+      } else if (unit.toLowerCase().startsWith('h')) {
+        result += `${number}h `;
+      } else if (unit.toLowerCase().startsWith('m')) {
+        result += `${number}m `;
+      }
+    });
+    
+    return result.trim() + ' ago';
   }
+
+  // Determine if this is an unread conversation (checking isUnread property)
+  const isUnread = conversation.isUnread || false;
 
   return (
     <Card 
@@ -126,7 +127,8 @@ const ConversationCard = ({
         "hover:bg-gray-50 transition-all duration-200 cursor-pointer border-0 shadow-none rounded-md",
         isSelected 
           ? "bg-accent" 
-          : "bg-transparent"
+          : "bg-transparent",
+        isUnread && !isSelected ? "border-l-4 border-l-primary" : ""
       )}
       onClick={onClick}
     >
@@ -139,20 +141,32 @@ const ConversationCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-medium text-gray-800 text-sm truncate">
+                <h3 className={cn(
+                  "text-gray-800 text-sm truncate", 
+                  isUnread ? "font-semibold" : "font-medium"
+                )}>
                   {conversation.customer || "Visitor"}
+                  {isUnread && (
+                    <span className="ml-2 inline-block w-2 h-2 bg-primary rounded-full"></span>
+                  )}
                 </h3>
               </div>
               <div className="flex flex-col items-end">
                 <div className="text-xs text-gray-600 whitespace-nowrap">
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className={cn(
+                    "text-xs text-gray-400 mt-0.5",
+                    isUnread && "font-medium text-gray-600"
+                  )}>
                     {reformatTimeAgo(conversation.time)}
                   </p>
                 </div>
               </div>
             </div>
             
-            <p className="text-xs text-gray-600 mt-1 line-clamp-1">
+            <p className={cn(
+              "text-xs mt-1 line-clamp-1",
+              isUnread ? "font-medium text-gray-800" : "text-gray-600"
+            )}>
               {conversation.lastMessage}
             </p>
             

@@ -106,6 +106,11 @@ const MessageContainer = ({
   // Use either the external isTyping prop or the one from the WebSocket
   const isTyping = externalIsTyping !== undefined ? externalIsTyping : wsIsTyping;
 
+  // Filter out any empty/blank messages
+  const validMessages = messages?.filter(msg => 
+    msg && msg.content && msg.content.trim() !== ''
+  ) || [];
+
   if (!conversation) {
     return <ConversationEmptyState />;
   }
@@ -118,7 +123,7 @@ const MessageContainer = ({
         setSelectedAgent={setSelectedAgent}
         onInfoClick={onInfoClick}
         getStatusBadge={getStatusBadge}
-        messageCount={messages?.filter(m => m.sender !== "system").length}
+        messageCount={validMessages?.filter(m => m.sender !== "system").length}
       />
       
       <div className="flex-1 overflow-hidden" style={{background: "#f2f2f2"}}> 
@@ -144,7 +149,7 @@ const MessageContainer = ({
               ) : (
                 // Render actual messages
                 <div className="space-y-4" ref={messageContainerRef}>
-                  {messages && messages.map((message: any) => (
+                  {validMessages.map((message: any) => (
                     <MessageList 
                       key={message.id}
                       message={message}

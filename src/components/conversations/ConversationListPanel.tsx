@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
@@ -39,6 +38,7 @@ const ConversationListPanel = ({
   const [displayCount, setDisplayCount] = useState(10);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [readSessions, setReadSessions] = useState<string[]>([]);
   
   // Use our new WebSocket sessions hook
   const { 
@@ -77,13 +77,18 @@ const ConversationListPanel = ({
       result = filterSessionsBySearch(searchQuery);
     }
     
-    return result;
+    // Mark sessions as unread if they're not in the readSessions array
+    return result.map(session => ({
+      ...session,
+      isUnread: !readSessions.includes(session.id)
+    }));
   }, [
     sessions, 
     filterStatus, 
     channelFilter, 
     agentTypeFilter, 
     searchQuery,
+    readSessions,
     filterSessionsByStatus,
     filterSessionsByChannel,
     filterSessionsByAgentType,
@@ -100,6 +105,13 @@ const ConversationListPanel = ({
       setSelectedConversation(filteredSessions[0].id);
     }
   }, [filteredSessions, selectedConversation, setSelectedConversation]);
+
+  // Mark conversation as read when selected
+  useEffect(() => {
+    if (selectedConversation && !readSessions.includes(selectedConversation)) {
+      setReadSessions(prev => [...prev, selectedConversation]);
+    }
+  }, [selectedConversation, readSessions]);
 
   // Set up intersection observer for infinite scrolling
   useEffect(() => {
@@ -150,6 +162,14 @@ const ConversationListPanel = ({
     });
   };
 
+  const handleConversationClick = (sessionId: string) => {
+    setSelectedConversation(sessionId);
+    // Mark as read when clicked
+    if (!readSessions.includes(sessionId)) {
+      setReadSessions(prev => [...prev, sessionId]);
+    }
+  };
+
   const renderContent = () => {
     if (isLoadingState) {
       return Array(5).fill(0).map((_, index) => (
@@ -176,15 +196,6 @@ const ConversationListPanel = ({
           <p className="text-sm text-gray-500 mt-1">
             No conversations found. Try adjusting your filters or refreshing.
           </p>
-          {/* <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh} 
-            className="mt-2 flex items-center gap-1"
-          >
-            <RefreshCw className="h-3 w-3" />
-            Refresh
-          </Button> */}
         </div>
       );
     }
@@ -196,7 +207,7 @@ const ConversationListPanel = ({
             <ConversationCard 
               conversation={session}
               isSelected={selectedConversation === session.id}
-              onClick={() => setSelectedConversation(session.id)}
+              onClick={() => handleConversationClick(session.id)}
             />
           </div>
         ))}
@@ -234,14 +245,6 @@ const ConversationListPanel = ({
         <div className={`text-xs ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
           {isConnected ? 'Connected' : 'Connecting...'}
         </div>
-        {/* <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={handleRefresh} 
-          disabled={!isConnected}
-        >
-          <RefreshCw className="h-3 w-3" />
-        </Button> */}
       </div>
       
       {/* Conversation List */}
