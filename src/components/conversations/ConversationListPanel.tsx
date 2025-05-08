@@ -176,7 +176,7 @@ const ConversationListPanel = ({
           <p className="text-sm text-gray-500 mt-1">
             No conversations found. Try adjusting your filters or refreshing.
           </p>
-          <Button 
+          {/* <Button 
             variant="outline" 
             size="sm" 
             onClick={handleRefresh} 
@@ -184,7 +184,7 @@ const ConversationListPanel = ({
           >
             <RefreshCw className="h-3 w-3" />
             Refresh
-          </Button>
+          </Button> */}
         </div>
       );
     }
@@ -234,14 +234,14 @@ const ConversationListPanel = ({
         <div className={`text-xs ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
           {isConnected ? 'Connected' : 'Connecting...'}
         </div>
-        <Button 
+        {/* <Button 
           variant="ghost" 
           size="sm" 
           onClick={handleRefresh} 
           disabled={!isConnected}
         >
           <RefreshCw className="h-3 w-3" />
-        </Button>
+        </Button> */}
       </div>
       
       {/* Conversation List */}
