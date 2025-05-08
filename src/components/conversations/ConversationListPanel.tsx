@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
@@ -22,6 +23,11 @@ interface ConversationListPanelProps {
   isLoading?: boolean;
 }
 
+interface ReadSessionInfo {
+  id: string;
+  lastMessageTimestamp?: string;
+}
+
 const ConversationListPanel = ({
   filterStatus,
   setFilterStatus,
@@ -38,7 +44,10 @@ const ConversationListPanel = ({
   const [displayCount, setDisplayCount] = useState(10);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const [readSessions, setReadSessions] = useState<string[]>([]);
+  
+  // Update to store more info about read sessions
+  const [readSessions, setReadSessions] = useState<ReadSessionInfo[]>([]);
+  const previousSessionsRef = useRef<any[]>([]);
   
   // Use our new WebSocket sessions hook
   const { 
@@ -52,6 +61,33 @@ const ConversationListPanel = ({
     filterSessionsByAgentType,
     filterSessionsBySearch
   } = useChatSessions();
+  
+  // Track previous sessions to detect new ones
+  useEffect(() => {
+    if (sessions && sessions.length > 0) {
+      // Check for new sessions or updated messages
+      sessions.forEach(session => {
+        const previousSession = previousSessionsRef.current.find(prevSession => prevSession.id === session.id);
+        
+        if (!previousSession) {
+          // New session detected, mark as unread unless it's the currently selected one
+          if (session.id !== selectedConversation) {
+            // Remove from read sessions if it exists (to mark as unread)
+            setReadSessions(prev => prev.filter(rs => rs.id !== session.id));
+          }
+        } else if (previousSession.lastMessage !== session.lastMessage) {
+          // Message changed, mark as unread unless it's the currently selected one
+          if (session.id !== selectedConversation) {
+            // Remove from read sessions if it exists (to mark as unread)
+            setReadSessions(prev => prev.filter(rs => rs.id !== session.id));
+          }
+        }
+      });
+      
+      // Update the reference
+      previousSessionsRef.current = [...sessions];
+    }
+  }, [sessions, selectedConversation]);
   
   // Apply all filters
   const filteredSessions = React.useMemo(() => {
@@ -80,7 +116,7 @@ const ConversationListPanel = ({
     // Mark sessions as unread if they're not in the readSessions array
     return result.map(session => ({
       ...session,
-      isUnread: !readSessions.includes(session.id)
+      isUnread: !readSessions.some(rs => rs.id === session.id)
     }));
   }, [
     sessions, 
@@ -108,10 +144,21 @@ const ConversationListPanel = ({
 
   // Mark conversation as read when selected
   useEffect(() => {
-    if (selectedConversation && !readSessions.includes(selectedConversation)) {
-      setReadSessions(prev => [...prev, selectedConversation]);
+    if (selectedConversation) {
+      const session = sessions.find(s => s.id === selectedConversation);
+      if (session) {
+        setReadSessions(prev => {
+          // Remove any existing entry for this session
+          const filtered = prev.filter(rs => rs.id !== selectedConversation);
+          // Add updated entry with current timestamp
+          return [...filtered, { 
+            id: selectedConversation,
+            lastMessageTimestamp: session.time 
+          }];
+        });
+      }
     }
-  }, [selectedConversation, readSessions]);
+  }, [selectedConversation, sessions]);
 
   // Set up intersection observer for infinite scrolling
   useEffect(() => {
@@ -165,8 +212,17 @@ const ConversationListPanel = ({
   const handleConversationClick = (sessionId: string) => {
     setSelectedConversation(sessionId);
     // Mark as read when clicked
-    if (!readSessions.includes(sessionId)) {
-      setReadSessions(prev => [...prev, sessionId]);
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      setReadSessions(prev => {
+        // Remove any existing entry for this session
+        const filtered = prev.filter(rs => rs.id !== sessionId);
+        // Add updated entry with current timestamp
+        return [...filtered, { 
+          id: sessionId,
+          lastMessageTimestamp: session.time 
+        }];
+      });
     }
   };
 

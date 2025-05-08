@@ -108,7 +108,8 @@ const MessageContainer = ({
 
   // Filter out any empty/blank messages
   const validMessages = messages?.filter(msg => 
-    msg && msg.content && msg.content.trim() !== ''
+    msg && msg.content && msg.content.trim() !== '' && 
+    typeof msg.content === 'string'
   ) || [];
 
   if (!conversation) {
@@ -149,15 +150,21 @@ const MessageContainer = ({
               ) : (
                 // Render actual messages
                 <div className="space-y-4" ref={messageContainerRef}>
-                  {validMessages.map((message: any) => (
-                    <MessageList 
-                      key={message.id}
-                      message={message}
-                      selectedAgent={selectedAgent}
-                      messageContainerRef={messageContainerRef}
-                      isTyping={isTyping} 
-                    />
-                  ))}
+                  {validMessages.length > 0 ? (
+                    validMessages.map((message: any) => (
+                      <MessageList 
+                        key={message.id}
+                        message={message}
+                        selectedAgent={selectedAgent}
+                        messageContainerRef={messageContainerRef}
+                        isTyping={isTyping} 
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      No messages yet. Start the conversation!
+                    </div>
+                  )}
                   <div ref={messagesEndRef} className="h-4" />
                 </div>
               )}

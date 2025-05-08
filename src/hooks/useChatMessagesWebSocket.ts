@@ -38,7 +38,13 @@ export function useChatMessagesWebSocket({
   // Initialize the WebSocket service
   useEffect(() => {
     // If no session ID or it's the same as current, don't reconnect
-    if (!sessionId || sessionId === currentSessionId.current) {
+    if (!sessionId) {
+      return;
+    }
+    
+    // If it's the same session ID, don't reconnect
+    if (sessionId === currentSessionId.current && wsRef.current && wsRef.current.isConnected()) {
+      console.log(`Already connected to websocket for session ${sessionId}`);
       return;
     }
     
@@ -64,14 +70,17 @@ export function useChatMessagesWebSocket({
     wsRef.current.on('messages', (data) => {
       console.log('Messages received:', data);
       if (data.data && Array.isArray(data.data)) {
-        setMessages(data.data);
-        onMessagesReceived?.(data.data);
+        const validMessages = data.data.filter((msg: any) => 
+          msg && msg.content && typeof msg.content === 'string' && msg.content.trim() !== ''
+        );
+        setMessages(validMessages);
+        onMessagesReceived?.(validMessages);
       }
     });
     
     wsRef.current.on('message', (data) => {
       console.log('New message received:', data);
-      if (data) {
+      if (data && data.content && typeof data.content === 'string' && data.content.trim() !== '') {
         onMessage?.(data);
         // Update messages array with the new message
         setMessages(prev => [...prev, data]);
@@ -114,7 +123,7 @@ export function useChatMessagesWebSocket({
         currentSessionId.current = null;
       }
     };
-  }, [sessionId]);
+  }, [sessionId, autoConnect, onMessagesReceived, onMessage, onTypingStart, onTypingEnd]);
   
   // Function to send a message
   const sendMessage = useCallback((content: string) => {
