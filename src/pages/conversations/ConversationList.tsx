@@ -56,10 +56,10 @@ const ConversationList = () => {
 
   // Handle conversation selection
   const handleConversationSelect = (convId: string) => {
-    // If selecting a different conversation, set the new selection
-    if (convId !== selectedConversation) {
-      setSelectedConversation(convId);
-    }
+    // Simply select the conversation, without focusing on any specific message
+    setSelectedConversation(convId);
+    // Reset selected agent when changing conversation
+    setSelectedAgent(null);
   };
 
   if (isDesktop) {

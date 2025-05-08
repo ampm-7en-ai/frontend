@@ -37,12 +37,12 @@ export function useChatMessagesWebSocket({
   
   // Initialize the WebSocket service
   useEffect(() => {
-    // If no session ID or it's the same as current, don't reconnect
+    // If no session ID, don't connect
     if (!sessionId) {
       return;
     }
     
-    // If it's the same session ID, don't reconnect
+    // If it's the same session ID and already connected, don't reconnect
     if (sessionId === currentSessionId.current && wsRef.current && wsRef.current.isConnected()) {
       console.log(`Already connected to websocket for session ${sessionId}`);
       return;
@@ -55,6 +55,9 @@ export function useChatMessagesWebSocket({
       wsRef.current = null;
     }
     
+    // Reset messages when changing sessions
+    setMessages([]);
+    
     // Update current session ID
     currentSessionId.current = sessionId;
     
@@ -62,9 +65,6 @@ export function useChatMessagesWebSocket({
     const wsUrl = `wss://api.7en.ai/ws/chat/messages/${sessionId}/`;
     console.log(`Connecting to messages WebSocket for session ${sessionId}`);
     wsRef.current = new WebSocketService(wsUrl);
-    
-    // Reset messages when changing sessions
-    setMessages([]);
     
     // Set up event handlers
     wsRef.current.on('messages', (data) => {

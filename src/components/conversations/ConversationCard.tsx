@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe } from 'lucide-react';
@@ -118,7 +119,7 @@ const ConversationCard = ({
     return result.trim() + ' ago';
   }
 
-  // Determine if this is an unread conversation (checking isUnread property)
+  // Determine if this is an unread conversation
   const isUnread = conversation.isUnread || false;
 
   return (
@@ -179,7 +180,6 @@ const ConversationCard = ({
                   </div>
                 )}
               </div>
-              
             </div>
           </div>
         </div>

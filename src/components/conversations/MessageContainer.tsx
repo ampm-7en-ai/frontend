@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';

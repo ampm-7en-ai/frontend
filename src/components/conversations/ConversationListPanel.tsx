@@ -70,11 +70,9 @@ const ConversationListPanel = ({
         const previousSession = previousSessionsRef.current.find(prevSession => prevSession.id === session.id);
         
         if (!previousSession) {
-          // New session detected, mark as unread unless it's the currently selected one
-          if (session.id !== selectedConversation) {
-            // Remove from read sessions if it exists (to mark as unread)
-            setReadSessions(prev => prev.filter(rs => rs.id !== session.id));
-          }
+          // New session detected
+          // We don't automatically select it, just mark as unread
+          setReadSessions(prev => prev.filter(rs => rs.id !== session.id));
         } else if (previousSession.lastMessage !== session.lastMessage) {
           // Message changed, mark as unread unless it's the currently selected one
           if (session.id !== selectedConversation) {
@@ -135,13 +133,9 @@ const ConversationListPanel = ({
   const hasMore = displayCount < filteredSessions.length;
   const isLoadingState = externalLoading || sessionsLoading;
   
-  // Set a default selected conversation if there are sessions and none is selected
-  useEffect(() => {
-    if (filteredSessions.length > 0 && !selectedConversation) {
-      setSelectedConversation(filteredSessions[0].id);
-    }
-  }, [filteredSessions, selectedConversation, setSelectedConversation]);
-
+  // DON'T automatically select a conversation if none is selected
+  // Let the user explicitly click to select one
+  
   // Mark conversation as read when selected
   useEffect(() => {
     if (selectedConversation) {
