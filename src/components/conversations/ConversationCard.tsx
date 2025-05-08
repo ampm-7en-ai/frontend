@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { json } from 'stream/consumers';
 
 interface Conversation {
   id: string;
@@ -119,17 +118,13 @@ const ConversationCard = ({
     return result.trim() + ' ago';
   }
 
-  // Determine if this is an unread conversation
-  const isUnread = conversation.isUnread || false;
-
   return (
     <Card 
       className={cn(
         "hover:bg-gray-50 transition-all duration-200 cursor-pointer border-0 shadow-none rounded-md",
         isSelected 
           ? "bg-accent" 
-          : "bg-transparent",
-        isUnread && !isSelected ? "" : ""
+          : "bg-transparent"
       )}
       onClick={onClick}
     >
@@ -144,10 +139,10 @@ const ConversationCard = ({
               <div>
                 <h3 className={cn(
                   "text-gray-800 text-sm truncate", 
-                  isUnread ? "font-semibold" : "font-medium"
+                  conversation.isUnread ? "font-semibold" : "font-medium"
                 )}>
                   {conversation.customer || "Visitor"}
-                  {isUnread && (
+                  {conversation.isUnread && (
                     <span className="ml-2 inline-block w-2 h-2 bg-primary rounded-full"></span>
                   )}
                 </h3>
@@ -156,7 +151,7 @@ const ConversationCard = ({
                 <div className="text-xs text-gray-600 whitespace-nowrap">
                   <p className={cn(
                     "text-xs text-gray-400 mt-0.5",
-                    isUnread && "font-medium text-gray-600"
+                    conversation.isUnread && "font-medium text-gray-600"
                   )}>
                     {reformatTimeAgo(conversation.time)}
                   </p>
@@ -166,7 +161,7 @@ const ConversationCard = ({
             
             <p className={cn(
               "text-xs mt-1 line-clamp-1",
-              isUnread ? "font-medium text-gray-800" : "text-gray-600"
+              conversation.isUnread ? "font-medium text-gray-800" : "text-gray-600"
             )}>
               {conversation.lastMessage}
             </p>

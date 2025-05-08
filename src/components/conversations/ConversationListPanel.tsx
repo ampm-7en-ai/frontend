@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
@@ -45,9 +44,12 @@ const ConversationListPanel = ({
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // Update to store more info about read sessions
+  // Store session read state with timestamps of last read
   const [readSessions, setReadSessions] = useState<ReadSessionInfo[]>([]);
+  // Keep track of sessions we've seen before
   const previousSessionsRef = useRef<any[]>([]);
+  // Keep track of initial load to avoid marking all sessions as unread on first load
+  const initialLoadCompletedRef = useRef(false);
   
   // Use our new WebSocket sessions hook
   const { 
@@ -62,29 +64,47 @@ const ConversationListPanel = ({
     filterSessionsBySearch
   } = useChatSessions();
   
-  // Track previous sessions to detect new ones
+  // Initialize readSessions with all current sessions on first load
   useEffect(() => {
-    if (sessions && sessions.length > 0) {
-      // Check for new sessions or updated messages
-      sessions.forEach(session => {
-        const previousSession = previousSessionsRef.current.find(prevSession => prevSession.id === session.id);
-        
-        if (!previousSession) {
-          // New session detected
-          // We don't automatically select it, just mark as unread
-          setReadSessions(prev => prev.filter(rs => rs.id !== session.id));
-        } else if (previousSession.lastMessage !== session.lastMessage) {
-          // Message changed, mark as unread unless it's the currently selected one
-          if (session.id !== selectedConversation) {
-            // Remove from read sessions if it exists (to mark as unread)
-            setReadSessions(prev => prev.filter(rs => rs.id !== session.id));
-          }
-        }
-      });
+    if (sessions.length > 0 && !initialLoadCompletedRef.current) {
+      // Mark all initial sessions as read
+      const initialReadSessions = sessions.map(session => ({
+        id: session.id,
+        lastMessageTimestamp: session.time
+      }));
       
-      // Update the reference
+      setReadSessions(initialReadSessions);
       previousSessionsRef.current = [...sessions];
+      initialLoadCompletedRef.current = true;
     }
+  }, [sessions]);
+  
+  // Track previous sessions to detect new ones or message updates
+  useEffect(() => {
+    if (!initialLoadCompletedRef.current || sessions.length === 0) {
+      return;
+    }
+    
+    // Check for new sessions or updated messages
+    sessions.forEach(session => {
+      const previousSession = previousSessionsRef.current.find(prevSession => prevSession.id === session.id);
+      
+      if (!previousSession) {
+        // New session detected, keep it marked as unread
+        console.log(`New session detected: ${session.id}`);
+        // We don't add it to readSessions so it stays unread
+      } else if (previousSession.lastMessage !== session.lastMessage) {
+        // Message changed, mark as unread unless it's the currently selected one
+        if (session.id !== selectedConversation) {
+          console.log(`Message updated in session ${session.id}, marking as unread`);
+          // Remove from read sessions to mark as unread
+          setReadSessions(prev => prev.filter(rs => rs.id !== session.id));
+        }
+      }
+    });
+    
+    // Update the reference for next comparison
+    previousSessionsRef.current = JSON.parse(JSON.stringify(sessions));
   }, [sessions, selectedConversation]);
   
   // Apply all filters
@@ -132,9 +152,6 @@ const ConversationListPanel = ({
   const visibleSessions = filteredSessions.slice(0, displayCount);
   const hasMore = displayCount < filteredSessions.length;
   const isLoadingState = externalLoading || sessionsLoading;
-  
-  // DON'T automatically select a conversation if none is selected
-  // Let the user explicitly click to select one
   
   // Mark conversation as read when selected
   useEffect(() => {
