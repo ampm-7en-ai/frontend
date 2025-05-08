@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -462,30 +463,30 @@ const ConversationDetail = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="h-3.5 w-3.5" />
-                  {conversation?.messages.length} messages
+                  {conversation?.messages?.length} messages
                 </div>
                 <div className="flex items-center gap-1">
                   <Activity className="h-3.5 w-3.5" />
-                  {conversation?.handoffHistory.length} handoffs
+                  {conversation?.handoffHistory?.length} handoffs
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-0 flex-grow overflow-y-auto">
               <div className="p-4 space-y-4">
-                {conversation?.messages.map(message => renderMessageItem(message))}
+                {conversation?.messages?.map((message: any) => renderMessageItem(message))}
                 
                 {/* Insert handoff notifications between messages based on timestamps */}
-                {conversation?.handoffHistory.map((handoff, index) => {
+                {conversation?.handoffHistory?.map((handoff: any, index: number) => {
                   // Find the messages that come before and after this handoff based on timestamp
                   const handoffTime = new Date(handoff.timestamp).getTime();
                   
                   // Find the index where this handoff should be inserted
-                  let insertPosition = conversation.messages.findIndex(
-                    msg => new Date(msg.timestamp).getTime() > handoffTime
+                  let insertPosition = conversation.messages?.findIndex(
+                    (msg: any) => new Date(msg.timestamp).getTime() > handoffTime
                   );
                   
                   // If no message is found after this handoff, place it at the end
-                  insertPosition = insertPosition === -1 ? conversation.messages.length : insertPosition;
+                  insertPosition = insertPosition === -1 ? conversation.messages?.length : insertPosition;
                   
                   // Check if this is the current position in the message array
                   const isInsertionPoint = index === 0 ? 
@@ -543,18 +544,18 @@ const ConversationDetail = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium">{conversation?.agent}</p>
-                  <p className="text-xs text-muted-foreground">AI Agent</p>
+                  <p className="font-medium text-sm">{conversation?.agent}</p>
+                  <p className="text-xs text-muted-foreground">AI Assistant</p>
                 </div>
               </div>
               
-              {conversation?.handoffHistory.length > 0 && (
+              {conversation?.handoffCount > 0 && (
                 <>
                   <Separator className="my-1" />
                   <div>
                     <h3 className="text-sm font-medium mb-2">Handoff History</h3>
                     <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                      {conversation?.handoffHistory.map((handoff) => (
+                      {conversation?.handoffHistory?.map((handoff: any) => (
                         <AgentHandoffNotification
                           key={handoff.id}
                           from={handoff.from}
@@ -726,7 +727,7 @@ const ConversationDetail = () => {
                   <div>
                     <p className="text-xs font-medium">Detected Topics</p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {conversation?.tags.map(tag => (
+                      {conversation?.tags?.map((tag: string) => (
                         <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
                       ))}
                     </div>
@@ -802,3 +803,97 @@ const ConversationDetail = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+              
+              {handoffType === 'internal' && (
+                <Select onValueChange={setHandoffDestination}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableAgents.internal.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.name}>
+                        {agent.name} - {agent.department}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {handoffType === 'external' && (
+                <Select onValueChange={setHandoffDestination}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select external system" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableAgents.external.map((system) => (
+                      <SelectItem key={system.id} value={system.name}>
+                        {system.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Handoff Priority</Label>
+              <Select value={handoffPriority} onValueChange={setHandoffPriority}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Handoff Notes</Label>
+              <Textarea
+                placeholder="Provide context for the handoff..."
+                value={handoffNotes}
+                onChange={(e) => setHandoffNotes(e.target.value)}
+                className="h-20"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2 pt-2">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="include-attachments"
+                  checked={includeAttachments}
+                  onCheckedChange={setIncludeAttachments}
+                />
+                <Label htmlFor="include-attachments">Include attachments</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="include-metadata"
+                  checked={includeMetadata}
+                  onCheckedChange={setIncludeMetadata}
+                />
+                <Label htmlFor="include-metadata">Include metadata</Label>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsHandoffDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleHandoffSubmit} disabled={!handoffDestination}>
+              <PhoneForwarded className="h-4 w-4 mr-2" />
+              Initiate Handoff
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default ConversationDetail;
