@@ -1,0 +1,231 @@
+
+/**
+ * Facebook SDK utility functions
+ * This file handles initialization and interactions with Facebook JS SDK
+ */
+
+// Facebook App ID - this should be from environment variables in production
+const FACEBOOK_APP_ID = '123456789012345'; // Replace with your actual Facebook App ID
+
+// Required permissions for WhatsApp Business API
+const WHATSAPP_PERMISSIONS = [
+  'whatsapp_business_management',
+  'whatsapp_business_messaging'
+];
+
+// Interface for SDK initialization status
+interface FacebookSDKStatus {
+  initialized: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+// Track the SDK initialization status
+let sdkStatus: FacebookSDKStatus = {
+  initialized: false,
+  loading: false,
+  error: null
+};
+
+/**
+ * Initialize the Facebook SDK
+ * @returns Promise that resolves when SDK is initialized
+ */
+export const initFacebookSDK = (): Promise<void> => {
+  // If already initialized, return resolved promise
+  if (sdkStatus.initialized) {
+    return Promise.resolve();
+  }
+
+  // If currently loading, return a promise that waits for completion
+  if (sdkStatus.loading) {
+    return new Promise((resolve, reject) => {
+      const checkStatus = setInterval(() => {
+        if (sdkStatus.initialized) {
+          clearInterval(checkStatus);
+          resolve();
+        }
+        if (sdkStatus.error) {
+          clearInterval(checkStatus);
+          reject(new Error(sdkStatus.error));
+        }
+      }, 100);
+    });
+  }
+
+  sdkStatus.loading = true;
+
+  return new Promise((resolve, reject) => {
+    // Add the Facebook SDK script to the document
+    const script = document.createElement('script');
+    script.src = 'https://connect.facebook.net/en_US/sdk.js';
+    script.async = true;
+    script.defer = true;
+    script.crossOrigin = 'anonymous';
+    
+    script.onload = () => {
+      // Initialize the SDK with your app ID
+      window.FB.init({
+        appId: FACEBOOK_APP_ID,
+        cookie: true,
+        xfbml: false,
+        version: 'v18.0'
+      });
+      
+      sdkStatus.initialized = true;
+      sdkStatus.loading = false;
+      console.log('Facebook SDK initialized');
+      resolve();
+    };
+    
+    script.onerror = () => {
+      const error = 'Failed to load Facebook SDK';
+      sdkStatus.error = error;
+      sdkStatus.loading = false;
+      console.error(error);
+      reject(new Error(error));
+    };
+    
+    document.body.appendChild(script);
+  });
+};
+
+/**
+ * Login to Facebook and request WhatsApp Business permissions
+ * @returns Promise with login response
+ */
+export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
+  return new Promise((resolve, reject) => {
+    initFacebookSDK()
+      .then(() => {
+        window.FB.login((response) => {
+          if (response.authResponse) {
+            console.log('Facebook login successful', response);
+            resolve(response);
+          } else {
+            console.error('Facebook login failed', response);
+            reject(new Error('User cancelled login or did not fully authorize'));
+          }
+        }, { scope: WHATSAPP_PERMISSIONS.join(',') });
+      })
+      .catch(reject);
+  });
+};
+
+/**
+ * Check current Facebook login status
+ * @returns Promise with login status
+ */
+export const getFacebookLoginStatus = (): Promise<FB.LoginStatusResponse> => {
+  return new Promise((resolve, reject) => {
+    initFacebookSDK()
+      .then(() => {
+        window.FB.getLoginStatus((response) => {
+          console.log('Facebook login status:', response);
+          resolve(response);
+        });
+      })
+      .catch(reject);
+  });
+};
+
+/**
+ * Logout from Facebook
+ * @returns Promise that resolves when logout is complete
+ */
+export const logoutFromFacebook = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (!sdkStatus.initialized) {
+      resolve();
+      return;
+    }
+    
+    try {
+      window.FB.logout(() => {
+        console.log('Logged out from Facebook');
+        resolve();
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+/**
+ * Get WhatsApp Business accounts associated with the logged-in user
+ * @returns Promise with WhatsApp Business accounts
+ */
+export const getWhatsAppBusinessAccounts = (): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    window.FB.api('/me/whatsapp_business_accounts', (response) => {
+      if (response.error) {
+        console.error('Error getting WhatsApp Business accounts:', response.error);
+        reject(new Error(response.error.message));
+        return;
+      }
+      
+      console.log('WhatsApp Business accounts:', response);
+      resolve(response.data || []);
+    });
+  });
+};
+
+/**
+ * Get WhatsApp Business phone numbers for a specific business account
+ * @param businessAccountId The WhatsApp Business Account ID
+ * @returns Promise with phone numbers
+ */
+export const getWhatsAppPhoneNumbers = (businessAccountId: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    window.FB.api(
+      `/${businessAccountId}/phone_numbers`, 
+      (response) => {
+        if (response.error) {
+          console.error('Error getting phone numbers:', response.error);
+          reject(new Error(response.error.message));
+          return;
+        }
+        
+        console.log('WhatsApp phone numbers:', response);
+        resolve(response.data || []);
+      }
+    );
+  });
+};
+
+/**
+ * Register a webhook for WhatsApp Business API
+ * @param businessAccountId The WhatsApp Business Account ID
+ * @param webhookUrl The URL where webhooks will be sent
+ * @returns Promise with webhook registration response
+ */
+export const registerWhatsAppWebhook = (
+  businessAccountId: string, 
+  webhookUrl: string
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    window.FB.api(
+      `/${businessAccountId}/subscribed_apps`,
+      'POST',
+      {
+        subscribed_fields: [
+          'messages', 
+          'message_deliveries', 
+          'messaging_postbacks', 
+          'message_reads'
+        ],
+        callback_url: webhookUrl
+      },
+      (response) => {
+        if (response.error) {
+          console.error('Error registering webhook:', response.error);
+          reject(new Error(response.error.message));
+          return;
+        }
+        
+        console.log('Webhook registered:', response);
+        resolve(response);
+      }
+    );
+  });
+};

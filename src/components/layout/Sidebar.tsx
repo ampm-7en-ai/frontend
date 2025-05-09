@@ -51,6 +51,7 @@ const UserPermissions = {
   superadmin: 'superadmin',
   integrations: 'integrations'
 } as const;
+
 interface SidebarItem {
   id: string;
   label: string;
@@ -59,6 +60,7 @@ interface SidebarItem {
   children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
   action?: React.ReactNode;
   permission?: keyof typeof UserPermissions;
+  highlight?: boolean;
 }
 
 
@@ -156,7 +158,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
     { id: 'agents', label: 'Agents', href: '/agents',  icon: Bot, permission: 'agents' },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book, permission: 'knowledgebase' },
-    { id: 'integrations', label: 'Integrations', href: '/integrations', icon: Link, permission: 'settings' },
+    { 
+      id: 'integrations', 
+      label: 'Integrations', 
+      href: '/integrations', 
+      icon: Link, 
+      permission: 'settings',
+      highlight: true 
+    },
     { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
   ];
@@ -311,12 +320,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                           to={item.href}
                           className={({ isActive }) =>
                             `flex items-center px-3.5 py-3 text-sm rounded-lg
-                            ${isActive ? 'bg-accent text-primary font-medium shadow-sm' : 'text-black hover:bg-secondary'}
+                            ${isActive ? 'bg-accent text-primary font-medium shadow-sm' : item.highlight && !isCollapsed ? 'bg-green-50 text-green-700 border border-green-100' : 'text-black hover:bg-secondary'}
                             w-full`
                           }
                         >
-                          <item.icon className={`w-4.5 h-4.5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
-                          {!isCollapsed && <span className="text-sm">{item.label}</span>}
+                          <item.icon className={`w-4.5 h-4.5 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600' : ''}`} />
+                          {!isCollapsed && (
+                            <span className={`text-sm ${item.highlight ? 'font-medium' : ''}`}>
+                              {item.label}
+                              {item.highlight && (
+                                <span className="ml-2 bg-green-100 text-green-800 text-xs py-0.5 px-1.5 rounded-full">
+                                  New
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </NavLink>
                       </div>
                     )}

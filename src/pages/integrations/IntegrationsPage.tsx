@@ -1,6 +1,5 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import WhatsAppIntegration from '@/components/integrations/WhatsAppIntegration';
 import SlackIntegration from '@/components/integrations/SlackIntegration';
@@ -8,9 +7,32 @@ import InstagramIntegration from '@/components/integrations/InstagramIntegration
 import MessengerIntegration from '@/components/integrations/MessengerIntegration';
 import ZapierIntegration from '@/components/integrations/ZapierIntegration';
 import { MessageSquare, Slack, Instagram, Link, Phone } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { initFacebookSDK } from '@/utils/facebookSDK';
 
 const IntegrationsPage = () => {
   const [activeTab, setActiveTab] = useState("whatsapp");
+  const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Initialize Facebook SDK when the integrations page loads
+    const initFacebook = async () => {
+      try {
+        await initFacebookSDK();
+        setIsFacebookInitialized(true);
+      } catch (error) {
+        console.error("Error initializing Facebook SDK:", error);
+        toast({
+          title: "Facebook SDK Error",
+          description: "Failed to initialize Facebook SDK. Some features may not work properly.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    initFacebook();
+  }, [toast]);
 
   const getTabIcon = (tab: string) => {
     switch (tab) {
