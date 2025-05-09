@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -36,6 +37,7 @@ import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings
 import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
 import SubscriptionPlanEditor from './pages/settings/platform/SubscriptionPlanEditor';
+import IntegrationsPage from './pages/integrations/IntegrationsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,24 +116,6 @@ const ProtectedRoutes = () => {
           } 
         />
         
-        {/* <Route 
-          path="/system-health" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <SystemHealth />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/analytics" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
-              <PlatformAnalytics />
-            </ProtectedRoute>
-          } 
-        /> */}
-        
         <Route path="/conversations" element={<ConversationList />} />
         <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
         
@@ -143,6 +127,9 @@ const ProtectedRoutes = () => {
         
         <Route path="/settings" element={<BusinessSettings />} />
         <Route path="/settings/business" element={<BusinessSettings />} />
+        
+        {/* New route for integrations */}
+        <Route path="/integrations" element={<IntegrationsPage />} />
         
         <Route 
           path="/settings/platform/billing" 

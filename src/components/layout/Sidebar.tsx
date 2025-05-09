@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   Home,
@@ -18,9 +19,10 @@ import {
   Plus,
   ChevronLeft,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Link
 } from 'lucide-react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -34,7 +36,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
-import { log } from 'console';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -47,7 +48,8 @@ const UserPermissions = {
   agents: 'agents',
   settings: 'settings',
   dashboard: 'dashboard',
-  superadmin: 'superadmin'
+  superadmin: 'superadmin',
+  integrations: 'integrations'
 } as const;
 interface SidebarItem {
   id: string;
@@ -154,6 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
     { id: 'agents', label: 'Agents', href: '/agents',  icon: Bot, permission: 'agents' },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book, permission: 'knowledgebase' },
+    { id: 'integrations', label: 'Integrations', href: '/integrations', icon: Link, permission: 'integrations' },
     { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
   ];
