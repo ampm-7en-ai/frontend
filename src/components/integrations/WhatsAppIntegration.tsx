@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader, QrCode, Check, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -14,17 +14,55 @@ const WhatsAppIntegration = () => {
   const [registeredDate, setRegisteredDate] = useState("16 Sep 2024, 02:53 PM");
   const { toast } = useToast();
 
+  // Facebook App ID - normally should be in environment variables
+  const FACEBOOK_APP_ID = '123456789012345'; // Replace with your actual Facebook App ID
+  
+  // WhatsApp Business API authorization URL
+  const WHATSAPP_AUTH_URL = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(window.location.origin + '/integrations/whatsapp-callback')}&state=${generateRandomState()}&scope=whatsapp_business_management,whatsapp_business_messaging`;
+  
   // This would typically come from an API
   const qrCodeImageUrl = '/lovable-uploads/87d0de23-8725-4d62-bda2-2612a6fe494c.png';
+
+  // Generate a random state parameter for CSRF protection
+  function generateRandomState() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  }
+
+  // Check for authorization response on component mount
+  useEffect(() => {
+    // This would check for OAuth callback parameters in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    
+    // If we have a code parameter, the user has been redirected back from Facebook OAuth
+    if (code) {
+      handleOAuthCallback(code, state);
+    }
+  }, []);
+  
+  const handleOAuthCallback = (code: string, state: string) => {
+    // In a real implementation, you would:
+    // 1. Verify the state parameter to prevent CSRF attacks
+    // 2. Make a server request to exchange the code for an access token
+    // 3. Use the access token to register the WhatsApp Business phone number
+    
+    console.log("Received OAuth callback with code:", code);
+    setIsConnected(true);
+    toast({
+      title: "WhatsApp Connected",
+      description: "Your WhatsApp Business account has been successfully connected.",
+    });
+  };
   
   const handleConnect = () => {
     setIsConnecting(true);
     
-    // Simulate connection process
+    // Redirect to Facebook OAuth dialog for WhatsApp Business API
     setTimeout(() => {
       setIsConnecting(false);
-      setShowQrDialog(true);
-    }, 1500);
+      window.location.href = WHATSAPP_AUTH_URL;
+    }, 500);
   };
   
   const handleConfirmQrScan = () => {
@@ -37,7 +75,7 @@ const WhatsAppIntegration = () => {
   };
   
   const handleDisconnect = () => {
-    // Show confirmation dialog in a real implementation
+    // In a real implementation, you would revoke the access token from Facebook
     setIsConnected(false);
     toast({
       title: "WhatsApp Disconnected",
@@ -60,7 +98,7 @@ const WhatsAppIntegration = () => {
             <div>
               <h3 className="font-medium text-lg mb-2">Your WhatsApp Test Bot</h3>
               <p className="text-muted-foreground">
-                bot is linked to your WhatsApp Business with phone number {phoneNumber}<br />
+                Your bot is linked to your WhatsApp Business with phone number {phoneNumber}<br />
                 Registered at: {registeredDate}
               </p>
             </div>
@@ -96,31 +134,77 @@ const WhatsAppIntegration = () => {
             </AlertDescription>
           </Alert>
           
-          <div className="space-y-4">
-            <h3 className="font-medium">Getting Started with WhatsApp Integration</h3>
-            <div className="space-y-2">
-              <p>1. You'll need a WhatsApp Business account</p>
-              <p>2. Click the Connect button below to start the integration process</p>
-              <p>3. Scan the QR code to verify your WhatsApp Business number</p>
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-lg border border-green-100 shadow-sm">
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-green-500 p-2 rounded-full">
+                  <QrCode className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-green-800">Connect WhatsApp Business</h3>
+              </div>
+              <p className="text-green-800">
+                Connect your WhatsApp Business account to enable automated responses to your customers.
+              </p>
             </div>
             
-            <Button 
-              onClick={handleConnect} 
-              disabled={isConnecting}
-              className="gap-2"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader className="h-4 w-4 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <QrCode className="h-4 w-4" />
-                  Connect WhatsApp Business
-                </>
-              )}
-            </Button>
+            <div className="space-y-4 mb-6">
+              <div className="bg-white rounded p-4 border border-green-100">
+                <h4 className="font-medium text-green-800 mb-2">Integration Benefits:</h4>
+                <ul className="space-y-2 text-green-700">
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                    <span>Engage customers on their preferred messaging platform</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                    <span>Automate responses to common customer questions</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                    <span>Provide 24/7 automated customer support</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                    <span>Transfer complex queries to human agents when needed</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-white rounded p-4 border border-green-100">
+                <h4 className="font-medium text-green-800 mb-2">What You'll Need:</h4>
+                <ul className="space-y-2 text-green-700">
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                    <span>A Facebook Business Account</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                    <span>A WhatsApp Business Phone Number</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <Button 
+                onClick={handleConnect} 
+                disabled={isConnecting}
+                size="lg"
+                className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isConnecting ? (
+                  <>
+                    <Loader className="h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <QrCode className="h-5 w-5" />
+                    Connect WhatsApp Business
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </>
       )}
