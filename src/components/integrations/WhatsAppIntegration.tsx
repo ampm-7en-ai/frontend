@@ -10,6 +10,7 @@ const WhatsAppIntegration = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
+  const [showOAuthDialog, setShowOAuthDialog] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("+1 91********");
   const [registeredDate, setRegisteredDate] = useState("16 Sep 2024, 02:53 PM");
   const { toast } = useToast();
@@ -58,10 +59,10 @@ const WhatsAppIntegration = () => {
   const handleConnect = () => {
     setIsConnecting(true);
     
-    // Redirect to Facebook OAuth dialog for WhatsApp Business API
+    // Show OAuth dialog instead of redirecting
     setTimeout(() => {
       setIsConnecting(false);
-      window.location.href = WHATSAPP_AUTH_URL;
+      setShowOAuthDialog(true);
     }, 500);
   };
   
@@ -82,6 +83,34 @@ const WhatsAppIntegration = () => {
       description: "Your WhatsApp Business account has been disconnected.",
     });
   };
+  
+  // Handle message from the iframe when OAuth flow completes
+  const handleOAuthMessage = (event: MessageEvent) => {
+    if (event.origin === window.location.origin && event.data?.type === 'whatsapp-oauth-complete') {
+      setShowOAuthDialog(false);
+      if (event.data.success) {
+        setIsConnected(true);
+        toast({
+          title: "WhatsApp Connected",
+          description: "Your WhatsApp Business account has been successfully connected.",
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: event.data.error || "Failed to connect WhatsApp. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Add and remove message event listener
+  useEffect(() => {
+    window.addEventListener('message', handleOAuthMessage);
+    return () => {
+      window.removeEventListener('message', handleOAuthMessage);
+    };
+  }, []);
   
   return (
     <div className="space-y-6">
@@ -209,6 +238,7 @@ const WhatsAppIntegration = () => {
         </>
       )}
       
+      {/* QR code scanning Dialog */}
       <Dialog open={showQrDialog} onOpenChange={setShowQrDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -230,6 +260,30 @@ const WhatsAppIntegration = () => {
             </Button>
             <Button type="button" onClick={handleConfirmQrScan}>
               I've scanned the QR code
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Facebook OAuth Dialog */}
+      <Dialog open={showOAuthDialog} onOpenChange={setShowOAuthDialog}>
+        <DialogContent className="sm:max-w-md max-h-[90vh]" fixedFooter>
+          <DialogHeader>
+            <DialogTitle>Connect WhatsApp Business</DialogTitle>
+            <DialogDescription>
+              Please authorize the connection to your WhatsApp Business account
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            <iframe
+              src={WHATSAPP_AUTH_URL}
+              className="w-full h-[400px] border-0"
+              title="WhatsApp Business Authorization"
+            />
+          </DialogBody>
+          <DialogFooter fixed>
+            <Button variant="outline" onClick={() => setShowOAuthDialog(false)}>
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
