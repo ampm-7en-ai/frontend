@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
     { id: 'agents', label: 'Agents', href: '/agents',  icon: Bot, permission: 'agents' },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book, permission: 'knowledgebase' },
-    { id: 'integrations', label: 'Integrations', href: '/integrations', icon: Link, permission: 'integrations' },
+    { id: 'integrations', label: 'Integrations', href: '/integrations', icon: Link, permission: 'settings' },
     { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
     { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
   ];
