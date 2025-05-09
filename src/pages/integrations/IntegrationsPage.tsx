@@ -7,7 +7,7 @@ import SlackIntegration from '@/components/integrations/SlackIntegration';
 import InstagramIntegration from '@/components/integrations/InstagramIntegration';
 import MessengerIntegration from '@/components/integrations/MessengerIntegration';
 import ZapierIntegration from '@/components/integrations/ZapierIntegration';
-import { MessageSquare, Slack, Instagram, WhatsApp, Link } from 'lucide-react';
+import { MessageSquare, Slack, Instagram, Link, Phone } from 'lucide-react';
 
 const IntegrationsPage = () => {
   const [activeTab, setActiveTab] = useState("whatsapp");
@@ -15,7 +15,7 @@ const IntegrationsPage = () => {
   const getTabIcon = (tab: string) => {
     switch (tab) {
       case 'whatsapp':
-        return <WhatsApp className="h-5 w-5 mr-2" />;
+        return <Phone className="h-5 w-5 mr-2" />;
       case 'slack':
         return <Slack className="h-5 w-5 mr-2" />;
       case 'instagram':
@@ -82,7 +82,7 @@ const IntegrationsPage = () => {
           onClick={() => setActiveTab('whatsapp')}
         >
           <div className={`p-3 rounded-full ${activeTab === 'whatsapp' ? 'bg-green-200' : 'bg-gray-100'}`}>
-            <WhatsApp className={`h-6 w-6 ${activeTab === 'whatsapp' ? 'text-green-700' : 'text-gray-600'}`} />
+            <Phone className={`h-6 w-6 ${activeTab === 'whatsapp' ? 'text-green-700' : 'text-gray-600'}`} />
           </div>
           <span className={activeTab === 'whatsapp' ? 'font-medium text-green-800' : 'text-gray-700'}>WhatsApp</span>
         </div>
