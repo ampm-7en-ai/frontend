@@ -110,10 +110,7 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
             reject(new Error('User cancelled login or did not fully authorize'));
           }
         }, { 
-          scope: WHATSAPP_PERMISSIONS.join(','),
-          config_id: CONFIG_ID,
-          response_type: 'code',
-          override_default_response_type: true
+          scope: WHATSAPP_PERMISSIONS.join(',')
         });
       })
       .catch(reject);
@@ -166,7 +163,7 @@ export const logoutFromFacebook = (): Promise<void> => {
 export const getWhatsAppBusinessAccounts = (fb_token: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     // First, get the user's accounts/pages
-    window.FB.api('/me/businesses?token='+fb_token, (accountsResponse) => {
+    window.FB.api('/me/businesses, (accountsResponse) => {
       if (accountsResponse.error) {
         console.error('Error getting Facebook pages:', accountsResponse.error);
         reject(new Error(accountsResponse.error.message));
@@ -201,7 +198,7 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string,fb_token: stri
     
     // For demonstration purposes, return mock phone numbers
     window.FB.api(
-      `/${businessAccountId}/phone_numbers?token=${fb_token}`,
+      `/${businessAccountId}/phone_numbers`,
       'GET',
       (response) => {
         if (response.error) {
