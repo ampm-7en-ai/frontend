@@ -6,13 +6,12 @@
 
 // Facebook App ID - this should be from environment variables in production
 const FACEBOOK_APP_ID = '997995855245048'; // Replace with your actual Facebook App ID
-const CONFIG_ID = '905532135022526';
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
   'whatsapp_business_management',  // Changed from whatsapp_business_management
   'whatsapp_business_messaging',      // Added standard business permission
-  'pages_show_list'       // Added to access business assets
+  'business_management'       // Added to access business assets
 ];
 
 // Interface for SDK initialization status
