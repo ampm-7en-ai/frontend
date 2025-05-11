@@ -201,7 +201,7 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string,fb_token: stri
     
     // For demonstration purposes, return mock phone numbers
     window.FB.api(
-      `/${businessAccountId}/phone_numbers`,
+      `/${businessAccountId}/phone_numbers?token=${fb_token}`,
       'GET',
       (response) => {
         if (response.error) {
