@@ -197,7 +197,7 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string,fb_token: stri
       `/${businessAccountId}/phone_numbers`,
       'GET',
       {
-        access_token: fb_token // Replace with the customer's access token
+        access_token: `Bearer ${fb_token}` // Replace with the customer's access token
       },
       (response) => {
         if (response.error) {
