@@ -9,8 +9,8 @@ const FACEBOOK_APP_ID = '997995855245048'; // Replace with your actual Facebook 
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
-  'business_management',  // Changed from whatsapp_business_management
-  'pages_messaging',      // Added standard business permission
+  'whatsapp_business_management',  // Changed from whatsapp_business_management
+  'whatsapp_business_messaging',      // Added standard business permission
   'pages_show_list'       // Added to access business assets
 ];
 
