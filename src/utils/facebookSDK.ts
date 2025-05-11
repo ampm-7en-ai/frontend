@@ -163,10 +163,10 @@ export const logoutFromFacebook = (): Promise<void> => {
  * Get WhatsApp Business accounts associated with the logged-in user
  * @returns Promise with WhatsApp Business accounts
  */
-export const getWhatsAppBusinessAccounts = (): Promise<any> => {
+export const getWhatsAppBusinessAccounts = (fb_token: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     // First, get the user's accounts/pages
-    window.FB.api('/me/businesses', (accountsResponse) => {
+    window.FB.api('/me/businesses?token='+fb_token, (accountsResponse) => {
       if (accountsResponse.error) {
         console.error('Error getting Facebook pages:', accountsResponse.error);
         reject(new Error(accountsResponse.error.message));
