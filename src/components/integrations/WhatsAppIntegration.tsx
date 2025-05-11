@@ -98,11 +98,12 @@ const WhatsAppIntegration = () => {
     
     try {
       const response = await loginWithFacebook();
-      
+      const fb_token = await response.authResponse.accessToken;
       if (response.status === 'connected') {
         // Get available WhatsApp Business accounts
         const accounts = await getWhatsAppBusinessAccounts();
         setBusinessAccounts(accounts);
+        localStorage.setItem('fb_token',fb_token);
         
         if (accounts && accounts.length > 0) {
           setShowAccountsDialog(true);
