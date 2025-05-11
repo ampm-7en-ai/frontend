@@ -186,7 +186,7 @@ export const getWhatsAppBusinessAccounts = (): Promise<any> => {
  * @param businessAccountId The WhatsApp Business Account ID
  * @returns Promise with phone numbers
  */
-export const getWhatsAppPhoneNumbers = (businessAccountId: string): Promise<any> => {
+export const getWhatsAppPhoneNumbers = (businessAccountId: string,fb_token: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     // This is a workaround since we may not have actual access to the WhatsApp Business API
     // In a real implementation, you would call:
@@ -197,7 +197,7 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string): Promise<any>
       `/${businessAccountId}/phone_numbers`,
       'GET',
       {
-        access_token: '<your-access-token>' // Replace with the customer's access token
+        access_token: fb_token // Replace with the customer's access token
       },
       (response) => {
         if (response.error) {

@@ -71,7 +71,8 @@ const WhatsAppIntegration = () => {
             
             // Load phone numbers for the selected account
             if (connectionData.accountId) {
-              const numbers = await getWhatsAppPhoneNumbers(connectionData.accountId);
+              const fb_token = localStorage.getItem('fb_token');
+              const numbers = await getWhatsAppPhoneNumbers(connectionData.accountId,fb_token);
               setPhoneNumbers(numbers);
               setSelectedPhoneId(connectionData.phoneId);
             }
