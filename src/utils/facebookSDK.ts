@@ -159,7 +159,7 @@ export const logoutFromFacebook = (): Promise<void> => {
 export const getWhatsAppBusinessAccounts = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     // First, get the user's accounts/pages
-    window.FB.api('/me/accounts', (accountsResponse) => {
+    window.FB.api('/me/businesses', (accountsResponse) => {
       if (accountsResponse.error) {
         console.error('Error getting Facebook pages:', accountsResponse.error);
         reject(new Error(accountsResponse.error.message));
