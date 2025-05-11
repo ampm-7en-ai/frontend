@@ -196,9 +196,6 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string,fb_token: stri
     window.FB.api(
       `/${businessAccountId}/phone_numbers`,
       'GET',
-      {
-        access_token: "Bearer " + fb_token // Replace with the customer's access token
-      },
       (response) => {
         if (response.error) {
           console.error('Error fetching phone numbers:', response.error);
