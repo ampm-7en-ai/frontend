@@ -71,7 +71,7 @@ export const initFacebookSDK = (): Promise<void> => {
         appId: FACEBOOK_APP_ID,
         cookie: true,
         xfbml: false,
-        version: 'v18.0'
+        version: 'v20.0'
       });
       
       sdkStatus.initialized = true;
