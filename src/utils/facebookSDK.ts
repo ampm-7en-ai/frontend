@@ -108,7 +108,7 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
             console.error('Facebook login failed', response);
             reject(new Error('User cancelled login or did not fully authorize'));
           }
-        }, { scope: WHATSAPP_PERMISSIONS.join(',') });
+        }, { scope: WHATSAPP_PERMISSIONS.join(','),config_id: CONFIG_ID });
       })
       .catch(reject);
   });
