@@ -99,10 +99,10 @@ const WhatsAppIntegration = () => {
     
     try {
       const response = await loginWithFacebook();
-      const fb_token = await response.authResponse.accessToken;
+      const fb_token = await response.authResponse.code;
       if (response.status === 'connected') {
         // Get available WhatsApp Business accounts
-        const accounts = await getWhatsAppBusinessAccounts();
+        const accounts = await getWhatsAppBusinessAccounts(fb_token);
         setBusinessAccounts(accounts);
         localStorage.setItem('fb_token',fb_token);
         
