@@ -7,7 +7,6 @@
 // Facebook App ID - this should be from environment variables in production
 const FACEBOOK_APP_ID = '997995855245048'; // Replace with your actual Facebook App ID
 const CONFIG_ID = '905532135022526';
-const TOKEN = 'AQDrY_0IaN9Sei4ZDwHEPLoqxgD54kNYxpLYyrLhhAMe0PH86jHqYxiLNjdUDzYYoo9nSnqPqaEFhHnJhzuEIGHj3w7cT1KVOa2aF-d7VDJIWwh1HAWNb_ESB1X71k3TbgW2lS7sdzu1pM2cWpsRS7d07CjRYJ04Hv3byoImvP7pV1aZl6S5UPzZMJXicD5hjc3kIZlQLSMcsLfnRvLApxwrCv4WyPhqRHpToBFKPbojk9ASoWUeLoaQf00cH6VpHglrMHzknySGW8EqcrhPBL26vSVTO0wWb9kDJiavrsh2c7wtdKrMSzR_WnsXRVm_m_9FfmD-JjrTGRnCKILljA47em9M1aRVIrCKqiF2v0oS5NOmiEYPPPq7R7KJNZGc-8kifKjaNlUzQE7G4K1OjL31YELQ1DZedI2Hfcy7xwJS0Fb9WxMfJsCS3VC8xfWb--s';
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
