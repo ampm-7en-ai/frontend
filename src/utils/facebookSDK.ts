@@ -193,6 +193,9 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string): Promise<any>
     // window.FB.api(`/${businessAccountId}/phone_numbers`, ...)
     
     // For demonstration purposes, return mock phone numbers
+    window.FB.api(`/${businessAccountId}/phone_numbers`,(data) => {
+      console.log("phone numbers real:",data);
+    })
     setTimeout(() => {
       const mockPhoneNumbers = [{
         id: `phone_${businessAccountId}`,
@@ -205,6 +208,7 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string): Promise<any>
       resolve(mockPhoneNumbers);
     }, 500);
   });
+  
 };
 
 /**
