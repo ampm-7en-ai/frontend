@@ -257,14 +257,7 @@ const BillingSettings = () => {
                             <div className="text-2xl font-bold mt-1">${plan.price}<span className="text-sm font-normal text-muted-foreground">/month</span></div>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEditPlan(plan.id)}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
+                            
                             <Button 
                               variant="outline" 
                               size="sm" 

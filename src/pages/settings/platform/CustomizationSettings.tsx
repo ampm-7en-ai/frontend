@@ -294,28 +294,6 @@ const CustomizationSettings = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Templates</CardTitle>
-              <CardDescription>Manage your email templates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {["Welcome Email", "Email Verification", "Password Reset", "Invoice Notification", "Subscription Renewal"].map((template, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-md">
-                    <div>
-                      <h4 className="font-medium">{template}</h4>
-                      <p className="text-sm text-muted-foreground">Last edited: May 1, 2025</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm">Edit</Button>
-                      <Button variant="outline" size="sm">Duplicate</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
       

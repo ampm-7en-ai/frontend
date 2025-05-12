@@ -47,34 +47,6 @@ const GeneralSettings = () => {
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Default Settings</CardTitle>
-          <CardDescription>Configure default settings for new businesses</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="defaultQuota">Default API Quota</Label>
-              <Input id="defaultQuota" type="number" defaultValue="1000" />
-            </div>
-            
-            <div className="flex items-center space-x-2 pt-2">
-              <Switch id="enableAnalytics" defaultChecked />
-              <Label htmlFor="enableAnalytics">Enable Analytics by Default</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch id="autoCreateDemoAgent" defaultChecked />
-              <Label htmlFor="autoCreateDemoAgent">Create Demo Agent for New Businesses</Label>
-            </div>
-          </div>
-          
-          <div className="flex justify-end pt-4">
-            <Button>Save Defaults</Button>
-          </div>
-        </CardContent>
-      </Card>
     </PlatformSettingsLayout>
   );
 };
