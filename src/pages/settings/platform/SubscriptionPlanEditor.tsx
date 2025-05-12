@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { ArrowLeft } from 'lucide-react';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface SubscriptionPlan {
   id?: number;
@@ -27,6 +29,14 @@ const SubscriptionPlanEditor = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isEditMode = !!planId;
+  const queryClient = useQueryClient();
+  
+  // We don't need to fetch any subscription data here,
+  // but we need access to the queryClient for refetching later
+  const { refetchSubscriptionPlans } = useSubscription({ 
+    fetchCurrent: false, 
+    fetchAllPlans: false 
+  });
 
   const [plan, setPlan] = useState<SubscriptionPlan>({
     name: '',
@@ -141,6 +151,10 @@ const SubscriptionPlanEditor = () => {
       if (!response.ok) {
         throw new Error(`Failed to ${isEditMode ? 'update' : 'create'} subscription plan`);
       }
+      
+      // Invalidate and refetch subscription plans data after successful creation/update
+      await queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
+      await refetchSubscriptionPlans();
       
       toast({
         title: isEditMode ? "Plan Updated" : "Plan Created",

@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
 
 export interface SubscriptionPlan {
@@ -94,12 +94,13 @@ async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     return plans;
   } catch (error) {
     console.error('Error fetching subscription plans:', error);
-    return [];
+    throw error; // Propagate the error for better error handling
   }
 }
 
 export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent: true, fetchAllPlans: true }) {
   const { fetchCurrent = true, fetchAllPlans = true } = options;
+  const queryClient = useQueryClient();
   
   const currentSubscriptionQuery = useQuery({
     queryKey: ['subscription'],
@@ -119,6 +120,12 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
     enabled: fetchAllPlans, // Only fetch if option is true
   });
   
+  // Function to force refetch subscription plans
+  const refetchSubscriptionPlans = async () => {
+    console.log("Manually refetching subscription plans...");
+    return await queryClient.refetchQueries({ queryKey: ['subscriptionPlans'] });
+  };
+
   return {
     currentSubscription: currentSubscriptionQuery.data,
     isLoadingCurrentSubscription: currentSubscriptionQuery.isLoading,
@@ -127,6 +134,6 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
     isLoadingSubscriptionPlans: subscriptionPlansQuery.isLoading,
     subscriptionPlansError: subscriptionPlansQuery.error,
     refetchCurrentSubscription: currentSubscriptionQuery.refetch,
-    refetchSubscriptionPlans: subscriptionPlansQuery.refetch,
+    refetchSubscriptionPlans,
   };
 }
