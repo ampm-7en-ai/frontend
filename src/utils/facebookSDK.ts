@@ -71,7 +71,7 @@ export const initFacebookSDK = (): Promise<void> => {
         appId: FACEBOOK_APP_ID,
         cookie: true,
         xfbml: false,
-        version: 'v20.0'
+        version: 'v21.0'
       });
       
       sdkStatus.initialized = true;
@@ -162,14 +162,14 @@ export const logoutFromFacebook = (): Promise<void> => {
 export const getWhatsAppBusinessAccounts = (fb_token?: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     // First, get the user's accounts/pages
-    window.FB.api('/me/businesses', (accountsResponse) => {
+    window.FB.api('/me/whatsapp_business_accounts', (accountsResponse) => {
       if (accountsResponse.error) {
         console.error('Error getting Facebook pages:', accountsResponse.error);
         reject(new Error(accountsResponse.error.message));
         return;
       }
       
-      console.log('Facebook pages/accounts:', accountsResponse);
+      console.log('Facebook whatsapp Accounts:', accountsResponse);
       
       // For demo purposes, we'll just return the accounts as if they were WhatsApp business accounts
       // In a real implementation, you'd need to query each page for its WhatsApp Business Account
