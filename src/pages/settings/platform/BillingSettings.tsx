@@ -18,7 +18,8 @@ import {
   Plus, 
   Edit, 
   Trash2,
-  FileText
+  FileText,
+  CreditCard
 } from 'lucide-react';
 import { 
   Pagination, 
@@ -91,6 +92,7 @@ const BillingSettings = () => {
   const { 
     subscriptionPlans, 
     isLoadingSubscriptionPlans,
+    subscriptionPlansError,
     refetchSubscriptionPlans
   } = useSubscription({ fetchCurrent: false, fetchAllPlans: true });
 
@@ -241,7 +243,11 @@ const BillingSettings = () => {
               <div className="space-y-6">
                 {isLoadingSubscriptionPlans ? (
                   <div className="text-center py-8">Loading subscription plans...</div>
-                ) : subscriptionPlans.length > 0 ? (
+                ) : subscriptionPlansError ? (
+                  <div className="text-center py-8 text-red-500">
+                    Error loading subscription plans. Please try again.
+                  </div>
+                ) : subscriptionPlans && subscriptionPlans.length > 0 ? (
                   subscriptionPlans.map((plan) => (
                     <Card key={plan.id} className="border">
                       <div className="p-6">

@@ -7,8 +7,8 @@ export interface SubscriptionPlan {
   name: string;
   description: string;
   price: string;
-  stripe_product_id: string;
-  stripe_price_id: string;
+  stripe_product_id?: string;
+  stripe_price_id?: string;
   duration_days: number;
   features?: string[];
 }
@@ -83,19 +83,15 @@ async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     const data = await response.json();
     console.log('Subscription plans data received:', data);
     
-    // Extract unique plans from the subscriptions data
-    const plansMap = new Map<number, SubscriptionPlan>();
-    data.forEach((subscription: any) => {
-      if (subscription.plan && !plansMap.has(subscription.plan.id)) {
-        plansMap.set(subscription.plan.id, {
-          ...subscription.plan,
-          // Convert features from description if needed
-          features: subscription.plan.description?.split('\n').filter((line: string) => line.trim() !== '') || []
-        });
-      }
-    });
+    // Process the subscription plans data
+    // The API returns an array of plans directly, so we can use it as is
+    const plans = data.map((plan: SubscriptionPlan) => ({
+      ...plan,
+      // Convert features from description if needed
+      features: plan.description?.split('\n').filter((line: string) => line.trim() !== '') || []
+    }));
     
-    return Array.from(plansMap.values());
+    return plans;
   } catch (error) {
     console.error('Error fetching subscription plans:', error);
     return [];
