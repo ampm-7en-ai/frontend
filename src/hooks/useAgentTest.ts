@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -129,6 +128,7 @@ export const useAgentTest = (initialAgentId: string) => {
 
   const webSocketRefs = useRef<ModelWebSocketService[]>([]);
   const webSocketsInitialized = useRef<boolean>(false);
+  const systemMessageProcessing = useRef<boolean>(false); // Track system message processing state
 
   // Fetch all agents
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
@@ -272,6 +272,14 @@ export const useAgentTest = (initialAgentId: string) => {
       ws.on({
         onMessage: (message) => {
           console.log(`Received message for model ${i}:`, message);
+
+          // Check if this is a system message and update processing state accordingly
+          if (message.type === "system_message") {
+            systemMessageProcessing.current = true;
+            setIsProcessing(true);
+            console.log("System message detected, keeping processing state true");
+          }
+          
           setMessages(prev => {
             const newMessages = [...prev];
             newMessages[i] = [...newMessages[i], {
@@ -284,8 +292,11 @@ export const useAgentTest = (initialAgentId: string) => {
             }];
             return newMessages;
           });
-          // If all models have responded, set processing to false
-          if (i === numModels - 1) {
+          
+          // Only set processing to false if this is not a system message
+          // and this is the last model responding
+          if (message.type !== "system_message" && i === numModels - 1) {
+            systemMessageProcessing.current = false;
             setIsProcessing(false);
           }
         },
@@ -294,6 +305,13 @@ export const useAgentTest = (initialAgentId: string) => {
         },
         onTypingEnd: () => {
           console.log(`Typing indicator ended for model ${i}`);
+          
+          // If we were processing a system message and typing has ended,
+          // we can set processing to false
+          if (systemMessageProcessing.current) {
+            systemMessageProcessing.current = false;
+            setIsProcessing(false);
+          }
         },
         onError: (error) => {
           console.error(`Chat error for model ${i}:`, error);
