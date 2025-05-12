@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from "@/hooks/use-toast";
 import { 
   initFacebookSDK, 
@@ -44,6 +43,7 @@ const WhatsAppIntegration = () => {
   const [phoneDisplay, setPhoneDisplay] = useState('');
   const [registeredDate, setRegisteredDate] = useState(new Date().toLocaleString());
   const [showAccountsDialog, setShowAccountsDialog] = useState(false);
+  const [fbToken, setFbToken] = useState<string>('');
   const { toast } = useToast();
 
   // QR code for demonstration purposes - in production, generate dynamically
@@ -58,23 +58,26 @@ const WhatsAppIntegration = () => {
         
         // If already connected, fetch WhatsApp accounts
         if (loginStatus.status === 'connected') {
-          const accounts = await getWhatsAppBusinessAccounts();
-          setBusinessAccounts(accounts);
-          
-          // If we have existing connection data in localStorage, restore it
-          const savedConnection = localStorage.getItem('whatsappConnection');
-          if (savedConnection) {
-            const connectionData = JSON.parse(savedConnection);
-            setIsConnected(true);
-            setSelectedAccountId(connectionData.accountId);
-            setPhoneDisplay(connectionData.phoneDisplay);
+          const storedToken = localStorage.getItem('fb_token');
+          if (storedToken) {
+            setFbToken(storedToken);
+            const accounts = await getWhatsAppBusinessAccounts(storedToken);
+            setBusinessAccounts(accounts);
             
-            // Load phone numbers for the selected account
-            if (connectionData.accountId) {
-              const fb_token = JSON.parse(localStorage.getItem('fb_token'));
-              const numbers = await getWhatsAppPhoneNumbers(connectionData.accountId,fb_token);
-              setPhoneNumbers(numbers);
-              setSelectedPhoneId(connectionData.phoneId);
+            // If we have existing connection data in localStorage, restore it
+            const savedConnection = localStorage.getItem('whatsappConnection');
+            if (savedConnection) {
+              const connectionData = JSON.parse(savedConnection);
+              setIsConnected(true);
+              setSelectedAccountId(connectionData.accountId);
+              setPhoneDisplay(connectionData.phoneDisplay);
+              
+              // Load phone numbers for the selected account
+              if (connectionData.accountId) {
+                const numbers = await getWhatsAppPhoneNumbers(connectionData.accountId, storedToken);
+                setPhoneNumbers(numbers);
+                setSelectedPhoneId(connectionData.phoneId);
+              }
             }
           }
         }
@@ -99,12 +102,17 @@ const WhatsAppIntegration = () => {
     
     try {
       const response = await loginWithFacebook();
-      const fb_token = await response.authResponse.code;
+      // The code property doesn't exist, let's use accessToken instead
+      const fb_token = response.authResponse?.accessToken || '';
+      setFbToken(fb_token);
+      
       if (response.status === 'connected') {
+        // Save token to localStorage
+        localStorage.setItem('fb_token', fb_token);
+        
         // Get available WhatsApp Business accounts
         const accounts = await getWhatsAppBusinessAccounts(fb_token);
         setBusinessAccounts(accounts);
-        localStorage.setItem('fb_token',fb_token);
         
         if (accounts && accounts.length > 0) {
           setShowAccountsDialog(true);
@@ -134,7 +142,7 @@ const WhatsAppIntegration = () => {
     
     try {
       // Get phone numbers for the selected account
-      const numbers = await getWhatsAppPhoneNumbers(accountId);
+      const numbers = await getWhatsAppPhoneNumbers(accountId, fbToken);
       setPhoneNumbers(numbers);
       
       if (numbers && numbers.length > 0) {
@@ -213,6 +221,7 @@ const WhatsAppIntegration = () => {
       
       // Remove saved connection
       localStorage.removeItem('whatsappConnection');
+      localStorage.removeItem('fb_token');
       
       // Reset state
       setIsConnected(false);
@@ -220,6 +229,7 @@ const WhatsAppIntegration = () => {
       setSelectedAccountId('');
       setPhoneNumbers([]);
       setSelectedPhoneId('');
+      setFbToken('');
       
       toast({
         title: "WhatsApp Disconnected",

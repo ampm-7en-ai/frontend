@@ -159,7 +159,7 @@ export const logoutFromFacebook = (): Promise<void> => {
  * Get WhatsApp Business accounts associated with the logged-in user
  * @returns Promise with WhatsApp Business accounts
  */
-export const getWhatsAppBusinessAccounts = (fb_token: string): Promise<any> => {
+export const getWhatsAppBusinessAccounts = (fb_token?: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     // First, get the user's accounts/pages
     window.FB.api('/me/businesses', (accountsResponse) => {
@@ -189,7 +189,7 @@ export const getWhatsAppBusinessAccounts = (fb_token: string): Promise<any> => {
  * @param businessAccountId The WhatsApp Business Account ID
  * @returns Promise with phone numbers
  */
-export const getWhatsAppPhoneNumbers = (businessAccountId: string,fb_token: string): Promise<any> => {
+export const getWhatsAppPhoneNumbers = (businessAccountId: string, fb_token?: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     // This is a workaround since we may not have actual access to the WhatsApp Business API
     // In a real implementation, you would call:
@@ -221,7 +221,6 @@ export const getWhatsAppPhoneNumbers = (businessAccountId: string,fb_token: stri
       resolve(mockPhoneNumbers);
     }, 500);
   });
-  
 };
 
 /**
