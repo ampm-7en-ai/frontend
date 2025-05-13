@@ -109,27 +109,37 @@ window.addEventListener('message', (event) => {
     // your code goes here
   }
 });
-const fbLoginCallback = async (response: any) => {
-      if (response.authResponse) {
-        const code = response.authResponse.code;
-        // The returned code must be transmitted to your backend first and then
-        // perform a server-to-server call from there to our servers for an access token.
-          const res = await fetch(`https://api.7en.ai/api/whatsapp/oauth/`, {
-            method: 'POST',
-            headers: {
-              "Authorization": `Bearer ${getAccessToken()}`
-            },
-            body: JSON.stringify({
-              code: code
-            })
-          });
-        console.log("from backend exchange",await res.json());
-      }
-      console.log(JSON.stringify(response, null, 2));
-    };
 
+// Define a function to process the auth response outside of FB.login
+// This function is not async anymore
+function processAuthResponse(response: FB.LoginStatusResponse): void {
+  if (response.authResponse) {
+    const code = response.authResponse.code;
+    // Send the code to our backend asynchronously
+    if (code) {
+      // We use a regular Promise here instead of async/await
+      fetch(`https://api.7en.ai/api/whatsapp/oauth/`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${getAccessToken()}`
+        },
+        body: JSON.stringify({
+          code: code
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("from backend exchange", data);
+      })
+      .catch(err => {
+        console.error("Error exchanging code:", err);
+      });
+    }
+  }
+  console.log(JSON.stringify(response, null, 2));
+}
 
-export const loginWithFacebook = async (): Promise<FB.LoginStatusResponse> => {
+export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
   return new Promise((resolve, reject) => {
     initFacebookSDK()
       .then(() => {
@@ -146,7 +156,13 @@ export const loginWithFacebook = async (): Promise<FB.LoginStatusResponse> => {
           redirect_uri: 'https://api.7en.ai/api/whatsapp/oauth/'
         };
         
-        window.FB.login(fbLoginCallback, options);
+        // FB.login expects a synchronous callback function
+        window.FB.login((response) => {
+          // Process the response synchronously
+          processAuthResponse(response);
+          // Resolve the promise with the response
+          resolve(response);
+        }, options);
       })
       .catch(reject);
   });
