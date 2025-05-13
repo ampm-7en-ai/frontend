@@ -110,15 +110,7 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
   return new Promise((resolve, reject) => {
     initFacebookSDK()
       .then(() => {
-        window.FB.login((response) => {
-          if (response.authResponse) {
-            console.log('Facebook login successful', response);
-            resolve(response);
-          } else {
-            console.error('Facebook login failed', response);
-            reject(new Error('User cancelled login or did not fully authorize'));
-          }
-        }, { 
+        window.FB.login(fbLoginCallback, { 
           config_id: CONFIG_ID, // configuration ID goes here
           response_type: 'code', // must be set to 'code' for System User access token
           override_default_response_type: true, // when true, any response types passed in the "response_type" will take precedence over the default types
