@@ -115,6 +115,17 @@ const fbLoginCallback = (response) => {
         const code = response.authResponse.code;
         // The returned code must be transmitted to your backend first and then
         // perform a server-to-server call from there to our servers for an access token.
+          const res = await fetch(`https://api.7en.ai/api/whatsapp/oauth/`, {
+            method: 'POST',
+            headers: {
+              "Authorization": `Bearer ${getAccessToken()}`
+            },
+            body: JSON.stringify({
+              code: code
+            })
+          });
+        const data = await res.json();
+        console.log("from backend exchange",data);
       }
       console.log(JSON.stringify(response, null, 2));
     };
