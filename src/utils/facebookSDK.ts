@@ -132,7 +132,8 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
             setup: {},
             featureType: '',
             sessionInfoVersion: '2',
-          }
+          },
+          redirect_uri: 'https://api.7en.ai/api/whatsapp/oauth/'
         });
       })
       .catch(reject);
