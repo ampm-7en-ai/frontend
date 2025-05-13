@@ -130,7 +130,7 @@ const fbLoginCallback = async (response) => {
     };
 
 
-export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
+export const loginWithFacebook = async (): Promise<FB.LoginStatusResponse> => {
   return new Promise((resolve, reject) => {
     initFacebookSDK()
       .then(() => {
