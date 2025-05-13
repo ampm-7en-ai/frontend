@@ -61,8 +61,8 @@ const WhatsAppIntegration = () => {
           const storedToken = localStorage.getItem('fb_token');
           if (storedToken) {
             setFbToken(storedToken);
-            const accounts = await getWhatsAppBusinessAccounts(storedToken);
-            setBusinessAccounts(accounts);
+            //const accounts = await getWhatsAppBusinessAccounts(storedToken);
+            //setBusinessAccounts(accounts);
             
             // If we have existing connection data in localStorage, restore it
             const savedConnection = localStorage.getItem('whatsappConnection');
@@ -74,8 +74,8 @@ const WhatsAppIntegration = () => {
               
               // Load phone numbers for the selected account
               if (connectionData.accountId) {
-                const numbers = await getWhatsAppPhoneNumbers(connectionData.accountId, storedToken);
-                setPhoneNumbers(numbers);
+               // const numbers = await getWhatsAppPhoneNumbers(connectionData.accountId, storedToken);
+               // setPhoneNumbers(numbers);
                 setSelectedPhoneId(connectionData.phoneId);
               }
             }
@@ -103,7 +103,7 @@ const WhatsAppIntegration = () => {
     try {
       const response = await loginWithFacebook();
       // The code property doesn't exist, let's use accessToken instead
-      const fb_token = response.authResponse?.accessToken || '';
+      const fb_token = response.authResponse?.code || '';
       setFbToken(fb_token);
       
       if (response.status === 'connected') {
@@ -111,8 +111,8 @@ const WhatsAppIntegration = () => {
         localStorage.setItem('fb_token', fb_token);
         
         // Get available WhatsApp Business accounts
-        const accounts = await getWhatsAppBusinessAccounts(fb_token);
-        setBusinessAccounts(accounts);
+        //const accounts = await getWhatsAppBusinessAccounts(fb_token);
+        //setBusinessAccounts(accounts);
         
         if (accounts && accounts.length > 0) {
           setShowAccountsDialog(true);
