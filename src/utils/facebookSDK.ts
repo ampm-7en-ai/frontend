@@ -1,4 +1,3 @@
-
 /**
  * Facebook SDK utility functions
  * This file handles initialization and interactions with Facebook JS SDK
@@ -110,7 +109,7 @@ window.addEventListener('message', (event) => {
     // your code goes here
   }
 });
-const fbLoginCallback = async (response) => {
+const fbLoginCallback = async (response: any) => {
       if (response.authResponse) {
         const code = response.authResponse.code;
         // The returned code must be transmitted to your backend first and then
@@ -134,7 +133,8 @@ export const loginWithFacebook = async (): Promise<FB.LoginStatusResponse> => {
   return new Promise((resolve, reject) => {
     initFacebookSDK()
       .then(() => {
-        window.FB.login(fbLoginCallback, { 
+        // Use any to handle custom FB options that are not in the type definition
+        const options: any = { 
           config_id: CONFIG_ID, // configuration ID goes here
           response_type: 'code', // must be set to 'code' for System User access token
           override_default_response_type: true, // when true, any response types passed in the "response_type" will take precedence over the default types
@@ -144,7 +144,9 @@ export const loginWithFacebook = async (): Promise<FB.LoginStatusResponse> => {
             sessionInfoVersion: '2',
           },
           redirect_uri: 'https://api.7en.ai/api/whatsapp/oauth/'
-        });
+        };
+        
+        window.FB.login(fbLoginCallback, options);
       })
       .catch(reject);
   });

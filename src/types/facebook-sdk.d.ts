@@ -1,4 +1,5 @@
 
+
 interface Window {
   FB: FB.FacebookStatic;
 }
@@ -31,6 +32,8 @@ declare namespace FB {
     return_scopes?: boolean;
     enable_profile_selector?: boolean;
     profile_selector_ids?: string;
+    // Extended properties can be added as string indexer
+    [key: string]: any;
   }
   
   interface AuthResponse {
@@ -40,6 +43,7 @@ declare namespace FB {
     userID: string;
     grantedScopes?: string;
     reauthorize_required_in?: number;
+    code?: string; // Added 'code' property that can be returned by some FB login responses
   }
   
   interface LoginStatusResponse {
@@ -47,3 +51,4 @@ declare namespace FB {
     authResponse: AuthResponse | null;
   }
 }
+

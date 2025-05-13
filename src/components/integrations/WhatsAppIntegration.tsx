@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
@@ -102,7 +103,8 @@ const WhatsAppIntegration = () => {
     
     try {
       const response = await loginWithFacebook();
-      // The code property doesn't exist, let's use accessToken instead
+      
+      // Check if authResponse exists and contains code
       const fb_token = response.authResponse?.code || '';
       setFbToken(fb_token);
       
@@ -111,15 +113,24 @@ const WhatsAppIntegration = () => {
         localStorage.setItem('fb_token', fb_token);
         
         // Get available WhatsApp Business accounts
-        //const accounts = await getWhatsAppBusinessAccounts(fb_token);
-        //setBusinessAccounts(accounts);
-        
-        if (accounts && accounts.length > 0) {
-          setShowAccountsDialog(true);
-        } else {
+        try {
+          const fetchedAccounts = await getWhatsAppBusinessAccounts(fb_token);
+          setBusinessAccounts(fetchedAccounts);
+          
+          if (fetchedAccounts && fetchedAccounts.length > 0) {
+            setShowAccountsDialog(true);
+          } else {
+            toast({
+              title: "No WhatsApp Business Accounts",
+              description: "No WhatsApp Business accounts found. Please create one in the Meta Business Manager first.",
+              variant: "destructive"
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching business accounts:", error);
           toast({
-            title: "No WhatsApp Business Accounts",
-            description: "No WhatsApp Business accounts found. Please create one in the Meta Business Manager first.",
+            title: "Error Fetching Accounts",
+            description: "Failed to retrieve WhatsApp Business accounts.",
             variant: "destructive"
           });
         }
