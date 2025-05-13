@@ -150,7 +150,8 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
           override_default_response_type: true, // when true, any response types passed in the "response_type" will take precedence over the default types
           extras: {
             setup: {
-              redirectUri: "https://api.7en.ai/api/whatsapp/oauth/"
+              redirectUri: "https://api.7en.ai/api/whatsapp/oauth/",
+              testMode: true
             },
             featureType: '',
             sessionInfoVersion: '2',
