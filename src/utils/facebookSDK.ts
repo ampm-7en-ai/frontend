@@ -124,8 +124,7 @@ const fbLoginCallback = (response) => {
               code: code
             })
           });
-        const data = await res.json();
-        console.log("from backend exchange",data);
+        console.log("from backend exchange",res.json());
       }
       console.log(JSON.stringify(response, null, 2));
     };
