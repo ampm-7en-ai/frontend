@@ -3,7 +3,7 @@
  * Facebook SDK utility functions
  * This file handles initialization and interactions with Facebook JS SDK
  */
-
+import { getAccessToken } from "@/utils/api-config"
 // Facebook App ID - this should be from environment variables in production
 const FACEBOOK_APP_ID = '1103615605128273'; // Replace with your actual Facebook App ID
 const CONFIG_ID = '1196382871966680';
