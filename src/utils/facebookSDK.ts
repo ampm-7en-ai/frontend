@@ -96,6 +96,20 @@ export const initFacebookSDK = (): Promise<void> => {
  * Login to Facebook and request WhatsApp Business permissions
  * @returns Promise with login response
  */
+// Session logging message event listener
+window.addEventListener('message', (event) => {
+  if (!event.origin.endsWith('facebook.com')) return;
+  try {
+    const data = JSON.parse(event.data);
+    if (data.type === 'WA_EMBEDDED_SIGNUP') {
+      console.log('message event: ', data); // remove after testing
+      // your code goes here
+    }
+  } catch {
+    console.log('message event: ', event.data); // remove after testing
+    // your code goes here
+  }
+});
 const fbLoginCallback = (response) => {
       if (response.authResponse) {
         const code = response.authResponse.code;
