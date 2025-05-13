@@ -6,7 +6,7 @@
 
 // Facebook App ID - this should be from environment variables in production
 const FACEBOOK_APP_ID = '1103615605128273'; // Replace with your actual Facebook App ID
-const CONFIG_ID = '905532135022526';
+const CONFIG_ID = '1196382871966680';
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
@@ -96,6 +96,16 @@ export const initFacebookSDK = (): Promise<void> => {
  * Login to Facebook and request WhatsApp Business permissions
  * @returns Promise with login response
  */
+const fbLoginCallback = (response) => {
+      if (response.authResponse) {
+        const code = response.authResponse.code;
+        // The returned code must be transmitted to your backend first and then
+        // perform a server-to-server call from there to our servers for an access token.
+      }
+      console.log(JSON.stringify(response, null, 2));
+    };
+
+
 export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
   return new Promise((resolve, reject) => {
     initFacebookSDK()
@@ -109,7 +119,14 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
             reject(new Error('User cancelled login or did not fully authorize'));
           }
         }, { 
-          scope: WHATSAPP_PERMISSIONS.join(',')
+          config_id: CONFIG_ID, // configuration ID goes here
+          response_type: 'code', // must be set to 'code' for System User access token
+          override_default_response_type: true, // when true, any response types passed in the "response_type" will take precedence over the default types
+          extras: {
+            setup: {},
+            featureType: '',
+            sessionInfoVersion: '2',
+          }
         });
       })
       .catch(reject);
