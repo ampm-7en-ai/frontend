@@ -149,7 +149,9 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
           response_type: 'code', // must be set to 'code' for System User access token
           override_default_response_type: true, // when true, any response types passed in the "response_type" will take precedence over the default types
           extras: {
-            setup: {},
+            setup: {
+              redirectUri: "https://api.7en.ai/api/whatsapp/oauth/"
+            },
             featureType: '',
             sessionInfoVersion: '2',
           },
