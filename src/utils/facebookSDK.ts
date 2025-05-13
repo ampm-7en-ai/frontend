@@ -110,7 +110,7 @@ window.addEventListener('message', (event) => {
     // your code goes here
   }
 });
-const async fbLoginCallback = (response) => {
+const fbLoginCallback = async (response) => {
       if (response.authResponse) {
         const code = response.authResponse.code;
         // The returned code must be transmitted to your backend first and then
