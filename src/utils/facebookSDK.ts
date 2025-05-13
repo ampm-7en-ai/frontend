@@ -69,9 +69,9 @@ export const initFacebookSDK = (): Promise<void> => {
       // Initialize the SDK with your app ID
       window.FB.init({
         appId: FACEBOOK_APP_ID,
-        cookie: true,
-        xfbml: false,
-        version: 'v21.0'
+        autoLogAppEvents : true,
+        xfbml: true,
+        version: 'v22.0'
       });
       
       sdkStatus.initialized = true;
