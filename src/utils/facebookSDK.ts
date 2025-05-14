@@ -3,15 +3,16 @@
  * This file handles initialization and interactions with Facebook JS SDK
  */
 import { getAccessToken } from "@/utils/api-config"
+
 // Facebook App ID - this should be from environment variables in production
 const FACEBOOK_APP_ID = '1103615605128273'; // Replace with your actual Facebook App ID
 const CONFIG_ID = '1196382871966680';
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
-  'whatsapp_business_management',  // Changed from whatsapp_business_management
-  'whatsapp_business_messaging',      // Added standard business permission
-  'business_management'       // Added to access business assets
+  'whatsapp_business_management',
+  'whatsapp_business_messaging',
+  'business_management'
 ];
 
 // Interface for SDK initialization status
@@ -28,17 +29,37 @@ let sdkStatus: FacebookSDKStatus = {
   error: null
 };
 
+// Store phone_id and waba_id from the message event
+let whatsappData: { phone_id?: string; waba_id?: string } = {};
+
+// Session logging message event listener
+window.addEventListener('message', (event) => {
+  if (!event.origin.endsWith('facebook.com')) return;
+  try {
+    const data = JSON.parse(event.data);
+    if (data.type === 'WA_EMBEDDED_SIGNUP') {
+      console.log('message event: ', data);
+      // Extract phone_id and waba_id from the event data
+      if (data.phone_id && data.waba_id) {
+        whatsappData.phone_id = data.phone_id;
+        whatsappData.waba_id = data.waba_id;
+        console.log(`Captured phone_id: ${whatsappData.phone_id}, waba_id: ${whatsappData.waba_id}`);
+      }
+    }
+  } catch {
+    console.log('message event: ', event.data);
+  }
+});
+
 /**
  * Initialize the Facebook SDK
  * @returns Promise that resolves when SDK is initialized
  */
 export const initFacebookSDK = (): Promise<void> => {
-  // If already initialized, return resolved promise
   if (sdkStatus.initialized) {
     return Promise.resolve();
   }
 
-  // If currently loading, return a promise that waits for completion
   if (sdkStatus.loading) {
     return new Promise((resolve, reject) => {
       const checkStatus = setInterval(() => {
@@ -57,7 +78,6 @@ export const initFacebookSDK = (): Promise<void> => {
   sdkStatus.loading = true;
 
   return new Promise((resolve, reject) => {
-    // Add the Facebook SDK script to the document
     const script = document.createElement('script');
     script.src = 'https://connect.facebook.net/en_US/sdk.js';
     script.async = true;
@@ -65,10 +85,9 @@ export const initFacebookSDK = (): Promise<void> => {
     script.crossOrigin = 'anonymous';
     
     script.onload = () => {
-      // Initialize the SDK with your app ID
       window.FB.init({
         appId: FACEBOOK_APP_ID,
-        autoLogAppEvents : true,
+        autoLogAppEvents: true,
         xfbml: true,
         version: 'v22.0'
       });
@@ -95,59 +114,14 @@ export const initFacebookSDK = (): Promise<void> => {
  * Login to Facebook and request WhatsApp Business permissions
  * @returns Promise with login response
  */
-// Session logging message event listener
-window.addEventListener('message', (event) => {
-  if (!event.origin.endsWith('facebook.com')) return;
-  try {
-    const data = JSON.parse(event.data);
-    if (data.type === 'WA_EMBEDDED_SIGNUP') {
-      console.log('message event: ', data); // remove after testing
-      // your code goes here
-    }
-  } catch {
-    console.log('message event: ', event.data); // remove after testing
-    // your code goes here
-  }
-});
-
-// Define a function to process the auth response outside of FB.login
-// This function is not async anymore
-function processAuthResponse(response: FB.LoginStatusResponse): void {
-  if (response.authResponse) {
-    const code = response.authResponse.code;
-    // Send the code to our backend asynchronously
-    if (code) {
-      // We use a regular Promise here instead of async/await
-      fetch(`https://api.7en.ai/api/whatsapp/oauth/`, {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${getAccessToken()}`
-        },
-        body: JSON.stringify({
-          code: code
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log("from backend exchange", data);
-      })
-      .catch(err => {
-        console.error("Error exchanging code:", err);
-      });
-    }
-  }
-  console.log(JSON.stringify(response, null, 2));
-}
-
 export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
   return new Promise((resolve, reject) => {
     initFacebookSDK()
       .then(() => {
-        // Use any to handle custom FB options that are not in the type definition
         const options: any = { 
-          config_id: CONFIG_ID, // configuration ID goes here
-          response_type: 'code', // must be set to 'code' for System User access token
-          override_default_response_type: true, // when true, any response types passed in the "response_type" will take precedence over the default types
+          config_id: CONFIG_ID,
+          response_type: 'code',
+          override_default_response_type: true,
           extras: {
             setup: {
               redirectUri: "https://api.7en.ai/api/whatsapp/oauth/",
@@ -159,17 +133,47 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
           redirect_uri: 'https://api.7en.ai/api/whatsapp/oauth/'
         };
         
-        // FB.login expects a synchronous callback function
         window.FB.login((response) => {
-          // Process the response synchronously
           processAuthResponse(response);
-          // Resolve the promise with the response
           resolve(response);
         }, options);
       })
       .catch(reject);
   });
 };
+
+// Define a function to process the auth response
+function processAuthResponse(response: FB.LoginStatusResponse): void {
+  if (response.authResponse) {
+    const code = response.authResponse.code;
+    if (code && whatsappData.phone_id && whatsappData.waba_id) {
+      fetch(`https://api.7en.ai/api/whatsapp/oauth/`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${getAccessToken()}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code: code,
+          phone_id: whatsappData.phone_id,
+          waba_id: whatsappData.waba_id
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("from backend exchange", data);
+      })
+      .catch(err => {
+        console.error("Error exchanging code:", err);
+      });
+    } else {
+      console.error('Missing code, phone_id, or waba_id');
+    }
+  } else {
+    console.log('User cancelled login or did not fully authorize:', response);
+  }
+  console.log(JSON.stringify(response, null, 2));
+}
 
 /**
  * Check current Facebook login status
@@ -216,7 +220,6 @@ export const logoutFromFacebook = (): Promise<void> => {
  */
 export const getWhatsAppBusinessAccounts = (fb_token?: string): Promise<any> => {
   return new Promise((resolve, reject) => {
-    // First, get the user's accounts/pages
     window.FB.api('/me/businesses', (accountsResponse) => {
       if (accountsResponse.error) {
         console.error('Error getting Facebook pages:', accountsResponse.error);
@@ -226,8 +229,6 @@ export const getWhatsAppBusinessAccounts = (fb_token?: string): Promise<any> => 
       
       console.log('Facebook whatsapp Accounts:', accountsResponse);
       
-      // For demo purposes, we'll just return the accounts as if they were WhatsApp business accounts
-      // In a real implementation, you'd need to query each page for its WhatsApp Business Account
       const businessAccounts = accountsResponse.data?.map((page: any) => ({
         id: page.id,
         name: page.name
@@ -246,11 +247,6 @@ export const getWhatsAppBusinessAccounts = (fb_token?: string): Promise<any> => 
  */
 export const getWhatsAppPhoneNumbers = (businessAccountId: string, fb_token?: string): Promise<any> => {
   return new Promise((resolve, reject) => {
-    // This is a workaround since we may not have actual access to the WhatsApp Business API
-    // In a real implementation, you would call:
-    // window.FB.api(`/${businessAccountId}/phone_numbers`, ...)
-    
-    // For demonstration purposes, return mock phone numbers
     window.FB.api(
       `/${businessAccountId}/phone_numbers`,
       'GET',
@@ -289,10 +285,6 @@ export const registerWhatsAppWebhook = (
   webhookUrl: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    // In a real implementation with full API access, you would use:
-    // window.FB.api(`/${businessAccountId}/subscribed_apps`, 'POST', {...})
-    
-    // For demonstration purposes, simulate a successful webhook registration
     setTimeout(() => {
       const mockResponse = {
         success: true,
