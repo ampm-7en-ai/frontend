@@ -55,15 +55,19 @@ const WhatsAppIntegration = () => {
     setIsConnecting(true);
     
     try {
-      const response = await loginWithFacebook();
+       const { fbResponse, apiResponse } = await loginWithFacebook();
       
      
       
-      if (response.status === 'connected') {
-        // Save token to localStorage
-        //localStorage.setItem('fb_token', fb_token);
-        setIsConnected(false);
-      
+      if (apiResponse.hasOwnProperty('error')) {
+         toast({
+          title: "Error",
+          description: apiResponse.error.message,
+          variant: "destructive"
+        });
+      }
+      if (apiResponse.status === 'success'){
+        setIsConnected(true);
       }
     } catch (error) {
       console.error("Facebook login error:", error);

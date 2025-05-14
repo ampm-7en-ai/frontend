@@ -130,8 +130,9 @@ export const loginWithFacebook = (): Promise<{fbResponse: FB.LoginStatusResponse
           }
         };
         window.FB.login((response) => {
-          processAuthResponse(response);
-          resolve(response);
+          processAuthResponse(response)
+            .then(resolve)
+            .catch(reject);
         }, options);
       })
       .catch(reject);
@@ -141,42 +142,41 @@ export const loginWithFacebook = (): Promise<{fbResponse: FB.LoginStatusResponse
 /**
  * Process the authentication response and exchange code
  */
-function processAuthResponse(response: FB.LoginStatusResponse): void {
-  if (response.authResponse) {
-    const code = response.authResponse.code;
-    if (code && whatsappData.phone_id && whatsappData.waba_id) {
-      fetch('https://api.7en.ai/api/whatsapp/oauth/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getAccessToken()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          code: code,
-          phone_id: whatsappData.phone_id,
-          waba_id: whatsappData.waba_id,
-          user_id: userID.id.toString()
+function processAuthResponse(response: FB.LoginStatusResponse): Promise<{fbResponse: FB.LoginStatusResponse, apiResponse: any}> {
+  return new Promise((resolve, reject) => {
+    if (response.authResponse) {
+      const code = response.authResponse.code;
+      if (code && whatsappData.phone_id && whatsappData.waba_id) {
+        fetch('https://api.7en.ai/api/whatsapp/oauth/', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getAccessToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            code: code,
+            phone_id: whatsappData.phone_id,
+            waba_id: whatsappData.waba_id,
+            user_id: userID.id.toString()
+          })
         })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log('Backend response:', data);
-        resolve({fbResponse: response, apiResponse: data});
-        // Optionally redirect to a final page after success
-        //window.location.href = '/final-page'; // Adjust as needed
-      })
-      .catch(err => {
-        console.error('Error exchanging code:', err);
-      });
+        .then(res => res.json())
+        .then(data => {
+          console.log('Backend response:', data);
+          resolve({fbResponse: response, apiResponse: data});
+        })
+        .catch(err => {
+          console.error('Error exchanging code:', err);
+          reject(err);
+        });
+      } else {
+        reject(new Error('Missing code, phone_id, or waba_id'));
+      }
     } else {
-      console.error('Missing code, phone_id, or waba_id');
+      console.log('User cancelled login or did not fully authorize:', response);
+      resolve({fbResponse: response, apiResponse: null});
     }
-  } else {
-    console.log('User cancelled login or did not fully authorize:', response);
-  }
-
-
-  //console.log('FB.login response:', JSON.stringify(response, null, 2));
+  });
 }
 /**
  * Check current Facebook login status
