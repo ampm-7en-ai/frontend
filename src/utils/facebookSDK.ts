@@ -139,33 +139,21 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
 };
 
 /**
- * Process the authentication response and exchange code
+ * Process the authentication response and redirect
  */
 function processAuthResponse(response: FB.LoginStatusResponse): void {
   if (response.authResponse) {
     const code = response.authResponse.code;
+    const token = getAccessToken(); // Retrieve the auth token
     if (code && whatsappData.phone_id && whatsappData.waba_id) {
-      fetch('https://api.7en.ai/api/whatsapp/oauth/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getAccessToken()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          code: code,
-          phone_id: whatsappData.phone_id,
-          waba_id: whatsappData.waba_id
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log('Backend response:', data);
-        // Optionally redirect to a final page after success
-       // window.location.href = '/final-page'; // Adjust as needed
-      })
-      .catch(err => {
-        console.error('Error exchanging code:', err);
-      });
+      // Redirect to the custom URL with query parameters
+      const redirectUrl = new URL('https://api.7en.ai/api/whatsapp/oauth/');
+      redirectUrl.searchParams.append('code', code);
+      redirectUrl.searchParams.append('phone_id', whatsappData.phone_id);
+      redirectUrl.searchParams.append('waba_id', whatsappData.waba_id);
+      redirectUrl.searchParams.append('token', token); // Add the token as a query parameter
+      console.log('Redirecting to:', redirectUrl.toString());
+      window.location.href = redirectUrl.toString();
     } else {
       console.error('Missing code, phone_id, or waba_id');
     }
