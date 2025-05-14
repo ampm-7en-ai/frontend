@@ -11,6 +11,7 @@ import {
   logoutFromFacebook,
   checkWhatsAppStatus
 } from '@/utils/facebookSDK';
+import { clearCacheEntry } from '@/utils/cacheUtils';
 
 const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -36,8 +37,8 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
         await initFacebookSDK();
         const loginStatus = await getFacebookLoginStatus();
         
-        // Check WhatsApp connection status
-        const whatsappStatus = await checkWhatsAppStatus();
+        // Check WhatsApp connection status - use cache by default
+        const whatsappStatus = await checkWhatsAppStatus(false);
         if (whatsappStatus.isLinked) {
           setIsConnected(true);
           if (whatsappStatus.phoneNumber) {
@@ -90,6 +91,9 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
           setQrCodeImageUrl(apiResponse.data.qr);
         }
         
+        // Clear WhatsApp status cache to ensure fresh data next time
+        clearCacheEntry('whatsapp_status');
+        
         toast({
           title: "WhatsApp Connected",
           description: "Your WhatsApp Business account has been successfully connected.",
@@ -117,6 +121,9 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
       setIsConnected(false);
       setPhoneDisplay('');
       setQrCodeImageUrl('');
+      
+      // Clear WhatsApp status cache to ensure fresh data next time
+      clearCacheEntry('whatsapp_status');
       
       toast({
         title: "WhatsApp Disconnected",

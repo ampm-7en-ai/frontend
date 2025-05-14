@@ -3,7 +3,7 @@
  * This file handles initialization and interactions with Facebook JS SDK
  */
 import { getAccessToken } from "@/utils/api-config"
-import { resolve } from "path";
+import { getFromCache, storeInCache } from "@/utils/cacheUtils";
 
 // Facebook App ID - this should be from environment variables in production
 const FACEBOOK_APP_ID = '1103615605128273'; // Replace with your actual Facebook App ID
@@ -219,13 +219,30 @@ export const logoutFromFacebook = (): Promise<void> => {
 
 /**
  * Check WhatsApp connection status
+ * @param forceRefresh Force refresh cache
  * @returns Promise with WhatsApp connection status response
  */
-export const checkWhatsAppStatus = async (): Promise<{
+export const checkWhatsAppStatus = async (forceRefresh = false): Promise<{
   isLinked: boolean;
   phoneNumber?: string;
   qrCode?: string;
 }> => {
+  const CACHE_KEY = 'whatsapp_status';
+  
+  // Check cache first unless forceRefresh is true
+  if (!forceRefresh) {
+    const cachedStatus = getFromCache<{
+      isLinked: boolean;
+      phoneNumber?: string;
+      qrCode?: string;
+    }>(CACHE_KEY);
+    
+    if (cachedStatus) {
+      console.log('Using cached WhatsApp status');
+      return cachedStatus;
+    }
+  }
+  
   const token = getAccessToken();
   if (!token) {
     console.error("No access token available for checkWhatsAppStatus");
@@ -233,6 +250,7 @@ export const checkWhatsAppStatus = async (): Promise<{
   }
   
   try {
+    console.log('Fetching fresh WhatsApp status');
     const response = await fetch('https://api.7en.ai/api/whatsapp/status/', {
       method: 'GET',
       headers: {
@@ -250,11 +268,16 @@ export const checkWhatsAppStatus = async (): Promise<{
     console.log('WhatsApp status response:', data);
     
     // Return connection status along with phone number and QR code if available
-    return {
+    const statusData = {
       isLinked: data?.data?.is_linked || false,
       phoneNumber: data?.data?.phone || '',
       qrCode: data?.data?.qr || ''
     };
+    
+    // Store in cache for future use
+    storeInCache(CACHE_KEY, statusData);
+    
+    return statusData;
   } catch (error) {
     console.error('Error checking WhatsApp status:', error);
     return { isLinked: false };
