@@ -40,8 +40,8 @@ window.addEventListener('message', (event) => {
     if (data.type === 'WA_EMBEDDED_SIGNUP') {
       console.log('message event: ', data);
       // Extract phone_id and waba_id from the event data
-      if (data.data.phone_id && data.data.waba_id) {
-        whatsappData.phone_id = data.data.phone_id;
+      if (data.data.phone_number_id && data.data.waba_id) {
+        whatsappData.phone_id = data.data.phone_number_id;
         whatsappData.waba_id = data.data.waba_id;
         console.log(`Captured phone_id: ${whatsappData.phone_id}, waba_id: ${whatsappData.waba_id}`);
       }
