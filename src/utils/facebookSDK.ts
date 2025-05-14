@@ -31,6 +31,7 @@ let sdkStatus: FacebookSDKStatus = {
 
 // Store phone_id and waba_id from the message event
 let whatsappData: { phone_id?: string; waba_id?: string } = {};
+let userID = JSON.parse(localStorage.getItem('user'));
 
 // Session logging message event listener
 window.addEventListener('message', (event) => {
@@ -128,7 +129,6 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
             sessionInfoVersion: '2'
           }
         };
-        
         window.FB.login((response) => {
           processAuthResponse(response);
           resolve(response);
@@ -154,7 +154,8 @@ function processAuthResponse(response: FB.LoginStatusResponse): void {
         body: JSON.stringify({
           code: code,
           phone_id: whatsappData.phone_id,
-          waba_id: whatsappData.waba_id
+          waba_id: whatsappData.waba_id,
+          user_id: userID.id.toString()
         })
       })
       .then(res => res.json())
