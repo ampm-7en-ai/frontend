@@ -161,7 +161,7 @@ function processAuthResponse(response: FB.LoginStatusResponse): void {
       .then(data => {
         console.log('Backend response:', data);
         // Optionally redirect to a final page after success
-        window.location.href = '/final-page'; // Adjust as needed
+       // window.location.href = '/final-page'; // Adjust as needed
       })
       .catch(err => {
         console.error('Error exchanging code:', err);
