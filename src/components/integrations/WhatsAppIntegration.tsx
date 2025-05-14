@@ -30,7 +30,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
     // Only check status if shouldCheckStatus is true
     if (!shouldCheckStatus) {
       setIsFacebookLoading(false);
-      setIsInitialLoading(false);
+      setIsInitialLoading(true);
       return;
     }
     
