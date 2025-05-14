@@ -138,22 +138,28 @@ const WhatsAppIntegration = () => {
           
           <div className="space-y-4">
             <div>
-              <h3 className="font-medium text-lg mb-2">Your WhatsApp Test Bot</h3>
+              <h3 className="font-medium text-lg mb-2">Your WhatsApp AI Agent</h3>
               <p className="text-muted-foreground">
-                Your bot is linked to your WhatsApp Business with phone number {phoneDisplay}<br />
-                Registered at: {registeredDate}
+                Your Agent is linked to your WhatsApp Business with phone number <strong>{phoneDisplay}</strong><br />
               </p>
             </div>
             
             <div className="space-y-2">
-              <h4 className="font-medium">Scan the QR below to chat with your bot on WhatsApp:</h4>
-              <div className="border rounded-md p-4 bg-white w-fit">
-                <img 
-                  src={qrCodeImageUrl} 
-                  alt="WhatsApp QR Code" 
-                  className="max-w-[250px]"
-                />
-              </div>
+              
+              {
+                qrCodeImageUrl !== '' && (
+                  <>
+                    <h4 className="font-medium">Scan the QR below to chat with your Agent on WhatsApp:</h4>
+                    <div className="border rounded-md p-4 bg-white w-fit">
+                      <img 
+                        src={qrCodeImageUrl} 
+                        alt="WhatsApp QR Code" 
+                        className="max-w-[250px]"
+                      />
+                    </div>
+                  </>
+                )
+              }
               <p className="text-sm text-muted-foreground mt-2">
                 To unlink your WhatsApp Business phone number from 7en.ai, click this button:
               </p>

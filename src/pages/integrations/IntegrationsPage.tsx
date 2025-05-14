@@ -71,15 +71,15 @@ const IntegrationsPage = () => {
   const getTabDescription = (tab: string) => {
     switch (tab) {
       case 'whatsapp':
-        return "Connect your chatbot with WhatsApp Business API to reach your customers where they are.";
+        return "Connect your AI Agent with WhatsApp Business API to reach your customers where they are.";
       case 'slack':
-        return "Connect your chatbot with Slack to engage with your team and customers.";
+        return "Connect your AI Agent with Slack to engage with your team and customers.";
       case 'instagram':
-        return "Connect your chatbot with Instagram to respond to DMs automatically.";
+        return "Connect your AI Agent with Instagram to respond to DMs automatically.";
       case 'messenger':
-        return "Connect your chatbot with Facebook Messenger to automate customer conversations.";
+        return "Connect your AI Agent with Facebook Messenger to automate customer conversations.";
       case 'zapier':
-        return "Connect your chatbot with thousands of apps through Zapier automation.";
+        return "Connect your AI Agent with thousands of apps through Zapier automation.";
       default:
         return "";
     }
