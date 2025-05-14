@@ -216,3 +216,47 @@ export const logoutFromFacebook = (): Promise<void> => {
     }
   });
 };
+
+/**
+ * Check WhatsApp connection status
+ * @returns Promise with WhatsApp connection status response
+ */
+export const checkWhatsAppStatus = async (): Promise<{
+  isLinked: boolean;
+  phoneNumber?: string;
+  qrCode?: string;
+}> => {
+  const token = getAccessToken();
+  if (!token) {
+    console.error("No access token available for checkWhatsAppStatus");
+    return { isLinked: false };
+  }
+  
+  try {
+    const response = await fetch('https://api.7en.ai/api/whatsapp/status/', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error(`WhatsApp status check failed with status: ${response.status}`);
+      return { isLinked: false };
+    }
+    
+    const data = await response.json();
+    console.log('WhatsApp status response:', data);
+    
+    // Return connection status along with phone number and QR code if available
+    return {
+      isLinked: data?.data?.is_linked || false,
+      phoneNumber: data?.data?.phone || '',
+      qrCode: data?.data?.qr || ''
+    };
+  } catch (error) {
+    console.error('Error checking WhatsApp status:', error);
+    return { isLinked: false };
+  }
+};

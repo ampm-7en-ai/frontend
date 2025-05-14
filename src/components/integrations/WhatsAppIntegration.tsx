@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
@@ -8,10 +7,9 @@ import {
   initFacebookSDK, 
   loginWithFacebook, 
   getFacebookLoginStatus,
-  logoutFromFacebook
+  logoutFromFacebook,
+  checkWhatsAppStatus
 } from '@/utils/facebookSDK';
-
-
 
 const WhatsAppIntegration = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -22,24 +20,31 @@ const WhatsAppIntegration = () => {
   const { toast } = useToast();
 
   // QR code for demonstration purposes - in production, generate dynamically
-  const qrCodeImageUrl = '';
+  const [qrCodeImageUrl, setQrCodeImageUrl] = useState('');
 
-  // Initialize Facebook SDK and check login status
+  // Initialize Facebook SDK, check login status, and check WhatsApp connection status
   useEffect(() => {
     const initFacebook = async () => {
       try {
         await initFacebookSDK();
         const loginStatus = await getFacebookLoginStatus();
         
-        // If already connected, fetch WhatsApp accounts
-        if (loginStatus.status === 'connected') {
-          
+        // Check WhatsApp connection status
+        const whatsappStatus = await checkWhatsAppStatus();
+        if (whatsappStatus.isLinked) {
+          setIsConnected(true);
+          if (whatsappStatus.phoneNumber) {
+            setPhoneDisplay(whatsappStatus.phoneNumber);
+          }
+          if (whatsappStatus.qrCode) {
+            setQrCodeImageUrl(whatsappStatus.qrCode);
+          }
         }
       } catch (error) {
-        console.error("Error initializing Facebook SDK:", error);
+        console.error("Error initializing Facebook SDK or checking WhatsApp status:", error);
         toast({
-          title: "Facebook SDK Error",
-          description: "Failed to initialize Facebook SDK. Please try refreshing the page.",
+          title: "Connection Error",
+          description: "Failed to check connection status. Please try refreshing the page.",
           variant: "destructive"
         });
       } finally {
@@ -55,19 +60,33 @@ const WhatsAppIntegration = () => {
     setIsConnecting(true);
     
     try {
-       const { fbResponse, apiResponse } = await loginWithFacebook();
+      const { fbResponse, apiResponse } = await loginWithFacebook();
       
-     
-      
-      if (apiResponse.hasOwnProperty('error')) {
-         toast({
+      if (apiResponse?.hasOwnProperty('error')) {
+        toast({
           title: "Error",
           description: apiResponse.error.message,
           variant: "destructive"
         });
       }
-      if (apiResponse.status === 'success'){
+      
+      if (apiResponse?.status === 'success') {
         setIsConnected(true);
+        
+        // Extract phone number from the response if available
+        if (apiResponse?.data?.phone) {
+          setPhoneDisplay(apiResponse.data.phone);
+        }
+        
+        // Extract QR code URL from the response if available
+        if (apiResponse?.data?.qr) {
+          setQrCodeImageUrl(apiResponse.data.qr);
+        }
+        
+        toast({
+          title: "WhatsApp Connected",
+          description: "Your WhatsApp Business account has been successfully connected.",
+        });
       }
     } catch (error) {
       console.error("Facebook login error:", error);
@@ -81,23 +100,16 @@ const WhatsAppIntegration = () => {
     }
   };
   
- 
-  
-  
-  
   // Handle disconnect
   const handleDisconnect = async () => {
     try {
       // In a real implementation, you would also notify your backend
       await logoutFromFacebook();
       
-      // Remove saved connection
-      //localStorage.removeItem('whatsappConnection');
-      
       // Reset state
       setIsConnected(false);
-      
-     
+      setPhoneDisplay('');
+      setQrCodeImageUrl('');
       
       toast({
         title: "WhatsApp Disconnected",
@@ -243,7 +255,6 @@ const WhatsAppIntegration = () => {
           </div>
         </>
       )}
-      
     </div>
   );
 };
