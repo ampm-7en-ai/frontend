@@ -13,10 +13,11 @@ import { initFacebookSDK } from '@/utils/facebookSDK';
 const IntegrationsPage = () => {
   const [activeTab, setActiveTab] = useState("whatsapp");
   const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize Facebook SDK when the integrations page loads
+    // Initialize Facebook SDK when the integrations page loads - only once
     const initFacebook = async () => {
       try {
         await initFacebookSDK();
@@ -28,11 +29,15 @@ const IntegrationsPage = () => {
           description: "Failed to initialize Facebook SDK. Some features may not work properly.",
           variant: "destructive"
         });
+      } finally {
+        setInitialLoadComplete(true);
       }
     };
 
-    initFacebook();
-  }, [toast]);
+    if (!initialLoadComplete) {
+      initFacebook();
+    }
+  }, [toast, initialLoadComplete]);
 
   const getTabIcon = (tab: string) => {
     switch (tab) {
@@ -179,7 +184,7 @@ const IntegrationsPage = () => {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          {activeTab === 'whatsapp' && <WhatsAppIntegration />}
+          {activeTab === 'whatsapp' && <WhatsAppIntegration shouldCheckStatus={initialLoadComplete} />}
           {activeTab === 'slack' && <SlackIntegration />}
           {activeTab === 'instagram' && <InstagramIntegration />}
           {activeTab === 'messenger' && <MessengerIntegration />}

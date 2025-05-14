@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
@@ -11,7 +12,7 @@ import {
   checkWhatsAppStatus
 } from '@/utils/facebookSDK';
 
-const WhatsAppIntegration = () => {
+const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(true);
@@ -24,6 +25,12 @@ const WhatsAppIntegration = () => {
 
   // Initialize Facebook SDK, check login status, and check WhatsApp connection status
   useEffect(() => {
+    // Only check status if shouldCheckStatus is true
+    if (!shouldCheckStatus) {
+      setIsFacebookLoading(false);
+      return;
+    }
+    
     const initFacebook = async () => {
       try {
         await initFacebookSDK();
@@ -53,7 +60,7 @@ const WhatsAppIntegration = () => {
     };
 
     initFacebook();
-  }, [toast]);
+  }, [toast, shouldCheckStatus]);
 
   // Handle Facebook login
   const handleConnectFacebook = async () => {
