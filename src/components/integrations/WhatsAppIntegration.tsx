@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
@@ -12,11 +11,13 @@ import {
   checkWhatsAppStatus
 } from '@/utils/facebookSDK';
 import { clearCacheEntry } from '@/utils/cacheUtils';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [phoneDisplay, setPhoneDisplay] = useState('');
   const [registeredDate, setRegisteredDate] = useState(new Date().toLocaleString());
   const { toast } = useToast();
@@ -29,6 +30,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
     // Only check status if shouldCheckStatus is true
     if (!shouldCheckStatus) {
       setIsFacebookLoading(false);
+      setIsInitialLoading(false);
       return;
     }
     
@@ -57,6 +59,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
         });
       } finally {
         setIsFacebookLoading(false);
+        setIsInitialLoading(false);
       }
     };
 
@@ -138,6 +141,14 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
       });
     }
   };
+  
+  if (isInitialLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <LoadingSpinner size="lg" text="Loading WhatsApp Integration..." />
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
