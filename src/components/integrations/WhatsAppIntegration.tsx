@@ -113,27 +113,27 @@ const WhatsAppIntegration = () => {
         localStorage.setItem('fb_token', fb_token);
         
         // Get available WhatsApp Business accounts
-        try {
-          const fetchedAccounts = await getWhatsAppBusinessAccounts(fb_token);
-          setBusinessAccounts(fetchedAccounts);
+        // try {
+        //   const fetchedAccounts = await getWhatsAppBusinessAccounts(fb_token);
+        //   setBusinessAccounts(fetchedAccounts);
           
-          if (fetchedAccounts && fetchedAccounts.length > 0) {
-            setShowAccountsDialog(true);
-          } else {
-            toast({
-              title: "No WhatsApp Business Accounts",
-              description: "No WhatsApp Business accounts found. Please create one in the Meta Business Manager first.",
-              variant: "destructive"
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching business accounts:", error);
-          toast({
-            title: "Error Fetching Accounts",
-            description: "Failed to retrieve WhatsApp Business accounts.",
-            variant: "destructive"
-          });
-        }
+        //   if (fetchedAccounts && fetchedAccounts.length > 0) {
+        //     setShowAccountsDialog(true);
+        //   } else {
+        //     toast({
+        //       title: "No WhatsApp Business Accounts",
+        //       description: "No WhatsApp Business accounts found. Please create one in the Meta Business Manager first.",
+        //       variant: "destructive"
+        //     });
+        //   }
+        // } catch (error) {
+        //   console.error("Error fetching business accounts:", error);
+        //   toast({
+        //     title: "Error Fetching Accounts",
+        //     description: "Failed to retrieve WhatsApp Business accounts.",
+        //     variant: "destructive"
+        //   });
+        // }
       }
     } catch (error) {
       console.error("Facebook login error:", error);
@@ -151,23 +151,23 @@ const WhatsAppIntegration = () => {
   const handleAccountSelect = async (accountId: string) => {
     setSelectedAccountId(accountId);
     
-    try {
-      // Get phone numbers for the selected account
-      const numbers = await getWhatsAppPhoneNumbers(accountId, fbToken);
-      setPhoneNumbers(numbers);
+    // try {
+    //   // Get phone numbers for the selected account
+    //   const numbers = await getWhatsAppPhoneNumbers(accountId, fbToken);
+    //   setPhoneNumbers(numbers);
       
-      if (numbers && numbers.length > 0) {
-        setSelectedPhoneId(numbers[0].id);
-        setPhoneDisplay(numbers[0].display_phone_number);
-      }
-    } catch (error) {
-      console.error("Error getting phone numbers:", error);
-      toast({
-        title: "Error",
-        description: "Failed to retrieve phone numbers for this account.",
-        variant: "destructive"
-      });
-    }
+    //   if (numbers && numbers.length > 0) {
+    //     setSelectedPhoneId(numbers[0].id);
+    //     setPhoneDisplay(numbers[0].display_phone_number);
+    //   }
+    // } catch (error) {
+    //   console.error("Error getting phone numbers:", error);
+    //   toast({
+    //     title: "Error",
+    //     description: "Failed to retrieve phone numbers for this account.",
+    //     variant: "destructive"
+    //   });
+    // }
   };
   
   // Confirm WhatsApp account connection
@@ -181,47 +181,47 @@ const WhatsAppIntegration = () => {
       return;
     }
     
-    try {
-      // Register the webhook for receiving WhatsApp messages
-      // In a real implementation, you would configure this on your backend
-      const webhookUrl = `${window.location.origin}/api/whatsapp-webhook`;
+    // try {
+    //   // Register the webhook for receiving WhatsApp messages
+    //   // In a real implementation, you would configure this on your backend
+    //   const webhookUrl = `${window.location.origin}/api/whatsapp-webhook`;
       
-      await registerWhatsAppWebhook(selectedAccountId, webhookUrl);
+    //   await registerWhatsAppWebhook(selectedAccountId, webhookUrl);
       
-      // Save the connection in localStorage
-      const connectionData = {
-        accountId: selectedAccountId,
-        phoneId: selectedPhoneId,
-        phoneDisplay: phoneNumbers.find(p => p.id === selectedPhoneId)?.display_phone_number || '',
-        connectedAt: new Date().toISOString()
-      };
-      localStorage.setItem('whatsappConnection', JSON.stringify(connectionData));
+    //   // Save the connection in localStorage
+    //   const connectionData = {
+    //     accountId: selectedAccountId,
+    //     phoneId: selectedPhoneId,
+    //     phoneDisplay: phoneNumbers.find(p => p.id === selectedPhoneId)?.display_phone_number || '',
+    //     connectedAt: new Date().toISOString()
+    //   };
+    //   localStorage.setItem('whatsappConnection', JSON.stringify(connectionData));
       
-      // Update state
-      setIsConnected(true);
-      setShowAccountsDialog(false);
+    //   // Update state
+    //   setIsConnected(true);
+    //   setShowAccountsDialog(false);
       
-      // Display success message
-      toast({
-        title: "WhatsApp Connected",
-        description: "Your WhatsApp Business account has been successfully connected.",
-      });
+    //   // Display success message
+    //   toast({
+    //     title: "WhatsApp Connected",
+    //     description: "Your WhatsApp Business account has been successfully connected.",
+    //   });
       
-      // Register with your backend (in a real implementation)
-      const token = getAccessToken();
-      if (token) {
-        // Update backend with the connection details
-        // This would be implemented in your API
-        console.log("Sending connection details to backend:", connectionData);
-      }
-    } catch (error) {
-      console.error("Error connecting WhatsApp:", error);
-      toast({
-        title: "Connection Failed",
-        description: "Failed to establish WhatsApp Business connection.",
-        variant: "destructive"
-      });
-    }
+    //   // Register with your backend (in a real implementation)
+    //   const token = getAccessToken();
+    //   if (token) {
+    //     // Update backend with the connection details
+    //     // This would be implemented in your API
+    //     console.log("Sending connection details to backend:", connectionData);
+    //   }
+    // } catch (error) {
+    //   console.error("Error connecting WhatsApp:", error);
+    //   toast({
+    //     title: "Connection Failed",
+    //     description: "Failed to establish WhatsApp Business connection.",
+    //     variant: "destructive"
+    //   });
+    // }
   };
   
   // Handle disconnect
