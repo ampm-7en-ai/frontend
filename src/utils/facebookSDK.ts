@@ -123,14 +123,10 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
           response_type: 'code',
           override_default_response_type: true,
           extras: {
-            setup: {
-              redirectUri: "https://api.7en.ai/api/whatsapp/oauth/",
-              testMode: true
-            },
+            setup: {},
             featureType: '',
-            sessionInfoVersion: '2',
-          },
-          redirect_uri: 'https://api.7en.ai/api/whatsapp/oauth/'
+            sessionInfoVersion: '2'
+          }
         };
         
         window.FB.login((response) => {
@@ -142,16 +138,18 @@ export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
   });
 };
 
-// Define a function to process the auth response
+/**
+ * Process the authentication response and exchange code
+ */
 function processAuthResponse(response: FB.LoginStatusResponse): void {
   if (response.authResponse) {
     const code = response.authResponse.code;
     if (code && whatsappData.phone_id && whatsappData.waba_id) {
-      fetch(`https://api.7en.ai/api/whatsapp/oauth/`, {
+      fetch('https://api.7en.ai/api/whatsapp/oauth/', {
         method: 'POST',
         headers: {
-          "Authorization": `Bearer ${getAccessToken()}`,
-          "Content-Type": "application/json"
+          'Authorization': `Bearer ${getAccessToken()}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           code: code,
@@ -161,10 +159,12 @@ function processAuthResponse(response: FB.LoginStatusResponse): void {
       })
       .then(res => res.json())
       .then(data => {
-        console.log("from backend exchange", data);
+        console.log('Backend response:', data);
+        // Optionally redirect to a final page after success
+        window.location.href = '/final-page'; // Adjust as needed
       })
       .catch(err => {
-        console.error("Error exchanging code:", err);
+        console.error('Error exchanging code:', err);
       });
     } else {
       console.error('Missing code, phone_id, or waba_id');
@@ -172,7 +172,7 @@ function processAuthResponse(response: FB.LoginStatusResponse): void {
   } else {
     console.log('User cancelled login or did not fully authorize:', response);
   }
-  console.log(JSON.stringify(response, null, 2));
+  console.log('FB.login response:', JSON.stringify(response, null, 2));
 }
 
 /**
