@@ -3,6 +3,7 @@
  * This file handles initialization and interactions with Facebook JS SDK
  */
 import { getAccessToken } from "@/utils/api-config"
+import { resolve } from "path";
 
 // Facebook App ID - this should be from environment variables in production
 const FACEBOOK_APP_ID = '1103615605128273'; // Replace with your actual Facebook App ID
@@ -39,7 +40,7 @@ window.addEventListener('message', (event) => {
   try {
     const data = JSON.parse(event.data);
     if (data.type === 'WA_EMBEDDED_SIGNUP') {
-      console.log('message event: ', data);
+
       // Extract phone_id and waba_id from the event data
       if (data.data.phone_number_id && data.data.waba_id) {
         whatsappData.phone_id = data.data.phone_number_id;
@@ -48,7 +49,7 @@ window.addEventListener('message', (event) => {
       }
     }
   } catch {
-    console.log('message event: ', event.data);
+    
   }
 });
 
@@ -95,7 +96,6 @@ export const initFacebookSDK = (): Promise<void> => {
       
       sdkStatus.initialized = true;
       sdkStatus.loading = false;
-      console.log('Facebook SDK initialized');
       resolve();
     };
     
@@ -115,7 +115,7 @@ export const initFacebookSDK = (): Promise<void> => {
  * Login to Facebook and request WhatsApp Business permissions
  * @returns Promise with login response
  */
-export const loginWithFacebook = (): Promise<FB.LoginStatusResponse> => {
+export const loginWithFacebook = (): Promise<{fbResponse: FB.LoginStatusResponse, apiResponse?: any}> => {
   return new Promise((resolve, reject) => {
     initFacebookSDK()
       .then(() => {
@@ -161,6 +161,7 @@ function processAuthResponse(response: FB.LoginStatusResponse): void {
       .then(res => res.json())
       .then(data => {
         console.log('Backend response:', data);
+        resolve({fbResponse: response, apiResponse: data});
         // Optionally redirect to a final page after success
         //window.location.href = '/final-page'; // Adjust as needed
       })
@@ -173,7 +174,9 @@ function processAuthResponse(response: FB.LoginStatusResponse): void {
   } else {
     console.log('User cancelled login or did not fully authorize:', response);
   }
-  console.log('FB.login response:', JSON.stringify(response, null, 2));
+
+
+  //console.log('FB.login response:', JSON.stringify(response, null, 2));
 }
 /**
  * Check current Facebook login status
@@ -211,88 +214,5 @@ export const logoutFromFacebook = (): Promise<void> => {
     } catch (error) {
       reject(error);
     }
-  });
-};
-
-/**
- * Get WhatsApp Business accounts associated with the logged-in user
- * @returns Promise with WhatsApp Business accounts
- */
-export const getWhatsAppBusinessAccounts = (fb_token?: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    window.FB.api('/me/businesses', (accountsResponse) => {
-      if (accountsResponse.error) {
-        console.error('Error getting Facebook pages:', accountsResponse.error);
-        reject(new Error(accountsResponse.error.message));
-        return;
-      }
-      
-      console.log('Facebook whatsapp Accounts:', accountsResponse);
-      
-      const businessAccounts = accountsResponse.data?.map((page: any) => ({
-        id: page.id,
-        name: page.name
-      })) || [];
-      
-      console.log('Mapped business accounts:', businessAccounts);
-      resolve(businessAccounts);
-    });
-  });
-};
-
-/**
- * Get WhatsApp Business phone numbers for a specific business account
- * @param businessAccountId The WhatsApp Business Account ID
- * @returns Promise with phone numbers
- */
-export const getWhatsAppPhoneNumbers = (businessAccountId: string, fb_token?: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    window.FB.api(
-      `/${businessAccountId}/phone_numbers`,
-      'GET',
-      (response) => {
-        if (response.error) {
-          console.error('Error fetching phone numbers:', response.error);
-          reject(response.error);
-        } else {
-          console.log('Real WhatsApp phone numbers:', response.data);
-          resolve(response.data);
-        }
-      }
-    );
-    setTimeout(() => {
-      const mockPhoneNumbers = [{
-        id: `phone_${businessAccountId}`,
-        display_phone_number: "+1234567890",
-        verified_name: "Demo Business",
-        quality_rating: "GREEN"
-      }];
-      
-      console.log('Mock WhatsApp phone numbers:', mockPhoneNumbers);
-      resolve(mockPhoneNumbers);
-    }, 500);
-  });
-};
-
-/**
- * Register a webhook for WhatsApp Business API
- * @param businessAccountId The WhatsApp Business Account ID
- * @param webhookUrl The URL where webhooks will be sent
- * @returns Promise with webhook registration response
- */
-export const registerWhatsAppWebhook = (
-  businessAccountId: string, 
-  webhookUrl: string
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const mockResponse = {
-        success: true,
-        webhook_url: webhookUrl
-      };
-      
-      console.log('Mock webhook registration:', mockResponse);
-      resolve(mockResponse);
-    }, 500);
   });
 };

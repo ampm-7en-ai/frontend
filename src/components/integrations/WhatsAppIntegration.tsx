@@ -3,52 +3,26 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from "@/hooks/use-toast";
 import { 
   initFacebookSDK, 
   loginWithFacebook, 
   getFacebookLoginStatus,
-  getWhatsAppBusinessAccounts,
-  getWhatsAppPhoneNumbers,
-  logoutFromFacebook,
-  registerWhatsAppWebhook
+  logoutFromFacebook
 } from '@/utils/facebookSDK';
-import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
-import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import PhoneInputField from '@/components/ui/PhoneInputField';
-import { Badge } from '@/components/ui/badge';
 
-interface WhatsAppAccount {
-  id: string;
-  name: string;
-}
 
-interface PhoneNumber {
-  id: string;
-  display_phone_number: string;
-  verified_name: string;
-  quality_rating?: string;
-}
 
 const WhatsAppIntegration = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(true);
-  const [businessAccounts, setBusinessAccounts] = useState<WhatsAppAccount[]>([]);
-  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
-  const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumber[]>([]);
-  const [selectedPhoneId, setSelectedPhoneId] = useState<string>('');
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneDisplay, setPhoneDisplay] = useState('');
   const [registeredDate, setRegisteredDate] = useState(new Date().toLocaleString());
-  const [showAccountsDialog, setShowAccountsDialog] = useState(false);
-  const [fbToken, setFbToken] = useState<string>('');
   const { toast } = useToast();
 
   // QR code for demonstration purposes - in production, generate dynamically
-  const qrCodeImageUrl = '/lovable-uploads/87d0de23-8725-4d62-bda2-2612a6fe494c.png';
+  const qrCodeImageUrl = '';
 
   // Initialize Facebook SDK and check login status
   useEffect(() => {
@@ -59,28 +33,7 @@ const WhatsAppIntegration = () => {
         
         // If already connected, fetch WhatsApp accounts
         if (loginStatus.status === 'connected') {
-          const storedToken = localStorage.getItem('fb_token');
-          if (storedToken) {
-            setFbToken(storedToken);
-            //const accounts = await getWhatsAppBusinessAccounts(storedToken);
-            //setBusinessAccounts(accounts);
-            
-            // If we have existing connection data in localStorage, restore it
-            const savedConnection = localStorage.getItem('whatsappConnection');
-            if (savedConnection) {
-              const connectionData = JSON.parse(savedConnection);
-              setIsConnected(true);
-              setSelectedAccountId(connectionData.accountId);
-              setPhoneDisplay(connectionData.phoneDisplay);
-              
-              // Load phone numbers for the selected account
-              if (connectionData.accountId) {
-               // const numbers = await getWhatsAppPhoneNumbers(connectionData.accountId, storedToken);
-               // setPhoneNumbers(numbers);
-                setSelectedPhoneId(connectionData.phoneId);
-              }
-            }
-          }
+          
         }
       } catch (error) {
         console.error("Error initializing Facebook SDK:", error);
@@ -104,36 +57,13 @@ const WhatsAppIntegration = () => {
     try {
       const response = await loginWithFacebook();
       
-      // Check if authResponse exists and contains code
-      const fb_token = response.authResponse?.code || '';
-      setFbToken(fb_token);
+     
       
       if (response.status === 'connected') {
         // Save token to localStorage
-        localStorage.setItem('fb_token', fb_token);
-        
-        // Get available WhatsApp Business accounts
-        // try {
-        //   const fetchedAccounts = await getWhatsAppBusinessAccounts(fb_token);
-        //   setBusinessAccounts(fetchedAccounts);
-          
-        //   if (fetchedAccounts && fetchedAccounts.length > 0) {
-        //     setShowAccountsDialog(true);
-        //   } else {
-        //     toast({
-        //       title: "No WhatsApp Business Accounts",
-        //       description: "No WhatsApp Business accounts found. Please create one in the Meta Business Manager first.",
-        //       variant: "destructive"
-        //     });
-        //   }
-        // } catch (error) {
-        //   console.error("Error fetching business accounts:", error);
-        //   toast({
-        //     title: "Error Fetching Accounts",
-        //     description: "Failed to retrieve WhatsApp Business accounts.",
-        //     variant: "destructive"
-        //   });
-        // }
+        //localStorage.setItem('fb_token', fb_token);
+        setIsConnected(false);
+      
       }
     } catch (error) {
       console.error("Facebook login error:", error);
@@ -147,82 +77,9 @@ const WhatsAppIntegration = () => {
     }
   };
   
-  // Handle account selection
-  const handleAccountSelect = async (accountId: string) => {
-    setSelectedAccountId(accountId);
-    
-    // try {
-    //   // Get phone numbers for the selected account
-    //   const numbers = await getWhatsAppPhoneNumbers(accountId, fbToken);
-    //   setPhoneNumbers(numbers);
-      
-    //   if (numbers && numbers.length > 0) {
-    //     setSelectedPhoneId(numbers[0].id);
-    //     setPhoneDisplay(numbers[0].display_phone_number);
-    //   }
-    // } catch (error) {
-    //   console.error("Error getting phone numbers:", error);
-    //   toast({
-    //     title: "Error",
-    //     description: "Failed to retrieve phone numbers for this account.",
-    //     variant: "destructive"
-    //   });
-    // }
-  };
+ 
   
-  // Confirm WhatsApp account connection
-  const handleConfirmConnection = async () => {
-    if (!selectedAccountId || !selectedPhoneId) {
-      toast({
-        title: "Selection Required",
-        description: "Please select a WhatsApp Business account and phone number.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // try {
-    //   // Register the webhook for receiving WhatsApp messages
-    //   // In a real implementation, you would configure this on your backend
-    //   const webhookUrl = `${window.location.origin}/api/whatsapp-webhook`;
-      
-    //   await registerWhatsAppWebhook(selectedAccountId, webhookUrl);
-      
-    //   // Save the connection in localStorage
-    //   const connectionData = {
-    //     accountId: selectedAccountId,
-    //     phoneId: selectedPhoneId,
-    //     phoneDisplay: phoneNumbers.find(p => p.id === selectedPhoneId)?.display_phone_number || '',
-    //     connectedAt: new Date().toISOString()
-    //   };
-    //   localStorage.setItem('whatsappConnection', JSON.stringify(connectionData));
-      
-    //   // Update state
-    //   setIsConnected(true);
-    //   setShowAccountsDialog(false);
-      
-    //   // Display success message
-    //   toast({
-    //     title: "WhatsApp Connected",
-    //     description: "Your WhatsApp Business account has been successfully connected.",
-    //   });
-      
-    //   // Register with your backend (in a real implementation)
-    //   const token = getAccessToken();
-    //   if (token) {
-    //     // Update backend with the connection details
-    //     // This would be implemented in your API
-    //     console.log("Sending connection details to backend:", connectionData);
-    //   }
-    // } catch (error) {
-    //   console.error("Error connecting WhatsApp:", error);
-    //   toast({
-    //     title: "Connection Failed",
-    //     description: "Failed to establish WhatsApp Business connection.",
-    //     variant: "destructive"
-    //   });
-    // }
-  };
+  
   
   // Handle disconnect
   const handleDisconnect = async () => {
@@ -231,16 +88,12 @@ const WhatsAppIntegration = () => {
       await logoutFromFacebook();
       
       // Remove saved connection
-      localStorage.removeItem('whatsappConnection');
-      localStorage.removeItem('fb_token');
+      //localStorage.removeItem('whatsappConnection');
       
       // Reset state
       setIsConnected(false);
-      setBusinessAccounts([]);
-      setSelectedAccountId('');
-      setPhoneNumbers([]);
-      setSelectedPhoneId('');
-      setFbToken('');
+      
+     
       
       toast({
         title: "WhatsApp Disconnected",
@@ -387,82 +240,6 @@ const WhatsAppIntegration = () => {
         </>
       )}
       
-      {/* WhatsApp Account Selection Dialog */}
-      <Dialog open={showAccountsDialog} onOpenChange={setShowAccountsDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Connect WhatsApp Business Account</DialogTitle>
-            <DialogDescription>
-              Select the WhatsApp Business account and phone number you want to connect.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="account" className="text-sm font-medium">WhatsApp Business Account</label>
-              <Select
-                value={selectedAccountId}
-                onValueChange={handleAccountSelect}
-              >
-                <SelectTrigger id="account" className="w-full">
-                  <SelectValue placeholder="Select an account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {businessAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {selectedAccountId && (
-              <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium">Phone Number</label>
-                {phoneNumbers.length > 0 ? (
-                  <Select
-                    value={selectedPhoneId}
-                    onValueChange={setSelectedPhoneId}
-                  >
-                    <SelectTrigger id="phone" className="w-full">
-                      <SelectValue placeholder="Select a phone number" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {phoneNumbers.map((phone) => (
-                        <SelectItem key={phone.id} value={phone.id}>
-                          {phone.display_phone_number} 
-                          {phone.quality_rating && (
-                            <Badge variant="outline" className="ml-2">
-                              {phone.quality_rating}
-                            </Badge>
-                          )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="text-sm text-muted-foreground">
-                    No phone numbers available for this account.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAccountsDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleConfirmConnection}
-              disabled={!selectedAccountId || !selectedPhoneId}
-            >
-              Connect Account
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
