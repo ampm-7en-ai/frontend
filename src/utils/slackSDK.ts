@@ -61,15 +61,24 @@ let userID: User | null = JSON.parse(localStorage.getItem('user') || 'null');
 
 /**
  * Authenticate with Slack and initiate OAuth flow
- * Redirects the user to Slack's authorization page
+ * Opens Slack's authorization page in a new window
+ * @returns {Window | null} The new window object or null if popup was blocked
  */
-export const authenticateSlack = (): void => {
+export const authenticateSlack = (): Window | null => {
   const scope: string = SLACK_PERMISSIONS.join(',');
   const redirectUri: string = `https://api.7en.ai/api/slack/callback`;
   const slackAuthUrl: string = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=${scope}&redirect_uri=${redirectUri}`;
   
   sdkStatus.loading = true;
-  window.location.href = slackAuthUrl;
+  
+  // Open in a new window instead of redirecting
+  const newWindow = window.open(slackAuthUrl, 'SlackAuth', 'width=800,height=600');
+  
+  if (!newWindow) {
+    sdkStatus.error = 'Popup was blocked by your browser. Please allow popups for this site.';
+  }
+  
+  return newWindow;
 };
 
 /**
