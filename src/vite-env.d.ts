@@ -2,10 +2,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_BASE_URL: string;
-  readonly VITE_WS_BASE_URL: string;
-  readonly VITE_SLACK_CLIENT_ID: string;
-  // Add other environment variables as needed
+  // Note: No need to manually add each environment variable here anymore
+  readonly [key: string]: string | undefined;
 }
 
 interface ImportMeta {
