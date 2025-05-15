@@ -26,25 +26,14 @@ const BusinessList = () => {
 
   // Filter businesses based on search query and status filter
   const filteredBusinesses = businesses?.filter(business => {
-    const matchesSearch = business.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (business.domain && business.domain.toLowerCase().includes(searchQuery.toLowerCase()));
+    const trimName = business.name === null ? 'business': business.name.toLowerCase();
+    const trimDomain = business.domain === null ? 'domain' : business.domain.toLowerCase();
+    const matchesSearch = trimName.includes(searchQuery.toLowerCase()) || 
+                          (trimDomain && trimDomain.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || business.status.toLowerCase() === statusFilter;
     return matchesSearch && matchesStatus;
   }) || [];
 
-  const handleAddBusiness = () => {
-    if (newBusinessName.trim() === '') return;
-    
-    // In a real app, you would add the business to your backend
-    toast({
-      title: "Business Created",
-      description: `${newBusinessName} has been added successfully.`
-    });
-    
-    // Close the dialog and reset the form
-    setIsAddBusinessOpen(false);
-    setNewBusinessName('');
-  };
 
   if (isError) {
     return (
@@ -91,54 +80,6 @@ const BusinessList = () => {
               <SelectItem value="none">None</SelectItem>
             </SelectContent>
           </Select>
-          <Dialog open={isAddBusinessOpen} onOpenChange={setIsAddBusinessOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-1">
-                <Plus className="h-4 w-4" />
-                Add Business
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Business</DialogTitle>
-                <DialogDescription>
-                  Enter the details for the new business account.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="business-name">Business Name</Label>
-                  <Input 
-                    id="business-name" 
-                    value={newBusinessName}
-                    onChange={(e) => setNewBusinessName(e.target.value)}
-                    placeholder="Enter business name"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="business-domain">Domain</Label>
-                  <Input id="business-domain" placeholder="example.com" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="business-plan">Subscription Plan</Label>
-                  <Select defaultValue="starter">
-                    <SelectTrigger id="business-plan">
-                      <SelectValue placeholder="Select plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="starter">Starter</SelectItem>
-                      <SelectItem value="pro">Professional</SelectItem>
-                      <SelectItem value="enterprise">Enterprise</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddBusinessOpen(false)}>Cancel</Button>
-                <Button onClick={handleAddBusiness}>Create Business</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
       
@@ -196,7 +137,7 @@ const BusinessList = () => {
                               <Building className="h-4 w-4 text-primary" />
                             </div>
                             <div>
-                              <div>{business.name}</div>
+                              <div>{business.name || 'Business Name'}</div>
                               <div className="text-xs text-muted-foreground">{business.domain || 'No domain'}</div>
                             </div>
                           </div>
