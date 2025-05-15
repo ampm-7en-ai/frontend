@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoiceDialog';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
+import DeleteSubscriptionPlanDialog from '@/components/settings/platform/DeleteSubscriptionPlanDialog';
 
 interface Invoice {
   id: string;
@@ -87,6 +88,9 @@ const BillingSettings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<SubscriptionPlan | undefined>(undefined);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Use the updated useSubscription hook with options
   const { 
@@ -128,7 +132,15 @@ const BillingSettings = () => {
   const currentInvoices = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
-  const handleDeletePlan = async (planId: number) => {
+  const handleDeletePlanRequest = (plan: SubscriptionPlan) => {
+    setPlanToDelete(plan);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeletePlanConfirm = async () => {
+    if (!planToDelete || !planToDelete.id) return;
+    
+    setIsDeleting(true);
     try {
       const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
       
@@ -136,7 +148,7 @@ const BillingSettings = () => {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch(`${BASE_URL}subscriptions/delete/${planId}/`, {
+      const response = await fetch(`${BASE_URL}subscriptions/${planToDelete.id}/`, {
         method: 'DELETE',
         headers: getAuthHeaders(token)
       });
@@ -145,13 +157,18 @@ const BillingSettings = () => {
         throw new Error('Failed to delete subscription plan');
       }
       
+      const data = await response.json();
+      
       // Refetch subscription plans after deletion
-      refetchSubscriptionPlans();
+      await refetchSubscriptionPlans();
       
       toast({
         title: "Plan Deleted",
-        description: "Subscription plan has been deleted successfully.",
+        description: data.message || "Subscription plan has been deleted successfully.",
       });
+      
+      setIsDeleteDialogOpen(false);
+      setPlanToDelete(undefined);
     } catch (error) {
       console.error('Error deleting plan:', error);
       toast({
@@ -159,6 +176,8 @@ const BillingSettings = () => {
         description: "Failed to delete subscription plan.",
         variant: "destructive"
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -257,12 +276,19 @@ const BillingSettings = () => {
                             <div className="text-2xl font-bold mt-1">${plan.price}<span className="text-sm font-normal text-muted-foreground">/month</span></div>
                           </div>
                           <div className="flex gap-2">
-                            
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditPlan(plan.id!)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
                             <Button 
                               variant="outline" 
                               size="sm" 
                               className="text-red-500 hover:bg-red-50"
-                              onClick={() => handleDeletePlan(plan.id)}
+                              onClick={() => handleDeletePlanRequest(plan)}
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
                               Delete
@@ -526,6 +552,14 @@ const BillingSettings = () => {
         open={isCreateInvoiceOpen}
         onOpenChange={setIsCreateInvoiceOpen}
         onSubmit={handleCreateInvoice}
+      />
+
+      <DeleteSubscriptionPlanDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        plan={planToDelete}
+        onDelete={handleDeletePlanConfirm}
+        isDeleting={isDeleting}
       />
     </PlatformSettingsLayout>
   );
