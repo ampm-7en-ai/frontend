@@ -5,7 +5,7 @@
  */
 import { getAccessToken } from "@/utils/api-config"
 import { getFromCache, storeInCache } from "@/utils/cacheUtils";
-import { FACEBOOK_APP_ID,FACEBOOK_CONFIG_ID } from "@/config/env";
+import { FACEBOOK_APP_ID,FACEBOOK_CONFIG_ID,API_BASE_URL } from "@/config/env";
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
@@ -147,7 +147,7 @@ function processAuthResponse(response: FB.LoginStatusResponse): Promise<{fbRespo
     if (response.authResponse) {
       const code = response.authResponse.code;
       if (code && whatsappData.phone_id && whatsappData.waba_id) {
-        fetch('https://api.7en.ai/api/whatsapp/oauth/', {
+        fetch(`${API_BASE_URL}whatsapp/oauth/`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${getAccessToken()}`,
@@ -251,7 +251,7 @@ export const checkWhatsAppStatus = async (forceRefresh = false): Promise<{
   
   try {
     console.log('Fetching fresh WhatsApp status');
-    const response = await fetch('https://api.7en.ai/api/whatsapp/status/', {
+    const response = await fetch(`${API_BASE_URL}whatsapp/status/`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
