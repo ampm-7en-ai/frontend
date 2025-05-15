@@ -72,9 +72,8 @@ export const authenticateSlack = (): boolean => {
   sdkStatus.loading = true;
   
   // Open in a new tab
-  const newTab = window.open(slackAuthUrl, '_blank');
-  
-  return newTab !== null;
+  window.location.href = slackAuthUrl;
+  return true;
 };
 
 /**

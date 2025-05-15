@@ -197,7 +197,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
   return (
     <>
       <div className="flex justify-center mb-6">
-        <div className="text-primary font-bold text-3xl">7en.ai</div>
+        <div className="text-primary font-bold text-3xl">
+          <img src="/logo.svg" style={{height:"40px"}}/>
+        </div>
       </div>
 
       <h1 className="text-2xl font-semibold text-center mb-6">Create your account</h1>

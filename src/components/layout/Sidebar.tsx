@@ -26,14 +26,6 @@ import { NavLink, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
 
@@ -70,10 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const navigate = useNavigate();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [newAgentName, setNewAgentName] = useState('');
-  const [agentNameError, setAgentNameError] = useState(false);
-  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
-  const [loginUser,setLoginUser] = useState({});
 
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
@@ -83,69 +71,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     }
   };
 
-  const handleCreateAgent = async () => {
-    if (!newAgentName.trim()) {
-      setAgentNameError(true);
-      return;
-    }
-    
-    setAgentNameError(false);
-    setIsCreatingAgent(true);
-    
-    const token = getAccessToken();
-    if (!token) {
-      toast({
-        title: "Authentication Error",
-        description: "You must be logged in to create an agent.",
-        variant: "destructive"
-      });
-      navigate('/login');
-      return;
-    }
-    
-    try {
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: newAgentName,
-          description: `Quick agent created from sidebar: ${newAgentName}`,
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error.message || 'Failed to create agent');
-      }
-      
-      toast({
-        title: "Agent Created",
-        description: data.data.message || `${newAgentName} has been successfully created.`,
-        variant: "default"
-      });
-      
-      setNewAgentName('');
-      // Navigate to the edit page for the newly created agent if the id is present
-      if (data.data.id) {
-        navigate(`/agents/${data.data.id}/edit`);
-      } else {
-        navigate('/agents');
-      }
-    } catch (error) {
-      console.error('Error creating agent:', error);
-      toast({
-        title: "Creation Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreatingAgent(false);
-    }
-  }; 
 
 
    
@@ -227,9 +152,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       <div className={`flex flex-col h-full ${isCollapsed ? 'w-20' : 'w-72'} bg-white transition-all duration-300 ease-in-out shadow-sm overflow-hidden`}>
         <div className="flex items-center h-16 px-4 mb-4">
           {!isCollapsed ? (
-            <span className="text-lg font-bold text-primary">7en.ai</span>
+            <>
+              <img src='/logo.svg' style={{marginTop:"10px",width:"115px"}}/>
+            </>
           ) : (
-            <span className="text-lg font-bold text-primary mx-auto">7</span>
+            <img src='/logo-icon.svg' width={42} style={{marginTop:"10px"}}/>
           )}
         </div>
         

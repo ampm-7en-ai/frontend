@@ -148,7 +148,7 @@ const BillingSettings = () => {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch(`${BASE_URL}subscriptions/${planToDelete.id}/`, {
+      const response = await fetch(`${BASE_URL}subscriptions/delete/${planToDelete.id}/`, {
         method: 'DELETE',
         headers: getAuthHeaders(token)
       });

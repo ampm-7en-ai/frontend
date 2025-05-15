@@ -306,7 +306,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   return (
     <>
       <div className="flex justify-center mb-6">
-        <div className="text-primary font-bold text-3xl">7en.ai</div>
+        <div className="text-primary">
+          <img src="/logo.svg" alt="7en.ai" style={{height:"45px"}}/>
+        </div>
       </div>
       
       <h1 className="text-2xl font-semibold text-center mb-6">Log in to your account</h1>
