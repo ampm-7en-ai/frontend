@@ -1,6 +1,6 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { WebSocketService } from '@/services/WebSocketService';
+import { WS_BASE_URL } from '@/config/env';
 
 interface Message {
   id: string;
@@ -72,8 +72,8 @@ export function useChatMessagesWebSocket({
     // Update current session ID
     currentSessionId.current = sessionId;
     
-    // Create WebSocket URL with sessionId
-    const wsUrl = `wss://api.7en.ai/ws/chat/messages/${sessionId}/`;
+    // Create WebSocket URL with sessionId using WS_BASE_URL
+    const wsUrl = `${WS_BASE_URL}chat/messages/${sessionId}/`;
     console.log(`Connecting to messages WebSocket for session ${sessionId}`);
     wsRef.current = new WebSocketService(wsUrl);
     

@@ -1,5 +1,6 @@
 
 import { ChatWebSocketService } from './ChatWebSocketService';
+import { WS_BASE_URL } from '@/config/env';
 
 export interface ModelConfig {
   model: string;

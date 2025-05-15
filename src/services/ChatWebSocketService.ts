@@ -1,6 +1,6 @@
-
 import { string } from 'zod';
 import { WebSocketService } from './WebSocketService';
+import { WS_BASE_URL } from '@/config/env';
 
 interface ChatMessage {
   content: string;
@@ -25,8 +25,10 @@ export class ChatWebSocketService {
   private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
   
   constructor(agentId: string, url: string) {
-    // Updated URL format
-    this.ws = new WebSocketService(url === "playground" ?  `wss://api.7en.ai/ws/chat-playground/${agentId}/` : `wss://api.7en.ai/ws/chat/${agentId}/`);
+    // Updated URL format using WS_BASE_URL from environment
+    this.ws = new WebSocketService(url === "playground" ? 
+      `${WS_BASE_URL}chat-playground/${agentId}/` : 
+      `${WS_BASE_URL}chat/${agentId}/`);
     
     this.ws.on('message', this.handleMessage.bind(this));
     this.ws.on('bot_response', this.handleMessage.bind(this));

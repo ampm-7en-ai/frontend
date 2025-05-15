@@ -1,5 +1,5 @@
-
 import { WebSocketService } from './WebSocketService';
+import { WS_BASE_URL } from '@/config/env';
 
 export interface ChatSessionData {
   id: string;
@@ -52,8 +52,8 @@ export class ChatSessionsWebSocketService {
     // Get auth token from localStorage
     this.authToken = JSON.parse(localStorage.getItem('user') || '{}')?.accessToken || null;
 
-    // Use the WebSocket endpoint for chat sessions
-    const endpoint = `wss://api.7en.ai/ws/chat/sessions/?token=${this.authToken}`;
+    // Use the WebSocket endpoint for chat sessions with WS_BASE_URL from environment
+    const endpoint = `${WS_BASE_URL}chat/sessions/?token=${this.authToken}`;
    
     // Initialize WebSocket
     this.ws = new WebSocketService(endpoint);

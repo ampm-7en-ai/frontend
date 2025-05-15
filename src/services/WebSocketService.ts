@@ -1,3 +1,4 @@
+import { WS_BASE_URL } from '@/config/env';
 
 interface WebSocketMessage {
   type: string;
