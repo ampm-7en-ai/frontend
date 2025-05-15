@@ -281,11 +281,11 @@ const BusinessDetail = () => {
           <TabsList className="mb-4">
             <TabsTrigger value="admins" className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              Admins
+              Users
             </TabsTrigger>
             <TabsTrigger value="agents" className="flex items-center gap-1">
               <Shield className="h-4 w-4" />
-              Agents
+              AI Agents
             </TabsTrigger>
           </TabsList>
           <TabsContent value="admins">

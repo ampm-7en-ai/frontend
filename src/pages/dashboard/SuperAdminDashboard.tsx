@@ -130,10 +130,8 @@ const SuperAdminDashboard = () => {
             <div className="flex items-center justify-between mt-2">
               <p className="text-xs text-muted-foreground">+15 from last month</p>
               <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                <Link to="/analytics" className="flex items-center">
-                  View stats <ChevronRight className="ml-1 h-3 w-3" />
-                </Link>
-              </Button>
+                
+              </Button>   
             </div>
           </CardContent>
         </Card>
@@ -150,9 +148,7 @@ const SuperAdminDashboard = () => {
             <div className="flex items-center justify-between mt-2">
               <p className="text-xs text-muted-foreground">+8% from last week</p>
               <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                <Link to="/analytics" className="flex items-center">
-                  View stats <ChevronRight className="ml-1 h-3 w-3" />
-                </Link>
+                
               </Button>
             </div>
           </CardContent>

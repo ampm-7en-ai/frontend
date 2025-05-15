@@ -113,8 +113,8 @@ const BusinessList = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Plan</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Admins</TableHead>
-                    <TableHead className="text-center">Agents</TableHead>
+                    <TableHead className="text-center">Users</TableHead>
+                    <TableHead className="text-center">AI Agents</TableHead>
                     <TableHead className="text-right">Created</TableHead>
                     <TableHead className="w-20"></TableHead>
                   </TableRow>
@@ -161,7 +161,7 @@ const BusinessList = () => {
                             ) : business.status.toLowerCase() === 'trial' ? (
                               <div className="h-2 w-2 rounded-full bg-blue-500 mr-1" />
                             ) : (
-                              <X className="h-3 w-3 mr-1" />
+                              <></>
                             )}
                             {business.status === 'None' ? 'New' : business.status}
                           </Badge>
