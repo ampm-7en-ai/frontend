@@ -1,7 +1,5 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,7 +23,7 @@ import {
   User, 
   Users 
 } from 'lucide-react';
-import { useBusinessDetail } from '@/hooks/useBusinessDetail';
+import { useBusinessDetail } from '@/hooks/useBusinesses';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { toast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
