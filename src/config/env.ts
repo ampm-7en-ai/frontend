@@ -36,9 +36,10 @@ export function getEnv<T extends EnvVariable>(
 // Common environment variables as convenient exports
 export const API_BASE_URL = getEnv('API_BASE_URL', 'https://api.7en.ai/api/');
 export const WS_BASE_URL = getEnv('WS_BASE_URL', 'wss://api.7en.ai/ws/');
-export const SLACK_CLIENT_ID = getEnv('SLACK_CLIENT_ID', '7892190343524.8899282845893');
+export const SLACK_CLIENT_ID = getEnv('SLACK_CLIENT_ID', '');
 export const NODE_ENV = import.meta.env.MODE || 'development';
-export const FACEBOOK_APP_ID = getEnv('FACEBOOK_APP_ID', '1103615605128273');
+export const FACEBOOK_APP_ID = getEnv('FACEBOOK_APP_ID', '');
+export const FACEBOOK_CONFIG_ID = getEnv('FACEBOOK_CONFIG_ID','');
 
 // Helper functions
 export const isProd = NODE_ENV === 'production';

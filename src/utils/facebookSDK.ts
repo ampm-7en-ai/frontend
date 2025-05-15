@@ -5,7 +5,7 @@
  */
 import { getAccessToken } from "@/utils/api-config"
 import { getFromCache, storeInCache } from "@/utils/cacheUtils";
-import { FACEBOOK_APP_ID } from "@/config/env";
+import { FACEBOOK_APP_ID,FACEBOOK_CONFIG_ID } from "@/config/env";
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
@@ -14,8 +14,7 @@ const WHATSAPP_PERMISSIONS = [
   'business_management'
 ];
 
-// Configuration ID for Facebook SDK
-const CONFIG_ID = '562672060215866';
+
 
 // Interface for SDK initialization status
 interface FacebookSDKStatus {
@@ -121,7 +120,7 @@ export const loginWithFacebook = (): Promise<{fbResponse: FB.LoginStatusResponse
     initFacebookSDK()
       .then(() => {
         const options: any = { 
-          config_id: CONFIG_ID,
+          config_id: FACEBOOK_CONFIG_ID,
           response_type: 'code',
           override_default_response_type: true,
           extras: {

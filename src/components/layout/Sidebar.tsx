@@ -153,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         <div className="flex items-center h-16 px-4 mb-4">
           {!isCollapsed ? (
             <>
-              <img src='/logo.svg' style={{marginTop:"10px",width:"115px"}}/>
+              <img src='/logo.svg' style={{marginTop:"10px",width:"90px"}}/>
             </>
           ) : (
             <img src='/logo-icon.svg' width={42} style={{marginTop:"10px"}}/>
