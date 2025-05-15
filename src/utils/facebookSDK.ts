@@ -1,11 +1,10 @@
-
 /**
  * Facebook SDK utility functions
  * This file handles initialization and interactions with Facebook JS SDK
  */
 import { getAccessToken } from "@/utils/api-config"
 import { getFromCache, storeInCache } from "@/utils/cacheUtils";
-import { FACEBOOK_APP_ID,FACEBOOK_CONFIG_ID,API_BASE_URL } from "@/config/env";
+import { FACEBOOK_APP_ID, FACEBOOK_CONFIG_ID, API_BASE_URL } from "@/config/env";
 
 // Required permissions for WhatsApp Business API
 const WHATSAPP_PERMISSIONS = [
@@ -13,8 +12,6 @@ const WHATSAPP_PERMISSIONS = [
   'whatsapp_business_messaging',
   'business_management'
 ];
-
-
 
 // Interface for SDK initialization status
 interface FacebookSDKStatus {
