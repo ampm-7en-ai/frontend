@@ -36,26 +36,6 @@ const SlackIntegration: React.FC = () => {
     checkStatus();
   }, []);
 
-  // Handle message from popup window
-  useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      // Verify origin for security
-      if (event.origin !== window.location.origin) return;
-      
-      if (event.data && event.data.type === 'SLACK_AUTH_SUCCESS') {
-        const { slackToken, teamId } = event.data;
-        if (slackToken && teamId) {
-          fetchChannels(slackToken);
-        }
-      }
-    }
-    
-    window.addEventListener('message', handleMessage);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, []);
-
   // Handle redirect after Slack authentication
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -85,14 +65,14 @@ const SlackIntegration: React.FC = () => {
     setIsConnecting(true);
     setError(null);
     
-    const newWindow = authenticateSlack();
+    const success = authenticateSlack();
     
-    if (!newWindow) {
-      setError('Popup was blocked by your browser. Please allow popups for this site.');
+    if (!success) {
+      setError('Failed to open Slack authorization. Please check your browser settings and try again.');
       setIsConnecting(false);
       toast({
         title: "Connection Failed",
-        description: "Popup was blocked. Please allow popups for this site.",
+        description: "Failed to open Slack authorization. Please check your browser settings and try again.",
         variant: "destructive"
       });
     }
