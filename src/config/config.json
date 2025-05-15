@@ -1,8 +1,13 @@
-
 {
   "API_BASE_URL": "https://api.7en.ai/api/",
   "WS_BASE_URL": "wss://api.7en.ai/ws/",
-  "SLACK_CLIENT_ID": "7892190343524.8899282845893",
-  "FACEBOOK_APP_ID": "1103615605128273",
-  "FACEBOOK_CONFIG_ID": "562672060215866"
+  "slack":{
+    "SLACK_CLIENT_ID": "7892190343524.8899282845893",
+    "REDIRECT_URI": "https://api.7en.ai/api/slack/callback"
+  },
+  "facebook": {
+    "FACEBOOK_APP_ID": "1103615605128273",
+    "FACEBOOK_CONFIG_ID": "562672060215866"
+  },
+  "NODE_ENV": "development"
 }

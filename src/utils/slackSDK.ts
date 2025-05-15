@@ -4,7 +4,7 @@
  */
 import { getAccessToken, getApiUrl } from "@/utils/api-config";
 import { getFromCache, storeInCache } from "@/utils/cacheUtils";
-import { SLACK_CLIENT_ID } from "@/config/env";
+import { SLACK_CLIENT_ID, SLACK_REDIRECT_URI } from "@/config/env";
 
 // Required permissions for Slack API
 const SLACK_PERMISSIONS: string[] = [
@@ -64,7 +64,7 @@ let userID: User | null = JSON.parse(localStorage.getItem('user') || 'null');
  */
 export const authenticateSlack = (): boolean => {
   const scope: string = SLACK_PERMISSIONS.join(',');
-  const redirectUri: string = `${getApiUrl('slack/callback')}`;
+  const redirectUri: string = SLACK_REDIRECT_URI;
   const slackAuthUrl: string = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=${scope}&redirect_uri=${redirectUri}`;
   
   sdkStatus.loading = true;
