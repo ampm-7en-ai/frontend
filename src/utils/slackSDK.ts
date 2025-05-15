@@ -2,11 +2,9 @@
  * Slack SDK utility functions
  * This file handles authentication and interactions with Slack API
  */
-import { getAccessToken } from "@/utils/api-config";
+import { getAccessToken, getApiUrl } from "@/utils/api-config";
 import { getFromCache, storeInCache } from "@/utils/cacheUtils";
-
-// Slack Client ID - this should be from environment variables in production
-const SLACK_CLIENT_ID: string = '7892190343524.8899282845893'; // Replace with your actual Slack Client ID
+import { SLACK_CLIENT_ID } from "@/config/env";
 
 // Required permissions for Slack API
 const SLACK_PERMISSIONS: string[] = [
@@ -66,7 +64,7 @@ let userID: User | null = JSON.parse(localStorage.getItem('user') || 'null');
  */
 export const authenticateSlack = (): boolean => {
   const scope: string = SLACK_PERMISSIONS.join(',');
-  const redirectUri: string = `https://api.7en.ai/api/slack/callback`;
+  const redirectUri: string = `${getApiUrl('slack/callback')}`;
   const slackAuthUrl: string = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=${scope}&redirect_uri=${redirectUri}`;
   
   sdkStatus.loading = true;
@@ -124,7 +122,7 @@ export const connectSlackChannel = async (
   chatbotId: string
 ): Promise<SlackConnectionResponse> => {
   try {
-    const response = await fetch('https://api.7en.ai/api/slack/connect/', {
+    const response = await fetch(getApiUrl('slack/connect/'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${getAccessToken()}`,
@@ -164,7 +162,7 @@ export const connectSlackChannel = async (
  */
 export const disconnectSlackChannel = async (channelId: string): Promise<void> => {
   try {
-    const response = await fetch('https://api.7en.ai/api/slack/disconnect/', {
+    const response = await fetch(getApiUrl('slack/disconnect/'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${getAccessToken()}`,
@@ -216,7 +214,7 @@ export const checkSlackStatus = async (forceRefresh: boolean = false): Promise<S
 
   try {
     console.log('Fetching fresh Slack status');
-    const response = await fetch('https://api.7en.ai/api/slack/status/', {
+    const response = await fetch(getApiUrl('slack/status/'), {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
+import { getApiUrl, API_ENDPOINTS, getAuthHeaders } from '@/utils/api-config';
 
 export interface Business {
   name: string;
@@ -81,11 +82,8 @@ export const useBusinesses = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch('https://api.7en.ai/api/admin/businesses/', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(getApiUrl(API_ENDPOINTS.ADMIN_BUSINESSES), {
+        headers: getAuthHeaders(token),
       });
 
       if (!response.ok) {
@@ -121,11 +119,8 @@ export const useBusinessDetail = (businessId: string | undefined) => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`https://api.7en.ai/api/admin/businesses/${businessId}/`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(getApiUrl(`${API_ENDPOINTS.ADMIN_BUSINESSES}${businessId}/`), {
+        headers: getAuthHeaders(token),
       });
 
       if (!response.ok) {

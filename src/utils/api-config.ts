@@ -1,24 +1,36 @@
 /**
  * API configuration constants
  */
+import { API_BASE_URL } from "@/config/env";
 
 // Base URL for all API requests
-export const BASE_URL = "https://api.7en.ai/api/";
+export const BASE_URL = API_BASE_URL;
 
 // API endpoints
 export const API_ENDPOINTS = {
+  // Authentication endpoints
   REGISTER: "users/register/",
   VERIFY_OTP: "users/verify_otp/",
   LOGIN: "users/login/",
   RESEND_OTP: "users/resend-otp/",
   SSO_LOGIN: "users/sso_login/",
   VALIDATE_INVITE: "users/validate_invite_token/",
+  
+  // Agent and knowledge base endpoints
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/",
+  
+  // User management endpoints
   INVITE_REGISTER: "users/register_with_invite/",
   TEAM_INVITES: "users/get_team_invites/",
   REMOVE_INVITE: "users/remove_invite/",
-  REMOVE_MEMBER: "users/remove_from_team/"
+  REMOVE_MEMBER: "users/remove_from_team/",
+  
+  // Dashboard endpoints
+  DASHBOARD_OVERVIEW: "dashboard/overview/",
+  
+  // Admin endpoints
+  ADMIN_BUSINESSES: "admin/businesses/",
 };
 
 // Function to get knowledge base endpoint with optional agent ID
@@ -372,8 +384,8 @@ export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> 
   }
   
   try {
-    // Updated URL to use the correct knowledgesource endpoint
-    const response = await fetch(`${BASE_URL}knowledgesource/${sourceId}/`, {
+    // Updated URL to use the getApiUrl helper
+    const response = await fetch(getApiUrl(`knowledgesource/${sourceId}/`), {
       method: 'DELETE',
       headers: getAuthHeaders(token),
     });
@@ -427,7 +439,8 @@ export const addFileToKnowledgeBase = async (knowledgeBaseId: number, file: File
     formData.append('knowledge_base', knowledgeBaseId.toString());
     formData.append('file', file);
     
-    const response = await fetch(`${BASE_URL}knowledgesource/`, {
+    // Updated to use getApiUrl
+    const response = await fetch(getApiUrl('knowledgesource/'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -456,7 +469,8 @@ export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSourc
   }
   
   try {
-    const response = await fetch(`${BASE_URL}agents/${agentId}/add-knowledge-sources/`, {
+    // Updated to use getApiUrl
+    const response = await fetch(getApiUrl(`agents/${agentId}/add-knowledge-sources/`), {
       method: 'POST',
       headers: getAuthHeaders(token),
       body: JSON.stringify({

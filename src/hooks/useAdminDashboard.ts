@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
+import { getApiUrl, API_ENDPOINTS, getAuthHeaders } from '@/utils/api-config';
 import { useAuth } from "@/context/AuthContext";
 
 export interface AgentPerformanceSummary {
@@ -43,7 +43,7 @@ async function fetchAdminDashboard(): Promise<AdminDashboardData> {
   if (!token) {
     throw new Error('Authentication token not found');
   }
-  const response = await fetch(`${BASE_URL}dashboard/overview/`, {
+  const response = await fetch(getApiUrl(API_ENDPOINTS.DASHBOARD_OVERVIEW), {
     method: 'GET',
     headers: getAuthHeaders(token),
   });

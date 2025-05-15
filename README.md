@@ -1,5 +1,22 @@
 
+
 # Welcome to 7en.ai
+
+## Environment Configuration
+
+This project uses environment variables for configuration. Create a `.env` file in the root directory based on the `.env.example` template:
+
+```sh
+# Copy the example environment file
+cp .env.example .env
+
+# Edit the .env file with your specific values
+nano .env
+```
+
+Key environment variables:
+- `VITE_API_BASE_URL`: Base URL for API requests (default: https://api.7en.ai/api/)
+- `VITE_SLACK_CLIENT_ID`: Slack Client ID for integration
 
 ## How can I edit this code?
 
@@ -50,4 +67,5 @@ This project is built with .
 - React
 - shadcn-ui
 - Tailwind CSS
+
 
