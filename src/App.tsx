@@ -38,6 +38,7 @@ import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
 import SubscriptionPlanEditor from './pages/settings/platform/SubscriptionPlanEditor';
 import IntegrationsPage from './pages/integrations/IntegrationsPage';
+import LandingPage from './pages/landing/LandingPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -215,10 +216,20 @@ function App() {
             <NotificationProvider>
               <TrainingStatusProvider>
                 <Routes>
+                  {/* Landing page as the home route */}
+                  <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/verify" element={<Verify />} />
                   <Route path="/invitation" element={<InviteRegistration />} />
-                  <Route path="/*" element={<ProtectedRoutes />} />
+                  <Route path="/dashboard/*" element={<ProtectedRoutes />} />
+                  <Route path="/agents/*" element={<ProtectedRoutes />} />
+                  <Route path="/businesses/*" element={<ProtectedRoutes />} />
+                  <Route path="/conversations/*" element={<ProtectedRoutes />} />
+                  <Route path="/knowledge/*" element={<ProtectedRoutes />} />
+                  <Route path="/help/*" element={<ProtectedRoutes />} />
+                  <Route path="/settings/*" element={<ProtectedRoutes />} />
+                  <Route path="/integrations/*" element={<ProtectedRoutes />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
                 <Toaster />
               </TrainingStatusProvider>
