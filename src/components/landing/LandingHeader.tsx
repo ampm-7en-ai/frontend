@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
@@ -11,6 +10,9 @@ type LandingHeaderProps = {
 
 export const LandingHeader = ({ transparent = false }: LandingHeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // App domain for redirects
+  const appDomain = "https://app.7en.ai";
 
   return (
     <header className={`w-full ${transparent ? 'absolute top-0 left-0 z-10' : 'border-b border-border'}`}>
@@ -37,14 +39,14 @@ export const LandingHeader = ({ transparent = false }: LandingHeaderProps) => {
 
         {/* Desktop CTA Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link to="/login">
+          <a href={`${appDomain}/login`}>
             <Button variant="outline" size="sm">
               Log in
             </Button>
-          </Link>
-          <Link to="/register">
+          </a>
+          <a href={`${appDomain}/register`}>
             <Button size="sm">Get Started</Button>
-          </Link>
+          </a>
         </div>
 
         {/* Mobile Menu Button */}
@@ -91,16 +93,16 @@ export const LandingHeader = ({ transparent = false }: LandingHeaderProps) => {
                 FAQ
               </a>
               <div className="flex flex-col gap-3 pt-3 border-t border-border">
-                <Link to="/login">
+                <a href={`${appDomain}/login`}>
                   <Button variant="outline" className="w-full" size="sm">
                     Log in
                   </Button>
-                </Link>
-                <Link to="/register">
+                </a>
+                <a href={`${appDomain}/register`}>
                   <Button className="w-full" size="sm">
                     Get Started
                   </Button>
-                </Link>
+                </a>
               </div>
             </nav>
           </div>

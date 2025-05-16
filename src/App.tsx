@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { TestPageLayout } from './components/layout/TestPageLayout';
+import { LandingLayout } from './components/landing/LandingLayout';
 import Login from './pages/Login';
 import Verify from './pages/Verify';
 import InviteRegistration from './pages/InviteRegistration';
@@ -208,6 +209,22 @@ const ProtectedRoutes = () => {
 };
 
 function App() {
+  // Check if we're running on the landing page domain
+  const isLandingDomain = window.location.hostname === '7en.ai' || 
+                          window.location.hostname === 'www.7en.ai';
+                          
+  // App domain for redirects
+  const appDomain = "https://app.7en.ai";
+  
+  // If we're on the landing domain and trying to access app routes, redirect to app domain
+  const redirectToAppDomain = (path: string) => {
+    if (isLandingDomain && path.startsWith('/dashboard')) {
+      window.location.href = `${appDomain}${path}`;
+      return true;
+    }
+    return false;
+  };
+
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -217,10 +234,30 @@ function App() {
               <TrainingStatusProvider>
                 <Routes>
                   {/* Landing page as the home route */}
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/verify" element={<Verify />} />
-                  <Route path="/invitation" element={<InviteRegistration />} />
+                  <Route path="/" element={
+                    <LandingLayout>
+                      <LandingPage />
+                    </LandingLayout>
+                  } />
+                  
+                  {/* Auth routes - these should redirect to app domain if on landing domain */}
+                  <Route path="/login" element={
+                    isLandingDomain 
+                      ? <Navigate to={`${appDomain}/login`} replace /> 
+                      : <Login />
+                  } />
+                  <Route path="/verify" element={
+                    isLandingDomain 
+                      ? <Navigate to={`${appDomain}/verify`} replace /> 
+                      : <Verify />
+                  } />
+                  <Route path="/invitation" element={
+                    isLandingDomain 
+                      ? <Navigate to={`${appDomain}/invitation`} replace /> 
+                      : <InviteRegistration />
+                  } />
+                  
+                  {/* Protected routes */}
                   <Route path="/dashboard/*" element={<ProtectedRoutes />} />
                   <Route path="/agents/*" element={<ProtectedRoutes />} />
                   <Route path="/businesses/*" element={<ProtectedRoutes />} />

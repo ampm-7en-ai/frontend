@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 export const LandingFooter = () => {
+  // App domain for redirects
+  const appDomain = "https://app.7en.ai";
+  
   return (
     <footer className="bg-black text-white py-12">
       <div className="container mx-auto px-4">
@@ -27,10 +29,10 @@ export const LandingFooter = () => {
           <div>
             <h3 className="text-heading-4 font-semibold mb-4">Resources</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-medium-gray hover:text-white transition-colors">Documentation</a></li>
-              <li><a href="#" className="text-medium-gray hover:text-white transition-colors">API</a></li>
-              <li><a href="#" className="text-medium-gray hover:text-white transition-colors">Guides</a></li>
-              <li><a href="#" className="text-medium-gray hover:text-white transition-colors">Support</a></li>
+              <li><a href={`${appDomain}/help/documentation`} className="text-medium-gray hover:text-white transition-colors">Documentation</a></li>
+              <li><a href={`${appDomain}/help/api`} className="text-medium-gray hover:text-white transition-colors">API</a></li>
+              <li><a href={`${appDomain}/help/guides`} className="text-medium-gray hover:text-white transition-colors">Guides</a></li>
+              <li><a href={`${appDomain}/help/support`} className="text-medium-gray hover:text-white transition-colors">Support</a></li>
             </ul>
           </div>
 
