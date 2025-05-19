@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { GuidelinesSection } from '@/components/agents/edit/GuidelinesSection';
+import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
 import { PlusCircle, X } from 'lucide-react';
 
 // Mock data for demonstration
