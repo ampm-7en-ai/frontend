@@ -25,6 +25,7 @@ const agentsData = [
     conversations: 1203,
     averageResponseTime: '1.2s',
     satisfaction: 92,
+    suggestions: ['How do I reset my password?', 'What are your business hours?', 'How can I track my order?'],
   },
   { 
     id: 2, 
@@ -36,6 +37,7 @@ const agentsData = [
     conversations: 845,
     averageResponseTime: '1.5s',
     satisfaction: 88,
+    suggestions: [],
   },
   { 
     id: 3, 
@@ -47,6 +49,7 @@ const agentsData = [
     conversations: 532,
     averageResponseTime: '2.1s',
     satisfaction: 85,
+    suggestions: ['How do I install the software?', 'My application is crashing, what should I do?'],
   },
 ];
 
