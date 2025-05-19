@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Bot, Check, Info, Loader2, MessageSquare, Plus, Sparkles, Trash, X } from 'lucide-react';
@@ -15,9 +14,9 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
-import { AgentKnowledgeContainer } from '@/components/agents/knowledge/AgentKnowledgeContainer';
-import { DeploymentDialog } from '@/components/agents/DeploymentDialog';
-import { CleanupDialog } from '@/components/agents/CleanupDialog';
+import AgentKnowledgeContainer from '@/components/agents/knowledge/AgentKnowledgeContainer';
+import DeploymentDialog from '@/components/agents/DeploymentDialog';
+import CleanupDialog from '@/components/agents/CleanupDialog';
 
 // Sample mock data to simulate the agent
 const mockAgent = {
