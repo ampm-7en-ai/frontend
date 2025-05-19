@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Checkbox } from '@/components/ui/checkbox';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -163,7 +162,7 @@ const AgentEdit = () => {
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
   const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
   const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
-  const [isLoadingAgentData, setIsLoadingAgentData] = useState(false);
+  const [hasSuggestions, setHasSuggestions] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -347,7 +346,7 @@ const AgentEdit = () => {
           showOnMobile: agent.showOnMobile,
           collectVisitorData: agent.collectVisitorData,
           autoShowAfter: agent.autoShowAfter,
-          suggestions: agent.suggestions,
+          suggestions: hasSuggestions ? agent.suggestions : [],
           guidelines: agent.guidelines
         },
         model: {
@@ -475,6 +474,16 @@ const AgentEdit = () => {
     setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
   };
 
+  const handleSuggestions = (state) => {
+
+    if(state) {
+      setHasSuggestions(false);
+     // handleChange('suggestions',[]);
+    }else{
+      setHasSuggestions(true);
+    }
+  }
+
   const renderGeneralContent = () => (
     <Card>
       <CardHeader>
@@ -504,12 +513,16 @@ const AgentEdit = () => {
         </div>
         
         <div className="space-y-4">
-          <Label>Suggested Questions</Label>
+          <div className="flex justify-between w-full items-center">
+            <Label>Suggested Questions</Label>
+            <Switch id="suggestion-switch" checked={hasSuggestions} onClick={()=>handleSuggestions(hasSuggestions)}/>
+          </div>
+         
           <p className="text-sm text-muted-foreground">
             Add up to 3 suggested questions for your users to click on
           </p>
           
-          {[0, 1, 2].map((index) => (
+          {hasSuggestions && [0, 1, 2].map((index) => (
             <div key={index} className="space-y-2">
               <Label htmlFor={`suggestion-${index + 1}`}>Suggestion {index + 1}</Label>
               <Input 
@@ -947,7 +960,7 @@ const AgentEdit = () => {
             buttonText={agent.buttonText}
             position={agent.position}
             className="w-full h-full"
-            suggestions={agent.suggestions}
+            suggestions={hasSuggestions ? agent.suggestions : []}
             avatarSrc={agent.avatar.type !== 'default' ? agent.avatar.src : undefined}
           />
         </div>
