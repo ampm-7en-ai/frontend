@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Bot, Check, Info, Loader2, MessageSquare, Plus, Sparkles, Trash, X } from 'lucide-react';
@@ -328,7 +329,7 @@ const AgentEdit = () => {
             <CardContent>
               <AgentKnowledgeContainer 
                 agentId={agent.id}
-                knowledgeSources={agent.knowledgeSources}
+                knowledgeBases={agent.knowledgeSources}
               />
             </CardContent>
           </Card>
@@ -381,7 +382,12 @@ const AgentEdit = () => {
       </Tabs>
       
       <DeploymentDialog open={deploymentOpen} onOpenChange={setDeploymentOpen} agent={agent} />
-      <CleanupDialog open={cleanupOpen} onOpenChange={setCleanupOpen} agentId={agent.id} />
+      <CleanupDialog 
+        open={cleanupOpen} 
+        onOpenChange={setCleanupOpen} 
+        agentId={agent.id} 
+        knowledgeSources={agent.knowledgeSources || []}
+      />
     </div>
   );
 };
