@@ -174,7 +174,7 @@ const AgentEdit = () => {
         <TabsContent value="guidelines" className="mt-4">
           <GuidelinesSection 
             initialGuidelines={agent.guidelines} 
-            onGuidelinesChange={(guidelines: string) => {
+            onChange={(guidelines: string) => {
               setAgent({...agent, guidelines});
             }} 
           />
