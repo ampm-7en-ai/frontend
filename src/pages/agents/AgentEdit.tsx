@@ -240,6 +240,9 @@ const AgentEdit = () => {
         tokenLength: agentData.settings?.token_length,
         systemPrompt: agentData.systemPrompt // Log the system prompt value
       });
+
+
+      agentData.behavior?.suggestions.length > 0 && setHasSuggestions(true);
     }
   }, [agentData]);
 
@@ -372,10 +375,10 @@ const AgentEdit = () => {
         // Update the system prompt directly from the response
         setAgent(prevAgent => ({
           ...prevAgent,
-          systemPrompt: response.data.systemPrompt
+          systemPrompt: response.data.systemPrompt,
+          suggestions: response.data.behavior?.suggestions
         }));
         
-        console.log('System prompt updated from response:', response.data.systemPrompt);
       }
       
       toast({
@@ -874,62 +877,6 @@ const AgentEdit = () => {
           </div>
         </CardContent>
       </Card>
-      
-      <GuidelinesSection
-        initialGuidelines={agent.guidelines}
-        onChange={handleGuidelinesChange}
-      />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Sliders className="mr-2 h-5 w-5" />
-            Behavior Settings
-          </CardTitle>
-          <CardDescription>Configure how the agent works and learns</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="memory">Conversation Memory</Label>
-              <Switch id="memory" defaultChecked />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Enable conversation history so the agent remembers previous interactions
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="learning">Continuous Learning</Label>
-              <Switch id="learning" />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Allow the agent to improve from interactions over time
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="handoff">Expert Handoff</Label>
-              <Switch id="handoff" />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Allow the agent to escalate to human domain experts when needed
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="multilingual">Multilingual Support</Label>
-              <Switch id="multilingual" />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Enable automatic translation for non-primary languages
-            </p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 
@@ -1193,7 +1140,7 @@ const AgentEdit = () => {
                 </TabsTrigger>
                 <TabsTrigger value="integrations" variant="github">
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  Integrations
+                  Guidelines & Behavior 
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -1239,7 +1186,7 @@ const AgentEdit = () => {
                   <TabsTrigger value="appearance">Style</TabsTrigger>
                   <TabsTrigger value="advanced">Advanced</TabsTrigger>
                   <TabsTrigger value="knowledge">Knowledge</TabsTrigger>
-                  <TabsTrigger value="integrations">Integrations</TabsTrigger>
+                  <TabsTrigger value="integrations">Guidelines & Behavior</TabsTrigger>
                 </TabsList>
               </div>
               
@@ -1296,7 +1243,62 @@ const AgentEdit = () => {
                   hideScrollbar={true}
                 >
                   <ScrollArea className="h-full" hideScrollbar={true}>
-                    {renderIntegrationsContent()}
+                    <div className="space-y-6">
+                      <GuidelinesSection
+                        initialGuidelines={agent.guidelines}
+                        onChange={handleGuidelinesChange}
+                      />
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            <Sliders className="mr-2 h-5 w-5" />
+                            Behavior Settings
+                          </CardTitle>
+                          <CardDescription>Configure how the agent works and learns</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="memory">Conversation Memory</Label>
+                              <Switch id="memory" defaultChecked />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Enable conversation history so the agent remembers previous interactions
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="learning">Continuous Learning</Label>
+                              <Switch id="learning" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Allow the agent to improve from interactions over time
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="handoff">Expert Handoff</Label>
+                              <Switch id="handoff" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Allow the agent to escalate to human domain experts when needed
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="multilingual">Multilingual Support</Label>
+                              <Switch id="multilingual" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Enable automatic translation for non-primary languages
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </ScrollArea>
                 </TabsContent>
               </div>
