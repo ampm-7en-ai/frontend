@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   Home,
@@ -49,7 +50,12 @@ interface SidebarItem {
   label: string;
   href: string;
   icon: React.ElementType;
-  children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
+  children?: { 
+    label: string; 
+    href: string; 
+    permission?: keyof typeof UserPermissions;
+    highlight?: boolean;
+  }[];
   action?: React.ReactNode;
   permission?: keyof typeof UserPermissions;
   highlight?: boolean;
