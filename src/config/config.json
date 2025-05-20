@@ -1,3 +1,4 @@
+
 {
   "API_BASE_URL": "https://api.7en.ai/api/",
   "WS_BASE_URL": "https://api.7en.ai/ws/",
@@ -9,5 +10,15 @@
     "FACEBOOK_APP_ID": "1103615605128273",
     "FACEBOOK_CONFIG_ID": "562672060215866"
   },
-  "NODE_ENV": "development"
+  "NODE_ENV": "development",
+  "agentTypes": {
+    "general_assistant": "General Assistant",
+    "customer_support": "Customer support agent",
+    "sales": "Sales agent",
+    "language_tutor": "Language tutor",
+    "coding_expert": "Coding expert",
+    "life_coach": "Life coach",
+    "travel_agent": "Travel Agent",
+    "custom": "Custom"
+  }
 }
