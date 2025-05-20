@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -13,6 +12,7 @@ import NotFound from './pages/NotFound';
 import AgentList from './pages/agents/AgentList';
 import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
+import AgentHandoffs from './pages/agents/AgentHandoffs';
 import BusinessSettings from './pages/settings/business/BusinessSettings';
 import BillingSettings from './pages/settings/platform/BillingSettings';
 import GeneralSettings from './pages/settings/platform/GeneralSettings';
@@ -98,6 +98,16 @@ const ProtectedRoutes = () => {
         />
         <Route path="/agents" element={<AgentList />} />
         <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
+        
+        {/* Add the new Agent Handoffs route */}
+        <Route 
+          path="/agents/handoffs" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']} userRole={user?.role} fallbackPath="/dashboard">
+              <AgentHandoffs />
+            </ProtectedRoute>
+          } 
+        />
         
         <Route 
           path="/businesses" 

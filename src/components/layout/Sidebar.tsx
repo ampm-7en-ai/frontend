@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Home,
@@ -20,7 +19,8 @@ import {
   ChevronLeft,
   Loader2,
   AlertCircle,
-  Link
+  Link,
+  RefreshCw
 } from 'lucide-react';
 import { NavLink, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -71,17 +71,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     }
   };
 
-
-
-   
-
   const commonItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
   ];
 
   const adminItems: SidebarItem[] = [
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
-    { id: 'agents', label: 'Agents', href: '/agents',  icon: Bot, permission: 'agents' },
+    { 
+      id: 'agents', 
+      label: 'Agents', 
+      href: '/agents', 
+      icon: Bot, 
+      permission: 'agents',
+      children: [
+        { label: 'All Agents', href: '/agents', permission: 'agents' },
+        { label: 'Agent Handoffs', href: '/agents/handoffs', permission: 'agents', highlight: true }
+      ]
+    },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book, permission: 'knowledgebase' },
     { 
       id: 'integrations', 
