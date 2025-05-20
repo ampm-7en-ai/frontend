@@ -12,13 +12,13 @@
   },
   "NODE_ENV": "development",
   "agentTypes": {
-    "general_assistant": "General Assistant",
-    "customer_support": "Customer support agent",
-    "sales": "Sales agent",
-    "language_tutor": "Language tutor",
-    "coding_expert": "Coding expert",
-    "life_coach": "Life coach",
-    "travel_agent": "Travel Agent",
-    "custom": "Custom"
+    "general_assistant": ["General assistant","General Purpose AI Assistant"],
+    "customer_support": ["Customer support agent","Helps with customer inquiries"],
+    "sales": ["Sales agent","Helps convert leads and answer product questions"],
+    "language_tutor": ["Language tutor","Helps users learn languages"],
+    "coding_expert": ["Tech expert","Helps with programming and development"],
+    "life_coach": ["Life coach","Provides guidance and motivation"],
+    "travel_agent": ["Travel Agent","Helps with planning trips and travel experiences"],
+    "custom": ["Custom","Create a custom agent type"]
   }
 }

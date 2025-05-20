@@ -165,9 +165,9 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
             <DropdownMenu onOpenChange={handleOpen} open={isOpen}>
               <DropdownMenuTrigger asChild>
                 <Button 
-                  variant="default"
+                  variant="outline"
                   size='sm'
-                  className={`w-full p-2 flex items-center justify-center gap-2 rounded-lg shadow-sm`}
+                  className={`w-full px-2 flex items-center justify-center gap-2 rounded-lg shadow-sm`}
                 >
                 <Plus className="h-4.5 w-4.5" />
                     Create Agent

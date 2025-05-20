@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { dottedBackgroundStyle } from '@/components/layout/TestPageLayout';
 import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
+import agentConfig from '@/config/config.json';
 
 const knowledgeSources = [
   { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
@@ -940,62 +941,17 @@ const AgentEdit = () => {
                 onValueChange={handleAgentTypeChange}
                 className="grid grid-cols-2 gap-2"
               >
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="general_assistant" id="general_assistant" />
-                  <Label htmlFor="general_assistant" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">General Assistant</span>
-                    <span className="text-xs text-muted-foreground">General purpose AI assistant</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="customer_support" id="customer_support" />
-                  <Label htmlFor="customer_support" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">Customer support agent</span>
-                    <span className="text-xs text-muted-foreground">Helps with customer inquiries</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="sales" id="sales" />
-                  <Label htmlFor="sales" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">Sales agent</span>
-                    <span className="text-xs text-muted-foreground">Helps convert leads and answer product questions</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="language_tutor" id="language_tutor" />
-                  <Label htmlFor="language_tutor" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">Language tutor</span>
-                    <span className="text-xs text-muted-foreground">Helps users learn languages</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="coding_expert" id="coding_expert" />
-                  <Label htmlFor="coding_expert" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">Coding expert</span>
-                    <span className="text-xs text-muted-foreground">Helps with programming and development</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="life_coach" id="life_coach" />
-                  <Label htmlFor="life_coach" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">Life coach</span>
-                    <span className="text-xs text-muted-foreground">Provides guidance and motivation</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="travel_agent" id="travel_agent" />
-                  <Label htmlFor="travel_agent" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">Travel Agent</span>
-                    <span className="text-xs text-muted-foreground">Helps with planning trips and travel experiences</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10">
-                  <RadioGroupItem value="custom" id="custom" />
-                  <Label htmlFor="custom" className="flex flex-col cursor-pointer">
-                    <span className="font-medium">Custom</span>
-                    <span className="text-xs text-muted-foreground">Create a custom agent type</span>
-                  </Label>
-                </div>
+                {
+                  Object.entries(agentConfig.agentTypes).map(([key, label]) => (
+                      <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10" key={key}>
+                        <RadioGroupItem value={key} id={key} />
+                        <Label htmlFor={key} className="flex flex-col cursor-pointer">
+                          <span className="font-medium">{label[0]}</span>
+                          <span className="text-xs text-muted-foreground">{label[1]}</span>
+                        </Label>
+                      </div>
+                  ))
+                }
               </RadioGroup>
             </div>
             
@@ -1055,80 +1011,6 @@ const AgentEdit = () => {
     );
   };
 
-  const renderIntegrationsContent = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Integrations</CardTitle>
-          <CardDescription>Connect your agent with other platforms to extend its capabilities</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {integrationOptions.map(integration => (
-              <div
-                key={integration.id}
-                className={`border rounded-lg p-4 transition-all cursor-pointer hover:shadow-md ${integration.connected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'}`}
-                onClick={() => handleIntegrationCardClick(integration)}
-              >
-                <div className="flex flex-col items-center text-center gap-2 h-full">
-                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-accent/10 mb-2">
-                    {getIntegrationIconElement(integration.icon, integration.color)}
-                  </div>
-                  <span className="font-medium">{integration.name}</span>
-                  <span className="text-xs text-muted-foreground">{integration.description}</span>
-                  {integration.connected && (
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 mt-2">Connected</Badge>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center">
-            <Slack className="h-5 w-5 mr-2 text-[#4A154B]" />
-            Connected Integrations
-          </CardTitle>
-          <CardDescription>Manage your agent's active connections</CardDescription>
-        </CardHeader>
-        <CardContent className="py-6">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 border rounded-lg bg-primary/5">
-              <div className="flex-shrink-0">
-                <Slack className="h-10 w-10 text-[#4A154B]" />
-              </div>
-              <div className="flex-grow">
-                <h4 className="font-medium">Slack</h4>
-                <p className="text-sm text-muted-foreground">Connected to workspace: Team Coco</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">Configure</Button>
-                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">Disconnect</Button>
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <h4 className="font-medium">Connect a New Platform</h4>
-              <p className="text-sm text-muted-foreground mb-2">Select an integration above to connect with more platforms.</p>
-              
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <h5 className="font-medium text-sm mb-2">Integration Benefits</h5>
-                <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5">
-                  <li>Allow your AI agent to communicate through multiple channels</li>
-                  <li>Maintain consistent conversations across platforms</li>
-                  <li>Automate workflows with integrations</li>
-                  <li>Notify your team when the agent needs human support</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
 
   const getIntegrationIconElement = (iconName: string, color: string) => {
     switch (iconName) {
