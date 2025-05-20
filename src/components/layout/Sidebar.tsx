@@ -20,8 +20,7 @@ import {
   ChevronLeft,
   Loader2,
   AlertCircle,
-  Link,
-  RefreshCw
+  Link
 } from 'lucide-react';
 import { NavLink, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -50,12 +49,7 @@ interface SidebarItem {
   label: string;
   href: string;
   icon: React.ElementType;
-  children?: { 
-    label: string; 
-    href: string; 
-    permission?: keyof typeof UserPermissions;
-    highlight?: boolean;
-  }[];
+  children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
   action?: React.ReactNode;
   permission?: keyof typeof UserPermissions;
   highlight?: boolean;
@@ -77,23 +71,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     }
   };
 
+
+
+   
+
   const commonItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
   ];
 
   const adminItems: SidebarItem[] = [
     { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
-    { 
-      id: 'agents', 
-      label: 'Agents', 
-      href: '/agents', 
-      icon: Bot, 
-      permission: 'agents',
-      children: [
-        { label: 'All Agents', href: '/agents', permission: 'agents' },
-        { label: 'Agent Handoffs', href: '/agents/handoffs', permission: 'agents', highlight: true }
-      ]
-    },
+    { id: 'agents', label: 'Agents', href: '/agents',  icon: Bot, permission: 'agents' },
     { id: 'knowledge', label: 'Knowledge Base', href: '/knowledge', icon: Book, permission: 'knowledgebase' },
     { 
       id: 'integrations', 
