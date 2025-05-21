@@ -48,9 +48,13 @@ interface AuthData {
   permissions: {};
 }
 
-
 // Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// List of public paths that don't require authentication
+const PUBLIC_PATHS = ['/login', '/verify', '/invitation'];
+// Check if a path is for chat preview
+const isChatPreviewPath = (path: string) => path.startsWith('/chat/preview/');
 
 // Auth provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -71,6 +75,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
+      // If current path is a public path or chat preview, skip auth check
+      if (PUBLIC_PATHS.includes(location.pathname) || isChatPreviewPath(location.pathname)) {
+        setIsLoading(false);
+        return;
+      }
+      
       const storedUser = localStorage.getItem('user');
       
       if (storedUser) {
@@ -108,25 +118,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } else {
             // Token is missing, clear storage and redirect to login
             localStorage.removeItem('user');
-            if (location.pathname !== '/login' && 
-                location.pathname !== '/verify' && 
-                location.pathname !== '/invitation') {
-              navigate('/login');
-            }
+            navigate('/login');
           }
         } catch (error) {
           console.error("Error parsing stored user data:", error);
           localStorage.removeItem('user');
-          if (location.pathname !== '/login' && 
-              location.pathname !== '/verify' && 
-              location.pathname !== '/invitation') {
-            navigate('/login');
-          }
+          navigate('/login');
         }
-      } else if (location.pathname !== '/login' && 
-                location.pathname !== '/verify' && 
-                location.pathname !== '/invitation') {
-        // No stored user data and not on login, verify, or invitation page, redirect to login
+      } else {
+        // No stored user data and not on public path, redirect to login
         navigate('/login');
       }
       
