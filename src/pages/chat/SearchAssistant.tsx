@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -313,252 +312,226 @@ const SearchAssistant = () => {
 
   return (
     <div 
-      className="min-h-screen flex flex-col text-white"
+      className="min-h-screen flex flex-col"
       style={{ 
         fontFamily: config.fontFamily || 'Inter',
         backgroundColor: bgColor,
         color: textColor
       }}
     >
-      {/* Header with gradient and theme toggle */}
+      {/* Header with theme toggle */}
       <header 
-        className="p-4 flex items-center justify-between border-b"
+        className="p-3 flex items-center justify-between border-b"
         style={{ 
           borderColor: borderColor,
           background: isDarkTheme 
-            ? `linear-gradient(to right, #1A1F2C, #2a2f3c)` 
+            ? `linear-gradient(to right, #1A1F2C, #232838)` 
             : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
         }}
       >
         <div className="flex items-center gap-2">
-          <button onClick={() => window.history.back()} className="hover:text-white">
-            ← Back
-          </button>
-          <span className="ml-2">{config.chatbotName || 'AI Assistant'}</span>
+          <span className="ml-2 font-medium text-sm">{config.chatbotName || 'AI Assistant'}</span>
         </div>
         <button 
           onClick={toggleTheme} 
-          className="p-2 rounded-full"
+          className="p-1.5 rounded-full"
           style={{ backgroundColor: `${primaryColor}30` }}
         >
           {currentTheme === 'dark' ? (
-            <Sun size={18} color={textColor} />
+            <Sun size={16} color={textColor} />
           ) : (
-            <Moon size={18} color={textColor} />
+            <Moon size={16} color={textColor} />
           )}
         </button>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center p-4 md:p-6">
-        <div className="w-full max-w-3xl">
-          {/* Example questions section */}
-          {!selectedResult && (
-            <div className="mb-8">
-              <h2 className="uppercase text-xs font-semibold mb-4 tracking-wider" style={{ color: isDarkTheme ? '#8E9196' : '#71767C' }}>EXAMPLES</h2>
-              <div className="space-y-3">
+      <main className="flex-1 flex flex-col overflow-auto" style={{ backgroundColor: isDarkTheme ? '#1A1F2C' : '#FFFFFF' }}>
+        {!selectedResult ? (
+          <div className="flex-1 flex flex-col p-4">
+            <div className="mb-4">
+              <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
+              <div className="space-y-2">
                 {suggestions.map((question, index) => (
                   <div 
                     key={index}
                     onClick={() => handleSelectExample(question)}
-                    className="p-3 rounded-md border hover:cursor-pointer flex items-center gap-3 transition-colors"
+                    className="p-2 rounded hover:cursor-pointer flex items-center gap-2 text-sm transition-colors"
                     style={{ 
-                      borderColor: `${primaryColor}40`,
                       backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
                       color: textColor
                     }}
                   >
-                    <div style={{ color: primaryColor }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                      </svg>
-                    </div>
+                    <div style={{ color: primaryColor, fontSize: '12px' }}>•</div>
                     <span>{question}</span>
                   </div>
                 ))}
               </div>
             </div>
-          )}
-          
-          {/* Search bar */}
-          <div className="w-full relative mt-2">
-            <div className="relative flex">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <Search size={18} />
-              </div>
-              <Input
-                ref={inputRef}
-                className="w-full pl-10 pr-16 py-3 rounded-md text-white placeholder-gray-500 focus-visible:ring-1 focus-visible:ring-opacity-50"
-                placeholder="Ask a question..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyPress}
-                disabled={searchLoading}
-                style={{ 
-                  backgroundColor: inputBgColor,
-                  borderColor: inputBorderColor,
-                  color: textColor
-                }}
-              />
-              <Button 
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded-md"
-                style={{ backgroundColor: primaryColor }}
-                disabled={searchLoading || !query}
-                onClick={handleSearch}
-              >
-                <ArrowUp size={18} />
-              </Button>
-            </div>
           </div>
-          
-          {/* Result display */}
-          {selectedResult && (
-            <div className="mt-6 rounded-lg overflow-hidden">
-              <div 
-                className="flex items-center p-3 border-b"
-                style={{ 
-                  backgroundColor: `${primaryColor}20`, 
-                  borderColor: `${primaryColor}40` 
-                }}
-              >
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"></path>
-                    <path d="m14 7 3 3"></path>
-                    <path d="M5 6v4"></path>
-                    <path d="M19 14v4"></path>
-                    <path d="M10 2v2"></path>
-                    <path d="M7 8H3"></path>
-                    <path d="M21 16h-4"></path>
-                    <path d="M11 3H9"></path>
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm">{selectedResult.title}</p>
-                </div>
-              </div>
-              
-              <div 
-                className="p-4 min-h-[200px]"
-                style={{ backgroundColor: cardBgColor }}
-              >
-                {searchLoading ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-6 h-6 rounded-full animate-pulse"
-                        style={{ backgroundColor: primaryColor }}
-                      ></div>
-                      <div className="font-medium" 
-                        style={{ color: isDarkTheme ? '#e4e4e4' : '#4a4a4a' }}
-                      >
-                        {thinkingMessage}
-                      </div>
-                    </div>
-                    <Skeleton className="h-4 w-3/4" style={{ backgroundColor: isDarkTheme ? '#3a3a3a' : '#EFEFEF' }} />
-                    <Skeleton className="h-4 w-full" style={{ backgroundColor: isDarkTheme ? '#3a3a3a' : '#EFEFEF' }} />
-                    <Skeleton className="h-4 w-2/3" style={{ backgroundColor: isDarkTheme ? '#3a3a3a' : '#EFEFEF' }} />
+        ) : (
+          <div className="flex-1 flex flex-col">
+            <div className="flex flex-col flex-1 overflow-auto">
+              {/* Chat messages */}
+              <div className="flex flex-col space-y-4 p-4">
+                {/* User message */}
+                <div className="flex items-start gap-2.5 self-end max-w-[80%]">
+                  <div 
+                    className="px-4 py-2 rounded-t-xl rounded-bl-xl text-sm"
+                    style={{ 
+                      backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
+                      color: isDarkTheme ? '#e0e0e0' : '#333333' 
+                    }}
+                  >
+                    {selectedResult.title}
                   </div>
-                ) : (
-                  <div className="prose prose-invert max-w-none" style={{ color: textColor }}>
-                    <ReactMarkdown
-                      components={{
-                        code({ node, className, children, ...props }) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const language = match ? match[1] : '';
-                          
-                          // Check if inline code
-                          const isInline = !match && children.toString().split('\n').length === 1;
-                          
-                          if (isInline) {
-                            return (
-                              <code
-                                className="px-1.5 py-0.5 rounded-md font-mono text-sm"
-                                style={{ 
-                                  backgroundColor: `${primaryColor}30`,
-                                  color: isDarkTheme ? textColor : primaryColor
-                                }}
-                                {...props}
-                              >
-                                {children}
-                              </code>
-                            );
-                          }
+                  <div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path 
+                        fill={isDarkTheme ? '#e0e0e0' : '#333333'} 
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                    </svg>
+                  </div>
+                </div>
 
-                          return (
-                            <div className="relative">
-                              {language && (
-                                <div 
-                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
-                                  style={{ backgroundColor: `${primaryColor}40` }}
-                                >
-                                  {language}
-                                </div>
-                              )}
-                              <pre 
-                                className="!mt-0 border rounded-md overflow-x-auto"
-                                style={{ 
-                                  backgroundColor: isDarkTheme ? `${primaryColor}15` : `${primaryColor}10`,
-                                  borderColor: `${primaryColor}30`,
-                                  color: textColor
-                                }}
-                              >
-                                <code className="block p-4 text-sm font-mono" {...props}>
-                                  {children}
-                                </code>
-                              </pre>
-                            </div>
-                          );
-                        },
-                        ul({ children }) {
-                          return <ul className="list-disc pl-4 space-y-1" style={{ color: textColor }}>{children}</ul>;
-                        },
-                        ol({ children }) {
-                          return <ol className="list-decimal pl-4 space-y-1" style={{ color: textColor }}>{children}</ol>;
-                        },
-                        a({ children, href }) {
-                          return (
-                            <a
-                              href={href}
-                              className="underline"
-                              style={{ color: primaryColor }}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {children}
-                            </a>
-                          );
-                        }
+                {/* Bot response or loading indicator */}
+                <div className="flex items-start gap-2.5 max-w-[80%]">
+                  <div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path 
+                        fill="#ffffff" 
+                        d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.72V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.72c-.6-.34-1-.98-1-1.72a2 2 0 0 1 2-2m0 9a5 5 0 0 0-5 5v4h10v-4a5 5 0 0 0-5-5m-6.5 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
+                      />
+                    </svg>
+                  </div>
+                  
+                  {searchLoading ? (
+                    <div 
+                      className="px-4 py-3 rounded-t-xl rounded-br-xl text-sm flex items-center"
+                      style={{ 
+                        backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
+                        color: isDarkTheme ? '#e0e0e0' : '#333333' 
                       }}
                     >
-                      {selectedResult.content}
-                    </ReactMarkdown>
-                  </div>
-                )}
+                      <div className="animate-pulse mr-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full inline-block mr-1"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full inline-block mr-1 animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full inline-block animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                      </div>
+                      {thinkingMessage}
+                    </div>
+                  ) : (
+                    <div 
+                      className="px-4 py-3 rounded-t-xl rounded-br-xl text-sm prose prose-sm max-w-none break-words"
+                      style={{ 
+                        backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0', 
+                        color: isDarkTheme ? '#e0e0e0' : '#333333',
+                      }}
+                    >
+                      <ReactMarkdown
+                        components={{
+                          code({ node, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const language = match ? match[1] : '';
+                            
+                            // Check if inline code
+                            const isInline = !match && children.toString().split('\n').length === 1;
+                            
+                            if (isInline) {
+                              return (
+                                <code
+                                  className="px-1 py-0.5 rounded font-mono text-xs"
+                                  style={{ 
+                                    backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
+                                  }}
+                                  {...props}
+                                >
+                                  {children}
+                                </code>
+                              );
+                            }
+
+                            return (
+                              <div className="relative mt-2">
+                                {language && (
+                                  <div 
+                                    className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                                    style={{ 
+                                      backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                    }}
+                                  >
+                                    {language}
+                                  </div>
+                                )}
+                                <pre 
+                                  className="!mt-0 rounded overflow-x-auto text-xs"
+                                  style={{ 
+                                    backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+                                    padding: '8px',
+                                    color: isDarkTheme ? '#e0e0e0' : '#333333'
+                                  }}
+                                >
+                                  <code className="block font-mono" {...props}>
+                                    {children}
+                                  </code>
+                                </pre>
+                              </div>
+                            );
+                          }
+                        }}
+                      >
+                        {selectedResult.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
       
-      {/* Footer with subtle gradient */}
-      <footer 
-        className="p-3 text-center text-xs border-t"
-        style={{ 
-          borderColor: `${primaryColor}20`,
-          color: `${primaryColor}90`,
-          background: isDarkTheme
-            ? `linear-gradient(to top, ${bgColor}, transparent)`
-            : `linear-gradient(to top, #F5F6F7, transparent)`
-        }}
+      {/* Input section */}
+      <div 
+        className="border-t p-3"
+        style={{ borderColor: borderColor }}
       >
-        <p>powered by 7en.ai</p>
-      </footer>
+        <div className="relative">
+          <Input
+            ref={inputRef}
+            className="py-2 pr-10 rounded-md text-sm"
+            placeholder="Ask Supabase AI a question..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyPress}
+            disabled={searchLoading}
+            style={{ 
+              backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
+              color: textColor,
+              border: 'none'
+            }}
+          />
+          {query.trim() && (
+            <Button 
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-full"
+              style={{ backgroundColor: primaryColor }}
+              disabled={searchLoading || !query.trim()}
+              onClick={handleSearch}
+            >
+              <ArrowUp size={16} />
+            </Button>
+          )}
+        </div>
+      </div>
 
-      {/* Modal Demo Components - These demonstrate how this component could be embedded */}
+      {/* Modal Demo Components - Hidden */}
       <div className="hidden">
         {/* Dialog (Modal) Example */}
         <Dialog>
