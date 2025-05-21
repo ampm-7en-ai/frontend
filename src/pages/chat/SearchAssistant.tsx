@@ -81,6 +81,7 @@ const SearchAssistant = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showCentralLoader, setShowCentralLoader] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [hasInteracted, setHasInteracted] = useState<boolean>(false);
 
   // Use system theme preference as initial value
   useEffect(() => {
@@ -116,15 +117,8 @@ const SearchAssistant = () => {
         setConfig(data);
         document.title = `${data.chatbotName} - AI Assistant`;
         
-        // Add welcome message if there's no chat history
-        if (chatHistory.length === 0 && data.welcomeMessage) {
-          setChatHistory([{
-            id: `welcome-${Date.now()}`,
-            content: data.welcomeMessage,
-            type: 'bot_response',
-            timestamp: new Date().toISOString()
-          }]);
-        }
+        // We don't automatically add the welcome message now
+        // Instead, we'll show it after the first interaction or if the user clicks a suggestion
       } catch (err) {
         console.error('Error fetching chatbot config:', err);
         setError('Failed to load assistant configuration');
@@ -237,6 +231,9 @@ const SearchAssistant = () => {
   const handleSearch = () => {
     if (!query.trim()) return;
 
+    // Set that user has interacted
+    setHasInteracted(true);
+
     // Immediately add user message to chat history
     const userQueryCopy = query;
     const newUserMessage: ChatMessage = {
@@ -286,8 +283,20 @@ const SearchAssistant = () => {
   };
 
   const handleSelectExample = (question: string) => {
-    // Set the query and immediately send it
-    setQuery('');
+    // Set that user has interacted
+    setHasInteracted(true);
+
+    // If this is the first interaction and we have a welcome message, add it now
+    if (chatHistory.length === 0 && config?.welcomeMessage) {
+      const welcomeMessage: ChatMessage = {
+        id: `welcome-${Date.now()}`,
+        content: config.welcomeMessage,
+        type: 'bot_response',
+        timestamp: new Date().toISOString()
+      };
+      
+      setChatHistory([welcomeMessage]);
+    }
     
     // Add user question to chat history
     const newUserMessage: ChatMessage = {
@@ -338,7 +347,7 @@ const SearchAssistant = () => {
   const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
   const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
   const linkColor = isDarkTheme ? '#D6BCFA' : '#7559da';
-  const strongTagColor = isDarkTheme ? '#D6BCFA' : '#000000';
+  const strongTagColor = isDarkTheme ? '#D6BCFA' : primaryColor;
 
   if (loading) {
     return (
@@ -502,7 +511,7 @@ const SearchAssistant = () => {
                                       <code
                                         className="px-1 py-0.5 rounded font-mono text-xs"
                                         style={{ 
-                                          backgroundColor: inlineCodeBg,
+                                          backgroundColor: isDarkTheme ? inlineCodeBg : '#f0f0f0',
                                           color: isDarkTheme ? primaryColor : '#333333' 
                                         }}
                                         {...props}
@@ -640,6 +649,26 @@ const SearchAssistant = () => {
                       </div>
                       <p className="text-xs opacity-70">{thinkingMessage}</p>
                     </div>
+                  </div>
+                )}
+
+                {/* Always show suggestion chips after conversation if hasInteracted is true */}
+                {chatHistory.length > 0 && !searchLoading && !showCentralLoader && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {suggestions.slice(0, 3).filter(Boolean).map((suggestion, index) => (
+                      <button
+                        key={`follow-${index}`}
+                        onClick={() => handleSelectExample(suggestion)}
+                        className="text-xs px-3 py-1.5 rounded-full transition-all"
+                        style={{ 
+                          border: `1px solid ${primaryColor}30`,
+                          backgroundColor: `${primaryColor}08`,
+                          color: isDarkTheme ? '#e0e0e0' : '#333333'
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
