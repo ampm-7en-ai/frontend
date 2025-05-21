@@ -128,7 +128,7 @@ const SearchAssistant = () => {
 
     console.log("Initializing ChatWebSocketService with agent ID:", agentId);
     
-    chatServiceRef.current = new ChatWebSocketService(agentId, "playground");
+    chatServiceRef.current = new ChatWebSocketService(agentId, "chat");
     
     chatServiceRef.current.on({
       onMessage: (message) => {
@@ -483,7 +483,7 @@ const SearchAssistant = () => {
                       </div>
                     ) : (
                       <div className="prose prose-sm max-w-none break-words" style={{ 
-                        color: isDarkTheme ? '#e0e0e0' : '#333333' 
+                        color: isDarkTheme ? '#bdbdbd' : '#333333' ,
                       }}>
                         <ReactMarkdown
                           components={{
@@ -499,7 +499,7 @@ const SearchAssistant = () => {
                                   <code
                                     className="px-1 py-0.5 rounded font-mono text-xs"
                                     style={{ 
-                                      backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
+                                      backgroundColor: isDarkTheme ? 'rgba(0,0,0,0.9)' : 'rgba(0, 0, 0, 0.1)', 
                                     }}
                                     {...props}
                                   >
@@ -515,6 +515,7 @@ const SearchAssistant = () => {
                                       className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
                                       style={{ 
                                         backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                        color: isDarkTheme ? '#fff': "#000",
                                       }}
                                     >
                                       {language}
@@ -523,15 +524,16 @@ const SearchAssistant = () => {
                                   <pre 
                                     className="!mt-0 rounded overflow-x-auto text-xs"
                                     style={{ 
-                                      backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+                                      backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.05)',
                                       padding: '8px',
-                                      color: isDarkTheme ? '#e0e0e0' : '#333333'
+                                      color: isDarkTheme ? '#fff' : '#333333'
                                     }}
                                   >
                                     <code className="block font-mono" {...props}>
                                       {children}
                                     </code>
                                   </pre>
+                                  
                                 </div>
                               );
                             }
