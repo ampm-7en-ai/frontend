@@ -40,6 +40,13 @@ interface SearchResult {
   type?: string;
 }
 
+interface ChatMessage {
+  id: string;
+  content: string;
+  type: 'user' | 'bot_response' | 'system_message';
+  timestamp: string;
+}
+
 const fallbackSuggestions = [
   'How do I listen to changes in a table?',
   'How do I connect to my database?',
@@ -63,8 +70,7 @@ const SearchAssistant = () => {
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [thinkingMessage, setThinkingMessage] = useState<string>("Thinking...");
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
@@ -109,6 +115,16 @@ const SearchAssistant = () => {
         const data = await response.json();
         setConfig(data);
         document.title = `${data.chatbotName} - AI Assistant`;
+        
+        // Add welcome message if there's no chat history
+        if (chatHistory.length === 0 && data.welcomeMessage) {
+          setChatHistory([{
+            id: `welcome-${Date.now()}`,
+            content: data.welcomeMessage,
+            type: 'bot_response',
+            timestamp: new Date().toISOString()
+          }]);
+        }
       } catch (err) {
         console.error('Error fetching chatbot config:', err);
         setError('Failed to load assistant configuration');
@@ -136,7 +152,7 @@ const SearchAssistant = () => {
         
         // Handle system messages for thinking states
         if (message.type === 'system_message') {
-          setThinkingMessage(`${config?.chatbotName || 'Assistant'} is ${message.content}`);
+          setThinkingMessage(`${message.content}`);
           return;
         }
         
@@ -145,17 +161,15 @@ const SearchAssistant = () => {
         setSearchLoading(false);
         setShowCentralLoader(false);
         
-        // Convert the message to a search result
-        const newResult: SearchResult = {
-          id: `result-${Date.now()}`,
-          title: selectedResult?.title || query,
+        // Add the bot response to chat history
+        const newMessage: ChatMessage = {
+          id: `bot-${Date.now()}`,
           content: message.content,
-          timestamp: message.timestamp,
-          type: message.type
+          type: 'bot_response',
+          timestamp: message.timestamp
         };
         
-        setSearchResults(prev => [newResult, ...prev.slice(0, 9)]);
-        setSelectedResult(newResult);
+        setChatHistory(prev => [...prev, newMessage]);
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
@@ -223,18 +237,16 @@ const SearchAssistant = () => {
   const handleSearch = () => {
     if (!query.trim()) return;
 
-    // Immediately add user message and show loader
+    // Immediately add user message to chat history
     const userQueryCopy = query;
-    const newResult: SearchResult = {
+    const newUserMessage: ChatMessage = {
       id: `user-${Date.now()}`,
-      title: userQueryCopy,
       content: userQueryCopy,
-      timestamp: new Date().toISOString(),
-      type: "user"
+      type: 'user',
+      timestamp: new Date().toISOString()
     };
     
-    setSearchResults(prev => [newResult, ...prev.slice(0, 9)]);
-    setSelectedResult(newResult);
+    setChatHistory(prev => [...prev, newUserMessage]);
     setSearchLoading(true);
     setQuery(''); // Clear input field immediately
     
@@ -275,28 +287,25 @@ const SearchAssistant = () => {
 
   const handleSelectExample = (question: string) => {
     // Set the query and immediately send it
-    setQuery(question);
+    setQuery('');
     
-    // Auto-submit the selected question
-    const userQueryCopy = question;
-    const newResult: SearchResult = {
+    // Add user question to chat history
+    const newUserMessage: ChatMessage = {
       id: `user-${Date.now()}`,
-      title: userQueryCopy,
-      content: userQueryCopy,
-      timestamp: new Date().toISOString(),
-      type: "user"
+      content: question,
+      type: 'user',
+      timestamp: new Date().toISOString()
     };
     
-    setSearchResults(prev => [newResult, ...prev.slice(0, 9)]);
-    setSelectedResult(newResult);
+    setChatHistory(prev => [...prev, newUserMessage]);
     setSearchLoading(true);
     
-    // Show central loader and hide suggestions
+    // Show central loader
     setShowCentralLoader(true);
     
     if (chatServiceRef.current?.isConnected()) {
       startThinkingAnimation();
-      chatServiceRef.current.sendMessage(userQueryCopy);
+      chatServiceRef.current.sendMessage(question);
     } else {
       toast({
         title: "Not connected",
@@ -414,7 +423,7 @@ const SearchAssistant = () => {
           style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
         >
           <div className="p-4" ref={contentRef}>
-            {!selectedResult && !showCentralLoader ? (
+            {chatHistory.length === 0 && !showCentralLoader ? (
               <div>
                 <div className="mb-4">
                   <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
@@ -442,172 +451,197 @@ const SearchAssistant = () => {
               </div>
             ) : (
               <div className="flex flex-col space-y-5 mb-4">
-                {/* Query as title */}
-                <div className="flex items-start gap-2">
-                  <Avatar className="h-8 w-8 mt-1">
-                    <AvatarFallback className="bg-gray-200">
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
-                      {selectedResult?.content}
-                    </p>
-                  </div>
-                </div>
+                {/* Render chat history */}
+                {chatHistory.map((message, index) => {
+                  if (message.type === 'user') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1">
+                          <AvatarFallback className="bg-gray-200">
+                            <User className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                            {message.content}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  } else if (message.type === 'bot_response') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1" style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          {config.avatarUrl ? (
+                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                          ) : null}
+                          <AvatarFallback style={{
+                            backgroundColor: primaryColor
+                          }}>
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </Avatar>
 
-                {/* Answer as description or Loading indicator */}
-                <div className="flex items-start gap-2">
-                  <Avatar className="h-8 w-8 mt-1" style={{
-                    backgroundColor: primaryColor
-                  }}>
-                    {config.avatarUrl ? (
-                      <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
-                    ) : null}
-                    <AvatarFallback style={{
-                      backgroundColor: primaryColor
-                    }}>
-                      <Bot className="h-4 w-4 text-white" />
-                    </AvatarFallback>
-                  </Avatar>
+                        <div className="flex-1">
+                          <div className="prose prose-sm max-w-none break-words" style={{ 
+                            color: isDarkTheme ? '#e0e0e0' : '#333333',
+                          }}>
+                            <ReactMarkdown
+                              components={{
+                                code({ node, className, children, ...props }) {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  const language = match ? match[1] : '';
+                                  
+                                  // Check if inline code
+                                  const isInline = !match && children.toString().split('\n').length === 1;
+                                  
+                                  if (isInline) {
+                                    return (
+                                      <code
+                                        className="px-1 py-0.5 rounded font-mono text-xs"
+                                        style={{ 
+                                          backgroundColor: inlineCodeBg,
+                                          color: isDarkTheme ? primaryColor : '#333333' 
+                                        }}
+                                        {...props}
+                                      >
+                                        {children}
+                                      </code>
+                                    );
+                                  }
 
-                  <div className="flex-1">
-                    {searchLoading ? (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center">
-                          <div className="mr-3 flex items-center">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
-                            <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
-                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                                  return (
+                                    <div className="relative mt-2">
+                                      {language && (
+                                        <div 
+                                          className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                                          style={{ 
+                                            backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                            color: isDarkTheme ? '#fff': "#000",
+                                          }}
+                                        >
+                                          {language}
+                                        </div>
+                                      )}
+                                      <pre 
+                                        className="!mt-0 rounded overflow-x-auto text-xs"
+                                        style={{ 
+                                          backgroundColor: isDarkTheme ? '#2d2d2d' : '#f6f6f6',
+                                          padding: '8px',
+                                          color: isDarkTheme ? '#e0e0e0' : '#333333',
+                                          border: isDarkTheme ? '1px solid #444' : '1px solid #e0e0e0'
+                                        }}
+                                      >
+                                        <code className="block font-mono" {...props}>
+                                          {children}
+                                        </code>
+                                      </pre>
+                                    </div>
+                                  );
+                                },
+                                a({ node, href, children, ...props }) {
+                                  return (
+                                    <a 
+                                      href={href} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      style={{ color: linkColor, textDecoration: 'underline' }}
+                                      {...props}
+                                    >
+                                      {children}
+                                    </a>
+                                  );
+                                },
+                                ul({ node, children, ...props }) {
+                                  return (
+                                    <ul className="list-disc pl-5 my-2 space-y-1" {...props}>
+                                      {children}
+                                    </ul>
+                                  );
+                                },
+                                ol({ node, children, ...props }) {
+                                  return (
+                                    <ol className="list-decimal pl-5 my-2 space-y-1" {...props}>
+                                      {children}
+                                    </ol>
+                                  );
+                                },
+                                li({ node, children, ...props }) {
+                                  return (
+                                    <li className="mb-1" {...props}>
+                                      {children}
+                                    </li>
+                                  );
+                                },
+                                strong({ node, children, ...props }) {
+                                  return (
+                                    <strong 
+                                      style={{ color: strongTagColor, fontWeight: 'bold' }}
+                                      {...props}
+                                    >
+                                      {children}
+                                    </strong>
+                                  );
+                                },
+                                blockquote({ node, children, ...props }) {
+                                  return (
+                                    <blockquote 
+                                      style={{ 
+                                        borderLeftColor: primaryColor,
+                                        borderLeftWidth: '4px',
+                                        paddingLeft: '1rem',
+                                        fontStyle: 'italic',
+                                        margin: '1rem 0'
+                                      }} 
+                                      {...props}
+                                    >
+                                      {children}
+                                    </blockquote>
+                                  );
+                                }
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
                           </div>
                         </div>
-                        <p className="text-xs opacity-70">{thinkingMessage}</p>
                       </div>
-                    ) : (
-                      <div className="prose prose-sm max-w-none break-words" style={{ 
-                        color: isDarkTheme ? '#e0e0e0' : '#333333',
+                    );
+                  }
+                  
+                  return null; // For system messages or any other types
+                })}
+                
+                {/* Show loading indicator after the last message when waiting for a response */}
+                {searchLoading && !showCentralLoader && (
+                  <div className="flex items-start gap-2">
+                    <Avatar className="h-8 w-8 mt-1" style={{
+                      backgroundColor: primaryColor
+                    }}>
+                      {config.avatarUrl ? (
+                        <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback style={{
+                        backgroundColor: primaryColor
                       }}>
-                        <ReactMarkdown
-                          components={{
-                            code({ node, className, children, ...props }) {
-                              const match = /language-(\w+)/.exec(className || '');
-                              const language = match ? match[1] : '';
-                              
-                              // Check if inline code
-                              const isInline = !match && children.toString().split('\n').length === 1;
-                              
-                              if (isInline) {
-                                return (
-                                  <code
-                                    className="px-1 py-0.5 rounded font-mono text-xs"
-                                    style={{ 
-                                      backgroundColor: inlineCodeBg,
-                                      color: isDarkTheme ? primaryColor : '#333333' 
-                                    }}
-                                    {...props}
-                                  >
-                                    {children}
-                                  </code>
-                                );
-                              }
+                        <Bot className="h-4 w-4 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
 
-                              return (
-                                <div className="relative mt-2">
-                                  {language && (
-                                    <div 
-                                      className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
-                                      style={{ 
-                                        backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                                        color: isDarkTheme ? '#fff': "#000",
-                                      }}
-                                    >
-                                      {language}
-                                    </div>
-                                  )}
-                                  <pre 
-                                    className="!mt-0 rounded overflow-x-auto text-xs"
-                                    style={{ 
-                                      backgroundColor: isDarkTheme ? '#2d2d2d' : '#f6f6f6',
-                                      padding: '8px',
-                                      color: isDarkTheme ? '#e0e0e0' : '#333333',
-                                      border: isDarkTheme ? '1px solid #444' : '1px solid #e0e0e0'
-                                    }}
-                                  >
-                                    <code className="block font-mono" {...props}>
-                                      {children}
-                                    </code>
-                                  </pre>
-                                </div>
-                              );
-                            },
-                            a({ node, href, children, ...props }) {
-                              return (
-                                <a 
-                                  href={href} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  style={{ color: linkColor, textDecoration: 'underline' }}
-                                  {...props}
-                                >
-                                  {children}
-                                </a>
-                              );
-                            },
-                            ul({ node, children, ...props }) {
-                              return (
-                                <ul className="list-disc pl-5 my-2 space-y-1" {...props}>
-                                  {children}
-                                </ul>
-                              );
-                            },
-                            ol({ node, children, ...props }) {
-                              return (
-                                <ol className="list-decimal pl-5 my-2 space-y-1" {...props}>
-                                  {children}
-                                </ol>
-                              );
-                            },
-                            li({ node, children, ...props }) {
-                              return (
-                                <li className="mb-1" {...props}>
-                                  {children}
-                                </li>
-                              );
-                            },
-                            strong({ node, children, ...props }) {
-                              return (
-                                <strong 
-                                  style={{ color: strongTagColor, fontWeight: 'bold' }}
-                                  {...props}
-                                >
-                                  {children}
-                                </strong>
-                              );
-                            },
-                            blockquote({ node, children, ...props }) {
-                              return (
-                                <blockquote 
-                                  style={{ 
-                                    borderLeftColor: primaryColor,
-                                    borderLeftWidth: '4px',
-                                    paddingLeft: '1rem',
-                                    fontStyle: 'italic',
-                                    margin: '1rem 0'
-                                  }} 
-                                  {...props}
-                                >
-                                  {children}
-                                </blockquote>
-                              );
-                            }
-                          }}
-                        >
-                          {selectedResult?.content}
-                        </ReactMarkdown>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center">
+                        <div className="mr-3 flex items-center">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                        </div>
                       </div>
-                    )}
+                      <p className="text-xs opacity-70">{thinkingMessage}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
