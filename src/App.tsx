@@ -38,6 +38,7 @@ import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
 import SubscriptionPlanEditor from './pages/settings/platform/SubscriptionPlanEditor';
 import IntegrationsPage from './pages/integrations/IntegrationsPage';
+import ChatPreview from './pages/preview/ChatPreview';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -215,6 +216,9 @@ function App() {
             <NotificationProvider>
               <TrainingStatusProvider>
                 <Routes>
+                  {/* Public route for chat preview */}
+                  <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
+                  
                   <Route path="/login" element={<Login />} />
                   <Route path="/verify" element={<Verify />} />
                   <Route path="/invitation" element={<InviteRegistration />} />

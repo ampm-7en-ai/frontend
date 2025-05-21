@@ -1,0 +1,93 @@
+
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
+
+interface ChatbotConfig {
+  agentId: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  chatbotName: string;
+  welcomeMessage: string;
+  buttonText: string;
+  position: 'bottom-right' | 'bottom-left';
+  suggestions: string[];
+  avatarUrl?: string;
+}
+
+const ChatPreview = () => {
+  const { agentId } = useParams<{ agentId: string }>();
+  const [config, setConfig] = useState<ChatbotConfig | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`https://api.7en.ai/api/chatbot-config?agentId=${agentId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch config: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setConfig(data);
+      } catch (err) {
+        console.error('Error fetching chatbot config:', err);
+        setError('Failed to load chatbox configuration');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (agentId) {
+      fetchConfig();
+    }
+  }, [agentId]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin h-8 w-8 border-4 border-gray-300 rounded-full border-t-primary"></div>
+          <p className="mt-4 text-gray-600">Loading chatbox...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !config) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
+          <p className="text-gray-600">{error || 'Failed to load chatbot configuration'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-3xl h-full mx-auto rounded-xl overflow-hidden shadow-xl">
+        <ChatboxPreview
+          agentId={config.agentId}
+          primaryColor={config.primaryColor}
+          secondaryColor={config.secondaryColor}
+          fontFamily={config.fontFamily}
+          chatbotName={config.chatbotName}
+          welcomeMessage={config.welcomeMessage}
+          buttonText={config.buttonText}
+          position={config.position}
+          suggestions={config.suggestions}
+          avatarSrc={config.avatarUrl}
+          className="w-full h-full"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ChatPreview;

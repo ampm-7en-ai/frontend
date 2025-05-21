@@ -30,6 +30,9 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
 
+  // Build the links and code based on the agent ID using the new route format
+  const shareableLink = `${window.location.origin}/chat/preview/${agent.id}`;
+  
   // This would be generated based on agent ID in a real application
   const embedScript = `<script>
   (function () {
@@ -44,14 +47,12 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
 </script>`; 
 
   const iframeCode = `<iframe
-  src="https://app.example.com/chat/preview/iframe.html?bot=${agent.id}"
+  src="${shareableLink}"
   width="100%"
   height="600"
   frameborder="0"
   allow="microphone"
 ></iframe>`;
-
-  const shareableLink = `https://app.example.com/chat/preview/iframe.html?bot=${agent.id}`;
 
   const handleCopy = (text: string, id: string, successMessage: string) => {
     navigator.clipboard.writeText(text);
