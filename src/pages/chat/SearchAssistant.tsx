@@ -148,7 +148,7 @@ const SearchAssistant = () => {
         // Convert the message to a search result
         const newResult: SearchResult = {
           id: `result-${Date.now()}`,
-          title: query,
+          title: selectedResult?.title || query,
           content: message.content,
           timestamp: message.timestamp,
           type: message.type
@@ -231,7 +231,7 @@ const SearchAssistant = () => {
     const newResult: SearchResult = {
       id: `user-${Date.now()}`,
       title: userQueryCopy,
-      content: "",
+      content: userQueryCopy,
       timestamp: new Date().toISOString(),
       type: "user"
     };
@@ -285,7 +285,7 @@ const SearchAssistant = () => {
     const newResult: SearchResult = {
       id: `user-${Date.now()}`,
       title: userQueryCopy,
-      content: "",
+      content: userQueryCopy,
       timestamp: new Date().toISOString(),
       type: "user"
     };
@@ -328,6 +328,10 @@ const SearchAssistant = () => {
   const inputBorderColor = `${primaryColor}40`;
   const cardBgColor = isDarkTheme ? '#2a2a2a' : '#FFFFFF';
   const borderColor = isDarkTheme ? `${primaryColor}40` : '#E1E4E8';
+  const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
+  const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
+  const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
+  const linkColor = isDarkTheme ? '#9b87f5' : '#7559da';
 
   if (loading) {
     return (
@@ -448,8 +452,8 @@ const SearchAssistant = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
-                      {selectedResult?.title}
+                    <p className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                      {selectedResult?.content}
                     </p>
                   </div>
                 </div>
@@ -483,7 +487,7 @@ const SearchAssistant = () => {
                       </div>
                     ) : (
                       <div className="prose prose-sm max-w-none break-words" style={{ 
-                        color: isDarkTheme ? '#bdbdbd' : '#333333' ,
+                        color: isDarkTheme ? '#e0e0e0' : '#333333',
                       }}>
                         <ReactMarkdown
                           components={{
@@ -499,7 +503,8 @@ const SearchAssistant = () => {
                                   <code
                                     className="px-1 py-0.5 rounded font-mono text-xs"
                                     style={{ 
-                                      backgroundColor: isDarkTheme ? 'rgba(0,0,0,0.9)' : 'rgba(0, 0, 0, 0.1)', 
+                                      backgroundColor: inlineCodeBg,
+                                      color: isDarkTheme ? primaryColor : '#333333' 
                                     }}
                                     {...props}
                                   >
@@ -524,17 +529,67 @@ const SearchAssistant = () => {
                                   <pre 
                                     className="!mt-0 rounded overflow-x-auto text-xs"
                                     style={{ 
-                                      backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.05)',
+                                      backgroundColor: codeBackgroundColor,
                                       padding: '8px',
-                                      color: isDarkTheme ? '#fff' : '#333333'
+                                      color: codeTextColor,
+                                      border: isDarkTheme ? '1px solid #444' : '1px solid #e0e0e0'
                                     }}
                                   >
                                     <code className="block font-mono" {...props}>
                                       {children}
                                     </code>
                                   </pre>
-                                  
                                 </div>
+                              );
+                            },
+                            a({ node, href, children, ...props }) {
+                              return (
+                                <a 
+                                  href={href} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  style={{ color: linkColor, textDecoration: 'underline' }}
+                                  {...props}
+                                >
+                                  {children}
+                                </a>
+                              );
+                            },
+                            ul({ node, children, ...props }) {
+                              return (
+                                <ul className="list-disc pl-5 my-2 space-y-1" {...props}>
+                                  {children}
+                                </ul>
+                              );
+                            },
+                            ol({ node, children, ...props }) {
+                              return (
+                                <ol className="list-decimal pl-5 my-2 space-y-1" {...props}>
+                                  {children}
+                                </ol>
+                              );
+                            },
+                            li({ node, children, ...props }) {
+                              return (
+                                <li className="mb-1" {...props}>
+                                  {children}
+                                </li>
+                              );
+                            },
+                            blockquote({ node, children, ...props }) {
+                              return (
+                                <blockquote 
+                                  style={{ 
+                                    borderLeftColor: primaryColor,
+                                    borderLeftWidth: '4px',
+                                    paddingLeft: '1rem',
+                                    fontStyle: 'italic',
+                                    margin: '1rem 0'
+                                  }} 
+                                  {...props}
+                                >
+                                  {children}
+                                </blockquote>
                               );
                             }
                           }}
