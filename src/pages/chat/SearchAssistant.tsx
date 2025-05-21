@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -432,7 +431,7 @@ const SearchAssistant = () => {
           style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
         >
           <div className="p-4" ref={contentRef}>
-            {chatHistory.length === 0 && !showCentralLoader ? (
+            {chatHistory.length === 0 ? (
               <div>
                 <div className="mb-4">
                   <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
@@ -453,10 +452,6 @@ const SearchAssistant = () => {
                     ))}
                   </div>
                 </div>
-              </div>
-            ) : showCentralLoader ? (
-              <div className="flex flex-col items-center justify-center h-[50vh]">
-                <LoadingSpinner size="lg" text={thinkingMessage} />
               </div>
             ) : (
               <div className="flex flex-col space-y-5 mb-4">
@@ -624,7 +619,7 @@ const SearchAssistant = () => {
                 })}
                 
                 {/* Show loading indicator after the last message when waiting for a response */}
-                {searchLoading && !showCentralLoader && (
+                {searchLoading && (
                   <div className="flex items-start gap-2">
                     <Avatar className="h-8 w-8 mt-1" style={{
                       backgroundColor: primaryColor
@@ -653,7 +648,7 @@ const SearchAssistant = () => {
                 )}
 
                 {/* Always show suggestion chips after conversation if hasInteracted is true */}
-                {chatHistory.length > 0 && !searchLoading && !showCentralLoader && (
+                {chatHistory.length > 0 && !searchLoading && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {suggestions.slice(0, 3).filter(Boolean).map((suggestion, index) => (
                       <button
