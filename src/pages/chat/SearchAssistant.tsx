@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, ArrowUp } from 'lucide-react';
+import { Search, ArrowUp, Moon, Sun } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +12,9 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Toggle } from '@/components/ui/toggle';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ChatbotConfig {
   agentId: string;
@@ -60,10 +63,31 @@ const SearchAssistant = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [thinkingMessage, setThinkingMessage] = useState<string>("Thinking...");
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const thinkingIntervalRef = useRef<number | null>(null);
+  const { theme, setTheme } = useTheme();
+
+  // Use system theme preference as initial value
+  useEffect(() => {
+    // Use the theme from context if available, otherwise detect from system
+    if (theme === 'light' || theme === 'dark') {
+      setCurrentTheme(theme);
+    } else {
+      // Detect system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setCurrentTheme(prefersDark ? 'dark' : 'light');
+    }
+  }, [theme]);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setCurrentTheme(newTheme);
+    setTheme(newTheme);
+  };
 
   // Fetch the chatbot configuration
   useEffect(() => {
@@ -248,12 +272,22 @@ const SearchAssistant = () => {
   // Primary brand colors
   const primaryColor = config?.primaryColor || '#9b87f5';
   const secondaryColor = config?.secondaryColor || '#7E69AB';
-  const darkBgColor = '#1A1F2C';
-  const lightTextColor = '#fff';
+  const isDarkTheme = currentTheme === 'dark';
+  
+  // Theme-based colors
+  const bgColor = isDarkTheme ? '#1A1F2C' : '#FFFFFF';
+  const textColor = isDarkTheme ? '#FFFFFF' : '#1A1F2C';
+  const inputBgColor = isDarkTheme ? '#2a2a2a' : '#F5F6F7';
+  const inputBorderColor = `${primaryColor}40`;
+  const cardBgColor = isDarkTheme ? '#2a2a2a' : '#FFFFFF';
+  const borderColor = isDarkTheme ? `${primaryColor}40` : '#E1E4E8';
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#1A1F2C] text-white">
+      <div 
+        className="flex h-screen items-center justify-center text-white"
+        style={{ backgroundColor: bgColor, color: textColor }}
+      >
         <div className="text-center">
           <LoadingSpinner size="lg" text="Loading assistant..." />
         </div>
@@ -263,8 +297,13 @@ const SearchAssistant = () => {
 
   if (error || !config) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#1A1F2C] text-white">
-        <div className="text-center max-w-md mx-auto p-6 bg-[#2a2a2a] rounded-lg shadow-md">
+      <div 
+        className="flex h-screen items-center justify-center text-white"
+        style={{ backgroundColor: bgColor, color: textColor }}
+      >
+        <div className="text-center max-w-md mx-auto p-6 rounded-lg shadow-md"
+          style={{ backgroundColor: isDarkTheme ? '#2a2a2a' : '#F5F6F7' }}
+        >
           <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
           <p>{error || 'Failed to load assistant configuration'}</p>
         </div>
@@ -274,17 +313,40 @@ const SearchAssistant = () => {
 
   return (
     <div 
-      className="min-h-screen flex flex-col bg-[#1A1F2C] text-white"
+      className="min-h-screen flex flex-col text-white"
       style={{ 
-        fontFamily: config.fontFamily || 'Inter'
+        fontFamily: config.fontFamily || 'Inter',
+        backgroundColor: bgColor,
+        color: textColor
       }}
     >
-      {/* Header with gradient */}
-      <header className="p-4 flex items-center gap-2 border-b border-gray-800 bg-gradient-to-r from-[#1A1F2C] to-[#2a2f3c]">
-        <button onClick={() => window.history.back()} className="text-gray-400 hover:text-white">
-          ← Back
+      {/* Header with gradient and theme toggle */}
+      <header 
+        className="p-4 flex items-center justify-between border-b"
+        style={{ 
+          borderColor: borderColor,
+          background: isDarkTheme 
+            ? `linear-gradient(to right, #1A1F2C, #2a2f3c)` 
+            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <button onClick={() => window.history.back()} className="hover:text-white">
+            ← Back
+          </button>
+          <span className="ml-2">{config.chatbotName || 'AI Assistant'}</span>
+        </div>
+        <button 
+          onClick={toggleTheme} 
+          className="p-2 rounded-full"
+          style={{ backgroundColor: `${primaryColor}30` }}
+        >
+          {currentTheme === 'dark' ? (
+            <Sun size={18} color={textColor} />
+          ) : (
+            <Moon size={18} color={textColor} />
+          )}
         </button>
-        <span className="ml-2">{config.chatbotName || 'AI Assistant'}</span>
       </header>
 
       {/* Main content */}
@@ -293,14 +355,18 @@ const SearchAssistant = () => {
           {/* Example questions section */}
           {!selectedResult && (
             <div className="mb-8">
-              <h2 className="text-gray-400 uppercase text-xs font-semibold mb-4 tracking-wider">EXAMPLES</h2>
+              <h2 className="uppercase text-xs font-semibold mb-4 tracking-wider" style={{ color: isDarkTheme ? '#8E9196' : '#71767C' }}>EXAMPLES</h2>
               <div className="space-y-3">
                 {suggestions.map((question, index) => (
                   <div 
                     key={index}
                     onClick={() => handleSelectExample(question)}
-                    className="p-3 rounded-md border border-gray-700 bg-gray-800/50 hover:bg-gray-800 cursor-pointer flex items-center gap-3 transition-colors"
-                    style={{ borderColor: `${primaryColor}40` }}
+                    className="p-3 rounded-md border hover:cursor-pointer flex items-center gap-3 transition-colors"
+                    style={{ 
+                      borderColor: `${primaryColor}40`,
+                      backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
+                      color: textColor
+                    }}
                   >
                     <div style={{ color: primaryColor }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -322,15 +388,16 @@ const SearchAssistant = () => {
               </div>
               <Input
                 ref={inputRef}
-                className="w-full pl-10 pr-16 py-3 rounded-md bg-[#2a2a2a] border-gray-700 text-white placeholder-gray-500 focus-visible:ring-1 focus-visible:ring-opacity-50"
+                className="w-full pl-10 pr-16 py-3 rounded-md text-white placeholder-gray-500 focus-visible:ring-1 focus-visible:ring-opacity-50"
                 placeholder="Ask a question..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyPress}
                 disabled={searchLoading}
                 style={{ 
-                  borderColor: `${primaryColor}40`,
-                  focusRing: primaryColor
+                  backgroundColor: inputBgColor,
+                  borderColor: inputBorderColor,
+                  color: textColor
                 }}
               />
               <Button 
@@ -348,8 +415,11 @@ const SearchAssistant = () => {
           {selectedResult && (
             <div className="mt-6 rounded-lg overflow-hidden">
               <div 
-                className="flex items-center p-3 border-b border-gray-700"
-                style={{ backgroundColor: `${primaryColor}20`, borderColor: `${primaryColor}40` }}
+                className="flex items-center p-3 border-b"
+                style={{ 
+                  backgroundColor: `${primaryColor}20`, 
+                  borderColor: `${primaryColor}40` 
+                }}
               >
                 <div 
                   className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
@@ -371,7 +441,10 @@ const SearchAssistant = () => {
                 </div>
               </div>
               
-              <div className="p-4 bg-[#2a2a2a] min-h-[200px]">
+              <div 
+                className="p-4 min-h-[200px]"
+                style={{ backgroundColor: cardBgColor }}
+              >
                 {searchLoading ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -379,14 +452,18 @@ const SearchAssistant = () => {
                         className="w-6 h-6 rounded-full animate-pulse"
                         style={{ backgroundColor: primaryColor }}
                       ></div>
-                      <div className="text-gray-300 font-medium">{thinkingMessage}</div>
+                      <div className="font-medium" 
+                        style={{ color: isDarkTheme ? '#e4e4e4' : '#4a4a4a' }}
+                      >
+                        {thinkingMessage}
+                      </div>
                     </div>
-                    <Skeleton className="h-4 w-3/4 bg-gray-700" />
-                    <Skeleton className="h-4 w-full bg-gray-700" />
-                    <Skeleton className="h-4 w-2/3 bg-gray-700" />
+                    <Skeleton className="h-4 w-3/4" style={{ backgroundColor: isDarkTheme ? '#3a3a3a' : '#EFEFEF' }} />
+                    <Skeleton className="h-4 w-full" style={{ backgroundColor: isDarkTheme ? '#3a3a3a' : '#EFEFEF' }} />
+                    <Skeleton className="h-4 w-2/3" style={{ backgroundColor: isDarkTheme ? '#3a3a3a' : '#EFEFEF' }} />
                   </div>
                 ) : (
-                  <div className="prose prose-invert max-w-none">
+                  <div className="prose prose-invert max-w-none" style={{ color: textColor }}>
                     <ReactMarkdown
                       components={{
                         code({ node, className, children, ...props }) {
@@ -400,7 +477,10 @@ const SearchAssistant = () => {
                             return (
                               <code
                                 className="px-1.5 py-0.5 rounded-md font-mono text-sm"
-                                style={{ backgroundColor: `${primaryColor}30` }}
+                                style={{ 
+                                  backgroundColor: `${primaryColor}30`,
+                                  color: isDarkTheme ? textColor : primaryColor
+                                }}
                                 {...props}
                               >
                                 {children}
@@ -421,8 +501,9 @@ const SearchAssistant = () => {
                               <pre 
                                 className="!mt-0 border rounded-md overflow-x-auto"
                                 style={{ 
-                                  backgroundColor: `${primaryColor}15`,
-                                  borderColor: `${primaryColor}30` 
+                                  backgroundColor: isDarkTheme ? `${primaryColor}15` : `${primaryColor}10`,
+                                  borderColor: `${primaryColor}30`,
+                                  color: textColor
                                 }}
                               >
                                 <code className="block p-4 text-sm font-mono" {...props}>
@@ -433,10 +514,10 @@ const SearchAssistant = () => {
                           );
                         },
                         ul({ children }) {
-                          return <ul className="list-disc pl-4 space-y-1">{children}</ul>;
+                          return <ul className="list-disc pl-4 space-y-1" style={{ color: textColor }}>{children}</ul>;
                         },
                         ol({ children }) {
-                          return <ol className="list-decimal pl-4 space-y-1">{children}</ol>;
+                          return <ol className="list-decimal pl-4 space-y-1" style={{ color: textColor }}>{children}</ol>;
                         },
                         a({ children, href }) {
                           return (
@@ -469,7 +550,9 @@ const SearchAssistant = () => {
         style={{ 
           borderColor: `${primaryColor}20`,
           color: `${primaryColor}90`,
-          background: `linear-gradient(to top, ${darkBgColor}, transparent)`
+          background: isDarkTheme
+            ? `linear-gradient(to top, ${bgColor}, transparent)`
+            : `linear-gradient(to top, #F5F6F7, transparent)`
         }}
       >
         <p>powered by 7en.ai</p>
