@@ -216,12 +216,13 @@ function App() {
             <NotificationProvider>
               <TrainingStatusProvider>
                 <Routes>
-                  {/* Public route for chat preview */}
-                  <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
-                  
+                  {/* Public routes that don't require authentication */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/verify" element={<Verify />} />
                   <Route path="/invitation" element={<InviteRegistration />} />
+                  <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
+                  
+                  {/* Protected routes that require authentication */}
                   <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
                 <Toaster />
