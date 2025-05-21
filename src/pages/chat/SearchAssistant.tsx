@@ -74,6 +74,7 @@ const SearchAssistant = () => {
   const { theme, setTheme } = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
   const [showCentralLoader, setShowCentralLoader] = useState<boolean>(false);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
 
   // Use system theme preference as initial value
   useEffect(() => {
@@ -123,7 +124,7 @@ const SearchAssistant = () => {
 
   // Initialize WebSocket connection once on component mount
   useEffect(() => {
-    if (!agentId || !config) return;
+    if (!agentId) return;
 
     console.log("Initializing ChatWebSocketService with agent ID:", agentId);
     
@@ -135,7 +136,7 @@ const SearchAssistant = () => {
         
         // Handle system messages for thinking states
         if (message.type === 'system_message') {
-          setThinkingMessage(`${config.chatbotName} is ${message.content}`);
+          setThinkingMessage(`${config?.chatbotName || 'Assistant'} is ${message.content}`);
           return;
         }
         
@@ -172,9 +173,11 @@ const SearchAssistant = () => {
         });
         setSearchLoading(false);
         setShowCentralLoader(false);
+        setIsConnected(false);
       },
       onConnectionChange: (status) => {
         console.log("Connection status changed:", status);
+        setIsConnected(status);
         if (!status) {
           clearThinkingInterval();
           setSearchLoading(false);
@@ -194,7 +197,7 @@ const SearchAssistant = () => {
         chatServiceRef.current = null;
       }
     };
-  }, [agentId, config, toast]);
+  }, [agentId, toast]);
 
   const startThinkingAnimation = () => {
     // Clear any existing interval
@@ -223,21 +226,36 @@ const SearchAssistant = () => {
   const handleSearch = () => {
     if (!query.trim()) return;
 
+    // Immediately add user message and show loader
+    const userQueryCopy = query;
+    const newResult: SearchResult = {
+      id: `user-${Date.now()}`,
+      title: userQueryCopy,
+      content: "",
+      timestamp: new Date().toISOString(),
+      type: "user"
+    };
+    
+    setSearchResults(prev => [newResult, ...prev.slice(0, 9)]);
+    setSelectedResult(newResult);
+    setSearchLoading(true);
+    setQuery(''); // Clear input field immediately
+    
     if (!chatServiceRef.current?.isConnected()) {
       toast({
         title: "Not connected",
         description: "Cannot send query while disconnected",
         variant: "destructive",
       });
+      setSearchLoading(false);
       return;
     }
 
-    setSearchLoading(true);
     startThinkingAnimation();
     
     try {
-      chatServiceRef.current.sendMessage(query);
-      console.log("Query sent:", query);
+      chatServiceRef.current.sendMessage(userQueryCopy);
+      console.log("Query sent:", userQueryCopy);
     } catch (error) {
       console.error("Error sending query:", error);
       clearThinkingInterval();
@@ -259,22 +277,38 @@ const SearchAssistant = () => {
   };
 
   const handleSelectExample = (question: string) => {
+    // Set the query and immediately send it
     setQuery(question);
-    if (inputRef.current) {
-      inputRef.current.value = question;
-    }
+    
+    // Auto-submit the selected question
+    const userQueryCopy = question;
+    const newResult: SearchResult = {
+      id: `user-${Date.now()}`,
+      title: userQueryCopy,
+      content: "",
+      timestamp: new Date().toISOString(),
+      type: "user"
+    };
+    
+    setSearchResults(prev => [newResult, ...prev.slice(0, 9)]);
+    setSelectedResult(newResult);
+    setSearchLoading(true);
     
     // Show central loader and hide suggestions
     setShowCentralLoader(true);
     
-    // Auto-submit the selected question
-    setTimeout(() => {
-      if (chatServiceRef.current?.isConnected()) {
-        setSearchLoading(true);
-        startThinkingAnimation();
-        chatServiceRef.current.sendMessage(question);
-      }
-    }, 100);
+    if (chatServiceRef.current?.isConnected()) {
+      startThinkingAnimation();
+      chatServiceRef.current.sendMessage(userQueryCopy);
+    } else {
+      toast({
+        title: "Not connected",
+        description: "Cannot send query while disconnected",
+        variant: "destructive",
+      });
+      setSearchLoading(false);
+      setShowCentralLoader(false);
+    }
   };
 
   // Determine which suggestions to use (from config or fallback)
@@ -357,13 +391,6 @@ const SearchAssistant = () => {
             </AvatarFallback>
           </Avatar>
           <span className="ml-2 font-medium text-sm">{config.chatbotName || 'AI Assistant'}</span>
-          
-          {/* Thinking indicator next to agent name */}
-          {searchLoading && (
-            <div className="flex items-center ml-2">
-              <span className="text-xs opacity-70">{thinkingMessage}</span>
-            </div>
-          )}
         </div>
         <button 
           onClick={toggleTheme} 
@@ -414,9 +441,7 @@ const SearchAssistant = () => {
             ) : (
               <div className="flex flex-col space-y-5 mb-4">
                 {/* Query as title */}
-                <div className="p-3 rounded-lg bg-opacity-10 flex items-start gap-2" style={{ 
-                  backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-                }}>
+                <div className="flex items-start gap-2">
                   <Avatar className="h-8 w-8 mt-1">
                     <AvatarFallback className="bg-gray-200">
                       <User className="h-4 w-4" />
@@ -430,9 +455,7 @@ const SearchAssistant = () => {
                 </div>
 
                 {/* Answer as description or Loading indicator */}
-                <div className="p-4 rounded-lg flex items-start gap-2" style={{ 
-                  backgroundColor: isDarkTheme ? 'rgba(155, 135, 245, 0.1)' : 'rgba(155, 135, 245, 0.05)', 
-                }}>
+                <div className="flex items-start gap-2">
                   <Avatar className="h-8 w-8 mt-1" style={{
                     backgroundColor: primaryColor
                   }}>
@@ -448,12 +471,15 @@ const SearchAssistant = () => {
 
                   <div className="flex-1">
                     {searchLoading ? (
-                      <div className="flex items-center">
-                        <div className="mr-3 flex items-center">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
-                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
-                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center">
+                          <div className="mr-3 flex items-center">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                          </div>
                         </div>
+                        <p className="text-xs opacity-70">{thinkingMessage}</p>
                       </div>
                     ) : (
                       <div className="prose prose-sm max-w-none break-words" style={{ 
