@@ -203,14 +203,11 @@ const SearchAssistant = () => {
     // Clear any existing interval
     clearThinkingInterval();
     
-    // Set initial thinking message
-    setThinkingMessage(`${config?.chatbotName || 'Assistant'} is thinking...`);
-    
     // Start rotating through thinking messages
     let messageIndex = 0;
     const intervalId = window.setInterval(() => {
       messageIndex = (messageIndex + 1) % thinkingMessages.length;
-      setThinkingMessage(`${config?.chatbotName || 'Assistant'} is ${thinkingMessages[messageIndex].toLowerCase()}`);
+      setThinkingMessage(thinkingMessages[messageIndex].toLowerCase());
     }, 3000);
     
     thinkingIntervalRef.current = intervalId;
@@ -331,7 +328,8 @@ const SearchAssistant = () => {
   const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
   const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
   const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
-  const linkColor = isDarkTheme ? '#9b87f5' : '#7559da';
+  const linkColor = isDarkTheme ? '#D6BCFA' : '#7559da';
+  const strongTagColor = isDarkTheme ? '#D6BCFA' : '#000000';
 
   if (loading) {
     return (
@@ -440,7 +438,7 @@ const SearchAssistant = () => {
               </div>
             ) : showCentralLoader ? (
               <div className="flex flex-col items-center justify-center h-[50vh]">
-                <LoadingSpinner size="lg" text={`${config.chatbotName} is thinking...`} />
+                <LoadingSpinner size="lg" text={thinkingMessage} />
               </div>
             ) : (
               <div className="flex flex-col space-y-5 mb-4">
@@ -529,9 +527,9 @@ const SearchAssistant = () => {
                                   <pre 
                                     className="!mt-0 rounded overflow-x-auto text-xs"
                                     style={{ 
-                                      backgroundColor: codeBackgroundColor,
+                                      backgroundColor: isDarkTheme ? '#2d2d2d' : '#f6f6f6',
                                       padding: '8px',
-                                      color: codeTextColor,
+                                      color: isDarkTheme ? '#e0e0e0' : '#333333',
                                       border: isDarkTheme ? '1px solid #444' : '1px solid #e0e0e0'
                                     }}
                                   >
@@ -574,6 +572,16 @@ const SearchAssistant = () => {
                                 <li className="mb-1" {...props}>
                                   {children}
                                 </li>
+                              );
+                            },
+                            strong({ node, children, ...props }) {
+                              return (
+                                <strong 
+                                  style={{ color: strongTagColor, fontWeight: 'bold' }}
+                                  {...props}
+                                >
+                                  {children}
+                                </strong>
                               );
                             },
                             blockquote({ node, children, ...props }) {
