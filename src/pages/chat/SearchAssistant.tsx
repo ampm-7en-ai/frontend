@@ -3,13 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Search, ArrowUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChatbotConfig {
   agentId: string;
@@ -29,13 +31,23 @@ interface SearchResult {
   title: string;
   content: string;
   timestamp: string;
+  type?: string;
 }
 
-const exampleQuestions = [
+const fallbackSuggestions = [
   'How do I listen to changes in a table?',
   'How do I connect to my database?',
   'How do I run migrations?',
   'How do I set up authentication?'
+];
+
+const thinkingMessages = [
+  "Thinking...",
+  "Searching knowledge base...",
+  "Processing your question...",
+  "Connecting to agent...",
+  "Analyzing information...",
+  "Finding relevant answers..."
 ];
 
 const SearchAssistant = () => {
@@ -47,9 +59,11 @@ const SearchAssistant = () => {
   const [query, setQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [thinkingMessage, setThinkingMessage] = useState<string>("Thinking...");
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
+  const thinkingIntervalRef = useRef<number | null>(null);
 
   // Fetch the chatbot configuration
   useEffect(() => {
@@ -89,6 +103,15 @@ const SearchAssistant = () => {
     chatServiceRef.current.on({
       onMessage: (message) => {
         console.log("Received message:", message);
+        
+        // Handle system messages for thinking states
+        if (message.type === 'system_message') {
+          setThinkingMessage(`Thinking: ${message.content}`);
+          return;
+        }
+        
+        // For regular messages, stop the thinking animation
+        clearThinkingInterval();
         setSearchLoading(false);
         
         // Convert the message to a search result
@@ -96,7 +119,8 @@ const SearchAssistant = () => {
           id: `result-${Date.now()}`,
           title: query,
           content: message.content,
-          timestamp: message.timestamp
+          timestamp: message.timestamp,
+          type: message.type
         };
         
         setSearchResults(prev => [newResult, ...prev.slice(0, 9)]);
@@ -110,6 +134,7 @@ const SearchAssistant = () => {
       },
       onError: (error) => {
         console.error('Chat error:', error);
+        clearThinkingInterval();
         toast({
           title: "Connection Error",
           description: "Failed to connect to assistant service. Please try again.",
@@ -120,6 +145,7 @@ const SearchAssistant = () => {
       onConnectionChange: (status) => {
         console.log("Connection status changed:", status);
         if (!status) {
+          clearThinkingInterval();
           setSearchLoading(false);
         }
       }
@@ -129,12 +155,37 @@ const SearchAssistant = () => {
     
     return () => {
       console.log("Cleaning up ChatWebSocketService");
+      clearThinkingInterval();
       if (chatServiceRef.current) {
         chatServiceRef.current.disconnect();
         chatServiceRef.current = null;
       }
     };
-  }, [agentId, config, toast]);
+  }, [agentId, config, toast, query]);
+
+  const startThinkingAnimation = () => {
+    // Clear any existing interval
+    clearThinkingInterval();
+    
+    // Set initial thinking message
+    setThinkingMessage(thinkingMessages[0]);
+    
+    // Start rotating through thinking messages
+    let messageIndex = 0;
+    const intervalId = window.setInterval(() => {
+      messageIndex = (messageIndex + 1) % thinkingMessages.length;
+      setThinkingMessage(thinkingMessages[messageIndex]);
+    }, 3000);
+    
+    thinkingIntervalRef.current = intervalId;
+  };
+  
+  const clearThinkingInterval = () => {
+    if (thinkingIntervalRef.current !== null) {
+      clearInterval(thinkingIntervalRef.current);
+      thinkingIntervalRef.current = null;
+    }
+  };
 
   const handleSearch = () => {
     if (!query.trim()) return;
@@ -149,11 +200,14 @@ const SearchAssistant = () => {
     }
 
     setSearchLoading(true);
+    startThinkingAnimation();
+    
     try {
       chatServiceRef.current.sendMessage(query);
       console.log("Query sent:", query);
     } catch (error) {
       console.error("Error sending query:", error);
+      clearThinkingInterval();
       toast({
         title: "Query Error",
         description: "Failed to send query. Please try again.",
@@ -180,17 +234,28 @@ const SearchAssistant = () => {
     setTimeout(() => {
       if (chatServiceRef.current?.isConnected()) {
         setSearchLoading(true);
+        startThinkingAnimation();
         chatServiceRef.current.sendMessage(question);
       }
     }, 100);
   };
 
+  // Determine which suggestions to use (from config or fallback)
+  const suggestions = config?.suggestions && config.suggestions.length > 0 
+    ? config.suggestions 
+    : fallbackSuggestions;
+
+  // Primary brand colors
+  const primaryColor = config?.primaryColor || '#9b87f5';
+  const secondaryColor = config?.secondaryColor || '#7E69AB';
+  const darkBgColor = '#1A1F2C';
+  const lightTextColor = '#fff';
+
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#1a1a1a] text-white">
+      <div className="flex h-screen items-center justify-center bg-[#1A1F2C] text-white">
         <div className="text-center">
-          <div className="inline-block animate-spin h-8 w-8 border-4 border-gray-300 rounded-full border-t-white"></div>
-          <p className="mt-4 text-lg">Loading assistant...</p>
+          <LoadingSpinner size="lg" text="Loading assistant..." />
         </div>
       </div>
     );
@@ -198,7 +263,7 @@ const SearchAssistant = () => {
 
   if (error || !config) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#1a1a1a] text-white">
+      <div className="flex h-screen items-center justify-center bg-[#1A1F2C] text-white">
         <div className="text-center max-w-md mx-auto p-6 bg-[#2a2a2a] rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
           <p>{error || 'Failed to load assistant configuration'}</p>
@@ -207,16 +272,15 @@ const SearchAssistant = () => {
     );
   }
 
-  // For embedding as iframe, we'll use a darker theme similar to the images
   return (
     <div 
-      className="min-h-screen flex flex-col bg-[#1a1a1a] text-gray-200"
+      className="min-h-screen flex flex-col bg-[#1A1F2C] text-white"
       style={{ 
         fontFamily: config.fontFamily || 'Inter'
       }}
     >
-      {/* Optional header */}
-      <header className="p-4 flex items-center gap-2 border-b border-gray-800">
+      {/* Header with gradient */}
+      <header className="p-4 flex items-center gap-2 border-b border-gray-800 bg-gradient-to-r from-[#1A1F2C] to-[#2a2f3c]">
         <button onClick={() => window.history.back()} className="text-gray-400 hover:text-white">
           ← Back
         </button>
@@ -231,13 +295,14 @@ const SearchAssistant = () => {
             <div className="mb-8">
               <h2 className="text-gray-400 uppercase text-xs font-semibold mb-4 tracking-wider">EXAMPLES</h2>
               <div className="space-y-3">
-                {exampleQuestions.map((question, index) => (
+                {suggestions.map((question, index) => (
                   <div 
                     key={index}
                     onClick={() => handleSelectExample(question)}
-                    className="p-3 rounded-md border border-gray-700 bg-gray-800/50 hover:bg-gray-800 cursor-pointer flex items-center gap-3"
+                    className="p-3 rounded-md border border-gray-700 bg-gray-800/50 hover:bg-gray-800 cursor-pointer flex items-center gap-3 transition-colors"
+                    style={{ borderColor: `${primaryColor}40` }}
                   >
-                    <div className="text-emerald-400">
+                    <div style={{ color: primaryColor }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                       </svg>
@@ -257,25 +322,48 @@ const SearchAssistant = () => {
               </div>
               <Input
                 ref={inputRef}
-                className="w-full pl-10 pr-4 py-3 rounded-md bg-[#2a2a2a] border-gray-700 text-white placeholder-gray-500 focus-visible:ring-1 focus-visible:ring-gray-500"
+                className="w-full pl-10 pr-16 py-3 rounded-md bg-[#2a2a2a] border-gray-700 text-white placeholder-gray-500 focus-visible:ring-1 focus-visible:ring-opacity-50"
                 placeholder="Ask a question..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyPress}
                 disabled={searchLoading}
+                style={{ 
+                  borderColor: `${primaryColor}40`,
+                  focusRing: primaryColor
+                }}
               />
+              <Button 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded-md"
+                style={{ backgroundColor: primaryColor }}
+                disabled={searchLoading || !query}
+                onClick={handleSearch}
+              >
+                <ArrowUp size={18} />
+              </Button>
             </div>
           </div>
           
           {/* Result display */}
           {selectedResult && (
             <div className="mt-6 rounded-lg overflow-hidden">
-              <div className="flex items-center p-3 bg-gray-800 border-b border-gray-700">
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-3">
+              <div 
+                className="flex items-center p-3 border-b border-gray-700"
+                style={{ backgroundColor: `${primaryColor}20`, borderColor: `${primaryColor}40` }}
+              >
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
+                  style={{ backgroundColor: primaryColor }}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M12 16v-4"></path>
-                    <path d="M12 8h.01"></path>
+                    <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"></path>
+                    <path d="m14 7 3 3"></path>
+                    <path d="M5 6v4"></path>
+                    <path d="M19 14v4"></path>
+                    <path d="M10 2v2"></path>
+                    <path d="M7 8H3"></path>
+                    <path d="M21 16h-4"></path>
+                    <path d="M11 3H9"></path>
                   </svg>
                 </div>
                 <div className="flex-1">
@@ -285,11 +373,17 @@ const SearchAssistant = () => {
               
               <div className="p-4 bg-[#2a2a2a] min-h-[200px]">
                 {searchLoading ? (
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <div className="animate-pulse h-2 w-2 rounded-full bg-emerald-400"></div>
-                    <div className="animate-pulse h-2 w-2 rounded-full bg-emerald-400" style={{animationDelay: '0.2s'}}></div>
-                    <div className="animate-pulse h-2 w-2 rounded-full bg-emerald-400" style={{animationDelay: '0.4s'}}></div>
-                    <span className="ml-2">Generating answer...</span>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-6 h-6 rounded-full animate-pulse"
+                        style={{ backgroundColor: primaryColor }}
+                      ></div>
+                      <div className="text-gray-300 font-medium">{thinkingMessage}</div>
+                    </div>
+                    <Skeleton className="h-4 w-3/4 bg-gray-700" />
+                    <Skeleton className="h-4 w-full bg-gray-700" />
+                    <Skeleton className="h-4 w-2/3 bg-gray-700" />
                   </div>
                 ) : (
                   <div className="prose prose-invert max-w-none">
@@ -305,7 +399,8 @@ const SearchAssistant = () => {
                           if (isInline) {
                             return (
                               <code
-                                className="px-1.5 py-0.5 rounded-md bg-gray-700 font-mono text-sm"
+                                className="px-1.5 py-0.5 rounded-md font-mono text-sm"
+                                style={{ backgroundColor: `${primaryColor}30` }}
                                 {...props}
                               >
                                 {children}
@@ -317,12 +412,19 @@ const SearchAssistant = () => {
                             <div className="relative">
                               {language && (
                                 <div 
-                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono bg-gray-700 text-gray-300"
+                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                                  style={{ backgroundColor: `${primaryColor}40` }}
                                 >
                                   {language}
                                 </div>
                               )}
-                              <pre className="!mt-0 !bg-gray-800 border border-gray-700 rounded-md overflow-x-auto">
+                              <pre 
+                                className="!mt-0 border rounded-md overflow-x-auto"
+                                style={{ 
+                                  backgroundColor: `${primaryColor}15`,
+                                  borderColor: `${primaryColor}30` 
+                                }}
+                              >
                                 <code className="block p-4 text-sm font-mono" {...props}>
                                   {children}
                                 </code>
@@ -340,7 +442,8 @@ const SearchAssistant = () => {
                           return (
                             <a
                               href={href}
-                              className="underline text-emerald-400"
+                              className="underline"
+                              style={{ color: primaryColor }}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
@@ -360,8 +463,15 @@ const SearchAssistant = () => {
         </div>
       </main>
       
-      {/* Footer - only shown at bottom of page */}
-      <footer className="p-4 text-center text-gray-500 text-xs">
+      {/* Footer with subtle gradient */}
+      <footer 
+        className="p-3 text-center text-xs border-t"
+        style={{ 
+          borderColor: `${primaryColor}20`,
+          color: `${primaryColor}90`,
+          background: `linear-gradient(to top, ${darkBgColor}, transparent)`
+        }}
+      >
         <p>powered by 7en.ai</p>
       </footer>
 
@@ -398,23 +508,5 @@ const SearchAssistant = () => {
     </div>
   );
 };
-
-// Helper function to adjust color brightness
-function adjustColor(color: string, amount: number): string {
-  try {
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    
-    const newR = Math.max(0, Math.min(255, r + amount));
-    const newG = Math.max(0, Math.min(255, g + amount));
-    const newB = Math.max(0, Math.min(255, b + amount));
-    
-    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-  } catch (e) {
-    return color;
-  }
-}
 
 export default SearchAssistant;
