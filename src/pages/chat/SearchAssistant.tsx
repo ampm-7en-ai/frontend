@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -115,7 +116,7 @@ const SearchAssistant = () => {
     }
   }, [agentId]);
 
-  // Initialize WebSocket connection
+  // Initialize WebSocket connection once on component mount
   useEffect(() => {
     if (!agentId || !config) return;
 
@@ -174,6 +175,7 @@ const SearchAssistant = () => {
       }
     });
     
+    // Connect once on component mount
     chatServiceRef.current.connect();
     
     return () => {
@@ -184,7 +186,7 @@ const SearchAssistant = () => {
         chatServiceRef.current = null;
       }
     };
-  }, [agentId, config, toast, query]);
+  }, [agentId, config, toast]);
 
   const startThinkingAnimation = () => {
     // Clear any existing interval
@@ -370,128 +372,93 @@ const SearchAssistant = () => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col">
-            <div className="flex flex-col flex-1 overflow-auto">
-              {/* Chat messages */}
-              <div className="flex flex-col space-y-4 p-4">
-                {/* User message */}
-                <div className="flex items-start gap-2.5 self-end max-w-[80%]">
-                  <div 
-                    className="px-4 py-2 rounded-t-xl rounded-bl-xl text-sm"
-                    style={{ 
-                      backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
-                      color: isDarkTheme ? '#e0e0e0' : '#333333' 
-                    }}
-                  >
-                    {selectedResult.title}
-                  </div>
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24">
-                      <path 
-                        fill={isDarkTheme ? '#e0e0e0' : '#333333'} 
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                    </svg>
-                  </div>
-                </div>
+          <div className="flex-1 flex flex-col p-4">
+            {/* Simplified chat display - Query as title, answer as description */}
+            <div className="flex flex-col space-y-5 mb-4">
+              {/* Query as title */}
+              <div className="p-3 rounded-lg bg-opacity-10" style={{ 
+                backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+              }}>
+                <p className="text-sm font-medium" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                  {selectedResult.title}
+                </p>
+              </div>
 
-                {/* Bot response or loading indicator */}
-                <div className="flex items-start gap-2.5 max-w-[80%]">
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24">
-                      <path 
-                        fill="#ffffff" 
-                        d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.72V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.72c-.6-.34-1-.98-1-1.72a2 2 0 0 1 2-2m0 9a5 5 0 0 0-5 5v4h10v-4a5 5 0 0 0-5-5m-6.5 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
-                      />
-                    </svg>
-                  </div>
-                  
-                  {searchLoading ? (
-                    <div 
-                      className="px-4 py-3 rounded-t-xl rounded-br-xl text-sm flex items-center"
-                      style={{ 
-                        backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
-                        color: isDarkTheme ? '#e0e0e0' : '#333333' 
-                      }}
-                    >
-                      <div className="animate-pulse mr-2">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full inline-block mr-1"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full inline-block mr-1 animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full inline-block animate-bounce" style={{animationDelay: '0.4s'}}></div>
-                      </div>
-                      {thinkingMessage}
+              {/* Answer as description or Loading indicator */}
+              <div className="p-4 rounded-lg" style={{ 
+                backgroundColor: isDarkTheme ? 'rgba(155, 135, 245, 0.1)' : 'rgba(155, 135, 245, 0.05)', 
+              }}>
+                {searchLoading ? (
+                  <div className="flex items-center">
+                    <div className="mr-3 flex items-center">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
                     </div>
-                  ) : (
-                    <div 
-                      className="px-4 py-3 rounded-t-xl rounded-br-xl text-sm prose prose-sm max-w-none break-words"
-                      style={{ 
-                        backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0', 
-                        color: isDarkTheme ? '#e0e0e0' : '#333333',
-                      }}
-                    >
-                      <ReactMarkdown
-                        components={{
-                          code({ node, className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(className || '');
-                            const language = match ? match[1] : '';
-                            
-                            // Check if inline code
-                            const isInline = !match && children.toString().split('\n').length === 1;
-                            
-                            if (isInline) {
-                              return (
-                                <code
-                                  className="px-1 py-0.5 rounded font-mono text-xs"
-                                  style={{ 
-                                    backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
-                                  }}
-                                  {...props}
-                                >
-                                  {children}
-                                </code>
-                              );
-                            }
-
+                    <span className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                      {thinkingMessage}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="prose prose-sm max-w-none break-words" style={{ 
+                    color: isDarkTheme ? '#e0e0e0' : '#333333' 
+                  }}>
+                    <ReactMarkdown
+                      components={{
+                        code({ node, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const language = match ? match[1] : '';
+                          
+                          // Check if inline code
+                          const isInline = !match && children.toString().split('\n').length === 1;
+                          
+                          if (isInline) {
                             return (
-                              <div className="relative mt-2">
-                                {language && (
-                                  <div 
-                                    className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
-                                    style={{ 
-                                      backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                                    }}
-                                  >
-                                    {language}
-                                  </div>
-                                )}
-                                <pre 
-                                  className="!mt-0 rounded overflow-x-auto text-xs"
-                                  style={{ 
-                                    backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
-                                    padding: '8px',
-                                    color: isDarkTheme ? '#e0e0e0' : '#333333'
-                                  }}
-                                >
-                                  <code className="block font-mono" {...props}>
-                                    {children}
-                                  </code>
-                                </pre>
-                              </div>
+                              <code
+                                className="px-1 py-0.5 rounded font-mono text-xs"
+                                style={{ 
+                                  backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
+                                }}
+                                {...props}
+                              >
+                                {children}
+                              </code>
                             );
                           }
-                        }}
-                      >
-                        {selectedResult.content}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                </div>
+
+                          return (
+                            <div className="relative mt-2">
+                              {language && (
+                                <div 
+                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                                  style={{ 
+                                    backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                  }}
+                                >
+                                  {language}
+                                </div>
+                              )}
+                              <pre 
+                                className="!mt-0 rounded overflow-x-auto text-xs"
+                                style={{ 
+                                  backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+                                  padding: '8px',
+                                  color: isDarkTheme ? '#e0e0e0' : '#333333'
+                                }}
+                              >
+                                <code className="block font-mono" {...props}>
+                                  {children}
+                                </code>
+                              </pre>
+                            </div>
+                          );
+                        }
+                      }}
+                    >
+                      {selectedResult.content}
+                    </ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           </div>
