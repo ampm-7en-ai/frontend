@@ -345,7 +345,7 @@ const AgentEdit = () => {
       });
 
 
-      agentData.behavior?.suggestions.length > 0 && setHasSuggestions(true);
+      agentData.behavior?.suggestions?.length > 0 && setHasSuggestions(true);
     }
   }, [agentData]);
 
