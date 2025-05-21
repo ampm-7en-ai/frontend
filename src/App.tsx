@@ -39,6 +39,7 @@ import CustomizationSettings from './pages/settings/platform/CustomizationSettin
 import SubscriptionPlanEditor from './pages/settings/platform/SubscriptionPlanEditor';
 import IntegrationsPage from './pages/integrations/IntegrationsPage';
 import ChatPreview from './pages/preview/ChatPreview';
+import SearchAssistant from './pages/chat/SearchAssistant';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -221,6 +222,7 @@ function App() {
                   <Route path="/verify" element={<Verify />} />
                   <Route path="/invitation" element={<InviteRegistration />} />
                   <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
+                  <Route path="/chat/assistant/:agentId" element={<SearchAssistant />} />
                   
                   {/* Protected routes that require authentication */}
                   <Route path="/*" element={<ProtectedRoutes />} />
