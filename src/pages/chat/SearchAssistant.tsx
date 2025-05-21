@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, ArrowUp, Moon, Sun } from 'lucide-react';
+import { Search, ArrowUp, Moon, Sun, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,8 @@ import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTheme } from '@/context/ThemeContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Bot } from 'lucide-react';
 
 interface ChatbotConfig {
   agentId: string;
@@ -71,6 +73,7 @@ const SearchAssistant = () => {
   const thinkingIntervalRef = useRef<number | null>(null);
   const { theme, setTheme } = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
+  const [showCentralLoader, setShowCentralLoader] = useState<boolean>(false);
 
   // Use system theme preference as initial value
   useEffect(() => {
@@ -132,13 +135,14 @@ const SearchAssistant = () => {
         
         // Handle system messages for thinking states
         if (message.type === 'system_message') {
-          setThinkingMessage(`Thinking: ${message.content}`);
+          setThinkingMessage(`${config.chatbotName} is ${message.content}`);
           return;
         }
         
         // For regular messages, stop the thinking animation
         clearThinkingInterval();
         setSearchLoading(false);
+        setShowCentralLoader(false);
         
         // Convert the message to a search result
         const newResult: SearchResult = {
@@ -167,12 +171,14 @@ const SearchAssistant = () => {
           variant: "destructive",
         });
         setSearchLoading(false);
+        setShowCentralLoader(false);
       },
       onConnectionChange: (status) => {
         console.log("Connection status changed:", status);
         if (!status) {
           clearThinkingInterval();
           setSearchLoading(false);
+          setShowCentralLoader(false);
         }
       }
     });
@@ -195,13 +201,13 @@ const SearchAssistant = () => {
     clearThinkingInterval();
     
     // Set initial thinking message
-    setThinkingMessage(thinkingMessages[0]);
+    setThinkingMessage(`${config?.chatbotName || 'Assistant'} is thinking...`);
     
     // Start rotating through thinking messages
     let messageIndex = 0;
     const intervalId = window.setInterval(() => {
       messageIndex = (messageIndex + 1) % thinkingMessages.length;
-      setThinkingMessage(thinkingMessages[messageIndex]);
+      setThinkingMessage(`${config?.chatbotName || 'Assistant'} is ${thinkingMessages[messageIndex].toLowerCase()}`);
     }, 3000);
     
     thinkingIntervalRef.current = intervalId;
@@ -241,6 +247,7 @@ const SearchAssistant = () => {
         variant: "destructive",
       });
       setSearchLoading(false);
+      setShowCentralLoader(false);
     }
   };
 
@@ -256,6 +263,9 @@ const SearchAssistant = () => {
     if (inputRef.current) {
       inputRef.current.value = question;
     }
+    
+    // Show central loader and hide suggestions
+    setShowCentralLoader(true);
     
     // Auto-submit the selected question
     setTimeout(() => {
@@ -334,7 +344,26 @@ const SearchAssistant = () => {
         }}
       >
         <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8" style={{
+            backgroundColor: primaryColor
+          }}>
+            {config.avatarUrl ? (
+              <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+            ) : null}
+            <AvatarFallback style={{
+              backgroundColor: primaryColor
+            }}>
+              <Bot className="h-4 w-4 text-white" />
+            </AvatarFallback>
+          </Avatar>
           <span className="ml-2 font-medium text-sm">{config.chatbotName || 'AI Assistant'}</span>
+          
+          {/* Thinking indicator next to agent name */}
+          {searchLoading && (
+            <div className="flex items-center ml-2">
+              <span className="text-xs opacity-70">{thinkingMessage}</span>
+            </div>
+          )}
         </div>
         <button 
           onClick={toggleTheme} 
@@ -356,7 +385,7 @@ const SearchAssistant = () => {
           style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
         >
           <div className="p-4" ref={contentRef}>
-            {!selectedResult ? (
+            {!selectedResult && !showCentralLoader ? (
               <div>
                 <div className="mb-4">
                   <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
@@ -378,92 +407,115 @@ const SearchAssistant = () => {
                   </div>
                 </div>
               </div>
+            ) : showCentralLoader ? (
+              <div className="flex flex-col items-center justify-center h-[50vh]">
+                <LoadingSpinner size="lg" text={`${config.chatbotName} is thinking...`} />
+              </div>
             ) : (
               <div className="flex flex-col space-y-5 mb-4">
                 {/* Query as title */}
-                <div className="p-3 rounded-lg bg-opacity-10" style={{ 
+                <div className="p-3 rounded-lg bg-opacity-10 flex items-start gap-2" style={{ 
                   backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
                 }}>
-                  <p className="text-sm font-medium" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
-                    {selectedResult.title}
-                  </p>
+                  <Avatar className="h-8 w-8 mt-1">
+                    <AvatarFallback className="bg-gray-200">
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                      {selectedResult?.title}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Answer as description or Loading indicator */}
-                <div className="p-4 rounded-lg" style={{ 
+                <div className="p-4 rounded-lg flex items-start gap-2" style={{ 
                   backgroundColor: isDarkTheme ? 'rgba(155, 135, 245, 0.1)' : 'rgba(155, 135, 245, 0.05)', 
                 }}>
-                  {searchLoading ? (
-                    <div className="flex items-center">
-                      <div className="mr-3 flex items-center">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
-                      </div>
-                      <span className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
-                        {thinkingMessage}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="prose prose-sm max-w-none break-words" style={{ 
-                      color: isDarkTheme ? '#e0e0e0' : '#333333' 
+                  <Avatar className="h-8 w-8 mt-1" style={{
+                    backgroundColor: primaryColor
+                  }}>
+                    {config.avatarUrl ? (
+                      <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                    ) : null}
+                    <AvatarFallback style={{
+                      backgroundColor: primaryColor
                     }}>
-                      <ReactMarkdown
-                        components={{
-                          code({ node, className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(className || '');
-                            const language = match ? match[1] : '';
-                            
-                            // Check if inline code
-                            const isInline = !match && children.toString().split('\n').length === 1;
-                            
-                            if (isInline) {
-                              return (
-                                <code
-                                  className="px-1 py-0.5 rounded font-mono text-xs"
-                                  style={{ 
-                                    backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
-                                  }}
-                                  {...props}
-                                >
-                                  {children}
-                                </code>
-                              );
-                            }
+                      <Bot className="h-4 w-4 text-white" />
+                    </AvatarFallback>
+                  </Avatar>
 
-                            return (
-                              <div className="relative mt-2">
-                                {language && (
-                                  <div 
-                                    className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                  <div className="flex-1">
+                    {searchLoading ? (
+                      <div className="flex items-center">
+                        <div className="mr-3 flex items-center">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="prose prose-sm max-w-none break-words" style={{ 
+                        color: isDarkTheme ? '#e0e0e0' : '#333333' 
+                      }}>
+                        <ReactMarkdown
+                          components={{
+                            code({ node, className, children, ...props }) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              const language = match ? match[1] : '';
+                              
+                              // Check if inline code
+                              const isInline = !match && children.toString().split('\n').length === 1;
+                              
+                              if (isInline) {
+                                return (
+                                  <code
+                                    className="px-1 py-0.5 rounded font-mono text-xs"
                                     style={{ 
-                                      backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                      backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
                                     }}
+                                    {...props}
                                   >
-                                    {language}
-                                  </div>
-                                )}
-                                <pre 
-                                  className="!mt-0 rounded overflow-x-auto text-xs"
-                                  style={{ 
-                                    backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
-                                    padding: '8px',
-                                    color: isDarkTheme ? '#e0e0e0' : '#333333'
-                                  }}
-                                >
-                                  <code className="block font-mono" {...props}>
                                     {children}
                                   </code>
-                                </pre>
-                              </div>
-                            );
-                          }
-                        }}
-                      >
-                        {selectedResult.content}
-                      </ReactMarkdown>
-                    </div>
-                  )}
+                                );
+                              }
+
+                              return (
+                                <div className="relative mt-2">
+                                  {language && (
+                                    <div 
+                                      className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                                      style={{ 
+                                        backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                      }}
+                                    >
+                                      {language}
+                                    </div>
+                                  )}
+                                  <pre 
+                                    className="!mt-0 rounded overflow-x-auto text-xs"
+                                    style={{ 
+                                      backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+                                      padding: '8px',
+                                      color: isDarkTheme ? '#e0e0e0' : '#333333'
+                                    }}
+                                  >
+                                    <code className="block font-mono" {...props}>
+                                      {children}
+                                    </code>
+                                  </pre>
+                                </div>
+                              );
+                            }
+                          }}
+                        >
+                          {selectedResult?.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
