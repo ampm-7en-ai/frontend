@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTheme } from '@/context/ThemeContext';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ChatbotConfig {
   agentId: string;
@@ -69,6 +70,7 @@ const SearchAssistant = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const thinkingIntervalRef = useRef<number | null>(null);
   const { theme, setTheme } = useTheme();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Use system theme preference as initial value
   useEffect(() => {
@@ -314,16 +316,16 @@ const SearchAssistant = () => {
 
   return (
     <div 
-      className="min-h-screen flex flex-col"
+      className="min-h-screen flex flex-col h-screen overflow-hidden"
       style={{ 
         fontFamily: config.fontFamily || 'Inter',
         backgroundColor: bgColor,
         color: textColor
       }}
     >
-      {/* Header with theme toggle */}
+      {/* Header with theme toggle - Fixed */}
       <header 
-        className="p-3 flex items-center justify-between border-b"
+        className="p-3 flex items-center justify-between border-b sticky top-0 z-10"
         style={{ 
           borderColor: borderColor,
           background: isDarkTheme 
@@ -347,128 +349,137 @@ const SearchAssistant = () => {
         </button>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col overflow-auto" style={{ backgroundColor: isDarkTheme ? '#1A1F2C' : '#FFFFFF' }}>
-        {!selectedResult ? (
-          <div className="flex-1 flex flex-col p-4">
-            <div className="mb-4">
-              <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
-              <div className="space-y-2">
-                {suggestions.map((question, index) => (
-                  <div 
-                    key={index}
-                    onClick={() => handleSelectExample(question)}
-                    className="p-2 rounded hover:cursor-pointer flex items-center gap-2 text-sm transition-colors"
-                    style={{ 
-                      backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
-                      color: textColor
-                    }}
-                  >
-                    <div style={{ color: primaryColor, fontSize: '12px' }}>•</div>
-                    <span>{question}</span>
+      {/* Main content - Scrollable */}
+      <main className="flex-1 overflow-hidden flex flex-col" style={{ backgroundColor: isDarkTheme ? '#1A1F2C' : '#FFFFFF' }}>
+        <ScrollArea 
+          className="flex-grow"
+          style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
+        >
+          <div className="p-4" ref={contentRef}>
+            {!selectedResult ? (
+              <div>
+                <div className="mb-4">
+                  <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
+                  <div className="space-y-2">
+                    {suggestions.map((question, index) => (
+                      <div 
+                        key={index}
+                        onClick={() => handleSelectExample(question)}
+                        className="p-2 rounded hover:cursor-pointer flex items-center gap-2 text-sm transition-colors"
+                        style={{ 
+                          backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
+                          color: textColor
+                        }}
+                      >
+                        <div style={{ color: primaryColor, fontSize: '12px' }}>•</div>
+                        <span>{question}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex flex-col p-4">
-            {/* Simplified chat display - Query as title, answer as description */}
-            <div className="flex flex-col space-y-5 mb-4">
-              {/* Query as title */}
-              <div className="p-3 rounded-lg bg-opacity-10" style={{ 
-                backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-              }}>
-                <p className="text-sm font-medium" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
-                  {selectedResult.title}
-                </p>
-              </div>
+            ) : (
+              <div className="flex flex-col space-y-5 mb-4">
+                {/* Query as title */}
+                <div className="p-3 rounded-lg bg-opacity-10" style={{ 
+                  backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                }}>
+                  <p className="text-sm font-medium" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                    {selectedResult.title}
+                  </p>
+                </div>
 
-              {/* Answer as description or Loading indicator */}
-              <div className="p-4 rounded-lg" style={{ 
-                backgroundColor: isDarkTheme ? 'rgba(155, 135, 245, 0.1)' : 'rgba(155, 135, 245, 0.05)', 
-              }}>
-                {searchLoading ? (
-                  <div className="flex items-center">
-                    <div className="mr-3 flex items-center">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                {/* Answer as description or Loading indicator */}
+                <div className="p-4 rounded-lg" style={{ 
+                  backgroundColor: isDarkTheme ? 'rgba(155, 135, 245, 0.1)' : 'rgba(155, 135, 245, 0.05)', 
+                }}>
+                  {searchLoading ? (
+                    <div className="flex items-center">
+                      <div className="mr-3 flex items-center">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                      </div>
+                      <span className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                        {thinkingMessage}
+                      </span>
                     </div>
-                    <span className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
-                      {thinkingMessage}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="prose prose-sm max-w-none break-words" style={{ 
-                    color: isDarkTheme ? '#e0e0e0' : '#333333' 
-                  }}>
-                    <ReactMarkdown
-                      components={{
-                        code({ node, className, children, ...props }) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const language = match ? match[1] : '';
-                          
-                          // Check if inline code
-                          const isInline = !match && children.toString().split('\n').length === 1;
-                          
-                          if (isInline) {
-                            return (
-                              <code
-                                className="px-1 py-0.5 rounded font-mono text-xs"
-                                style={{ 
-                                  backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
-                                }}
-                                {...props}
-                              >
-                                {children}
-                              </code>
-                            );
-                          }
-
-                          return (
-                            <div className="relative mt-2">
-                              {language && (
-                                <div 
-                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                  ) : (
+                    <div className="prose prose-sm max-w-none break-words" style={{ 
+                      color: isDarkTheme ? '#e0e0e0' : '#333333' 
+                    }}>
+                      <ReactMarkdown
+                        components={{
+                          code({ node, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const language = match ? match[1] : '';
+                            
+                            // Check if inline code
+                            const isInline = !match && children.toString().split('\n').length === 1;
+                            
+                            if (isInline) {
+                              return (
+                                <code
+                                  className="px-1 py-0.5 rounded font-mono text-xs"
                                   style={{ 
-                                    backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                    backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
                                   }}
+                                  {...props}
                                 >
-                                  {language}
-                                </div>
-                              )}
-                              <pre 
-                                className="!mt-0 rounded overflow-x-auto text-xs"
-                                style={{ 
-                                  backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
-                                  padding: '8px',
-                                  color: isDarkTheme ? '#e0e0e0' : '#333333'
-                                }}
-                              >
-                                <code className="block font-mono" {...props}>
                                   {children}
                                 </code>
-                              </pre>
-                            </div>
-                          );
-                        }
-                      }}
-                    >
-                      {selectedResult.content}
-                    </ReactMarkdown>
-                  </div>
-                )}
+                              );
+                            }
+
+                            return (
+                              <div className="relative mt-2">
+                                {language && (
+                                  <div 
+                                    className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                                    style={{ 
+                                      backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                    }}
+                                  >
+                                    {language}
+                                  </div>
+                                )}
+                                <pre 
+                                  className="!mt-0 rounded overflow-x-auto text-xs"
+                                  style={{ 
+                                    backgroundColor: isDarkTheme ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+                                    padding: '8px',
+                                    color: isDarkTheme ? '#e0e0e0' : '#333333'
+                                  }}
+                                >
+                                  <code className="block font-mono" {...props}>
+                                    {children}
+                                  </code>
+                                </pre>
+                              </div>
+                            );
+                          }
+                        }}
+                      >
+                        {selectedResult.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </ScrollArea>
       </main>
       
-      {/* Input section */}
+      {/* Input section - Fixed */}
       <div 
-        className="border-t p-3"
-        style={{ borderColor: borderColor }}
+        className="border-t p-3 sticky bottom-0 z-10"
+        style={{ 
+          borderColor: borderColor,
+          background: isDarkTheme 
+            ? `linear-gradient(to right, #1A1F2C, #232838)` 
+            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
+        }}
       >
         <div className="relative">
           <Input
@@ -485,22 +496,23 @@ const SearchAssistant = () => {
               border: 'none'
             }}
           />
-          {query.trim() && (
-            <Button 
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-full"
-              style={{ backgroundColor: primaryColor }}
-              disabled={searchLoading || !query.trim()}
-              onClick={handleSearch}
-            >
+          <Button 
+            className={`absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-full ${!query.trim() ? 'hidden' : ''}`}
+            style={{ backgroundColor: primaryColor }}
+            disabled={searchLoading || !query.trim()}
+            onClick={handleSearch}
+          >
+            {searchLoading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
               <ArrowUp size={16} />
-            </Button>
-          )}
+            )}
+          </Button>
         </div>
       </div>
 
-      {/* Modal Demo Components - Hidden */}
+      {/* Hidden Modal Components */}
       <div className="hidden">
-        {/* Dialog (Modal) Example */}
         <Dialog>
           <DialogTrigger asChild>
             <Button>Open Search Assistant</Button>
@@ -514,7 +526,6 @@ const SearchAssistant = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Sheet (Slide-in) Example */}
         <Sheet>
           <SheetTrigger asChild>
             <Button>Open Search Sidebar</Button>
