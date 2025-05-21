@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CopyIcon, Check, Code, Share, ExternalLink, Globe, Smartphone } from 'lucide-react';
+import { CopyIcon, Check, Code, Share, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 interface DeploymentDialogProps {
   open: boolean;
@@ -27,189 +28,171 @@ interface DeploymentDialogProps {
 
 const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) => {
   const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-  const [selectedViewType, setSelectedViewType] = useState('bubble');
-  const [selectedPlatform, setSelectedPlatform] = useState('website');
+  const [copied, setCopied] = useState<string | null>(null);
 
   // This would be generated based on agent ID in a real application
-  const embedCode = `<script>
+  const embedScript = `<script>
   (function () {
     var script = document.createElement('script');
     script.type = "text/javascript";
     script.setAttribute("data-agent-id", "${agent.id}");
-    script.setAttribute("data-type", "${selectedViewType}");
+    script.setAttribute("data-type", "bubble");
     
     script.src = "https://api.7en.ai/static/agent.js";
     document.body.appendChild(script);
   })();
 </script>`; 
 
-  const shareableLink = `https://app.example.com/chat/preview/iframe.html?bot=${agent.id}&type=${selectedViewType}`;
+  const iframeCode = `<iframe
+  src="https://app.example.com/chat/preview/iframe.html?bot=${agent.id}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allow="microphone"
+></iframe>`;
 
-  const handleCopy = (text: string, successMessage: string) => {
+  const shareableLink = `https://app.example.com/chat/preview/iframe.html?bot=${agent.id}`;
+
+  const handleCopy = (text: string, id: string, successMessage: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
+    setCopied(id);
     toast({
       title: "Copied to clipboard",
       description: successMessage,
     });
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(null), 2000);
   };
-
-  const platforms = [
-    { id: 'website', label: 'Website', icon: <Globe className="h-4 w-4" /> },
-    { id: 'android', label: 'Android', icon: <Smartphone className="h-4 w-4" /> },
-    { id: 'shopify', label: 'Shopify', icon: <div className="flex h-4 w-4 items-center justify-center text-green-600">S</div> },
-    { id: 'wix', label: 'Wix', icon: <div className="flex h-4 w-4 items-center justify-center rounded-full bg-black text-white text-xs">W</div> },
-    { id: 'wordpress', label: 'Wordpress', icon: <div className="flex h-4 w-4 items-center justify-center text-blue-600">W</div> },
-    { id: 'webflow', label: 'Webflow', icon: <div className="flex h-4 w-4 items-center justify-center text-blue-500">W</div> },
-    { id: 'squarespace', label: 'Squarespace', icon: <div className="flex h-4 w-4 items-center justify-center bg-black rounded-md text-white text-xs">S</div> },
-    { id: 'google-tag-manager', label: 'Google Tag Manager', icon: <div className="flex h-4 w-4 items-center justify-center text-blue-500">G</div> },
-    { id: 'weebly', label: 'Weebly', icon: <div className="flex h-4 w-4 items-center justify-center text-blue-400">W</div> },
-    { id: 'blogger', label: 'Blogger', icon: <div className="flex h-4 w-4 items-center justify-center text-orange-500">B</div> },
-    { id: 'bubble', label: 'Bubble', icon: <div className="flex h-4 w-4 items-center justify-center text-blue-600">B</div> },
-    { id: 'framer', label: 'Framer', icon: <div className="flex h-4 w-4 items-center justify-center text-blue-400">F</div> },
-    { id: 'share', label: 'Sharable Link', icon: <Share className="h-4 w-4" /> },
-  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]" fixedFooter>
+      <DialogContent className="sm:max-w-[600px]" fixedFooter>
         <DialogHeader>
           <DialogTitle>Deploy "{agent.name}"</DialogTitle>
           <DialogDescription>
-            Choose where and how to deploy your agent.
+            Choose how to deploy your agent.
           </DialogDescription>
         </DialogHeader>
         
         <DialogBody>
-          <Tabs defaultValue="website" className="w-full" value={selectedPlatform} onValueChange={setSelectedPlatform}>
-            <div className="flex items-start gap-6">
-              <TabsList orientation="vertical" className="h-auto w-44 flex-col items-start justify-start">
-                {platforms.map((platform) => (
-                  <TabsTrigger 
-                    key={platform.id}
-                    value={platform.id} 
-                    className="w-full justify-start gap-2 px-3"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md border">
-                      {platform.icon}
-                    </div>
-                    <div className="text-left">{platform.label}</div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              
-              <div className="flex-1 space-y-4">
-                {platforms.slice(0, -1).map((platform) => (
-                  <TabsContent key={platform.id} value={platform.id} className="mt-0 space-y-4">
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Add the chatbot to {platform.label}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        To add this chatbot to your {platform.label} site, copy the following code and add it to your {platform.label} site.
-                      </p>
-                      
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className={selectedViewType === 'bubble' ? 'bg-accent' : ''}
-                          onClick={() => setSelectedViewType('bubble')}
-                        >
-                          <span className="mr-2">💬</span> Bubble View
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className={selectedViewType === 'bar' ? 'bg-accent' : ''}
-                          onClick={() => setSelectedViewType('bar')}
-                        >
-                          <span className="mr-2">▭</span> Bar View
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className={selectedViewType === 'iframe' ? 'bg-accent' : ''}
-                          onClick={() => setSelectedViewType('iframe')}
-                        >
-                          <span className="mr-2">▣</span> Iframe View
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className={selectedViewType === 'form' ? 'bg-accent' : ''}
-                          onClick={() => setSelectedViewType('form')}
-                        >
-                          <span className="mr-2">📝</span> Conversational Form
-                        </Button>
-                      </div>
-                      
-                      <Card className="relative mb-2 overflow-hidden">
-                        <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
-                          {embedCode}
-                        </pre>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="absolute right-2 top-2"
-                          onClick={() => handleCopy(embedCode, `Embed code for ${platform.label} copied to clipboard`)}
-                        >
-                          {copied ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
-                        </Button>
-                      </Card>
-                      
-                      <div className="bg-muted/30 p-4 rounded-md">
-                        <h3 className="text-sm font-medium mb-2">Instructions</h3>
-                        <ol className="text-sm space-y-2 text-muted-foreground list-decimal pl-4">
-                          <li>Copy the code snippet above.</li>
-                          <li>Paste it into your {platform.label} site according to the platform guidelines.</li>
-                          <li>The chat widget will appear in the {selectedViewType === 'bubble' ? 'bottom right of your page' : 
-                              selectedViewType === 'bar' ? 'bottom of your page' :
-                              selectedViewType === 'iframe' ? 'designated container' : 'specified area'}.</li>
-                          <li>You can further customize the appearance in your agent settings.</li>
-                        </ol>
-                      </div>
-                    </div>
-                  </TabsContent>
-                ))}
+          <Tabs defaultValue="shareable" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="shareable">
+                <Share className="h-4 w-4 mr-2" />
+                Shareable Link
+              </TabsTrigger>
+              <TabsTrigger value="iframe">
+                <Code className="h-4 w-4 mr-2" />
+                Embed Iframe
+              </TabsTrigger>
+              <TabsTrigger value="script">
+                <Code className="h-4 w-4 mr-2" />
+                Embed Script
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="shareable" className="mt-4 space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Shareable Link</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Share this link to give direct access to your chatbot:
+                </p>
                 
-                <TabsContent value="share" className="mt-0 space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Sharable Link</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Use this link to share your chatbot or embed it on your platform to connect with users directly.
-                    </p>
-                    
-                    <Card className="relative mb-2 overflow-hidden">
-                      <div className="bg-muted p-4 rounded-md text-xs overflow-x-auto break-all">
-                        {shareableLink}
-                      </div>
-                      <div className="absolute right-2 top-2 flex gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => window.open(shareableLink, '_blank')}
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleCopy(shareableLink, "Link copied to clipboard")}
-                        >
-                          {copied ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </Card>
-                    
-                    <Button variant="outline" className="w-full mt-2">
-                      <Share className="mr-2 h-4 w-4" />
-                      Share Link
+                <Card className="relative mb-4 overflow-hidden">
+                  <div className="bg-muted p-4 rounded-md text-xs overflow-x-auto break-all">
+                    {shareableLink}
+                  </div>
+                  <div className="absolute right-2 top-2 flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => window.open(shareableLink, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleCopy(shareableLink, 'link', "Link copied to clipboard")}
+                    >
+                      {copied === 'link' ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
                     </Button>
                   </div>
-                </TabsContent>
+                </Card>
+                
+                <div className="bg-muted/30 p-4 rounded-md">
+                  <h4 className="text-sm font-medium mb-2">Instructions</h4>
+                  <ol className="text-sm space-y-2 text-muted-foreground list-decimal pl-4">
+                    <li>Copy the link above or click on the external link icon to open it directly.</li>
+                    <li>Share this link with users who need to interact with your chatbot.</li>
+                    <li>The link opens a full-page chatbot interface.</li>
+                  </ol>
+                </div>
               </div>
-            </div>
+            </TabsContent>
+            
+            <TabsContent value="iframe" className="mt-4 space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Embed as Iframe</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Copy this code to embed the chatbot as an iframe on your website:
+                </p>
+                
+                <Card className="relative mb-4 overflow-hidden">
+                  <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
+                    {iframeCode}
+                  </pre>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="absolute right-2 top-2"
+                    onClick={() => handleCopy(iframeCode, 'iframe', "Iframe code copied to clipboard")}
+                  >
+                    {copied === 'iframe' ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                  </Button>
+                </Card>
+                
+                <div className="bg-muted/30 p-4 rounded-md">
+                  <h4 className="text-sm font-medium mb-2">Instructions</h4>
+                  <ol className="text-sm space-y-2 text-muted-foreground list-decimal pl-4">
+                    <li>Copy the code snippet above.</li>
+                    <li>Paste it into the HTML of your website where you want the chatbot to appear.</li>
+                    <li>You can adjust the width and height values to fit your layout.</li>
+                  </ol>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="script" className="mt-4 space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Embed Script</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add this script to your website to show a chat bubble:
+                </p>
+                
+                <Card className="relative mb-4 overflow-hidden">
+                  <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
+                    {embedScript}
+                  </pre>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="absolute right-2 top-2"
+                    onClick={() => handleCopy(embedScript, 'script', "Script code copied to clipboard")}
+                  >
+                    {copied === 'script' ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                  </Button>
+                </Card>
+                
+                <div className="bg-muted/30 p-4 rounded-md">
+                  <h4 className="text-sm font-medium mb-2">Instructions</h4>
+                  <ol className="text-sm space-y-2 text-muted-foreground list-decimal pl-4">
+                    <li>Copy the script snippet above.</li>
+                    <li>Paste it before the closing &lt;/body&gt; tag in your website's HTML.</li>
+                    <li>A chat bubble will appear in the bottom right corner of your website.</li>
+                  </ol>
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
         </DialogBody>
 
@@ -217,7 +200,6 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
           <DialogClose asChild>
             <Button variant="outline">Close</Button>
           </DialogClose>
-          <Button>Save Settings</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
