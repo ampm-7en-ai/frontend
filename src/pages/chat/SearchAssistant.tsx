@@ -2,17 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, ArrowUp, Moon, Sun, User } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { ArrowUp, Moon, Sun, User } from 'lucide-react';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Toggle } from '@/components/ui/toggle';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTheme } from '@/context/ThemeContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -285,17 +281,7 @@ const SearchAssistant = () => {
     // Set that user has interacted
     setHasInteracted(true);
 
-    // If this is the first interaction and we have a welcome message, add it now
-    if (chatHistory.length === 0 && config?.welcomeMessage) {
-      const welcomeMessage: ChatMessage = {
-        id: `welcome-${Date.now()}`,
-        content: config.welcomeMessage,
-        type: 'bot_response',
-        timestamp: new Date().toISOString()
-      };
-      
-      setChatHistory([welcomeMessage]);
-    }
+   
     
     // Add user question to chat history
     const newUserMessage: ChatMessage = {
@@ -446,7 +432,6 @@ const SearchAssistant = () => {
                           color: textColor
                         }}
                       >
-                        <div style={{ color: primaryColor, fontSize: '12px' }}>•</div>
                         <span>{question}</span>
                       </div>
                     ))}
@@ -465,8 +450,8 @@ const SearchAssistant = () => {
                             <User className="h-4 w-4" />
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="text-sm" style={{ color: isDarkTheme ? '#e0e0e0' : '#333333' }}>
+                        <div className="pl-[10px] pt-[8px]">
+                          <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
                             {message.content}
                           </p>
                         </div>
@@ -488,9 +473,9 @@ const SearchAssistant = () => {
                           </AvatarFallback>
                         </Avatar>
 
-                        <div className="flex-1">
+                        <div className="flex-1 pl-[10px] pt-[5px]">
                           <div className="prose prose-sm max-w-none break-words" style={{ 
-                            color: isDarkTheme ? '#e0e0e0' : '#333333',
+                            color: isDarkTheme ? '#bdbdbd' : '#333333',
                           }}>
                             <ReactMarkdown
                               components={{
@@ -634,7 +619,7 @@ const SearchAssistant = () => {
                       </AvatarFallback>
                     </Avatar>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 pl-[10px] pt-[5px]">
                       <div className="flex items-center">
                         <div className="mr-3 flex items-center">
                           <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
@@ -686,7 +671,7 @@ const SearchAssistant = () => {
           <Input
             ref={inputRef}
             className="py-2 pr-10 rounded-md text-sm"
-            placeholder="Ask Supabase AI a question..."
+            placeholder={`Ask ${config.chatbotName} a question...`}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyPress}

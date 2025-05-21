@@ -55,6 +55,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const PUBLIC_PATHS = ['/login', '/verify', '/invitation'];
 // Check if a path is for chat preview
 const isChatPreviewPath = (path: string) => path.startsWith('/chat/preview/');
+const isChatAssistant = (path: string) => path.startsWith('/chat/assistant/');
 
 // Auth provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -76,7 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const checkAuth = async () => {
       // If current path is a public path or chat preview, skip auth check
-      if (PUBLIC_PATHS.includes(location.pathname) || isChatPreviewPath(location.pathname)) {
+      if (PUBLIC_PATHS.includes(location.pathname) || isChatPreviewPath(location.pathname) || isChatAssistant(location.pathname)) {
         setIsLoading(false);
         return;
       }
