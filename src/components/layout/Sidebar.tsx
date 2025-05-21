@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Home,
@@ -52,9 +51,8 @@ interface SidebarItem {
   children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
   action?: React.ReactNode;
   permission?: keyof typeof UserPermissions;
-  highlight?: boolean;
+  highlight?: boolean; // Added highlight property to the interface
 }
-
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { user } = useAuth();
@@ -70,10 +68,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       setExpandedItems([...expandedItems, itemId]);
     }
   };
-
-
-
-   
 
   const commonItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
