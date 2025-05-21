@@ -4,11 +4,12 @@ import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Card } from '@/components/ui/card';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface ChatbotConfig {
   agentId: string;
@@ -30,6 +31,13 @@ interface SearchResult {
   timestamp: string;
 }
 
+const exampleQuestions = [
+  'How do I listen to changes in a table?',
+  'How do I connect to my database?',
+  'How do I run migrations?',
+  'How do I set up authentication?'
+];
+
 const SearchAssistant = () => {
   const { agentId } = useParams<{ agentId: string }>();
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
@@ -38,11 +46,9 @@ const SearchAssistant = () => {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const { toast } = useToast();
-  const commandRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Fetch the chatbot configuration
@@ -84,6 +90,7 @@ const SearchAssistant = () => {
       onMessage: (message) => {
         console.log("Received message:", message);
         setSearchLoading(false);
+        
         // Convert the message to a search result
         const newResult: SearchResult = {
           id: `result-${Date.now()}`,
@@ -93,7 +100,6 @@ const SearchAssistant = () => {
         };
         
         setSearchResults(prev => [newResult, ...prev.slice(0, 9)]);
-        setIsOpen(true);
         setSelectedResult(newResult);
       },
       onTypingStart: () => {
@@ -164,17 +170,24 @@ const SearchAssistant = () => {
     }
   };
 
-  const handleSelectResult = (result: SearchResult) => {
-    setSelectedResult(result);
+  const handleSelectExample = (question: string) => {
+    setQuery(question);
     if (inputRef.current) {
-      inputRef.current.value = result.title;
-      setQuery(result.title);
+      inputRef.current.value = question;
     }
+    
+    // Auto-submit the selected question
+    setTimeout(() => {
+      if (chatServiceRef.current?.isConnected()) {
+        setSearchLoading(true);
+        chatServiceRef.current.sendMessage(question);
+      }
+    }, 100);
   };
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-b from-blue-900 to-indigo-900 text-white">
+      <div className="flex h-screen items-center justify-center bg-[#1a1a1a] text-white">
         <div className="text-center">
           <div className="inline-block animate-spin h-8 w-8 border-4 border-gray-300 rounded-full border-t-white"></div>
           <p className="mt-4 text-lg">Loading assistant...</p>
@@ -185,8 +198,8 @@ const SearchAssistant = () => {
 
   if (error || !config) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-b from-blue-900 to-indigo-900 text-white">
-        <div className="text-center max-w-md mx-auto p-6 bg-white rounded-lg shadow-md text-gray-800">
+      <div className="flex h-screen items-center justify-center bg-[#1a1a1a] text-white">
+        <div className="text-center max-w-md mx-auto p-6 bg-[#2a2a2a] rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
           <p>{error || 'Failed to load assistant configuration'}</p>
         </div>
@@ -194,186 +207,194 @@ const SearchAssistant = () => {
     );
   }
 
-  const primaryColor = config.primaryColor || '#9b87f5';
-
+  // For embedding as iframe, we'll use a darker theme similar to the images
   return (
     <div 
-      className="min-h-screen flex flex-col"
+      className="min-h-screen flex flex-col bg-[#1a1a1a] text-gray-200"
       style={{ 
-        background: `linear-gradient(135deg, ${adjustColor(primaryColor, -60)}, ${adjustColor(primaryColor, -80)})`,
         fontFamily: config.fontFamily || 'Inter'
       }}
     >
-      {/* Header */}
-      <header className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-white text-lg font-semibold">
-          <span className="text-xl">✨</span>
-          {config.chatbotName} <span className="text-sm font-normal opacity-70">Help Center</span>
-        </div>
+      {/* Optional header */}
+      <header className="p-4 flex items-center gap-2 border-b border-gray-800">
+        <button onClick={() => window.history.back()} className="text-gray-400 hover:text-white">
+          ← Back
+        </button>
+        <span className="ml-2">{config.chatbotName || 'AI Assistant'}</span>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center px-4 py-12">
-        <div className="w-full max-w-3xl space-y-8">
-          {/* Title */}
-          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
-            Find answers to your questions
-          </h1>
-
-          {/* Search bar */}
-          <div className="relative w-full">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  ref={inputRef}
-                  className="w-full p-6 pl-12 rounded-lg shadow-lg text-lg bg-white"
-                  placeholder="How to..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  disabled={searchLoading}
-                />
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              </div>
-              <Button 
-                onClick={handleSearch}
-                disabled={searchLoading || !query.trim()}
-                className="px-6 py-6 rounded-lg shadow-lg text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {searchLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></div>
-                    <span>Thinking...</span>
-                  </div>
-                ) : "Ask AI"}
-              </Button>
-            </div>
-
-            {isOpen && searchResults.length > 0 && (
-              <div 
-                ref={commandRef}
-                className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-lg shadow-lg overflow-hidden z-50"
-              >
-                <Card className="p-0">
-                  <Command>
-                    <CommandList>
-                      {searchResults.length === 0 ? (
-                        <CommandEmpty>No results found.</CommandEmpty>
-                      ) : (
-                        <CommandGroup heading="Search Results">
-                          {searchResults.map((result) => (
-                            <CommandItem
-                              key={result.id}
-                              onSelect={() => handleSelectResult(result)}
-                              className={`px-4 py-3 ${result.id === selectedResult?.id ? 'bg-slate-100' : ''}`}
-                            >
-                              <div className="truncate">
-                                {result.title}
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      )}
-                    </CommandList>
-                  </Command>
-                </Card>
-              </div>
-            )}
-          </div>
-
-          {/* Selected result */}
-          {selectedResult && (
-            <Card className="p-6 bg-white shadow-lg rounded-lg">
-              <h2 className="text-xl font-semibold mb-4">{selectedResult.title}</h2>
-              <div className="prose max-w-none">
-                <ReactMarkdown
-                  components={{
-                    code({ node, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(className || '');
-                      const language = match ? match[1] : '';
-                      
-                      // Check if inline code
-                      const isInline = !match && children.toString().split('\n').length === 1;
-                      
-                      if (isInline) {
-                        return (
-                          <code
-                            className="px-1.5 py-0.5 rounded-md bg-gray-100 font-mono text-sm"
-                            style={{ color: primaryColor }}
-                            {...props}
-                          >
-                            {children}
-                          </code>
-                        );
-                      }
-
-                      return (
-                        <div className="relative">
-                          {language && (
-                            <div 
-                              className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono text-white"
-                              style={{ backgroundColor: primaryColor }}
-                            >
-                              {language}
-                            </div>
-                          )}
-                          <pre className="!mt-0 !bg-gray-50 border border-gray-200 rounded-md overflow-x-auto">
-                            <code className="block p-4 text-sm font-mono" {...props}>
-                              {children}
-                            </code>
-                          </pre>
-                        </div>
-                      );
-                    },
-                    ul({ children }) {
-                      return <ul className="list-disc pl-4 space-y-1">{children}</ul>;
-                    },
-                    ol({ children }) {
-                      return <ol className="list-decimal pl-4 space-y-1">{children}</ol>;
-                    },
-                    a({ children, href }) {
-                      return (
-                        <a
-                          href={href}
-                          className="underline"
-                          style={{ color: primaryColor }}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {children}
-                        </a>
-                      );
-                    }
-                  }}
-                >
-                  {selectedResult.content}
-                </ReactMarkdown>
-              </div>
-            </Card>
-          )}
-
-          {/* Featured categories */}
+      <main className="flex-1 flex flex-col items-center p-4 md:p-6">
+        <div className="w-full max-w-3xl">
+          {/* Example questions section */}
           {!selectedResult && (
-            <div className="mt-12">
-              <h2 className="text-xl font-semibold text-white mb-6">Featured Articles</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {['Getting Started', 'Studio', 'API Integration', 'Chatbot Deployment'].map((category, i) => (
-                  <Card key={i} className="p-4 bg-white shadow-lg hover:shadow-xl transition-all cursor-pointer">
-                    <h3 className="font-medium">{category}</h3>
-                    <p className="text-sm text-gray-500 mt-2">{7 + i * 7} articles</p>
-                  </Card>
+            <div className="mb-8">
+              <h2 className="text-gray-400 uppercase text-xs font-semibold mb-4 tracking-wider">EXAMPLES</h2>
+              <div className="space-y-3">
+                {exampleQuestions.map((question, index) => (
+                  <div 
+                    key={index}
+                    onClick={() => handleSelectExample(question)}
+                    className="p-3 rounded-md border border-gray-700 bg-gray-800/50 hover:bg-gray-800 cursor-pointer flex items-center gap-3"
+                  >
+                    <div className="text-emerald-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      </svg>
+                    </div>
+                    <span>{question}</span>
+                  </div>
                 ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Search bar */}
+          <div className="w-full relative mt-2">
+            <div className="relative flex">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <Search size={18} />
+              </div>
+              <Input
+                ref={inputRef}
+                className="w-full pl-10 pr-4 py-3 rounded-md bg-[#2a2a2a] border-gray-700 text-white placeholder-gray-500 focus-visible:ring-1 focus-visible:ring-gray-500"
+                placeholder="Ask a question..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyPress}
+                disabled={searchLoading}
+              />
+            </div>
+          </div>
+          
+          {/* Result display */}
+          {selectedResult && (
+            <div className="mt-6 rounded-lg overflow-hidden">
+              <div className="flex items-center p-3 bg-gray-800 border-b border-gray-700">
+                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm">{selectedResult.title}</p>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-[#2a2a2a] min-h-[200px]">
+                {searchLoading ? (
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <div className="animate-pulse h-2 w-2 rounded-full bg-emerald-400"></div>
+                    <div className="animate-pulse h-2 w-2 rounded-full bg-emerald-400" style={{animationDelay: '0.2s'}}></div>
+                    <div className="animate-pulse h-2 w-2 rounded-full bg-emerald-400" style={{animationDelay: '0.4s'}}></div>
+                    <span className="ml-2">Generating answer...</span>
+                  </div>
+                ) : (
+                  <div className="prose prose-invert max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        code({ node, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const language = match ? match[1] : '';
+                          
+                          // Check if inline code
+                          const isInline = !match && children.toString().split('\n').length === 1;
+                          
+                          if (isInline) {
+                            return (
+                              <code
+                                className="px-1.5 py-0.5 rounded-md bg-gray-700 font-mono text-sm"
+                                {...props}
+                              >
+                                {children}
+                              </code>
+                            );
+                          }
+
+                          return (
+                            <div className="relative">
+                              {language && (
+                                <div 
+                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono bg-gray-700 text-gray-300"
+                                >
+                                  {language}
+                                </div>
+                              )}
+                              <pre className="!mt-0 !bg-gray-800 border border-gray-700 rounded-md overflow-x-auto">
+                                <code className="block p-4 text-sm font-mono" {...props}>
+                                  {children}
+                                </code>
+                              </pre>
+                            </div>
+                          );
+                        },
+                        ul({ children }) {
+                          return <ul className="list-disc pl-4 space-y-1">{children}</ul>;
+                        },
+                        ol({ children }) {
+                          return <ol className="list-decimal pl-4 space-y-1">{children}</ol>;
+                        },
+                        a({ children, href }) {
+                          return (
+                            <a
+                              href={href}
+                              className="underline text-emerald-400"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {children}
+                            </a>
+                          );
+                        }
+                      }}
+                    >
+                      {selectedResult.content}
+                    </ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="p-4 text-center text-white/70 text-sm">
+      
+      {/* Footer - only shown at bottom of page */}
+      <footer className="p-4 text-center text-gray-500 text-xs">
         <p>powered by 7en.ai</p>
       </footer>
+
+      {/* Modal Demo Components - These demonstrate how this component could be embedded */}
+      <div className="hidden">
+        {/* Dialog (Modal) Example */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>Open Search Assistant</Button>
+          </DialogTrigger>
+          <DialogContent className="w-full max-w-4xl p-0">
+            <iframe 
+              src={`/chat/assistant/${agentId}`} 
+              className="w-full h-[600px] border-0" 
+              title="Search Assistant"
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Sheet (Slide-in) Example */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button>Open Search Sidebar</Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="p-0 w-full sm:max-w-md">
+            <iframe 
+              src={`/chat/assistant/${agentId}`} 
+              className="w-full h-full border-0" 
+              title="Search Assistant"
+            />
+          </SheetContent>
+        </Sheet>
+      </div>
     </div>
   );
 };
