@@ -29,11 +29,9 @@ export const ProtectedRoute = ({
 // Determine the dashboard path based on user role
 export const getDashboardPath = (role?: UserRole): string => {
   switch (role) {
-    case 'superadmin':
+    case 'SUPERADMIN':
       return '/dashboard/superadmin';
-    case 'admin':
-      return '/dashboard/admin';
-    case 'user':
+    case 'USER':
       return '/dashboard/user';
     default:
       return '/login';

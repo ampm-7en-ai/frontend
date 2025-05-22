@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronDown, HelpCircle, Menu, Bot, Plus, AlertCircle, Loader2 } from 'lucide-react';
@@ -155,13 +154,7 @@ export function Header({ pageTitle, breadcrumbs, toggleSidebar, onLogout }: Head
       
       <div className="flex items-center space-x-4">
         <div className="relative hidden md:block">
-          {/* <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-dark-gray h-3.5 w-3.5" />
-          <Input 
-            type="text" 
-            placeholder="Search..." 
-            className="h-8 pl-8 pr-4 rounded-md border border-medium-gray/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm w-60 bg-light-gray/50"
-          /> */}
-          {userRole === "admin" && (<div className="mt-auto p-4 pr-0 border-t border-medium-gray/10">
+          {userRole === "USER" && (<div className="mt-auto p-4 pr-0 border-t border-medium-gray/10">
             <DropdownMenu onOpenChange={handleOpen} open={isOpen}>
               <DropdownMenuTrigger asChild>
                 <Button 
