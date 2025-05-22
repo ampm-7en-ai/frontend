@@ -7,28 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
-
-interface Permission {
-  id: number;
-  name: string;
-  description: string;
-}
-
-interface Role {
-  id: number;
-  name: string;
-  description: string;
-  permissions: Permission[];
-  is_active: boolean;
-  created_at: string;
-}
+import { PermissionProvider, Permission } from '@/context/PermissionContext';
+import RoleEditDialog, { Role } from '@/components/settings/platform/RoleEditDialog';
 
 interface RolesResponse {
   message: string;
@@ -42,54 +28,62 @@ const SecuritySettings = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [availablePermissions, setAvailablePermissions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const {getToken} = useAuth();
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        setIsLoading(true);
-        const token = getToken();
-          if (!token) {
-            throw new Error('Authentication required');
-          }
-        const response = await fetch(getApiUrl(API_ENDPOINTS.USER_ROLE), {
-          headers: getAuthHeaders(token)
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch roles');
+  const fetchRoles = async () => {
+    try {
+      setIsLoading(true);
+      const token = getToken();
+        if (!token) {
+          throw new Error('Authentication required');
         }
+      const response = await fetch(getApiUrl(API_ENDPOINTS.USER_ROLE), {
+        headers: getAuthHeaders(token)
+      });
 
-        const data: RolesResponse = await response.json();
-        setRoles(data.data);
-        setAvailablePermissions(data.permissions);
-      } catch (error) {
-        console.error('Error fetching roles:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load role management data",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error('Failed to fetch roles');
       }
-    };
 
+      const data: RolesResponse = await response.json();
+      setRoles(data.data);
+      setAvailablePermissions(data.permissions);
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load role management data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchRoles();
   }, [toast]);
 
+  const handleEditRole = (role: Role) => {
+    setSelectedRole(role);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setSelectedRole(null);
+  };
+
   return (
-    <PlatformSettingsLayout 
-      title="Security Settings"
-      description="Configure platform security, roles, and permissions"
-    >
-      <Tabs defaultValue="roles">
-        <TabsList className="grid w-full grid-cols-5 mb-8">
-          <TabsTrigger value="roles">Role Management</TabsTrigger>
-          <TabsTrigger value="audit">Audit Logs</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="roles">
+    <PermissionProvider>
+      <PlatformSettingsLayout 
+        title="Security Settings"
+        description="Configure platform security, roles, and permissions"
+      >
+        <div className="space-y-8">
+          {/* Role Management Section */}
           <Card>
             <CardHeader>
               <CardTitle>Role Management</CardTitle>
@@ -139,7 +133,13 @@ const SecuritySettings = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm">Edit</Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditRole(role)}
+                            >
+                              Edit
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))
@@ -151,9 +151,8 @@ const SecuritySettings = () => {
               <Button className="mt-4">Add New Role</Button>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="audit">
+
+          {/* Audit Logs Section */}
           <Card>
             <CardHeader>
               <CardTitle>Audit Logs</CardTitle>
@@ -214,9 +213,17 @@ const SecuritySettings = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </PlatformSettingsLayout>
+        </div>
+
+        {/* Role Edit Dialog */}
+        <RoleEditDialog 
+          isOpen={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+          role={selectedRole}
+          onRoleUpdated={fetchRoles}
+        />
+      </PlatformSettingsLayout>
+    </PermissionProvider>
   );
 };
 

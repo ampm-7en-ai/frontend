@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
   REMOVE_INVITE: "users/remove_invite/",
   REMOVE_MEMBER: "users/remove_from_team/",
   USER_ROLE: "admin/custom-team-roles",
+  USER_ROLE_PERMISSIONS: "admin/custom-team-roles/available_permissions/",
   
   // Dashboard endpoints
   DASHBOARD_OVERVIEW: "dashboard/overview/",
@@ -490,6 +491,11 @@ export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSourc
     console.error('Error adding knowledge sources to agent:', error);
     throw error;
   }
+};
+
+// Function to get the role endpoint for a specific role ID
+export const getRoleEndpoint = (roleId: number): string => {
+  return `${API_ENDPOINTS.USER_ROLE}/${roleId}/`;
 };
 
 // PATCH settings API call
