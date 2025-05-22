@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, CheckCircle2 } from 'lucide-react';
+import { Mail, CheckCircle2, Clock } from 'lucide-react';
 
 const otpSchema = z.object({
   otp: z.string().length(6, "OTP must be exactly 6 digits")
@@ -22,6 +22,7 @@ const Verify = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResendingOtp, setIsResendingOtp] = useState(false);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const { 
     user, 
     isAuthenticated, 
@@ -53,6 +54,21 @@ const Verify = () => {
       navigate('/login');
     }
   }, [isAuthenticated, needsVerification, navigate, email, user?.email, location.state]);
+
+  // Countdown timer logic
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (resendCooldown > 0) {
+      interval = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [resendCooldown]);
 
   const handleVerifyOtp = async (values: OtpFormValues) => {
     setIsVerifying(true);
@@ -198,6 +214,10 @@ const Verify = () => {
             description: data.message || "A new verification code has been sent to your email",
             variant: "default",
           });
+          
+          // Start the resend cooldown timer (60 seconds)
+          setResendCooldown(60);
+          
         } else {
           toast({
             title: "Error",
@@ -214,6 +234,10 @@ const Verify = () => {
             description: "OTP resend simulation: A new code would be sent to your email",
             variant: "default",
           });
+          
+          // Start the resend cooldown timer (60 seconds) even in development mode
+          setResendCooldown(60);
+          
         } else {
           toast({
             title: "Error",
@@ -297,15 +321,22 @@ const Verify = () => {
               
               <div className="flex flex-col items-center justify-center space-y-2 text-sm text-center">
                 <p>Didn't receive the code?</p>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0" 
-                  type="button" 
-                  onClick={handleResendOtp}
-                  disabled={isResendingOtp}
-                >
-                  {isResendingOtp ? "Sending..." : "Resend OTP"}
-                </Button>
+                {resendCooldown > 0 ? (
+                  <div className="flex items-center text-muted-foreground">
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span>Resend available in {resendCooldown}s</span>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="link" 
+                    className="h-auto p-0" 
+                    type="button" 
+                    onClick={handleResendOtp}
+                    disabled={isResendingOtp || resendCooldown > 0}
+                  >
+                    {isResendingOtp ? "Sending..." : "Resend OTP"}
+                  </Button>
+                )}
               </div>
               
               <div className="flex justify-center">
