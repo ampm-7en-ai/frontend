@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   TEAM_INVITES: "users/get_team_invites/",
   REMOVE_INVITE: "users/remove_invite/",
   REMOVE_MEMBER: "users/remove_from_team/",
+  USER_ROLE: "admin/custom-team-roles",
   
   // Dashboard endpoints
   DASHBOARD_OVERVIEW: "dashboard/overview/",

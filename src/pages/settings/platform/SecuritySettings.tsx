@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/hooks/use-toast";
-import { getApiUrl, getAuthHeaders } from '@/utils/api-config';
+import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
+import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface Permission {
@@ -41,13 +42,18 @@ const SecuritySettings = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [availablePermissions, setAvailablePermissions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const {getToken} = useAuth();
 
   useEffect(() => {
     const fetchRoles = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(getApiUrl('admin/custom-team-roles'), {
-          headers: getAuthHeaders()
+        const token = getToken();
+          if (!token) {
+            throw new Error('Authentication required');
+          }
+        const response = await fetch(getApiUrl(API_ENDPOINTS.USER_ROLE), {
+          headers: getAuthHeaders(token)
         });
 
         if (!response.ok) {
@@ -80,9 +86,6 @@ const SecuritySettings = () => {
       <Tabs defaultValue="roles">
         <TabsList className="grid w-full grid-cols-5 mb-8">
           <TabsTrigger value="roles">Role Management</TabsTrigger>
-          <TabsTrigger value="access">Access Control</TabsTrigger>
-          <TabsTrigger value="handoff">Handoff Rules</TabsTrigger>
-          <TabsTrigger value="fallback">Fallback Config</TabsTrigger>
           <TabsTrigger value="audit">Audit Logs</TabsTrigger>
         </TabsList>
         
@@ -146,168 +149,6 @@ const SecuritySettings = () => {
               )}
               
               <Button className="mt-4">Add New Role</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="access">
-          <Card>
-            <CardHeader>
-              <CardTitle>Access Control</CardTitle>
-              <CardDescription>Assign permissions to agents for specific businesses</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="agent">Select Agent</Label>
-                    <Select>
-                      <SelectTrigger id="agent">
-                        <SelectValue placeholder="Select agent" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="billing_agent">Billing Agent</SelectItem>
-                        <SelectItem value="support_agent">Support Agent</SelectItem>
-                        <SelectItem value="general_agent">General Agent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="business">Assign to Business</Label>
-                    <Select>
-                      <SelectTrigger id="business">
-                        <SelectValue placeholder="Select business" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="acme">Acme Corp</SelectItem>
-                        <SelectItem value="globex">Globex Industries</SelectItem>
-                        <SelectItem value="stark">Stark Enterprises</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Permissions</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="perm_read" />
-                      <Label htmlFor="perm_read">Read Access</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch id="perm_write" />
-                      <Label htmlFor="perm_write">Write Access</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch id="perm_delete" />
-                      <Label htmlFor="perm_delete">Delete Access</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch id="perm_customer" />
-                      <Label htmlFor="perm_customer">Customer Data Access</Label>
-                    </div>
-                  </div>
-                </div>
-                
-                <Button>Assign Permissions</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="handoff">
-          <Card>
-            <CardHeader>
-              <CardTitle>Handoff Rules</CardTitle>
-              <CardDescription>Configure intent-based handoff rules with confidence thresholds</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Intent</TableHead>
-                    <TableHead>Target Agent</TableHead>
-                    <TableHead>Confidence Threshold</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">billing_query</TableCell>
-                    <TableCell>Billing Agent</TableCell>
-                    <TableCell>85%</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">support_request</TableCell>
-                    <TableCell>Support Agent</TableCell>
-                    <TableCell>80%</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">technical_issue</TableCell>
-                    <TableCell>Technical Support Agent</TableCell>
-                    <TableCell>90%</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-              
-              <Button className="mt-4">Add New Rule</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="fallback">
-          <Card>
-            <CardHeader>
-              <CardTitle>Fallback Configuration</CardTitle>
-              <CardDescription>Set fallback agents for low-confidence responses</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="defaultFallback">Default Fallback Agent</Label>
-                  <Select>
-                    <SelectTrigger id="defaultFallback">
-                      <SelectValue placeholder="Select agent" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General Agent</SelectItem>
-                      <SelectItem value="support">Support Agent</SelectItem>
-                      <SelectItem value="human">Human Operator</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confidenceThreshold">Low Confidence Threshold (%)</Label>
-                  <Input id="confidenceThreshold" type="number" defaultValue="65" min="0" max="100" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="maxRetries">Maximum Retry Attempts</Label>
-                  <Input id="maxRetries" type="number" defaultValue="3" min="0" />
-                </div>
-                
-                <div className="flex items-center space-x-2 pt-2">
-                  <Switch id="humanEscalation" defaultChecked />
-                  <Label htmlFor="humanEscalation">Allow Human Escalation</Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="notifyAdmin" defaultChecked />
-                  <Label htmlFor="notifyAdmin">Notify Admins on Multiple Fallbacks</Label>
-                </div>
-              </div>
-              
-              <Button className="mt-4">Save Configuration</Button>
             </CardContent>
           </Card>
         </TabsContent>
