@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     },
   ];
 
-  const roleBasedItems = userRole === "superadmin" 
+  const roleBasedItems = userRole === "SUPERADMIN" 
     ? [...superAdminItems] 
     : adminItems;
 
@@ -195,7 +195,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             <div className="pt-4">
               {!isCollapsed && (
                 <div className="text-xs font-semibold text-dark-gray uppercase px-3 mb-2">
-                  {userRole === "superadmin" ? "ADMINISTRATION" : "BUSINESS"}
+                  {userRole === "SUPERADMIN" ? "ADMINISTRATION" : "BUSINESS"}
                 </div>
               )}
               <div className="space-y-1">

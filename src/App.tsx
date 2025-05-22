@@ -80,12 +80,12 @@ const ProtectedRoutes = () => {
       <Route path="/" element={<MainLayout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={
-          user.role === 'superadmin' ? <SuperAdminDashboard /> : <AdminDashboard />
+          user.role === 'SUPERADMIN' ? <SuperAdminDashboard /> : <AdminDashboard />
         } />
         <Route 
           path="/dashboard/superadmin" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/dashboard">
               <SuperAdminDashboard />
             </ProtectedRoute>
           } 
@@ -93,7 +93,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/dashboard/admin" 
           element={
-            <ProtectedRoute allowedRoles={['admin']} userRole={user?.role} fallbackPath="/dashboard">
+            <ProtectedRoute allowedRoles={['USER']} userRole={user?.role} fallbackPath="/dashboard">
               <AdminDashboard />
             </ProtectedRoute>
           } 
@@ -104,7 +104,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/businesses" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/dashboard">
               <BusinessList />
             </ProtectedRoute>
           } 
@@ -112,7 +112,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/businesses/:businessId" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/dashboard">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/dashboard">
               <BusinessDetail />
             </ProtectedRoute>
           } 
@@ -136,7 +136,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/billing" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <BillingSettings />
             </ProtectedRoute>
           } 
@@ -144,7 +144,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/subscription-plan" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <SubscriptionPlanEditor />
             </ProtectedRoute>
           } 
@@ -152,7 +152,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/subscription-plan/:planId" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <SubscriptionPlanEditor />
             </ProtectedRoute>
           } 
@@ -160,7 +160,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/general" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <GeneralSettings />
             </ProtectedRoute>
           } 
@@ -168,7 +168,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/security" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <SecuritySettings />
             </ProtectedRoute>
           } 
@@ -176,7 +176,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/llm-providers" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <LLMProvidersSettings />
             </ProtectedRoute>
           } 
@@ -184,7 +184,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/compliance" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <ComplianceSettings />
             </ProtectedRoute>
           } 
@@ -192,7 +192,7 @@ const ProtectedRoutes = () => {
         <Route 
           path="/settings/platform/customization" 
           element={
-            <ProtectedRoute allowedRoles={['superadmin']} userRole={user?.role} fallbackPath="/settings">
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <CustomizationSettings />
             </ProtectedRoute>
           } 

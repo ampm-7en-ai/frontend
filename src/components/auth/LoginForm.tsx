@@ -236,10 +236,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           variant: "default",
         });
         
-        if (userRole === 'superadmin') {
+        if (userRole === 'SUPERADMIN') {
           navigate('/dashboard/superadmin');
-        } else if (userRole === 'admin') {
-          navigate('/dashboard/admin');
+        } else if (userRole === 'ADMIN') {
+          navigate('/dashboard');
         } else {
           navigate('/dashboard');
         }

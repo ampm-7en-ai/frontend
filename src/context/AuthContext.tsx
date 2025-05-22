@@ -5,7 +5,7 @@ import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
 import { permission } from 'process';
 
 // Define user role types
-export type UserRole = 'user' | 'admin' | 'superadmin';
+export type UserRole = 'USER' | 'SUPERADMIN';
 
 // Define user interface
 export interface User {
@@ -111,9 +111,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // If user is verified and on login or verify page, redirect to dashboard
             else if (location.pathname === '/login' || location.pathname === '/verify') {
               // Redirect based on role
-              const dashboardPath = parsedUser.role === 'superadmin' ? 
+              const dashboardPath = parsedUser.role === 'SUPERADMIN' ? 
                 '/dashboard/superadmin' : 
-                (parsedUser.role === 'admin' ? '/dashboard/admin' : '/dashboard');
+                (parsedUser.role === 'USER' ? '/dashboard' : '/dashboard');
               navigate(dashboardPath);
             }
           } else {
@@ -154,7 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           accessToken: authData.accessToken,
           refreshToken: authData.refreshToken,
           avatar: `https://ui-avatars.com/api/?name=${username}&background=0D8ABC&color=fff`,
-          ...(authData.role === 'admin' ? { businessId: 'b1' } : {}),
+          ...(authData.role === "USER" ? { businessId: 'b1' } : {}),
           isVerified: isVerified,
           teamRole: authData.teamRole,
           permission: authData.permissions
