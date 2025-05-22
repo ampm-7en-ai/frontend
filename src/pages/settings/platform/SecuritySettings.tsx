@@ -1,20 +1,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { PermissionProvider, Permission } from '@/context/PermissionContext';
 import RoleEditDialog, { Role } from '@/components/settings/platform/RoleEditDialog';
+import RoleCreateDialog from '@/components/settings/platform/RoleCreateDialog';
+import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 
 interface RolesResponse {
   message: string;
@@ -30,6 +27,7 @@ const SecuritySettings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const {getToken} = useAuth();
 
   const fetchRoles = async () => {
@@ -74,6 +72,14 @@ const SecuritySettings = () => {
   const handleCloseEditDialog = () => {
     setIsEditDialogOpen(false);
     setSelectedRole(null);
+  };
+
+  const handleOpenCreateDialog = () => {
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleCloseCreateDialog = () => {
+    setIsCreateDialogOpen(false);
   };
 
   return (
@@ -148,7 +154,10 @@ const SecuritySettings = () => {
                 </Table>
               )}
               
-              <Button className="mt-4">Add New Role</Button>
+              <Button className="mt-4" onClick={handleOpenCreateDialog}>
+                <Plus className="mr-1 h-4 w-4" />
+                Add New Role
+              </Button>
             </CardContent>
           </Card>
 
@@ -221,6 +230,13 @@ const SecuritySettings = () => {
           onClose={handleCloseEditDialog}
           role={selectedRole}
           onRoleUpdated={fetchRoles}
+        />
+
+        {/* Role Create Dialog */}
+        <RoleCreateDialog
+          isOpen={isCreateDialogOpen}
+          onClose={handleCloseCreateDialog}
+          onRoleCreated={fetchRoles}
         />
       </PlatformSettingsLayout>
     </PermissionProvider>
