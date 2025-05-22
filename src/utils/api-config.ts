@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -23,9 +24,10 @@ export const API_ENDPOINTS = {
   // User management endpoints
   INVITE_REGISTER: "users/register_with_invite/",
   TEAM_INVITES: "users/get_team_invites/",
+  CREATE_TEAM_INVITE: "users/create_team_invite/",
   REMOVE_INVITE: "users/remove_invite/",
   REMOVE_MEMBER: "users/remove_from_team/",
-  USER_ROLE: "admin/custom-team-roles/",
+  USER_ROLE: "admin/custom-team-roles",
   USER_ROLE_PERMISSIONS: "admin/custom-team-roles/available_permissions/",
   
   // Dashboard endpoints

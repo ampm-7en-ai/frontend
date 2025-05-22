@@ -16,10 +16,25 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+  permissions: {
+    id: number;
+    name: string;
+    description: string;
+  }[];
+  is_active: boolean;
+  created_at: string;
+}
 
 const inviteFormSchema = z.object({
   email: z.string().email("Invalid email address."),
-  role: z.enum(["admin", "agent"]),
+  team_role_id: z.number({ required_error: "Please select a role." }),
 });
 
 type InviteFormValues = z.infer<typeof inviteFormSchema>;
@@ -43,18 +58,50 @@ const TeamManagementSection = () => {
   const [loading, setLoading] = useState(false);
   const [teamMembers, setTeamMembers] = useState<Member[]>([]);
   const [showTeamManagement, setShowTeamManagement] = useState(true);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
 
   const inviteForm = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
       email: '',
-      role: 'agent',
     },
   });
 
   useEffect(() => {
     fetchTeamMembers();
   }, []);
+
+  const fetchAvailableRoles = async () => {
+    try {
+      setLoadingRoles(true);
+      const token = getToken();
+      if (!token) {
+        throw new Error("You must be logged in to view roles");
+      }
+      
+      const response = await fetch(getApiUrl(API_ENDPOINTS.USER_ROLE), {
+        method: 'GET',
+        headers: getAuthHeaders(token),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch roles");
+      }
+      
+      const data = await response.json();
+      setAvailableRoles(data.data);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch available roles",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
 
   const fetchTeamMembers = async () => {
     try {
@@ -201,7 +248,7 @@ const TeamManagementSection = () => {
         headers: getAuthHeaders(token),
         body: JSON.stringify({
           email: data.email,
-          role: data.role === "agent" ? "user" : data.role,
+          team_role_id: data.team_role_id
         }),
       });
       
@@ -209,8 +256,10 @@ const TeamManagementSection = () => {
       
       if (!response.ok) {
         if (responseData.error) {
-            if(responseData.error.fields.hasOwnProperty("email")){
+            if(responseData.error.fields && responseData.error.fields.hasOwnProperty("email")){
                 setInviteApiError(responseData.error.fields.email[0]);
+            } else {
+                setInviteApiError(responseData.error.message || "Failed to send invitation");
             }
           return;
         } else {
@@ -220,7 +269,7 @@ const TeamManagementSection = () => {
       
       toast({
         title: "Invitation sent",
-        description: `An invitation has been sent to ${data.email} with ${data.role} role.`,
+        description: `An invitation has been sent to ${data.email}.`,
       });
       
       fetchTeamMembers();
@@ -316,7 +365,7 @@ const TeamManagementSection = () => {
                             <span className="capitalize">{member.role}</span>
                             {member.status === 'pending' ? (
                               <>
-                                <Badge variant="waiting" className="flex items-center gap-1">
+                                <Badge variant="outline" className="flex items-center gap-1 bg-yellow-100 text-yellow-800">
                                   <Clock className="h-3 w-3 mr-1" /> waiting response
                                 </Badge>
                                 <span>&bull;</span>
@@ -368,6 +417,9 @@ const TeamManagementSection = () => {
                 setShowInviteDialog(open);
                 if (!open) {
                   setInviteApiError(null);
+                  inviteForm.reset();
+                } else {
+                  fetchAvailableRoles();
                 }
               }}>
                 <DialogTrigger asChild>
@@ -410,30 +462,75 @@ const TeamManagementSection = () => {
                           </FormItem>
                         )}
                       />
+                      
                       <FormField
                         control={inviteForm.control}
-                        name="role"
+                        name="team_role_id"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Role</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select 
+                              onValueChange={(value) => field.onChange(parseInt(value))}
+                              value={field.value?.toString()}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select a role" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="agent">Agent</SelectItem>
+                                {loadingRoles ? (
+                                  <div className="flex justify-center items-center py-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                    <span className="ml-2 text-sm">Loading roles...</span>
+                                  </div>
+                                ) : availableRoles.length > 0 ? (
+                                  availableRoles.map((role) => (
+                                    <SelectItem key={role.id} value={role.id.toString()}>
+                                      {role.name}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="" disabled>No roles available</SelectItem>
+                                )}
                               </SelectContent>
                             </Select>
-                            <FormDescription>
-                              Admins can manage the entire workspace. Agents can only create and manage chatbots.
-                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+
+                      {inviteForm.watch("team_role_id") && (
+                        <div className="border rounded-md p-3 bg-muted/30">
+                          <h4 className="text-sm font-medium mb-2">Role Permissions</h4>
+                          <ScrollArea className="h-[150px]">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Permission</TableHead>
+                                  <TableHead>Description</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.map(permission => (
+                                  <TableRow key={permission.id}>
+                                    <TableCell className="font-medium">{permission.name.replace(/_/g, ' ')}</TableCell>
+                                    <TableCell>{permission.description}</TableCell>
+                                  </TableRow>
+                                ))}
+                                {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.length === 0 && (
+                                  <TableRow>
+                                    <TableCell colSpan={2} className="text-center py-4 text-muted-foreground">
+                                      This role has no permissions assigned
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                          </ScrollArea>
+                        </div>
+                      )}
+
                       <DialogFooter>
                         <Button 
                           type="submit" 
