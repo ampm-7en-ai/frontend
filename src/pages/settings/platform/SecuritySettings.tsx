@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +10,68 @@ import PlatformSettingsLayout from '@/components/settings/platform/PlatformSetti
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from "@/hooks/use-toast";
+import { getApiUrl, getAuthHeaders } from '@/utils/api-config';
+import { Loader2 } from 'lucide-react';
+
+interface Permission {
+  id: number;
+  name: string;
+  description: string;
+}
+
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+  permissions: Permission[];
+  is_active: boolean;
+  created_at: string;
+}
+
+interface RolesResponse {
+  message: string;
+  data: Role[];
+  status: string;
+  permissions: string[];
+}
 
 const SecuritySettings = () => {
+  const { toast } = useToast();
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [availablePermissions, setAvailablePermissions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(getApiUrl('admin/custom-team-roles'), {
+          headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch roles');
+        }
+
+        const data: RolesResponse = await response.json();
+        setRoles(data.data);
+        setAvailablePermissions(data.permissions);
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load role management data",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRoles();
+  }, [toast]);
+
   return (
     <PlatformSettingsLayout 
       title="Security Settings"
@@ -33,59 +93,57 @@ const SecuritySettings = () => {
               <CardDescription>Define custom roles for agents with specific permissions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Role Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Permissions</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">General</TableCell>
-                    <TableCell>Basic agent role with standard permissions</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline">Read Knowledge</Badge>
-                        <Badge variant="outline">Basic Responses</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Billing</TableCell>
-                    <TableCell>Specialized role for billing and payment queries</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline">Read Billing Info</Badge>
-                        <Badge variant="outline">Payment Processing</Badge>
-                        <Badge variant="outline">Invoice Access</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Support</TableCell>
-                    <TableCell>Role for handling customer support inquiries</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline">Ticket Management</Badge>
-                        <Badge variant="outline">Knowledge Access</Badge>
-                        <Badge variant="outline">User Info</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading roles...</span>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Role Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Permissions</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {roles.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                          No roles found. Add a new role to get started.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      roles.map((role) => (
+                        <TableRow key={role.id}>
+                          <TableCell className="font-medium">{role.name}</TableCell>
+                          <TableCell>{role.description}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1 max-w-md">
+                              {role.permissions.map((permission) => (
+                                <Badge key={permission.id} variant="outline" className="text-xs">
+                                  {permission.name.replace(/_/g, ' ')}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={role.is_active ? "success" : "secondary"}>
+                              {role.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm">Edit</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
               
               <Button className="mt-4">Add New Role</Button>
             </CardContent>
