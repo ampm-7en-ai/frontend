@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Always check verification before allowing access to dashboard
         if (!isVerified) {
           setNeedsVerification(true);
-          setPendingVerificationEmail(`${username}@example.com`);
+          setPendingVerificationEmail(null);
           navigate('/verify');
         }
         return;

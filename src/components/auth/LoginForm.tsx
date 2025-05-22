@@ -200,15 +200,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       const data = await response.json();
       console.log("Login response:", data);
       
-      if (data.error && data.error.message.includes("User not verified")) {
-        const email = data.error.email || values.username;
+      if (!data.data.userData.is_verified) {
+        const email = data.data.userData.email || null;
         
         setPendingVerificationEmail(email);
         setNeedsVerification(true);
         
         toast({
           title: "Account Not Verified",
-          description: data.error.message,
+          description: data.message,
           variant: "destructive",
         });
         
