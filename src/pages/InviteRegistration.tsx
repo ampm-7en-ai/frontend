@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CheckCircle2, User, Lock, Mail, AlertCircle, Shield } from 'lucide-react';
+import { CheckCircle2, User, Lock, Mail, AlertCircle, Shield, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const inviteRegistrationSchema = z.object({
@@ -33,6 +32,8 @@ const InviteRegistration = () => {
   const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login } = useAuth();
@@ -264,7 +265,19 @@ const InviteRegistration = () => {
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input type="password" placeholder="•••••••" className="pl-10" {...field} />
+                          <Input 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="•••••••" 
+                            className="pl-10 pr-10" 
+                            {...field} 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -281,7 +294,19 @@ const InviteRegistration = () => {
                       <FormControl>
                         <div className="relative">
                           <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input type="password" placeholder="•••••••" className="pl-10" {...field} />
+                          <Input 
+                            type={showConfirmPassword ? "text" : "password"} 
+                            placeholder="•••••••" 
+                            className="pl-10 pr-10" 
+                            {...field} 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
