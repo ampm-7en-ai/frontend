@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -16,6 +15,7 @@ export const API_ENDPOINTS = {
   RESEND_OTP: "users/resend-otp/",
   SSO_LOGIN: "users/sso_login/",
   VALIDATE_INVITE: "users/validate_invite_token/",
+  FORGOT_PASSWORD: "users/forgot_password/",
   
   // Agent and knowledge base endpoints
   AGENTS: "agents/",

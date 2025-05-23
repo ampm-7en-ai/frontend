@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
+import ForgotPasswordDialog from './ForgotPasswordDialog';
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -28,6 +30,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const { login, setPendingVerificationEmail, setNeedsVerification } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -343,9 +346,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               <FormItem className="space-y-3">
                 <div className="flex justify-between">
                   <FormLabel>Password</FormLabel>
-                  <a href="/forgot-password" className="text-sm text-primary hover:underline">
+                  <button 
+                    type="button" 
+                    className="text-sm text-primary hover:underline"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsForgotPasswordOpen(true);
+                    }}
+                  >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
@@ -411,6 +421,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       <Button variant="outline" className="w-full mt-3">
         Sign in with SSO
       </Button>
+
+      {/* Forgot Password Dialog */}
+      <ForgotPasswordDialog 
+        isOpen={isForgotPasswordOpen} 
+        onClose={() => setIsForgotPasswordOpen(false)} 
+      />
     </>
   );
 };
