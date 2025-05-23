@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -6,6 +5,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { TestPageLayout } from './components/layout/TestPageLayout';
 import Login from './pages/Login';
 import Verify from './pages/Verify';
+import ResetPassword from './pages/ResetPassword';
 import InviteRegistration from './pages/InviteRegistration';
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
@@ -220,6 +220,7 @@ function App() {
                   {/* Public routes that don't require authentication */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/verify" element={<Verify />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/invitation" element={<InviteRegistration />} />
                   <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
                   <Route path="/chat/assistant/:agentId" element={<SearchAssistant />} />

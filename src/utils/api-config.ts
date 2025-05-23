@@ -16,6 +16,7 @@ export const API_ENDPOINTS = {
   SSO_LOGIN: "users/sso_login/",
   VALIDATE_INVITE: "users/validate_invite_token/",
   FORGOT_PASSWORD: "users/forgot_password/",
+  RESET_PASSWORD: "users/reset_password/",
   
   // Agent and knowledge base endpoints
   AGENTS: "agents/",
