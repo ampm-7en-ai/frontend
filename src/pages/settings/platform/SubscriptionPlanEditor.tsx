@@ -16,10 +16,10 @@ import { useQueryClient } from '@tanstack/react-query';
 interface SubscriptionPlan {
   id?: number;
   name: string;
-  description: string;
-  price: string;
+  description: string[];
+  price: number;
   duration_days: number;
-  features?: string[];
+  for_type?: string;
   stripe_product_id?: string;
   stripe_price_id?: string;
 }
@@ -40,10 +40,10 @@ const SubscriptionPlanEditor = () => {
 
   const [plan, setPlan] = useState<SubscriptionPlan>({
     name: '',
-    description: '',
-    price: '',
+    description: [],
+    price: 0,
     duration_days: 30,
-    features: []
+    for_type: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [featuresText, setFeaturesText] = useState('');
@@ -78,15 +78,17 @@ const SubscriptionPlanEditor = () => {
       setPlan({
         id: planData.id,
         name: planData.name,
-        description: planData.description,
-        price: planData.price.toString(),
+        description: Array.isArray(planData.description) ? planData.description : [],
+        price: typeof planData.price === 'string' ? parseFloat(planData.price) : planData.price,
         duration_days: planData.duration_days,
-        features: planData.features || [],
+        for_type: planData.for_type || planData.name,
         stripe_product_id: planData.stripe_product_id,
         stripe_price_id: planData.stripe_price_id
       });
       
-      setFeaturesText(planData.features?.join('\n') || '');
+      // Join array features back to text for editing
+      const features = Array.isArray(planData.description) ? planData.description : [];
+      setFeaturesText(features.join('\n'));
     } catch (error) {
       console.error('Error fetching plan details:', error);
       toast({
@@ -103,7 +105,7 @@ const SubscriptionPlanEditor = () => {
     const { name, value } = e.target;
     setPlan(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'price' ? parseFloat(value) || 0 : value
     }));
   };
 
@@ -128,13 +130,16 @@ const SubscriptionPlanEditor = () => {
         .filter(line => line.trim() !== '')
         .map(line => line.trim());
       
-      // Prepare the payload based on the API requirements
+      // Prepare the payload according to the new API requirements
       const submitData = {
         name: plan.name,
-        description: features.join('\n'), // Store features as newline-separated text in description
-        price: parseFloat(plan.price),
-        duration_days: plan.duration_days
+        description: features, // Send as array
+        price: plan.price, // Send as number
+        duration_days: plan.duration_days,
+        for_type: plan.for_type || plan.name // Use plan name as default for_type
       };
+      
+      console.log('Submitting plan data:', submitData);
       
       const url = isEditMode 
         ? `${BASE_URL}subscriptions/update/${planId}/`
@@ -149,7 +154,8 @@ const SubscriptionPlanEditor = () => {
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to ${isEditMode ? 'update' : 'create'} subscription plan`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to ${isEditMode ? 'update' : 'create'} subscription plan`);
       }
       
       // Invalidate and refetch subscription plans data after successful creation/update
@@ -168,7 +174,7 @@ const SubscriptionPlanEditor = () => {
       console.error(`Error ${isEditMode ? 'updating' : 'creating'} plan:`, error);
       toast({
         title: "Error",
-        description: `Failed to ${isEditMode ? 'update' : 'create'} subscription plan.`,
+        description: error instanceof Error ? error.message : `Failed to ${isEditMode ? 'update' : 'create'} subscription plan.`,
         variant: "destructive"
       });
     } finally {
@@ -219,19 +225,33 @@ const SubscriptionPlanEditor = () => {
                 required
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="for_type">Plan Type</Label>
+              <Input 
+                id="for_type"
+                name="for_type"
+                value={plan.for_type}
+                onChange={handleChange}
+                placeholder="e.g., Individual, Business, Enterprise"
+                required
+              />
+            </div>
             
             <div className="space-y-2">
               <Label htmlFor="price">Monthly Price ($)</Label>
               <Input 
                 id="price"
                 name="price"
+                type="number"
+                step="0.01"
+                min="0"
                 value={plan.price}
                 onChange={handleChange}
                 placeholder="e.g., 19.99"
                 required
-                pattern="^\d+(\.\d{1,2})?$"
               />
-              <p className="text-xs text-muted-foreground">Enter price without currency symbol</p>
+              <p className="text-xs text-muted-foreground">Enter price as a number</p>
             </div>
             
             <div className="space-y-2">
@@ -258,7 +278,7 @@ const SubscriptionPlanEditor = () => {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Enter each feature on a separate line. These will be displayed as badges.
+                Enter each feature on a separate line. These will be sent as an array to the API.
               </p>
             </div>
           </CardContent>

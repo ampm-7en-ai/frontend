@@ -148,32 +148,57 @@ const BillingSettings = () => {
         throw new Error('Authentication token not found');
       }
       
+      console.log('Deleting subscription plan with ID:', planToDelete.id);
+      
       const response = await fetch(`${BASE_URL}subscriptions/delete/${planToDelete.id}/`, {
         method: 'DELETE',
         headers: getAuthHeaders(token)
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to delete subscription plan');
+      console.log('Delete response status:', response.status);
+      
+      // Check if the response is successful (2xx status codes)
+      if (response.ok) {
+        // Try to parse JSON response, but don't fail if it's empty
+        let responseData = null;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            responseData = await response.json();
+            console.log('Delete response data:', responseData);
+          } catch (parseError) {
+            console.log('No JSON response body or failed to parse, but delete was successful');
+          }
+        }
+        
+        // Refetch subscription plans after successful deletion
+        await refetchSubscriptionPlans();
+        
+        toast({
+          title: "Plan Deleted",
+          description: responseData?.message || "Subscription plan has been deleted successfully.",
+        });
+        
+        setIsDeleteDialogOpen(false);
+        setPlanToDelete(undefined);
+      } else {
+        // Handle error responses
+        let errorMessage = 'Failed to delete subscription plan';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (parseError) {
+          console.log('Failed to parse error response');
+        }
+        
+        throw new Error(errorMessage);
       }
-      
-      const data = await response.json();
-      
-      // Refetch subscription plans after deletion
-      await refetchSubscriptionPlans();
-      
-      toast({
-        title: "Plan Deleted",
-        description: data.message || "Subscription plan has been deleted successfully.",
-      });
-      
-      setIsDeleteDialogOpen(false);
-      setPlanToDelete(undefined);
     } catch (error) {
       console.error('Error deleting plan:', error);
       toast({
         title: "Error",
-        description: "Failed to delete subscription plan.",
+        description: error instanceof Error ? error.message : "Failed to delete subscription plan.",
         variant: "destructive"
       });
     } finally {
