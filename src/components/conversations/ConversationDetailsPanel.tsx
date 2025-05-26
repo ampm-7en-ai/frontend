@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -112,7 +111,13 @@ const ConversationDetailsPanel = ({
     }
   };
 
+  const handleOpenDialog = () => {
+    console.log('Opening dialog');
+    setShowTicketDialog(true);
+  };
+
   const handleCloseDialog = () => {
+    console.log('Closing dialog');
     setShowTicketDialog(false);
     setTicketCreated(false);
     setTicketSubject('');
@@ -264,9 +269,9 @@ const ConversationDetailsPanel = ({
       
       {/* Create Ticket Button and Dialog */}
       <div className="pt-2">
-        <Dialog open={showTicketDialog} onOpenChange={handleCloseDialog}>
+        <Dialog open={showTicketDialog} onOpenChange={setShowTicketDialog}>
           <DialogTrigger asChild>
-            <Button className="w-full">
+            <Button className="w-full" onClick={handleOpenDialog}>
               <Ticket className="h-4 w-4 mr-2" />
               Create Support Ticket
             </Button>
