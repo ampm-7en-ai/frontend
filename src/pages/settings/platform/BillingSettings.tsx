@@ -29,7 +29,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
-import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
+import { API_ENDPOINTS, BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoiceDialog';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
@@ -43,46 +43,6 @@ interface Invoice {
   date: string;
 }
 
-// Function to fetch subscription plans directly in the BillingSettings component
-const fetchSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
-  console.log('Fetching subscription plans data directly from BillingSettings...');
-  try {
-    const response = await fetch(`${BASE_URL}subscriptions/`, {
-      method: 'GET',
-      headers: getAuthHeaders(token),
-    });
-
-    if (!response.ok) {
-      console.error(`Subscription plans API error: ${response.status}`);
-      throw new Error('Failed to fetch subscription plans');
-    }
-
-    const data = await response.json();
-    console.log('Subscription plans data received:', data);
-    
-    // Extract unique plans from the subscriptions data
-    const plansMap = new Map<number, SubscriptionPlan>();
-    data.forEach((subscription: any) => {
-      if (subscription.plan && !plansMap.has(subscription.plan.id)) {
-        plansMap.set(subscription.plan.id, {
-          ...subscription.plan,
-          // Convert features from description if needed
-          features: subscription.plan.description?.split('\n').filter((line: string) => line.trim() !== '') || []
-        });
-      }
-    });
-    
-    return Array.from(plansMap.values());
-  } catch (error) {
-    console.error('Error fetching subscription plans:', error);
-    return [];
-  }
-};
 
 const BillingSettings = () => {
   const { toast } = useToast();
@@ -95,10 +55,13 @@ const BillingSettings = () => {
   // Use the updated useSubscription hook with options
   const { 
     subscriptionPlans, 
+    invoicesList,
+    isLoadingInvoices,
+    invoiceError,
     isLoadingSubscriptionPlans,
     subscriptionPlansError,
     refetchSubscriptionPlans
-  } = useSubscription({ fetchCurrent: false, fetchAllPlans: true });
+  } = useSubscription({ fetchCurrent: false, fetchAllPlans: true, fetchInvoice: true });
 
   // Invoice management state
   const [invoices, setInvoices] = useState<Invoice[]>([
@@ -119,8 +82,8 @@ const BillingSettings = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Filter invoices based on search and status
-  const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredInvoices = invoicesList.filter(invoice => {
+    const matchesSearch = invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
                         invoice.business.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -235,7 +198,7 @@ const BillingSettings = () => {
 
   const handleCreateInvoice = (invoice: Omit<Invoice, 'id'>) => {
     const newInvoice: Invoice = {
-      id: `INV-2025-${String(invoices.length + 1).padStart(3, '0')}`,
+      id: `INV-2025-${String(invoicesList.length + 1).padStart(3, '0')}`,
       ...invoice
     };
     
@@ -417,7 +380,7 @@ const BillingSettings = () => {
                     {currentInvoices.length > 0 ? (
                       currentInvoices.map((invoice) => (
                         <TableRow key={invoice.id}>
-                          <TableCell className="font-medium">{invoice.id}</TableCell>
+                          <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                           <TableCell>{invoice.business}</TableCell>
                           <TableCell>{invoice.amount}</TableCell>
                           <TableCell>
@@ -434,7 +397,7 @@ const BillingSettings = () => {
                           </TableCell>
                           <TableCell>{invoice.date}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => window.location.href=`https://invoice.stripe.com/i/acct_abcdefghijklmno/${invoice.stripe_invoice_id}?s=em`}>
                               <FileText className="h-4 w-4 mr-1" /> 
                               View
                             </Button>

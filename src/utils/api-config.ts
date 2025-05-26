@@ -36,6 +36,11 @@ export const API_ENDPOINTS = {
   
   // Admin endpoints
   ADMIN_BUSINESSES: "admin/businesses/",
+
+  //Super Admin endpoints
+  GET_INVOICE: "subscriptions/invoices/",
+  GET_SUBSCRIPTION: "subscriptions/",
+  GET_CURRENT_SUBSCRIPTION: "subscriptions/current/"
 };
 
 // Function to get knowledge base endpoint with optional agent ID

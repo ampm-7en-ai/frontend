@@ -13,6 +13,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Bot } from 'lucide-react';
+import { BASE_URL } from '@/utils/api-config';
 
 interface ChatbotConfig {
   agentId: string;
@@ -102,7 +103,7 @@ const SearchAssistant = () => {
     const fetchConfig = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`https://api-staging.7en.ai/api/chatbot-config?agentId=${agentId}`);
+        const response = await fetch(`${BASE_URL}chatbot-config?agentId=${agentId}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch config: ${response.status}`);

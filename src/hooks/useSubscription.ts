@@ -1,6 +1,6 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
+import { API_ENDPOINTS, BASE_URL, getAuthHeaders } from "@/utils/api-config";
 
 export interface SubscriptionPlan {
   id: number;
@@ -28,6 +28,46 @@ export interface Subscription {
 interface UseSubscriptionOptions {
   fetchCurrent?: boolean;
   fetchAllPlans?: boolean;
+  fetchInvoice?: boolean;
+}
+
+interface Invoice {
+  id: number;
+  invoice_number: string;
+  business: string;
+  amount: number;
+  status: string;
+  date: string;
+  stripe_invoice_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+async function fetchInvoices(): Promise<Invoice[]> {
+const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
+  if (!token) {
+    throw new Error('Authentication token not found');
+  }
+  try {
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.GET_INVOICE}`, {
+      method: 'GET',
+      headers: getAuthHeaders(token),
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Invoices');
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    return null;
+  }
+
 }
 
 async function fetchCurrentSubscription(): Promise<Subscription | null> {
@@ -38,7 +78,7 @@ async function fetchCurrentSubscription(): Promise<Subscription | null> {
 
   console.log('Fetching subscription data from API...');
   try {
-    const response = await fetch(`${BASE_URL}subscriptions/current/`, {
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.GET_CURRENT_SUBSCRIPTION}`, {
       method: 'GET',
       headers: getAuthHeaders(token),
     });
@@ -70,7 +110,7 @@ async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
 
   console.log('Fetching all subscription plans data from API...');
   try {
-    const response = await fetch(`${BASE_URL}subscriptions/`, {
+    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.GET_SUBSCRIPTION}`, {
       method: 'GET',
       headers: getAuthHeaders(token),
     });
@@ -98,8 +138,8 @@ async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
   }
 }
 
-export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent: true, fetchAllPlans: true }) {
-  const { fetchCurrent = true, fetchAllPlans = true } = options;
+export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent: true, fetchAllPlans: true, fetchInvoice: true }) {
+  const { fetchCurrent = true, fetchAllPlans = true, fetchInvoice = true } = options;
   const queryClient = useQueryClient();
   
   const currentSubscriptionQuery = useQuery({
@@ -119,6 +159,15 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
     retry: 1,
     enabled: fetchAllPlans, // Only fetch if option is true
   });
+
+  const InvoiceQuery = useQuery({
+    queryKey: ['invoice'],
+    queryFn: fetchInvoices,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: true,
+    retry: 1,
+    enabled: fetchInvoice, // Only fetch if option is true
+  });
   
   // Function to force refetch subscription plans
   const refetchSubscriptionPlans = async () => {
@@ -131,6 +180,9 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
     isLoadingCurrentSubscription: currentSubscriptionQuery.isLoading,
     currentSubscriptionError: currentSubscriptionQuery.error,
     subscriptionPlans: subscriptionPlansQuery.data || [],
+    invoicesList: InvoiceQuery.data || [],
+    isLoadingInvoices: InvoiceQuery.isLoading,
+    invoiceError: InvoiceQuery.error,
     isLoadingSubscriptionPlans: subscriptionPlansQuery.isLoading,
     subscriptionPlansError: subscriptionPlansQuery.error,
     refetchCurrentSubscription: currentSubscriptionQuery.refetch,
