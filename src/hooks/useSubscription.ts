@@ -84,11 +84,11 @@ async function fetchAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     console.log('Subscription plans data received:', data);
     
     // Process the subscription plans data
-    // The API returns an array of plans directly, so we can use it as is
-    const plans = data.map((plan: SubscriptionPlan) => ({
+    // The API returns an array of plans directly, and description is already an array
+    const plans = data.map((plan: any) => ({
       ...plan,
-      // Convert features from description if needed
-      features: plan.description?.split('\n').filter((line: string) => line.trim() !== '') || []
+      // Use description array directly as features, no need to split
+      features: Array.isArray(plan.description) ? plan.description : []
     }));
     
     return plans;
