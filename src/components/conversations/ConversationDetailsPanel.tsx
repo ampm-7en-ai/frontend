@@ -4,9 +4,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Bot, HelpCircle, Info, Ticket, User, Smile, Clock, Tag, CreditCard } from 'lucide-react';
+import { Bot, HelpCircle, Info, Ticket, User, Smile, Clock, Tag, CreditCard, CheckCircle } from 'lucide-react';
 import HandoffHistory from './HandoffHistory';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useToast } from '@/hooks/use-toast';
+import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
+import { useAuth } from '@/context/AuthContext';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -31,8 +35,13 @@ const ConversationDetailsPanel = ({
 }: ConversationDetailsPanelProps) => {
   const [showTicketDialog, setShowTicketDialog] = useState(false);
   const [ticketSubject, setTicketSubject] = useState('');
-  const [ticketPriority, setTicketPriority] = useState('medium');
+  const [ticketPriority, setTicketPriority] = useState('2'); // Default to medium (2)
   const [ticketDescription, setTicketDescription] = useState('');
+  const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+  const [ticketCreated, setTicketCreated] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const { toast } = useToast();
+  const { getToken } = useAuth();
 
   if (!conversation) {
     return (
@@ -45,10 +54,71 @@ const ConversationDetailsPanel = ({
     );
   }
 
-  const handleCreateTicket = () => {
-    // Implement ticket creation functionality here
-    alert(`Creating ticket: ${ticketSubject} (${ticketPriority} priority)`);
+  const handleCreateTicket = async () => {
+    if (!ticketSubject.trim() || !ticketDescription.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingTicket(true);
+    
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const payload = {
+        session_id: conversation.id,
+        subject: ticketSubject,
+        description: ticketDescription,
+        priority: parseInt(ticketPriority)
+      };
+
+      const response = await fetch(`${BASE_URL}chat/tickets/create/`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create ticket');
+      }
+
+      const result = await response.json();
+      
+      // Show success state
+      setTicketCreated(true);
+      setSuccessMessage(result.message || 'Ticket created successfully!');
+      
+      toast({
+        title: "Success",
+        description: "Support ticket created successfully",
+      });
+
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create ticket. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingTicket(false);
+    }
+  };
+
+  const handleCloseDialog = () => {
     setShowTicketDialog(false);
+    setTicketCreated(false);
+    setTicketSubject('');
+    setTicketDescription('');
+    setTicketPriority('2');
+    setSuccessMessage('');
   };
 
   // Helper function to get sentiment score as a percentage
@@ -128,7 +198,7 @@ const ConversationDetailsPanel = ({
       
       <Separator />
       
-      {/* New Customer Context Section */}
+      {/* Customer Context Section */}
       <div>
         <h3 className="text-sm font-medium mb-3 flex items-center">
           <Info className="h-4 w-4 mr-1" />
@@ -194,7 +264,7 @@ const ConversationDetailsPanel = ({
       
       {/* Create Ticket Button and Dialog */}
       <div className="pt-2">
-        <Dialog open={showTicketDialog} onOpenChange={setShowTicketDialog}>
+        <Dialog open={showTicketDialog} onOpenChange={handleCloseDialog}>
           <DialogTrigger asChild>
             <Button className="w-full">
               <Ticket className="h-4 w-4 mr-2" />
@@ -208,48 +278,80 @@ const ConversationDetailsPanel = ({
                 Create a new support ticket in Freshdesk for this conversation.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Subject</label>
-                <input
-                  className="w-full text-sm border rounded p-2"
-                  placeholder="Ticket subject"
-                  value={ticketSubject}
-                  onChange={(e) => setTicketSubject(e.target.value)}
-                />
+            
+            {!ticketCreated ? (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Subject *</label>
+                  <input
+                    className="w-full text-sm border rounded p-2"
+                    placeholder="Ticket subject"
+                    value={ticketSubject}
+                    onChange={(e) => setTicketSubject(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Priority</label>
+                  <Select value={ticketPriority} onValueChange={setTicketPriority}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Low</SelectItem>
+                      <SelectItem value="2">Medium</SelectItem>
+                      <SelectItem value="3">High</SelectItem>
+                      <SelectItem value="4">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Description *</label>
+                  <textarea
+                    className="w-full text-sm border rounded p-2 min-h-[100px]"
+                    placeholder="Ticket description"
+                    value={ticketDescription}
+                    onChange={(e) => setTicketDescription(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={handleCloseDialog}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleCreateTicket} 
+                    disabled={!ticketSubject.trim() || !ticketDescription.trim() || isCreatingTicket}
+                  >
+                    {isCreatingTicket ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Ticket className="h-4 w-4 mr-2" />
+                        Create Ticket
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Priority</label>
-                <select 
-                  className="w-full text-sm border rounded p-1.5"
-                  value={ticketPriority}
-                  onChange={(e) => setTicketPriority(e.target.value)}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
+            ) : (
+              <div className="py-8 text-center space-y-4">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-green-600">Ticket Created Successfully!</h3>
+                  <p className="text-sm text-muted-foreground mt-2">{successMessage}</p>
+                </div>
+                <Button onClick={handleCloseDialog} className="w-full">
+                  Close
+                </Button>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <textarea
-                  className="w-full text-sm border rounded p-2 min-h-[100px]"
-                  placeholder="Ticket description"
-                  value={ticketDescription}
-                  onChange={(e) => setTicketDescription(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowTicketDialog(false)}>Cancel</Button>
-              <Button onClick={handleCreateTicket} disabled={!ticketSubject}>
-                <Ticket className="h-4 w-4 mr-2" />
-                Create Ticket
-              </Button>
-            </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
