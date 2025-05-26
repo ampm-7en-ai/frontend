@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import UsageSection from '@/components/settings/business/UsageSection';
@@ -10,6 +9,7 @@ import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAge
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PricingModal } from '@/components/settings/PricingModal';
 import { CurrentPlanCard } from '@/components/settings/business/CurrentPlanCard';
+import { PaymentStatusBanner } from '@/components/settings/PaymentStatusBanner';
 
 const BusinessSettings = () => {
   const { data: settingsData, isLoading, error } = useSettings();
@@ -51,6 +51,8 @@ const BusinessSettings = () => {
           Settings for your organization. You can manage your organization details, plan, connected accounts, and API keys here.
         </p>
       </div>
+
+      <PaymentStatusBanner />
 
       <CurrentPlanCard />
 
