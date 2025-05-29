@@ -56,9 +56,9 @@ export const ChatboxPreview = ({
   const { toast } = useToast();
 
  
-  useEffect(() => {
-    setMessages([{ type: 'bot_response', content: welcomeMessage, timestamp: new Date().toISOString() }]);
-  }, [welcomeMessage]);
+  // useEffect(() => {
+  //   setMessages([{ type: 'bot_response', content: welcomeMessage, timestamp: new Date().toISOString() }]);
+  // }, [welcomeMessage]);
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {

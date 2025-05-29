@@ -355,7 +355,7 @@ const KnowledgeBaseCard = ({
           </div>
           
           <CollapsibleContent>
-            <div className="px-4 py-2 space-y-1">
+            <div key={knowledgeBase.id} className="px-4 py-2 space-y-1">
               {knowledgeBase.knowledge_sources.map((source, index) => {
                 const isWebsite = knowledgeBase.type.toLowerCase() === 'website';
                 

@@ -10,8 +10,8 @@ export interface TrainingResponse {
 }
 
 export const AgentTrainingService = {
-  async trainAgent(agentId: string, knowledgeSources: number[] = [], agentName: string): Promise<boolean> {
-    console.log("Training agent started:", { agentId, agentName, knowledgeSources });
+  async trainAgent(agentId: string, knowledgeSources: number[] = [], agentName: string, selectedUrls: string[] = []): Promise<boolean> {
+   // console.log("Training agent started:", { agentId, agentName, knowledgeSources });
     
     // Problem: We can't use hooks like useNotifications inside a regular function
     // Solution: We need to accept the addNotification function as a parameter
@@ -35,7 +35,8 @@ export const AgentTrainingService = {
         headers: getAuthHeaders(token),
         body: JSON.stringify({
           agent_id: agentId,
-          knowledge_sources: knowledgeSources
+          knowledge_sources: knowledgeSources,
+          selected_urls: selectedUrls
         })
       });
       

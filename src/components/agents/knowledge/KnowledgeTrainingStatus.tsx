@@ -241,10 +241,16 @@ const KnowledgeTrainingStatus = ({
         .flatMap(kb => kb.knowledge_sources || [])
         .filter(source => source.is_selected !== false)
         .map(s => s.id);
-      
-      console.log("Training with knowledge sources:", knowledgeSourceIds);
-      
-      const success = await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds, agentName);
+
+      const websiteSource = agentKnowledgeBases
+      .flatMap(kb => kb.type === "website" ? kb.knowledge_sources : [])
+      .filter(source => source.is_selected !== false)
+      .flatMap(s => s.sub_urls.children)
+      .filter(su => su.is_selected !== false)
+      .map(url => url.url);
+
+     
+      const success = await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds, agentName, websiteSource);
       
       if (success) {
         addNotification({
