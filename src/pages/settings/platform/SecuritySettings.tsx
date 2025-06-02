@@ -12,6 +12,7 @@ import { PermissionProvider, Permission } from '@/context/PermissionContext';
 import RoleEditDialog, { Role } from '@/components/settings/platform/RoleEditDialog';
 import RoleCreateDialog from '@/components/settings/platform/RoleCreateDialog';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
+import { useAuditLogs } from '@/hooks/useAuditLogs';
 
 interface RolesResponse {
   message: string;
@@ -28,7 +29,17 @@ const SecuritySettings = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const {getToken} = useAuth();
+  const { getToken } = useAuth();
+  
+  // Use the audit logs hook
+  const {
+    logs: auditLogs,
+    isLoading: isAuditLogsLoading,
+    activePeriod,
+    setPeriod,
+    formatEventType,
+    formatTimestamp
+  } = useAuditLogs();
 
   const fetchRoles = async () => {
     try {
@@ -81,6 +92,13 @@ const SecuritySettings = () => {
   const handleCloseCreateDialog = () => {
     setIsCreateDialogOpen(false);
   };
+
+  const periodButtons = [
+    { key: 'today', label: 'Today' },
+    { key: 'week', label: 'This Week' },
+    { key: 'month', label: 'This Month' },
+    { key: '3months', label: 'Past 3 Months' }
+  ] as const;
 
   return (
     <PermissionProvider>
@@ -175,50 +193,74 @@ const SecuritySettings = () => {
                     <Button variant="outline" size="sm">Export</Button>
                   </div>
                   <div className="space-x-2">
-                    <Button variant="outline" size="sm">Today</Button>
-                    <Button variant="outline" size="sm">This Week</Button>
-                    <Button variant="outline" size="sm">This Month</Button>
+                    {periodButtons.map(({ key, label }) => (
+                      <Button
+                        key={key}
+                        variant={activePeriod === key ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPeriod(key)}
+                      >
+                        {label}
+                      </Button>
+                    ))}
                   </div>
                 </div>
                 
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead>Details</TableHead>
-                      <TableHead className="text-right">IP Address</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>2025-05-06 14:32</TableCell>
-                      <TableCell>admin@example.com</TableCell>
-                      <TableCell>Agent Creation</TableCell>
-                      <TableCell>Created Support Agent "Tier 2 Support"</TableCell>
-                      <TableCell className="text-right">192.168.1.105</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>2025-05-06 13:15</TableCell>
-                      <TableCell>superadmin@example.com</TableCell>
-                      <TableCell>Business Update</TableCell>
-                      <TableCell>Updated quota for "Acme Corp"</TableCell>
-                      <TableCell className="text-right">192.168.1.42</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>2025-05-05 09:45</TableCell>
-                      <TableCell>admin@example.com</TableCell>
-                      <TableCell>Role Modification</TableCell>
-                      <TableCell>Added "Invoice Access" to Billing Role</TableCell>
-                      <TableCell className="text-right">192.168.1.105</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                {isAuditLogsLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+                    <span className="ml-2 text-sm text-muted-foreground">Loading audit logs...</span>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date & Time</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Entity</TableHead>
+                        <TableHead>Details</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">IP Address</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {auditLogs.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                            No audit logs found for the selected period.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        auditLogs.map((log) => (
+                          <TableRow key={log.id}>
+                            <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
+                            <TableCell>User ID: {log.user}</TableCell>
+                            <TableCell>{formatEventType(log.event_type)}</TableCell>
+                            <TableCell>{log.entity_type} #{log.entity_id}</TableCell>
+                            <TableCell>
+                              {log.details.name ? `Name: ${log.details.name}` : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={log.status === 'success' ? 'success' : 'destructive'}>
+                                {log.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {log.ip_address || 'N/A'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
                 
-                <div className="flex justify-center">
-                  <Button variant="outline" size="sm">Load More</Button>
-                </div>
+                {auditLogs.length > 0 && (
+                  <div className="flex justify-center">
+                    <Button variant="outline" size="sm">Load More</Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
