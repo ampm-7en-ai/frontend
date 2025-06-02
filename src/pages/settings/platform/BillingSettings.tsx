@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +19,8 @@ import {
   Edit, 
   Trash2,
   FileText,
-  CreditCard
+  CreditCard,
+  Loader2
 } from 'lucide-react';
 import { 
   Pagination, 
@@ -34,6 +35,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoiceDialog';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 import DeleteSubscriptionPlanDialog from '@/components/settings/platform/DeleteSubscriptionPlanDialog';
+import { useBillingConfig, useUpdateBillingConfig } from '@/hooks/useBillingConfig';
 
 interface Invoice {
   id: string;
@@ -43,7 +45,6 @@ interface Invoice {
   date: string;
 }
 
-
 const BillingSettings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -51,6 +52,21 @@ const BillingSettings = () => {
   const [planToDelete, setPlanToDelete] = useState<SubscriptionPlan | undefined>(undefined);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Billing configuration state
+  const { data: billingConfig, isLoading: isLoadingConfig, error: configError } = useBillingConfig();
+  const updateConfigMutation = useUpdateBillingConfig();
+  
+  const [defaultCurrency, setDefaultCurrency] = useState('usd');
+  const [defaultTaxRate, setDefaultTaxRate] = useState('10');
+  const [enableAutoRenewal, setEnableAutoRenewal] = useState(true);
+  const [enableProration, setEnableProration] = useState(true);
+  const [autoSendReceipts, setAutoSendReceipts] = useState(true);
+  const [companyName, setCompanyName] = useState('7en AI Inc.');
+  const [companyAddress, setCompanyAddress] = useState('123 AI Street, San Francisco, CA 94103, USA');
+  const [invoiceFooter, setInvoiceFooter] = useState('Thank you for your business. Please contact billing@example.com for any questions.');
+  const [reminderDays, setReminderDays] = useState('3');
+  const [overdueNotifications, setOverdueNotifications] = useState(true);
   
   // Use the updated useSubscription hook with options
   const { 
@@ -62,6 +78,52 @@ const BillingSettings = () => {
     subscriptionPlansError,
     refetchSubscriptionPlans
   } = useSubscription({ fetchCurrent: false, fetchAllPlans: true, fetchInvoice: true });
+
+  // Update form data when billing config is loaded
+  useEffect(() => {
+    if (billingConfig) {
+      setDefaultCurrency(billingConfig.default_currency.toLowerCase());
+      setDefaultTaxRate(billingConfig.default_tax_rate);
+      setEnableAutoRenewal(billingConfig.enable_auto_renewal);
+      setEnableProration(billingConfig.enable_proration);
+      setAutoSendReceipts(billingConfig.auto_send_receipts);
+      setCompanyName(billingConfig.company_name);
+      setCompanyAddress(billingConfig.company_address);
+      setInvoiceFooter(billingConfig.invoice_footer_text);
+      setReminderDays(billingConfig.payment_reminder_days.toString());
+      setOverdueNotifications(billingConfig.enable_overdue_notifications);
+    }
+  }, [billingConfig]);
+
+  const handleSaveBillingSettings = async () => {
+    try {
+      const configData = {
+        default_currency: defaultCurrency.toUpperCase(),
+        default_tax_rate: parseFloat(defaultTaxRate),
+        enable_auto_renewal: enableAutoRenewal,
+        enable_proration: enableProration,
+        auto_send_receipts: autoSendReceipts,
+        company_name: companyName,
+        company_address: companyAddress,
+        invoice_footer_text: invoiceFooter,
+        payment_reminder_days: parseInt(reminderDays),
+        enable_overdue_notifications: overdueNotifications,
+      };
+
+      await updateConfigMutation.mutateAsync(configData);
+
+      toast({
+        title: "Settings Saved",
+        description: "Billing configuration has been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save billing settings. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Invoice management state
   const [invoices, setInvoices] = useState<Invoice[]>([
@@ -462,75 +524,138 @@ const BillingSettings = () => {
               <CardDescription>Manage global billing settings and defaults</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">General Settings</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="billingCurrency">Default Currency</Label>
-                    <Select defaultValue="usd">
-                      <SelectTrigger id="billingCurrency">
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="usd">USD ($)</SelectItem>
-                        <SelectItem value="eur">EUR (€)</SelectItem>
-                        <SelectItem value="gbp">GBP (£)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="taxRate">Default Tax Rate (%)</Label>
-                    <Input id="taxRate" type="number" defaultValue="10" />
-                  </div>
+              {isLoadingConfig ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading billing configuration...</span>
                 </div>
-                
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="autoRenew" defaultChecked />
-                    <Label htmlFor="autoRenew">Enable Auto-Renewal by Default</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="prorateBilling" defaultChecked />
-                    <Label htmlFor="prorateBilling">Enable Proration for Plan Changes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="sendReceipts" defaultChecked />
-                    <Label htmlFor="sendReceipts">Automatically Send Receipts</Label>
-                  </div>
+              ) : configError ? (
+                <div className="text-center py-8 text-red-600">
+                  Failed to load billing configuration. Please try again.
                 </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Invoice Settings</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">Company Name</Label>
-                    <Input id="companyName" defaultValue="7en AI Inc." />
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">General Settings</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="billingCurrency">Default Currency</Label>
+                        <Select value={defaultCurrency} onValueChange={setDefaultCurrency}>
+                          <SelectTrigger id="billingCurrency">
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="usd">USD ($)</SelectItem>
+                            <SelectItem value="eur">EUR (€)</SelectItem>
+                            <SelectItem value="gbp">GBP (£)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="taxRate">Default Tax Rate (%)</Label>
+                        <Input 
+                          id="taxRate" 
+                          type="number" 
+                          value={defaultTaxRate}
+                          onChange={(e) => setDefaultTaxRate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id="autoRenew" 
+                          checked={enableAutoRenewal}
+                          onCheckedChange={setEnableAutoRenewal}
+                        />
+                        <Label htmlFor="autoRenew">Enable Auto-Renewal by Default</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id="prorateBilling" 
+                          checked={enableProration}
+                          onCheckedChange={setEnableProration}
+                        />
+                        <Label htmlFor="prorateBilling">Enable Proration for Plan Changes</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id="sendReceipts" 
+                          checked={autoSendReceipts}
+                          onCheckedChange={setAutoSendReceipts}
+                        />
+                        <Label htmlFor="sendReceipts">Automatically Send Receipts</Label>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="companyAddress">Company Address</Label>
-                    <Textarea id="companyAddress" defaultValue="123 AI Street, San Francisco, CA 94103, USA" />
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Invoice Settings</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="companyName">Company Name</Label>
+                        <Input 
+                          id="companyName" 
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="companyAddress">Company Address</Label>
+                        <Textarea 
+                          id="companyAddress" 
+                          value={companyAddress}
+                          onChange={(e) => setCompanyAddress(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invoiceFooter">Invoice Footer Text</Label>
+                      <Textarea 
+                        id="invoiceFooter" 
+                        value={invoiceFooter}
+                        onChange={(e) => setInvoiceFooter(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="invoiceFooter">Invoice Footer Text</Label>
-                  <Textarea id="invoiceFooter" defaultValue="Thank you for your business. Please contact billing@example.com for any questions." />
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Reminders & Notifications</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="reminderDays">Send Payment Reminder (days before due date)</Label>
-                  <Input id="reminderDays" type="number" defaultValue="3" />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch id="overdueNotifications" defaultChecked />
-                  <Label htmlFor="overdueNotifications">Enable Overdue Payment Notifications</Label>
-                </div>
-              </div>
-              
-              <Button>Save Settings</Button>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Reminders & Notifications</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="reminderDays">Send Payment Reminder (days before due date)</Label>
+                      <Input 
+                        id="reminderDays" 
+                        type="number" 
+                        value={reminderDays}
+                        onChange={(e) => setReminderDays(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="overdueNotifications" 
+                        checked={overdueNotifications}
+                        onCheckedChange={setOverdueNotifications}
+                      />
+                      <Label htmlFor="overdueNotifications">Enable Overdue Payment Notifications</Label>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleSaveBillingSettings}
+                    disabled={updateConfigMutation.isPending}
+                  >
+                    {updateConfigMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Settings'
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
