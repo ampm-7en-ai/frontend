@@ -7,6 +7,8 @@ import { Bot, HelpCircle, Info, Ticket, User, Smile, Clock, Tag, CreditCard, Che
 import HandoffHistory from './HandoffHistory';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +38,7 @@ const ConversationDetailsPanel = ({
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketPriority, setTicketPriority] = useState('2'); // Default to medium (2)
   const [ticketDescription, setTicketDescription] = useState('');
+  const [ticketProvider, setTicketProvider] = useState('freshdesk'); // Default to freshdesk
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [ticketCreated, setTicketCreated] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -75,7 +78,8 @@ const ConversationDetailsPanel = ({
         session_id: conversation.id,
         subject: ticketSubject,
         description: ticketDescription,
-        priority: parseInt(ticketPriority)
+        priority: parseInt(ticketPriority),
+        provider: ticketProvider
       };
 
       const response = await fetch(`${BASE_URL}chat/tickets/create/`, {
@@ -123,6 +127,7 @@ const ConversationDetailsPanel = ({
     setTicketSubject('');
     setTicketDescription('');
     setTicketPriority('2');
+    setTicketProvider('freshdesk');
     setSuccessMessage('');
   };
 
@@ -278,14 +283,28 @@ const ConversationDetailsPanel = ({
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Create Freshdesk Ticket</DialogTitle>
+              <DialogTitle>Create Support Ticket</DialogTitle>
               <DialogDescription>
-                Create a new support ticket in Freshdesk for this conversation.
+                Create a new support ticket for this conversation.
               </DialogDescription>
             </DialogHeader>
             
             {!ticketCreated ? (
               <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Provider *</label>
+                  <RadioGroup value={ticketProvider} onValueChange={setTicketProvider} className="flex space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="freshdesk" id="freshdesk" />
+                      <Label htmlFor="freshdesk">Freshdesk</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="zendesk" id="zendesk" />
+                      <Label htmlFor="zendesk">Zendesk</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Subject *</label>
                   <input
