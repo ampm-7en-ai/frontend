@@ -263,11 +263,12 @@ const SecuritySettings = () => {
                           auditLogs.map((log) => (
                             <TableRow key={log.id}>
                               <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
-                              <TableCell>User ID: {log.user}</TableCell>
+                              <TableCell><a href={"/businesses/"+log.user} target='_blank'>{log.user}</a></TableCell>
                               <TableCell>{formatEventType(log.event_type)}</TableCell>
                               <TableCell>{log.entity_type} #{log.entity_id}</TableCell>
                               <TableCell>
-                                {log.details.name ? `Name: ${log.details.name}` : 'N/A'}
+                                {log.details.name ? `Name: ${log.details.name}` : log.details.message ? `Message: ${log.details.message}` : 'N/A'}
+                               
                               </TableCell>
                               <TableCell>
                                 <Badge variant={log.status === 'success' ? 'success' : 'destructive'}>
