@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,31 +13,55 @@ import { FileChartLine, Plus, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AddProviderDialog from '@/components/settings/platform/AddProviderDialog';
 import EditProviderDialog from '@/components/settings/platform/EditProviderDialog';
+import AddAgentPromptDialog from '@/components/settings/platform/AddAgentPromptDialog';
 import { useLLMProviders, LLMProvider } from '@/hooks/useLLMProviders';
+import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 
 const LLMProvidersSettings = () => {
-  const [selectedAgentType, setSelectedAgentType] = useState('support');
+  const [selectedAgentType, setSelectedAgentType] = useState('Customer Support');
   const [openAnalyticsDialog, setOpenAnalyticsDialog] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState('');
   const [isAddProviderDialogOpen, setIsAddProviderDialogOpen] = useState(false);
   const [isEditProviderDialogOpen, setIsEditProviderDialogOpen] = useState(false);
   const [editingProvider, setEditingProvider] = useState<LLMProvider | null>(null);
+  const [isAddPromptDialogOpen, setIsAddPromptDialogOpen] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [enableFallback, setEnableFallback] = useState(true);
+  const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   
   const { providers, isLoading, refetch, updateProvider } = useLLMProviders();
+  const { prompts, isLoading: isLoadingPrompts, createPrompt, updatePrompt } = useAgentPrompts();
 
-  // System prompts by agent type
-  const systemPrompts = {
-    support: "You are a helpful customer support AI assistant. Help users with their questions and provide accurate information about our products and services.",
-    technical: "You are a technical support AI assistant with detailed knowledge about our systems. Provide troubleshooting steps and technical guidance to users.",
-    sales: "You are a sales AI assistant focused on helping potential customers understand the benefits and features of our products to assist them in making purchase decisions.",
-    custom: "Custom system prompt for specialized use cases. Configure this prompt based on your specific requirements."
+  const getCurrentPrompt = () => {
+    return prompts.find(p => p.agent_type === selectedAgentType);
   };
 
-  const handleAgentTypeChange = (value) => {
+  const currentPrompt = getCurrentPrompt();
+
+  // Update form when agent type changes
+  React.useEffect(() => {
+    const prompt = getCurrentPrompt();
+    if (prompt) {
+      setSystemPrompt(prompt.system_prompt);
+      setEnableFallback(prompt.enable_fallback);
+    } else {
+      // Set default prompts if no saved prompt exists
+      const defaultPrompts = {
+        'Customer Support': "You are a helpful customer support AI assistant. Help users with their questions and provide accurate information about our products and services.",
+        'Technical Support': "You are a technical support AI assistant with detailed knowledge about our systems. Provide troubleshooting steps and technical guidance to users.",
+        'Sales': "You are a sales AI assistant focused on helping potential customers understand the benefits and features of our products to assist them in making purchase decisions.",
+        'Custom': "Custom system prompt for specialized use cases. Configure this prompt based on your specific requirements."
+      };
+      setSystemPrompt(defaultPrompts[selectedAgentType] || '');
+      setEnableFallback(true);
+    }
+  }, [selectedAgentType, prompts]);
+
+  const handleAgentTypeChange = (value: string) => {
     setSelectedAgentType(value);
   };
 
-  const handleAnalyticsView = (provider) => {
+  const handleAnalyticsView = (provider: string) => {
     setSelectedProvider(provider);
     setOpenAnalyticsDialog(true);
   };
@@ -62,6 +85,33 @@ const LLMProvidersSettings = () => {
   const handleCloseEditDialog = () => {
     setIsEditProviderDialogOpen(false);
     setEditingProvider(null);
+  };
+
+  const handleSaveConfiguration = async () => {
+    if (!systemPrompt.trim()) {
+      return;
+    }
+
+    try {
+      setIsSavingPrompt(true);
+      const promptData = {
+        agent_type: selectedAgentType,
+        system_prompt: systemPrompt,
+        enable_fallback: enableFallback
+      };
+
+      if (currentPrompt) {
+        // Update existing prompt
+        await updatePrompt(currentPrompt.id, promptData);
+      } else {
+        // Create new prompt
+        await createPrompt(promptData);
+      }
+    } catch (error) {
+      // Error handling is done in the hook
+    } finally {
+      setIsSavingPrompt(false);
+    }
   };
 
   return (
@@ -143,45 +193,78 @@ const LLMProvidersSettings = () => {
       </Card>
       
       <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Agent System Prompts</CardTitle>
-          <CardDescription>Configure system prompts by agent type</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Agent System Prompts</CardTitle>
+            <CardDescription>Configure system prompts by agent type</CardDescription>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsAddPromptDialogOpen(true)}
+          >
+            <Plus className="mr-1 h-4 w-4" />
+            Add New
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="agentType">Agent Type</Label>
-              <Select defaultValue={selectedAgentType} onValueChange={handleAgentTypeChange}>
-                <SelectTrigger id="agentType">
-                  <SelectValue placeholder="Select agent type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="support">Customer Support</SelectItem>
-                  <SelectItem value="technical">Technical Support</SelectItem>
-                  <SelectItem value="sales">Sales</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
+          {isLoadingPrompts ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+              <span className="ml-2 text-sm text-muted-foreground">Loading prompts...</span>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="systemPrompt">System Prompt</Label>
-              <Textarea 
-                id="systemPrompt" 
-                expandable={true}
-                maxExpandedHeight="300px"
-                defaultValue={systemPrompts[selectedAgentType]}
-                className="min-h-[150px]"
-              />
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="agentType">Agent Type</Label>
+                <Select value={selectedAgentType} onValueChange={handleAgentTypeChange}>
+                  <SelectTrigger id="agentType">
+                    <SelectValue placeholder="Select agent type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Customer Support">Customer Support</SelectItem>
+                    <SelectItem value="Technical Support">Technical Support</SelectItem>
+                    <SelectItem value="Sales">Sales</SelectItem>
+                    <SelectItem value="Custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="systemPrompt">System Prompt</Label>
+                <Textarea 
+                  id="systemPrompt" 
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  className="min-h-[150px]"
+                  placeholder="Enter system prompt for this agent type..."
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2 mt-2">
+                <Switch 
+                  id="fallbackProvider" 
+                  checked={enableFallback}
+                  onCheckedChange={setEnableFallback}
+                />
+                <Label htmlFor="fallbackProvider">Enable fallback provider if primary fails</Label>
+              </div>
+              
+              <Button 
+                onClick={handleSaveConfiguration}
+                disabled={isSavingPrompt || !systemPrompt.trim()}
+              >
+                {isSavingPrompt ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Configuration'
+                )}
+              </Button>
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-2 mt-2">
-            <Switch id="fallbackProvider" defaultChecked />
-            <Label htmlFor="fallbackProvider">Enable fallback provider if primary fails</Label>
-          </div>
-          
-          <Button>Save Configuration</Button>
+          )}
         </CardContent>
       </Card>
       
@@ -501,6 +584,13 @@ const LLMProvidersSettings = () => {
         onClose={handleCloseEditDialog}
         provider={editingProvider}
         onProviderUpdated={updateProvider}
+      />
+
+      {/* Add Agent Prompt Dialog */}
+      <AddAgentPromptDialog
+        isOpen={isAddPromptDialogOpen}
+        onClose={() => setIsAddPromptDialogOpen(false)}
+        onPromptAdded={createPrompt}
       />
     </PlatformSettingsLayout>
   );
