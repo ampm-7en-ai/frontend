@@ -31,13 +31,18 @@ interface AuditLogsResponse {
 type Period = 'today' | 'week' | 'month' | '3months';
 
 const CACHE_EXPIRATION = 2 * 60 * 1000; // 2 minutes
+const ITEMS_PER_PAGE = 10;
 
 export const useAuditLogs = () => {
   const { toast } = useToast();
   const { getToken } = useAuth();
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [allLogs, setAllLogs] = useState<AuditLogEntry[]>([]);
+  const [displayedLogs, setDisplayedLogs] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activePeriod, setActivePeriod] = useState<Period>('today');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   const getCacheKey = (period: Period) => `audit_logs_${period}`;
 
@@ -57,7 +62,8 @@ export const useAuditLogs = () => {
       const cacheKey = getCacheKey(period);
       const cachedLogs = getFromCache<AuditLogEntry[]>(cacheKey, CACHE_EXPIRATION);
       if (cachedLogs) {
-        setLogs(cachedLogs);
+        setAllLogs(cachedLogs);
+        setCurrentPage(1);
         setIsLoading(false);
         return;
       }
@@ -81,7 +87,8 @@ export const useAuditLogs = () => {
       // Store in cache
       storeInCache(cacheKey, data.data);
       
-      setLogs(data.data);
+      setAllLogs(data.data);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
@@ -89,15 +96,95 @@ export const useAuditLogs = () => {
         description: "Failed to load audit logs",
         variant: "destructive"
       });
-      setLogs([]);
+      setAllLogs([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Filter logs based on search term
+  const getFilteredLogs = () => {
+    if (!searchTerm) return allLogs;
+    
+    return allLogs.filter(log => {
+      const searchLower = searchTerm.toLowerCase();
+      return log.user.toString().includes(searchLower) ||
+             log.details.name?.toLowerCase().includes(searchLower);
+    });
+  };
+
+  // Update displayed logs based on pagination and search
+  useEffect(() => {
+    const filtered = getFilteredLogs();
+    const startIndex = 0;
+    const endIndex = currentPage * ITEMS_PER_PAGE;
+    setDisplayedLogs(filtered.slice(startIndex, endIndex));
+  }, [allLogs, currentPage, searchTerm]);
+
+  const loadMore = () => {
+    setCurrentPage(prev => prev + 1);
+  };
+
+  const hasMore = () => {
+    const filtered = getFilteredLogs();
+    return currentPage * ITEMS_PER_PAGE < filtered.length;
+  };
+
   const setPeriod = (period: Period) => {
     setActivePeriod(period);
+    setSearchTerm('');
+    setCurrentPage(1);
     fetchLogs(period);
+  };
+
+  const exportToExcel = async () => {
+    try {
+      setIsExporting(true);
+      
+      // Get all logs for export (not just displayed ones)
+      const logsToExport = getFilteredLogs();
+      
+      // Create CSV content
+      const headers = ['Date & Time', 'User ID', 'Action', 'Entity', 'Details', 'Status', 'IP Address'];
+      const csvContent = [
+        headers.join(','),
+        ...logsToExport.map(log => [
+          `"${formatTimestamp(log.timestamp)}"`,
+          log.user,
+          `"${formatEventType(log.event_type)}"`,
+          `"${log.entity_type} #${log.entity_id}"`,
+          `"${log.details.name || 'N/A'}"`,
+          log.status,
+          `"${log.ip_address || 'N/A'}"`
+        ].join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `audit_logs_${activePeriod}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Export Successful",
+        description: "Audit logs have been exported to CSV file.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export audit logs.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   useEffect(() => {
@@ -123,10 +210,16 @@ export const useAuditLogs = () => {
   };
 
   return {
-    logs,
+    logs: displayedLogs,
     isLoading,
     activePeriod,
+    searchTerm,
+    isExporting,
     setPeriod,
+    setSearchTerm,
+    loadMore,
+    hasMore: hasMore(),
+    exportToExcel,
     refetch: () => fetchLogs(activePeriod),
     formatEventType,
     formatTimestamp

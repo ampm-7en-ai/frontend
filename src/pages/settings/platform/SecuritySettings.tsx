@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Search, Download } from 'lucide-react';
 import { PermissionProvider, Permission } from '@/context/PermissionContext';
 import RoleEditDialog, { Role } from '@/components/settings/platform/RoleEditDialog';
 import RoleCreateDialog from '@/components/settings/platform/RoleCreateDialog';
@@ -36,7 +37,13 @@ const SecuritySettings = () => {
     logs: auditLogs,
     isLoading: isAuditLogsLoading,
     activePeriod,
+    searchTerm,
+    isExporting,
     setPeriod,
+    setSearchTerm,
+    loadMore,
+    hasMore,
+    exportToExcel,
     formatEventType,
     formatTimestamp
   } = useAuditLogs();
@@ -187,10 +194,30 @@ const SecuritySettings = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">Filter</Button>
-                    <Button variant="outline" size="sm">Export</Button>
+                <div className="flex justify-between items-center gap-4">
+                  <div className="flex items-center gap-2 flex-1 max-w-md">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        placeholder="Search by username or user ID..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={exportToExcel}
+                      disabled={isExporting}
+                    >
+                      {isExporting ? (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="mr-1 h-4 w-4" />
+                      )}
+                      Export
+                    </Button>
                   </div>
                   <div className="space-x-2">
                     {periodButtons.map(({ key, label }) => (
@@ -212,54 +239,58 @@ const SecuritySettings = () => {
                     <span className="ml-2 text-sm text-muted-foreground">Loading audit logs...</span>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Entity</TableHead>
-                        <TableHead>Details</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">IP Address</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {auditLogs.length === 0 ? (
+                  <>
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                            No audit logs found for the selected period.
-                          </TableCell>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>User</TableHead>
+                          <TableHead>Action</TableHead>
+                          <TableHead>Entity</TableHead>
+                          <TableHead>Details</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">IP Address</TableHead>
                         </TableRow>
-                      ) : (
-                        auditLogs.map((log) => (
-                          <TableRow key={log.id}>
-                            <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
-                            <TableCell>User ID: {log.user}</TableCell>
-                            <TableCell>{formatEventType(log.event_type)}</TableCell>
-                            <TableCell>{log.entity_type} #{log.entity_id}</TableCell>
-                            <TableCell>
-                              {log.details.name ? `Name: ${log.details.name}` : 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={log.status === 'success' ? 'success' : 'destructive'}>
-                                {log.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {log.ip_address || 'N/A'}
+                      </TableHeader>
+                      <TableBody>
+                        {auditLogs.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                              {searchTerm ? 'No audit logs found matching your search.' : 'No audit logs found for the selected period.'}
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
-                
-                {auditLogs.length > 0 && (
-                  <div className="flex justify-center">
-                    <Button variant="outline" size="sm">Load More</Button>
-                  </div>
+                        ) : (
+                          auditLogs.map((log) => (
+                            <TableRow key={log.id}>
+                              <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
+                              <TableCell>User ID: {log.user}</TableCell>
+                              <TableCell>{formatEventType(log.event_type)}</TableCell>
+                              <TableCell>{log.entity_type} #{log.entity_id}</TableCell>
+                              <TableCell>
+                                {log.details.name ? `Name: ${log.details.name}` : 'N/A'}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={log.status === 'success' ? 'success' : 'destructive'}>
+                                  {log.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {log.ip_address || 'N/A'}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                    
+                    {hasMore && (
+                      <div className="flex justify-center">
+                        <Button variant="outline" size="sm" onClick={loadMore}>
+                          Load More
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </CardContent>
