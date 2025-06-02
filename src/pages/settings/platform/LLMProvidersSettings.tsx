@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,13 +13,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { FileChartLine, Plus, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AddProviderDialog from '@/components/settings/platform/AddProviderDialog';
-import { useLLMProviders } from '@/hooks/useLLMProviders';
+import EditProviderDialog from '@/components/settings/platform/EditProviderDialog';
+import { useLLMProviders, LLMProvider } from '@/hooks/useLLMProviders';
 
 const LLMProvidersSettings = () => {
   const [selectedAgentType, setSelectedAgentType] = useState('support');
   const [openAnalyticsDialog, setOpenAnalyticsDialog] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState('');
   const [isAddProviderDialogOpen, setIsAddProviderDialogOpen] = useState(false);
+  const [isEditProviderDialogOpen, setIsEditProviderDialogOpen] = useState(false);
+  const [editingProvider, setEditingProvider] = useState<LLMProvider | null>(null);
   
   const { providers, isLoading, refetch, updateProvider } = useLLMProviders();
 
@@ -48,6 +52,16 @@ const LLMProvidersSettings = () => {
     } catch (error) {
       // Error handling is done in the hook
     }
+  };
+
+  const handleEditProvider = (provider: LLMProvider) => {
+    setEditingProvider(provider);
+    setIsEditProviderDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setIsEditProviderDialogOpen(false);
+    setEditingProvider(null);
   };
 
   return (
@@ -105,7 +119,13 @@ const LLMProvidersSettings = () => {
                           <Input value={provider.default_model} readOnly />
                         </div>
                         <div className="flex justify-end space-x-2">
-                          <Button size="sm" variant="outline">Edit</Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditProvider(provider)}
+                          >
+                            Edit
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -473,6 +493,14 @@ const LLMProvidersSettings = () => {
         isOpen={isAddProviderDialogOpen}
         onClose={() => setIsAddProviderDialogOpen(false)}
         onProviderAdded={refetch}
+      />
+
+      {/* Edit Provider Dialog */}
+      <EditProviderDialog
+        isOpen={isEditProviderDialogOpen}
+        onClose={handleCloseEditDialog}
+        provider={editingProvider}
+        onProviderUpdated={updateProvider}
       />
     </PlatformSettingsLayout>
   );
