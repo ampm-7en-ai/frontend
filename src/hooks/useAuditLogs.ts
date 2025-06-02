@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
@@ -108,8 +107,10 @@ export const useAuditLogs = () => {
     
     return allLogs.filter(log => {
       const searchLower = searchTerm.toLowerCase();
-      return log.user.toString().includes(searchLower) ||
-             log.details.name?.toLowerCase().includes(searchLower);
+      const userString = log.user ? log.user.toString() : '';
+      const nameString = log.details?.name ? log.details.name.toLowerCase() : '';
+      
+      return userString.includes(searchLower) || nameString.includes(searchLower);
     });
   };
 
@@ -150,10 +151,10 @@ export const useAuditLogs = () => {
         headers.join(','),
         ...logsToExport.map(log => [
           `"${formatTimestamp(log.timestamp)}"`,
-          log.user,
+          log.user || 'N/A',
           `"${formatEventType(log.event_type)}"`,
           `"${log.entity_type} #${log.entity_id}"`,
-          `"${log.details.name || 'N/A'}"`,
+          `"${log.details?.name || 'N/A'}"`,
           log.status,
           `"${log.ip_address || 'N/A'}"`
         ].join(','))
