@@ -30,26 +30,34 @@ interface AuditLogsResponse {
 
 type Period = 'today' | 'week' | 'month' | '3months';
 
-const CACHE_KEY = 'audit_logs_all';
 const CACHE_EXPIRATION = 2 * 60 * 1000; // 2 minutes
 
 export const useAuditLogs = () => {
   const { toast } = useToast();
   const { getToken } = useAuth();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activePeriod, setActivePeriod] = useState<Period>('today');
 
-  const fetchLogs = async () => {
+  const getCacheKey = (period: Period) => `audit_logs_${period}`;
+
+  const getApiEndpoint = (period: Period) => {
+    const baseUrl = 'admin/logs/';
+    if (period === 'today') {
+      return baseUrl;
+    }
+    return `${baseUrl}?period=${period}`;
+  };
+
+  const fetchLogs = async (period: Period = activePeriod) => {
     try {
       setIsLoading(true);
       
       // Check cache first
-      const cachedLogs = getFromCache<AuditLogEntry[]>(CACHE_KEY, CACHE_EXPIRATION);
+      const cacheKey = getCacheKey(period);
+      const cachedLogs = getFromCache<AuditLogEntry[]>(cacheKey, CACHE_EXPIRATION);
       if (cachedLogs) {
         setLogs(cachedLogs);
-        filterLogsByPeriod(cachedLogs, activePeriod);
         setIsLoading(false);
         return;
       }
@@ -59,7 +67,8 @@ export const useAuditLogs = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(getApiUrl('admin/logs/'), {
+      const endpoint = getApiEndpoint(period);
+      const response = await fetch(getApiUrl(endpoint), {
         headers: getAuthHeaders(token)
       });
 
@@ -70,10 +79,9 @@ export const useAuditLogs = () => {
       const data: AuditLogsResponse = await response.json();
       
       // Store in cache
-      storeInCache(CACHE_KEY, data.data);
+      storeInCache(cacheKey, data.data);
       
       setLogs(data.data);
-      filterLogsByPeriod(data.data, activePeriod);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
@@ -82,48 +90,18 @@ export const useAuditLogs = () => {
         variant: "destructive"
       });
       setLogs([]);
-      setFilteredLogs([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filterLogsByPeriod = (allLogs: AuditLogEntry[], period: Period) => {
-    const now = new Date();
-    let startDate: Date;
-
-    switch (period) {
-      case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        break;
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-      case '3months':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        break;
-      default:
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    }
-
-    const filtered = allLogs.filter(log => {
-      const logDate = new Date(log.timestamp);
-      return logDate >= startDate;
-    });
-
-    setFilteredLogs(filtered);
-  };
-
   const setPeriod = (period: Period) => {
     setActivePeriod(period);
-    filterLogsByPeriod(logs, period);
+    fetchLogs(period);
   };
 
   useEffect(() => {
-    fetchLogs();
+    fetchLogs('today'); // Load today's logs by default
   }, []);
 
   const formatEventType = (eventType: string) => {
@@ -145,11 +123,11 @@ export const useAuditLogs = () => {
   };
 
   return {
-    logs: filteredLogs,
+    logs,
     isLoading,
     activePeriod,
     setPeriod,
-    refetch: fetchLogs,
+    refetch: () => fetchLogs(activePeriod),
     formatEventType,
     formatTimestamp
   };
