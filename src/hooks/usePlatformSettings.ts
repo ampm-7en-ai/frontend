@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
 import { useAuth } from "@/context/AuthContext";
@@ -72,6 +71,32 @@ async function updatePlatformSettings(settingsData: UpdatePlatformSettingsData):
   return data.data;
 }
 
+async function updateCustomizationSettings(formData: FormData): Promise<PlatformSettings> {
+  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
+  if (!token) {
+    throw new Error('Authentication token not found');
+  }
+
+  console.log('Updating customization settings with form data');
+  const response = await fetch(`${BASE_URL}admin/settings/`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      // Note: Don't set Content-Type for FormData - browser will set it automatically
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    console.error(`Update customization settings API error: ${response.status}`);
+    throw new Error('Failed to update customization settings');
+  }
+
+  const data = await response.json();
+  console.log('Customization settings updated:', data);
+  return data.data;
+}
+
 export function usePlatformSettings() {
   const { isAuthenticated } = useAuth();
 
@@ -99,6 +124,24 @@ export function useUpdatePlatformSettings() {
     },
     onError: (error) => {
       console.error('Platform settings update failed:', error);
+    },
+  });
+}
+
+export function useUpdateCustomizationSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateCustomizationSettings,
+    onSuccess: (data) => {
+      console.log('Customization settings update successful:', data);
+      // Update the cache with the new data
+      queryClient.setQueryData(['platform-settings'], data);
+      // Optionally refetch to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ['platform-settings'] });
+    },
+    onError: (error) => {
+      console.error('Customization settings update failed:', error);
     },
   });
 }

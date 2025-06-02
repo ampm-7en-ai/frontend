@@ -9,12 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 import { useToast } from "@/hooks/use-toast";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CreateEmailTemplateDialog } from '@/components/settings/platform/CreateEmailTemplateDialog';
-import { UploadCloud, FileImage } from 'lucide-react';
+import { UploadCloud, FileImage, Loader2 } from 'lucide-react';
+import { usePlatformSettings, useUpdateCustomizationSettings } from '@/hooks/usePlatformSettings';
 
 const CustomizationSettings = () => {
   const { toast } = useToast();
+  const { data: settings, isLoading, error } = usePlatformSettings();
+  const updateMutation = useUpdateCustomizationSettings();
+  
   const [isEmailTemplateDialogOpen, setIsEmailTemplateDialogOpen] = useState(false);
   
   // Platform branding state
@@ -24,12 +28,69 @@ const CustomizationSettings = () => {
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
   const [fontImportUrl, setFontImportUrl] = useState<string>('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   const [fontFamily, setFontFamily] = useState<string>('Inter, sans-serif');
-  
-  const handleSaveSettings = (section: string) => {
-    toast({
-      title: "Settings Saved",
-      description: `${section} settings have been saved successfully.`,
-    });
+  const [primaryColor, setPrimaryColor] = useState<string>('#8B5CF6');
+  const [secondaryColor, setSecondaryColor] = useState<string>('#D946EF');
+  const [accentColor, setAccentColor] = useState<string>('#0EA5E9');
+  const [customCss, setCustomCss] = useState<string>('');
+  const [showPoweredBy, setShowPoweredBy] = useState<boolean>(true);
+
+  // Update form data when settings are loaded
+  useEffect(() => {
+    if (settings) {
+      setFontImportUrl(settings.google_font_url || 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+      setFontFamily(settings.font_family_css || 'Inter, sans-serif');
+      setPrimaryColor(settings.primary_color || '#8B5CF6');
+      setSecondaryColor(settings.secondary_color || '#D946EF');
+      setAccentColor(settings.accent_color || '#0EA5E9');
+      setCustomCss(settings.custom_css || '');
+      setShowPoweredBy(settings.show_powered_by ?? true);
+      
+      // Set logo preview if available
+      if (settings.platform_logo) {
+        setLogoPreview(settings.platform_logo);
+      }
+      
+      // Set favicon preview if available
+      if (settings.favicon) {
+        setFaviconPreview(settings.favicon);
+      }
+    }
+  }, [settings]);
+
+  const handleSaveBrandingSettings = async () => {
+    try {
+      const formData = new FormData();
+      
+      // Add files if they exist
+      if (logoFile) {
+        formData.append('platform_logo', logoFile);
+      }
+      if (faviconFile) {
+        formData.append('favicon', faviconFile);
+      }
+      
+      // Add other settings
+      formData.append('primary_color', primaryColor);
+      formData.append('secondary_color', secondaryColor);
+      formData.append('accent_color', accentColor);
+      formData.append('google_font_url', fontImportUrl);
+      formData.append('font_family_css', fontFamily);
+      formData.append('custom_css', customCss);
+      formData.append('show_powered_by', showPoweredBy.toString());
+      
+      await updateMutation.mutateAsync(formData);
+      
+      toast({
+        title: "Settings Saved",
+        description: "Branding settings have been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save branding settings. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,6 +129,23 @@ const CustomizationSettings = () => {
     }
   };
 
+  if (error) {
+    return (
+      <PlatformSettingsLayout 
+        title="Customization Settings"
+        description="Personalize your platform's look and feel"
+      >
+        <Card>
+          <CardContent className="py-8">
+            <div className="text-center text-red-600">
+              Failed to load platform settings. Please try again.
+            </div>
+          </CardContent>
+        </Card>
+      </PlatformSettingsLayout>
+    );
+  }
+
   return (
     <PlatformSettingsLayout
       title="Customization Settings"
@@ -86,144 +164,201 @@ const CustomizationSettings = () => {
               <CardDescription>Customize your platform's logo and branding elements</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Platform Logo</Label>
-                    <div className="flex items-center justify-center h-40 bg-muted rounded-md overflow-hidden relative">
-                      {logoPreview ? (
-                        <img 
-                          src={logoPreview} 
-                          alt="Logo Preview" 
-                          className="object-contain h-full w-full" 
-                        />
-                      ) : (
-                        <div className="text-center">
-                          <div className="text-4xl font-bold mb-2">7en AI</div>
-                          <div className="text-sm text-muted-foreground">Recommended size: 200x60px</div>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading settings...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Platform Logo</Label>
+                        <div className="flex items-center justify-center h-40 bg-muted rounded-md overflow-hidden relative">
+                          {logoPreview ? (
+                            <img 
+                              src={logoPreview} 
+                              alt="Logo Preview" 
+                              className="object-contain h-full w-full" 
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <div className="text-4xl font-bold mb-2">7en AI</div>
+                              <div className="text-sm text-muted-foreground">Recommended size: 200x60px</div>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200">
+                            <label htmlFor="logo-upload" className="cursor-pointer">
+                              <div className="bg-background p-2 rounded-md shadow-md">
+                                <UploadCloud className="h-5 w-5 text-primary" />
+                              </div>
+                              <input 
+                                id="logo-upload" 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={handleLogoChange}
+                              />
+                            </label>
+                          </div>
                         </div>
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200">
-                        <label htmlFor="logo-upload" className="cursor-pointer">
-                          <div className="bg-background p-2 rounded-md shadow-md">
-                            <UploadCloud className="h-5 w-5 text-primary" />
+                        <p className="text-xs text-muted-foreground">Recommended size: 200x60px (SVG or PNG)</p>
+                      </div>
+                    
+                      <div className="space-y-2">
+                        <Label>Favicon</Label>
+                        <div className="flex items-center justify-center h-20 w-20 mx-auto bg-muted rounded-md overflow-hidden relative">
+                          {faviconPreview ? (
+                            <img 
+                              src={faviconPreview} 
+                              alt="Favicon Preview" 
+                              className="object-cover h-full w-full" 
+                            />
+                          ) : (
+                            <FileImage className="h-8 w-8 text-muted-foreground" />
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200">
+                            <label htmlFor="favicon-upload" className="cursor-pointer">
+                              <div className="bg-background p-1 rounded-md shadow-md">
+                                <UploadCloud className="h-3 w-3 text-primary" />
+                              </div>
+                              <input 
+                                id="favicon-upload" 
+                                type="file" 
+                                accept="image/png, image/jpeg, image/svg+xml" 
+                                className="hidden" 
+                                onChange={handleFaviconChange}
+                              />
+                            </label>
                           </div>
-                          <input 
-                            id="logo-upload" 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={handleLogoChange}
-                          />
-                        </label>
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center">Recommended size: 32x32px (PNG)</p>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">Recommended size: 200x60px (SVG or PNG)</p>
-                  </div>
-                
-                  <div className="space-y-2">
-                    <Label>Favicon</Label>
-                    <div className="flex items-center justify-center h-20 w-20 mx-auto bg-muted rounded-md overflow-hidden relative">
-                      {faviconPreview ? (
-                        <img 
-                          src={faviconPreview} 
-                          alt="Favicon Preview" 
-                          className="object-cover h-full w-full" 
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="primaryColor">Primary Color</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            type="color" 
+                            id="primaryColor" 
+                            value={primaryColor}
+                            onChange={(e) => setPrimaryColor(e.target.value)}
+                            className="w-20 h-10" 
+                          />
+                          <Input 
+                            value={primaryColor}
+                            onChange={(e) => setPrimaryColor(e.target.value)}
+                            className="flex-1" 
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="secondaryColor">Secondary Color</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            type="color" 
+                            id="secondaryColor" 
+                            value={secondaryColor}
+                            onChange={(e) => setSecondaryColor(e.target.value)}
+                            className="w-20 h-10" 
+                          />
+                          <Input 
+                            value={secondaryColor}
+                            onChange={(e) => setSecondaryColor(e.target.value)}
+                            className="flex-1" 
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="accentColor">Accent Color</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            type="color" 
+                            id="accentColor" 
+                            value={accentColor}
+                            onChange={(e) => setAccentColor(e.target.value)}
+                            className="w-20 h-10" 
+                          />
+                          <Input 
+                            value={accentColor}
+                            onChange={(e) => setAccentColor(e.target.value)}
+                            className="flex-1" 
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="fontImport">Google Font Import URL</Label>
+                        <Input 
+                          id="fontImport" 
+                          value={fontImportUrl}
+                          onChange={(e) => setFontImportUrl(e.target.value)}
+                          placeholder="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+                          className="font-mono text-sm"
                         />
-                      ) : (
-                        <FileImage className="h-8 w-8 text-muted-foreground" />
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200">
-                        <label htmlFor="favicon-upload" className="cursor-pointer">
-                          <div className="bg-background p-1 rounded-md shadow-md">
-                            <UploadCloud className="h-3 w-3 text-primary" />
-                          </div>
-                          <input 
-                            id="favicon-upload" 
-                            type="file" 
-                            accept="image/png, image/jpeg, image/svg+xml" 
-                            className="hidden" 
-                            onChange={handleFaviconChange}
-                          />
-                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          Get URL from <a href="https://fonts.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Fonts</a>
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="fontFamily">Font Family CSS</Label>
+                        <Input 
+                          id="fontFamily" 
+                          value={fontFamily}
+                          onChange={(e) => setFontFamily(e.target.value)}
+                          placeholder="Roboto, sans-serif"
+                          className="font-mono text-sm"
+                        />
+                        <div className="mt-2 p-3 border rounded-md">
+                          <p style={{ fontFamily }}>This is preview text using your selected font family</p>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground text-center">Recommended size: 32x32px (PNG)</p>
                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="primaryColor">Primary Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="primaryColor" defaultValue="#8B5CF6" className="w-20 h-10" />
-                      <Input defaultValue="#8B5CF6" className="flex-1" />
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="customCss">Custom CSS</Label>
+                      <Textarea
+                        id="customCss"
+                        value={customCss}
+                        onChange={(e) => setCustomCss(e.target.value)}
+                        placeholder=".custom-class { color: #8B5CF6; }"
+                        className="font-mono h-40"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="showPoweredBy" 
+                        checked={showPoweredBy}
+                        onCheckedChange={setShowPoweredBy}
+                      />
+                      <Label htmlFor="showPoweredBy">Show "Powered by 7en AI" badge</Label>
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="secondaryColor">Secondary Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="secondaryColor" defaultValue="#D946EF" className="w-20 h-10" />
-                      <Input defaultValue="#D946EF" className="flex-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="accentColor">Accent Color</Label>
-                    <div className="flex gap-2">
-                      <Input type="color" id="accentColor" defaultValue="#0EA5E9" className="w-20 h-10" />
-                      <Input defaultValue="#0EA5E9" className="flex-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="fontImport">Google Font Import URL</Label>
-                    <Input 
-                      id="fontImport" 
-                      value={fontImportUrl}
-                      onChange={(e) => setFontImportUrl(e.target.value)}
-                      placeholder="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-                      className="font-mono text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Get URL from <a href="https://fonts.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Fonts</a>
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="fontFamily">Font Family CSS</Label>
-                    <Input 
-                      id="fontFamily" 
-                      value={fontFamily}
-                      onChange={(e) => setFontFamily(e.target.value)}
-                      placeholder="Roboto, sans-serif"
-                      className="font-mono text-sm"
-                    />
-                    <div className="mt-2 p-3 border rounded-md">
-                      <p style={{ fontFamily }}>This is preview text using your selected font family</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="customCss">Custom CSS</Label>
-                  <Textarea
-                    id="customCss"
-                    placeholder=".custom-class { color: #8B5CF6; }"
-                    className="font-mono h-40"
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="showPoweredBy" defaultChecked />
-                  <Label htmlFor="showPoweredBy">Show "Powered by 7en AI" badge</Label>
-                </div>
-              </div>
-              
-              <Button onClick={() => handleSaveSettings("Branding")}>Save Branding Settings</Button>
+                  <Button 
+                    onClick={handleSaveBrandingSettings}
+                    disabled={updateMutation.isPending}
+                  >
+                    {updateMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Branding Settings'
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -289,11 +424,10 @@ const CustomizationSettings = () => {
               
               <div className="flex items-center gap-4">
                 <Button variant="outline">Preview Template</Button>
-                <Button onClick={() => handleSaveSettings("Email Template")}>Save Template</Button>
+                <Button>Save Template</Button>
               </div>
             </CardContent>
           </Card>
-          
         </TabsContent>
       </Tabs>
       
