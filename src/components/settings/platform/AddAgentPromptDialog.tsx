@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 
 interface AddAgentPromptDialogProps {
@@ -13,8 +13,6 @@ interface AddAgentPromptDialogProps {
   onClose: () => void;
   onPromptAdded: (promptData: any) => Promise<any>;
 }
-
-const agentTypes = ['Customer Support', 'Technical Support', 'Sales', 'Custom'];
 
 const AddAgentPromptDialog = ({ isOpen, onClose, onPromptAdded }: AddAgentPromptDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -60,21 +58,12 @@ const AddAgentPromptDialog = ({ isOpen, onClose, onPromptAdded }: AddAgentPrompt
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="agent_type">Agent Type *</Label>
-            <Select 
-              value={formData.agent_type} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, agent_type: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select agent type" />
-              </SelectTrigger>
-              <SelectContent>
-                {agentTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              id="agent_type"
+              value={formData.agent_type}
+              onChange={(e) => setFormData(prev => ({ ...prev, agent_type: e.target.value }))}
+              placeholder="Enter agent type (e.g., Customer Support, Sales, etc.)"
+            />
           </div>
 
           <div className="space-y-2">

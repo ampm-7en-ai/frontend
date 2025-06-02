@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ import { useLLMProviders, LLMProvider } from '@/hooks/useLLMProviders';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 
 const LLMProvidersSettings = () => {
-  const [selectedAgentType, setSelectedAgentType] = useState('Customer Support');
+  const [selectedAgentType, setSelectedAgentType] = useState('');
   const [openAnalyticsDialog, setOpenAnalyticsDialog] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState('');
   const [isAddProviderDialogOpen, setIsAddProviderDialogOpen] = useState(false);
@@ -32,11 +32,24 @@ const LLMProvidersSettings = () => {
   const { providers, isLoading, refetch, updateProvider } = useLLMProviders();
   const { prompts, isLoading: isLoadingPrompts, createPrompt, updatePrompt } = useAgentPrompts();
 
+  // Get unique agent types from the prompts
+  const availableAgentTypes = React.useMemo(() => {
+    const types = prompts.map(prompt => prompt.agent_type);
+    return [...new Set(types)].sort();
+  }, [prompts]);
+
   const getCurrentPrompt = () => {
     return prompts.find(p => p.agent_type === selectedAgentType);
   };
 
   const currentPrompt = getCurrentPrompt();
+
+  // Set the first available agent type when prompts load
+  React.useEffect(() => {
+    if (availableAgentTypes.length > 0 && !selectedAgentType) {
+      setSelectedAgentType(availableAgentTypes[0]);
+    }
+  }, [availableAgentTypes, selectedAgentType]);
 
   // Update form when agent type changes
   React.useEffect(() => {
@@ -45,14 +58,7 @@ const LLMProvidersSettings = () => {
       setSystemPrompt(prompt.system_prompt);
       setEnableFallback(prompt.enable_fallback);
     } else {
-      // Set default prompts if no saved prompt exists
-      const defaultPrompts = {
-        'Customer Support': "You are a helpful customer support AI assistant. Help users with their questions and provide accurate information about our products and services.",
-        'Technical Support': "You are a technical support AI assistant with detailed knowledge about our systems. Provide troubleshooting steps and technical guidance to users.",
-        'Sales': "You are a sales AI assistant focused on helping potential customers understand the benefits and features of our products to assist them in making purchase decisions.",
-        'Custom': "Custom system prompt for specialized use cases. Configure this prompt based on your specific requirements."
-      };
-      setSystemPrompt(defaultPrompts[selectedAgentType] || '');
+      setSystemPrompt('');
       setEnableFallback(true);
     }
   }, [selectedAgentType, prompts]);
@@ -213,6 +219,10 @@ const LLMProvidersSettings = () => {
               <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
               <span className="ml-2 text-sm text-muted-foreground">Loading prompts...</span>
             </div>
+          ) : availableAgentTypes.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No agent prompts configured. Add a new prompt to get started.
+            </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -222,10 +232,11 @@ const LLMProvidersSettings = () => {
                     <SelectValue placeholder="Select agent type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Customer Support">Customer Support</SelectItem>
-                    <SelectItem value="Technical Support">Technical Support</SelectItem>
-                    <SelectItem value="Sales">Sales</SelectItem>
-                    <SelectItem value="Custom">Custom</SelectItem>
+                    {availableAgentTypes.map((agentType) => (
+                      <SelectItem key={agentType} value={agentType}>
+                        {agentType}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
