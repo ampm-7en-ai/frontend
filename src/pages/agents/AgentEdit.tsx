@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Bot, Brain, MessageSquare, Shield, Users, Settings, Database, FileText, Zap } from 'lucide-react';
-import { AgentKnowledgeContainer } from '@/components/agents/knowledge/AgentKnowledgeContainer';
-import { GuidelinesSection } from '@/components/agents/edit/GuidelinesSection';
+import AgentKnowledgeContainer from '@/components/agents/knowledge/AgentKnowledgeContainer';
+import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
 
 const AgentEdit = () => {
   const { id } = useParams();
