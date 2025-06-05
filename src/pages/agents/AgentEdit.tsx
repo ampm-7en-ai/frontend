@@ -36,6 +36,13 @@ const AgentEdit = () => {
   const [responseTimeLimit, setResponseTimeLimit] = useState(30);
   const [maxConversationLength, setMaxConversationLength] = useState(50);
 
+  // Guidelines state
+  const [guidelines, setGuidelines] = useState({ dos: [], donts: [] });
+
+  const handleGuidelinesChange = (newGuidelines: { dos: string[]; donts: string[] }) => {
+    setGuidelines(newGuidelines);
+  };
+
   const handleSave = () => {
     // TODO: Implement save functionality
     toast({
@@ -261,11 +268,14 @@ const AgentEdit = () => {
         </TabsContent>
 
         <TabsContent value="knowledge" className="space-y-6 mt-6">
-          <AgentKnowledgeContainer />
+          <AgentKnowledgeContainer agentId={id || ''} />
         </TabsContent>
 
         <TabsContent value="guidelines" className="space-y-6 mt-6">
-          <GuidelinesSection />
+          <GuidelinesSection 
+            initialGuidelines={guidelines}
+            onChange={handleGuidelinesChange}
+          />
         </TabsContent>
       </Tabs>
 
