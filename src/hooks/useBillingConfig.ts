@@ -62,7 +62,7 @@ async function updateBillingConfig(configData: UpdateBillingConfigData): Promise
 
   console.log('Updating billing config:', configData);
   const response = await fetch(`${BASE_URL}admin/billing-config/`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: getAuthHeaders(token),
     body: JSON.stringify(configData),
   });
