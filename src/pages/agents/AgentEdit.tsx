@@ -254,6 +254,7 @@ const AgentEdit = () => {
     agentType: 'support',
     systemPrompt: agentTypeSystemPrompts.custom,
     guidelines: { dos: [] as string[], donts: [] as string[] },
+    aiToAiHandoff: false
   });
 
   const [isRetraining, setIsRetraining] = useState(false);
@@ -268,6 +269,7 @@ const AgentEdit = () => {
   const [hasSuggestions, setHasSuggestions] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAItoAI,setAItoAI] = useState(false);
 
   const { data: agentData, isLoading, isError, error } = useQuery({
     queryKey: ['agent', agentId],
@@ -320,6 +322,7 @@ const AgentEdit = () => {
         collectVisitorData: agentData.behavior?.collectVisitorData ?? agent.collectVisitorData,
         autoShowAfter: agentData.behavior?.autoShowAfter ?? agent.autoShowAfter,
         suggestions: agentData.behavior?.suggestions || agent.suggestions,
+        aiToAiHandoff: agentData.behavior?.aiToAiHandoff || agent.aiToAiHandoff,
         
         selectedModel: agentData.settings?.response_model || agentData.model?.selectedModel || agent.selectedModel,
         temperature: agentData.settings?.temperature ?? agentData.model?.temperature ?? agent.temperature,
@@ -337,12 +340,7 @@ const AgentEdit = () => {
         guidelines: agentData.behavior?.guidelines || { dos: [], donts: [] },
       });
       
-      console.log('Agent data loaded:', {
-        responseModel: agentData.settings?.response_model,
-        temperature: agentData.settings?.temperature,
-        tokenLength: agentData.settings?.token_length,
-        systemPrompt: agentData.systemPrompt // Log the system prompt value
-      });
+      
 
 
       agentData.behavior?.suggestions?.length > 0 && setHasSuggestions(true);
@@ -393,6 +391,7 @@ const AgentEdit = () => {
   }, [agentId, queryClient]);
 
   const handleSaveChanges = async () => {
+    
     setIsSaving(true);
     
     try {
@@ -418,6 +417,7 @@ const AgentEdit = () => {
           autoShowAfter: number;
           suggestions: string[];
           guidelines?: { dos: string[], donts: string[] };
+          aiToAiHandoff?: boolean;
         };
         model: {
           selectedModel: string;
@@ -453,7 +453,8 @@ const AgentEdit = () => {
           collectVisitorData: agent.collectVisitorData,
           autoShowAfter: agent.autoShowAfter,
           suggestions: hasSuggestions ? agent.suggestions : [],
-          guidelines: agent.guidelines
+          guidelines: agent.guidelines,
+          aiToAiHandoff: agent.aiToAiHandoff
         },
         model: {
           selectedModel: agent.selectedModel,
@@ -479,7 +480,8 @@ const AgentEdit = () => {
         setAgent(prevAgent => ({
           ...prevAgent,
           systemPrompt: response.data.systemPrompt,
-          suggestions: response.data.behavior?.suggestions
+          suggestions: response.data.behavior?.suggestions,
+          aiToAiHandoff: response.data.behavior?.aiToAiHandoff
         }));
         
       }
@@ -599,6 +601,17 @@ const AgentEdit = () => {
       setHasSuggestions(true);
     }
   }
+
+  const handleAItoAI = (state) => {
+    if(state) {
+      setAItoAI(false);
+    }else{
+      setAItoAI(true);
+    }
+
+    handleChange('aiToAiHandoff', !state);
+  }
+
 
   const renderGeneralContent = () => (
     <Card>
@@ -1306,6 +1319,16 @@ const AgentEdit = () => {
                             </div>
                             <p className="text-xs text-muted-foreground">
                               Allow the agent to escalate to human domain experts when needed
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="ai-handoff">AI to AI Handoff</Label>
+                              <Switch id="ai-handoff" checked={agent.aiToAiHandoff} onClick={()=>handleAItoAI(isAItoAI)}/>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Allow the agent to escalate to other ai agent when needed
                             </p>
                           </div>
                           
