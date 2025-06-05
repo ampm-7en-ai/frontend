@@ -1,388 +1,1451 @@
-
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate, useSearchParams  } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Bot, Settings, MessageSquare, Palette, FileText, Book, RefreshCw, BrainCircuit, AlertTriangle, Sliders, CpuIcon, Save, Send, Upload, UserRound, ExternalLink, Smartphone, Slack, Instagram } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Bot, Brain, MessageSquare, Shield, Users, Settings, Database, FileText, Zap } from 'lucide-react';
-import AgentKnowledgeContainer from '@/components/agents/knowledge/AgentKnowledgeContainer';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, updateAgent } from '@/utils/api-config';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { dottedBackgroundStyle } from '@/components/layout/TestPageLayout';
 import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
+import agentConfig from '@/config/config.json';
+
+const knowledgeSources = [
+  { id: 1, name: 'Product Documentation', type: 'document', size: '2.4 MB', lastUpdated: '2023-12-15' },
+  { id: 2, name: 'FAQs', type: 'webpage', size: '0.8 MB', lastUpdated: '2023-12-20' },
+  { id: 3, name: 'Customer Support Guidelines', type: 'document', size: '1.5 MB', lastUpdated: '2023-12-10' },
+  { id: 4, name: 'Pricing Information', type: 'document', size: '0.3 MB', lastUpdated: '2023-12-25' },
+];
+
+const agentTypeSystemPrompts = {
+  support: `You are a highly empathetic and professional Customer Support Agent for [Company/Product Name]. Your primary goal is to assist customers with their inquiries, resolve issues, and ensure a positive experience. Follow these guidelines:
+
+- Use a friendly, polite, and approachable tone.
+- Listen carefully to the customer's needs and acknowledge their concerns.
+- Provide clear, accurate, and concise answers or solutions.
+- If the issue requires escalation, explain the process calmly and assure the customer of next steps.
+- Avoid technical jargon unless necessary, and explain terms clearly.
+- Offer alternative solutions or workarounds when applicable.
+- Maintain patience and professionalism, even with frustrated or upset customers.
+- If unsure of an answer, admit it honestly and offer to find the correct information or escalate the query.
+- End interactions with gratitude and an invitation to reach out for further assistance.
+- If the company has specific policies (e.g., refunds, returns), adhere to them strictly and communicate them clearly.
+  
+#Example interaction starters:
+
+- "Thank you for reaching out! I'm here to help with your question about [issue]. Could you share a bit more detail so I can assist you better?"
+- "I'm so sorry to hear about the trouble you're experiencing. Let's work together to resolve this quickly."
+
+  `,
+  sales: `You are a knowledgeable and enthusiastic Sales Support Agent for [Company/Product Name], focused on helping customers understand products/services, addressing pre-sales questions, and guiding them toward informed purchasing decisions. Your goal is to build trust, highlight value, and facilitate sales without being pushy. Follow these guidelines:
+
+- Use a warm, professional, and confident tone to inspire trust and excitement about the product/service.
+- Understand the customer's needs by asking clarifying questions about their goals, use case, or budget.
+- Provide clear, accurate information about product features, benefits, pricing, and availability.
+- Highlight how the product/service solves the customer's specific problems or meets their needs.
+- Address objections (e.g., price, competitors) tactfully by emphasizing value and differentiators.
+- If discussing pricing, redirect customers to [specific link, e.g., https://7en.ai/help] for detailed plans, as you lack specific pricing details.
+- For API-related queries, direct customers to https://7en.ai/api.
+- Offer comparisons between plans or products if relevant, focusing on benefits rather than pushing upselling.
+- If the customer is not ready to buy, provide resources (e.g., demos, trials, or contact info) to keep them engaged.
+- End interactions with gratitude and an invitation to follow up with questions or proceed with a purchase.
+  
+#Example interaction starters:
+
+- "Thanks for your interest in [product/service]! Can you share a bit about what you're looking for so I can recommend the best solution?"
+- "I'd love to help you explore [product/service]. Here's how it can help with [customer's need]—would you like to hear more about the features or pricing?"
+  `,
+  technical: `You are a skilled and patient Technical Support Agent for [Company/Product Name], specializing in troubleshooting technical issues for [specific product/service, e.g., software, hardware, or platform]. Your goal is to diagnose and resolve technical problems efficiently while ensuring the customer feels supported. Follow these guidelines:
+
+- Use a clear, professional, and reassuring tone, adapting to the customer's technical knowledge level.
+- Ask targeted questions to gather relevant details (e.g., error messages, device specs, steps already taken).
+- Provide step-by-step instructions in simple language, avoiding unnecessary jargon.
+- Confirm the customer's understanding at each step and encourage them to ask questions.
+- If the issue is complex, guide the customer through diagnostic steps or remote troubleshooting (if applicable).
+- If escalation or specialized support is needed, explain the process and provide a timeline for resolution.
+- Document key details of the issue internally (if applicable) for future reference or escalation.
+- Suggest preventive measures or best practices to avoid future issues.
+- If the solution involves a known bug or limitation, communicate this transparently and offer workarounds or updates on fixes.
+- End interactions with gratitude and an offer to assist further if needed.
+  
+##Example interaction starters:
+
+- "Thank you for contacting technical support! Can you describe the issue you're facing, including any error messages or what happens when you try [action]?"
+- "I'm here to help get this sorted out. Let's start by checking a few things—could you confirm which version of [software/hardware] you're using?"
+  `,
+  "customer_support": `You are a dedicated Customer Support Agent for [Company/Product Name], committed to providing exceptional customer service. Your goal is to address customer inquiries, resolve issues efficiently, and create a positive customer experience that builds loyalty to the brand. Follow these guidelines:
+
+- Begin each interaction with a warm greeting and introduce yourself.
+- Show genuine empathy and understanding when customers express concerns or frustrations.
+- Ask clarifying questions to fully understand the customer's situation before offering solutions.
+- Provide clear, concise information and step-by-step instructions when needed.
+- Use positive language even when delivering negative information.
+- Be knowledgeable about company policies, products, and services, but don't hesitate to say "I'll find out" when you're unsure.
+- Look for opportunities to exceed expectations and deliver more than the customer anticipated.
+- Take ownership of the customer's issue until it's fully resolved or properly handed off.
+- Maintain a professional yet friendly tone throughout all communications.
+- End conversations by confirming the customer is satisfied and inviting them to reach out again if needed.
+
+#Example interaction starters:
+- "Hello and thank you for contacting [Company] support! My name is [Name], and I'm happy to help you today. What can I assist you with?"
+- "I understand how frustrating this situation must be. Let's work together to find a solution that works for you."
+`,
+  "general_assistant": `You are a helpful General Assistant designed to provide accurate, relevant, and thoughtful responses across a wide range of topics. Your goal is to assist users by answering questions, providing information, and offering guidance in a friendly and conversational manner. Follow these guidelines:
+
+- Respond to queries with accurate, relevant, and up-to-date information.
+- Maintain a friendly, helpful, and conversational tone throughout interactions.
+- When uncertain about an answer, acknowledge your limitations rather than providing potentially incorrect information.
+- Adapt your explanations based on the complexity of the query and the user's apparent level of understanding.
+- Provide balanced perspectives on complex or nuanced topics, presenting multiple viewpoints when appropriate.
+- Respect user privacy and refrain from requesting unnecessary personal information.
+- When appropriate, offer follow-up questions or additional information to enhance the user's understanding.
+- Use clear, concise language that is easy to understand while being informative.
+- Break down complex concepts into digestible explanations without being condescending.
+- If asked to perform tasks beyond your capabilities, clearly explain your limitations.
+
+#Example interaction starters:
+- "I'd be happy to help you with that. Based on the information available, here's what I can tell you about..."
+- "That's an interesting question. There are several perspectives to consider here..."
+`,
+  "language_tutor": `You are a patient and knowledgeable Language Tutor specializing in helping students learn and improve their skills in various languages. Your goal is to provide personalized language learning support, explain grammatical concepts clearly, and encourage conversational practice appropriate to the student's proficiency level. Follow these guidelines:
+
+- Adapt your teaching approach based on the student's current language proficiency level.
+- Explain grammar rules and concepts in clear, accessible language with helpful examples.
+- When correcting mistakes, do so constructively and explain the reason behind the correction.
+- Provide varied examples to illustrate language concepts and usage in different contexts.
+- Encourage active practice through conversation, writing exercises, or role-playing scenarios.
+- Break down complex language structures into manageable parts for easier understanding.
+- Respond to questions about cultural context and idiomatic expressions when relevant to language learning.
+- Offer pronunciation guidance through phonetic explanations when appropriate.
+- Tailor vocabulary recommendations to the student's interests and learning goals.
+- Celebrate progress and provide constructive feedback to maintain motivation.
+
+#Example interaction starters:
+- "Let's practice this concept with a few examples. Can you try creating a sentence using the structure we just discussed?"
+- "That was a good attempt! There's a small grammatical issue I noticed. The correct form would be [correction]. This is because..."
+`,
+  "coding_expert": `You are an experienced Coding Expert specializing in helping developers with programming challenges across various languages and frameworks. Your goal is to provide clear explanations, debug code issues, suggest best practices, and guide users through implementing efficient solutions. Follow these guidelines:
+
+- Ask clarifying questions about the programming environment, language version, and relevant dependencies.
+- Provide code examples that are clear, well-commented, and follow best practices for the language/framework in question.
+- When explaining concepts, balance technical accuracy with accessible explanations appropriate to the user's expertise level.
+- Include explanations of why a particular approach is recommended, not just how to implement it.
+- When debugging issues, break down the problem-solving process step by step.
+- Consider efficiency, readability, and maintainability in all code recommendations.
+- Suggest appropriate error handling and edge case considerations.
+- If multiple approaches exist, briefly explain the trade-offs between different solutions.
+- Reference official documentation or well-known resources when applicable.
+- Avoid overly complex solutions when simpler ones would suffice.
+
+#Example interaction starters:
+- "I see the issue in your code. The problem is occurring because [explanation]. Here's how you can fix it:"
+- "There are several ways to approach this requirement. One efficient solution would be to use [method/approach] because [reasoning]."
+`,
+  "life_coach": `You are a supportive and insightful Life Coach dedicated to helping individuals achieve personal growth, overcome challenges, and work toward their goals. Your approach combines empathy, active listening, and practical guidance to help people gain clarity and make positive changes in their lives. Follow these guidelines:
+
+- Listen attentively and ask thoughtful questions that promote self-reflection.
+- Focus on empowering individuals to find their own solutions rather than providing direct answers.
+- Help identify limiting beliefs or patterns that may be hindering personal progress.
+- Offer frameworks and tools for setting meaningful goals and creating action plans.
+- Provide encouragement and accountability while respecting individual choices.
+- Suggest practical exercises or practices that support personal development.
+- Acknowledge emotions and challenges while maintaining a growth-oriented perspective.
+- Balance compassion with constructive feedback when appropriate.
+- Respect personal boundaries and avoid imposing your own values on others' life choices.
+- Celebrate progress and help reframe setbacks as learning opportunities.
+
+#Example interaction starters:
+- "That's a challenging situation. What have you tried so far, and how did those approaches work for you?"
+- "I notice you mentioned feeling stuck in this pattern. What do you think might be at the root of this recurring challenge?"
+`,
+  "travel_agent": `You are a knowledgeable and enthusiastic Travel Agent specializing in creating memorable travel experiences for your clients. Your goal is to help travelers plan trips that match their preferences, budgets, and interests while providing valuable information about destinations, accommodations, transportation, and activities. Follow these guidelines:
+
+- Ask targeted questions to understand the traveler's preferences, budget, travel dates, and special interests.
+- Provide personalized recommendations for destinations based on the traveler's preferences and constraints.
+- Suggest itineraries that balance popular attractions with authentic local experiences.
+- Offer practical advice about logistics, including transportation options, visa requirements, and travel insurance.
+- Share insider tips on the best times to visit specific locations and how to avoid common tourist pitfalls.
+- Provide information about local customs, cultural considerations, and safety recommendations for each destination.
+- Recommend accommodations that match the traveler's preferences and budget, highlighting unique features.
+- Suggest activities and experiences that align with the traveler's interests, including both popular attractions and hidden gems.
+- Be honest about potential challenges or limitations for specific destinations or travel plans.
+- Follow up with additional information or alternatives if the initial suggestions don't meet the traveler's needs.
+
+#Example interaction starters:
+- "I'd love to help you plan your trip! Could you share a bit about where you're thinking of going, your travel dates, and what kinds of experiences you're looking for?"
+- "That destination is a wonderful choice! Let me tell you about some unique experiences you might enjoy based on your interests."
+`,
+  custom: "Your custom prompt"
+};
+
+const predefinedAvatars = [
+  {
+    id: 'predefined-1',
+    src: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: 'predefined-2',
+    src: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: 'predefined-3',
+    src: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=100&h=100'
+  }
+];
+
+const integrationOptions = [
+  { id: 'messenger', name: 'Messenger', icon: 'messenger', description: 'Connect with Facebook Messenger', connected: false, color: '#0084FF' },
+  { id: 'whatsapp', name: 'WhatsApp', icon: 'whatsapp', description: 'Connect your WhatsApp Business account', connected: false, color: '#25D366' },
+  { id: 'slack', name: 'Slack', icon: 'slack', description: 'Link your Slack workspace', connected: true, color: '#4A154B' },
+  { id: 'instagram', name: 'Instagram', icon: 'instagram', description: 'Connect to Instagram direct messages', connected: false, color: '#E1306C' },
+];
 
 const AgentEdit = () => {
-  const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { agentId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "general");
+  const queryClient = useQueryClient();
   
-  // Agent data state
-  const [agentData, setAgentData] = useState({
-    name: 'Customer Support Agent',
-    description: 'Handles customer inquiries and support tickets',
-    model: 'GPT-4',
+  const [agent, setAgent] = useState({
+    id: agentId,
+    name: "Customer Support Agent",
+    description: "This agent helps customers with their inquiries and provides support.",
+    primaryColor: '#9b87f5',
+    secondaryColor: '#ffffff',
+    fontFamily: 'Inter',
+    chatbotName: 'Business Assistant',
+    welcomeMessage: 'Hello! How can I help you today?',
+    buttonText: 'Chat with us',
+    position: 'bottom-right' as 'bottom-right' | 'bottom-left',
+    showOnMobile: true,
+    collectVisitorData: true,
+    autoShowAfter: 30,
+    knowledgeSources: [1, 3],
+    selectedModel: 'gpt-4-turbo',
     temperature: 0.7,
-    maxTokens: 2000,
-    systemPrompt: 'You are a helpful customer support agent...',
-    enableHandoff: true,
-    enableEscalation: false,
-    aiToAiHandoff: false, // New field for AI to AI handoff
-    handoffKeywords: ['human', 'agent', 'escalate'],
-    responseDelay: 1000,
-    enableTypingIndicator: true,
-    maxConversationLength: 50,
-    enableConversationSummary: true,
+    maxResponseLength: '4000',
+    suggestions: [
+      'How can I get started?',
+      'What features do you offer?',
+      'Tell me about your pricing'
+    ],
+    avatar: {
+      type: 'default',
+      src: ''
+    },
+    agentType: 'support',
+    systemPrompt: agentTypeSystemPrompts.custom,
+    guidelines: { dos: [] as string[], donts: [] as string[] },
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isRetraining, setIsRetraining] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
+  const [customAvatarFile, setCustomAvatarFile] = useState<File | null>(null);
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const [activeIntegrations, setActiveIntegrations] = useState(integrationOptions);
+  const [selectedIntegration, setSelectedIntegration] = useState<null | typeof integrationOptions[0]>(null);
+  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
+  const [integrationFormData, setIntegrationFormData] = useState({ apiKey: '', webhookUrl: '', accountId: '' });
+  const [agentKnowledgeSources, setAgentKnowledgeSources] = useState([]);
+  const [hasSuggestions, setHasSuggestions] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Simulate API call to load agent data
-  useEffect(() => {
-    const loadAgentData = async () => {
-      setIsLoading(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Agent data loaded for agent ID:', id);
-      } catch (error) {
-        console.error('Error loading agent data:', error);
-      } finally {
-        setIsLoading(false);
+  const { data: agentData, isLoading, isError, error } = useQuery({
+    queryKey: ['agent', agentId],
+    queryFn: async () => {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
       }
-    };
+      
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId || '1'}`, {
+        headers: getAuthHeaders(token),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent data: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.data;
+    },
+    staleTime: 30 * 1000, // 30 seconds stale time to reduce frequent refetches
+  });
 
-    if (id) {
-      loadAgentData();
+  React.useEffect(() => {
+    if (agentData) {
+      if (agentData.knowledge_bases && Array.isArray(agentData.knowledge_bases)) {
+        setAgentKnowledgeSources(agentData.knowledge_bases);
+      }
+      
+      const knowledgeSourceIds = [];
+      if (agentData.settings && agentData.settings.selected_knowledge_sources) {
+        knowledgeSourceIds.push(...agentData.settings.selected_knowledge_sources);
+      }
+      
+      setAgent({
+        ...agent,
+        name: agentData.name || agent.name,
+        description: agentData.description || agent.description,
+        
+        primaryColor: agentData.appearance?.primaryColor || agent.primaryColor,
+        secondaryColor: agentData.appearance?.secondaryColor || agent.secondaryColor,
+        fontFamily: agentData.appearance?.fontFamily || agent.fontFamily,
+        chatbotName: agentData.appearance?.chatbotName || agent.chatbotName,
+        welcomeMessage: agentData.appearance?.welcomeMessage || agent.welcomeMessage,
+        buttonText: agentData.appearance?.buttonText || agent.buttonText,
+        position: agentData.appearance?.position || agent.position,
+        avatar: agentData.appearance?.avatar || agent.avatar,
+        
+        showOnMobile: agentData.behavior?.showOnMobile ?? agent.showOnMobile,
+        collectVisitorData: agentData.behavior?.collectVisitorData ?? agent.collectVisitorData,
+        autoShowAfter: agentData.behavior?.autoShowAfter ?? agent.autoShowAfter,
+        suggestions: agentData.behavior?.suggestions || agent.suggestions,
+        
+        selectedModel: agentData.settings?.response_model || agentData.model?.selectedModel || agent.selectedModel,
+        temperature: agentData.settings?.temperature ?? agentData.model?.temperature ?? agent.temperature,
+        maxResponseLength: agentData.settings?.token_length?.toString() || agentData.model?.maxResponseLength || agent.maxResponseLength,
+        
+        agentType: agentData.agentType || agent.agentType,
+        systemPrompt: agentData.systemPrompt || agent.systemPrompt,
+        
+        knowledgeSources: knowledgeSourceIds.length > 0 
+          ? knowledgeSourceIds 
+          : agentData.selected_knowledge_sources || 
+            agentData.knowledge_bases?.map(kb => kb.id) || 
+            agent.knowledgeSources,
+        
+        guidelines: agentData.behavior?.guidelines || { dos: [], donts: [] },
+      });
+      
+      console.log('Agent data loaded:', {
+        responseModel: agentData.settings?.response_model,
+        temperature: agentData.settings?.temperature,
+        tokenLength: agentData.settings?.token_length,
+        systemPrompt: agentData.systemPrompt // Log the system prompt value
+      });
+
+
+      agentData.behavior?.suggestions?.length > 0 && setHasSuggestions(true);
     }
-  }, [id]);
+  }, [agentData]);
 
-  const handleSave = async () => {
+  const handleChange = (name: string, value: any) => {
+    setAgent({
+      ...agent,
+      [name]: value
+    });
+  };
+
+  const handleSuggestionChange = (index: number, value: string) => {
+    const updatedSuggestions = [...agent.suggestions];
+    updatedSuggestions[index] = value;
+    handleChange('suggestions', updatedSuggestions);
+  };
+
+  const toggleKnowledgeSource = (id: number) => {
+    const currentSources = [...agent.knowledgeSources];
+    if (currentSources.includes(id)) {
+      handleChange('knowledgeSources', currentSources.filter(sourceId => sourceId !== id));
+    } else {
+      handleChange('knowledgeSources', [...currentSources, id]);
+    }
+  };
+  
+  const handleRetrainAI = () => {
+    setIsRetraining(true);
+    
+    setTimeout(() => {
+      setIsRetraining(false);
+      toast({
+        title: "AI retrained successfully",
+        description: "Your agent has been updated with the selected knowledge sources.",
+      });
+    }, 2000);
+  };
+
+  const handleKnowledgeBasesChanged = useCallback(() => {
+    console.log("Knowledge bases changed, refreshing data...");
+    
+    // Use a single staggered invalidation to prevent multiple API calls
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['agent', agentId] });
+    }, 500);
+  }, [agentId, queryClient]);
+
+  const handleSaveChanges = async () => {
     setIsSaving(true);
+    
     try {
-      // Simulate API call to save agent data
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Saving agent data:', agentData);
-      // Here you would make the actual API call
+      interface AgentPayloadType {
+        name: string;
+        description: string;
+        appearance: {
+          primaryColor: string;
+          secondaryColor: string;
+          fontFamily: string;
+          chatbotName: string;
+          welcomeMessage: string;
+          buttonText: string;
+          position: "bottom-right" | "bottom-left";
+          avatar: {
+            type: string;
+            src: string;
+          }
+        };
+        behavior: {
+          showOnMobile: boolean;
+          collectVisitorData: boolean;
+          autoShowAfter: number;
+          suggestions: string[];
+          guidelines?: { dos: string[], donts: string[] };
+        };
+        model: {
+          selectedModel: string;
+          temperature: number;
+          maxResponseLength: string;
+        };
+        agentType: string;
+        systemPrompt: string;
+        knowledge_bases: any[];
+        customAvatarFile: File | null;
+        settings: {
+          response_model: string;
+          token_length: string;
+          temperature: number;
+        };
+      }
+
+      const payload: AgentPayloadType = {
+        name: agent.name,
+        description: agent.description,
+        appearance: {
+          primaryColor: agent.primaryColor,
+          secondaryColor: agent.secondaryColor,
+          fontFamily: agent.fontFamily,
+          chatbotName: agent.chatbotName,
+          welcomeMessage: agent.welcomeMessage,
+          buttonText: agent.buttonText,
+          position: agent.position,
+          avatar: agent.avatar
+        },
+        behavior: {
+          showOnMobile: agent.showOnMobile,
+          collectVisitorData: agent.collectVisitorData,
+          autoShowAfter: agent.autoShowAfter,
+          suggestions: hasSuggestions ? agent.suggestions : [],
+          guidelines: agent.guidelines
+        },
+        model: {
+          selectedModel: agent.selectedModel,
+          temperature: agent.temperature,
+          maxResponseLength: agent.maxResponseLength
+        },
+        agentType: agent.agentType,
+        systemPrompt: agent.systemPrompt,
+        knowledge_bases: agentKnowledgeSources,
+        customAvatarFile,
+        settings: {
+          response_model: agent.selectedModel,
+          token_length: agent.maxResponseLength,
+          temperature: agent.temperature
+        }
+      };
+
+      const response = await updateAgent(agentId || '', payload);
+      
+      // If the update is successful and we get back a systemPrompt in the response
+      if (response.data && response.data.systemPrompt) {
+        // Update the system prompt directly from the response
+        setAgent(prevAgent => ({
+          ...prevAgent,
+          systemPrompt: response.data.systemPrompt,
+          suggestions: response.data.behavior?.suggestions
+        }));
+        
+      }
+      
+      toast({
+        title: "Changes saved",
+        description: "Your agent settings have been updated successfully.",
+      });
+      
     } catch (error) {
       console.error('Error saving agent:', error);
+      toast({
+        title: "Error saving changes",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        variant: "destructive"
+      });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const updateAgentData = (field: string, value: any) => {
-    setAgentData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleGuidelinesChange = (guidelines: { dos: string[], donts: string[] }) => {
+    setAgent({
+      ...agent,
+      guidelines
+    });
+    console.log("Guidelines updated:", guidelines);
   };
 
-  const handleGuidelinesChange = (guidelines: string) => {
-    updateAgentData('systemPrompt', guidelines);
+  const goBack = () => {
+    navigate('/agents');
+  };
+  
+  const goToTestPage = () => {
+    window.open(`/agents/${agentId}/test`, '_blank');
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
+  const handleAgentTypeChange = (type: string) => {
+    let systemPrompt = '';
+    
+    // If switching to the same agent type, keep the current system prompt
+    if (type === agent.agentType) {
+      systemPrompt = agent.systemPrompt;
+    } 
+    // If the agent has a system prompt from the API, prioritize that
+    else if (agentData && agentData.systemPrompt && type === agentData.agentType) {
+      systemPrompt = agentData.systemPrompt;
+    } 
+    // Otherwise, use the default system prompt for the selected agent type
+    else if (agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts]) {
+      systemPrompt = agentTypeSystemPrompts[type as keyof typeof agentTypeSystemPrompts];
+    }
+    
+    setAgent({
+      ...agent,
+      agentType: type,
+      systemPrompt: systemPrompt
+    });
+
+    console.log('Agent type changed to:', type, 'with system prompt:', systemPrompt);
+  };
+
+  const handleKnowledgeSourcesChange = (selectedSourceIds: number[]) => {
+    handleChange('knowledgeSources', selectedSourceIds);
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    
+    setNewMessage('');
+    
+    toast({
+      title: "Message sent",
+      description: "Your message has been sent.",
+    });
+  };
+
+  const handleAvatarChange = (type: 'default' | 'predefined' | 'custom', src: string = '') => {
+    setAgent({
+      ...agent,
+      avatar: { type, src }
+    });
+    
+    if (type !== 'custom') {
+      setCustomAvatarFile(null);
+    }
+  };
+
+  const handleCustomAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCustomAvatarFile(file);
+    
+    const objectUrl = URL.createObjectURL(file);
+    handleAvatarChange('custom', objectUrl);
+
+    toast({
+      title: "Avatar uploaded",
+      description: "Your custom avatar has been uploaded. Don't forget to save changes.",
+    });
+  };
+  
+  const handleIntegrationCardClick = (integration: typeof integrationOptions[0]) => {
+    setSelectedIntegration(integration);
+    setIsIntegrationDialogOpen(true);
+    setIntegrationFormData({ apiKey: '', webhookUrl: '', accountId: '' });
+  };
+
+  const handleSuggestions = (state) => {
+
+    if(state) {
+      setHasSuggestions(false);
+     // handleChange('suggestions',[]);
+    }else{
+      setHasSuggestions(true);
+    }
+  }
+
+  const renderGeneralContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Agent Information</CardTitle>
+        <CardDescription>Basic information about your agent</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="agent-name">Agent Name</Label>
+          <Input 
+            id="agent-name" 
+            value={agent.name} 
+            onChange={(e) => handleChange('name', e.target.value)}
+            placeholder="e.g. Customer Support Agent" 
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="agent-description">Description</Label>
+          <Textarea 
+            id="agent-description" 
+            value={agent.description} 
+            onChange={(e) => handleChange('description', e.target.value)}
+            placeholder="Describe what this agent does" 
+            className="min-h-[120px]"
+          />
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex justify-between w-full items-center">
+            <Label>Suggested Questions</Label>
+            <Switch id="suggestion-switch" checked={hasSuggestions} onClick={()=>handleSuggestions(hasSuggestions)}/>
+          </div>
+         
+          <p className="text-sm text-muted-foreground">
+            Add up to 3 suggested questions for your users to click on
+          </p>
+          
+          {hasSuggestions && [0, 1, 2].map((index) => (
+            <div key={index} className="space-y-2">
+              <Label htmlFor={`suggestion-${index + 1}`}>Suggestion {index + 1}</Label>
+              <Input 
+                id={`suggestion-${index + 1}`} 
+                value={agent.suggestions[index] || ''}
+                onChange={(e) => handleSuggestionChange(index, e.target.value)}
+                placeholder={`e.g. Suggestion ${index + 1}`}
+              />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderAppearanceContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Visual Settings</CardTitle>
+        <CardDescription>Customize the look and feel of your chatbot</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="chat-avatar">Chat Avatar</Label>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
+              <div 
+                className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all ${agent.avatar.type === 'default' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+                onClick={() => handleAvatarChange('default')}
+              >
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <Bot size={28} className="text-primary" />
+                </div>
+                <span className="text-xs font-medium">Default</span>
+              </div>
+
+              {predefinedAvatars.map((avatar) => (
+                <div 
+                  key={avatar.id}
+                  className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all ${agent.avatar.type === 'predefined' && agent.avatar.src === avatar.src ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+                  onClick={() => handleAvatarChange('predefined', avatar.src)}
+                >
+                  <Avatar className="w-14 h-14 mb-2 border">
+                    <AvatarImage src={avatar.src} alt="Predefined avatar" />
+                    <AvatarFallback>
+                      <Bot size={20} />
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-medium">Avatar {predefinedAvatars.indexOf(avatar) + 1}</span>
+                </div>
+              ))}
+
+              <div 
+                className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-all relative ${agent.avatar.type === 'custom' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-accent/10 border'}`}
+              >
+                <label htmlFor="custom-avatar-upload" className="cursor-pointer flex flex-col items-center">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2 overflow-hidden border">
+                    {agent.avatar.type === 'custom' && agent.avatar.src ? (
+                      <Avatar className="w-full h-full">
+                        <AvatarImage src={agent.avatar.src} alt="Custom avatar" />
+                        <AvatarFallback>
+                          <Upload size={20} />
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Upload size={20} className="text-primary" />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium">Upload</span>
+                </label>
+                <input 
+                  id="custom-avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleCustomAvatarUpload}
+                />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="primary-color">Primary Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="primary-color-input" 
+                  type="color" 
+                  value={agent.primaryColor} 
+                  onChange={(e) => handleChange('primaryColor', e.target.value)}
+                  className="w-12 h-10 p-1"
+                />
+                <Input 
+                  id="primary-color-value" 
+                  value={agent.primaryColor} 
+                  onChange={(e) => handleChange('primaryColor', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secondary-color">Text Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="secondary-color-input" 
+                  type="color" 
+                  value={agent.secondaryColor} 
+                  onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                  className="w-12 h-10 p-1"
+                />
+                <Input 
+                  id="secondary-color-value" 
+                  value={agent.secondaryColor} 
+                  onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="font-family">Font Family</Label>
+            <Select 
+              value={agent.fontFamily} 
+              onValueChange={(value) => handleChange('fontFamily', value)}
+            >
+              <SelectTrigger id="font-family">
+                <SelectValue placeholder="Select font" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Inter">Inter</SelectItem>
+                <SelectItem value="Arial">Arial</SelectItem>
+                <SelectItem value="Helvetica">Helvetica</SelectItem>
+                <SelectItem value="Georgia">Georgia</SelectItem>
+                <SelectItem value="Verdana">Verdana</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="chatbot-name">Chatbot Name</Label>
+            <Input 
+              id="chatbot-name" 
+              value={agent.chatbotName} 
+              onChange={(e) => handleChange('chatbotName', e.target.value)}
+              placeholder="e.g. Customer Support"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="welcome-message">Welcome Message</Label>
+            <Input 
+              id="welcome-message" 
+              value={agent.welcomeMessage} 
+              onChange={(e) => handleChange('welcomeMessage', e.target.value)}
+              placeholder="Hello! How can I help you today?"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="button-text">Button Text</Label>
+            <Input 
+              id="button-text" 
+              value={agent.buttonText} 
+              onChange={(e) => handleChange('buttonText', e.target.value)}
+              placeholder="Chat with us"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Position</Label>
+            <RadioGroup 
+              value={agent.position} 
+              onValueChange={(value) => handleChange('position', value)}
+              className="grid grid-cols-2 gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="bottom-right" id="position-right" />
+                <Label htmlFor="position-right">Bottom Right</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="bottom-left" id="position-left" />
+                <Label htmlFor="position-left">Bottom Left</Label>
+              </div>
+            </RadioGroup>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderAdvancedContent = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <CpuIcon className="mr-2 h-5 w-5" />
+            AI Model Configuration
+          </CardTitle>
+          <CardDescription>Configure the underlying AI model</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="model">AI Model</Label>
+            <Select 
+              value={agent.selectedModel} 
+              onValueChange={(value) => handleChange('selectedModel', value)}
+            >
+              <SelectTrigger id="model">
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
+                <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                <SelectItem value="mistral-large-latest">Mistral Large (Mistral AI)</SelectItem>
+                <SelectItem value="mistral-medium-latest">Mistral Medium (Mistral AI)</SelectItem>
+                <SelectItem value="mistral-small-latest">Mistral Small (Mistral AI)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="link" 
+              className="text-xs text-muted-foreground mt-1 pl-0"
+              onClick={() => window.open(`/agents/${agentId}/test`, '_blank')}
+            >
+              Test this model in a new tab →
+            </Button>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="temperature">Temperature</Label>
+            <div className="flex items-center space-x-2">
+              <Input 
+                id="temperature" 
+                type="number" 
+                value={agent.temperature}
+                onChange={(e) => handleChange('temperature', parseFloat(e.target.value))}
+                min="0" 
+                max="1" 
+                step="0.1"
+                className="w-24"
+              />
+              <span className="text-xs text-muted-foreground">
+                Higher values make responses more creative but less predictable
+              </span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="max-response-length">Maximum Response Length</Label>
+            <Select 
+              value={agent.maxResponseLength.toString()} 
+              onValueChange={(value) => handleChange('maxResponseLength', value)}
+            >
+              <SelectTrigger id="max-response-length">
+                <SelectValue placeholder="Select length" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="4000">4,000 tokens</SelectItem>
+                  <SelectItem value="8000">8,000 tokens</SelectItem>
+                  <SelectItem value="16000">16,000 tokens</SelectItem>
+                  <SelectItem value="32000">32,000 tokens</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Controls the typical length of responses from your agent.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BrainCircuit className="mr-2 h-5 w-5" />
+            Agent Type & System Prompt
+          </CardTitle>
+          <CardDescription>Define the agent's role and behavior</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Agent Type</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+                  className="text-xs"
+                >
+                  {showSystemPrompt ? "Hide System Prompt" : "Show System Prompt"}
+                </Button>
+              </div>
+              <RadioGroup 
+                value={agent.agentType} 
+                onValueChange={handleAgentTypeChange}
+                className="grid grid-cols-2 gap-2"
+              >
+                {
+                  Object.entries(agentConfig.agentTypes).map(([key, label]) => (
+                      <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-accent/10" key={key}>
+                        <RadioGroupItem value={key} id={key} />
+                        <Label htmlFor={key} className="flex flex-col cursor-pointer">
+                          <span className="font-medium">{label[0]}</span>
+                          <span className="text-xs text-muted-foreground">{label[1]}</span>
+                        </Label>
+                      </div>
+                  ))
+                }
+              </RadioGroup>
+            </div>
+            
+            {showSystemPrompt && (
+              <div className="space-y-2">
+                <Label htmlFor="system-prompt">System Prompt</Label>
+                <Textarea
+                  id="system-prompt"
+                  value={agent.systemPrompt}
+                  onChange={(e) => handleChange('systemPrompt', e.target.value)}
+                  className="min-h-[150px] font-mono text-sm"
+                  placeholder="Enter instructions for how your AI agent should behave..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  This is the instruction set that guides how your AI agent behaves. It's sent with every conversation to define the agent's role and constraints.
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderKnowledgeContent = () => (
+    <KnowledgeTrainingStatus 
+      agentId={agentId || '1'} 
+      agentName={agent.name || 'agent'}
+      initialSelectedSources={agent.knowledgeSources}
+      onSourcesChange={handleKnowledgeSourcesChange}
+      preloadedKnowledgeSources={agentKnowledgeSources}
+      isLoading={isLoading}
+      loadError={loadError}
+      onKnowledgeBasesChanged={handleKnowledgeBasesChanged}
+    />
+  );
+
+  const renderChatPreview = () => {
+    return (
+      <div className="dotted-background h-full w-full flex items-center justify-center p-4 rounded-lg pb-1">
+        <div className="w-[420px] max-w-full h-full shadow-lg">
+          <ChatboxPreview
+            agentId={agentId}
+            primaryColor={agent.primaryColor}
+            secondaryColor={agent.secondaryColor}
+            fontFamily={agent.fontFamily}
+            chatbotName={agent.chatbotName}
+            welcomeMessage={agent.welcomeMessage}
+            buttonText={agent.buttonText}
+            position={agent.position}
+            className="w-full h-full"
+            suggestions={hasSuggestions ? agent.suggestions : []}
+            avatarSrc={agent.avatar.type !== 'default' ? agent.avatar.src : undefined}
+          />
+        </div>
+      </div>
+    );
+  };
+
+
+  const getIntegrationIconElement = (iconName: string, color: string) => {
+    switch (iconName) {
+      case 'slack':
+        return <Slack className="h-6 w-6" style={{ color }} />;
+      case 'whatsapp':
+        return <Smartphone className="h-6 w-6" style={{ color }} />;
+      case 'instagram':
+        return <Instagram className="h-6 w-6" style={{ color }} />;
+      case 'messenger':
+        return (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.36 2 2 6.13 2 11.7C2 14.6 3.19 17.13 5.14 18.87V23L9.14 20.87C10.03 21.13 11 21.28 12 21.28C17.64 21.28 22 17.15 22 11.58C22 6.13 17.64 2 12 2ZM13.33 15.25L10.5 12.25L5 15.25L11 8.75L13.83 11.75L19.33 8.75L13.33 15.25Z" fill={color} />
+          </svg>
+        );
+      default:
+        return <div className="h-6 w-6 bg-primary/10 rounded-full" />;
+    }
+  };
+
+  const toggleIntegration = (id: string) => {
+    setActiveIntegrations(
+      activeIntegrations.map(integration => 
+        integration.id === id 
+          ? {...integration, connected: !integration.connected} 
+          : integration
+      )
+    );
+  };
+
+  const handleIntegrationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setIntegrationFormData({ ...integrationFormData, [id.split('-')[1]]: value });
+  };
+
+  const handleSaveIntegration = () => {
+    if (selectedIntegration) {
+      toggleIntegration(selectedIntegration.id);
+      setIsIntegrationDialogOpen(false);
+      
+      toast({
+        title: `${selectedIntegration.name} ${selectedIntegration.connected ? 'updated' : 'connected'}`,
+        description: `Your agent has been successfully ${selectedIntegration.connected ? 'updated with' : 'connected to'} ${selectedIntegration.name}.`,
+      });
+    }
+  };
+
+  const renderTabContentSkeleton = () => (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[200px]" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[180px]" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[150px]" />
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-4 w-[100px]" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderChatPreviewSkeleton = () => (
+    <div className="flex flex-col h-full items-center justify-center rounded-lg border-2 border-dashed p-10">
+      <Skeleton className="h-12 w-12 rounded-full" />
+      <Skeleton className="h-4 w-[180px] mt-4" />
+      <Skeleton className="h-20 w-full mt-6" />
+    </div>
+  );
+
+  if (isError) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-xl font-bold mb-2">Error Loading Agent</h2>
+        <p className="text-muted-foreground mb-6">
+          {error instanceof Error ? error.message : "Failed to load agent data"}
+        </p>
+        <Button onClick={goBack} variant="outline">Go Back to Agents</Button>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => navigate('/agents')}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Agents
-        </Button>
-        <div>
-          <h1 className="text-2xl font-semibold">Edit Agent</h1>
-          <p className="text-muted-foreground">Configure your AI agent settings and behavior</p>
+    <div className="h-full flex flex-col w-full relative">
+      {/* Fixed header group that contains both title header and tab navigation */}
+      <div className="sticky top-0 left-0 right-0 z-50 bg-background flex flex-col">
+        {/* Title header */}
+        <div className="flex items-center justify-between w-full h-[70px] border-b border-t pb-3 pt-3 px-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={goBack}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-8 w-[200px] mb-1" />
+                  <Skeleton className="h-4 w-[300px]" />
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold tracking-tight">{agent.name}</h2>
+                </>
+              )}
+            </div>
+          </div>
+          <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
+            {isSaving ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
         </div>
+        
+        {/* Tab navigation - only show when not loading and for medium screens and up */}
+        {!isLoading && (
+          <div className="hidden md:block border-b bg-background">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList variant="github" className="w-full mb-0 pl-6" stickyOffset="top-[70px]">
+                <TabsTrigger value="general" variant="github">
+                  <Bot className="h-4 w-4 mr-2" />
+                  General
+                </TabsTrigger>
+                <TabsTrigger value="appearance" variant="github">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Appearance
+                </TabsTrigger>
+                <TabsTrigger value="advanced" variant="github">
+                  <Sliders className="h-4 w-4 mr-2" />
+                  Advanced Settings
+                </TabsTrigger>
+                <TabsTrigger value="knowledge" variant="github">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Knowledge
+                </TabsTrigger>
+                <TabsTrigger value="integrations" variant="github">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Guidelines & Behavior 
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="general">
-            <Settings className="h-4 w-4 mr-2" />
-            General
-          </TabsTrigger>
-          <TabsTrigger value="behavior">
-            <Brain className="h-4 w-4 mr-2" />
-            Behavior
-          </TabsTrigger>
-          <TabsTrigger value="knowledge">
-            <Database className="h-4 w-4 mr-2" />
-            Knowledge
-          </TabsTrigger>
-          <TabsTrigger value="guidelines">
-            <FileText className="h-4 w-4 mr-2" />
-            Guidelines
-          </TabsTrigger>
-          <TabsTrigger value="advanced">
-            <Zap className="h-4 w-4 mr-2" />
-            Advanced
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Configure the basic details of your agent.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Agent Name</Label>
-                <Input
-                  id="name"
-                  value={agentData.name}
-                  onChange={(e) => updateAgentData('name', e.target.value)}
-                  placeholder="Enter agent name"
-                />
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[0px] flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="h-[calc(100vh-200px)] sticky top-[111px]">
+            {renderChatPreviewSkeleton()}
+          </div>
+          
+          <div className="col-span-2 h-full ">
+            <div className="flex justify-start mb-6">
+              <div className="bg-muted rounded-lg p-1 flex items-center">
+                {["general", "appearance", "advanced", "knowledge", "integrations"].map((tab) => (
+                  <Skeleton key={tab} className="h-8 w-24 mx-1 rounded-md" />
+                ))}
+              </div>
+            </div>
+            
+            {renderTabContentSkeleton()}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-[0px] flex-1 max-w-[1440px] mx-auto px-4">
+          <div className="sticky top-[111px] h-[calc(100vh-200px)]">
+            {renderChatPreview()}
+          </div>
+          
+          <div className="col-span-2 h-full flex flex-col w-800">
+            <Tabs 
+              defaultValue="general" 
+              className="w-full flex flex-col h-full"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
+              {/* Mobile tab list - only show on smaller screens */}
+              <div className="block md:hidden">
+                <TabsList className="w-full mb-4">
+                  <TabsTrigger value="general">General</TabsTrigger>
+                  <TabsTrigger value="appearance">Style</TabsTrigger>
+                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                  <TabsTrigger value="knowledge">Knowledge</TabsTrigger>
+                  <TabsTrigger value="integrations">Guidelines & Behavior</TabsTrigger>
+                </TabsList>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={agentData.description}
-                  onChange={(e) => updateAgentData('description', e.target.value)}
-                  placeholder="Describe what this agent does"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="model">Language Model</Label>
-                <Select value={agentData.model} onValueChange={(value) => updateAgentData('model', value)}>
-                  <SelectTrigger id="model">
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="GPT-4">GPT-4</SelectItem>
-                    <SelectItem value="GPT-3.5">GPT-3.5 Turbo</SelectItem>
-                    <SelectItem value="Claude-2">Claude 2</SelectItem>
-                    <SelectItem value="LLaMA-70B">LLaMA 70B</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="behavior" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Response Behavior</CardTitle>
-              <CardDescription>Configure how your agent responds to users.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="temperature">Temperature: {agentData.temperature}</Label>
-                <input
-                  type="range"
-                  id="temperature"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={agentData.temperature}
-                  onChange={(e) => updateAgentData('temperature', parseFloat(e.target.value))}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Controls randomness: Lower values are more deterministic, higher values more creative.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxTokens">Max Response Length</Label>
-                <Input
-                  id="maxTokens"
-                  type="number"
-                  value={agentData.maxTokens}
-                  onChange={(e) => updateAgentData('maxTokens', parseInt(e.target.value))}
-                  min="100"
-                  max="4000"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Maximum number of tokens in agent responses.
-                </p>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium">Expert handoff</h4>
+              <div className="flex-1 overflow-hidden">
+                {/* Tab content area - no changes to the content, just the outer container */}
+                <TabsContent 
+                  value="general" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true} 
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full" hideScrollbar={true}>
+                    {renderGeneralContent()}
+                  </ScrollArea>
+                </TabsContent>
                 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="enableHandoff">Enable Human Handoff</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Allow the agent to transfer conversations to human agents.
-                    </p>
-                  </div>
-                  <Switch
-                    id="enableHandoff"
-                    checked={agentData.enableHandoff}
-                    onCheckedChange={(checked) => updateAgentData('enableHandoff', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="aiToAiHandoff">AI to AI Handoff</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Enable the agent to transfer conversations to other AI agents.
-                    </p>
-                  </div>
-                  <Switch
-                    id="aiToAiHandoff"
-                    checked={agentData.aiToAiHandoff}
-                    onCheckedChange={(checked) => updateAgentData('aiToAiHandoff', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="enableEscalation">Auto Escalation</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Automatically escalate complex issues to human agents.
-                    </p>
-                  </div>
-                  <Switch
-                    id="enableEscalation"
-                    checked={agentData.enableEscalation}
-                    onCheckedChange={(checked) => updateAgentData('enableEscalation', checked)}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium">Conversation Settings</h4>
+                <TabsContent 
+                  value="appearance" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true} 
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full" hideScrollbar={true}>
+                    {renderAppearanceContent()}
+                  </ScrollArea>
+                </TabsContent>
                 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="enableTypingIndicator">Typing Indicator</Label>
+                <TabsContent 
+                  value="advanced" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true}
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full" hideScrollbar={true}>
+                    {renderAdvancedContent()}
+                  </ScrollArea>
+                </TabsContent>
+                
+                <TabsContent 
+                  value="knowledge" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true}
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full" hideScrollbar={true}>
+                    {renderKnowledgeContent()}
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent 
+                  value="integrations" 
+                  className="mt-4 pb-6 h-full" 
+                  scrollable={true}
+                  hideScrollbar={true}
+                >
+                  <ScrollArea className="h-full" hideScrollbar={true}>
+                    <div className="space-y-6">
+                      <GuidelinesSection
+                        initialGuidelines={agent.guidelines}
+                        onChange={handleGuidelinesChange}
+                      />
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            <Sliders className="mr-2 h-5 w-5" />
+                            Behavior Settings
+                          </CardTitle>
+                          <CardDescription>Configure how the agent works and learns</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="memory">Conversation Memory</Label>
+                              <Switch id="memory" defaultChecked />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Enable conversation history so the agent remembers previous interactions
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="learning">Continuous Learning</Label>
+                              <Switch id="learning" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Allow the agent to improve from interactions over time
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="handoff">Expert Handoff</Label>
+                              <Switch id="handoff" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Allow the agent to escalate to human domain experts when needed
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="multilingual">Multilingual Support</Label>
+                              <Switch id="multilingual" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Enable automatic translation for non-primary languages
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
+        </div>
+      )}
+
+      <style dangerouslySetInnerHTML={{ __html: dottedBackgroundStyle }} />
+
+      <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
+        {selectedIntegration && (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Configure {selectedIntegration.name}</DialogTitle>
+              <DialogDescription>
+                Enter your credentials to connect with {selectedIntegration.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              {selectedIntegration.id === 'messenger' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-pageid">Facebook Page ID</Label>
+                    <Input 
+                      id="messenger-pageid" 
+                      placeholder="Enter your Facebook Page ID"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-token">Page Access Token</Label>
+                    <Input 
+                      id="messenger-token" 
+                      type="password"
+                      placeholder="Enter your Page Access Token"
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
                     <p className="text-xs text-muted-foreground">
-                      Show typing indicator when agent is responding.
+                      You can find this in your Facebook Developer account.
                     </p>
                   </div>
-                  <Switch
-                    id="enableTypingIndicator"
-                    checked={agentData.enableTypingIndicator}
-                    onCheckedChange={(checked) => updateAgentData('enableTypingIndicator', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="enableConversationSummary">Conversation Summary</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="messenger-callback">Webhook Callback URL</Label>
+                    <Input 
+                      id="messenger-callback"
+                      value="https://api.coco.ai/webhooks/messenger"
+                      readOnly
+                      className="bg-muted"
+                    />
                     <p className="text-xs text-muted-foreground">
-                      Generate summaries for long conversations.
+                      Use this URL in your Facebook app's webhook settings.
                     </p>
                   </div>
-                  <Switch
-                    id="enableConversationSummary"
-                    checked={agentData.enableConversationSummary}
-                    onCheckedChange={(checked) => updateAgentData('enableConversationSummary', checked)}
-                  />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="knowledge" className="space-y-6">
-          <AgentKnowledgeContainer agentId={id || ''} />
-        </TabsContent>
-
-        <TabsContent value="guidelines" className="space-y-6">
-          <GuidelinesSection onChange={handleGuidelinesChange} />
-        </TabsContent>
-
-        <TabsContent value="advanced" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>Configure advanced agent behavior and performance settings.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="systemPrompt">System Prompt</Label>
-                <Textarea
-                  id="systemPrompt"
-                  value={agentData.systemPrompt}
-                  onChange={(e) => updateAgentData('systemPrompt', e.target.value)}
-                  placeholder="Enter system prompt for the agent"
-                  rows={6}
-                />
-                <p className="text-xs text-muted-foreground">
-                  The system prompt defines the agent's role and behavior.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="responseDelay">Response Delay (ms)</Label>
-                <Input
-                  id="responseDelay"
-                  type="number"
-                  value={agentData.responseDelay}
-                  onChange={(e) => updateAgentData('responseDelay', parseInt(e.target.value))}
-                  min="0"
-                  max="5000"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Delay before agent responds to make it feel more natural.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxConversationLength">Max Conversation Length</Label>
-                <Input
-                  id="maxConversationLength"
-                  type="number"
-                  value={agentData.maxConversationLength}
-                  onChange={(e) => updateAgentData('maxConversationLength', parseInt(e.target.value))}
-                  min="10"
-                  max="200"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Maximum number of messages in a single conversation.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end gap-3 mt-8">
-        <Button variant="outline" onClick={() => navigate('/agents')}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
+              )}
+              
+              {selectedIntegration.id === 'slack' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="slack-workspace">Slack Workspace Name</Label>
+                    <Input 
+                      id="slack-workspace" 
+                      placeholder="Your Slack Workspace"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="slack-token">Bot Token</Label>
+                    <Input 
+                      id="slack-token" 
+                      type="password"
+                      placeholder="xoxb-..."
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      You can find this in your Slack App settings.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {(selectedIntegration.id === 'whatsapp' || selectedIntegration.id === 'instagram') && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-account`}>Account ID</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-account`}
+                      placeholder="Enter your account ID"
+                      onChange={e => setIntegrationFormData({...integrationFormData, accountId: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-token`}>API Token</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-token`}
+                      type="password"
+                      placeholder="Enter your API token"
+                      onChange={e => setIntegrationFormData({...integrationFormData, apiKey: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${selectedIntegration.id}-webhook`}>Webhook URL</Label>
+                    <Input 
+                      id={`${selectedIntegration.id}-webhook`}
+                      value="https://api.coco.ai/webhooks/incoming"
+                      readOnly
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use this URL in your {selectedIntegration.name} webhook settings.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsIntegrationDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveIntegration}>
+                {selectedIntegration.connected ? 'Update' : 'Connect'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 };
