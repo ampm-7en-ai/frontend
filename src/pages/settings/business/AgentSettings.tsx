@@ -25,7 +25,6 @@ const agentsData = [
     conversations: 1203,
     averageResponseTime: '1.2s',
     satisfaction: 92,
-    aiToAiHandoff: false,
   },
   { 
     id: 2, 
@@ -37,7 +36,6 @@ const agentsData = [
     conversations: 845,
     averageResponseTime: '1.5s',
     satisfaction: 88,
-    aiToAiHandoff: true,
   },
   { 
     id: 3, 
@@ -49,7 +47,6 @@ const agentsData = [
     conversations: 532,
     averageResponseTime: '2.1s',
     satisfaction: 85,
-    aiToAiHandoff: false,
   },
 ];
 
@@ -377,16 +374,6 @@ const AgentSettings = () => {
                     <Switch id="logging" defaultChecked />
                   </div>
                   
-                  <div className="flex justify-between items-start pt-2">
-                    <div>
-                      <Label htmlFor="ai-to-ai-handoff" className="block mb-1">AI to AI Handoff</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Enable agents to hand off conversations to other specialized AI agents.
-                      </p>
-                    </div>
-                    <Switch id="ai-to-ai-handoff" defaultChecked={false} />
-                  </div>
-                  
                   <div className="space-y-2 pt-2">
                     <Label htmlFor="default-model">Default LLM Model</Label>
                     <Select defaultValue="gpt-4">
@@ -471,17 +458,6 @@ const AgentSettings = () => {
                     <SelectItem value="LLaMA-70B">LLaMA 70B</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="agent-ai-handoff" className="text-right">
-                  AI to AI Handoff
-                </Label>
-                <div className="col-span-3">
-                  <Switch id="agent-ai-handoff" defaultChecked={selectedAgent.aiToAiHandoff} />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Allow this agent to hand off conversations to other AI agents when appropriate.
-                  </p>
-                </div>
               </div>
             </div>
             <DialogFooter className="flex justify-between">
