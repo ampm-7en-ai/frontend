@@ -1,46 +1,32 @@
 
 import React, { useState } from 'react';
-import { Copy, AlertCircle, ChevronRight, Plus, Trash2, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { usePricingModal } from '@/hooks/usePricingModal';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useApiKeys } from '@/hooks/useApiKeys';
 
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
   const { toast } = useToast();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newKeyName, setNewKeyName] = useState('');
-  const [showNewKey, setShowNewKey] = useState(false);
-  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
+  const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [currentApiKey, setCurrentApiKey] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Simulate paid plan status - in real app this would come from user data
   const isPaidPlan = true; // Change to false to show the upgrade prompt
   
-  const { apiKeys, isLoading, createApiKey, deleteApiKey, error } = useApiKeys();
+  const { hasApiKey, isLoading, createApiKey, refreshApiKey, error } = useApiKeys();
 
   const handleCreateKey = async () => {
-    if (!newKeyName.trim()) {
-      toast({
-        title: "Error",
-        description: "API key name cannot be empty",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
-      const newKey = await createApiKey(newKeyName);
-      setNewlyCreatedKey(newKey);
-      setIsCreateDialogOpen(false);
-      setNewKeyName('');
+      const newKey = await createApiKey();
+      setCurrentApiKey(newKey);
+      setIsApiKeyDialogOpen(true);
       toast({
         title: "Success",
         description: "API key created successfully",
@@ -54,6 +40,27 @@ const ApiKeysSection = () => {
     }
   };
 
+  const handleRefreshKey = async () => {
+    setIsRefreshing(true);
+    try {
+      const newKey = await refreshApiKey();
+      setCurrentApiKey(newKey);
+      setIsApiKeyDialogOpen(true);
+      toast({
+        title: "Success",
+        description: "API key refreshed successfully",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh API key",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key);
     toast({
@@ -62,29 +69,10 @@ const ApiKeysSection = () => {
     });
   };
 
-  const handleDeleteKey = async (keyId: string) => {
-    try {
-      await deleteApiKey(keyId);
-      toast({
-        title: "Deleted",
-        description: "API key deleted successfully",
-      });
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to delete API key",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const handleCloseDialog = () => {
+    setIsApiKeyDialogOpen(false);
+    setCurrentApiKey(null);
+    setShowApiKey(false);
   };
 
   if (!isPaidPlan) {
@@ -119,21 +107,45 @@ const ApiKeysSection = () => {
     <section>
       <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
         <span>Your 7en.ai API Keys</span>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setIsCreateDialogOpen(true)}
-          className="flex items-center gap-1"
-        >
-          <Plus className="h-4 w-4 mr-1" /> Create API Key
-        </Button>
+        {hasApiKey ? (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefreshKey}
+            disabled={isLoading || isRefreshing}
+            className="flex items-center gap-1"
+          >
+            {isRefreshing ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Refresh Key
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleCreateKey}
+            disabled={isLoading}
+            className="flex items-center gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            Create API Key
+          </Button>
+        )}
       </h2>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">API Keys</CardTitle>
           <CardDescription>
-            Manage your API keys to access the 7en.ai API programmatically. Keep your API keys secure - they have the same permissions as your account.
+            Manage your API key to access the 7en.ai API programmatically. Keep your API key secure - it has the same permissions as your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -143,87 +155,21 @@ const ApiKeysSection = () => {
             </div>
           ) : error ? (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-              <p>Failed to load API keys. Please try again.</p>
+              <p>Failed to load API key information. Please try again.</p>
             </div>
-          ) : apiKeys.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <KeyRound className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No API keys found</p>
-              <p className="text-sm mt-2">Create your first API key to get started</p>
+          ) : hasApiKey ? (
+            <div className="text-center py-8">
+              <KeyRound className="h-8 w-8 mx-auto mb-2 text-green-600" />
+              <p className="font-medium text-green-800">API Key Active</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Your API key is ready to use. Click "Refresh Key" to generate a new one.
+              </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {newlyCreatedKey && (
-                <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="font-medium">Your new API key</p>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleCopyKey(newlyCreatedKey)}
-                      className="h-8"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="bg-white p-2 rounded border border-green-200 flex items-center">
-                    <code className="text-xs flex-1 overflow-x-auto whitespace-nowrap">
-                      {showNewKey ? newlyCreatedKey : '•'.repeat(newlyCreatedKey.length)}
-                    </code>
-                    <Button
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setShowNewKey(!showNewKey)}
-                      className="ml-2"
-                    >
-                      {showNewKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  <p className="text-xs mt-2">
-                    Make sure to copy your API key now. You won't be able to see it again!
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-2 text-xs h-7"
-                    onClick={() => setNewlyCreatedKey(null)}
-                  >
-                    I've saved my API key
-                  </Button>
-                </div>
-              )}
-              
-              <div className="rounded-md border">
-                <div className="flex flex-col">
-                  <div className="grid grid-cols-12 px-4 py-3 bg-muted/50 text-sm font-medium text-muted-foreground">
-                    <div className="col-span-5">Name</div>
-                    <div className="col-span-5">Created</div>
-                    <div className="col-span-2 text-right">Actions</div>
-                  </div>
-                  {apiKeys.map((key) => (
-                    <div key={key.id} className="grid grid-cols-12 px-4 py-3 items-center border-t">
-                      <div className="col-span-5 font-medium flex items-center gap-2">
-                        {key.name}
-                        {key.default && (
-                          <Badge variant="outline" className="text-xs">Default</Badge>
-                        )}
-                      </div>
-                      <div className="col-span-5 text-muted-foreground text-sm">
-                        {formatDate(key.created_at)}
-                      </div>
-                      <div className="col-span-2 text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleDeleteKey(key.id)}
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="text-center py-8 text-muted-foreground">
+              <KeyRound className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No API key found</p>
+              <p className="text-sm mt-2">Create your API key to get started</p>
             </div>
           )}
 
@@ -239,43 +185,53 @@ const ApiKeysSection = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <Dialog open={isApiKeyDialogOpen} onOpenChange={handleCloseDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create API Key</DialogTitle>
+            <DialogTitle>Your API Key</DialogTitle>
             <DialogDescription>
-              Create a new API key to access the 7en.ai API. Each key should have a unique name to help you identify it later.
+              Copy your API key and store it securely. This key will not be shown again after you close this dialog.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="key-name">API Key Name</Label>
-              <Input 
-                id="key-name" 
-                placeholder="Production App" 
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Choose a name that will help you remember where this key is used.
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-md">
+              <p className="text-sm font-medium">Important Security Notice</p>
+              <p className="text-xs mt-1">
+                This API key will not be stored or displayed again. Please copy and save it in a secure location immediately.
               </p>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="default-key">Set as default</Label>
-                <Switch id="default-key" />
+            
+            {currentApiKey && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">API Key</label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={currentApiKey}
+                    readOnly
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleCopyKey(currentApiKey)}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Default keys are used when no API key is specified in requests.
-              </p>
-            </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateKey}>
-              Create API Key
+            <Button onClick={handleCloseDialog}>
+              I've Saved My API Key
             </Button>
           </DialogFooter>
         </DialogContent>

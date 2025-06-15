@@ -1,84 +1,78 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
 
-export interface ApiKey {
-  id: string;
-  name: string;
-  prefix: string;
-  created_at: string;
-  last_used?: string;
-  default: boolean;
+export interface ApiKeyResponse {
+  message: string;
+  data: {
+    id: number;
+    team: number;
+    owner: number;
+    is_active: boolean;
+    created_at: string;
+    last_used_at: string | null;
+    description: string;
+    raw_key: string;
+  };
+  status: string;
+  permissions: string[];
+}
+
+export interface ApiKeyExistenceResponse {
+  message: string;
+  data: {
+    has_api_key: boolean;
+  };
+  status: string;
+  permissions: string[];
 }
 
 export function useApiKeys() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([
-    {
-      id: '1',
-      name: 'Production',
-      prefix: 'sk_prod_',
-      created_at: '2023-05-10T00:00:00Z',
-      last_used: '2023-06-01T00:00:00Z',
-      default: true
-    },
-    {
-      id: '2',
-      name: 'Development',
-      prefix: 'sk_dev_',
-      created_at: '2023-05-15T00:00:00Z',
-      default: false
-    }
-  ]);
+  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
 
-  // In a real application, this would fetch from an API
-  // For now we'll use the mock data initialized above
-  const fetchApiKeys = async () => {
+  const checkApiKeyExists = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Mock API call timing
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // In a real implementation, this would be:
-      // const response = await fetch(`${BASE_URL}/api-keys`, {
-      //   headers: getAuthHeaders(user?.accessToken || '')
-      // });
-      // const data = await response.json();
-      // setApiKeys(data);
-      
-      // We're using the mock data already set in state
+      const response = await fetch(`${BASE_URL}v1/keys/`, {
+        headers: getAuthHeaders(user?.accessToken || '')
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to check API key existence');
+      }
+
+      const data: ApiKeyExistenceResponse = await response.json();
+      setHasApiKey(data.data.has_api_key);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch API keys'));
+      setError(err instanceof Error ? err : new Error('Failed to check API key existence'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const createApiKey = async (name: string): Promise<string> => {
+  const createApiKey = async (): Promise<string> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Mock API call timing
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const newKeyId = `${Math.floor(Math.random() * 1000) + 3}`;
-      const newKeySecret = `sk_${Math.random().toString(36).substring(2, 10)}_${Math.random().toString(36).substring(2, 15)}`;
-      const newKey: ApiKey = {
-        id: newKeyId,
-        name,
-        prefix: `sk_${name.toLowerCase().replace(/\s+/g, '_').substring(0, 5)}_`,
-        created_at: new Date().toISOString(),
-        default: false
-      };
-      
-      setApiKeys([...apiKeys, newKey]);
-      return newKeySecret;
+      const response = await fetch(`${BASE_URL}v1/keys/`, {
+        method: 'POST',
+        headers: getAuthHeaders(user?.accessToken || '')
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create API key');
+      }
+
+      const data: ApiKeyResponse = await response.json();
+      setHasApiKey(true);
+      return data.data.raw_key;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to create API key'));
       throw err;
@@ -87,35 +81,42 @@ export function useApiKeys() {
     }
   };
 
-  const deleteApiKey = async (keyId: string) => {
+  const refreshApiKey = async (): Promise<string> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Mock API call timing
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setApiKeys(apiKeys.filter(key => key.id !== keyId));
+      const response = await fetch(`${BASE_URL}v1/keys/refresh/`, {
+        method: 'POST',
+        headers: getAuthHeaders(user?.accessToken || '')
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh API key');
+      }
+
+      const data: ApiKeyResponse = await response.json();
+      return data.data.raw_key;
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to delete API key'));
+      setError(err instanceof Error ? err : new Error('Failed to refresh API key'));
       throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Call fetchApiKeys when the component mounts
-  // In a real app, this would be in a useEffect
-  // useEffect(() => {
-  //   fetchApiKeys();
-  // }, []);
+  useEffect(() => {
+    if (user?.accessToken) {
+      checkApiKeyExists();
+    }
+  }, [user?.accessToken]);
 
   return {
-    apiKeys,
+    hasApiKey,
     isLoading,
     error,
     createApiKey,
-    deleteApiKey,
-    fetchApiKeys
+    refreshApiKey,
+    checkApiKeyExists
   };
 }
