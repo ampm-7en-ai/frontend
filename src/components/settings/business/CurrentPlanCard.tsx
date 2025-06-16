@@ -2,10 +2,11 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Calendar } from 'lucide-react';
+import { ChevronRight, Calendar, CreditCard } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePricingModal } from '@/hooks/usePricingModal'; 
 import { format, differenceInDays } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 export const CurrentPlanCard = () => {
   // Only fetch current subscription, not all plans
@@ -49,6 +50,13 @@ export const CurrentPlanCard = () => {
                 </div>
               )}
             </div>
+            <Link 
+              to="/settings/business/payment-history" 
+              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mt-2"
+            >
+              <CreditCard className="h-3 w-3 mr-1" />
+              View Payments
+            </Link>
           </div>
           <Button 
             onClick={openPricingModal}

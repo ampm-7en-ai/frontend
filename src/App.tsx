@@ -40,6 +40,7 @@ import SubscriptionPlanEditor from './pages/settings/platform/SubscriptionPlanEd
 import IntegrationsPage from './pages/integrations/IntegrationsPage';
 import ChatPreview from './pages/preview/ChatPreview';
 import SearchAssistant from './pages/chat/SearchAssistant';
+import PaymentHistory from './pages/settings/business/PaymentHistory';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -129,6 +130,7 @@ const ProtectedRoutes = () => {
         
         <Route path="/settings" element={<BusinessSettings />} />
         <Route path="/settings/business" element={<BusinessSettings />} />
+        <Route path="/settings/business/payment-history" element={<PaymentHistory />} />
         
         {/* New route for integrations */}
         <Route path="/integrations" element={<IntegrationsPage />} />
