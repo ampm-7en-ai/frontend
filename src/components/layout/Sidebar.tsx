@@ -241,7 +241,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                           to={item.href}
                           className={({ isActive }) =>
                             `flex items-center px-3.5 py-3 text-sm rounded-lg
-                            ${isActive ? 'bg-accent text-primary font-medium shadow-sm' : item.highlight && !isCollapsed ? 'bg-green-50 text-green-700 border border-green-100' : 'text-black hover:bg-secondary'}
+                            ${isActive ? 'bg-accent text-primary font-medium shadow-sm' : item.highlight && !isCollapsed ? ' text-green-700' : 'text-black hover:bg-secondary'}
                             w-full`
                           }
                         >
