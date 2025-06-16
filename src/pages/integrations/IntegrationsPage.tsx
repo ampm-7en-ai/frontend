@@ -6,7 +6,8 @@ import SlackIntegration from '@/components/integrations/SlackIntegration';
 import InstagramIntegration from '@/components/integrations/InstagramIntegration';
 import MessengerIntegration from '@/components/integrations/MessengerIntegration';
 import ZapierIntegration from '@/components/integrations/ZapierIntegration';
-import { MessageSquare, Slack, Instagram, Link, Phone } from 'lucide-react';
+import ZendeskIntegration from '@/components/integrations/ZendeskIntegration';
+import { MessageSquare, Slack, Instagram, Link, Phone, Headphones } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
 
@@ -51,6 +52,8 @@ const IntegrationsPage = () => {
         return <MessageSquare className="h-5 w-5 mr-2" />;
       case 'zapier':
         return <Link className="h-5 w-5 mr-2" />;
+      case 'zendesk':
+        return <Headphones className="h-5 w-5 mr-2" />;
       default:
         return null;
     }
@@ -68,6 +71,8 @@ const IntegrationsPage = () => {
         return "Facebook Messenger";
       case 'zapier':
         return "Zapier";
+      case 'zendesk':
+        return "Zendesk";
       default:
         return "";
     }
@@ -85,6 +90,8 @@ const IntegrationsPage = () => {
         return "Connect your AI Agent with Facebook Messenger to automate customer conversations.";
       case 'zapier':
         return "Connect your AI Agent with thousands of apps through Zapier automation.";
+      case 'zendesk':
+        return "Connect your AI Agent with Zendesk to automate ticket management and customer support.";
       default:
         return "";
     }
@@ -99,7 +106,7 @@ const IntegrationsPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
         <div
           className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
             activeTab === 'whatsapp' 
@@ -169,6 +176,20 @@ const IntegrationsPage = () => {
           </div>
           <span className={activeTab === 'zapier' ? 'font-medium text-orange-800' : 'text-gray-700'}>Zapier</span>
         </div>
+
+        <div
+          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
+            activeTab === 'zendesk' 
+              ? 'bg-teal-100 border-2 border-teal-300 shadow-md' 
+              : 'bg-white border border-gray-200 hover:border-teal-200 hover:bg-teal-50'
+          }`}
+          onClick={() => setActiveTab('zendesk')}
+        >
+          <div className={`p-3 rounded-full ${activeTab === 'zendesk' ? 'bg-teal-200' : 'bg-gray-100'}`}>
+            <Headphones className={`h-6 w-6 ${activeTab === 'zendesk' ? 'text-teal-700' : 'text-gray-600'}`} />
+          </div>
+          <span className={activeTab === 'zendesk' ? 'font-medium text-teal-800' : 'text-gray-700'}>Zendesk</span>
+        </div>
       </div>
 
       <Card className="border shadow-lg">
@@ -189,6 +210,7 @@ const IntegrationsPage = () => {
           {activeTab === 'instagram' && <InstagramIntegration />}
           {activeTab === 'messenger' && <MessengerIntegration />}
           {activeTab === 'zapier' && <ZapierIntegration />}
+          {activeTab === 'zendesk' && <ZendeskIntegration />}
         </CardContent>
       </Card>
     </div>
