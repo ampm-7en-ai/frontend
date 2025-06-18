@@ -7,12 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from 'react';
 import { CreateEmailTemplateDialog } from '@/components/settings/platform/CreateEmailTemplateDialog';
 import { UploadCloud, FileImage, Loader2 } from 'lucide-react';
 import { usePlatformSettings, useUpdateCustomizationSettings } from '@/hooks/usePlatformSettings';
+import { useEmailTemplateTypes, useEmailTemplate, useUpdateEmailTemplate } from '@/hooks/useEmailTemplates';
 
 const CustomizationSettings = () => {
   const { toast } = useToast();
@@ -34,6 +36,26 @@ const CustomizationSettings = () => {
   const [customCss, setCustomCss] = useState<string>('');
   const [showPoweredBy, setShowPoweredBy] = useState<boolean>(true);
 
+  // Email template state
+  const [selectedTemplateType, setSelectedTemplateType] = useState<string | null>(null);
+  const [templateName, setTemplateName] = useState<string>('');
+  const [templateSubject, setTemplateSubject] = useState<string>('');
+  const [templateContent, setTemplateContent] = useState<string>('');
+  const [isHtmlEmail, setIsHtmlEmail] = useState<boolean>(true);
+  const [isActiveTemplate, setIsActiveTemplate] = useState<boolean>(true);
+
+  // Email template hooks
+  const { data: emailTemplateTypes, isLoading: isLoadingTypes } = useEmailTemplateTypes();
+  const { data: selectedTemplate, isLoading: isLoadingTemplate } = useEmailTemplate(selectedTemplateType);
+  const updateEmailTemplateMutation = useUpdateEmailTemplate();
+
+  // Load default template when types are available
+  useEffect(() => {
+    if (emailTemplateTypes && emailTemplateTypes.length > 0 && !selectedTemplateType) {
+      setSelectedTemplateType(emailTemplateTypes[0].type);
+    }
+  }, [emailTemplateTypes, selectedTemplateType]);
+
   // Update form data when settings are loaded
   useEffect(() => {
     if (settings) {
@@ -45,23 +67,86 @@ const CustomizationSettings = () => {
       setCustomCss(settings.custom_css || '');
       setShowPoweredBy(settings.show_powered_by ?? true);
       
-      // Set logo preview if available
       if (settings.platform_logo) {
         setLogoPreview(settings.platform_logo);
       }
       
-      // Set favicon preview if available
       if (settings.favicon) {
         setFaviconPreview(settings.favicon);
       }
     }
   }, [settings]);
 
+  // Update email template form when template is loaded
+  useEffect(() => {
+    if (selectedTemplate) {
+      setTemplateName(selectedTemplate.name);
+      setTemplateSubject(selectedTemplate.subject);
+      setTemplateContent(selectedTemplate.content);
+      setIsHtmlEmail(selectedTemplate.is_html);
+      setIsActiveTemplate(selectedTemplate.is_active);
+    }
+  }, [selectedTemplate]);
+
+  const handleTemplateTypeChange = (value: string) => {
+    setSelectedTemplateType(value);
+  };
+
+  const handlePlaceholderClick = (placeholder: string) => {
+    const textarea = document.getElementById('templateContent') as HTMLTextAreaElement;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = templateContent.substring(0, start) + placeholder + templateContent.substring(end);
+      setTemplateContent(newContent);
+      
+      // Set cursor position after the inserted placeholder
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+      }, 0);
+    }
+  };
+
+  const handleSaveEmailTemplate = async () => {
+    if (!selectedTemplateType) {
+      toast({
+        title: "Error",
+        description: "Please select a template type.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await updateEmailTemplateMutation.mutateAsync({
+        templateType: selectedTemplateType,
+        payload: {
+          name: templateName,
+          subject: templateSubject,
+          content: templateContent,
+          is_html: isHtmlEmail,
+          is_active: isActiveTemplate,
+        },
+      });
+
+      toast({
+        title: "Template Saved",
+        description: "Email template has been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save email template. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSaveBrandingSettings = async () => {
     try {
       const formData = new FormData();
       
-      // Add files if they exist
       if (logoFile) {
         formData.append('platform_logo', logoFile);
       }
@@ -69,7 +154,6 @@ const CustomizationSettings = () => {
         formData.append('favicon', faviconFile);
       }
       
-      // Add other settings
       formData.append('primary_color', primaryColor);
       formData.append('secondary_color', secondaryColor);
       formData.append('accent_color', accentColor);
@@ -365,67 +449,132 @@ const CustomizationSettings = () => {
         
         <TabsContent value="emails">
           <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader>
               <div>
                 <CardTitle>Email Templates</CardTitle>
                 <CardDescription>Customize email notifications and templates</CardDescription>
               </div>
-              <Button onClick={() => setIsEmailTemplateDialogOpen(true)}>Create New Template</Button>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="emailTemplate">Select Template</Label>
-                  <Select defaultValue="welcome">
-                    <SelectTrigger id="emailTemplate">
-                      <SelectValue placeholder="Select email template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="welcome">Welcome Email</SelectItem>
-                      <SelectItem value="verification">Email Verification</SelectItem>
-                      <SelectItem value="password-reset">Password Reset</SelectItem>
-                      <SelectItem value="invoice">Invoice Notification</SelectItem>
-                      <SelectItem value="subscription">Subscription Renewal</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {isLoadingTypes ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading templates...</span>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="emailSubject">Email Subject</Label>
-                  <Input id="emailSubject" defaultValue="Welcome to 7en AI Platform" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="emailContent">Email Content</Label>
-                  <Textarea
-                    id="emailContent"
-                    className="h-64"
-                    defaultValue={`<h1>Welcome to 7en AI!</h1>
-<p>Hello {{user.name}},</p>
-<p>Thank you for joining our platform. We're excited to have you on board!</p>
-<p>To get started, please click the button below to verify your email address:</p>
-<button style="background-color: #8B5CF6; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Verify Email</button>
-<p>If you have any questions, please don't hesitate to contact our support team.</p>
-<p>Best regards,<br>The 7en AI Team</p>`}
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="htmlEmail" defaultChecked />
-                    <Label htmlFor="htmlEmail">Send as HTML email</Label>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="emailTemplate">Select Template</Label>
+                      <Select value={selectedTemplateType || ''} onValueChange={handleTemplateTypeChange}>
+                        <SelectTrigger id="emailTemplate">
+                          <SelectValue placeholder="Select email template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {emailTemplateTypes?.map((template) => (
+                            <SelectItem key={template.type} value={template.type}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {isLoadingTemplate ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary/70" />
+                        <span className="ml-2 text-sm text-muted-foreground">Loading template...</span>
+                      </div>
+                    ) : selectedTemplate ? (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="templateName">Template Name</Label>
+                          <Input 
+                            id="templateName" 
+                            value={templateName}
+                            onChange={(e) => setTemplateName(e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="emailSubject">Email Subject</Label>
+                          <Input 
+                            id="emailSubject" 
+                            value={templateSubject}
+                            onChange={(e) => setTemplateSubject(e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="templateContent">Email Content</Label>
+                          <Textarea
+                            id="templateContent"
+                            className="h-64"
+                            value={templateContent}
+                            onChange={(e) => setTemplateContent(e.target.value)}
+                          />
+                        </div>
+
+                        {selectedTemplate.allowed_placeholders && selectedTemplate.allowed_placeholders.length > 0 && (
+                          <div className="space-y-2">
+                            <Label>Available Placeholders</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedTemplate.allowed_placeholders.map((placeholder) => (
+                                <Badge
+                                  key={placeholder}
+                                  variant="outline"
+                                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                                  onClick={() => handlePlaceholderClick(placeholder)}
+                                >
+                                  {placeholder}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Click on a placeholder to insert it into the content
+                            </p>
+                          </div>
+                        )}
+                        
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-center space-x-2">
+                            <Switch 
+                              id="htmlEmail" 
+                              checked={isHtmlEmail}
+                              onCheckedChange={setIsHtmlEmail}
+                            />
+                            <Label htmlFor="htmlEmail">Send as HTML email</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch 
+                              id="activeTemplate" 
+                              checked={isActiveTemplate}
+                              onCheckedChange={setIsActiveTemplate}
+                            />
+                            <Label htmlFor="activeTemplate">Template is active</Label>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="includePlainText" defaultChecked />
-                    <Label htmlFor="includePlainText">Include plain text version</Label>
+                  
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      onClick={handleSaveEmailTemplate}
+                      disabled={updateEmailTemplateMutation.isPending || !selectedTemplateType}
+                    >
+                      {updateEmailTemplateMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Template'
+                      )}
+                    </Button>
                   </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <Button variant="outline">Preview Template</Button>
-                <Button>Save Template</Button>
-              </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
