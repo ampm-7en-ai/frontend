@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -555,7 +556,7 @@ const CustomizationSettings = () => {
                           </div>
                         </div>
                       </>
-                    )}
+                    ) : null}
                   </div>
                   
                   <div className="flex items-center gap-4">
