@@ -7,7 +7,8 @@ import InstagramIntegration from '@/components/integrations/InstagramIntegration
 import MessengerIntegration from '@/components/integrations/MessengerIntegration';
 import ZapierIntegration from '@/components/integrations/ZapierIntegration';
 import ZendeskIntegration from '@/components/integrations/ZendeskIntegration';
-import { MessageSquare, Slack, Instagram, Link, Phone, Headphones } from 'lucide-react';
+import FreshdeskIntegration from '@/components/integrations/FreshdeskIntegration';
+import { MessageSquare, Slack, Instagram, Link, Phone, Headphones, Ticket } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
 
@@ -54,6 +55,8 @@ const IntegrationsPage = () => {
         return <Link className="h-5 w-5 mr-2" />;
       case 'zendesk':
         return <Headphones className="h-5 w-5 mr-2" />;
+      case 'freshdesk':
+        return <Ticket className="h-5 w-5 mr-2" />;
       default:
         return null;
     }
@@ -73,6 +76,8 @@ const IntegrationsPage = () => {
         return "Zapier";
       case 'zendesk':
         return "Zendesk";
+      case 'freshdesk':
+        return "Freshdesk";
       default:
         return "";
     }
@@ -92,6 +97,8 @@ const IntegrationsPage = () => {
         return "Connect your AI Agent with thousands of apps through Zapier automation.";
       case 'zendesk':
         return "Connect your AI Agent with Zendesk to automate ticket management and customer support.";
+      case 'freshdesk':
+        return "Connect your AI Agent with Freshdesk to automate ticket management and customer support.";
       default:
         return "";
     }
@@ -106,7 +113,7 @@ const IntegrationsPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-6 mb-8">
         <div
           className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
             activeTab === 'whatsapp' 
@@ -190,6 +197,20 @@ const IntegrationsPage = () => {
           </div>
           <span className={activeTab === 'zendesk' ? 'font-medium text-teal-800' : 'text-gray-700'}>Zendesk</span>
         </div>
+
+        <div
+          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
+            activeTab === 'freshdesk' 
+              ? 'bg-rose-100 border-2 border-rose-300 shadow-md' 
+              : 'bg-white border border-gray-200 hover:border-rose-200 hover:bg-rose-50'
+          }`}
+          onClick={() => setActiveTab('freshdesk')}
+        >
+          <div className={`p-3 rounded-full ${activeTab === 'freshdesk' ? 'bg-rose-200' : 'bg-gray-100'}`}>
+            <Ticket className={`h-6 w-6 ${activeTab === 'freshdesk' ? 'text-rose-700' : 'text-gray-600'}`} />
+          </div>
+          <span className={activeTab === 'freshdesk' ? 'font-medium text-rose-800' : 'text-gray-700'}>Freshdesk</span>
+        </div>
       </div>
 
       <Card className="border shadow-lg">
@@ -211,6 +232,7 @@ const IntegrationsPage = () => {
           {activeTab === 'messenger' && <MessengerIntegration />}
           {activeTab === 'zapier' && <ZapierIntegration />}
           {activeTab === 'zendesk' && <ZendeskIntegration />}
+          {activeTab === 'freshdesk' && <FreshdeskIntegration />}
         </CardContent>
       </Card>
     </div>
