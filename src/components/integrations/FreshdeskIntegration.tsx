@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, Copy, RefreshCw, Loader2 } from 'lucide-react';
+import { ExternalLink, Copy, RefreshCw, Loader2, CheckCircle } from 'lucide-react';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 
 interface FreshdeskIntegration {
@@ -145,15 +145,17 @@ const FreshdeskIntegration = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                  Connected
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <h3 className="text-lg font-semibold">Freshdesk Connected</h3>
+                <Badge variant="outline" className="bg-green-100 text-green-800">
+                Active
                 </Badge>
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm">
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Update
+                    Update Settings
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
