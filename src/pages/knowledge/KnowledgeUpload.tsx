@@ -601,123 +601,150 @@ const KnowledgeUpload = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <Button variant="outline" size="sm" asChild className="mb-6">
-        <RouterLink to="/knowledge" className="flex items-center gap-1">
-          <ChevronLeft className="h-4 w-4" />
-          Back to Knowledge Base
-        </RouterLink>
-      </Button>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Add Knowledge Source</CardTitle>
-          <CardDescription>
-            Add content to your knowledge base to improve your AI responses.
-            Choose a source type below.
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="document-name">Source Name (Optional)</Label>
-              <Input 
-                id="document-name" 
-                placeholder="Enter a name for this knowledge source"
-                value={documentName}
-                onChange={(e) => setDocumentName(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                If left blank, a name will be generated automatically.
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl">
+        {/* Back button */}
+        <div className="mb-8">
+          <Button variant="ghost" size="sm" asChild className="text-slate-600 hover:text-slate-800 hover:bg-white/50">
+            <RouterLink to="/knowledge" className="flex items-center gap-2">
+              <ChevronLeft className="h-4 w-4" />
+              Back to Knowledge Base
+            </RouterLink>
+          </Button>
+        </div>
+
+        {/* Main Card */}
+        <Card className="border-0 shadow-xl bg-white/70 backdrop-blur-sm">
+          <CardHeader className="text-center pb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Upload className="h-8 w-8 text-white" />
             </div>
-            
-            <div className="space-y-3">
-              <Label htmlFor="source-type">Source Type</Label>
-              <RadioGroup 
-                value={sourceType} 
-                onValueChange={(value) => setSourceType(value as SourceType)}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2"
-              >
-                {Object.entries(sourceConfigs).map(([type, config]) => (
-                  <div 
-                    key={type} 
-                    className={`border rounded-lg transition-all hover:border-primary hover:shadow-sm cursor-pointer ${sourceType === type ? 'border-primary bg-primary/5' : ''}`}
-                  >
-                    <RadioGroupItem 
-                      value={type} 
-                      id={`source-type-${type}`} 
-                      className="sr-only" 
-                    />
-                    <label 
-                      htmlFor={`source-type-${type}`}
-                      className="flex cursor-pointer h-full"
-                    >
-                      <div className="flex flex-col items-center text-center gap-2 w-full p-3">
-                        <div className={`rounded-full p-2 ${sourceType === type ? 'bg-primary/10 text-primary' : 'bg-muted'}`}>
-                          {config.icon}
-                        </div>
-                        <p className="font-medium text-sm">{config.title}</p>
-                        <p className="text-xs text-muted-foreground leading-tight">{config.description}</p>
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-            
-            <Separator />
-            
-            {renderSourceTypeContent()}
-            
-            <div className="hidden">
-              <Label htmlFor="metadata">Metadata</Label>
-              <Textarea 
-                id="metadata"
-                value={metadata}
-                onChange={(e) => setMetadata(e.target.value)}
-                className="font-mono text-xs"
-              />
-            </div>
-            
-            {isUploading && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Uploading...</span>
-                  <span>{progress}%</span>
-                </div>
-                <Progress value={progress} className="w-full" />
+            <CardTitle className="text-2xl font-bold text-slate-800">Add Knowledge Source</CardTitle>
+            <CardDescription className="text-slate-600 text-base max-w-md mx-auto">
+              Add content to your knowledge base to improve your AI responses. Choose a source type below.
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="px-8">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Source Name Input */}
+              <div className="space-y-3">
+                <Label htmlFor="document-name" className="text-sm font-medium text-slate-700">Source Name (Optional)</Label>
+                <Input 
+                  id="document-name" 
+                  placeholder="Enter a name for this knowledge source"
+                  value={documentName}
+                  onChange={(e) => setDocumentName(e.target.value)}
+                  className="h-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500 bg-white/50"
+                />
+                <p className="text-xs text-slate-500">
+                  If left blank, a name will be generated automatically.
+                </p>
               </div>
-            )}
-            
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" type="button" asChild>
-                <RouterLink to="/knowledge">Cancel</RouterLink>
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isUploading}
-                className="flex items-center gap-1"
-              >
-                {isUploading ? 'Processing...' : sourceType === 'thirdParty' && !selectedFiles.length ? 'Connect & Import' : 'Add to Knowledge Base'}
-              </Button>
+              
+              {/* Source Type Selection */}
+              <div className="space-y-4">
+                <Label className="text-sm font-medium text-slate-700">Source Type</Label>
+                <RadioGroup 
+                  value={sourceType} 
+                  onValueChange={(value) => setSourceType(value as SourceType)}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                  {Object.entries(sourceConfigs).map(([type, config]) => (
+                    <div 
+                      key={type} 
+                      className={`relative border-2 rounded-xl transition-all hover:border-blue-300 hover:shadow-md cursor-pointer group ${
+                        sourceType === type 
+                          ? 'border-blue-500 bg-blue-50/50 shadow-md' 
+                          : 'border-slate-200 bg-white/30 hover:bg-white/50'
+                      }`}
+                    >
+                      <RadioGroupItem 
+                        value={type} 
+                        id={`source-type-${type}`} 
+                        className="sr-only" 
+                      />
+                      <label 
+                        htmlFor={`source-type-${type}`}
+                        className="flex cursor-pointer h-full"
+                      >
+                        <div className="flex flex-col items-center text-center gap-3 w-full p-6">
+                          <div className={`rounded-full p-3 transition-colors ${
+                            sourceType === type 
+                              ? 'bg-blue-100 text-blue-600' 
+                              : 'bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-500'
+                          }`}>
+                            {config.icon}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm text-slate-800 mb-1">{config.title}</p>
+                            <p className="text-xs text-slate-600 leading-relaxed">{config.description}</p>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+              
+              <Separator className="bg-slate-200" />
+              
+              {/* Source Type Content */}
+              <div className="bg-white/40 rounded-xl p-6 border border-slate-200">
+                {renderSourceTypeContent()}
+              </div>
+              
+              {/* Hidden Metadata */}
+              <div className="hidden">
+                <Label htmlFor="metadata">Metadata</Label>
+                <Textarea 
+                  id="metadata"
+                  value={metadata}
+                  onChange={(e) => setMetadata(e.target.value)}
+                  className="font-mono text-xs"
+                />
+              </div>
+              
+              {/* Upload Progress */}
+              {isUploading && (
+                <div className="space-y-3 bg-blue-50/50 rounded-xl p-4 border border-blue-200">
+                  <div className="flex justify-between text-sm font-medium text-blue-800">
+                    <span>Processing your content...</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="w-full h-2" />
+                </div>
+              )}
+              
+              {/* Action Buttons */}
+              <div className="flex justify-center gap-4 pt-4">
+                <Button variant="outline" type="button" asChild className="h-12 px-8 border-slate-300 hover:bg-white">
+                  <RouterLink to="/knowledge">Cancel</RouterLink>
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isUploading}
+                  className="h-12 px-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium shadow-lg"
+                >
+                  {isUploading ? 'Processing...' : sourceType === 'thirdParty' && !selectedFiles.length ? 'Connect & Import' : 'Add to Knowledge Base'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+          
+          <CardFooter className="bg-slate-50/50 border-t border-slate-200 rounded-b-lg px-8 py-6">
+            <div className="text-xs text-slate-600 w-full">
+              <p className="font-medium mb-2 text-slate-700">Processing Information:</p>
+              <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
+                <li>Uploaded content will be processed and indexed automatically.</li>
+                <li>Large files or websites may take several minutes to process.</li>
+                <li>You will be notified when processing is complete.</li>
+                <li>You can manage all your knowledge sources from the Knowledge Base page.</li>
+              </ul>
             </div>
-          </form>
-        </CardContent>
-        
-        <CardFooter className="bg-muted/20 border-t px-6">
-          <div className="text-xs text-muted-foreground">
-            <p className="font-medium mb-1">Processing Information:</p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Uploaded content will be processed and indexed automatically.</li>
-              <li>Large files or websites may take several minutes to process.</li>
-              <li>You will be notified when processing is complete.</li>
-              <li>You can manage all your knowledge sources from the Knowledge Base page.</li>
-            </ul>
-          </div>
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 };
