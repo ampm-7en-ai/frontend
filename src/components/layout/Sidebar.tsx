@@ -22,7 +22,8 @@ import {
   AlertCircle,
   Link,
   Search,
-  PanelLeftClose,
+  ArrowRightFromLine,
+  ArrowLeftFromLine,
   LogOut,
   CreditCard,
   User
@@ -169,7 +170,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   ];
 
   const adminItems: SidebarItem[] = [
-    { id: 'conversations', label: 'Chat', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
+    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
     { 
       id: 'agents', 
       label: 'AI Agents', 
@@ -248,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     <div className="relative flex">
       <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white transition-all duration-300 ease-in-out border-r border-gray-100 overflow-hidden`}>
         {/* Header with Logo */}
-        <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
+        <div className="flex items-center justify-between h-14 px-4">
           {!isCollapsed ? (
             <img src='/logo.svg' className="h-8" alt="Logo" />
           ) : (
@@ -258,7 +259,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         
         {/* Search Bar */}
         {!isCollapsed && (
-          <div className="p-4 border-b border-gray-100">
+          <div className="p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -408,28 +409,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         </nav>
         
         {/* User Profile Section */}
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4">
           {!isCollapsed ? (
             <div className="flex items-center justify-between">
               <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8 bg-gray-900">
+                    <Avatar className="h-8 w-8 bg-gray-300 p-[1px]">
                       <AvatarFallback className="text-white text-sm font-medium">
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {user?.name || 'User'}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {user?.email || 'user@example.com'}
-                      </p>
-                    </div>
+                    
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 mb-2">
+                <DropdownMenuContent align="start" className="w-48 mb-2 p-4">
+                  <div className="flex-1 min-w-0 border-b border-gray-50 pb-4">
+                    <p className="text-xs font-medium text-gray-900 truncate">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email || 'user@example.com'}
+                    </p>
+                  </div>
                   <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                     <User className="h-4 w-4" />
                     Profile
@@ -454,23 +456,54 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 onClick={toggleSidebar}
                 className="h-8 w-8 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <PanelLeftClose className="h-4 w-4" />
+                <ArrowLeftFromLine className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <div className="flex flex-col items-center space-y-2">
-              <Avatar className="h-8 w-8 bg-gray-900">
-                <AvatarFallback className="text-white text-sm font-medium">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
+              <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors">
+                      <Avatar className="h-8 w-8 bg-gray-300 p-[1px]">
+                        <AvatarFallback className="text-white text-sm font-medium">
+                          {user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4">
+                  <div className="flex-1 min-w-0 border-b border-gray-50 pb-4">
+                    <p className="text-xs font-medium text-gray-900 truncate">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email || 'user@example.com'}
+                    </p>
+                  </div>
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <CreditCard className="h-4 w-4" />
+                    Billing
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700"
+                    onClick={logout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
                 className="h-8 w-8 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <PanelLeftClose className="h-4 w-4" />
+                <ArrowRightFromLine className="h-4 w-4" />
               </Button>
             </div>
           )}

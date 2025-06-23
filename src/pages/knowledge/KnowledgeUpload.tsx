@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ChevronLeft, FileText, Upload, X, Globe, Table, AlignLeft, ExternalLink } from 'lucide-react';
+import { ChevronLeft, FileText, Upload, X, Globe, Table, AlignLeft, ExternalLink} from 'lucide-react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -601,7 +601,7 @@ const KnowledgeUpload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen flex">
       {/* Content Column */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-2xl">
@@ -617,21 +617,11 @@ const KnowledgeUpload = () => {
 
           {/* Main Card - Removed background and shadow */}
           <div className="space-y-8">
-            {/* Header */}
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Upload className="h-8 w-8 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">Add Knowledge Source</h1>
-              <p className="text-gray-600 text-base max-w-md mx-auto">
-                Add content to your knowledge base to improve your AI responses. Choose a source type below.
-              </p>
-            </div>
-            
+
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Source Name Input */}
               <div className="space-y-3">
-                <Label htmlFor="document-name" className="text-sm font-medium text-gray-700">Source Name (Optional)</Label>
+                <Label htmlFor="document-name" className="text-sm font-medium text-gray-700">Source Name</Label>
                 <Input 
                   id="document-name" 
                   placeholder="Enter a name for this knowledge source"
@@ -639,9 +629,7 @@ const KnowledgeUpload = () => {
                   onChange={(e) => setDocumentName(e.target.value)}
                   className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-xs text-gray-500">
-                  If left blank, a name will be generated automatically.
-                </p>
+                
               </div>
               
               {/* Source Type Selection - Stacked vertically */}
@@ -687,7 +675,6 @@ const KnowledgeUpload = () => {
                 </RadioGroup>
               </div>
               
-              <Separator className="bg-gray-200" />
               
               {/* Source Type Content - Removed background */}
               <div className="space-y-6">
@@ -724,6 +711,7 @@ const KnowledgeUpload = () => {
                 <Button 
                   type="submit" 
                   disabled={isUploading}
+                  variant="default"
                   className="h-12 px-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium shadow-lg"
                 >
                   {isUploading ? 'Processing...' : sourceType === 'thirdParty' && !selectedFiles.length ? 'Connect & Import' : 'Add to Knowledge Base'}
@@ -731,18 +719,7 @@ const KnowledgeUpload = () => {
               </div>
             </form>
             
-            {/* Footer Information */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-              <div className="text-xs text-gray-600">
-                <p className="font-medium mb-2 text-gray-700">Processing Information:</p>
-                <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
-                  <li>Uploaded content will be processed and indexed automatically.</li>
-                  <li>Large files or websites may take several minutes to process.</li>
-                  <li>You will be notified when processing is complete.</li>
-                  <li>You can manage all your knowledge sources from the Knowledge Base page.</li>
-                </ul>
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>
