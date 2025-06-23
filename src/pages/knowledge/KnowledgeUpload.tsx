@@ -601,62 +601,64 @@ const KnowledgeUpload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl">
-        {/* Back button */}
-        <div className="mb-8">
-          <Button variant="ghost" size="sm" asChild className="text-slate-600 hover:text-slate-800 hover:bg-white/50">
-            <RouterLink to="/knowledge" className="flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Knowledge Base
-            </RouterLink>
-          </Button>
-        </div>
+    <div className="min-h-screen bg-gray-100 flex">
+      {/* Content Column */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-2xl">
+          {/* Back button */}
+          <div className="mb-8">
+            <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-gray-800 hover:bg-white/50">
+              <RouterLink to="/knowledge" className="flex items-center gap-2">
+                <ChevronLeft className="h-4 w-4" />
+                Back to Knowledge Base
+              </RouterLink>
+            </Button>
+          </div>
 
-        {/* Main Card */}
-        <Card className="border-0 shadow-xl bg-white/70 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Upload className="h-8 w-8 text-white" />
+          {/* Main Card - Removed background and shadow */}
+          <div className="space-y-8">
+            {/* Header */}
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Upload className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-800 mb-2">Add Knowledge Source</h1>
+              <p className="text-gray-600 text-base max-w-md mx-auto">
+                Add content to your knowledge base to improve your AI responses. Choose a source type below.
+              </p>
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-800">Add Knowledge Source</CardTitle>
-            <CardDescription className="text-slate-600 text-base max-w-md mx-auto">
-              Add content to your knowledge base to improve your AI responses. Choose a source type below.
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="px-8">
+            
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Source Name Input */}
               <div className="space-y-3">
-                <Label htmlFor="document-name" className="text-sm font-medium text-slate-700">Source Name (Optional)</Label>
+                <Label htmlFor="document-name" className="text-sm font-medium text-gray-700">Source Name (Optional)</Label>
                 <Input 
                   id="document-name" 
                   placeholder="Enter a name for this knowledge source"
                   value={documentName}
                   onChange={(e) => setDocumentName(e.target.value)}
-                  className="h-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500 bg-white/50"
+                  className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-gray-500">
                   If left blank, a name will be generated automatically.
                 </p>
               </div>
               
-              {/* Source Type Selection */}
+              {/* Source Type Selection - Stacked vertically */}
               <div className="space-y-4">
-                <Label className="text-sm font-medium text-slate-700">Source Type</Label>
+                <Label className="text-sm font-medium text-gray-700">Source Type</Label>
                 <RadioGroup 
                   value={sourceType} 
                   onValueChange={(value) => setSourceType(value as SourceType)}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  className="space-y-3"
                 >
                   {Object.entries(sourceConfigs).map(([type, config]) => (
                     <div 
                       key={type} 
-                      className={`relative border-2 rounded-xl transition-all hover:border-blue-300 hover:shadow-md cursor-pointer group ${
+                      className={`relative border-2 rounded-xl transition-all hover:border-blue-300 cursor-pointer group ${
                         sourceType === type 
-                          ? 'border-blue-500 bg-blue-50/50 shadow-md' 
-                          : 'border-slate-200 bg-white/30 hover:bg-white/50'
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 bg-white hover:bg-gray-50'
                       }`}
                     >
                       <RadioGroupItem 
@@ -666,20 +668,18 @@ const KnowledgeUpload = () => {
                       />
                       <label 
                         htmlFor={`source-type-${type}`}
-                        className="flex cursor-pointer h-full"
+                        className="flex cursor-pointer items-center w-full p-4"
                       >
-                        <div className="flex flex-col items-center text-center gap-3 w-full p-6">
-                          <div className={`rounded-full p-3 transition-colors ${
-                            sourceType === type 
-                              ? 'bg-blue-100 text-blue-600' 
-                              : 'bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-500'
-                          }`}>
-                            {config.icon}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm text-slate-800 mb-1">{config.title}</p>
-                            <p className="text-xs text-slate-600 leading-relaxed">{config.description}</p>
-                          </div>
+                        <div className={`rounded-full p-3 transition-colors mr-4 ${
+                          sourceType === type 
+                            ? 'bg-blue-100 text-blue-600' 
+                            : 'bg-gray-100 text-gray-600 group-hover:bg-blue-50 group-hover:text-blue-500'
+                        }`}>
+                          {config.icon}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm text-gray-800 mb-1">{config.title}</p>
+                          <p className="text-xs text-gray-600 leading-relaxed">{config.description}</p>
                         </div>
                       </label>
                     </div>
@@ -687,10 +687,10 @@ const KnowledgeUpload = () => {
                 </RadioGroup>
               </div>
               
-              <Separator className="bg-slate-200" />
+              <Separator className="bg-gray-200" />
               
-              {/* Source Type Content */}
-              <div className="bg-white/40 rounded-xl p-6 border border-slate-200">
+              {/* Source Type Content - Removed background */}
+              <div className="space-y-6">
                 {renderSourceTypeContent()}
               </div>
               
@@ -707,7 +707,7 @@ const KnowledgeUpload = () => {
               
               {/* Upload Progress */}
               {isUploading && (
-                <div className="space-y-3 bg-blue-50/50 rounded-xl p-4 border border-blue-200">
+                <div className="space-y-3 bg-blue-50 rounded-xl p-4 border border-blue-200">
                   <div className="flex justify-between text-sm font-medium text-blue-800">
                     <span>Processing your content...</span>
                     <span>{progress}%</span>
@@ -718,7 +718,7 @@ const KnowledgeUpload = () => {
               
               {/* Action Buttons */}
               <div className="flex justify-center gap-4 pt-4">
-                <Button variant="outline" type="button" asChild className="h-12 px-8 border-slate-300 hover:bg-white">
+                <Button variant="outline" type="button" asChild className="h-12 px-8 border-gray-300 hover:bg-white">
                   <RouterLink to="/knowledge">Cancel</RouterLink>
                 </Button>
                 <Button 
@@ -730,20 +730,21 @@ const KnowledgeUpload = () => {
                 </Button>
               </div>
             </form>
-          </CardContent>
-          
-          <CardFooter className="bg-slate-50/50 border-t border-slate-200 rounded-b-lg px-8 py-6">
-            <div className="text-xs text-slate-600 w-full">
-              <p className="font-medium mb-2 text-slate-700">Processing Information:</p>
-              <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
-                <li>Uploaded content will be processed and indexed automatically.</li>
-                <li>Large files or websites may take several minutes to process.</li>
-                <li>You will be notified when processing is complete.</li>
-                <li>You can manage all your knowledge sources from the Knowledge Base page.</li>
-              </ul>
+            
+            {/* Footer Information */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <div className="text-xs text-gray-600">
+                <p className="font-medium mb-2 text-gray-700">Processing Information:</p>
+                <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
+                  <li>Uploaded content will be processed and indexed automatically.</li>
+                  <li>Large files or websites may take several minutes to process.</li>
+                  <li>You will be notified when processing is complete.</li>
+                  <li>You can manage all your knowledge sources from the Knowledge Base page.</li>
+                </ul>
+              </div>
             </div>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
