@@ -195,14 +195,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
   };
 
   return (
-    <>
-      <div className="flex justify-center mb-6">
-        <div className="text-primary font-bold text-3xl">
-          <img src="/logo.svg" style={{height:"40px"}}/>
-        </div>
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
+        <p className="text-gray-600">Join 7en.ai and start building intelligent chatbots</p>
       </div>
-
-      <h1 className="text-2xl font-semibold text-center mb-6">Create your account</h1>
       
       <Form {...form}>
         <form className="space-y-4" onSubmit={form.handleSubmit(handleSignup)}>
@@ -211,13 +208,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             name="business_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name</FormLabel>
+                <FormLabel className="text-gray-700 font-medium">Business Name</FormLabel>
                 <div className="relative">
-                  <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                  <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <FormControl>
                     <Input 
                       placeholder="Your Business Name" 
-                      className="pl-9" 
+                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                       {...field} 
                     />
                   </FormControl>
@@ -233,13 +230,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">Username</FormLabel>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <FormControl>
                       <Input 
                         placeholder="username" 
-                        className="pl-9" 
+                        className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                         {...field} 
                       />
                     </FormControl>
@@ -254,14 +251,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <FormControl>
                       <Input 
                         type="email" 
                         placeholder="email@example.com" 
-                        className="pl-9" 
+                        className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                         {...field} 
                       />
                     </FormControl>
@@ -278,21 +275,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">Password</FormLabel>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <FormControl>
                       <Input 
                         type={showSignupPassword ? "text" : "password"} 
                         placeholder="••••••••" 
-                        className="pl-9 pr-10" 
+                        className="h-11 pl-10 pr-12 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                         {...field} 
                       />
                     </FormControl>
                     <button
                       type="button"
                       onClick={() => setShowSignupPassword(!showSignupPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-gray hover:text-black"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {showSignupPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -307,13 +304,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="phone_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">Phone Number</FormLabel>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <FormControl>
                       <Input 
                         placeholder="+1234567890" 
-                        className="pl-9" 
+                        className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                         {...field} 
                       />
                     </FormControl>
@@ -329,13 +326,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             name="website"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Website (Optional)</FormLabel>
+                <FormLabel className="text-gray-700 font-medium">Website (Optional)</FormLabel>
                 <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <FormControl>
                     <Input 
                       placeholder="www.example.com" 
-                      className="pl-9" 
+                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                       {...field} 
                     />
                   </FormControl>
@@ -350,13 +347,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel className="text-gray-700 font-medium">Address</FormLabel>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <FormControl>
                     <Input 
                       placeholder="Business Address" 
-                      className="pl-9" 
+                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                       {...field} 
                     />
                   </FormControl>
@@ -366,24 +363,30 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             )}
           />
           
-          <p className="text-sm text-center text-dark-gray mt-4">
-            By continuing, you agree to our{" "}
-            <a href="/terms" className="text-primary hover:underline">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" className="text-primary hover:underline">
-              Privacy Policy
-            </a>
-            .
-          </p>
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+            <p className="text-sm text-gray-600 leading-relaxed">
+              By creating an account, you agree to our{" "}
+              <a href="/terms" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                Privacy Policy
+              </a>
+              .
+            </p>
+          </div>
           
-          <Button type="submit" className="w-full h-12 mt-2" disabled={isLoading}>
+          <Button 
+            type="submit" 
+            className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors" 
+            disabled={isLoading}
+          >
             {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
       </Form>
-    </>
+    </div>
   );
 };
 

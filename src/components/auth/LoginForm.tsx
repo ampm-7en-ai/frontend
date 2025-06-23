@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -307,29 +306,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   };
 
   return (
-    <>
-      <div className="flex justify-center mb-6">
-        <div className="text-primary">
-          <img src="/logo.svg" alt="7en.ai" style={{height:"45px"}}/>
-        </div>
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+        <p className="text-gray-600">Sign in to your account to continue</p>
       </div>
       
-      <h1 className="text-2xl font-semibold text-center mb-6">Log in to your account</h1>
-      
       <Form {...form}>
-        <form className="space-y-5" onSubmit={form.handleSubmit(handleLogin)}>
+        <form className="space-y-4" onSubmit={form.handleSubmit(handleLogin)}>
           <FormField
             control={form.control}
             name="username"
             render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Username</FormLabel>
+              <FormItem>
+                <FormLabel className="text-gray-700 font-medium">Username</FormLabel>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <FormControl>
                     <Input 
                       placeholder="Enter your username" 
-                      className="h-11 pl-9 pr-4" 
+                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                       {...field}
                     />
                   </FormControl>
@@ -343,12 +339,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             control={form.control}
             name="password"
             render={({ field }) => (
-              <FormItem className="space-y-3">
-                <div className="flex justify-between">
-                  <FormLabel>Password</FormLabel>
+              <FormItem>
+                <div className="flex justify-between items-center">
+                  <FormLabel className="text-gray-700 font-medium">Password</FormLabel>
                   <button 
                     type="button" 
-                    className="text-sm text-primary hover:underline"
+                    className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
                       setIsForgotPasswordOpen(true);
@@ -358,19 +354,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <FormControl>
                     <Input 
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••" 
-                      className="h-11 pl-9 pr-10" 
+                      placeholder="Enter your password" 
+                      className="h-11 pl-10 pr-12 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
                       {...field}
                     />
                   </FormControl>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-gray hover:text-black"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -381,14 +377,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           />
           
           {form.formState.errors.root && (
-            <div className="text-sm font-medium text-destructive">
+            <div className="text-sm font-medium text-destructive bg-destructive/5 p-3 rounded-lg border border-destructive/20">
               {form.formState.errors.root.message}
             </div>
           )}
           
           <Button 
             type="submit" 
-            className="w-full py-2 h-12"
+            className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
             disabled={isLoggingIn}
           >
             {isLoggingIn ? "Signing in..." : "Sign in"}
@@ -396,38 +392,45 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         </form>
       </Form>
       
-      <div className="relative my-6">
-        <Separator />
-        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-medium-gray">
-          or
+      <div className="relative">
+        <Separator className="bg-gray-200" />
+        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-sm text-gray-500">
+          or continue with
         </span>
       </div>
       
-      <Button 
-        variant="outline" 
-        className="w-full flex items-center justify-center gap-2"
-        onClick={handleGoogleLogin}
-        disabled={isGoogleLoading}
-      >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4" />
-          <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4204 9 14.4204C6.65591 14.4204 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853" />
-          <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957273C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957273 13.0418L3.96409 10.71Z" fill="#FBBC05" />
-          <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335" />
-        </svg>
-        {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
-      </Button>
-      
-      <Button variant="outline" className="w-full mt-3">
-        Sign in with SSO
-      </Button>
+      <div className="space-y-3">
+        <Button 
+          variant="outline" 
+          className="w-full h-11 border-gray-200 hover:bg-gray-50 transition-colors rounded-lg"
+          onClick={handleGoogleLogin}
+          disabled={isGoogleLoading}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+            <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4" />
+            <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4204 9 14.4204C6.65591 14.4204 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853" />
+            <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957273C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957273 13.0418L3.96409 10.71Z" fill="#FBBC05" />
+            <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335" />
+          </svg>
+          {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          className="w-full h-11 border-gray-200 hover:bg-gray-50 transition-colors rounded-lg"
+        >
+          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2L3 7v11h4v-6h6v6h4V7l-7-5z"/>
+          </svg>
+          Sign in with SSO
+        </Button>
+      </div>
 
-      {/* Forgot Password Dialog */}
       <ForgotPasswordDialog 
         isOpen={isForgotPasswordOpen} 
         onClose={() => setIsForgotPasswordOpen(false)} 
       />
-    </>
+    </div>
   );
 };
 
