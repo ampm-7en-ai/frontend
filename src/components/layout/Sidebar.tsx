@@ -21,15 +21,21 @@ import {
   Loader2,
   AlertCircle,
   Link,
-  Search
+  Search,
+  PanelLeftClose
 } from 'lucide-react';
 import { NavLink, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { createAgent } from '@/utils/api-config';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -66,6 +72,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
+  
+  // Agent creation form state
+  const [agentName, setAgentName] = useState('');
+  const [agentDescription, setAgentDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nameError, setNameError] = useState(false);
+  const [descriptionError, setDescriptionError] = useState(false);
 
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
@@ -80,7 +94,83 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   };
 
   const handleAgentPlus = () => {
-    navigate('/agents/create');
+    setIsAgentDrawerOpen(true);
+  };
+
+  const handleAgentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAgentName(e.target.value);
+    if (e.target.value.trim()) setNameError(false);
+  };
+  
+  const handleAgentDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setAgentDescription(e.target.value);
+    if (e.target.value.trim()) setDescriptionError(false);
+  };
+  
+  const validateForm = () => {
+    let isValid = true;
+    
+    if (!agentName.trim()) {
+      setNameError(true);
+      isValid = false;
+    }
+    
+    if (!agentDescription.trim()) {
+      setDescriptionError(true);
+      isValid = false;
+    }
+    
+    if (!isValid) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill in all required fields before creating an agent.",
+        variant: "destructive"
+      });
+    }
+    
+    return isValid;
+  };
+  
+  const handleSaveAgent = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    console.log("Starting agent creation...");
+    
+    try {
+      console.log("Sending agent creation request with:", { agentName, agentDescription });
+      const data = await createAgent(agentName, agentDescription);
+      
+      console.log("Agent creation successful:", data);
+      
+      // Show success toast with message from response
+      toast({
+        title: "Agent Created Successfully",
+        description: data.message || `${agentName} has been successfully created.`,
+        variant: "default"
+      });
+      
+      // Reset form and close drawer
+      setAgentName('');
+      setAgentDescription('');
+      setNameError(false);
+      setDescriptionError(false);
+      setIsAgentDrawerOpen(false);
+      
+      // Navigate to agents page
+      navigate('/agents');
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      toast({
+        title: "Creation Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred while creating the agent.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const commonItems: SidebarItem[] = [
@@ -174,19 +264,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           ) : (
             <img src='/logo-icon.svg' className="h-8 w-8" alt="Logo" />
           )}
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-8 w-8 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
         </div>
         
         {/* Search Bar */}
@@ -243,7 +320,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 <div className="relative group">
                   <NavLink
                     to={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    className={({ isActive }) => 
+                      `flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900`
+                    }
                   >
                     <div className="flex items-center">
                       <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600' : ''}`} />
@@ -266,7 +345,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          item.plusAction();
+                          item.plusAction!();
                         }}
                       >
                         <Plus className="h-3 w-3" />
@@ -279,7 +358,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           ))}
         </nav>
         
-        {/* User Profile at Bottom */}
+        {/* User Profile */}
         <div className="p-4 border-t border-gray-100">
           {!isCollapsed ? (
             <div className="flex items-center space-x-3">
@@ -307,7 +386,101 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             </div>
           )}
         </div>
+
+        {/* Sidebar Toggle at Bottom */}
+        <div className="p-4 border-t border-gray-100">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-8 w-8 rounded-full hover:bg-gray-100 transition-colors mx-auto"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+
+      {/* Agent Creation Drawer */}
+      <Drawer open={isAgentDrawerOpen} onOpenChange={setIsAgentDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Create New Agent</DrawerTitle>
+            <DrawerDescription>Configure your AI agent's basic information</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-4">
+            <Card>
+              <CardContent className="space-y-6 pt-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="agent-name" className="flex items-center">
+                      Agent Name <span className="text-destructive ml-1">*</span>
+                    </Label>
+                    <Input 
+                      id="agent-name" 
+                      placeholder="e.g., Customer Support Assistant" 
+                      value={agentName}
+                      onChange={handleAgentNameChange}
+                      className={nameError ? "border-destructive" : ""}
+                      disabled={isSubmitting}
+                    />
+                    {nameError && (
+                      <p className="text-destructive text-sm flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        Agent name is required
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="agent-description" className="flex items-center">
+                      Description <span className="text-destructive ml-1">*</span>
+                    </Label>
+                    <Textarea 
+                      id="agent-description" 
+                      placeholder="Describe what this agent does and how it helps users"
+                      className={`min-h-[100px] ${descriptionError ? "border-destructive" : ""}`}
+                      value={agentDescription}
+                      onChange={handleAgentDescriptionChange}
+                      disabled={isSubmitting}
+                    />
+                    {descriptionError && (
+                      <p className="text-destructive text-sm flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        Agent description is required
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <DrawerFooter>
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground flex items-center">
+                <span className="text-destructive mr-1">*</span> Required fields
+              </p>
+              <div className="flex gap-2">
+                <DrawerClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DrawerClose>
+                <Button 
+                  onClick={handleSaveAgent} 
+                  disabled={isSubmitting || !agentName || !agentDescription}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Create Agent'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
