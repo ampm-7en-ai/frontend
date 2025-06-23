@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -55,6 +56,8 @@ interface SidebarItem {
   action?: React.ReactNode;
   permission?: keyof typeof UserPermissions;
   highlight?: boolean;
+  showPlusOnHover?: boolean;
+  plusAction?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
@@ -64,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [agentPopoverOpen, setAgentPopoverOpen] = useState(false);
 
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
@@ -73,15 +77,40 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     }
   };
 
+  const handleKnowledgePlus = () => {
+    navigate('/knowledge/upload');
+  };
+
+  const handleAgentPlus = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAgentPopoverOpen(true);
+  };
+
   const commonItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
   ];
 
   const adminItems: SidebarItem[] = [
     { id: 'conversations', label: 'Chat', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
-    { id: 'agents', label: 'Tasks', href: '/agents',  icon: Bot, permission: 'agents' },
-    { id: 'knowledge', label: 'Workspaces', href: '/knowledge', icon: Book, permission: 'knowledgebase' },
-    { id: 'history', label: 'History', href: '/analytics', icon: BarChart2, permission: 'dashboard' },
+    { 
+      id: 'agents', 
+      label: 'AI Agents', 
+      href: '/agents', 
+      icon: Bot, 
+      permission: 'agents',
+      showPlusOnHover: true,
+      plusAction: handleAgentPlus
+    },
+    { 
+      id: 'knowledge', 
+      label: 'Knowledge', 
+      href: '/knowledge', 
+      icon: Book, 
+      permission: 'knowledgebase',
+      showPlusOnHover: true,
+      plusAction: handleKnowledgePlus
+    },
     { 
       id: 'integrations', 
       label: 'Integrations', 
@@ -206,10 +235,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <NavLink
                           key={child.label}
                           to={child.href}
-                          className={({ isActive }) =>
-                            `flex items-center px-3 py-2 text-sm rounded-lg transition-colors
-                            ${isActive ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`
-                          }
+                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                         >
                           <span>{child.label}</span>
                         </NavLink>
@@ -218,25 +244,97 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   )}
                 </>
               ) : (
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `flex items-center px-3 py-2 text-sm rounded-lg transition-colors w-full
-                    ${isActive ? 'bg-gray-900 text-white' : item.highlight && !isCollapsed ? 'text-green-700 hover:bg-green-50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`
-                  }
-                >
-                  <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600' : ''}`} />
-                  {!isCollapsed && (
-                    <span className={`${item.highlight ? 'font-medium' : ''}`}>
-                      {item.label}
-                      {item.highlight && (
-                        <span className="ml-2 bg-green-100 text-green-800 text-xs py-0.5 px-1.5 rounded-full">
-                          New
-                        </span>
+                <div className="relative group">
+                  {item.showPlusOnHover && item.id === 'agents' ? (
+                    <Popover open={agentPopoverOpen} onOpenChange={setAgentPopoverOpen}>
+                      <div className="flex items-center">
+                        <NavLink
+                          to={item.href}
+                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        >
+                          <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600' : ''}`} />
+                          {!isCollapsed && (
+                            <span className={`${item.highlight ? 'font-medium' : ''}`}>
+                              {item.label}
+                              {item.highlight && (
+                                <span className="ml-2 bg-green-100 text-green-800 text-xs py-0.5 px-1.5 rounded-full">
+                                  New
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </NavLink>
+                        {!isCollapsed && item.showPlusOnHover && (
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
+                              onClick={handleAgentPlus}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </PopoverTrigger>
+                        )}
+                      </div>
+                      <PopoverContent className="w-56 p-2" align="start" side="right">
+                        <div className="space-y-1">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start h-8 px-2 text-sm"
+                            onClick={() => {
+                              navigate('/agents/create');
+                              setAgentPopoverOpen(false);
+                            }}
+                          >
+                            <Plus className="mr-2 h-3 w-3" />
+                            Create Agent
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start h-8 px-2 text-sm"
+                            onClick={() => {
+                              navigate('/agents/import');
+                              setAgentPopoverOpen(false);
+                            }}
+                          >
+                            <Upload className="mr-2 h-3 w-3" />
+                            Import Agent
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <div className="flex items-center">
+                      <NavLink
+                        to={item.href}
+                        className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      >
+                        <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600' : ''}`} />
+                        {!isCollapsed && (
+                          <span className={`${item.highlight ? 'font-medium' : ''}`}>
+                            {item.label}
+                            {item.highlight && (
+                              <span className="ml-2 bg-green-100 text-green-800 text-xs py-0.5 px-1.5 rounded-full">
+                                New
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </NavLink>
+                      {!isCollapsed && item.showPlusOnHover && item.plusAction && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
+                          onClick={item.plusAction}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
                       )}
-                    </span>
+                    </div>
                   )}
-                </NavLink>
+                </div>
               )}
             </div>
           ))}
