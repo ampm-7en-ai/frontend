@@ -22,7 +22,10 @@ import {
   AlertCircle,
   Link,
   Search,
-  PanelLeftClose
+  PanelLeftClose,
+  LogOut,
+  CreditCard,
+  User
 } from 'lucide-react';
 import { NavLink, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -35,6 +38,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { createAgent } from '@/utils/api-config';
 
 interface SidebarProps {
@@ -66,20 +70,19 @@ interface SidebarItem {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
+  const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
   // Agent creation form state
   const [agentName, setAgentName] = useState('');
-  const [agentDescription, setAgentDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nameError, setNameError] = useState(false);
-  const [descriptionError, setDescriptionError] = useState(false);
 
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
@@ -93,18 +96,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     navigate('/knowledge/upload');
   };
 
-  const handleAgentPlus = () => {
-    setIsAgentDrawerOpen(true);
-  };
-
   const handleAgentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAgentName(e.target.value);
     if (e.target.value.trim()) setNameError(false);
-  };
-  
-  const handleAgentDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setAgentDescription(e.target.value);
-    if (e.target.value.trim()) setDescriptionError(false);
   };
   
   const validateForm = () => {
@@ -115,15 +109,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       isValid = false;
     }
     
-    if (!agentDescription.trim()) {
-      setDescriptionError(true);
-      isValid = false;
-    }
-    
     if (!isValid) {
       toast({
         title: "Required Fields Missing",
-        description: "Please fill in all required fields before creating an agent.",
+        description: "Please enter an agent name.",
         variant: "destructive"
       });
     }
@@ -131,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     return isValid;
   };
   
-  const handleSaveAgent = async () => {
+  const handleCreateAgent = async () => {
     if (!validateForm()) {
       return;
     }
@@ -140,8 +129,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     console.log("Starting agent creation...");
     
     try {
-      console.log("Sending agent creation request with:", { agentName, agentDescription });
-      const data = await createAgent(agentName, agentDescription);
+      console.log("Sending agent creation request with:", { agentName });
+      const data = await createAgent(agentName, `AI Agent: ${agentName}`);
       
       console.log("Agent creation successful:", data);
       
@@ -152,15 +141,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         variant: "default"
       });
       
-      // Reset form and close drawer
+      // Reset form and close dropdown
       setAgentName('');
-      setAgentDescription('');
       setNameError(false);
-      setDescriptionError(false);
-      setIsAgentDrawerOpen(false);
+      setIsAgentDropdownOpen(false);
       
-      // Navigate to agents page
-      navigate('/agents');
+      // Navigate to agent edit page with the new agent id
+      if (data.data?.id) {
+        navigate(`/agents/${data.data.id}/edit`);
+      } else {
+        navigate('/agents');
+      }
     } catch (error) {
       console.error('Error creating agent:', error);
       toast({
@@ -185,8 +176,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       href: '/agents', 
       icon: Bot, 
       permission: 'agents',
-      showPlusOnHover: true,
-      plusAction: handleAgentPlus
+      showPlusOnHover: true
     },
     { 
       id: 'knowledge', 
@@ -320,9 +310,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 <div className="relative group">
                   <NavLink
                     to={item.href}
-                    className={({ isActive }) => 
-                      `flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900`
-                    }
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   >
                     <div className="flex items-center">
                       <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600' : ''}`} />
@@ -337,19 +325,80 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         </span>
                       )}
                     </div>
-                    {!isCollapsed && item.showPlusOnHover && item.plusAction && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          item.plusAction!();
-                        }}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
+                    
+                    {/* Plus icon for specific items */}
+                    {!isCollapsed && item.showPlusOnHover && (
+                      <>
+                        {item.id === 'agents' ? (
+                          <DropdownMenu open={isAgentDropdownOpen} onOpenChange={setIsAgentDropdownOpen}>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-[280px] p-4">
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Bot className="h-5 w-5" />
+                                  <h3 className="text-sm font-semibold">Create New Agent</h3>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="agentName" className="text-xs">Agent Name</Label>
+                                  <Input
+                                    id="agentName"
+                                    placeholder="Enter agent name"
+                                    value={agentName}
+                                    onChange={handleAgentNameChange}
+                                    className={`h-8 text-sm ${nameError ? "border-red-500" : ""}`}
+                                    disabled={isSubmitting}
+                                  />
+                                  {nameError && (
+                                    <p className="text-xs text-red-500 flex items-center">
+                                      <AlertCircle className="h-3 w-3 mr-1" />
+                                      Please enter an agent name
+                                    </p>
+                                  )}
+                                </div>
+                                <Button 
+                                  onClick={handleCreateAgent} 
+                                  className="w-full h-8 text-sm"
+                                  disabled={isSubmitting}
+                                >
+                                  {isSubmitting ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                      Creating...
+                                    </>
+                                  ) : (
+                                    "Create Agent"
+                                  )}
+                                </Button>
+                              </div>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (item.plusAction) item.plusAction();
+                            }}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </>
                     )}
                   </NavLink>
                 </div>
@@ -358,129 +407,75 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           ))}
         </nav>
         
-        {/* User Profile */}
+        {/* User Profile Section */}
         <div className="p-4 border-t border-gray-100">
           {!isCollapsed ? (
-            <div className="flex items-center space-x-3">
-              <Avatar className="h-8 w-8 bg-gray-900">
-                <AvatarFallback className="text-white text-sm font-medium">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.name || 'User'}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {user?.email || 'user@example.com'}
-                </p>
-              </div>
+            <div className="flex items-center justify-between">
+              <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors">
+                    <Avatar className="h-8 w-8 bg-gray-900">
+                      <AvatarFallback className="text-white text-sm font-medium">
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user?.name || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user?.email || 'user@example.com'}
+                      </p>
+                    </div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 mb-2">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <CreditCard className="h-4 w-4" />
+                    Billing
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700"
+                    onClick={logout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </Button>
             </div>
           ) : (
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center space-y-2">
               <Avatar className="h-8 w-8 bg-gray-900">
                 <AvatarFallback className="text-white text-sm font-medium">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </Button>
             </div>
           )}
         </div>
-
-        {/* Sidebar Toggle at Bottom */}
-        <div className="p-4 border-t border-gray-100">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-8 w-8 rounded-full hover:bg-gray-100 transition-colors mx-auto"
-          >
-            <PanelLeftClose className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
-
-      {/* Agent Creation Drawer */}
-      <Drawer open={isAgentDrawerOpen} onOpenChange={setIsAgentDrawerOpen}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Create New Agent</DrawerTitle>
-            <DrawerDescription>Configure your AI agent's basic information</DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 pb-4">
-            <Card>
-              <CardContent className="space-y-6 pt-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="agent-name" className="flex items-center">
-                      Agent Name <span className="text-destructive ml-1">*</span>
-                    </Label>
-                    <Input 
-                      id="agent-name" 
-                      placeholder="e.g., Customer Support Assistant" 
-                      value={agentName}
-                      onChange={handleAgentNameChange}
-                      className={nameError ? "border-destructive" : ""}
-                      disabled={isSubmitting}
-                    />
-                    {nameError && (
-                      <p className="text-destructive text-sm flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        Agent name is required
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="agent-description" className="flex items-center">
-                      Description <span className="text-destructive ml-1">*</span>
-                    </Label>
-                    <Textarea 
-                      id="agent-description" 
-                      placeholder="Describe what this agent does and how it helps users"
-                      className={`min-h-[100px] ${descriptionError ? "border-destructive" : ""}`}
-                      value={agentDescription}
-                      onChange={handleAgentDescriptionChange}
-                      disabled={isSubmitting}
-                    />
-                    {descriptionError && (
-                      <p className="text-destructive text-sm flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        Agent description is required
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <DrawerFooter>
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground flex items-center">
-                <span className="text-destructive mr-1">*</span> Required fields
-              </p>
-              <div className="flex gap-2">
-                <DrawerClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DrawerClose>
-                <Button 
-                  onClick={handleSaveAgent} 
-                  disabled={isSubmitting || !agentName || !agentDescription}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Agent'
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
     </div>
   );
 };
