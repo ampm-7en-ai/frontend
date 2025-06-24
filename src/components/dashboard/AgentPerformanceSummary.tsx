@@ -1,9 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Clock, MessageCircle, Star, TrendingUp, TrendingDown } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Clock, MessageCircle, Star, TrendingUp, TrendingDown, Download } from 'lucide-react';
 import { AgentPerformanceSummary as PerformanceSummaryType, AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
+import ModernTabNavigation from './ModernTabNavigation';
+import ModernButton from './ModernButton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AgentPerformanceSummaryProps {
   agentPerformanceSummary: PerformanceSummaryType;
@@ -18,19 +27,20 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
   agentPerformanceComparison,
   conversationChannel,
 }) => {
+  const [activeTab, setActiveTab] = useState('Today');
+  const [selectedChannel, setSelectedChannel] = useState('all');
+
+  const timeTabs = [
+    { id: 'Today', label: 'Today' },
+    { id: '1W', label: '1W' },
+    { id: '1M', label: '1M' },
+    { id: '1Y', label: '1Y' }
+  ];
+
   const channelData = Object.entries(conversationChannel).map(([name, value]) => ({
     name: name.charAt(0).toUpperCase() + name.slice(1),
     value
   }));
-
-  // Sample line chart data for trend visualization
-  const trendData = [
-    { name: '1W', value: 65 },
-    { name: '2W', value: 78 },
-    { name: '3W', value: 90 },
-    { name: '4W', value: 81 },
-    { name: '5W', value: 95 },
-  ];
 
   const formatResponseTime = (time: number) => {
     if (time < 60) return `${time}s`;
@@ -180,31 +190,57 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
           </CardContent>
         </Card>
 
-        {/* Trend Line Chart */}
+        {/* Conversation Statistics */}
         <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Weekly Trends
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Conversation Statistics
+              </CardTitle>
+              <div className="flex items-center gap-3">
+                <ModernTabNavigation 
+                  tabs={timeTabs}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  className="text-xs"
+                />
+                <Select value={selectedChannel} onValueChange={setSelectedChannel}>
+                  <SelectTrigger className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700">
+                    <SelectValue placeholder="Channel" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                    <SelectItem value="all">All Channels</SelectItem>
+                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                    <SelectItem value="slack">Slack</SelectItem>
+                    <SelectItem value="messenger">Messenger</SelectItem>
+                    <SelectItem value="website">Website</SelectItem>
+                  </SelectContent>
+                </Select>
+                <ModernButton variant="outline" size="sm" icon={Download}>
+                  Export
+                </ModernButton>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                  <XAxis 
-                    dataKey="name" 
-                    tick={{ fontSize: 12, fill: 'currentColor' }}
-                    className="text-slate-600 dark:text-slate-400"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12, fill: 'currentColor' }}
-                    className="text-slate-600 dark:text-slate-400"
-                    axisLine={false}
-                    tickLine={false}
-                  />
+                <PieChart>
+                  <Pie
+                    data={channelData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={120}
+                    paddingAngle={4}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                  >
+                    {channelData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -213,60 +249,12 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                       boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
                     }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8, fill: '#059669' }}
-                  />
-                </LineChart>
+                </PieChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Conversation Channels */}
-      <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Conversation Channels
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={channelData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={120}
-                  paddingAngle={4}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {channelData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
