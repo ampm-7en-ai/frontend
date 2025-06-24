@@ -5,6 +5,7 @@ import DashboardStatCards from '@/components/dashboard/DashboardStatCards';
 import AgentPerformanceSummary from '@/components/dashboard/AgentPerformanceSummary';
 import UsageStatsCard from '@/components/dashboard/UsageStatsCard';
 import StatisticsCharts from '@/components/dashboard/StatisticsCharts';
+import AgentPerformanceCard from '@/components/dashboard/AgentPerformanceCard';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,17 +57,27 @@ const AdminDashboard = () => {
         />
         
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <div className="xl:col-span-2 space-y-8">
-            <AgentPerformanceSummary
-              agentPerformanceSummary={data.agent_performance_summary}
-              agentPerformanceComparison={data.agent_performance_comparison}
-              conversationChannel={data.conversation_channels}
-            />
+        <div className="space-y-8">
+          {/* Top Row - Conversation Statistics and Customer Satisfaction */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div className="h-[500px]">
+              <AgentPerformanceSummary
+                agentPerformanceSummary={data.agent_performance_summary}
+                agentPerformanceComparison={data.agent_performance_comparison}
+                conversationChannel={data.conversation_channels}
+              />
+            </div>
+            
+            <div className="h-[500px]">
+              <StatisticsCharts />
+            </div>
           </div>
-          
-          <div className="space-y-8">
-            <StatisticsCharts />
+
+          {/* Bottom Row - Full Width Agent Performance Card */}
+          <div className="w-full">
+            <AgentPerformanceCard 
+              agentPerformanceComparison={data.agent_performance_comparison}
+            />
           </div>
         </div>
       </div>

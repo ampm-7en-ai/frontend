@@ -43,126 +43,97 @@ const StatisticsCharts = () => {
     { name: 'Jun', satisfaction: 91, nps: 55, csat: 4.6 },
   ];
 
-  // Generate dynamic agent satisfaction data based on time period
-  const generateAgentSatisfactionData = () => {
-    const baseData = [
-      { agent: 'Customer Service', satisfaction: 92, conversations: 145, avgRating: 4.6 },
-      { agent: 'Sales Agent', satisfaction: 88, conversations: 98, avgRating: 4.4 },
-      { agent: 'Tech Support', satisfaction: 94, conversations: 76, avgRating: 4.7 },
-      { agent: 'HR Assistant', satisfaction: 85, conversations: 45, avgRating: 4.2 },
-      { agent: 'Billing Bot', satisfaction: 90, conversations: 67, avgRating: 4.5 },
-    ];
-
-    // Modify data based on selected time period
-    let multiplier = 1;
-    if (conversationActiveTab === '1W') multiplier = 0.9;
-    else if (conversationActiveTab === '1M') multiplier = 3.2;
-    else if (conversationActiveTab === '1Y') multiplier = 15;
-
-    return baseData.map(item => ({
-      ...item,
-      conversations: Math.round(item.conversations * multiplier),
-      satisfaction: Math.max(70, Math.min(98, item.satisfaction + (Math.random() - 0.5) * 10))
-    }));
-  };
-
-  const agentSatisfactionData = generateAgentSatisfactionData();
-
   return (
-    <div className="space-y-6">
-    
-      {/* Customer Satisfaction - Full Width */}
-      <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-                Customer Satisfaction
-              </CardTitle>
-              <CardDescription className="text-slate-500 dark:text-slate-400">
-                Satisfaction metrics and trends
-              </CardDescription>
-            </div>
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
-              <Heart className="h-6 w-6 text-white" />
-            </div>
+    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden h-full">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+              Customer Satisfaction
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400">
+              Satisfaction metrics and trends
+            </CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            {/* Overall Satisfaction */}
-            <div className="text-center">
-              <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">Overall</div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">92%</div>
-              <div className="flex items-center justify-center text-xs text-green-600 dark:text-green-400">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +5%
-              </div>
-            </div>
-
-            {/* CSAT Score */}
-            <div className="text-center">
-              <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">CSAT</div>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">4.7</div>
-              <div className="flex items-center justify-center text-xs text-blue-600 dark:text-blue-400">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +0.3
-              </div>
-            </div>
-
-            {/* NPS Score */}
-            <div className="text-center">
-              <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">NPS</div>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">+68</div>
-              <div className="flex items-center justify-center text-xs text-purple-600 dark:text-purple-400">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +12
-              </div>
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
+            <Heart className="h-6 w-6 text-white" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {/* Overall Satisfaction */}
+          <div className="text-center">
+            <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">Overall</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">92%</div>
+            <div className="flex items-center justify-center text-xs text-green-600 dark:text-green-400">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +5%
             </div>
           </div>
 
-          {/* Mini Satisfaction Trends Chart */}
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={satisfactionTrendData}>
-                <defs>
-                  <linearGradient id="satisfactionGradientFull" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 10, fill: 'currentColor' }}
-                  className="text-slate-600 dark:text-slate-400"
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="satisfaction" 
-                  stroke="#3b82f6" 
-                  fillOpacity={1} 
-                  fill="url(#satisfactionGradientFull)"
-                  strokeWidth={2}
-                  name="Satisfaction %"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          {/* CSAT Score */}
+          <div className="text-center">
+            <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">CSAT</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">4.7</div>
+            <div className="flex items-center justify-center text-xs text-blue-600 dark:text-blue-400">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +0.3
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+
+          {/* NPS Score */}
+          <div className="text-center">
+            <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">NPS</div>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">+68</div>
+            <div className="flex items-center justify-center text-xs text-purple-600 dark:text-purple-400">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +12
+            </div>
+          </div>
+        </div>
+
+        {/* Mini Satisfaction Trends Chart */}
+        <div className="h-40">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={satisfactionTrendData}>
+              <defs>
+                <linearGradient id="satisfactionGradientFull" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 10, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis hide />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="satisfaction" 
+                stroke="#3b82f6" 
+                fillOpacity={1} 
+                fill="url(#satisfactionGradientFull)"
+                strokeWidth={2}
+                name="Satisfaction %"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -69,113 +69,97 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
 
   const conversationData = generateConversationData();
 
-  const formatResponseTime = (time: number) => {
-    if (time < 60) return `${time}s`;
-    return `${(time / 60).toFixed(1)}m`;
-  };
-
-  const getChangeIcon = (direction: string) => {
-    return direction === 'up' ? (
-      <TrendingUp className="h-4 w-4 text-green-500" />
-    ) : (
-      <TrendingDown className="h-4 w-4 text-red-500" />
-    );
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Conversation Statistics - Full Width */}
-      <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Conversation Statistics
-            </CardTitle>
-            <div className="flex items-center gap-3">
-              <ModernTabNavigation 
-                tabs={timeTabs}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                className="text-xs"
+    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden h-full">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Conversation Statistics
+          </CardTitle>
+          <div className="flex items-center gap-3">
+            <ModernTabNavigation 
+              tabs={timeTabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              className="text-xs"
+            />
+            <Select value={selectedChannel} onValueChange={setSelectedChannel}>
+              <SelectTrigger className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700">
+                <SelectValue placeholder="Channel" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                <SelectItem value="all">All Channels</SelectItem>
+                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value="slack">Slack</SelectItem>
+                <SelectItem value="messenger">Messenger</SelectItem>
+                <SelectItem value="website">Website</SelectItem>
+              </SelectContent>
+            </Select>
+            <ModernButton variant="outline" size="sm" icon={Download}>
+              Export
+            </ModernButton>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={conversationData}>
+              <defs>
+                <linearGradient id="queriesGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="conversionsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 12, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
               />
-              <Select value={selectedChannel} onValueChange={setSelectedChannel}>
-                <SelectTrigger className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700">
-                  <SelectValue placeholder="Channel" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
-                  <SelectItem value="all">All Channels</SelectItem>
-                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                  <SelectItem value="slack">Slack</SelectItem>
-                  <SelectItem value="messenger">Messenger</SelectItem>
-                  <SelectItem value="website">Website</SelectItem>
-                </SelectContent>
-              </Select>
-              <ModernButton variant="outline" size="sm" icon={Download}>
-                Export
-              </ModernButton>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={conversationData}>
-                <defs>
-                  <linearGradient id="queriesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="conversionsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12, fill: 'currentColor' }}
-                  className="text-slate-600 dark:text-slate-400"
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12, fill: 'currentColor' }}
-                  className="text-slate-600 dark:text-slate-400"
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="queries" 
-                  stroke="#3b82f6" 
-                  fillOpacity={1} 
-                  fill="url(#queriesGradient)"
-                  strokeWidth={2}
-                  name="Total Queries"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="conversions" 
-                  stroke="#10b981" 
-                  fillOpacity={1} 
-                  fill="url(#conversionsGradient)"
-                  strokeWidth={2}
-                  name="Successful Conversions"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              <YAxis 
+                tick={{ fontSize: 12, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="queries" 
+                stroke="#3b82f6" 
+                fillOpacity={1} 
+                fill="url(#queriesGradient)"
+                strokeWidth={2}
+                name="Total Queries"
+              />
+              <Area 
+                type="monotone" 
+                dataKey="conversions" 
+                stroke="#10b981" 
+                fillOpacity={1} 
+                fill="url(#conversionsGradient)"
+                strokeWidth={2}
+                name="Successful Conversions"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
