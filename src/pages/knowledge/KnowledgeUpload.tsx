@@ -464,7 +464,7 @@ const KnowledgeUpload = () => {
                       <ModernButton 
                         variant="outline" 
                         size="sm"
-                        onClick={(e) => removeFile(index, e)} 
+                        onClick={() => removeFile(index, {} as React.MouseEvent)} 
                         className="h-8 w-8 p-0"
                       >
                         <X className="h-4 w-4" />
@@ -696,7 +696,7 @@ const KnowledgeUpload = () => {
                     Cancel
                   </ModernButton>
                   <ModernButton 
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit({} as React.FormEvent)}
                     disabled={isUploading}
                     className="px-8"
                   >
