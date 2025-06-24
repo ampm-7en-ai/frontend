@@ -57,142 +57,12 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Performance Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Avg Response Time
-                </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {formatResponseTime(agentPerformanceSummary.avg_response_time.value)}
-                </p>
-                <div className="flex items-center mt-2">
-                  {getChangeIcon(agentPerformanceSummary.avg_response_time.change_direction)}
-                  <span className={`text-sm font-medium ml-1 ${
-                    agentPerformanceSummary.avg_response_time.change_direction === 'up' 
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {Math.abs(agentPerformanceSummary.avg_response_time.change)}%
-                  </span>
-                </div>
-              </div>
-              <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20">
-                <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Total Conversations
-                </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {agentPerformanceSummary.total_conversations.value.toLocaleString()}
-                </p>
-                <div className="flex items-center mt-2">
-                  {getChangeIcon(agentPerformanceSummary.total_conversations.change_direction)}
-                  <span className={`text-sm font-medium ml-1 ${
-                    agentPerformanceSummary.total_conversations.change_direction === 'up' 
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {Math.abs(agentPerformanceSummary.total_conversations.change)}%
-                  </span>
-                </div>
-              </div>
-              <div className="p-3 rounded-2xl bg-green-50 dark:bg-green-900/20">
-                <MessageCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  User Satisfaction
-                </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {agentPerformanceSummary.user_satisfaction.value}%
-                </p>
-                <div className="flex items-center mt-2">
-                  {getChangeIcon(agentPerformanceSummary.user_satisfaction.change_direction)}
-                  <span className={`text-sm font-medium ml-1 ${
-                    agentPerformanceSummary.user_satisfaction.change_direction === 'up' 
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {Math.abs(agentPerformanceSummary.user_satisfaction.change)}%
-                  </span>
-                </div>
-              </div>
-              <div className="p-3 rounded-2xl bg-yellow-50 dark:bg-yellow-900/20">
-                <Star className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
+      
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Agent Performance Comparison */}
-        <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Agent Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={agentPerformanceComparison}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                  <XAxis 
-                    dataKey="agent_name" 
-                    tick={{ fontSize: 12, fill: 'currentColor' }}
-                    className="text-slate-600 dark:text-slate-400"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12, fill: 'currentColor' }}
-                    className="text-slate-600 dark:text-slate-400"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: 'none',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                    }}
-                  />
-                  <Bar 
-                    dataKey="conversations" 
-                    fill="#3b82f6" 
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1">
         {/* Conversation Statistics */}
-        <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
-          <CardHeader className="pb-4">
+        <Card className="bg-transparent border-0 shadow-none overflow-hidden">
+          <CardHeader className="p-0 pb-4 pt-2 pr-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Conversation Statistics
@@ -250,6 +120,49 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                     }}
                   />
                 </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Agent Performance Comparison */}
+        <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Agent Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={agentPerformanceComparison}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                  <XAxis 
+                    dataKey="agent_name" 
+                    tick={{ fontSize: 12, fill: 'currentColor' }}
+                    className="text-slate-600 dark:text-slate-400"
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: 'currentColor' }}
+                    className="text-slate-600 dark:text-slate-400"
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                    }}
+                  />
+                  <Bar 
+                    dataKey="conversations" 
+                    fill="#3b82f6" 
+                    radius={[6, 6, 0, 0]}
+                  />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>

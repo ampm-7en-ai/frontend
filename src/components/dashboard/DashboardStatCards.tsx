@@ -55,10 +55,10 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
         <Card key={index} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6 relative">
+          <CardContent className="p-6 relative pb-2">
             {/* Icon positioned at top right */}
-            <div className={`absolute top-4 right-4 p-2 rounded-2xl ${stat.gradient}`}>
-              <stat.icon className="h-6 w-6 text-white" />
+            <div className={`absolute top-4 right-4 p-2 rounded-xl ${stat.gradient}`}>
+              <stat.icon className="h-4 w-4 text-white" />
             </div>
             
             <div className="pr-12">
@@ -68,21 +68,6 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                 {stat.value.toLocaleString()}
               </p>
-              <div className="flex items-center">
-                {stat.trend === 'up' ? (
-                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${
-                  stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {stat.change}
-                </span>
-                <span className="text-sm text-slate-500 dark:text-slate-400 ml-1">
-                  vs last month
-                </span>
-              </div>
             </div>
           </CardContent>
         </Card>

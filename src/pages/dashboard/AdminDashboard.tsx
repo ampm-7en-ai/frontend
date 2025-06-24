@@ -45,24 +45,7 @@ const AdminDashboard = () => {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">Welcome back! Here's what's happening with your agents.</p>
           </div>
-          <div className="flex items-center gap-4">
-            <ModernTabNavigation 
-              tabs={mainTabs}
-              activeTab={activeMainTab}
-              onTabChange={setActiveMainTab}
-            />
-            <div className="flex gap-2">
-              <ModernButton variant="outline" size="sm" icon={Settings}>
-                Settings
-              </ModernButton>
-              <ModernButton variant="outline" size="sm" icon={Download}>
-                Export
-              </ModernButton>
-              <ModernButton variant="primary" size="sm" icon={RefreshCw}>
-                Refresh
-              </ModernButton>
-            </div>
-          </div>
+          
         </div>
 
         {/* Stats Cards */}
@@ -81,14 +64,10 @@ const AdminDashboard = () => {
               agentPerformanceComparison={data.agent_performance_comparison}
               conversationChannel={data.conversation_channels}
             />
-            <StatisticsCharts />
           </div>
           
           <div className="space-y-8">
-            <UsageStatsCard
-              agentUse={data.agent_use}
-              usageHistory={data.usage_history}
-            />
+            <StatisticsCharts />
           </div>
         </div>
       </div>
