@@ -24,7 +24,8 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       change: '+12%',
       trend: 'up',
       color: 'blue',
-      bgGradient: 'from-blue-500 to-blue-600'
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+      iconColor: 'text-blue-600 dark:text-blue-400'
     },
     {
       title: 'Conversations',
@@ -33,7 +34,8 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       change: '+8%',
       trend: 'up',
       color: 'green',
-      bgGradient: 'from-green-500 to-green-600'
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
+      iconColor: 'text-green-600 dark:text-green-400'
     },
     {
       title: 'Knowledge Base',
@@ -42,7 +44,8 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       change: '+15%',
       trend: 'up',
       color: 'purple',
-      bgGradient: 'from-purple-500 to-purple-600'
+      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+      iconColor: 'text-purple-600 dark:text-purple-400'
     },
     {
       title: 'Team Members',
@@ -51,18 +54,19 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       change: '+3%',
       trend: 'up',
       color: 'orange',
-      bgGradient: 'from-orange-500 to-orange-600'
+      bgColor: 'bg-orange-50 dark:bg-orange-900/20',
+      iconColor: 'text-orange-600 dark:text-orange-400'
     }
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+        <Card key={index} className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                   {stat.title}
                 </p>
                 <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
@@ -84,8 +88,8 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
                   </span>
                 </div>
               </div>
-              <div className={`p-3 rounded-xl bg-gradient-to-r ${stat.bgGradient} shadow-lg`}>
-                <stat.icon className="h-6 w-6 text-white" />
+              <div className={`p-3 rounded-2xl ${stat.bgColor}`}>
+                <stat.icon className={`h-6 w-6 ${stat.iconColor}`} />
               </div>
             </div>
           </CardContent>
