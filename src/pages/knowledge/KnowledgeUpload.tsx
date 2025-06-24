@@ -377,6 +377,10 @@ const KnowledgeUpload = () => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleFileUploadClick = () => {
+    document.getElementById('file-upload')?.click();
+  };
+
   const renderSourceTypeContent = () => {
     switch(sourceType) {
       case 'url':
@@ -426,7 +430,7 @@ const KnowledgeUpload = () => {
                 <ModernButton 
                   variant="outline" 
                   size="sm"
-                  onClick={() => document.getElementById('file-upload')?.click()}
+                  onClick={handleFileUploadClick}
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Browse Files
@@ -610,7 +614,7 @@ const KnowledgeUpload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -623,11 +627,13 @@ const KnowledgeUpload = () => {
         {/* Main Content */}
         <div className="space-y-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Add Knowledge Source</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-2">
+              Add Knowledge Source
+            </h1>
             <p className="text-slate-600 dark:text-slate-400">Import content from various sources to enhance your AI knowledge base</p>
           </div>
 
-          <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl shadow-sm">
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-0 rounded-3xl shadow-xl shadow-slate-200/20 dark:shadow-slate-800/20">
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Source Name */}
@@ -638,63 +644,45 @@ const KnowledgeUpload = () => {
                     placeholder="Enter a descriptive name for this knowledge source"
                     value={documentName}
                     onChange={(e) => setDocumentName(e.target.value)}
-                    className="h-11"
+                    className="h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50"
                   />
                 </div>
                 
-                {/* Source Type - Compact Design */}
+                {/* Source Type - Compact Pills */}
                 <div className="space-y-4">
-                  <Label className="text-sm font-medium">Source Type</Label>
-                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                  <Label className="text-sm font-medium">Choose Source Type</Label>
+                  <div className="flex flex-wrap gap-2">
                     {Object.entries(sourceConfigs).map(([type, config]) => (
-                      <div
+                      <button
                         key={type}
-                        className={`relative cursor-pointer group`}
+                        type="button"
                         onClick={() => setSourceType(type as SourceType)}
-                      >
-                        <input
-                          type="radio"
-                          name="sourceType"
-                          value={type}
-                          checked={sourceType === type}
-                          onChange={() => setSourceType(type as SourceType)}
-                          className="sr-only"
-                        />
-                        <div className={`p-4 rounded-2xl border-2 transition-all hover:border-blue-300 ${
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                           sourceType === type 
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' 
-                            : 'border-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700'
-                        }`}>
-                          <div className="text-center">
-                            <div className={`w-8 h-8 mx-auto mb-2 rounded-xl flex items-center justify-center ${
-                              sourceType === type 
-                                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' 
-                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
-                            }`}>
-                              {config.icon}
-                            </div>
-                            <p className="font-medium text-sm text-slate-900 dark:text-slate-100 mb-1">{config.title}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">{config.description}</p>
-                          </div>
-                        </div>
-                      </div>
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/20' 
+                            : 'bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {config.icon}
+                        {config.title}
+                      </button>
                     ))}
                   </div>
                 </div>
                 
                 {/* Source Content */}
-                <div className="pt-4">
+                <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
                   {renderSourceTypeContent()}
                 </div>
                 
                 {/* Progress */}
                 {isUploading && (
-                  <div className="space-y-3 p-6 bg-blue-50 dark:bg-blue-950 rounded-2xl border border-blue-200 dark:border-blue-800">
+                  <div className="space-y-3 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-2xl border border-blue-200/50 dark:border-blue-800/50">
                     <div className="flex justify-between text-sm font-medium text-blue-900 dark:text-blue-100">
                       <span>Processing your content...</span>
                       <span>{progress}%</span>
                     </div>
-                    <Progress value={progress} className="w-full h-2" />
+                    <Progress value={progress} className="w-full h-3" />
                   </div>
                 )}
                 
@@ -708,7 +696,7 @@ const KnowledgeUpload = () => {
                     Cancel
                   </ModernButton>
                   <ModernButton 
-                    type="submit" 
+                    onClick={handleSubmit}
                     disabled={isUploading}
                     className="px-8"
                   >
