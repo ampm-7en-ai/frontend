@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
 import { Clock, MessageCircle, Star, TrendingUp, TrendingDown, Download } from 'lucide-react';
 import { AgentPerformanceSummary as PerformanceSummaryType, AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
@@ -37,10 +37,37 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
     { id: '1Y', label: '1Y' }
   ];
 
-  const channelData = Object.entries(conversationChannel).map(([name, value]) => ({
-    name: name.charAt(0).toUpperCase() + name.slice(1),
-    value
-  }));
+  // Generate conversation data based on selected filters
+  const generateConversationData = () => {
+    const baseData = [
+      { name: 'Mon', queries: 65, conversions: 32 },
+      { name: 'Tue', queries: 78, conversions: 45 },
+      { name: 'Wed', queries: 82, conversions: 53 },
+      { name: 'Thu', queries: 70, conversions: 40 },
+      { name: 'Fri', queries: 90, conversions: 58 },
+      { name: 'Sat', queries: 50, conversions: 28 },
+      { name: 'Sun', queries: 40, conversions: 22 },
+    ];
+
+    // Modify data based on selected channel and time period
+    let multiplier = 1;
+    if (selectedChannel === 'whatsapp') multiplier = 0.8;
+    else if (selectedChannel === 'slack') multiplier = 0.6;
+    else if (selectedChannel === 'messenger') multiplier = 0.4;
+    else if (selectedChannel === 'website') multiplier = 0.9;
+
+    if (activeTab === '1W') multiplier *= 1.2;
+    else if (activeTab === '1M') multiplier *= 2.5;
+    else if (activeTab === '1Y') multiplier *= 12;
+
+    return baseData.map(item => ({
+      ...item,
+      queries: Math.round(item.queries * multiplier),
+      conversions: Math.round(item.conversions * multiplier)
+    }));
+  };
+
+  const conversationData = generateConversationData();
 
   const formatResponseTime = (time: number) => {
     if (time < 60) return `${time}s`;
@@ -57,117 +84,97 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
 
   return (
     <div className="space-y-6">
-      
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1">
-        {/* Conversation Statistics */}
-        <Card className="bg-transparent border-0 shadow-none overflow-hidden">
-          <CardHeader className="p-0 pb-4 pt-2 pr-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Conversation Statistics
-              </CardTitle>
-              <div className="flex items-center gap-3">
-                <ModernTabNavigation 
-                  tabs={timeTabs}
-                  activeTab={activeTab}
-                  onTabChange={setActiveTab}
-                  className="text-xs"
-                />
-                <Select value={selectedChannel} onValueChange={setSelectedChannel}>
-                  <SelectTrigger className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700">
-                    <SelectValue placeholder="Channel" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
-                    <SelectItem value="all">All Channels</SelectItem>
-                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                    <SelectItem value="slack">Slack</SelectItem>
-                    <SelectItem value="messenger">Messenger</SelectItem>
-                    <SelectItem value="website">Website</SelectItem>
-                  </SelectContent>
-                </Select>
-                <ModernButton variant="outline" size="sm" icon={Download}>
-                  Export
-                </ModernButton>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={channelData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
-                    paddingAngle={4}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
-                  >
-                    {channelData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: 'none',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        {/* Agent Performance Comparison */}
-        <Card className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden">
-          <CardHeader className="pb-4">
+      {/* Conversation Statistics - Full Width */}
+      <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Agent Performance
+              Conversation Statistics
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={agentPerformanceComparison}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                  <XAxis 
-                    dataKey="agent_name" 
-                    tick={{ fontSize: 12, fill: 'currentColor' }}
-                    className="text-slate-600 dark:text-slate-400"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12, fill: 'currentColor' }}
-                    className="text-slate-600 dark:text-slate-400"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: 'none',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                    }}
-                  />
-                  <Bar 
-                    dataKey="conversations" 
-                    fill="#3b82f6" 
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="flex items-center gap-3">
+              <ModernTabNavigation 
+                tabs={timeTabs}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                className="text-xs"
+              />
+              <Select value={selectedChannel} onValueChange={setSelectedChannel}>
+                <SelectTrigger className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700">
+                  <SelectValue placeholder="Channel" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                  <SelectItem value="all">All Channels</SelectItem>
+                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                  <SelectItem value="slack">Slack</SelectItem>
+                  <SelectItem value="messenger">Messenger</SelectItem>
+                  <SelectItem value="website">Website</SelectItem>
+                </SelectContent>
+              </Select>
+              <ModernButton variant="outline" size="sm" icon={Download}>
+                Export
+              </ModernButton>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={conversationData}>
+                <defs>
+                  <linearGradient id="queriesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="conversionsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 12, fill: 'currentColor' }}
+                  className="text-slate-600 dark:text-slate-400"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12, fill: 'currentColor' }}
+                  className="text-slate-600 dark:text-slate-400"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="queries" 
+                  stroke="#3b82f6" 
+                  fillOpacity={1} 
+                  fill="url(#queriesGradient)"
+                  strokeWidth={2}
+                  name="Total Queries"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="conversions" 
+                  stroke="#10b981" 
+                  fillOpacity={1} 
+                  fill="url(#conversionsGradient)"
+                  strokeWidth={2}
+                  name="Successful Conversions"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
