@@ -125,24 +125,24 @@ const StatisticsCharts = () => {
                 type="monotone" 
                 dataKey="satisfaction" 
                 stroke="#22c55e" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#22c55e' }}
+                strokeWidth={2}
+                dot={false}
                 name="Overall Satisfaction %"
               />
               <Line 
                 type="monotone" 
                 dataKey="csat" 
                 stroke="#3b82f6" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#3b82f6' }}
+                strokeWidth={2}
+                dot={false}
                 name="CSAT Score"
               />
               <Line 
                 type="monotone" 
                 dataKey="nps" 
                 stroke="#8b5cf6" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#8b5cf6' }}
+                strokeWidth={2}
+                dot={false}
                 name="NPS Score"
               />
             </LineChart>

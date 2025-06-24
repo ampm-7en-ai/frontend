@@ -53,15 +53,21 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
       ];
     } else if (activeTab === '1W') {
       baseData = [
-        { name: 'Mo', queries: 65, conversions: 32 },
-        { name: 'Tu', queries: 78, conversions: 45 },
-        { name: 'We', queries: 82, conversions: 53 },
-        { name: 'Th', queries: 70, conversions: 40 },
-        { name: 'Fr', queries: 90, conversions: 58 },
-        { name: 'Sa', queries: 50, conversions: 28 },
-        { name: 'Su', queries: 40, conversions: 22 },
+        { name: 'Mon', queries: 65, conversions: 32 },
+        { name: 'Tue', queries: 78, conversions: 45 },
+        { name: 'Wed', queries: 82, conversions: 53 },
+        { name: 'Thu', queries: 70, conversions: 40 },
+        { name: 'Fri', queries: 90, conversions: 58 },
+        { name: 'Sat', queries: 50, conversions: 28 },
+        { name: 'Sun', queries: 40, conversions: 22 },
       ];
     } else if (activeTab === '1M') {
+      baseData = Array.from({ length: 30 }, (_, i) => ({
+        name: `${i + 1}`,
+        queries: 50 + Math.floor(Math.random() * 100),
+        conversions: 25 + Math.floor(Math.random() * 50),
+      }));
+    } else { // 1Y
       baseData = [
         { name: 'Jan', queries: 1850, conversions: 920 },
         { name: 'Feb', queries: 2100, conversions: 1260 },
@@ -69,12 +75,12 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
         { name: 'Apr', queries: 2000, conversions: 1200 },
         { name: 'May', queries: 2600, conversions: 1690 },
         { name: 'Jun', queries: 2200, conversions: 1320 },
-      ];
-    } else { // 1Y
-      baseData = [
-        { name: '2023', queries: 18500, conversions: 9200 },
-        { name: '2024', queries: 25600, conversions: 16900 },
-        { name: '2025', queries: 22000, conversions: 13200 },
+        { name: 'Jul', queries: 2800, conversions: 1820 },
+        { name: 'Aug', queries: 2450, conversions: 1590 },
+        { name: 'Sep', queries: 2150, conversions: 1400 },
+        { name: 'Oct', queries: 2750, conversions: 1790 },
+        { name: 'Nov', queries: 2950, conversions: 1920 },
+        { name: 'Dec', queries: 3100, conversions: 2015 },
       ];
     }
 
@@ -129,7 +135,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
       <CardContent className="flex-1 pl-0 pb-0">
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={conversationData} margin={{ bottom: 20, left: 10, right: 10 }}>
+            <AreaChart data={conversationData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
               <defs>
                 <linearGradient id="queriesGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -143,14 +149,14 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
               <XAxis 
                 dataKey="name" 
-                tick={{ fontSize: 12, fill: 'currentColor' }}
+                tick={{ fontSize: 10, fill: 'currentColor' }}
                 className="text-slate-600 dark:text-slate-400"
                 axisLine={false}
                 tickLine={false}
                 interval={0}
-                angle={0}
-                textAnchor="middle"
-                height={60}
+                angle={activeTab === '1M' ? -45 : 0}
+                textAnchor={activeTab === '1M' ? 'end' : 'middle'}
+                height={activeTab === '1M' ? 80 : 60}
               />
               <YAxis 
                 tick={{ fontSize: 12, fill: 'currentColor' }}
