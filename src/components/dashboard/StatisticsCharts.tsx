@@ -5,7 +5,7 @@ import { CheckCircle, Star, Heart, Users, TrendingUp, Bot } from 'lucide-react';
 import { AgentPerformanceChart } from './AgentPerformanceChart';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, RadialBarChart, RadialBar, PieChart, Pie, Cell } from 'recharts';
 import {
   Select,
   SelectContent,
@@ -33,14 +33,18 @@ const StatisticsCharts = () => {
     { id: '1Y', label: '1Y' }
   ];
 
-  // Sample satisfaction trend data
-  const satisfactionTrendData = [
-    { name: 'Jan', satisfaction: 85, nps: 42, csat: 4.2 },
-    { name: 'Feb', satisfaction: 88, nps: 48, csat: 4.4 },
-    { name: 'Mar', satisfaction: 92, nps: 52, csat: 4.6 },
-    { name: 'Apr', satisfaction: 89, nps: 45, csat: 4.5 },
-    { name: 'May', satisfaction: 94, nps: 58, csat: 4.7 },
-    { name: 'Jun', satisfaction: 91, nps: 55, csat: 4.6 },
+  // Sample satisfaction distribution data for pie chart
+  const satisfactionDistribution = [
+    { name: 'Excellent', value: 45, color: '#22c55e' },
+    { name: 'Good', value: 30, color: '#3b82f6' },
+    { name: 'Average', value: 15, color: '#f59e0b' },
+    { name: 'Poor', value: 7, color: '#ef4444' },
+    { name: 'Very Poor', value: 3, color: '#dc2626' },
+  ];
+
+  // Sample NPS data for radial chart
+  const npsData = [
+    { name: 'NPS Score', value: 68, fill: '#8b5cf6' },
   ];
 
   return (
@@ -93,44 +97,66 @@ const StatisticsCharts = () => {
           </div>
         </div>
 
-        {/* Mini Satisfaction Trends Chart */}
-        <div className="h-40">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={satisfactionTrendData}>
-              <defs>
-                <linearGradient id="satisfactionGradientFull" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 10, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis hide />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="satisfaction" 
-                stroke="#3b82f6" 
-                fillOpacity={1} 
-                fill="url(#satisfactionGradientFull)"
-                strokeWidth={2}
-                name="Satisfaction %"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="grid grid-cols-2 gap-6 h-40">
+          {/* Satisfaction Distribution Pie Chart */}
+          <div className="h-full">
+            <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Satisfaction Distribution</div>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={satisfactionDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={25}
+                  outerRadius={60}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {satisfactionDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                    fontSize: '12px'
+                  }}
+                  formatter={(value) => [`${value}%`, 'Rating']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* NPS Radial Chart */}
+          <div className="h-full">
+            <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Net Promoter Score</div>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart cx="50%" cy="50%" innerRadius="40%" outerRadius="80%" data={npsData}>
+                <RadialBar 
+                  dataKey="value" 
+                  cornerRadius={10} 
+                  fill="#8b5cf6"
+                  background={{ fill: '#f1f5f9' }}
+                />
+                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="fill-current text-2xl font-bold text-purple-600">
+                  +68
+                </text>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                    fontSize: '12px'
+                  }}
+                  formatter={(value) => [`+${value}`, 'NPS Score']}
+                />
+              </RadialBarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </CardContent>
     </Card>

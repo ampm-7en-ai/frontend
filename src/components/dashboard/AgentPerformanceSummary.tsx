@@ -39,26 +39,52 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
 
   // Generate conversation data based on selected filters
   const generateConversationData = () => {
-    const baseData = [
-      { name: 'Mon', queries: 65, conversions: 32 },
-      { name: 'Tue', queries: 78, conversions: 45 },
-      { name: 'Wed', queries: 82, conversions: 53 },
-      { name: 'Thu', queries: 70, conversions: 40 },
-      { name: 'Fri', queries: 90, conversions: 58 },
-      { name: 'Sat', queries: 50, conversions: 28 },
-      { name: 'Sun', queries: 40, conversions: 22 },
-    ];
+    let baseData;
+    
+    if (activeTab === 'Today') {
+      baseData = [
+        { name: '6AM', queries: 15, conversions: 8 },
+        { name: '9AM', queries: 25, conversions: 12 },
+        { name: '12PM', queries: 45, conversions: 28 },
+        { name: '3PM', queries: 65, conversions: 42 },
+        { name: '6PM', queries: 50, conversions: 30 },
+        { name: '9PM', queries: 30, conversions: 18 },
+        { name: '12AM', queries: 10, conversions: 5 },
+      ];
+    } else if (activeTab === '1W') {
+      baseData = [
+        { name: 'Mon', queries: 65, conversions: 32 },
+        { name: 'Tue', queries: 78, conversions: 45 },
+        { name: 'Wed', queries: 82, conversions: 53 },
+        { name: 'Thu', queries: 70, conversions: 40 },
+        { name: 'Fri', queries: 90, conversions: 58 },
+        { name: 'Sat', queries: 50, conversions: 28 },
+        { name: 'Sun', queries: 40, conversions: 22 },
+      ];
+    } else if (activeTab === '1M') {
+      baseData = [
+        { name: 'Jan', queries: 1850, conversions: 920 },
+        { name: 'Feb', queries: 2100, conversions: 1260 },
+        { name: 'Mar', queries: 2350, conversions: 1530 },
+        { name: 'Apr', queries: 2000, conversions: 1200 },
+        { name: 'May', queries: 2600, conversions: 1690 },
+        { name: 'Jun', queries: 2200, conversions: 1320 },
+        { name: 'Jul', queries: 1800, conversions: 1080 },
+      ];
+    } else { // 1Y
+      baseData = [
+        { name: '2023', queries: 18500, conversions: 9200 },
+        { name: '2024', queries: 25600, conversions: 16900 },
+        { name: '2025', queries: 22000, conversions: 13200 },
+      ];
+    }
 
-    // Modify data based on selected channel and time period
+    // Modify data based on selected channel
     let multiplier = 1;
     if (selectedChannel === 'whatsapp') multiplier = 0.8;
     else if (selectedChannel === 'slack') multiplier = 0.6;
     else if (selectedChannel === 'messenger') multiplier = 0.4;
     else if (selectedChannel === 'website') multiplier = 0.9;
-
-    if (activeTab === '1W') multiplier *= 1.2;
-    else if (activeTab === '1M') multiplier *= 2.5;
-    else if (activeTab === '1Y') multiplier *= 12;
 
     return baseData.map(item => ({
       ...item,
