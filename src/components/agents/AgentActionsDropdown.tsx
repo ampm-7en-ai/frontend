@@ -52,7 +52,6 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
       toast({
         title: "Agent deleted",
         description: "The agent has been successfully deleted.",
-        // Changed 'success' variant to 'default' to fix TS error
         variant: "default"
       });
       if (onDelete) {
@@ -80,7 +79,7 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
         <DropdownMenuItem asChild>
           <Link to={`/agents/${agentId}/edit`}>
             <Edit className="h-4 w-4 mr-2" />
-            Edit
+            Rename
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
@@ -89,7 +88,7 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          className="text-red-500"
+          variant="destructive"
           onSelect={(e) => {
             e.preventDefault();
             handleDelete();
@@ -97,7 +96,7 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
           disabled={deleting}
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          {deleting ? "Deleting..." : "Delete"}
+          {deleting ? "Deleting..." : "Remove"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -105,4 +104,3 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
 };
 
 export default AgentActionsDropdown;
-

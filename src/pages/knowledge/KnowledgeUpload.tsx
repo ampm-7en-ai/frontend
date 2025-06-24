@@ -125,6 +125,14 @@ const KnowledgeUpload = () => {
     }
   };
 
+  const sourceNavItems = [
+    { id: 'url', label: 'Website', icon: Globe },
+    { id: 'document', label: 'Documents', icon: FileText },
+    { id: 'csv', label: 'Spreadsheet', icon: Table },
+    { id: 'plainText', label: 'Plain Text', icon: AlignLeft },
+    { id: 'thirdParty', label: 'Integrations', icon: ExternalLink }
+  ];
+
   useEffect(() => {
     setFiles([]);
   }, [sourceType]);
@@ -648,26 +656,15 @@ const KnowledgeUpload = () => {
                   />
                 </div>
                 
-                {/* Source Type - Compact Pills */}
+                {/* Source Type - Dashboard Style Navigation */}
                 <div className="space-y-4">
-                  <Label className="text-sm font-medium">Choose Source Type</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(sourceConfigs).map(([type, config]) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setSourceType(type as SourceType)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all hover:scale-105 ${
-                          sourceType === type 
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/20' 
-                            : 'bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        {config.icon}
-                        {config.title}
-                      </button>
-                    ))}
-                  </div>
+                  <Label className="text-sm font-medium">Source Type</Label>
+                  <ModernTabNavigation
+                    tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
+                    activeTab={sourceType}
+                    onTabChange={(tabId) => setSourceType(tabId as SourceType)}
+                    className="text-xs"
+                  />
                 </div>
                 
                 {/* Source Content */}
