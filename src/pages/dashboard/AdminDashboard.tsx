@@ -1,14 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import DashboardStatCards from '@/components/dashboard/DashboardStatCards';
 import AgentPerformanceSummary from '@/components/dashboard/AgentPerformanceSummary';
 import UsageStatsCard from '@/components/dashboard/UsageStatsCard';
 import StatisticsCharts from '@/components/dashboard/StatisticsCharts';
+import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { Card, CardContent } from '@/components/ui/card';
+import { Download, RefreshCw, Settings } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { data, isLoading, error } = useAdminDashboard();
+  const [activeMainTab, setActiveMainTab] = useState('dashboard');
+
+  const mainTabs = [
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'analytics', label: 'Analytics' },
+    { id: 'reports', label: 'Reports' }
+  ];
 
   if (isLoading) {
     return (
@@ -27,13 +37,31 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
+        {/* Header with Navigation */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">Welcome back! Here's what's happening with your agents.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <ModernTabNavigation 
+              tabs={mainTabs}
+              activeTab={activeMainTab}
+              onTabChange={setActiveMainTab}
+            />
+            <div className="flex gap-2">
+              <ModernButton variant="outline" size="sm" icon={Settings}>
+                Settings
+              </ModernButton>
+              <ModernButton variant="outline" size="sm" icon={Download}>
+                Export
+              </ModernButton>
+              <ModernButton variant="primary" size="sm" icon={RefreshCw}>
+                Refresh
+              </ModernButton>
+            </div>
           </div>
         </div>
 

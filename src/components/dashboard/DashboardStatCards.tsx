@@ -23,9 +23,7 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       icon: Bot,
       change: '+12%',
       trend: 'up',
-      color: 'blue',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      iconColor: 'text-blue-600 dark:text-blue-400'
+      gradient: 'bg-gradient-to-br from-blue-500 to-blue-600'
     },
     {
       title: 'Conversations',
@@ -33,9 +31,7 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       icon: MessageSquare,
       change: '+8%',
       trend: 'up',
-      color: 'green',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      iconColor: 'text-green-600 dark:text-green-400'
+      gradient: 'bg-gradient-to-br from-green-500 to-green-600'
     },
     {
       title: 'Knowledge Base',
@@ -43,9 +39,7 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       icon: Book,
       change: '+15%',
       trend: 'up',
-      color: 'purple',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-      iconColor: 'text-purple-600 dark:text-purple-400'
+      gradient: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },
     {
       title: 'Team Members',
@@ -53,43 +47,41 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       icon: Users,
       change: '+3%',
       trend: 'up',
-      color: 'orange',
-      bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-      iconColor: 'text-orange-600 dark:text-orange-400'
+      gradient: 'bg-gradient-to-br from-orange-500 to-orange-600'
     }
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="bg-white dark:bg-slate-800 border-0 shadow-sm rounded-2xl overflow-hidden hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  {stat.title}
-                </p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                  {stat.value.toLocaleString()}
-                </p>
-                <div className="flex items-center mt-2">
-                  {stat.trend === 'up' ? (
-                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                  ) : (
-                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                  )}
-                  <span className={`text-sm font-medium ${
-                    stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {stat.change}
-                  </span>
-                  <span className="text-sm text-slate-500 dark:text-slate-400 ml-1">
-                    vs last month
-                  </span>
-                </div>
-              </div>
-              <div className={`p-3 rounded-2xl ${stat.bgColor}`}>
-                <stat.icon className={`h-6 w-6 ${stat.iconColor}`} />
+        <Card key={index} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6 relative">
+            {/* Icon positioned at top right */}
+            <div className={`absolute top-4 right-4 p-2 rounded-2xl ${stat.gradient}`}>
+              <stat.icon className="h-6 w-6 text-white" />
+            </div>
+            
+            <div className="pr-12">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                {stat.title}
+              </p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                {stat.value.toLocaleString()}
+              </p>
+              <div className="flex items-center">
+                {stat.trend === 'up' ? (
+                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                )}
+                <span className={`text-sm font-medium ${
+                  stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {stat.change}
+                </span>
+                <span className="text-sm text-slate-500 dark:text-slate-400 ml-1">
+                  vs last month
+                </span>
               </div>
             </div>
           </CardContent>
