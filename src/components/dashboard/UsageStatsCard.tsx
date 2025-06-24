@@ -1,109 +1,118 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AgentPerformanceChart } from './AgentPerformanceChart';
-import { Bot, CreditCard } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CreditCard, Zap, TrendingUp } from 'lucide-react';
+import { UsageHistoryItem } from '@/hooks/useAdminDashboard';
 
-type UsageStatsCardProps = {
+interface UsageStatsCardProps {
   agentUse: {
     credits_used: number;
     credits_total: number;
     agents_used: number;
   };
-  usageHistory: {
-    day: string;
-    count: number;
-  }[];
-};
+  usageHistory: UsageHistoryItem[];
+}
 
-const UsageStatsCard = ({ agentUse, usageHistory }: UsageStatsCardProps) => {
+const UsageStatsCard: React.FC<UsageStatsCardProps> = ({ agentUse, usageHistory }) => {
+  const usagePercentage = Math.round((agentUse.credits_used / agentUse.credits_total) * 100);
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl font-semibold">Agent Usage</CardTitle>
-        <div className="flex gap-2">
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[130px] h-8 text-xs">
-              <SelectValue placeholder="All agents" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All agents</SelectItem>
-              <SelectItem value="customer-service">Customer Service</SelectItem>
-              <SelectItem value="sales">Sales Agent</SelectItem>
-              <SelectItem value="support">Technical Support</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="text-xs border rounded-md px-2 py-1 flex items-center">
-            2025-03-01 ~ 2025-03-25
-            <button className="ml-1">×</button>
+    <div className="space-y-6">
+      {/* Usage Overview */}
+      <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+            <CreditCard className="h-5 w-5 mr-2" />
+            Usage Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Credits Usage */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Credits Used</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                {agentUse.credits_used.toLocaleString()} / {agentUse.credits_total.toLocaleString()}
+              </span>
+            </div>
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${usagePercentage}%` }}
+              ></div>
+            </div>
+            <div className="flex items-center mt-2">
+              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+              <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                {usagePercentage}% utilized
+              </span>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="bg-white shadow-sm border">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <h3 className="text-4xl font-bold mb-1">{agentUse.credits_used}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <span>Credits used</span>
-                    <span className="text-xs ml-2">/ {agentUse.credits_total}</span>
-                  </div>
-                </div>
-                <div className="p-3 rounded-full bg-blue-100">
-                  <CreditCard className="h-6 w-6 text-blue-600" />
-                </div>
+
+          {/* Active Agents */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+            <div className="flex items-center">
+              <Zap className="h-6 w-6 mr-3" />
+              <div>
+                <p className="text-sm opacity-90">Active Agents</p>
+                <p className="text-2xl font-bold">{agentUse.agents_used}</p>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm border">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <h3 className="text-4xl font-bold mb-1">{agentUse.agents_used}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <span>Agents used</span>
-                    <span className="text-xs ml-2">/ 1</span>
-                  </div>
-                </div>
-                <div className="p-3 rounded-full bg-purple-100">
-                  <Bot className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Usage history</h3>
-            <button className="text-primary text-sm">View details</button>
+            </div>
           </div>
-          <div className="h-48 w-full">
+        </CardContent>
+      </Card>
+
+      {/* Usage History Chart */}
+      <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Usage Trends
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={usageHistory}>
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-                  }}
-                  formatter={(value: number) => [`${value} usage`, '']}
+              <LineChart data={usageHistory}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
+                <XAxis 
+                  dataKey="day" 
+                  tick={{ fontSize: 12, fill: 'currentColor' }}
+                  className="text-slate-600 dark:text-slate-400"
                 />
-                <Bar dataKey="count" fill="#6366F1" radius={[6, 6, 0, 0]} />
-              </BarChart>
+                <YAxis 
+                  tick={{ fontSize: 12, fill: 'currentColor' }}
+                  className="text-slate-600 dark:text-slate-400"
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                  }}
+                  className="dark:bg-slate-800"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="count" 
+                  stroke="url(#gradient)" 
+                  strokeWidth={3}
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, fill: '#1d4ed8' }}
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#1d4ed8" />
+                  </linearGradient>
+                </defs>
+              </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
