@@ -44,7 +44,7 @@ const StatisticsCharts = () => {
   ];
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden h-full">
+    <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
@@ -56,7 +56,7 @@ const StatisticsCharts = () => {
             </CardDescription>
           </div>
           <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
-            <Heart className="h-6 w-6 text-white" />
+            <Heart className="h-4 w-4 text-white" />
           </div>
         </div>
       </CardHeader>

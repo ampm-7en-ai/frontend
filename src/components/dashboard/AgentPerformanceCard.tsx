@@ -100,6 +100,12 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               radius={[4, 4, 0, 0]}
               name="Resolved"
             />
+            <Bar 
+              dataKey="pending" 
+              fill="#ffcccc" 
+              radius={[4, 4, 0, 0]}
+              name="Unresolved"
+            />
           </BarChart>
         </ResponsiveContainer>
       );
@@ -196,76 +202,21 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
   };
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden">
+    <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600">
-              <Bot className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                Agent Performance
-              </CardTitle>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Comprehensive agent performance metrics and analytics
-              </p>
-            </div>
-          </div>
           <div className="flex items-center gap-3">
             <ModernTabNavigation 
               tabs={tabs}
               activeTab={activeTab}
               onTabChange={setActiveTab}
-              className="text-sm"
+              className="text-xs"
             />
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-            <div className="flex items-center justify-center mb-2">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {totalConversations.toLocaleString()}
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Total Conversations</div>
-          </div>
-
-          <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-            <div className="flex items-center justify-center mb-2">
-              <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {formatResponseTime(avgResponseTime)}
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Avg Response Time</div>
-          </div>
-
-          <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-            <div className="flex items-center justify-center mb-2">
-              <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {Math.round(avgSatisfaction)}%
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Avg Satisfaction</div>
-          </div>
-
-          <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-            <div className="flex items-center justify-center mb-2">
-              <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {totalResolved.toLocaleString()}
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Issues Resolved</div>
-          </div>
-        </div>
-
+        
         {/* Chart */}
         <div className="h-80">
           {renderChart()}

@@ -70,8 +70,8 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
   const conversationData = generateConversationData();
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden h-full">
-      <CardHeader className="pb-4">
+    <Card className="bg-transparent border-0 0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
+      <CardHeader className="pb-4 pl-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             Conversation Statistics
@@ -101,7 +101,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 pl-0 pb-0">
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={conversationData}>

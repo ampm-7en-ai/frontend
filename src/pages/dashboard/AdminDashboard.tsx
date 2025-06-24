@@ -38,7 +38,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Navigation */}
         <div className="flex items-center justify-between">
@@ -59,8 +59,8 @@ const AdminDashboard = () => {
         {/* Main Content Grid */}
         <div className="space-y-8">
           {/* Top Row - Conversation Statistics and Customer Satisfaction */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            <div className="h-[500px]">
+          <div className="grid grid-cols-1">
+            <div className="h-full mb-6">
               <AgentPerformanceSummary
                 agentPerformanceSummary={data.agent_performance_summary}
                 agentPerformanceComparison={data.agent_performance_comparison}
@@ -68,16 +68,19 @@ const AdminDashboard = () => {
               />
             </div>
             
-            <div className="h-[500px]">
-              <StatisticsCharts />
-            </div>
+            
           </div>
 
           {/* Bottom Row - Full Width Agent Performance Card */}
-          <div className="w-full">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div className="">
             <AgentPerformanceCard 
               agentPerformanceComparison={data.agent_performance_comparison}
             />
+            </div>
+            <div className="">
+              <StatisticsCharts />
+            </div>
           </div>
         </div>
       </div>
