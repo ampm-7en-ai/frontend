@@ -33,18 +33,15 @@ const StatisticsCharts = () => {
     { id: '1Y', label: '1Y' }
   ];
 
-  // Sample satisfaction distribution data for pie chart
-  const satisfactionDistribution = [
-    { name: 'Excellent', value: 45, color: '#22c55e' },
-    { name: 'Good', value: 30, color: '#3b82f6' },
-    { name: 'Average', value: 15, color: '#f59e0b' },
-    { name: 'Poor', value: 7, color: '#ef4444' },
-    { name: 'Very Poor', value: 3, color: '#dc2626' },
-  ];
-
-  // Sample NPS data for radial chart
-  const npsData = [
-    { name: 'NPS Score', value: 68, fill: '#8b5cf6' },
+  // Sample satisfaction trend data for line chart
+  const satisfactionTrendData = [
+    { name: 'Week 1', satisfaction: 88, csat: 4.2, nps: 55 },
+    { name: 'Week 2', satisfaction: 91, csat: 4.4, nps: 62 },
+    { name: 'Week 3', satisfaction: 87, csat: 4.1, nps: 48 },
+    { name: 'Week 4', satisfaction: 93, csat: 4.6, nps: 71 },
+    { name: 'Week 5', satisfaction: 95, csat: 4.8, nps: 78 },
+    { name: 'Week 6', satisfaction: 92, csat: 4.7, nps: 68 },
+    { name: 'Week 7', satisfaction: 96, csat: 4.9, nps: 82 },
   ];
 
   return (
@@ -97,66 +94,59 @@ const StatisticsCharts = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 h-40">
-          {/* Satisfaction Distribution Pie Chart */}
-          <div className="h-full">
-            <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Satisfaction Distribution</div>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={satisfactionDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={25}
-                  outerRadius={60}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {satisfactionDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                    fontSize: '12px'
-                  }}
-                  formatter={(value) => [`${value}%`, 'Rating']}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* NPS Radial Chart */}
-          <div className="h-full">
-            <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Net Promoter Score</div>
-            <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart cx="50%" cy="50%" innerRadius="40%" outerRadius="80%" data={npsData}>
-                <RadialBar 
-                  dataKey="value" 
-                  cornerRadius={10} 
-                  fill="#8b5cf6"
-                  background={{ fill: '#f1f5f9' }}
-                />
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="fill-current text-2xl font-bold text-purple-600">
-                  +68
-                </text>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                    fontSize: '12px'
-                  }}
-                  formatter={(value) => [`+${value}`, 'NPS Score']}
-                />
-              </RadialBarChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="h-52">
+          <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Satisfaction Trends</div>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={satisfactionTrendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 12, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis 
+                tick={{ fontSize: 12, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                  fontSize: '12px'
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="satisfaction" 
+                stroke="#22c55e" 
+                strokeWidth={3}
+                dot={{ r: 4, fill: '#22c55e' }}
+                name="Overall Satisfaction %"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="csat" 
+                stroke="#3b82f6" 
+                strokeWidth={3}
+                dot={{ r: 4, fill: '#3b82f6' }}
+                name="CSAT Score"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="nps" 
+                stroke="#8b5cf6" 
+                strokeWidth={3}
+                dot={{ r: 4, fill: '#8b5cf6' }}
+                name="NPS Score"
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>
