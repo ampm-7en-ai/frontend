@@ -43,18 +43,119 @@ const StatisticsCharts = () => {
     { name: 'Jun', satisfaction: 91, nps: 55, csat: 4.6 },
   ];
 
-  // Agent satisfaction data
-  const agentSatisfactionData = [
-    { agent: 'Customer Service', satisfaction: 92, conversations: 145, avgRating: 4.6 },
-    { agent: 'Sales Agent', satisfaction: 88, conversations: 98, avgRating: 4.4 },
-    { agent: 'Tech Support', satisfaction: 94, conversations: 76, avgRating: 4.7 },
-    { agent: 'HR Assistant', satisfaction: 85, conversations: 45, avgRating: 4.2 },
-    { agent: 'Billing Bot', satisfaction: 90, conversations: 67, avgRating: 4.5 },
-  ];
+  // Generate dynamic agent satisfaction data based on time period
+  const generateAgentSatisfactionData = () => {
+    const baseData = [
+      { agent: 'Customer Service', satisfaction: 92, conversations: 145, avgRating: 4.6 },
+      { agent: 'Sales Agent', satisfaction: 88, conversations: 98, avgRating: 4.4 },
+      { agent: 'Tech Support', satisfaction: 94, conversations: 76, avgRating: 4.7 },
+      { agent: 'HR Assistant', satisfaction: 85, conversations: 45, avgRating: 4.2 },
+      { agent: 'Billing Bot', satisfaction: 90, conversations: 67, avgRating: 4.5 },
+    ];
+
+    // Modify data based on selected time period
+    let multiplier = 1;
+    if (conversationActiveTab === '1W') multiplier = 0.9;
+    else if (conversationActiveTab === '1M') multiplier = 3.2;
+    else if (conversationActiveTab === '1Y') multiplier = 15;
+
+    return baseData.map(item => ({
+      ...item,
+      conversations: Math.round(item.conversations * multiplier),
+      satisfaction: Math.max(70, Math.min(98, item.satisfaction + (Math.random() - 0.5) * 10))
+    }));
+  };
+
+  const agentSatisfactionData = generateAgentSatisfactionData();
 
   return (
     <div className="space-y-6">
-      
+      {/* Agent Performance with Satisfaction - Moved to top */}
+      <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+                Agent Performance & Satisfaction
+              </CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400">
+                Customer satisfaction by agent ({conversationActiveTab})
+              </CardDescription>
+            </div>
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600">
+              <Bot className="h-6 w-6 text-white" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={agentSatisfactionData} 
+                layout="horizontal"
+                margin={{ top: 5, right: 30, left: 5, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                <XAxis 
+                  type="number" 
+                  domain={[0, 100]}
+                  tick={{ fontSize: 10, fill: 'currentColor' }}
+                  className="text-slate-600 dark:text-slate-400"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis 
+                  type="category"
+                  dataKey="agent" 
+                  tick={{ fontSize: 10, fill: 'currentColor' }}
+                  className="text-slate-600 dark:text-slate-400"
+                  axisLine={false}
+                  tickLine={false}
+                  width={80}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                  }}
+                  formatter={(value, name) => [
+                    name === 'satisfaction' ? `${value}%` : value,
+                    name === 'satisfaction' ? 'Satisfaction Rate' : 'Conversations'
+                  ]}
+                />
+                <Bar 
+                  dataKey="satisfaction" 
+                  fill="#10b981" 
+                  radius={[0, 4, 4, 0]}
+                  name="Satisfaction Rate"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          
+          {/* Agent Performance Summary */}
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
+              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Top Performer</div>
+              <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Tech Support</div>
+              <div className="text-xs text-green-600 dark:text-green-400">94% satisfaction</div>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
+              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Most Active</div>
+              <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Customer Service</div>
+              <div className="text-xs text-blue-600 dark:text-blue-400">{agentSatisfactionData[0]?.conversations} conversations</div>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center lg:block hidden">
+              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Avg Rating</div>
+              <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">4.5 / 5.0</div>
+              <div className="text-xs text-yellow-600 dark:text-yellow-400">Across all agents</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Customer Satisfaction - Full Width */}
       <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden">
         <CardHeader className="pb-4">
@@ -143,92 +244,6 @@ const StatisticsCharts = () => {
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Agent Performance with Satisfaction */}
-      <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-                Agent Performance & Satisfaction
-              </CardTitle>
-              <CardDescription className="text-slate-500 dark:text-slate-400">
-                Customer satisfaction by agent
-              </CardDescription>
-            </div>
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600">
-              <Bot className="h-6 w-6 text-white" />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={agentSatisfactionData} 
-                layout="horizontal"
-                margin={{ top: 5, right: 30, left: 5, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                <XAxis 
-                  type="number" 
-                  domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: 'currentColor' }}
-                  className="text-slate-600 dark:text-slate-400"
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis 
-                  type="category"
-                  dataKey="agent" 
-                  tick={{ fontSize: 10, fill: 'currentColor' }}
-                  className="text-slate-600 dark:text-slate-400"
-                  axisLine={false}
-                  tickLine={false}
-                  width={80}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                  }}
-                  formatter={(value, name) => [
-                    name === 'satisfaction' ? `${value}%` : value,
-                    name === 'satisfaction' ? 'Satisfaction Rate' : 'Conversations'
-                  ]}
-                />
-                <Bar 
-                  dataKey="satisfaction" 
-                  fill="#10b981" 
-                  radius={[0, 4, 4, 0]}
-                  name="Satisfaction Rate"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          
-          {/* Agent Performance Summary */}
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
-              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Top Performer</div>
-              <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Tech Support</div>
-              <div className="text-xs text-green-600 dark:text-green-400">94% satisfaction</div>
-            </div>
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
-              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Most Active</div>
-              <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Customer Service</div>
-              <div className="text-xs text-blue-600 dark:text-blue-400">145 conversations</div>
-            </div>
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center lg:block hidden">
-              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Avg Rating</div>
-              <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">4.5 / 5.0</div>
-              <div className="text-xs text-yellow-600 dark:text-yellow-400">Across all agents</div>
-            </div>
           </div>
         </CardContent>
       </Card>
