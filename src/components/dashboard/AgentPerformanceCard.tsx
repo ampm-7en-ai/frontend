@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
-import { Users, Clock, Star, TrendingUp, TrendingDown, Bot } from 'lucide-react';
+import { Users, Clock, Star, TrendingUp, TrendingDown, Bot, Heart } from 'lucide-react';
 import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
@@ -212,6 +212,9 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               onTabChange={setActiveTab}
               className="text-xs"
             />
+          </div>
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600">
+            <TrendingUp className="h-4 w-4 text-white" />
           </div>
         </div>
       </CardHeader>

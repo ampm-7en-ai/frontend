@@ -60,7 +60,7 @@ const AdminDashboard = () => {
         <div className="space-y-8">
           {/* Top Row - Conversation Statistics and Customer Satisfaction */}
           <div className="grid grid-cols-1">
-            <div className="h-full mb-6">
+            <div className="h-full mb-2">
               <AgentPerformanceSummary
                 agentPerformanceSummary={data.agent_performance_summary}
                 agentPerformanceComparison={data.agent_performance_comparison}

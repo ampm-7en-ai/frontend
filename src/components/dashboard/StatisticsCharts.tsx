@@ -62,40 +62,9 @@ const StatisticsCharts = () => {
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {/* Overall Satisfaction */}
-          <div className="text-center">
-            <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">Overall</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">92%</div>
-            <div className="flex items-center justify-center text-xs text-green-600 dark:text-green-400">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +5%
-            </div>
-          </div>
+        
 
-          {/* CSAT Score */}
-          <div className="text-center">
-            <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">CSAT</div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">4.7</div>
-            <div className="flex items-center justify-center text-xs text-blue-600 dark:text-blue-400">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +0.3
-            </div>
-          </div>
-
-          {/* NPS Score */}
-          <div className="text-center">
-            <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-1">NPS</div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">+68</div>
-            <div className="flex items-center justify-center text-xs text-purple-600 dark:text-purple-400">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +12
-            </div>
-          </div>
-        </div>
-
-        <div className="h-52">
-          <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Satisfaction Trends</div>
+        <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={satisfactionTrendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
