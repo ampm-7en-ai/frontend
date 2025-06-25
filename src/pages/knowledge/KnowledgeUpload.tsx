@@ -254,11 +254,14 @@ const KnowledgeUpload = () => {
     
     if (!canUpload) {
       setValidationError(errorMessage);
-      toast({
-        title: "Validation Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      // Only show toast if this is an actual form submission attempt
+      if (hasSubmitAttempted) {
+        toast({
+          title: "Validation Error",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
       return;
     }
     
