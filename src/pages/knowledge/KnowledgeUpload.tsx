@@ -707,7 +707,7 @@ const KnowledgeUpload = () => {
                     Cancel
                   </ModernButton>
                   <ModernButton 
-                    type="submit"
+                    onClick={() => handleSubmit({} as React.FormEvent)}
                     disabled={isUploading}
                     className="px-8"
                   >
