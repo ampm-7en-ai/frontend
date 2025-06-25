@@ -10,6 +10,7 @@ interface ModernButtonProps {
   onClick?: () => void;
   className?: string;
   disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 const ModernButton: React.FC<ModernButtonProps> = ({
@@ -19,7 +20,8 @@ const ModernButton: React.FC<ModernButtonProps> = ({
   icon: Icon,
   onClick,
   className = "",
-  disabled = false
+  disabled = false,
+  type = 'button'
 }) => {
   const baseClasses = "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
   
@@ -37,6 +39,7 @@ const ModernButton: React.FC<ModernButtonProps> = ({
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
