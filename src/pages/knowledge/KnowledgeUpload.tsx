@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +44,14 @@ interface ThirdPartyConfig {
   color: string;
 }
 
+interface ValidationErrors {
+  documentName?: string;
+  url?: string;
+  files?: string;
+  plainText?: string;
+  thirdParty?: string;
+}
+
 const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -60,6 +67,7 @@ const KnowledgeUpload = () => {
   const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -141,7 +149,63 @@ const KnowledgeUpload = () => {
     setPlainText('');
     setSelectedProvider(null);
     setSelectedFiles([]);
+    setValidationErrors({});
   }, [sourceType]);
+
+  const validateForm = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    // Validate document name
+    if (!documentName.trim()) {
+      errors.documentName = 'Source name is required';
+    }
+
+    // Validate based on source type
+    switch (sourceType) {
+      case 'url':
+        if (!url.trim()) {
+          errors.url = 'Website URL is required';
+        } else if (!isValidUrl(url)) {
+          errors.url = 'Please enter a valid URL';
+        }
+        break;
+      
+      case 'document':
+      case 'csv':
+        if (files.length === 0) {
+          errors.files = `Please select at least one ${sourceType === 'document' ? 'document' : 'spreadsheet'} file`;
+        }
+        break;
+      
+      case 'plainText':
+        if (!plainText.trim()) {
+          errors.plainText = 'Please enter some text content';
+        } else if (plainText.trim().length < 10) {
+          errors.plainText = 'Text content must be at least 10 characters long';
+        }
+        break;
+      
+      case 'thirdParty':
+        if (!selectedProvider) {
+          errors.thirdParty = 'Please select and connect to a third-party provider';
+        } else if (selectedFiles.length === 0) {
+          errors.thirdParty = 'No files have been imported from the selected provider';
+        }
+        break;
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const isValidUrl = (string: string): boolean => {
+    try {
+      const url = new URL(string);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -157,6 +221,11 @@ const KnowledgeUpload = () => {
 
       // Append unique new files to existing files
       setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
+      
+      // Clear file validation error if files are selected
+      if (uniqueNewFiles.length > 0) {
+        setValidationErrors(prev => ({ ...prev, files: undefined }));
+      }
       
       if (uniqueNewFiles.length < newFiles.length) {
         toast({
@@ -176,7 +245,19 @@ const KnowledgeUpload = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Form submitted - starting upload process');
+    console.log('Form submitted - starting validation');
+    
+    // Validate form before proceeding
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors below before submitting.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    console.log('Validation passed - starting upload process');
     
     setIsUploading(true);
     setProgress(0);
@@ -314,6 +395,9 @@ const KnowledgeUpload = () => {
           'Documentation/CONTRIBUTING.md'
         ]);
       }
+      
+      // Clear validation error when files are imported
+      setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
     }, 1500);
   };
 
@@ -337,9 +421,17 @@ const KnowledgeUpload = () => {
                 type="url"
                 placeholder={sourceConfigs.url.placeholder}
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="h-11"
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (validationErrors.url) {
+                    setValidationErrors(prev => ({ ...prev, url: undefined }));
+                  }
+                }}
+                className={`h-11 ${validationErrors.url ? 'border-red-500' : ''}`}
               />
+              {validationErrors.url && (
+                <p className="text-sm text-red-600">{validationErrors.url}</p>
+              )}
               <p className="text-xs text-slate-500">
                 Enter the URL of the webpage you want to crawl. For multiple pages, we'll automatically explore linked pages.
               </p>
@@ -375,6 +467,7 @@ const KnowledgeUpload = () => {
                   variant="outline" 
                   size="sm"
                   onClick={handleFileUploadClick}
+                  type="button"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Browse Files
@@ -389,6 +482,10 @@ const KnowledgeUpload = () => {
                 />
               </div>
             </div>
+            
+            {validationErrors.files && (
+              <p className="text-sm text-red-600">{validationErrors.files}</p>
+            )}
             
             {files.length > 0 && (
               <div className="space-y-3">
@@ -410,6 +507,7 @@ const KnowledgeUpload = () => {
                         size="sm"
                         onClick={() => removeFile(index)} 
                         className="h-10 w-10 p-0"
+                        type="button"
                       >
                         <X className="h-5 w-5" />
                       </ModernButton>
@@ -430,9 +528,17 @@ const KnowledgeUpload = () => {
                 id="plain-text" 
                 placeholder={sourceConfigs.plainText.placeholder}
                 value={plainText}
-                onChange={(e) => setPlainText(e.target.value)}
-                className="min-h-[200px] resize-none"
+                onChange={(e) => {
+                  setPlainText(e.target.value);
+                  if (validationErrors.plainText) {
+                    setValidationErrors(prev => ({ ...prev, plainText: undefined }));
+                  }
+                }}
+                className={`min-h-[200px] resize-none ${validationErrors.plainText ? 'border-red-500' : ''}`}
               />
+              {validationErrors.plainText && (
+                <p className="text-sm text-red-600">{validationErrors.plainText}</p>
+              )}
               <p className="text-xs text-slate-500">
                 Paste or type the text you want to add to your knowledge base
               </p>
@@ -457,6 +563,7 @@ const KnowledgeUpload = () => {
                         variant="outline"
                         className={`h-14 justify-start gap-3 ${provider.color} hover:bg-opacity-80`}
                         onClick={() => handleQuickConnect(id as ThirdPartyProvider)}
+                        type="button"
                       >
                         <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/90">
                           {provider.icon}
@@ -468,6 +575,10 @@ const KnowledgeUpload = () => {
                       </ModernButton>
                     ))}
                   </div>
+                  
+                  {validationErrors.thirdParty && (
+                    <p className="text-sm text-red-600">{validationErrors.thirdParty}</p>
+                  )}
                 </div>
               </>
             ) : (
@@ -489,6 +600,7 @@ const KnowledgeUpload = () => {
                       setSelectedProvider(null);
                       setSelectedFiles([]);
                     }}
+                    type="button"
                   >
                     Change
                   </ModernButton>
@@ -509,10 +621,15 @@ const KnowledgeUpload = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleQuickConnect(selectedProvider)}
+                        type="button"
                       >
                         Refresh
                       </ModernButton>
                     </div>
+                    
+                    {validationErrors.thirdParty && (
+                      <p className="text-sm text-red-600">{validationErrors.thirdParty}</p>
+                    )}
                     
                     {selectedFiles.length > 0 ? (
                       <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
@@ -529,6 +646,7 @@ const KnowledgeUpload = () => {
                               size="sm"
                               onClick={() => handleRemoveSelectedFile(index)}
                               className="h-10 w-10 p-0"
+                              type="button"
                             >
                               <X className="h-5 w-5" />
                             </ModernButton>
@@ -543,6 +661,7 @@ const KnowledgeUpload = () => {
                           variant="outline" 
                           size="sm"
                           onClick={() => handleQuickConnect(selectedProvider)}
+                          type="button"
                         >
                           Import Files
                         </ModernButton>
@@ -562,7 +681,7 @@ const KnowledgeUpload = () => {
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <ModernButton variant="outline" size="sm" onClick={() => navigate('/knowledge')}>
+          <ModernButton variant="outline" size="sm" onClick={() => navigate('/knowledge')} type="button">
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Knowledge Base
           </ModernButton>
@@ -587,9 +706,17 @@ const KnowledgeUpload = () => {
                     id="document-name" 
                     placeholder="Enter a descriptive name for this knowledge source"
                     value={documentName}
-                    onChange={(e) => setDocumentName(e.target.value)}
-                    className="h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50"
+                    onChange={(e) => {
+                      setDocumentName(e.target.value);
+                      if (validationErrors.documentName) {
+                        setValidationErrors(prev => ({ ...prev, documentName: undefined }));
+                      }
+                    }}
+                    className={`h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 ${validationErrors.documentName ? 'border-red-500' : ''}`}
                   />
+                  {validationErrors.documentName && (
+                    <p className="text-sm text-red-600">{validationErrors.documentName}</p>
+                  )}
                 </div>
                 
                 {/* Source Type - Dashboard Style Navigation */}
@@ -624,6 +751,7 @@ const KnowledgeUpload = () => {
                     variant="outline" 
                     onClick={() => navigate('/knowledge')}
                     disabled={isUploading}
+                    type="button"
                   >
                     Cancel
                   </ModernButton>
