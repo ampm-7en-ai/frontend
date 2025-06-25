@@ -143,6 +143,7 @@ const KnowledgeUpload = () => {
     setSelectedFiles([]);
   }, [sourceType]);
 
+  // Update metadata based on form inputs, but don't trigger upload
   useEffect(() => {
     let metadataObj = {};
     
@@ -185,23 +186,6 @@ const KnowledgeUpload = () => {
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const simulateProgress = () => {
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 5;
-      setProgress(currentProgress);
-      
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-        setIsUploading(false);
-        toast({
-          title: "Upload complete",
-          description: "Your knowledge source has been added successfully.",
-        });
-      }
-    }, 200);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
