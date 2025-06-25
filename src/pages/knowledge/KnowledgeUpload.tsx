@@ -61,6 +61,7 @@ const KnowledgeUpload = () => {
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [metadata, setMetadata] = useState('{}');
   const [validationError, setValidationError] = useState<string>('');
+  const [hasSubmitAttempted, setHasSubmitAttempted] = useState(false);
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -137,7 +138,8 @@ const KnowledgeUpload = () => {
 
   useEffect(() => {
     setFiles([]);
-    setValidationError(''); // Clear validation error when switching source types
+    setValidationError('');
+    setHasSubmitAttempted(false); // Reset submit attempt flag when switching source types
   }, [sourceType]);
 
   useEffect(() => {
@@ -210,6 +212,7 @@ const KnowledgeUpload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setHasSubmitAttempted(true); // Mark that a submit attempt has been made
     
     let canUpload = false;
     let errorMessage = '';
@@ -248,7 +251,6 @@ const KnowledgeUpload = () => {
     
     if (!canUpload) {
       setValidationError(errorMessage);
-      // Only show toast error on actual form submission
       toast({
         title: "Validation Error",
         description: errorMessage,
@@ -407,7 +409,7 @@ const KnowledgeUpload = () => {
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value);
-                  if (e.target.value) setValidationError('');
+                  if (e.target.value && hasSubmitAttempted) setValidationError('');
                 }}
                 className="h-11"
               />
@@ -479,7 +481,7 @@ const KnowledgeUpload = () => {
                       <ModernButton 
                         variant="outline" 
                         size="sm"
-                        onClick={() => removeFile(index, {} as React.MouseEvent)} 
+                        onClick={(e) => removeFile(index, e)} 
                         className="h-10 w-10 p-0"
                       >
                         <X className="h-5 w-5" />
@@ -503,7 +505,7 @@ const KnowledgeUpload = () => {
                 value={plainText}
                 onChange={(e) => {
                   setPlainText(e.target.value);
-                  if (e.target.value) setValidationError('');
+                  if (e.target.value && hasSubmitAttempted) setValidationError('');
                 }}
                 className="min-h-[200px] resize-none"
               />
@@ -682,8 +684,8 @@ const KnowledgeUpload = () => {
                   {renderSourceTypeContent()}
                 </div>
                 
-                {/* Validation Error */}
-                {validationError && (
+                {/* Validation Error - Only show if there was a submit attempt */}
+                {validationError && hasSubmitAttempted && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                     <p className="text-sm text-red-600">{validationError}</p>
                   </div>
@@ -706,11 +708,12 @@ const KnowledgeUpload = () => {
                     variant="outline" 
                     onClick={() => navigate('/knowledge')}
                     disabled={isUploading}
+                    type="button"
                   >
                     Cancel
                   </ModernButton>
                   <ModernButton 
-                    onClick={() => handleSubmit({} as React.FormEvent)}
+                    type="submit"
                     disabled={isUploading}
                     className="px-8"
                   >
