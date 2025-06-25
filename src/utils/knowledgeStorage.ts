@@ -57,10 +57,28 @@ export const getNewKnowledgeBase = (): KnowledgeBaseItem | null => {
 };
 
 /**
+ * Get stored knowledge bases as an array (for backward compatibility)
+ */
+export const getStoredKnowledgeBases = (): KnowledgeBaseItem[] => {
+  const knowledgeBase = getNewKnowledgeBase();
+  return knowledgeBase ? [knowledgeBase] : [];
+};
+
+/**
  * Clear the newly created knowledge base from localStorage
  */
 export const clearNewKnowledgeBase = (): void => {
   localStorage.removeItem(KNOWLEDGE_STORAGE_KEY);
+};
+
+/**
+ * Remove a knowledge base by ID (for backward compatibility)
+ */
+export const removeKnowledgeBase = (id: number): void => {
+  const knowledgeBase = getNewKnowledgeBase();
+  if (knowledgeBase && knowledgeBase.id === id) {
+    clearNewKnowledgeBase();
+  }
 };
 
 /**
