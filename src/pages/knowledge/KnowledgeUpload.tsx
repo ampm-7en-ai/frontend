@@ -137,9 +137,14 @@ const KnowledgeUpload = () => {
   ];
 
   useEffect(() => {
+    // Reset all form state when switching source types
     setFiles([]);
     setValidationError('');
-    setHasSubmitAttempted(false); // Reset submit attempt flag when switching source types
+    setHasSubmitAttempted(false);
+    setUrl('');
+    setPlainText('');
+    setSelectedProvider(null);
+    setSelectedFiles([]);
   }, [sourceType]);
 
   useEffect(() => {
@@ -172,8 +177,8 @@ const KnowledgeUpload = () => {
       // Append unique new files to existing files
       setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
       
-      // Clear validation error when files are selected
-      if (uniqueNewFiles.length > 0) {
+      // Clear validation error when files are selected (only if there was a submit attempt)
+      if (uniqueNewFiles.length > 0 && hasSubmitAttempted) {
         setValidationError('');
       }
 
@@ -210,7 +215,7 @@ const KnowledgeUpload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setHasSubmitAttempted(true); // Mark that a submit attempt has been made
+    setHasSubmitAttempted(true);
     
     let canUpload = false;
     let errorMessage = '';
@@ -562,7 +567,7 @@ const KnowledgeUpload = () => {
                     onClick={() => {
                       setSelectedProvider(null);
                       setSelectedFiles([]);
-                      setValidationError('');
+                      if (hasSubmitAttempted) setValidationError('');
                     }}
                   >
                     Change
