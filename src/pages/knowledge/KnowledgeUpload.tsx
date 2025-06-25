@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFloatingToast } from '@/context/FloatingToastContext';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -55,12 +56,12 @@ interface ValidationErrors {
 const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { showToast, hideToast, updateToast } = useFloatingToast();
   const navigate = useNavigate();
   const [files, setFiles] = useState<File[]>([]);
   const [documentName, setDocumentName] = useState('');
   const [sourceType, setSourceType] = useState<SourceType>('url');
   const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [url, setUrl] = useState('');
   const [importAllPages, setImportAllPages] = useState(true);
   const [plainText, setPlainText] = useState('');
@@ -249,10 +250,10 @@ const KnowledgeUpload = () => {
     
     // Validate form before proceeding
     if (!validateForm()) {
-      toast({
+      showToast({
         title: "Validation Error",
-        description: "Please fix the errors below before submitting.",
-        variant: "destructive"
+        description: "Please fix the errors and try again.",
+        variant: "error"
       });
       return;
     }
@@ -260,7 +261,13 @@ const KnowledgeUpload = () => {
     console.log('Validation passed - starting upload process');
     
     setIsUploading(true);
-    setProgress(0);
+    
+    // Show loading toast
+    const loadingToastId = showToast({
+      title: "Processing...",
+      description: "Adding your knowledge source",
+      variant: "loading"
+    });
     
     try {
       const formData = new FormData();
@@ -308,29 +315,18 @@ const KnowledgeUpload = () => {
         });
       }
       
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 300);
-      
       const response = await createKnowledgeBase(formData);
-      
-      clearInterval(progressInterval);
-      setProgress(100);
       
       if (response) {
         storeNewKnowledgeBase(response.data);
         console.log('Knowledge base created and stored:', response.data.id);
       }
       
-      toast({
-        title: "Success",
-        description: "Your knowledge source has been added successfully.",
+      // Hide loading toast and show success
+      hideToast(loadingToastId);
+      showToast({
+        title: "Success!",
+        description: "Knowledge source added successfully",
         variant: "success"
       });
       
@@ -343,10 +339,12 @@ const KnowledgeUpload = () => {
         errorMessage = error.message;
       }
       
-      toast({
+      // Hide loading toast and show error
+      hideToast(loadingToastId);
+      showToast({
         title: "Error",
         description: errorMessage,
-        variant: "destructive"
+        variant: "error"
       });
     }
   };
@@ -706,17 +704,9 @@ const KnowledgeUpload = () => {
                     id="document-name" 
                     placeholder="Enter a descriptive name for this knowledge source"
                     value={documentName}
-                    onChange={(e) => {
-                      setDocumentName(e.target.value);
-                      if (validationErrors.documentName) {
-                        setValidationErrors(prev => ({ ...prev, documentName: undefined }));
-                      }
-                    }}
-                    className={`h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 ${validationErrors.documentName ? 'border-red-500' : ''}`}
+                    onChange={(e) => setDocumentName(e.target.value)}
+                    className="h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50"
                   />
-                  {validationErrors.documentName && (
-                    <p className="text-sm text-red-600">{validationErrors.documentName}</p>
-                  )}
                 </div>
                 
                 {/* Source Type - Dashboard Style Navigation */}
@@ -733,17 +723,6 @@ const KnowledgeUpload = () => {
                 <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
                   {renderSourceTypeContent()}
                 </div>
-                
-                {/* Progress */}
-                {isUploading && (
-                  <div className="space-y-3 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-2xl border border-blue-200/50 dark:border-blue-800/50">
-                    <div className="flex justify-between text-sm font-medium text-blue-900 dark:text-blue-100">
-                      <span>Processing your content...</span>
-                      <span>{progress}%</span>
-                    </div>
-                    <Progress value={progress} className="w-full h-3" />
-                  </div>
-                )}
                 
                 {/* Actions */}
                 <div className="flex justify-center gap-4 pt-6">

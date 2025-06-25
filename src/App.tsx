@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -32,6 +33,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { TrainingStatusProvider } from './context/TrainingStatusContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { FloatingToastProvider } from './context/FloatingToastContext';
 import SecuritySettings from './pages/settings/platform/SecuritySettings';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
 import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
@@ -218,19 +220,21 @@ function App() {
           <AuthProvider>
             <NotificationProvider>
               <TrainingStatusProvider>
-                <Routes>
-                  {/* Public routes that don't require authentication */}
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/verify" element={<Verify />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/invitation" element={<InviteRegistration />} />
-                  <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
-                  <Route path="/chat/assistant/:agentId" element={<SearchAssistant />} />
-                  
-                  {/* Protected routes that require authentication */}
-                  <Route path="/*" element={<ProtectedRoutes />} />
-                </Routes>
-                <Toaster />
+                <FloatingToastProvider>
+                  <Routes>
+                    {/* Public routes that don't require authentication */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/verify" element={<Verify />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/invitation" element={<InviteRegistration />} />
+                    <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
+                    <Route path="/chat/assistant/:agentId" element={<SearchAssistant />} />
+                    
+                    {/* Protected routes that require authentication */}
+                    <Route path="/*" element={<ProtectedRoutes />} />
+                  </Routes>
+                  <Toaster />
+                </FloatingToastProvider>
               </TrainingStatusProvider>
             </NotificationProvider>
           </AuthProvider>
