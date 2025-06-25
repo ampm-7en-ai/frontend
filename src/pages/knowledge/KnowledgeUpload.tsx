@@ -477,9 +477,9 @@ const KnowledgeUpload = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => removeFile(index, {} as React.MouseEvent)} 
-                        className="h-8 w-8 p-0"
+                        className="h-10 w-10 p-0"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-5 w-5" />
                       </ModernButton>
                     </div>
                   ))}
@@ -600,9 +600,9 @@ const KnowledgeUpload = () => {
                               variant="outline" 
                               size="sm"
                               onClick={() => handleRemoveSelectedFile(index)}
-                              className="h-8 w-8 p-0"
+                              className="h-10 w-10 p-0"
                             >
-                              <X className="h-4 w-4" />
+                              <X className="h-5 w-5" />
                             </ModernButton>
                           </div>
                         ))}
