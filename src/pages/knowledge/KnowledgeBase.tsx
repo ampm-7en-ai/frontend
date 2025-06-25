@@ -22,7 +22,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { StatCard } from '@/components/dashboard/StatCard';
 import { getNewKnowledgeBase, clearNewKnowledgeBase, hasNewKnowledgeBase } from '@/utils/knowledgeStorage';
 
 const KnowledgeBase = () => {
@@ -264,7 +263,7 @@ const KnowledgeBase = () => {
               <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
               <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
               <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-              <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2-4.5h-27.502l5.852 11.5z" fill="#2684fc"/>
+              <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5h-27.502l5.852 11.5z" fill="#2684fc"/>
               <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
             </svg>
           );
@@ -548,128 +547,129 @@ const KnowledgeBase = () => {
     return (
       <div className="space-y-8">
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-2xl p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Knowledge Base</h1>
-              <p className="text-slate-600 text-lg">Manage your AI knowledge sources and content</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative">
-                <Input 
-                  placeholder="Search knowledge sources..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-3 w-full sm:w-80 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                />
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-              </div>
-              <Select 
-                value={sourceTypeFilter} 
-                onValueChange={setSourceTypeFilter}
-              >
-                <SelectTrigger className="w-full sm:w-48 py-3 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sources</SelectItem>
-                  <SelectItem value="docs">Documents</SelectItem>
-                  <SelectItem value="website">Websites</SelectItem>
-                  <SelectItem value="csv">Spreadsheets</SelectItem>
-                  <SelectItem value="plain_text">Plain Text</SelectItem>
-                  <SelectItem value="thirdparty">Third Party</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold transition-all duration-200">
-                <Link to="/knowledge/upload">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Add Source
-                </Link>
-              </Button>
-            </div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Knowledge Base</h1>
+            <p className="text-slate-600 text-lg">Manage your AI knowledge sources and content</p>
           </div>
+          <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold transition-all duration-200">
+            <Link to="/knowledge/upload">
+              <Plus className="h-5 w-5 mr-2" />
+              Add Source
+            </Link>
+          </Button>
         </div>
         
-        {/* Stats Section */}
+        {/* Stats Section - Dashboard Style */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <Card className="bg-gradient-to-br from-slate-50 to-white border-slate-200 shadow-lg hover:shadow-xl transition-shadow duration-200 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-3 text-slate-800">
-                <div className="p-2 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg">
-                  <Layers className="h-5 w-5 text-blue-600" />
-                </div>
-                Total Sources
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900 mb-1">{isLoading ? "..." : knowledgeStats.totalSources}</div>
-              <div className="text-sm text-slate-500 font-medium">All knowledge sources</div>
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6 relative pb-2">
+              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600">
+                <Layers className="h-4 w-4 text-white" />
+              </div>
+              <div className="pr-12">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                  Total Sources
+                </p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  {isLoading ? "..." : knowledgeStats.totalSources}
+                </p>
+              </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-200 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-3 text-slate-800">
-                <div className="p-2 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg">
-                  <Book className="h-5 w-5 text-blue-600" />
-                </div>
-                Document Files
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-900 mb-1">{isLoading ? "..." : knowledgeStats.documentFiles}</div>
-              <div className="text-sm text-blue-600 font-medium">From {knowledgeStats.documentSources} sources</div>
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6 relative pb-2">
+              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                <Book className="h-4 w-4 text-white" />
+              </div>
+              <div className="pr-12">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                  Document Files
+                </p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  {isLoading ? "..." : knowledgeStats.documentFiles}
+                </p>
+              </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-green-50 to-white border-green-200 shadow-lg hover:shadow-xl transition-shadow duration-200 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-3 text-slate-800">
-                <div className="p-2 bg-gradient-to-r from-green-100 to-green-200 rounded-lg">
-                  <Globe className="h-5 w-5 text-green-600" />
-                </div>
-                Websites
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-900 mb-1">{isLoading ? "..." : knowledgeStats.websiteSources}</div>
-              <div className="text-sm text-green-600 font-medium">URLs, Webpages</div>
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6 relative pb-2">
+              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                <Globe className="h-4 w-4 text-white" />
+              </div>
+              <div className="pr-12">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                  Websites
+                </p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  {isLoading ? "..." : knowledgeStats.websiteSources}
+                </p>
+              </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-200 shadow-lg hover:shadow-xl transition-shadow duration-200 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-3 text-slate-800">
-                <div className="p-2 bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-lg">
-                  <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-                </div>
-                Spreadsheet Files
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-emerald-900 mb-1">{isLoading ? "..." : knowledgeStats.spreadsheetFiles}</div>
-              <div className="text-sm text-emerald-600 font-medium">From {knowledgeStats.spreadsheetSources} sources</div>
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6 relative pb-2">
+              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
+                <FileSpreadsheet className="h-4 w-4 text-white" />
+              </div>
+              <div className="pr-12">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                  Spreadsheet Files
+                </p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  {isLoading ? "..." : knowledgeStats.spreadsheetFiles}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200 shadow-lg hover:shadow-xl transition-shadow duration-200 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-3 text-slate-800">
-                <div className="p-2 bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg">
-                  <FileText className="h-5 w-5 text-purple-600" />
-                </div>
-                Plain Text
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-900 mb-1">{isLoading ? "..." : knowledgeStats.plainTextSources}</div>
-              <div className="text-sm text-purple-600 font-medium">
-                {knowledgeStats.plainTextChars > 0 ? 
-                  `${knowledgeStats.plainTextChars.toLocaleString()} characters` : 
-                  "Plain text files"}
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6 relative pb-2">
+              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                <FileText className="h-4 w-4 text-white" />
+              </div>
+              <div className="pr-12">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                  Plain Text
+                </p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  {isLoading ? "..." : knowledgeStats.plainTextSources}
+                </p>
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Search and Filter Section */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Input 
+              placeholder="Search knowledge sources..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 pr-4 py-3 w-full border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+            />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+          </div>
+          <Select 
+            value={sourceTypeFilter} 
+            onValueChange={setSourceTypeFilter}
+          >
+            <SelectTrigger className="w-full sm:w-48 py-3 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sources</SelectItem>
+              <SelectItem value="docs">Documents</SelectItem>
+              <SelectItem value="website">Websites</SelectItem>
+              <SelectItem value="csv">Spreadsheets</SelectItem>
+              <SelectItem value="plain_text">Plain Text</SelectItem>
+              <SelectItem value="thirdparty">Third Party</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
         {/* Knowledge Sources Table */}
