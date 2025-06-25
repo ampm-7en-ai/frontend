@@ -140,7 +140,7 @@ const KnowledgeUpload = () => {
     // Reset all form state when switching source types
     setFiles([]);
     setValidationError('');
-    setHasSubmitAttempted(false);
+    setHasSubmitAttempted(false); // Reset submit attempt when switching types
     setUrl('');
     setPlainText('');
     setSelectedProvider(null);
@@ -177,8 +177,8 @@ const KnowledgeUpload = () => {
       // Append unique new files to existing files
       setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
       
-      // Clear validation error when files are selected (only if there was a submit attempt)
-      if (uniqueNewFiles.length > 0 && hasSubmitAttempted) {
+      // Clear validation error when files are selected (without checking hasSubmitAttempted)
+      if (uniqueNewFiles.length > 0) {
         setValidationError('');
       }
 
@@ -194,6 +194,8 @@ const KnowledgeUpload = () => {
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+    // Clear validation error when files are removed (without checking hasSubmitAttempted)
+    setValidationError('');
   };
 
   const simulateProgress = () => {
@@ -215,6 +217,8 @@ const KnowledgeUpload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // This is an actual form submission attempt
     setHasSubmitAttempted(true);
     
     let canUpload = false;
@@ -254,14 +258,12 @@ const KnowledgeUpload = () => {
     
     if (!canUpload) {
       setValidationError(errorMessage);
-      // Only show toast if this is an actual form submission attempt
-      if (hasSubmitAttempted) {
-        toast({
-          title: "Validation Error",
-          description: errorMessage,
-          variant: "destructive"
-        });
-      }
+      // Show toast only on actual form submission
+      toast({
+        title: "Validation Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
       return;
     }
     
@@ -415,7 +417,7 @@ const KnowledgeUpload = () => {
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value);
-                  if (e.target.value && hasSubmitAttempted) setValidationError('');
+                  if (e.target.value) setValidationError('');
                 }}
                 className="h-11"
               />
@@ -511,7 +513,7 @@ const KnowledgeUpload = () => {
                 value={plainText}
                 onChange={(e) => {
                   setPlainText(e.target.value);
-                  if (e.target.value && hasSubmitAttempted) setValidationError('');
+                  if (e.target.value) setValidationError('');
                 }}
                 className="min-h-[200px] resize-none"
               />
@@ -570,7 +572,7 @@ const KnowledgeUpload = () => {
                     onClick={() => {
                       setSelectedProvider(null);
                       setSelectedFiles([]);
-                      if (hasSubmitAttempted) setValidationError('');
+                      setValidationError('');
                     }}
                   >
                     Change
