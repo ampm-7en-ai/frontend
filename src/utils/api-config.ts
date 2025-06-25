@@ -506,25 +506,6 @@ export const getRoleEndpoint = (roleId: number): string => {
   return `${API_ENDPOINTS.USER_ROLE}/${roleId}/`;
 };
 
-// Function to fetch knowledge bases
-export const fetchKnowledgeBases = async (): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
-    headers: getAuthHeaders(token),
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
-    throw new Error(errorData.message || `Failed to fetch knowledge bases: ${response.status}`);
-  }
-  
-  return response.json();
-};
-
 // PATCH settings API call
 export const updateSettings = async (payload: any): Promise<any> => {
   const token = getAccessToken();
