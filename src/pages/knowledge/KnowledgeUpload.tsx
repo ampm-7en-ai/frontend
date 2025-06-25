@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,7 @@ const KnowledgeUpload = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [metadata, setMetadata] = useState('{}');
+  const [validationError, setValidationError] = useState<string>('');
   
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -137,6 +139,7 @@ const KnowledgeUpload = () => {
 
   useEffect(() => {
     setFiles([]);
+    setValidationError('');
   }, [sourceType]);
 
   useEffect(() => {
@@ -168,6 +171,11 @@ const KnowledgeUpload = () => {
 
       // Append unique new files to existing files
       setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
+      
+      // Clear validation error when files are selected
+      if (uniqueNewFiles.length > 0) {
+        setValidationError('');
+      }
 
       if (uniqueNewFiles.length < newFiles.length) {
         toast({
@@ -206,40 +214,23 @@ const KnowledgeUpload = () => {
     e.preventDefault();
     
     let canUpload = false;
+    let errorMessage = '';
     
     switch(sourceType) {
       case 'url':
         canUpload = !!url;
-        if (!canUpload) {
-          toast({
-            title: "Validation Error",
-            description: "Please enter a valid URL",
-            variant: "destructive"
-          });
-        }
+        errorMessage = "Please enter a valid URL";
         break;
       
       case 'document':
       case 'csv':
         canUpload = files.length > 0;
-        if (!canUpload) {
-          toast({
-            title: "Validation Error",
-            description: "Please select at least one file to upload",
-            variant: "destructive"
-          });
-        }
+        errorMessage = "Please select at least one file to upload";
         break;
         
       case 'plainText':
         canUpload = !!plainText;
-        if (!canUpload) {
-          toast({
-            title: "Validation Error",
-            description: "Please enter some text",
-            variant: "destructive"
-          });
-        }
+        errorMessage = "Please enter some text";
         break;
         
       case 'thirdParty':
@@ -249,17 +240,27 @@ const KnowledgeUpload = () => {
         }
         
         canUpload = selectedFiles.length > 0;
-        if (!canUpload && !selectedProvider) {
+        errorMessage = "Please connect and import files";
+        if (!selectedProvider) {
           handleQuickConnect('googleDrive');
           return;
         }
         break;
     }
     
-    if (!canUpload) return;
+    if (!canUpload) {
+      setValidationError(errorMessage);
+      toast({
+        title: "Validation Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsUploading(true);
     setProgress(0);
+    setValidationError('');
     
     try {
       const formData = new FormData();
@@ -403,7 +404,10 @@ const KnowledgeUpload = () => {
                 type="url"
                 placeholder={sourceConfigs.url.placeholder}
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (e.target.value) setValidationError('');
+                }}
                 className="h-11"
               />
               <p className="text-xs text-slate-500">
@@ -496,7 +500,10 @@ const KnowledgeUpload = () => {
                 id="plain-text" 
                 placeholder={sourceConfigs.plainText.placeholder}
                 value={plainText}
-                onChange={(e) => setPlainText(e.target.value)}
+                onChange={(e) => {
+                  setPlainText(e.target.value);
+                  if (e.target.value) setValidationError('');
+                }}
                 className="min-h-[200px] resize-none"
               />
               <p className="text-xs text-slate-500">
@@ -554,6 +561,7 @@ const KnowledgeUpload = () => {
                     onClick={() => {
                       setSelectedProvider(null);
                       setSelectedFiles([]);
+                      setValidationError('');
                     }}
                   >
                     Change
@@ -660,7 +668,6 @@ const KnowledgeUpload = () => {
                 
                 {/* Source Type - Dashboard Style Navigation */}
                 <div className="space-y-4">
-                  <Label className="text-sm font-medium">Source Type</Label>
                   <ModernTabNavigation
                     tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
                     activeTab={sourceType}
@@ -673,6 +680,13 @@ const KnowledgeUpload = () => {
                 <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
                   {renderSourceTypeContent()}
                 </div>
+                
+                {/* Validation Error */}
+                {validationError && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-sm text-red-600">{validationError}</p>
+                  </div>
+                )}
                 
                 {/* Progress */}
                 {isUploading && (
@@ -712,3 +726,4 @@ const KnowledgeUpload = () => {
 };
 
 export default KnowledgeUpload;
+
