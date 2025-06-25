@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { createKnowledgeBase } from '@/utils/api-config';
 import { storeNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
+import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import {
   Select,
   SelectContent,
