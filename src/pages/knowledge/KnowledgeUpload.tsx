@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,7 +60,6 @@ const KnowledgeUpload = () => {
   const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const [metadata, setMetadata] = useState('{}');
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -134,30 +134,14 @@ const KnowledgeUpload = () => {
     { id: 'thirdParty', label: 'Integrations', icon: ExternalLink }
   ];
 
+  // Reset form state when switching source types - NO UPLOAD
   useEffect(() => {
-    // Reset all form state when switching source types
     setFiles([]);
     setUrl('');
     setPlainText('');
     setSelectedProvider(null);
     setSelectedFiles([]);
   }, [sourceType]);
-
-  // Update metadata based on form inputs, but don't trigger upload
-  useEffect(() => {
-    let metadataObj = {};
-    
-    if (sourceType === 'url' && url) {
-      metadataObj = { website: url };
-      if (importAllPages) {
-        metadataObj = { ...metadataObj, crawl_more: "true" };
-      }
-    } else if (sourceType === 'plainText' && plainText) {
-      metadataObj = { text_content: plainText };
-    }
-    
-    setMetadata(JSON.stringify(metadataObj, null, 2));
-  }, [sourceType, url, importAllPages, plainText]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -188,8 +172,11 @@ const KnowledgeUpload = () => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  // ONLY upload when this function is called (button click)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Form submitted - starting upload process');
     
     setIsUploading(true);
     setProgress(0);
@@ -200,10 +187,19 @@ const KnowledgeUpload = () => {
       const name = documentName || `New ${sourceType.charAt(0).toUpperCase() + sourceType.slice(1)} Source`;
       formData.append('name', name);
       
+      // Build metadata object
+      let metadataObj = {};
+      
       switch(sourceType) {
         case 'url':
           formData.append('type', 'website');
           formData.append('store_links_only', 'true');
+          if (url) {
+            metadataObj = { website: url };
+            if (importAllPages) {
+              metadataObj = { ...metadataObj, crawl_more: "true" };
+            }
+          }
           break;
         case 'document':
           formData.append('type', 'docs');
@@ -213,6 +209,9 @@ const KnowledgeUpload = () => {
           break;
         case 'plainText':
           formData.append('type', 'plain_text');
+          if (plainText) {
+            metadataObj = { text_content: plainText };
+          }
           break;
         case 'thirdParty':
           formData.append('type', 'thirdparty');
@@ -220,7 +219,7 @@ const KnowledgeUpload = () => {
           break;
       }
       
-      formData.append('metadata', metadata);
+      formData.append('metadata', JSON.stringify(metadataObj));
       
       if (sourceType === 'document' || sourceType === 'csv') {
         files.forEach(file => {
