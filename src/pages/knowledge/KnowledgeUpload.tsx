@@ -187,9 +187,7 @@ const KnowledgeUpload = () => {
     }
   };
 
-  const removeFile = (index: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -481,7 +479,7 @@ const KnowledgeUpload = () => {
                       <ModernButton 
                         variant="outline" 
                         size="sm"
-                        onClick={(e) => removeFile(index, e)} 
+                        onClick={() => removeFile(index)} 
                         className="h-10 w-10 p-0"
                       >
                         <X className="h-5 w-5" />
@@ -708,17 +706,16 @@ const KnowledgeUpload = () => {
                     variant="outline" 
                     onClick={() => navigate('/knowledge')}
                     disabled={isUploading}
-                    type="button"
                   >
                     Cancel
                   </ModernButton>
-                  <ModernButton 
+                  <Button 
                     type="submit"
                     disabled={isUploading}
-                    className="px-8"
+                    className="px-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 rounded-xl"
                   >
                     {isUploading ? 'Processing...' : sourceType === 'thirdParty' && !selectedFiles.length ? 'Connect & Import' : 'Add to Knowledge Base'}
-                  </ModernButton>
+                  </Button>
                 </div>
               </form>
             </CardContent>
