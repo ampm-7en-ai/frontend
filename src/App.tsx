@@ -1,93 +1,242 @@
-
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { MainLayout } from './components/layout/MainLayout';
+import { TestPageLayout } from './components/layout/TestPageLayout';
+import Login from './pages/Login';
+import Verify from './pages/Verify';
+import ResetPassword from './pages/ResetPassword';
+import InviteRegistration from './pages/InviteRegistration';
+import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
+import AdminDashboard from './pages/dashboard/AdminDashboard';
+import NotFound from './pages/NotFound';
+import AgentList from './pages/agents/AgentList';
+import AgentTest from './pages/agents/AgentTest';
+import AgentEdit from './pages/agents/AgentEdit';
+import BusinessSettings from './pages/settings/business/BusinessSettings';
+import BillingSettings from './pages/settings/platform/BillingSettings';
+import GeneralSettings from './pages/settings/platform/GeneralSettings';
+import BusinessList from './pages/businesses/BusinessList';
+import BusinessDetail from './pages/businesses/BusinessDetail';
+import SystemHealth from './pages/system/SystemHealth';
+import PlatformAnalytics from './pages/analytics/PlatformAnalytics';
+import ConversationList from './pages/conversations/ConversationList';
+import ConversationDetail from './pages/conversations/ConversationDetail';
+import KnowledgeBase from './pages/knowledge/KnowledgeBase';
+import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
+import Documentation from './pages/help/Documentation';
+import SupportTicket from './pages/help/SupportTicket';
+import { ProtectedRoute } from './utils/routeUtils';
+import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/context/AuthContext';
-import { PermissionProvider } from '@/context/PermissionContext';
-import { ThemeProvider } from '@/context/ThemeContext';
-import { TrainingStatusProvider } from '@/context/TrainingStatusContext';
-import { NotificationProvider } from '@/context/NotificationContext';
-import { NotificationToastProvider } from '@/context/NotificationToastContext';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { TestPageLayout } from '@/components/layout/TestPageLayout';
-import Login from '@/pages/Login';
-import Verify from '@/pages/Verify';
-import ResetPassword from '@/pages/ResetPassword';
-import InviteRegistration from '@/pages/InviteRegistration';
-import Index from '@/pages/Index';
-import NotFound from '@/pages/NotFound';
-import Agents from '@/pages/agents/Agents';
-import NewAgent from '@/pages/agents/NewAgent';
-import EditAgent from '@/pages/agents/EditAgent';
-import AgentDetails from '@/pages/agents/AgentDetails';
-import Knowledge from '@/pages/knowledge/Knowledge';
-import KnowledgeUpload from '@/pages/knowledge/KnowledgeUpload';
-import KnowledgeDetails from '@/pages/knowledge/KnowledgeDetails';
-import Settings from '@/pages/Settings';
-import Billing from '@/pages/Billing';
-import Training from '@/pages/Training';
-import Playground from '@/pages/Playground';
-import AgentPlayground from '@/pages/agents/AgentPlayground';
-import AgentTraining from '@/pages/agents/AgentTraining';
-import AgentSettings from '@/pages/agents/AgentSettings';
-import AgentBilling from '@/pages/agents/AgentBilling';
-import Users from '@/pages/users/Users';
-import NewUser from '@/pages/users/NewUser';
-import EditUser from '@/pages/users/EditUser';
-import UserDetails from '@/pages/users/UserDetails';
-import Logs from '@/pages/Logs';
+import { ThemeProvider } from './context/ThemeContext';
+import { TrainingStatusProvider } from './context/TrainingStatusContext';
+import { NotificationProvider } from './context/NotificationContext';
+import SecuritySettings from './pages/settings/platform/SecuritySettings';
+import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
+import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
+import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
+import SubscriptionPlanEditor from './pages/settings/platform/SubscriptionPlanEditor';
+import IntegrationsPage from './pages/integrations/IntegrationsPage';
+import ChatPreview from './pages/preview/ChatPreview';
+import SearchAssistant from './pages/chat/SearchAssistant';
+import PaymentHistory from './pages/settings/business/PaymentHistory';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+const ProtectedRoutes = () => {
+  const { user, needsVerification, isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+  
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+  
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+  
+  if (needsVerification || user.isVerified === false) {
+    if (location.pathname === '/verify') {
+      return (
+        <Routes>
+          <Route path="/verify" element={<Verify />} />
+        </Routes>
+      );
+    }
+    return <Navigate to="/verify" replace />;
+  }
+  
+  return (
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={
+          user.role === 'SUPERADMIN' ? <SuperAdminDashboard /> : <AdminDashboard />
+        } />
+        <Route 
+          path="/dashboard/superadmin" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/dashboard">
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard/admin" 
+          element={
+            <ProtectedRoute allowedRoles={['USER']} userRole={user?.role} fallbackPath="/dashboard">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="/agents" element={<AgentList />} />
+        <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
+        
+        <Route 
+          path="/businesses" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/dashboard">
+              <BusinessList />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/businesses/:businessId" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/dashboard">
+              <BusinessDetail />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route path="/conversations" element={<ConversationList />} />
+        <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
+        
+        <Route path="/knowledge" element={<KnowledgeBase />} />
+        <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
+        
+        <Route path="/help/documentation" element={<Documentation />} />
+        <Route path="/help/support" element={<SupportTicket />} />
+        
+        <Route path="/settings" element={<BusinessSettings />} />
+        <Route path="/settings/business" element={<BusinessSettings />} />
+        <Route path="/settings/business/payment-history" element={<PaymentHistory />} />
+        
+        {/* New route for integrations */}
+        <Route path="/integrations" element={<IntegrationsPage />} />
+        
+        <Route 
+          path="/settings/platform/billing" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <BillingSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/subscription-plan" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <SubscriptionPlanEditor />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/subscription-plan/:planId" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <SubscriptionPlanEditor />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/general" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <GeneralSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/security" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <SecuritySettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/llm-providers" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <LLMProvidersSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/compliance" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <ComplianceSettings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/customization" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <CustomizationSettings />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route path="*" element={<NotFound />} />
+      </Route>
+
+      <Route element={<TestPageLayout />}>
+        <Route path="/agents/:agentId/test" element={<AgentTest />} />
+      </Route>
+    </Routes>
+  );
+};
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <PermissionProvider>
-            <TrainingStatusProvider>
-              <NotificationProvider>
-                <NotificationToastProvider>
-                  <Router>
-                    <Routes>
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/verify" element={<Verify />} />
-                      <Route path="/reset-password" element={<ResetPassword />} />
-                      <Route path="/invite/:token" element={<InviteRegistration />} />
-                      <Route path="/" element={<MainLayout><Index /></MainLayout>} />
-                      <Route path="/agents" element={<MainLayout><Agents /></MainLayout>} />
-                      <Route path="/agents/new" element={<MainLayout><NewAgent /></MainLayout>} />
-                      <Route path="/agents/:agentId" element={<MainLayout><AgentDetails /></MainLayout>} />
-                      <Route path="/agents/:agentId/edit" element={<MainLayout><EditAgent /></MainLayout>} />
-                      <Route path="/agents/:agentId/playground" element={<MainLayout><AgentPlayground /></MainLayout>} />
-                      <Route path="/agents/:agentId/training" element={<MainLayout><AgentTraining /></MainLayout>} />
-                      <Route path="/agents/:agentId/settings" element={<MainLayout><AgentSettings /></MainLayout>} />
-                      <Route path="/agents/:agentId/billing" element={<MainLayout><AgentBilling /></MainLayout>} />
-                      <Route path="/knowledge" element={<MainLayout><Knowledge /></MainLayout>} />
-                      <Route path="/knowledge/upload" element={<MainLayout><KnowledgeUpload /></MainLayout>} />
-                      <Route path="/knowledge/:knowledgeId" element={<MainLayout><KnowledgeDetails /></MainLayout>} />
-                      <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
-                      <Route path="/billing" element={<MainLayout><Billing /></MainLayout>} />
-                      <Route path="/training" element={<MainLayout><Training /></MainLayout>} />
-                      <Route path="/playground" element={<MainLayout><Playground /></MainLayout>} />
-                      <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
-                      <Route path="/users/new" element={<MainLayout><NewUser /></MainLayout>} />
-                      <Route path="/users/:userId" element={<MainLayout><UserDetails /></MainLayout>} />
-                      <Route path="/users/:userId/edit" element={<MainLayout><EditUser /></MainLayout>} />
-                      <Route path="/logs" element={<MainLayout><Logs /></MainLayout>} />
-                      <Route path="/test-page" element={<TestPageLayout />} />
-                      <Route path="/404" element={<MainLayout><NotFound /></MainLayout>} />
-                      <Route path="*" element={<Navigate to="/404" replace />} />
-                    </Routes>
-                    <Toaster />
-                  </Router>
-                </NotificationToastProvider>
-              </NotificationProvider>
-            </TrainingStatusProvider>
-          </PermissionProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AuthProvider>
+            <NotificationProvider>
+              <TrainingStatusProvider>
+                <Routes>
+                  {/* Public routes that don't require authentication */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/verify" element={<Verify />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/invitation" element={<InviteRegistration />} />
+                  <Route path="/chat/preview/:agentId" element={<ChatPreview />} />
+                  <Route path="/chat/assistant/:agentId" element={<SearchAssistant />} />
+                  
+                  {/* Protected routes that require authentication */}
+                  <Route path="/*" element={<ProtectedRoutes />} />
+                </Routes>
+                <Toaster />
+              </TrainingStatusProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </Router>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

@@ -10,13 +10,13 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { createKnowledgeBase } from '@/utils/api-config';
 import { storeNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
-import { useNotificationToast } from '@/context/NotificationToastContext';
 import {
   Select,
   SelectContent,
@@ -55,12 +55,12 @@ interface ValidationErrors {
 const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { showToast, hideToast } = useNotificationToast();
   const navigate = useNavigate();
   const [files, setFiles] = useState<File[]>([]);
   const [documentName, setDocumentName] = useState('');
   const [sourceType, setSourceType] = useState<SourceType>('url');
   const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [url, setUrl] = useState('');
   const [importAllPages, setImportAllPages] = useState(true);
   const [plainText, setPlainText] = useState('');
@@ -68,7 +68,6 @@ const KnowledgeUpload = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [uploadToastId, setUploadToastId] = useState<string | null>(null);
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -223,9 +222,15 @@ const KnowledgeUpload = () => {
       // Append unique new files to existing files
       setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
       
+      // Clear file validation error if files are selected
+      if (uniqueNewFiles.length > 0) {
+        setValidationErrors(prev => ({ ...prev, files: undefined }));
+      }
+      
       if (uniqueNewFiles.length < newFiles.length) {
-        showToast({
-          message: "Some files were skipped because they were already selected.",
+        toast({
+          title: "Duplicate files detected",
+          description: "Some files were skipped because they were already selected.",
           variant: "default"
         });
       }
@@ -244,27 +249,18 @@ const KnowledgeUpload = () => {
     
     // Validate form before proceeding
     if (!validateForm()) {
-      // Show first validation error as toast
-      const firstError = Object.values(validationErrors)[0];
-      if (firstError) {
-        showToast({
-          message: firstError,
-          variant: "error"
-        });
-      }
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors below before submitting.",
+        variant: "destructive"
+      });
       return;
     }
     
     console.log('Validation passed - starting upload process');
     
     setIsUploading(true);
-    
-    // Show loading toast
-    const toastId = showToast({
-      message: "Processing your content...",
-      variant: "loading"
-    });
-    setUploadToastId(toastId);
+    setProgress(0);
     
     try {
       const formData = new FormData();
@@ -312,20 +308,29 @@ const KnowledgeUpload = () => {
         });
       }
       
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+      
       const response = await createKnowledgeBase(formData);
+      
+      clearInterval(progressInterval);
+      setProgress(100);
       
       if (response) {
         storeNewKnowledgeBase(response.data);
         console.log('Knowledge base created and stored:', response.data.id);
       }
       
-      // Hide loading toast and show success
-      if (uploadToastId) {
-        hideToast(uploadToastId);
-      }
-      
-      showToast({
-        message: "Your knowledge source has been added successfully.",
+      toast({
+        title: "Success",
+        description: "Your knowledge source has been added successfully.",
         variant: "success"
       });
       
@@ -333,19 +338,15 @@ const KnowledgeUpload = () => {
     } catch (error) {
       setIsUploading(false);
       
-      // Hide loading toast
-      if (uploadToastId) {
-        hideToast(uploadToastId);
-      }
-      
       let errorMessage = "Failed to add knowledge source.";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
       
-      showToast({
-        message: errorMessage,
-        variant: "error"
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
       });
     }
   };
@@ -357,8 +358,9 @@ const KnowledgeUpload = () => {
     setTimeout(() => {
       setIsConnecting(false);
       
-      showToast({
-        message: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
+      toast({
+        title: "Connected Successfully",
+        description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
         variant: "success"
       });
       
@@ -393,6 +395,9 @@ const KnowledgeUpload = () => {
           'Documentation/CONTRIBUTING.md'
         ]);
       }
+      
+      // Clear validation error when files are imported
+      setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
     }, 1500);
   };
 
@@ -416,9 +421,17 @@ const KnowledgeUpload = () => {
                 type="url"
                 placeholder={sourceConfigs.url.placeholder}
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="h-11"
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (validationErrors.url) {
+                    setValidationErrors(prev => ({ ...prev, url: undefined }));
+                  }
+                }}
+                className={`h-11 ${validationErrors.url ? 'border-red-500' : ''}`}
               />
+              {validationErrors.url && (
+                <p className="text-sm text-red-600">{validationErrors.url}</p>
+              )}
               <p className="text-xs text-slate-500">
                 Enter the URL of the webpage you want to crawl. For multiple pages, we'll automatically explore linked pages.
               </p>
@@ -470,6 +483,10 @@ const KnowledgeUpload = () => {
               </div>
             </div>
             
+            {validationErrors.files && (
+              <p className="text-sm text-red-600">{validationErrors.files}</p>
+            )}
+            
             {files.length > 0 && (
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Selected Files ({files.length})</Label>
@@ -511,9 +528,17 @@ const KnowledgeUpload = () => {
                 id="plain-text" 
                 placeholder={sourceConfigs.plainText.placeholder}
                 value={plainText}
-                onChange={(e) => setPlainText(e.target.value)}
-                className="min-h-[200px] resize-none"
+                onChange={(e) => {
+                  setPlainText(e.target.value);
+                  if (validationErrors.plainText) {
+                    setValidationErrors(prev => ({ ...prev, plainText: undefined }));
+                  }
+                }}
+                className={`min-h-[200px] resize-none ${validationErrors.plainText ? 'border-red-500' : ''}`}
               />
+              {validationErrors.plainText && (
+                <p className="text-sm text-red-600">{validationErrors.plainText}</p>
+              )}
               <p className="text-xs text-slate-500">
                 Paste or type the text you want to add to your knowledge base
               </p>
@@ -550,6 +575,10 @@ const KnowledgeUpload = () => {
                       </ModernButton>
                     ))}
                   </div>
+                  
+                  {validationErrors.thirdParty && (
+                    <p className="text-sm text-red-600">{validationErrors.thirdParty}</p>
+                  )}
                 </div>
               </>
             ) : (
@@ -597,6 +626,10 @@ const KnowledgeUpload = () => {
                         Refresh
                       </ModernButton>
                     </div>
+                    
+                    {validationErrors.thirdParty && (
+                      <p className="text-sm text-red-600">{validationErrors.thirdParty}</p>
+                    )}
                     
                     {selectedFiles.length > 0 ? (
                       <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
@@ -673,9 +706,17 @@ const KnowledgeUpload = () => {
                     id="document-name" 
                     placeholder="Enter a descriptive name for this knowledge source"
                     value={documentName}
-                    onChange={(e) => setDocumentName(e.target.value)}
-                    className="h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50"
+                    onChange={(e) => {
+                      setDocumentName(e.target.value);
+                      if (validationErrors.documentName) {
+                        setValidationErrors(prev => ({ ...prev, documentName: undefined }));
+                      }
+                    }}
+                    className={`h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 ${validationErrors.documentName ? 'border-red-500' : ''}`}
                   />
+                  {validationErrors.documentName && (
+                    <p className="text-sm text-red-600">{validationErrors.documentName}</p>
+                  )}
                 </div>
                 
                 {/* Source Type - Dashboard Style Navigation */}
@@ -692,6 +733,17 @@ const KnowledgeUpload = () => {
                 <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
                   {renderSourceTypeContent()}
                 </div>
+                
+                {/* Progress */}
+                {isUploading && (
+                  <div className="space-y-3 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-2xl border border-blue-200/50 dark:border-blue-800/50">
+                    <div className="flex justify-between text-sm font-medium text-blue-900 dark:text-blue-100">
+                      <span>Processing your content...</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="w-full h-3" />
+                  </div>
+                )}
                 
                 {/* Actions */}
                 <div className="flex justify-center gap-4 pt-6">
