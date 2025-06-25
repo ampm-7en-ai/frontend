@@ -248,17 +248,17 @@ const KnowledgeBase = () => {
   const renderSourceIcon = (doc) => {
     switch (doc.sourceType) {
       case 'docs':
-        return <FileText className="h-5 w-5 text-blue-600" />;
+        return <FileText className="h-4 w-4 text-white" />;
       case 'website':
-        return <Globe className="h-5 w-5 text-green-600" />;
+        return <Globe className="h-4 w-4 text-white" />;
       case 'csv':
-        return <FileSpreadsheet className="h-5 w-5 text-emerald-600" />;
+        return <FileSpreadsheet className="h-4 w-4 text-white" />;
       case 'plain_text':
-        return <File className="h-5 w-5 text-purple-600" />;
+        return <File className="h-4 w-4 text-white" />;
       case 'thirdparty':
         if (doc.provider === 'googleDrive') {
           return (
-            <svg className="h-5 w-5" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-4 w-4" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
               <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
               <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
               <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
@@ -269,38 +269,38 @@ const KnowledgeBase = () => {
           );
         } else if (doc.provider === 'slack') {
           return (
-            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A">
+            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A">
               <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.521-2.52h2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
             </svg>
           );
         }
-        return <FileText className="h-5 w-5 text-gray-600" />;
+        return <FileText className="h-4 w-4 text-white" />;
       default:
-        return <FileText className="h-5 w-5 text-gray-600" />;
+        return <FileText className="h-4 w-4 text-white" />;
     }
   };
 
   const getIconBackground = (doc) => {
     switch (doc.sourceType) {
       case 'docs':
-        return 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200';
+        return 'bg-gradient-to-br from-blue-500 to-blue-600';
       case 'website':
-        return 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200';
+        return 'bg-gradient-to-br from-green-500 to-green-600';
       case 'csv':
-        return 'bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200';
+        return 'bg-gradient-to-br from-emerald-500 to-emerald-600';
       case 'plain_text':
-        return 'bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200';
+        return 'bg-gradient-to-br from-purple-500 to-purple-600';
       case 'thirdparty':
         switch (doc.provider) {
           case 'googleDrive':
-            return 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200';
+            return 'bg-gradient-to-br from-blue-500 to-blue-600';
           case 'slack':
-            return 'bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200';
+            return 'bg-gradient-to-br from-pink-500 to-pink-600';
           default:
-            return 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200';
+            return 'bg-gradient-to-br from-gray-500 to-gray-600';
         }
       default:
-        return 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200';
+        return 'bg-gradient-to-br from-gray-500 to-gray-600';
     }
   };
 
@@ -545,7 +545,7 @@ const KnowledgeBase = () => {
 
   const renderMainView = () => {
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
@@ -561,81 +561,81 @@ const KnowledgeBase = () => {
         </div>
         
         {/* Stats Section - Dashboard Style */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6 relative pb-2">
-              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 relative pb-2">
+              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600">
                 <Layers className="h-4 w-4 text-white" />
               </div>
               <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Total Sources
                 </p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.totalSources}
                 </p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6 relative pb-2">
-              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                <Book className="h-4 w-4 text-white" />
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 relative pb-2">
+              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                <FileText className="h-4 w-4 text-white" />
               </div>
               <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Document Files
                 </p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.documentFiles}
                 </p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6 relative pb-2">
-              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 relative pb-2">
+              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
                 <Globe className="h-4 w-4 text-white" />
               </div>
               <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Websites
                 </p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.websiteSources}
                 </p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6 relative pb-2">
-              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 relative pb-2">
+              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
                 <FileSpreadsheet className="h-4 w-4 text-white" />
               </div>
               <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Spreadsheet Files
                 </p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.spreadsheetFiles}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6 relative pb-2">
-              <div className="absolute top-4 right-4 p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                <FileText className="h-4 w-4 text-white" />
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 relative pb-2">
+              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                <File className="h-4 w-4 text-white" />
               </div>
               <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Plain Text
                 </p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.plainTextSources}
                 </p>
               </div>
@@ -697,32 +697,32 @@ const KnowledgeBase = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3">
             {filteredDocuments.map((doc, index) => (
               <Card 
                 key={doc.id} 
-                className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden"
+                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden"
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     {/* Left side - Source info */}
                     <div 
-                      className={`flex items-center gap-4 flex-1 ${canShowNestedView(doc.sourceType) ? 'cursor-pointer' : ''}`}
+                      className={`flex items-center gap-3 flex-1 ${canShowNestedView(doc.sourceType) ? 'cursor-pointer' : ''}`}
                       onClick={() => canShowNestedView(doc.sourceType) && handleKnowledgeBaseClick(doc)}
                     >
-                      <div className={`p-4 rounded-2xl ${getIconBackground(doc)} shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                      <div className={`p-2 rounded-xl ${getIconBackground(doc)} shadow-sm group-hover:shadow-md transition-all duration-300`}>
                         {renderSourceIcon(doc)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className={`font-bold text-slate-900 text-lg truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className={`font-semibold text-slate-900 text-base truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
                             {doc.title}
                           </h3>
-                          <Badge variant="outline" className="font-semibold text-xs px-3 py-1 rounded-full border-2 shrink-0">
+                          <Badge variant="outline" className="font-medium text-xs px-2 py-0.5 rounded-full border shrink-0">
                             {doc.sourceType.toUpperCase()}
                           </Badge>
                           {canShowNestedView(doc.sourceType) && (
-                            <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
+                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
                           )}
                         </div>
                         {getMetadataDisplay(doc)}
@@ -730,16 +730,16 @@ const KnowledgeBase = () => {
                     </div>
 
                     {/* Middle - Agents */}
-                    <div className="flex items-center px-6 min-w-0">
+                    <div className="flex items-center px-4 min-w-0">
                       {doc.agents && doc.agents.length > 0 ? (
                         <div className="flex items-center">
-                          <div className="flex -space-x-2">
+                          <div className="flex -space-x-1">
                             {doc.agents.slice(0, 3).map((agentName, idx) => (
                               <TooltipProvider key={`${doc.id}-agent-${idx}`}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Avatar className="h-9 w-9 border-3 border-white shadow-md">
-                                      <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs font-semibold`}>
+                                    <Avatar className="h-7 w-7 border-2 border-white shadow-sm">
+                                      <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs font-medium`}>
                                         {getAgentInitials(agentName)}
                                       </AvatarFallback>
                                     </Avatar>
@@ -752,7 +752,7 @@ const KnowledgeBase = () => {
                             ))}
                           </div>
                           {doc.agents.length > 3 && (
-                            <Badge variant="secondary" className="ml-3 text-xs font-semibold px-2 py-1 rounded-full">
+                            <Badge variant="secondary" className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full">
                               +{doc.agents.length - 3}
                             </Badge>
                           )}
@@ -763,19 +763,19 @@ const KnowledgeBase = () => {
                     </div>
 
                     {/* Right side - Upload date and actions */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <div className="text-right">
                         <span className="text-slate-600 font-medium text-sm">{doc.uploadedAt}</span>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="hover:bg-slate-100 rounded-lg">
-                            <MoreHorizontal className="h-5 w-5 text-slate-500" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 rounded-lg">
+                            <MoreHorizontal className="h-4 w-4 text-slate-500" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 shadow-lg border border-slate-200 rounded-xl">
+                        <DropdownMenuContent align="end" className="w-44 shadow-lg border border-slate-200 rounded-xl">
                           <DropdownMenuItem 
-                            className="flex items-center gap-3 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
+                            className="flex items-center gap-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
                             onClick={() => handleDeleteKnowledgeBase(doc.id)}
                           >
                             <Trash className="h-4 w-4" />
@@ -803,9 +803,9 @@ const KnowledgeBase = () => {
     const formattedSourceType = sourceType.charAt(0).toUpperCase() + sourceType.slice(1);
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Breadcrumb Navigation */}
-        <div className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-xl p-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -830,18 +830,18 @@ const KnowledgeBase = () => {
         </div>
 
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-2xl p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className={`p-4 rounded-xl ${getIconBackground({sourceType: sourceType})} shadow-lg`}>
+        <div className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-xl p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className={`p-3 rounded-xl ${getIconBackground({sourceType: sourceType})} shadow-lg`}>
                 {renderSourceIcon({sourceType: sourceType})}
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">
                   {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
                 </h2>
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="font-semibold text-sm px-3 py-1 rounded-full border-2">
+                  <Badge variant="outline" className="font-medium text-sm px-3 py-1 rounded-full border">
                     {formattedSourceType}
                   </Badge>
                   <span className="text-slate-600 font-medium">
@@ -853,14 +853,14 @@ const KnowledgeBase = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold relative overflow-hidden transition-all duration-200">
+              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-4 py-2 rounded-xl font-medium relative overflow-hidden transition-all duration-200">
                 <input 
                   type="file" 
                   className="cursor-pointer absolute inset-0 opacity-0" 
                   accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
                   onChange={handleFileUpload}
                 />
-                <Upload className="h-5 w-5 mr-2" />
+                <Upload className="h-4 w-4 mr-2" />
                 Upload File
               </Button>
             </div>
@@ -869,48 +869,48 @@ const KnowledgeBase = () => {
 
         {/* Files Cards Grid */}
         {!knowledgeSources || knowledgeSources.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-6">
-              <FileText className="h-12 w-12 text-slate-400" />
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-4">
+              <FileText className="h-10 w-10 text-slate-400" />
             </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No files found</h3>
-            <p className="text-slate-500 mb-6 text-center">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">No files found</h3>
+            <p className="text-slate-500 mb-4 text-center">
               Add some files to this knowledge source to get started
             </p>
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold relative overflow-hidden">
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-4 py-2 rounded-xl font-medium relative overflow-hidden">
               <input 
                 type="file" 
                 className="cursor-pointer absolute inset-0 opacity-0" 
                 accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
                 onChange={handleFileUpload}
               />
-              <Upload className="h-5 w-5 mr-2" />
+              <Upload className="h-4 w-4 mr-2" />
               Upload File
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3">
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden"
+                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden"
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     {/* Left side - File info */}
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className={`p-4 rounded-2xl ${getIconBackground({sourceType: sourceType})} shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`p-2 rounded-xl ${getIconBackground({sourceType: sourceType})} shadow-sm group-hover:shadow-md transition-all duration-300`}>
                         {renderSourceIcon({sourceType: sourceType})}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-slate-900 text-lg truncate mb-1">
+                        <h3 className="font-semibold text-slate-900 text-base truncate mb-1">
                           {source.title || source.name || "Untitled"}
                         </h3>
-                        <div className="flex items-center gap-4 text-sm text-slate-500">
+                        <div className="flex items-center gap-3 text-sm text-slate-500">
                           <span className="font-medium">
                             {formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size)}
                           </span>
-                          <Badge variant="outline" className="font-mono uppercase text-xs font-semibold px-2 py-1 rounded-full border-2">
+                          <Badge variant="outline" className="font-mono uppercase text-xs font-medium px-2 py-0.5 rounded-full border">
                             {source.metadata?.format || source.type || "Unknown"}
                           </Badge>
                           <span className="font-medium">
@@ -921,7 +921,7 @@ const KnowledgeBase = () => {
                     </div>
 
                     {/* Right side - Upload date and actions */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <div className="text-right">
                         <span className="text-slate-600 font-medium text-sm">
                           {formatDate(source.metadata?.upload_date)}
@@ -931,7 +931,7 @@ const KnowledgeBase = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-9 px-3 rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors duration-150"
+                          className="h-8 px-3 rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors duration-150"
                           onClick={() => handleDownloadFile(source)}
                         >
                           <Download className="h-4 w-4" />
@@ -939,7 +939,7 @@ const KnowledgeBase = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-9 px-3 rounded-lg border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors duration-150"
+                          className="h-8 px-3 rounded-lg border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors duration-150"
                           onClick={() => handleDeleteFile(source.id)}
                         >
                           <Trash className="h-4 w-4" />
@@ -958,7 +958,7 @@ const KnowledgeBase = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         {viewMode === 'main' ? renderMainView() : renderDetailView()}
       </div>
     </div>
