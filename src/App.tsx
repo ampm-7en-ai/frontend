@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -7,8 +8,8 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { TrainingStatusProvider } from '@/context/TrainingStatusContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { NotificationToastProvider } from '@/context/NotificationToastContext';
-import MainLayout from '@/components/layout/MainLayout';
-import TestPageLayout from '@/components/layout/TestPageLayout';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { TestPageLayout } from '@/components/layout/TestPageLayout';
 import Login from '@/pages/Login';
 import Verify from '@/pages/Verify';
 import ResetPassword from '@/pages/ResetPassword';
