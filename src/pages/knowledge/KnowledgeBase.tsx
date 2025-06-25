@@ -270,7 +270,7 @@ const KnowledgeBase = () => {
         } else if (doc.provider === 'slack') {
           return (
             <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A">
-              <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.521-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+              <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.521-2.52h2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
             </svg>
           );
         }
@@ -672,130 +672,124 @@ const KnowledgeBase = () => {
           </Select>
         </div>
         
-        {/* Knowledge Sources Table */}
-        <Card className="bg-white border-slate-200 shadow-lg rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="flex justify-center items-center py-16">
-                <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-200 border-t-blue-600"></div>
-                <span className="ml-4 text-slate-600 font-medium">Loading knowledge bases...</span>
-              </div>
-            ) : filteredDocuments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-6">
-                  <FileText className="h-12 w-12 text-slate-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">No knowledge sources found</h3>
-                <p className="text-slate-500 mb-6 text-center max-w-md">
-                  {searchQuery || sourceTypeFilter !== 'all' ? 
-                    "Try adjusting your search or filter criteria" : 
-                    "Get started by adding your first knowledge source"}
-                </p>
-                <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold">
-                  <Link to="/knowledge/upload">
-                    <Upload className="h-5 w-5 mr-2" />
-                    Add Source
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Knowledge Source</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Type</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Agents</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Upload Date</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6 text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredDocuments.map((doc, index) => (
-                      <TableRow key={doc.id} className="hover:bg-slate-50 transition-colors duration-150 border-b border-slate-100">
-                        <TableCell className="py-4 px-6">
-                          <div 
-                            className={`flex items-center gap-4 ${canShowNestedView(doc.sourceType) ? 'cursor-pointer hover:text-blue-600 transition-colors duration-150' : ''}`}
-                            onClick={() => canShowNestedView(doc.sourceType) && handleKnowledgeBaseClick(doc)}
-                          >
-                            <div className={`p-3 rounded-xl ${getIconBackground(doc)} shadow-sm`}>
-                              {renderSourceIcon(doc)}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className={`font-semibold text-slate-900 ${canShowNestedView(doc.sourceType) ? 'hover:underline' : ''}`}>
-                                {doc.title}
-                              </span>
-                              {getMetadataDisplay(doc)}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-4 px-6">
-                          <Badge variant="outline" className="font-semibold text-xs px-3 py-1 rounded-full border-2">
+        {/* Knowledge Sources Cards Grid */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-200 border-t-blue-600"></div>
+            <span className="ml-4 text-slate-600 font-medium">Loading knowledge bases...</span>
+          </div>
+        ) : filteredDocuments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-6">
+              <FileText className="h-12 w-12 text-slate-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">No knowledge sources found</h3>
+            <p className="text-slate-500 mb-6 text-center max-w-md">
+              {searchQuery || sourceTypeFilter !== 'all' ? 
+                "Try adjusting your search or filter criteria" : 
+                "Get started by adding your first knowledge source"}
+            </p>
+            <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold">
+              <Link to="/knowledge/upload">
+                <Upload className="h-5 w-5 mr-2" />
+                Add Source
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {filteredDocuments.map((doc, index) => (
+              <Card 
+                key={doc.id} 
+                className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    {/* Left side - Source info */}
+                    <div 
+                      className={`flex items-center gap-4 flex-1 ${canShowNestedView(doc.sourceType) ? 'cursor-pointer' : ''}`}
+                      onClick={() => canShowNestedView(doc.sourceType) && handleKnowledgeBaseClick(doc)}
+                    >
+                      <div className={`p-4 rounded-2xl ${getIconBackground(doc)} shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                        {renderSourceIcon(doc)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className={`font-bold text-slate-900 text-lg truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
+                            {doc.title}
+                          </h3>
+                          <Badge variant="outline" className="font-semibold text-xs px-3 py-1 rounded-full border-2 shrink-0">
                             {doc.sourceType.toUpperCase()}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="py-4 px-6">
-                          <div className="flex items-center">
-                            {doc.agents && doc.agents.length > 0 ? (
-                              <>
-                                <div className="flex -space-x-2">
-                                  {doc.agents.slice(0, 3).map((agentName, idx) => (
-                                    <TooltipProvider key={`${doc.id}-agent-${idx}`}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Avatar className="h-9 w-9 border-3 border-white shadow-md">
-                                            <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs font-semibold`}>
-                                              {getAgentInitials(agentName)}
-                                            </AvatarFallback>
-                                          </Avatar>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p className="font-medium">{agentName}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  ))}
-                                </div>
-                                {doc.agents.length > 3 && (
-                                  <Badge variant="secondary" className="ml-3 text-xs font-semibold px-2 py-1 rounded-full">
-                                    +{doc.agents.length - 3}
-                                  </Badge>
-                                )}
-                              </>
-                            ) : (
-                              <span className="text-sm text-slate-400 font-medium">No agents</span>
-                            )}
+                          {canShowNestedView(doc.sourceType) && (
+                            <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
+                          )}
+                        </div>
+                        {getMetadataDisplay(doc)}
+                      </div>
+                    </div>
+
+                    {/* Middle - Agents */}
+                    <div className="flex items-center px-6 min-w-0">
+                      {doc.agents && doc.agents.length > 0 ? (
+                        <div className="flex items-center">
+                          <div className="flex -space-x-2">
+                            {doc.agents.slice(0, 3).map((agentName, idx) => (
+                              <TooltipProvider key={`${doc.id}-agent-${idx}`}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Avatar className="h-9 w-9 border-3 border-white shadow-md">
+                                      <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs font-semibold`}>
+                                        {getAgentInitials(agentName)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="font-medium">{agentName}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ))}
                           </div>
-                        </TableCell>
-                        <TableCell className="py-4 px-6">
-                          <span className="text-slate-600 font-medium">{doc.uploadedAt}</span>
-                        </TableCell>
-                        <TableCell className="py-4 px-6 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="hover:bg-slate-100 rounded-lg">
-                                <MoreHorizontal className="h-5 w-5 text-slate-500" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 shadow-lg border border-slate-200 rounded-xl">
-                              <DropdownMenuItem 
-                                className="flex items-center gap-3 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
-                                onClick={() => handleDeleteKnowledgeBase(doc.id)}
-                              >
-                                <Trash className="h-4 w-4" />
-                                Delete Source
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                          {doc.agents.length > 3 && (
+                            <Badge variant="secondary" className="ml-3 text-xs font-semibold px-2 py-1 rounded-full">
+                              +{doc.agents.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-slate-400 font-medium">No agents</span>
+                      )}
+                    </div>
+
+                    {/* Right side - Upload date and actions */}
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <span className="text-slate-600 font-medium text-sm">{doc.uploadedAt}</span>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="hover:bg-slate-100 rounded-lg">
+                            <MoreHorizontal className="h-5 w-5 text-slate-500" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 shadow-lg border border-slate-200 rounded-xl">
+                          <DropdownMenuItem 
+                            className="flex items-center gap-3 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
+                            onClick={() => handleDeleteKnowledgeBase(doc.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                            Delete Source
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -873,103 +867,91 @@ const KnowledgeBase = () => {
           </div>
         </div>
 
-        {/* Files Table */}
-        <Card className="bg-white border-slate-200 shadow-lg rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            {!knowledgeSources || knowledgeSources.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-6">
-                  <FileText className="h-12 w-12 text-slate-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">No files found</h3>
-                <p className="text-slate-500 mb-6 text-center">
-                  Add some files to this knowledge source to get started
-                </p>
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold relative overflow-hidden">
-                  <input 
-                    type="file" 
-                    className="cursor-pointer absolute inset-0 opacity-0" 
-                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
-                    onChange={handleFileUpload}
-                  />
-                  <Upload className="h-5 w-5 mr-2" />
-                  Upload File
-                </Button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">File Name</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Size</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Format</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Content</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Upload Date</TableHead>
-                      <TableHead className="font-semibold text-slate-700 py-4 px-6 text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {knowledgeSources.map((source) => (
-                      <TableRow key={source.id} className="hover:bg-slate-50 transition-colors duration-150 border-b border-slate-100">
-                        <TableCell className="py-4 px-6">
-                          <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-xl ${getIconBackground({sourceType: sourceType})} shadow-sm`}>
-                              {renderSourceIcon({sourceType: sourceType})}
-                            </div>
-                            <div className="font-semibold text-slate-900">
-                              {source.title || source.name || "Untitled"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-4 px-6">
-                          <span className="text-slate-600 font-medium">
+        {/* Files Cards Grid */}
+        {!knowledgeSources || knowledgeSources.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-6">
+              <FileText className="h-12 w-12 text-slate-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">No files found</h3>
+            <p className="text-slate-500 mb-6 text-center">
+              Add some files to this knowledge source to get started
+            </p>
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold relative overflow-hidden">
+              <input 
+                type="file" 
+                className="cursor-pointer absolute inset-0 opacity-0" 
+                accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
+                onChange={handleFileUpload}
+              />
+              <Upload className="h-5 w-5 mr-2" />
+              Upload File
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {knowledgeSources.map((source) => (
+              <Card 
+                key={source.id} 
+                className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    {/* Left side - File info */}
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className={`p-4 rounded-2xl ${getIconBackground({sourceType: sourceType})} shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                        {renderSourceIcon({sourceType: sourceType})}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-slate-900 text-lg truncate mb-1">
+                          {source.title || source.name || "Untitled"}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm text-slate-500">
+                          <span className="font-medium">
                             {formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size)}
                           </span>
-                        </TableCell>
-                        <TableCell className="py-4 px-6">
-                          <Badge variant="outline" className="font-mono uppercase text-xs font-semibold px-3 py-1 rounded-full border-2">
+                          <Badge variant="outline" className="font-mono uppercase text-xs font-semibold px-2 py-1 rounded-full border-2">
                             {source.metadata?.format || source.type || "Unknown"}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="py-4 px-6">
-                          <span className="text-slate-600 font-medium">
+                          <span className="font-medium">
                             {getContentMeasure(source)}
                           </span>
-                        </TableCell>
-                        <TableCell className="py-4 px-6">
-                          <span className="text-slate-600 font-medium">
-                            {formatDate(source.metadata?.upload_date)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="py-4 px-6 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-9 px-3 rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors duration-150"
-                              onClick={() => handleDownloadFile(source)}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-9 px-3 rounded-lg border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors duration-150"
-                              onClick={() => handleDeleteFile(source.id)}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right side - Upload date and actions */}
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <span className="text-slate-600 font-medium text-sm">
+                          {formatDate(source.metadata?.upload_date)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-9 px-3 rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors duration-150"
+                          onClick={() => handleDownloadFile(source)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-9 px-3 rounded-lg border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors duration-150"
+                          onClick={() => handleDeleteFile(source.id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
