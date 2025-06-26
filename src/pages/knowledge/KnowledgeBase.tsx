@@ -702,7 +702,7 @@ const KnowledgeBase = () => {
             {filteredDocuments.map((doc, index) => (
               <Card 
                 key={doc.id} 
-                className="bg-white rounded-xl overflow-hidden"
+                className="bg-white rounded-xl overflow-hidden border-0 shadow-none"
               >
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
@@ -739,8 +739,8 @@ const KnowledgeBase = () => {
                               <TooltipProvider key={`${doc.id}-agent-${idx}`}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Avatar className="h-6 w-6 border-2 border-white">
-                                      <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs font-medium`}>
+                                    <Avatar className="h-7 w-7 border-2 border-white">
+                                      <AvatarFallback className={`${getAgentColor(agentName)} text-white text-[8px] font-medium`}>
                                         {getAgentInitials(agentName)}
                                       </AvatarFallback>
                                     </Avatar>
@@ -841,7 +841,7 @@ const KnowledgeBase = () => {
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">
                   {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
                 </h2>
-                <div className="flex items-center gap-3">
+                {/* <div className="flex items-center gap-3">
                   <Badge variant="outline" className="font-medium text-sm px-3 py-1 rounded-full">
                     {formattedSourceType}
                   </Badge>
@@ -850,7 +850,7 @@ const KnowledgeBase = () => {
                       `${knowledgeSources.length} ${knowledgeSources.length === 1 ? 'file' : 'files'}` : 
                       "0 files"}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
             <div className="flex gap-3">
@@ -894,7 +894,7 @@ const KnowledgeBase = () => {
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white rounded-xl overflow-hidden"
+                className="bg-white rounded-xl overflow-hidden border-0 shadow-none"
               >
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
