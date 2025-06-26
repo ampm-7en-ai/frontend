@@ -272,7 +272,6 @@ const TeamManagementSection = () => {
       
       fetchTeamMembers();
       
-      setShowInviteForm(false);
       inviteForm.reset();
     } catch (error) {
       toast({
@@ -399,7 +398,7 @@ const TeamManagementSection = () => {
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>No roles available</SelectItem>
+                        <SelectItem value="no-roles" disabled>No roles available</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
