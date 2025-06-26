@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -58,7 +59,7 @@ const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { showToast, hideToast, updateToast } = useFloatingToast();
-  const { theme } = useKnowledgeTheme();
+  const { theme } = useAppTheme();
   const navigate = useNavigate();
   const [files, setFiles] = useState<File[]>([]);
   const [documentName, setDocumentName] = useState('');

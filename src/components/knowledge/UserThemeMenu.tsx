@@ -4,11 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Moon, Sun, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const UserThemeMenu = () => {
   const { user } = useAuth();
-  const { theme, toggleTheme } = useKnowledgeTheme();
+  const { theme, toggleTheme } = useAppTheme();
 
   const getUserInitials = (name: string) => {
     return name
