@@ -106,8 +106,10 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
           </DropdownMenu>
         </div>
 
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage || isAgentEditPage ? 'p-0' : 'p-6'}`}>
-          {children || <Outlet />}
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage || isAgentEditPage ? 'p-0' : ''}`}>
+          <div className={`${isConversationsPage || isAgentEditPage ? '' : 'p-8'}`}>
+            {children || <Outlet />}
+          </div>
         </main>
       </div>
       
