@@ -27,10 +27,15 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
 
 const KnowledgeBase = () => {
+  console.log('KnowledgeBase component rendering...');
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { theme } = useKnowledgeTheme();
+  
+  console.log('Theme:', theme, 'User:', user?.name);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
@@ -39,6 +44,7 @@ const KnowledgeBase = () => {
   const [hasProcessedLocalStorage, setHasProcessedLocalStorage] = useState(false);
 
   const fetchKnowledgeBases = async () => {
+    console.log('Fetching knowledge bases...');
     try {
       const token = getAccessToken();
       if (!token) {
@@ -55,6 +61,7 @@ const KnowledgeBase = () => {
       }
 
       const data = await response.json();
+      console.log('Knowledge bases fetched:', data.data);
       return data.data;
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
@@ -75,6 +82,8 @@ const KnowledgeBase = () => {
     refetchOnWindowFocus: false,
     refetchOnMount: true
   });
+
+  console.log('Query state - isLoading:', isLoading, 'data:', data, 'error:', error);
 
   useEffect(() => {
     if (data && !hasProcessedLocalStorage) {
@@ -124,6 +133,7 @@ const KnowledgeBase = () => {
 
   useEffect(() => {
     if (error) {
+      console.error('Knowledge base query error:', error);
       toast({
         title: "Error loading knowledge bases",
         description: "There was a problem loading your knowledge bases. Please try again later.",
@@ -547,6 +557,8 @@ const KnowledgeBase = () => {
   };
 
   const renderMainView = () => {
+    console.log('Rendering main view, isLoading:', isLoading, 'filteredDocuments:', filteredDocuments.length);
+    
     return (
       <div className="space-y-6">
         {/* Header Section */}
@@ -556,15 +568,11 @@ const KnowledgeBase = () => {
             <p className="text-slate-600 dark:text-slate-400 text-base">Manage your AI knowledge sources and content</p>
           </div>
           <div className="flex items-center gap-3">
-            <ModernButton 
-              asChild 
-              variant="gradient"
-              icon={Plus}
-            >
-              <Link to="/knowledge/upload">
+            <Link to="/knowledge/upload">
+              <ModernButton variant="gradient" icon={Plus}>
                 Add Source
-              </Link>
-            </ModernButton>
+              </ModernButton>
+            </Link>
           </div>
         </div>
         
@@ -697,11 +705,11 @@ const KnowledgeBase = () => {
                 "Try adjusting your search or filter criteria" : 
                 "Get started by adding your first knowledge source"}
             </p>
-            <ModernButton variant="gradient" icon={Upload}>
-              <Link to="/knowledge/upload">
+            <Link to="/knowledge/upload">
+              <ModernButton variant="gradient" icon={Upload}>
                 Add Source
-              </Link>
-            </ModernButton>
+              </ModernButton>
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
@@ -958,6 +966,8 @@ const KnowledgeBase = () => {
       </div>
     );
   };
+
+  console.log('About to render, viewMode:', viewMode);
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>

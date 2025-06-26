@@ -42,18 +42,34 @@ const ModernButton: React.FC<ModernButtonProps> = ({
     lg: "px-6 py-3 text-base rounded-2xl"
   };
 
-  const Comp = asChild ? Slot : "button";
+  const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+
+  // When using asChild, we need to clone the child and add our props to it
+  if (asChild) {
+    return (
+      <Slot className={buttonClasses}>
+        {React.cloneElement(children as React.ReactElement, {
+          children: (
+            <>
+              {Icon && <Icon className="w-4 h-4 mr-2" />}
+              {(children as React.ReactElement).props.children}
+            </>
+          )
+        })}
+      </Slot>
+    );
+  }
 
   return (
-    <Comp
-      type={!asChild ? type : undefined}
-      onClick={!asChild ? onClick : undefined}
-      disabled={!asChild ? disabled : undefined}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={buttonClasses}
     >
       {Icon && <Icon className="w-4 h-4 mr-2" />}
       {children}
-    </Comp>
+    </button>
   );
 };
 
