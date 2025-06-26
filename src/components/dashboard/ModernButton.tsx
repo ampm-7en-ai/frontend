@@ -4,7 +4,7 @@ import { LucideIcon } from 'lucide-react';
 
 interface ModernButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'gradient' | 'cta';
   size?: 'sm' | 'md' | 'lg';
   icon?: LucideIcon;
   onClick?: () => void;
@@ -28,7 +28,9 @@ const ModernButton: React.FC<ModernButtonProps> = ({
   const variantClasses = {
     primary: "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 focus:ring-slate-500",
     secondary: "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 focus:ring-slate-300",
-    outline: "border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:ring-slate-300"
+    outline: "border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:ring-slate-300",
+    gradient: "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg focus:ring-blue-500",
+    cta: "bg-slate-900 hover:bg-slate-800 text-white shadow-lg focus:ring-slate-500 font-semibold"
   };
   
   const sizeClasses = {

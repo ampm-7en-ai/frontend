@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,11 +23,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { getNewKnowledgeBase, clearNewKnowledgeBase, hasNewKnowledgeBase } from '@/utils/knowledgeStorage';
+import ModernButton from '@/components/dashboard/ModernButton';
+import UserThemeMenu from '@/components/knowledge/UserThemeMenu';
+import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { theme } = useKnowledgeTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
@@ -504,7 +507,7 @@ const KnowledgeBase = () => {
       const totalChars = subUrls ? subUrls.chars || 0 : 0;
       
       return (
-        <div className="text-sm text-slate-500 mt-1 font-medium">
+        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
           {pagesCount} pages • {totalChars.toLocaleString()} characters
         </div>
       );
@@ -512,13 +515,13 @@ const KnowledgeBase = () => {
       const chars = doc.metadata?.no_of_chars || 0;
       
       return (
-        <div className="text-sm text-slate-500 mt-1 font-medium">
+        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
           {chars.toLocaleString()} characters
         </div>
       );
     } else {
       return (
-        <div className="text-sm text-slate-500 mt-1 font-medium">
+        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
           {doc.fileCount > 0 ? 
             `${doc.fileCount - deletedFiles} ${(doc.fileCount - deletedFiles) === 1 ? 'file' : 'files'}` : 
             'No files'
@@ -550,93 +553,99 @@ const KnowledgeBase = () => {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Knowledge Base</h1>
-            <p className="text-slate-600 text-lg">Manage your AI knowledge sources and content</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Knowledge Base</h1>
+            <p className="text-slate-600 dark:text-slate-400 text-base">Manage your AI knowledge sources and content</p>
           </div>
-          <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold transition-all duration-200">
-            <Link to="/knowledge/upload">
-              <Plus className="h-5 w-5 mr-2" />
-              Add Source
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <ModernButton 
+              asChild 
+              variant="gradient"
+              icon={Plus}
+            >
+              <Link to="/knowledge/upload">
+                Add Source
+              </Link>
+            </ModernButton>
+            <UserThemeMenu />
+          </div>
         </div>
         
         {/* Stats Section - Dashboard Style */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 relative pb-2">
-              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600">
-                <Layers className="h-4 w-4 text-white" />
+          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-3 relative pb-2">
+              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600">
+                <Layers className="h-3 w-3 text-white" />
               </div>
-              <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <div className="pr-10">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Total Sources
                 </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.totalSources}
                 </p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 relative pb-2">
-              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                <FileText className="h-4 w-4 text-white" />
+          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-3 relative pb-2">
+              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                <FileText className="h-3 w-3 text-white" />
               </div>
-              <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <div className="pr-10">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Document Files
                 </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.documentFiles}
                 </p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 relative pb-2">
-              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                <Globe className="h-4 w-4 text-white" />
+          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-3 relative pb-2">
+              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                <Globe className="h-3 w-3 text-white" />
               </div>
-              <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <div className="pr-10">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Websites
                 </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.websiteSources}
                 </p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 relative pb-2">
-              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
-                <FileSpreadsheet className="h-4 w-4 text-white" />
+          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-3 relative pb-2">
+              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
+                <FileSpreadsheet className="h-3 w-3 text-white" />
               </div>
-              <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <div className="pr-10">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Spreadsheet Files
                 </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.spreadsheetFiles}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 relative pb-2">
-              <div className="absolute top-3 right-3 p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                <File className="h-4 w-4 text-white" />
+          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-3 relative pb-2">
+              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                <File className="h-3 w-3 text-white" />
               </div>
-              <div className="pr-12">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <div className="pr-10">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                   Plain Text
                 </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {isLoading ? "..." : knowledgeStats.plainTextSources}
                 </p>
               </div>
@@ -651,15 +660,15 @@ const KnowledgeBase = () => {
               placeholder="Search knowledge sources..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-3 w-full border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+              className="pl-10 pr-4 py-2 w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
             />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
           </div>
           <Select 
             value={sourceTypeFilter} 
             onValueChange={setSourceTypeFilter}
           >
-            <SelectTrigger className="w-full sm:w-48 py-3 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+            <SelectTrigger className="w-full sm:w-48 py-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
@@ -677,53 +686,52 @@ const KnowledgeBase = () => {
         {isLoading ? (
           <div className="flex justify-center items-center py-16">
             <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-200 border-t-blue-600"></div>
-            <span className="ml-4 text-slate-600 font-medium">Loading knowledge bases...</span>
+            <span className="ml-4 text-slate-600 dark:text-slate-400 font-medium">Loading knowledge bases...</span>
           </div>
         ) : filteredDocuments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-6">
-              <FileText className="h-12 w-12 text-slate-400" />
+            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-full mb-6">
+              <FileText className="h-12 w-12 text-slate-400 dark:text-slate-500" />
             </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No knowledge sources found</h3>
-            <p className="text-slate-500 mb-6 text-center max-w-md">
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">No knowledge sources found</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-6 text-center max-w-md">
               {searchQuery || sourceTypeFilter !== 'all' ? 
                 "Try adjusting your search or filter criteria" : 
                 "Get started by adding your first knowledge source"}
             </p>
-            <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-6 py-3 rounded-xl font-semibold">
+            <ModernButton variant="gradient" icon={Upload}>
               <Link to="/knowledge/upload">
-                <Upload className="h-5 w-5 mr-2" />
                 Add Source
               </Link>
-            </Button>
+            </ModernButton>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {filteredDocuments.map((doc, index) => (
               <Card 
                 key={doc.id} 
-                className="bg-white rounded-xl overflow-hidden border-0 shadow-none"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none"
               >
-                <CardContent className="p-3">
+                <CardContent className="p-2">
                   <div className="flex items-center justify-between">
                     {/* Left side - Source info */}
                     <div 
                       className={`flex items-center gap-3 flex-1 ${canShowNestedView(doc.sourceType) ? 'cursor-pointer' : ''}`}
                       onClick={() => canShowNestedView(doc.sourceType) && handleKnowledgeBaseClick(doc)}
                     >
-                      <div className={`p-2 rounded-xl ${getIconBackground(doc)}`}>
+                      <div className={`p-1.5 rounded-xl ${getIconBackground(doc)}`}>
                         {renderSourceIcon(doc)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-semibold text-slate-900 text-sm truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
+                          <h3 className={`font-semibold text-slate-900 dark:text-slate-100 text-sm truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
                             {doc.title}
                           </h3>
-                          <Badge variant="outline" className="font-medium text-xs px-2 py-0.5 rounded-full shrink-0">
+                          <Badge variant="outline" className="font-medium text-xs px-2 py-0.5 rounded-full shrink-0 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400">
                             {doc.sourceType.toUpperCase()}
                           </Badge>
                           {canShowNestedView(doc.sourceType) && (
-                            <ChevronRight className="h-3 w-3 text-slate-400 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
+                            <ChevronRight className="h-3 w-3 text-slate-400 dark:text-slate-500 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
                           )}
                         </div>
                         {getMetadataDisplay(doc)}
@@ -739,7 +747,7 @@ const KnowledgeBase = () => {
                               <TooltipProvider key={`${doc.id}-agent-${idx}`}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Avatar className="h-7 w-7 border-2 border-white">
+                                    <Avatar className="h-6 w-6 border-2 border-white dark:border-slate-800">
                                       <AvatarFallback className={`${getAgentColor(agentName)} text-white text-[8px] font-medium`}>
                                         {getAgentInitials(agentName)}
                                       </AvatarFallback>
@@ -759,24 +767,24 @@ const KnowledgeBase = () => {
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-400 font-medium">No agents</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">No agents</span>
                       )}
                     </div>
 
                     {/* Right side - Upload date and actions */}
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <span className="text-slate-600 font-medium text-xs">{doc.uploadedAt}</span>
+                        <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">{doc.uploadedAt}</span>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-slate-100 rounded-lg">
-                            <MoreHorizontal className="h-3 w-3 text-slate-500" />
+                          <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
+                            <MoreHorizontal className="h-3 w-3 text-slate-500 dark:text-slate-400" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44 shadow-lg border border-slate-200 rounded-xl">
+                        <DropdownMenuContent align="end" className="w-44 shadow-lg border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800">
                           <DropdownMenuItem 
-                            className="flex items-center gap-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
+                            className="flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
                             onClick={() => handleDeleteKnowledgeBase(doc.id)}
                           >
                             <Trash className="h-4 w-4" />
@@ -806,14 +814,14 @@ const KnowledgeBase = () => {
     return (
       <div className="space-y-6">
         {/* Breadcrumb Navigation */}
-        <div className="bg-white rounded-xl p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <button 
                     onClick={handleBackToMainView} 
-                    className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2 transition-colors duration-150"
+                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center gap-2 transition-colors duration-150"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Knowledge Sources
@@ -822,7 +830,7 @@ const KnowledgeBase = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-slate-900 font-semibold">
+                <BreadcrumbPage className="text-slate-900 dark:text-slate-100 font-semibold">
                   {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
                 </BreadcrumbPage>
               </BreadcrumbItem>
@@ -831,39 +839,33 @@ const KnowledgeBase = () => {
         </div>
 
         {/* Header Section */}
-        <div className="bg-white rounded-xl p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
+              <div className={`p-2 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
                 {renderSourceIcon({sourceType: sourceType})}
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                   {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
                 </h2>
-                {/* <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="font-medium text-sm px-3 py-1 rounded-full">
-                    {formattedSourceType}
-                  </Badge>
-                  <span className="text-slate-600 font-medium">
-                    {knowledgeSources ? 
-                      `${knowledgeSources.length} ${knowledgeSources.length === 1 ? 'file' : 'files'}` : 
-                      "0 files"}
-                  </span>
-                </div> */}
               </div>
             </div>
-            <div className="flex gap-3">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl font-medium relative overflow-hidden transition-all duration-200">
+            <div className="flex items-center gap-3">
+              <ModernButton 
+                variant="gradient"
+                icon={Upload}
+                className="relative overflow-hidden"
+              >
                 <input 
                   type="file" 
                   className="cursor-pointer absolute inset-0 opacity-0" 
                   accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
                   onChange={handleFileUpload}
                 />
-                <Upload className="h-4 w-4 mr-2" />
                 Upload File
-              </Button>
+              </ModernButton>
+              <UserThemeMenu />
             </div>
           </div>
         </div>
@@ -871,47 +873,50 @@ const KnowledgeBase = () => {
         {/* Files Cards Grid */}
         {!knowledgeSources || knowledgeSources.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full mb-4">
-              <FileText className="h-10 w-10 text-slate-400" />
+            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-full mb-4">
+              <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No files found</h3>
-            <p className="text-slate-500 mb-4 text-center">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">No files found</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-4 text-center">
               Add some files to this knowledge source to get started
             </p>
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl font-medium relative overflow-hidden">
+            <ModernButton 
+              variant="gradient"
+              icon={Upload}
+              className="relative overflow-hidden"
+            >
               <input 
                 type="file" 
                 className="cursor-pointer absolute inset-0 opacity-0" 
                 accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
                 onChange={handleFileUpload}
               />
-              <Upload className="h-4 w-4 mr-2" />
               Upload File
-            </Button>
+            </ModernButton>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white rounded-xl overflow-hidden border-0 shadow-none"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none"
               >
-                <CardContent className="p-3">
+                <CardContent className="p-2">
                   <div className="flex items-center justify-between">
                     {/* Left side - File info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`p-2 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
+                      <div className={`p-1.5 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
                         {renderSourceIcon({sourceType: sourceType})}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 text-sm truncate mb-1">
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate mb-1">
                           {source.title || source.name || "Untitled"}
                         </h3>
-                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                           <span className="font-medium">
                             {formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size)}
                           </span>
-                          <Badge variant="outline" className="font-mono uppercase text-xs font-medium px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="font-mono uppercase text-xs font-medium px-2 py-0.5 rounded-full border-slate-300 dark:border-slate-600">
                             {source.metadata?.format || source.type || "Unknown"}
                           </Badge>
                           <span className="font-medium">
@@ -924,7 +929,7 @@ const KnowledgeBase = () => {
                     {/* Right side - Upload date and actions */}
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <span className="text-slate-600 font-medium text-xs">
+                        <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
                           {formatDate(source.metadata?.upload_date)}
                         </span>
                       </div>
@@ -932,7 +937,7 @@ const KnowledgeBase = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-7 px-2 rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors duration-150"
+                          className="h-6 px-2 rounded-lg border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors duration-150"
                           onClick={() => handleDownloadFile(source)}
                         >
                           <Download className="h-3 w-3" />
@@ -940,7 +945,7 @@ const KnowledgeBase = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-7 px-2 rounded-lg border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors duration-150"
+                          className="h-6 px-2 rounded-lg border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-600 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-150"
                           onClick={() => handleDeleteFile(source.id)}
                         >
                           <Trash className="h-3 w-3" />
@@ -958,9 +963,11 @@ const KnowledgeBase = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
-        {viewMode === 'main' ? renderMainView() : renderDetailView()}
+    <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+        <div className="container mx-auto px-4 py-6">
+          {viewMode === 'main' ? renderMainView() : renderDetailView()}
+        </div>
       </div>
     </div>
   );
