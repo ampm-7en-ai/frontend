@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { getNewKnowledgeBase, clearNewKnowledgeBase, hasNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
-import UserThemeMenu from '@/components/knowledge/UserThemeMenu';
 import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
 
 const KnowledgeBase = () => {
@@ -566,13 +565,12 @@ const KnowledgeBase = () => {
                 Add Source
               </Link>
             </ModernButton>
-            <UserThemeMenu />
           </div>
         </div>
         
         {/* Stats Section - Dashboard Style */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
             <CardContent className="p-3 relative pb-2">
               <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600">
                 <Layers className="h-3 w-3 text-white" />
@@ -588,7 +586,7 @@ const KnowledgeBase = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
             <CardContent className="p-3 relative pb-2">
               <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
                 <FileText className="h-3 w-3 text-white" />
@@ -604,7 +602,7 @@ const KnowledgeBase = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
             <CardContent className="p-3 relative pb-2">
               <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
                 <Globe className="h-3 w-3 text-white" />
@@ -620,7 +618,7 @@ const KnowledgeBase = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
             <CardContent className="p-3 relative pb-2">
               <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
                 <FileSpreadsheet className="h-3 w-3 text-white" />
@@ -636,7 +634,7 @@ const KnowledgeBase = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
             <CardContent className="p-3 relative pb-2">
               <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
                 <File className="h-3 w-3 text-white" />
@@ -710,7 +708,7 @@ const KnowledgeBase = () => {
             {filteredDocuments.map((doc, index) => (
               <Card 
                 key={doc.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden"
               >
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between">
@@ -782,7 +780,7 @@ const KnowledgeBase = () => {
                             <MoreHorizontal className="h-3 w-3 text-slate-500 dark:text-slate-400" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44 shadow-lg border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800">
+                        <DropdownMenuContent align="end" className="w-44 shadow-lg border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 z-50">
                           <DropdownMenuItem 
                             className="flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
                             onClick={() => handleDeleteKnowledgeBase(doc.id)}
@@ -814,7 +812,7 @@ const KnowledgeBase = () => {
     return (
       <div className="space-y-6">
         {/* Breadcrumb Navigation */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -839,7 +837,7 @@ const KnowledgeBase = () => {
         </div>
 
         {/* Header Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
@@ -865,7 +863,6 @@ const KnowledgeBase = () => {
                 />
                 Upload File
               </ModernButton>
-              <UserThemeMenu />
             </div>
           </div>
         </div>
@@ -899,7 +896,7 @@ const KnowledgeBase = () => {
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden"
               >
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between">

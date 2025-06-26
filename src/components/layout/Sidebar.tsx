@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Home,
@@ -26,9 +25,11 @@ import {
   ArrowLeftFromLine,
   LogOut,
   CreditCard,
-  User
+  User,
+  Moon,
+  Sun
 } from 'lucide-react';
-import { NavLink, Link as RouterLink, useNavigate } from 'react-router-dom';
+import { NavLink, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -39,8 +40,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { createAgent } from '@/utils/api-config';
+import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -74,17 +76,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { theme, toggleTheme } = useKnowledgeTheme();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
+  // Check if we're on knowledge pages
+  const isKnowledgePage = location.pathname.startsWith('/knowledge');
+  
   // Agent creation form state
   const [agentName, setAgentName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nameError, setNameError] = useState(false);
 
+  // Toggle expand function
   const toggleExpand = (itemId: string) => {
     if (expandedItems.includes(itemId)) {
       setExpandedItems(expandedItems.filter(id => id !== itemId));
@@ -93,15 +101,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     }
   };
 
+  // Handle knowledge plus action
   const handleKnowledgePlus = () => {
     navigate('/knowledge/upload');
   };
 
+  // Handle agent name change
   const handleAgentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAgentName(e.target.value);
     if (e.target.value.trim()) setNameError(false);
   };
   
+  // Validate form function
   const validateForm = () => {
     let isValid = true;
     
@@ -121,6 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     return isValid;
   };
   
+  // Handle create agent function
   const handleCreateAgent = async () => {
     if (!validateForm()) {
       return;
@@ -423,7 +435,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 mb-2 p-4">
+                <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white z-50">
                   <div className="flex-1 min-w-0 border-b border-gray-50 pb-4">
                     <p className="text-xs font-medium text-gray-900 truncate">
                       {user?.name || 'User'}
@@ -440,6 +452,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     <CreditCard className="h-4 w-4" />
                     Billing
                   </DropdownMenuItem>
+                  {isKnowledgePage && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={toggleTheme}
+                      >
+                        {theme === 'light' ? (
+                          <>
+                            <Moon className="h-4 w-4" />
+                            Switch to Dark
+                          </>
+                        ) : (
+                          <>
+                            <Sun className="h-4 w-4" />
+                            Switch to Light
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700"
                     onClick={logout}
@@ -471,7 +505,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       </Avatar>
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4">
+                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white z-50">
                   <div className="flex-1 min-w-0 border-b border-gray-50 pb-4">
                     <p className="text-xs font-medium text-gray-900 truncate">
                       {user?.name || 'User'}
@@ -488,6 +522,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     <CreditCard className="h-4 w-4" />
                     Billing
                   </DropdownMenuItem>
+                  {isKnowledgePage && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={toggleTheme}
+                      >
+                        {theme === 'light' ? (
+                          <>
+                            <Moon className="h-4 w-4" />
+                            Switch to Dark
+                          </>
+                        ) : (
+                          <>
+                            <Sun className="h-4 w-4" />
+                            Switch to Light
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700"
                     onClick={logout}
