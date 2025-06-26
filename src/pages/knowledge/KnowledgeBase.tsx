@@ -905,7 +905,7 @@ const KnowledgeBase = () => {
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden group hover:shadow-md transition-shadow duration-200"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-200"
               >
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between">
@@ -939,14 +939,14 @@ const KnowledgeBase = () => {
                           {formatDate(source.metadata?.upload_date)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="flex items-center gap-2">
                         <ModernButton 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDownloadFile(source)}
                           className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
                         >
-                          <Download className="h-3 w-3" />
+                          <Download className="h-4 w-4" />
                         </ModernButton>
                         <ModernButton 
                           variant="outline" 
@@ -954,7 +954,7 @@ const KnowledgeBase = () => {
                           onClick={() => handleDeleteFile(source.id)}
                           className="h-8 w-8 p-0 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-600"
                         >
-                          <Trash className="h-3 w-3" />
+                          <Trash className="h-4 w-4" />
                         </ModernButton>
                       </div>
                     </div>
