@@ -675,7 +675,7 @@ const KnowledgeUpload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -687,13 +687,6 @@ const KnowledgeUpload = () => {
 
         {/* Main Content */}
         <div className="space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-2">
-              Add Knowledge Source
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400">Import content from various sources to enhance your AI knowledge base</p>
-          </div>
-
           <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-0 rounded-3xl shadow-xl shadow-slate-200/20 dark:shadow-slate-800/20">
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
