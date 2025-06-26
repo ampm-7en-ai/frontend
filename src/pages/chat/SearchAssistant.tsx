@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useTheme } from '@/context/ThemeContext';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Bot } from 'lucide-react';
@@ -73,7 +74,7 @@ const SearchAssistant = () => {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const thinkingIntervalRef = useRef<number | null>(null);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useAppTheme();
   const contentRef = useRef<HTMLDivElement>(null);
   const [showCentralLoader, setShowCentralLoader] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);

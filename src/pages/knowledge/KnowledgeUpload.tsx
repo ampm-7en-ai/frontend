@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFloatingToast } from '@/context/FloatingToastContext';
-import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
