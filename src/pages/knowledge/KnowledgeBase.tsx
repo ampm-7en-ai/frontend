@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { getNewKnowledgeBase, clearNewKnowledgeBase, hasNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const KnowledgeBase = () => {
   console.log('KnowledgeBase component rendering...');
@@ -33,7 +32,7 @@ const KnowledgeBase = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { theme } = useKnowledgeTheme();
+  const { theme } = useAppTheme();
   
   console.log('Theme:', theme, 'User:', user?.name);
   
