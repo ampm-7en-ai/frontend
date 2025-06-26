@@ -42,7 +42,7 @@ import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { createAgent } from '@/utils/api-config';
-import { useKnowledgeTheme } from '@/hooks/useKnowledgeTheme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useKnowledgeTheme();
+  const { theme, toggleTheme } = useAppTheme();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -454,31 +454,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     <CreditCard className="h-4 w-4" />
                     Billing
                   </DropdownMenuItem>
-                  {isKnowledgePage && (
-                    <>
-                      <DropdownMenuSeparator className="dark:bg-gray-700" />
-                      <DropdownMenuItem 
-                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log('Theme toggle clicked, current theme:', theme);
-                          toggleTheme();
-                        }}
-                      >
-                        {theme === 'light' ? (
-                          <>
-                            <Moon className="h-4 w-4" />
-                            Switch to Dark
-                          </>
-                        ) : (
-                          <>
-                            <Sun className="h-4 w-4" />
-                            Switch to Light
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                    </>
-                  )}
+                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Theme toggle clicked, current theme:', theme);
+                      toggleTheme();
+                    }}
+                  >
+                    {theme === 'light' ? (
+                      <>
+                        <Moon className="h-4 w-4" />
+                        Switch to Dark
+                      </>
+                    ) : (
+                      <>
+                        <Sun className="h-4 w-4" />
+                        Switch to Light
+                      </>
+                    )}
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator className="dark:bg-gray-700" />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
@@ -528,31 +524,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     <CreditCard className="h-4 w-4" />
                     Billing
                   </DropdownMenuItem>
-                  {isKnowledgePage && (
-                    <>
-                      <DropdownMenuSeparator className="dark:bg-gray-700" />
-                      <DropdownMenuItem 
-                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log('Theme toggle clicked, current theme:', theme);
-                          toggleTheme();
-                        }}
-                      >
-                        {theme === 'light' ? (
-                          <>
-                            <Moon className="h-4 w-4" />
-                            Switch to Dark
-                          </>
-                        ) : (
-                          <>
-                            <Sun className="h-4 w-4" />
-                            Switch to Light
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                    </>
-                  )}
+                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Theme toggle clicked, current theme:', theme);
+                      toggleTheme();
+                    }}
+                  >
+                    {theme === 'light' ? (
+                      <>
+                        <Moon className="h-4 w-4" />
+                        Switch to Dark
+                      </>
+                    ) : (
+                      <>
+                        <Sun className="h-4 w-4" />
+                        Switch to Light
+                      </>
+                    )}
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator className="dark:bg-gray-700" />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
