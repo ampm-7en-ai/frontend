@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -701,28 +702,28 @@ const KnowledgeBase = () => {
             {filteredDocuments.map((doc, index) => (
               <Card 
                 key={doc.id} 
-                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden"
+                className="bg-white rounded-xl overflow-hidden"
               >
-                <CardContent className="p-4">
+                <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     {/* Left side - Source info */}
                     <div 
                       className={`flex items-center gap-3 flex-1 ${canShowNestedView(doc.sourceType) ? 'cursor-pointer' : ''}`}
                       onClick={() => canShowNestedView(doc.sourceType) && handleKnowledgeBaseClick(doc)}
                     >
-                      <div className={`p-2 rounded-xl ${getIconBackground(doc)} shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                      <div className={`p-2 rounded-xl ${getIconBackground(doc)}`}>
                         {renderSourceIcon(doc)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-semibold text-slate-900 text-base truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
+                          <h3 className={`font-semibold text-slate-900 text-sm truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
                             {doc.title}
                           </h3>
-                          <Badge variant="outline" className="font-medium text-xs px-2 py-0.5 rounded-full border shrink-0">
+                          <Badge variant="outline" className="font-medium text-xs px-2 py-0.5 rounded-full shrink-0">
                             {doc.sourceType.toUpperCase()}
                           </Badge>
                           {canShowNestedView(doc.sourceType) && (
-                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
+                            <ChevronRight className="h-3 w-3 text-slate-400 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
                           )}
                         </div>
                         {getMetadataDisplay(doc)}
@@ -738,7 +739,7 @@ const KnowledgeBase = () => {
                               <TooltipProvider key={`${doc.id}-agent-${idx}`}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Avatar className="h-7 w-7 border-2 border-white shadow-sm">
+                                    <Avatar className="h-6 w-6 border-2 border-white">
                                       <AvatarFallback className={`${getAgentColor(agentName)} text-white text-xs font-medium`}>
                                         {getAgentInitials(agentName)}
                                       </AvatarFallback>
@@ -758,19 +759,19 @@ const KnowledgeBase = () => {
                           )}
                         </div>
                       ) : (
-                        <span className="text-sm text-slate-400 font-medium">No agents</span>
+                        <span className="text-xs text-slate-400 font-medium">No agents</span>
                       )}
                     </div>
 
                     {/* Right side - Upload date and actions */}
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <span className="text-slate-600 font-medium text-sm">{doc.uploadedAt}</span>
+                        <span className="text-slate-600 font-medium text-xs">{doc.uploadedAt}</span>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 rounded-lg">
-                            <MoreHorizontal className="h-4 w-4 text-slate-500" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-slate-100 rounded-lg">
+                            <MoreHorizontal className="h-3 w-3 text-slate-500" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44 shadow-lg border border-slate-200 rounded-xl">
@@ -805,7 +806,7 @@ const KnowledgeBase = () => {
     return (
       <div className="space-y-6">
         {/* Breadcrumb Navigation */}
-        <div className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-xl p-4">
+        <div className="bg-white rounded-xl p-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -830,10 +831,10 @@ const KnowledgeBase = () => {
         </div>
 
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-xl p-6">
+        <div className="bg-white rounded-xl p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-xl ${getIconBackground({sourceType: sourceType})} shadow-lg`}>
+              <div className={`p-3 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
                 {renderSourceIcon({sourceType: sourceType})}
               </div>
               <div>
@@ -841,7 +842,7 @@ const KnowledgeBase = () => {
                   {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
                 </h2>
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="font-medium text-sm px-3 py-1 rounded-full border">
+                  <Badge variant="outline" className="font-medium text-sm px-3 py-1 rounded-full">
                     {formattedSourceType}
                   </Badge>
                   <span className="text-slate-600 font-medium">
@@ -853,7 +854,7 @@ const KnowledgeBase = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-4 py-2 rounded-xl font-medium relative overflow-hidden transition-all duration-200">
+              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl font-medium relative overflow-hidden transition-all duration-200">
                 <input 
                   type="file" 
                   className="cursor-pointer absolute inset-0 opacity-0" 
@@ -877,7 +878,7 @@ const KnowledgeBase = () => {
             <p className="text-slate-500 mb-4 text-center">
               Add some files to this knowledge source to get started
             </p>
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg px-4 py-2 rounded-xl font-medium relative overflow-hidden">
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl font-medium relative overflow-hidden">
               <input 
                 type="file" 
                 className="cursor-pointer absolute inset-0 opacity-0" 
@@ -893,24 +894,24 @@ const KnowledgeBase = () => {
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden"
+                className="bg-white rounded-xl overflow-hidden"
               >
-                <CardContent className="p-4">
+                <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     {/* Left side - File info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`p-2 rounded-xl ${getIconBackground({sourceType: sourceType})} shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                      <div className={`p-2 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
                         {renderSourceIcon({sourceType: sourceType})}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 text-base truncate mb-1">
+                        <h3 className="font-semibold text-slate-900 text-sm truncate mb-1">
                           {source.title || source.name || "Untitled"}
                         </h3>
-                        <div className="flex items-center gap-3 text-sm text-slate-500">
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
                           <span className="font-medium">
                             {formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size)}
                           </span>
-                          <Badge variant="outline" className="font-mono uppercase text-xs font-medium px-2 py-0.5 rounded-full border">
+                          <Badge variant="outline" className="font-mono uppercase text-xs font-medium px-2 py-0.5 rounded-full">
                             {source.metadata?.format || source.type || "Unknown"}
                           </Badge>
                           <span className="font-medium">
@@ -923,7 +924,7 @@ const KnowledgeBase = () => {
                     {/* Right side - Upload date and actions */}
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <span className="text-slate-600 font-medium text-sm">
+                        <span className="text-slate-600 font-medium text-xs">
                           {formatDate(source.metadata?.upload_date)}
                         </span>
                       </div>
@@ -931,18 +932,18 @@ const KnowledgeBase = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-8 px-3 rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors duration-150"
+                          className="h-7 px-2 rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors duration-150"
                           onClick={() => handleDownloadFile(source)}
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-3 w-3" />
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-8 px-3 rounded-lg border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors duration-150"
+                          className="h-7 px-2 rounded-lg border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors duration-150"
                           onClick={() => handleDeleteFile(source.id)}
                         >
-                          <Trash className="h-4 w-4" />
+                          <Trash className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
@@ -957,7 +958,7 @@ const KnowledgeBase = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6">
         {viewMode === 'main' ? renderMainView() : renderDetailView()}
       </div>
