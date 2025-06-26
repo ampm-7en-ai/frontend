@@ -165,6 +165,25 @@ export const getSourceMetadataInfo = (source: { type: string, metadata: any }): 
   return result;
 };
 
+// Function to get all knowledge bases
+export const getAllKnowledgeBases = async (): Promise<any[]> => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+  
+  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
+    headers: getAuthHeaders(token),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    throw new Error(errorData.message || `Failed to fetch knowledge bases: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
 // Function to fetch agent details (including knowledge bases)
 export const fetchAgentDetails = async (agentId: string): Promise<any> => {
   console.log(`Starting fetchAgentDetails for agentId: ${agentId}`);
