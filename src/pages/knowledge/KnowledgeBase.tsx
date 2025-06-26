@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -904,7 +905,7 @@ const KnowledgeBase = () => {
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden group hover:shadow-md transition-shadow duration-200"
               >
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between">
@@ -938,23 +939,23 @@ const KnowledgeBase = () => {
                           {formatDate(source.metadata?.upload_date)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button 
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <ModernButton 
                           variant="outline" 
-                          size="sm" 
-                          className="h-6 px-2 rounded-lg border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors duration-150"
+                          size="sm"
                           onClick={() => handleDownloadFile(source)}
+                          className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
                         >
                           <Download className="h-3 w-3" />
-                        </Button>
-                        <Button 
+                        </ModernButton>
+                        <ModernButton 
                           variant="outline" 
-                          size="sm" 
-                          className="h-6 px-2 rounded-lg border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-600 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-150"
+                          size="sm"
                           onClick={() => handleDeleteFile(source.id)}
+                          className="h-8 w-8 p-0 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-600"
                         >
                           <Trash className="h-3 w-3" />
-                        </Button>
+                        </ModernButton>
                       </div>
                     </div>
                   </div>
