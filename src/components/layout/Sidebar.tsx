@@ -87,6 +87,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   // Check if we're on knowledge pages
   const isKnowledgePage = location.pathname.startsWith('/knowledge');
   
+  console.log('Sidebar - isKnowledgePage:', isKnowledgePage, 'theme:', theme);
+  
   // Agent creation form state
   const [agentName, setAgentName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -457,7 +459,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="flex items-center gap-2 cursor-pointer"
-                        onClick={toggleTheme}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          console.log('Theme toggle clicked, current theme:', theme);
+                          toggleTheme();
+                        }}
                       >
                         {theme === 'light' ? (
                           <>
@@ -527,7 +533,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="flex items-center gap-2 cursor-pointer"
-                        onClick={toggleTheme}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          console.log('Theme toggle clicked, current theme:', theme);
+                          toggleTheme();
+                        }}
                       >
                         {theme === 'light' ? (
                           <>
