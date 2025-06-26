@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
-import { Trash, Clock, Mail, Plus, User, AlertCircle } from 'lucide-react';
+import { Trash, Clock, Mail, Plus, User, AlertCircle, ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface Role {
   id: number;
@@ -52,7 +51,7 @@ interface Member {
 
 const TeamManagementSection = () => {
   const { user, getToken } = useAuth();
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inviteApiError, setInviteApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -70,6 +69,7 @@ const TeamManagementSection = () => {
 
   useEffect(() => {
     fetchTeamMembers();
+    fetchAvailableRoles();
   }, []);
 
   const fetchAvailableRoles = async () => {
@@ -274,7 +274,7 @@ const TeamManagementSection = () => {
       
       fetchTeamMembers();
       
-      setShowInviteDialog(false);
+      setShowInviteForm(false);
       inviteForm.reset();
     } catch (error) {
       toast({
@@ -331,229 +331,226 @@ const TeamManagementSection = () => {
   }
 
   return (
-    <section>
-      <h2 className="text-xl font-semibold mb-4">Team Management</h2>
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-muted-foreground mb-4">
-            Team members who have access to your 7en.ai workspace.
+    <section className="p-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Team Management</h2>
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+            Manage team members and their access to your 7en.ai workspace
           </p>
-          <div className="rounded-md border">
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div>
-                  <p className="font-medium">{user?.name || 'You'}</p>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
-                </div>
-              </div>
-              <Badge>Owner</Badge>
-            </div>
-            
-            {teamMembers.length > 0 && (
-              <>
-                <Separator />
-                <div className="p-2">
-                  <p className="text-sm text-muted-foreground p-2">Team Members</p>
-                  <div>
-                    {teamMembers.map((member) => (
-                      <div key={member.id} className="p-3 flex items-center justify-between hover:bg-muted/50 rounded-md">
-                        <div>
-                          <p className="font-medium">
-                            {member.name || member.email}
-                          </p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 text-xs">
-                            <span className="capitalize">{member.role}</span>
-                            {member.status === 'pending' ? (
-                              <>
-                                <Badge variant="outline" className="flex items-center gap-1 bg-yellow-100 text-yellow-800">
-                                  <Clock className="h-3 w-3 mr-1" /> waiting response
-                                </Badge>
-                                <span>&bull;</span>
-                                <span>{member.expires_at ? calculateExpiryStatus(member.expires_at) : 'No expiry'}</span>
-                              </>
-                            ) : (
-                              <>
-                                <Badge variant="success" className="flex items-center gap-1">
-                                  active
-                                </Badge>
-                                <span>&bull;</span>
-                                <span>Added {formatDate(member.created_at || '')}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
-                            title={member.status === 'pending' ? "Cancel Invitation" : "Remove Member"}
-                          >
-                            <Trash className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-            
-            {loading && (
-              <div className="p-4 flex justify-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-            )}
-            
-            {!loading && teamMembers.length === 0 && (
-              <div className="p-6 text-center text-muted-foreground">
-                <p>No team members or pending invitations found.</p>
-              </div>
-            )}
-            
-            <Separator />
-            <div className="p-4">
-              <Dialog open={showInviteDialog} onOpenChange={(open) => {
-                setShowInviteDialog(open);
-                if (!open) {
-                  setInviteApiError(null);
-                  inviteForm.reset();
-                } else {
-                  fetchAvailableRoles();
-                }
-              }}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-1">
-                    <Plus className="h-4 w-4" /> Invite Team Member
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Invite Team Member</DialogTitle>
-                    <DialogDescription>
-                      Invite a new team member to your 7en.ai workspace.
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  {inviteApiError && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{inviteApiError}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <Form {...inviteForm}>
-                    <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
-                      <FormField
-                        control={inviteForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email Address</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="colleague@example.com" 
-                                {...field} 
-                                type="email"
-                                autoComplete="email"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={inviteForm.control}
-                        name="team_role_id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Role</FormLabel>
-                            <Select 
-                              onValueChange={(value) => field.onChange(parseInt(value))}
-                              value={field.value?.toString()}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a role" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {loadingRoles ? (
-                                  <div className="flex justify-center items-center py-2">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                                    <span className="ml-2 text-sm">Loading roles...</span>
-                                  </div>
-                                ) : availableRoles.length > 0 ? (
-                                  availableRoles.map((role) => (
-                                    <SelectItem key={role.id} value={role.id.toString()}>
-                                      {role.name}
-                                    </SelectItem>
-                                  ))
-                                ) : (
-                                  <SelectItem value="" disabled>No roles available</SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+        </div>
+        <ModernButton
+          variant="outline"
+          icon={Plus}
+          onClick={() => setShowInviteForm(!showInviteForm)}
+          className="font-medium"
+        >
+          {showInviteForm ? 'Cancel' : 'Invite Member'}
+        </ModernButton>
+      </div>
 
-                      {inviteForm.watch("team_role_id") && (
-                        <div className="border rounded-md p-3 bg-muted/30">
-                          <h4 className="text-sm font-medium mb-2">Role Permissions</h4>
-                          <ScrollArea className="h-[150px]">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Permission</TableHead>
-                                  <TableHead>Description</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.map(permission => (
-                                  <TableRow key={permission.id}>
-                                    <TableCell className="font-medium">{permission.name.replace(/_/g, ' ')}</TableCell>
-                                    <TableCell>{permission.description}</TableCell>
-                                  </TableRow>
-                                ))}
-                                {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.length === 0 && (
-                                  <TableRow>
-                                    <TableCell colSpan={2} className="text-center py-4 text-muted-foreground">
-                                      This role has no permissions assigned
-                                    </TableCell>
-                                  </TableRow>
-                                )}
-                              </TableBody>
-                            </Table>
-                          </ScrollArea>
+      {/* Inline Invite Form */}
+      {showInviteForm && (
+        <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-8 border border-slate-200/50 dark:border-slate-600/50 mb-8 backdrop-blur-sm">
+          <h3 className="text-lg font-semibold mb-6 text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Invite Team Member
+          </h3>
+          
+          {inviteApiError && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{inviteApiError}</AlertDescription>
+            </Alert>
+          )}
+          
+          <Form {...inviteForm}>
+            <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={inviteForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-900 dark:text-slate-100">Email Address</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="colleague@example.com" 
+                          {...field} 
+                          type="email"
+                          autoComplete="email"
+                          className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-12"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={inviteForm.control}
+                  name="team_role_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-900 dark:text-slate-100">Role</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-12">
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {loadingRoles ? (
+                            <div className="flex justify-center items-center py-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                              <span className="ml-2 text-sm">Loading roles...</span>
+                            </div>
+                          ) : availableRoles.length > 0 ? (
+                            availableRoles.map((role) => (
+                              <SelectItem key={role.id} value={role.id.toString()}>
+                                {role.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="" disabled>No roles available</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {inviteForm.watch("team_role_id") && (
+                <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50">
+                  <h4 className="text-sm font-semibold mb-4 text-slate-900 dark:text-slate-100">Role Permissions</h4>
+                  <ScrollArea className="h-[120px]">
+                    <div className="space-y-2">
+                      {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.map(permission => (
+                        <div key={permission.id} className="flex items-center justify-between py-2 px-3 bg-white/60 dark:bg-slate-700/60 rounded-lg">
+                          <span className="font-medium text-sm text-slate-900 dark:text-slate-100">{permission.name.replace(/_/g, ' ')}</span>
+                          <span className="text-xs text-slate-600 dark:text-slate-400">{permission.description}</span>
+                        </div>
+                      ))}
+                      {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.length === 0 && (
+                        <div className="text-center py-4 text-slate-500 dark:text-slate-400 text-sm">
+                          This role has no permissions assigned
                         </div>
                       )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
 
-                      <DialogFooter>
-                        <Button 
-                          type="submit" 
-                          className="flex items-center gap-1" 
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? (
-                            <>Sending...</>
-                          ) : (
-                            <>
-                              <Mail className="h-4 w-4" /> Send Invitation
-                            </>
-                          )}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
+              <div className="flex justify-end">
+                <ModernButton 
+                  type="submit" 
+                  variant="primary"
+                  icon={Mail}
+                  disabled={isSubmitting}
+                  className="font-medium"
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Invitation'}
+                </ModernButton>
+              </div>
+            </form>
+          </Form>
+        </div>
+      )}
+
+      {/* Current Owner */}
+      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-8 border border-slate-200/50 dark:border-slate-600/50 mb-6 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <User className="h-6 w-6 text-white" />
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">{user?.name || 'You'}</h3>
+              <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0">Owner</Badge>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">{user?.email}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Team Members List */}
+      {(teamMembers.length > 0 || loading) && (
+        <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-600/50">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Team Members</h3>
+          </div>
+          
+          {loading ? (
+            <div className="p-8 flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-200/50 dark:divide-slate-600/50">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-600/30 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-slate-200 dark:bg-slate-600 rounded-xl flex items-center justify-center">
+                      <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h4 className="font-medium text-slate-900 dark:text-slate-100">
+                          {member.name || member.email}
+                        </h4>
+                        {member.status === 'pending' ? (
+                          <Badge variant="outline" className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800">
+                            <Clock className="h-3 w-3" />
+                            Pending
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <span className="capitalize">{member.role}</span>
+                        <span>•</span>
+                        <span>
+                          {member.status === 'pending' 
+                            ? (member.expires_at ? calculateExpiryStatus(member.expires_at) : 'No expiry')
+                            : `Added ${formatDate(member.created_at || '')}`
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <ModernButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </ModernButton>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {!loading && teamMembers.length === 0 && (
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-slate-100 dark:bg-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <User className="h-8 w-8 text-slate-400" />
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 mb-2">No team members yet</p>
+              <p className="text-sm text-slate-500 dark:text-slate-500">
+                Invite your first team member to get started collaborating.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 };
