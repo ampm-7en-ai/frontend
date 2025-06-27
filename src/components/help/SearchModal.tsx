@@ -3,8 +3,6 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 
 interface SearchModalProps {
@@ -15,17 +13,16 @@ interface SearchModalProps {
 const SearchModal = ({ isOpen, onClose }: SearchModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>Ask AI</DialogTitle>
-        </DialogHeader>
-        <div className="flex-1 w-full h-full">
-          <iframe
-            src="https://www.perplexity.ai"
-            className="w-full h-full border-0 rounded-lg"
-            title="Ask AI"
-          />
-        </div>
+      <DialogContent className="max-w-6xl w-full h-[90vh] p-0 gap-0">
+        <iframe
+          src="http://localhost:8080/chat/preview/3"
+          width="100%"
+          height="100%"
+          frameBorder="0"
+          allow="microphone"
+          className="w-full h-full rounded-2xl"
+          title="Ask AI"
+        />
       </DialogContent>
     </Dialog>
   );
