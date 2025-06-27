@@ -250,7 +250,7 @@ const IntegrationsPage = () => {
                     </p>
                   </div>
                   
-                  <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+                  <div className="bg-slate-50/70 dark:bg-slate-800/30 rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categoryIntegrations.map((integration) => (
                         <Card key={integration.id} className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200 group">
