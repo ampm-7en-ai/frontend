@@ -165,8 +165,8 @@ const IntegrationsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-      <div className="container mx-auto py-8 px-6 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="container mx-auto py-8 px-4 max-w-5xl pt-12">
         {selectedIntegration ? (
           <div className="space-y-6">
             <div className="flex items-center gap-4 mb-6">
@@ -226,15 +226,7 @@ const IntegrationsPage = () => {
           </div>
         ) : (
           <div className="space-y-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
-                Integrations
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-                Connect your 7en.ai chatbot to various messaging platforms and services to streamline your workflow.
-              </p>
-            </div>
-
+            
             <div className="space-y-8">
               {Object.entries(groupedIntegrations).map(([category, categoryIntegrations]) => (
                 <section key={category} className="space-y-6">
@@ -250,10 +242,10 @@ const IntegrationsPage = () => {
                     </p>
                   </div>
                   
-                  <div className="bg-slate-50/70 dark:bg-slate-800/30 rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50">
+                  <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categoryIntegrations.map((integration) => (
-                        <Card key={integration.id} className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200 group">
+                        <Card key={integration.id} className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-none">
                           <CardHeader className="pb-4">
                             <div className="flex items-start justify-between mb-4">
                               <div 
@@ -272,24 +264,24 @@ const IntegrationsPage = () => {
                                   className="w-16 h-16 object-contain"
                                 />
                               </div>
-                              <Badge 
+                                <Badge 
                                 variant="outline" 
                                 className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400"
                               >
                                 not connected
                               </Badge>
                             </div>
-                            <CardTitle className="text-xl text-slate-900 dark:text-slate-100 mb-2">
+                            <CardTitle className="font-medium text-base text-slate-900 dark:text-slate-100 mb-2">
                               {integration.name}
                             </CardTitle>
-                            <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {/* <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed">
                               {integration.description}
-                            </CardDescription>
+                            </CardDescription> */}
                           </CardHeader>
                           <CardContent className="pt-0">
                             <ModernButton 
                               variant="outline" 
-                              className="w-full shadow-sm"
+                              className="w-full"
                               onClick={() => setSelectedIntegration(integration.id)}
                             >
                               Configure Integration

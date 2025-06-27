@@ -264,9 +264,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out border-r border-gray-100 dark:border-gray-800 overflow-hidden`}>
         {/* Header with Logo */}
         <div className="flex items-center justify-between h-14 px-4">
-          {!isCollapsed ? (
-            <img src='/logo.svg' className="h-8" alt="Logo" />
-          ) : (
+          {!isCollapsed ? 
+            theme === 'light' ? (<img src='/logo.svg' className="h-8" alt="Logo" />) : (<img src='/logo-white-onblack.png' className="h-8" alt="Logo" />)
+           : (
             <img src='/logo-icon.svg' className="h-8 w-8" alt="Logo" />
           )}
         </div>
