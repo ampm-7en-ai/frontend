@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Copy, Trash2, MoreVertical } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface AgentActionsDropdownProps {
   agentId: string;
@@ -71,9 +71,9 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <ModernButton variant="outline" size="sm" className="h-8 w-8 p-0">
           <MoreVertical className="h-4 w-4" />
-        </Button>
+        </ModernButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
