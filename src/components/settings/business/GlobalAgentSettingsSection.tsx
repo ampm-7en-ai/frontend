@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Edit, Save } from 'lucide-react';
+import { Edit, Save, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface GlobalAgentSettingsProps {
   initialSettings?: {
@@ -30,7 +30,6 @@ type GlobalSettingsFormValues = z.infer<typeof globalSettingsSchema>;
 
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
-
 
   const globalSettingsForm = useForm<GlobalSettingsFormValues>({
     resolver: zodResolver(globalSettingsSchema),
@@ -89,142 +88,144 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
   };
 
   return (
-    <section>
-      <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
-        <span>Global Agent Settings</span>
-        {!isEditingGlobalSettings ? (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsEditingGlobalSettings(true)}
-            className="flex items-center gap-1"
+    <section className="p-8">
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Global Agent Settings</h2>
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Configure default settings that will apply to all your AI agents
+        </p>
+      </div>
+      
+      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+              <Settings className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Configuration</h3>
+          </div>
+          <ModernButton
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditingGlobalSettings(!isEditingGlobalSettings)}
+            icon={isEditingGlobalSettings ? undefined : Edit}
           >
-            <Edit className="h-4 w-4" /> Edit
-          </Button>
+            {isEditingGlobalSettings ? 'Cancel' : 'Edit'}
+          </ModernButton>
+        </div>
+
+        {isEditingGlobalSettings ? (
+          <Form {...globalSettingsForm}>
+            <form onSubmit={globalSettingsForm.handleSubmit(onGlobalSettingsSubmit)} className="space-y-4">
+              <FormField
+                control={globalSettingsForm.control}
+                name="defaultModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Response Model</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
+                        <SelectValue placeholder="Select model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
+                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
+                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                        <SelectItem value="mistral-large-latest">Mistral Large (Mistral AI)</SelectItem>
+                        <SelectItem value="mistral-medium-latest">Mistral Medium (Mistral AI)</SelectItem>
+                        <SelectItem value="mistral-small-latest">Mistral Small (Mistral AI)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={globalSettingsForm.control}
+                name="maxContextLength"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Maximum Context Length</FormLabel>
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={(value) => field.onChange(Number(value))}
+                    >
+                      <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
+                        <SelectValue placeholder="Select context length" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="4000">4,000 tokens</SelectItem>
+                        <SelectItem value="8000">8,000 tokens</SelectItem>
+                        <SelectItem value="16000">16,000 tokens</SelectItem>
+                        <SelectItem value="32000">32,000 tokens</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={globalSettingsForm.control}
+                name="defaultTemperature"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Temperature</FormLabel>
+                    <div className="flex items-center gap-4">
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          min={0}
+                          max={1}
+                          step={0.1}
+                          {...field}
+                          className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                        />
+                      </FormControl>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
+                        Lower values produce more deterministic responses, higher values produce more creative ones.
+                      </span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end pt-4">
+                <ModernButton type="submit" variant="primary" icon={Save}>
+                  Save Settings
+                </ModernButton>
+              </div>
+            </form>
+          </Form>
         ) : (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsEditingGlobalSettings(false)}
-            className="flex items-center gap-1"
-          >
-            Cancel
-          </Button>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
+                <p className="text-slate-600 dark:text-slate-400">
+                  {globalSettingsForm.getValues().defaultModel === 'gpt-4o' ? 'GPT-4o (OpenAI)' :
+                   globalSettingsForm.getValues().defaultModel === 'gpt-4-turbo' ? 'GPT-4 Turbo (OpenAI)' :
+                   globalSettingsForm.getValues().defaultModel === 'gpt-3.5-turbo' ? 'GPT-3.5 Turbo (OpenAI)' :
+                   globalSettingsForm.getValues().defaultModel === 'mistral-large-latest' ? 'Mistral Large (Mistral AI)' :
+                   globalSettingsForm.getValues().defaultModel === 'mistral-medium-latest' ? 'Mistral Medium (Mistral AI)' :
+                   globalSettingsForm.getValues().defaultModel === 'mistral-small-latest' ? 'Mistral Small (Mistral AI)' :
+                   globalSettingsForm.getValues().defaultModel}
+                </p>
+              </div>
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Maximum Context Length</h4>
+                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
+              </div>
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
+                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().defaultTemperature}</p>
+              </div>
+            </div>
+          </div>
         )}
-      </h2>
-      <Card>
-        <CardContent className="pt-6 space-y-4">
-          {isEditingGlobalSettings ? (
-            <Form {...globalSettingsForm}>
-              <form onSubmit={globalSettingsForm.handleSubmit(onGlobalSettingsSubmit)} className="space-y-4">
-                <FormField
-                  control={globalSettingsForm.control}
-                  name="defaultModel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Default Response Model</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger id="defaultModel">
-                          <SelectValue placeholder="Select model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
-                            <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
-                            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                            <SelectItem value="mistral-large-latest">Mistral Large (Mistral AI)</SelectItem>
-                            <SelectItem value="mistral-medium-latest">Mistral Medium (Mistral AI)</SelectItem>
-                            <SelectItem value="mistral-small-latest">Mistral Small (Mistral AI)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={globalSettingsForm.control}
-                  name="maxContextLength"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Maximum Context Length</FormLabel>
-                      <Select
-                        value={field.value?.toString() || ""}
-                        onValueChange={(value) => field.onChange(Number(value))}
-                      >
-                        <SelectTrigger id="maxContext">
-                          <SelectValue placeholder="Select context length" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="4000">4,000 tokens</SelectItem>
-                          <SelectItem value="8000">8,000 tokens</SelectItem>
-                          <SelectItem value="16000">16,000 tokens</SelectItem>
-                          <SelectItem value="32000">32,000 tokens</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={globalSettingsForm.control}
-                  name="defaultTemperature"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Default Temperature</FormLabel>
-                      <div className="flex items-center gap-4">
-                        <FormControl>
-                          <Input 
-                            id="defaultTemp"
-                            type="number"
-                            min={0}
-                            max={1}
-                            step={0.1}
-                            {...field}
-                          />
-                        </FormControl>
-                        <span className="text-sm text-muted-foreground">
-                          Lower values produce more deterministic responses, higher values produce more creative ones.
-                        </span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" className="flex items-center gap-1">
-                    <Save className="h-4 w-4" /> Save Settings
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          ) : (
-            <>
-              <div>
-                <h3 className="font-medium">Default Response Model</h3>
-                <p className="text-muted-foreground">{
-                  globalSettingsForm.getValues().defaultModel === 'gpt-4o' ? 'GPT-4o (OpenAI)' :
-                  globalSettingsForm.getValues().defaultModel === 'gpt-4-turbo' ? 'GPT-4 Turbo (OpenAI)' :
-                  globalSettingsForm.getValues().defaultModel === 'gpt-3.5-turbo' ? 'GPT-3.5 Turbo (OpenAI)' :
-                  globalSettingsForm.getValues().defaultModel === 'mistral-large-latest' ? 'Mistral Large (Mistral AI)' :
-                  globalSettingsForm.getValues().defaultModel === 'mistral-medium-latest' ? 'Mistral Medium (Mistral AI)' :
-                  globalSettingsForm.getValues().defaultModel === 'mistral-small-latest' ? 'Mistral Small (Mistral AI)' :
-                  globalSettingsForm.getValues().defaultModel
-                }</p>
-              </div>
-              <div>
-                <h3 className="font-medium">Maximum Context Length</h3>
-                <p className="text-muted-foreground">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
-              </div>
-              <div>
-                <h3 className="font-medium">Default Temperature</h3>
-                <p className="text-muted-foreground">{globalSettingsForm.getValues().defaultTemperature}</p>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      </div>
     </section>
   );
 };

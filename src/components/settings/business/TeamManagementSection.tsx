@@ -504,14 +504,14 @@ const TeamManagementSection = () => {
                       </div>
                     </div>
                   </div>
-                  <Button
+                  <ModernButton
                     variant="outline"
                     size="sm"
                     onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-8 w-8 p-0"
                   >
                     <Trash className="h-3.5 w-3.5" />
-                  </Button>
+                  </ModernButton>
                 </div>
               ))}
             </div>

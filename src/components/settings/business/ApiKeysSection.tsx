@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from '@/hooks/use-toast';
 import { usePricingModal } from '@/hooks/usePricingModal';
 import { useApiKeys } from '@/hooks/useApiKeys';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
@@ -77,113 +77,112 @@ const ApiKeysSection = () => {
 
   if (!isPaidPlan) {
     return (
-      <section>
-        <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
-          <span>Your 7en.ai API Keys</span>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={openPricingModal}
-            className="flex items-center gap-1"
-          >
-            Upgrade Plan <ChevronRight className="h-3 w-3" />
-          </Button>
-        </h2>
-        <Card>
-          <CardContent className="pt-6">
+      <section className="p-8">
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Your 7en.ai API Keys</h2>
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+            Manage your API key to access the 7en.ai API programmatically
+          </p>
+        </div>
+        
+        <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+          <div className="flex items-center gap-4 justify-between">
             <div className="flex items-center gap-4">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
-              <p className="text-muted-foreground">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center">
+                <AlertCircle className="h-5 w-5 text-white" />
+              </div>
+              <p className="text-slate-700 dark:text-slate-300 font-medium">
                 Upgrade your plan to enable API keys.
               </p>
             </div>
-          </CardContent>
-        </Card>
+            <ModernButton variant="gradient" onClick={openPricingModal} icon={ChevronRight}>
+              Upgrade Plan
+            </ModernButton>
+          </div>
+        </div>
       </section>
     );
   }
 
   return (
-    <section>
-      <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
-        <span>Your 7en.ai API Keys</span>
-        {hasApiKey ? (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefreshKey}
-            disabled={isLoading || isRefreshing}
-            className="flex items-center gap-1"
-          >
-            {isRefreshing ? (
-              <>
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Refreshing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4" />
-                Refresh Key
-              </>
-            )}
-          </Button>
-        ) : (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleCreateKey}
-            disabled={isLoading}
-            className="flex items-center gap-1"
-          >
-            <Plus className="h-4 w-4" />
-            Create API Key
-          </Button>
-        )}
-      </h2>
+    <section className="p-8">
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Your 7en.ai API Keys</h2>
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Manage your API key to access the 7en.ai API programmatically. Keep your API key secure - it has the same permissions as your account.
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">API Keys</CardTitle>
-          <CardDescription>
-            Manage your API key to access the 7en.ai API programmatically. Keep your API key secure - it has the same permissions as your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+              <Key className="h-5 w-5 text-white" />
             </div>
-          ) : error ? (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-              <p>Failed to load API key information. Please try again.</p>
-            </div>
-          ) : hasApiKey ? (
-            <div className="text-center py-8">
-              <KeyRound className="h-8 w-8 mx-auto mb-2 text-green-600" />
-              <p className="font-medium text-green-800">API Key Active</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Your API key is ready to use. Click "Refresh Key" to generate a new one.
-              </p>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <KeyRound className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No API key found</p>
-              <p className="text-sm mt-2">Create your API key to get started</p>
-            </div>
-          )}
-
-          <div className="mt-6 space-y-4">
-            <h3 className="text-lg font-medium">API Documentation</h3>
-            <p className="text-sm text-muted-foreground">
-              View our API documentation to learn how to integrate 7en.ai with your applications.
-            </p>
-            <Button variant="outline" className="mt-2">
-              View API Documentation
-            </Button>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">API Keys</h3>
           </div>
-        </CardContent>
-      </Card>
+          {hasApiKey ? (
+            <ModernButton 
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshKey}
+              disabled={isLoading || isRefreshing}
+              icon={RefreshCw}
+              className={isRefreshing ? "animate-spin" : ""}
+            >
+              {isRefreshing ? 'Refreshing...' : 'Refresh Key'}
+            </ModernButton>
+          ) : (
+            <ModernButton 
+              variant="primary"
+              size="sm"
+              onClick={handleCreateKey}
+              disabled={isLoading}
+              icon={Plus}
+            >
+              Create API Key
+            </ModernButton>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
+            <p>Failed to load API key information. Please try again.</p>
+          </div>
+        ) : hasApiKey ? (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <KeyRound className="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+            <p className="font-semibold text-green-800 dark:text-green-400 mb-2">API Key Active</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Your API key is ready to use. Click "Refresh Key" to generate a new one.
+            </p>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <KeyRound className="h-8 w-8 text-slate-400" />
+            </div>
+            <p className="text-slate-600 dark:text-slate-400 mb-2">No API key found</p>
+            <p className="text-sm text-slate-500 dark:text-slate-500">Create your API key to get started</p>
+          </div>
+        )}
+
+        <div className="border-t border-slate-200/50 dark:border-slate-600/50 pt-6 mt-6">
+          <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">API Documentation</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            View our API documentation to learn how to integrate 7en.ai with your applications.
+          </p>
+          <ModernButton variant="outline">
+            View API Documentation
+          </ModernButton>
+        </div>
+      </div>
 
       <Dialog open={isApiKeyDialogOpen} onOpenChange={handleCloseDialog}>
         <DialogContent>

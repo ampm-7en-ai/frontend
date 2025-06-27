@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Edit, Save } from 'lucide-react';
+import { Edit, Save, User as UserIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ import * as z from "zod";
 import { updateSettings } from "@/utils/api-config";
 import PhoneInputField from "@/components/ui/PhoneInputField";
 import CountryPhoneInput from "@/components/ui/CountryPhoneInput";
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const profileFormSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
@@ -81,122 +81,137 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
   };
 
   return (
-    <section>
-      <h2 className="text-xl font-semibold mb-4 flex justify-between items-center">
-        <span>Business Profile</span>
-        {
-          initialData.isAllowed && (!isEditingProfile ? (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsEditingProfile(true)}
-            className="flex items-center gap-1"
-          >
-            <Edit className="h-4 w-4" /> Edit
-          </Button>
-        ) : (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsEditingProfile(false)}
-            className="flex items-center gap-1"
-          >
-            Cancel
-          </Button>
-        ))
-        }
-      </h2>
-      <Card>
+    <section className="p-8">
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Business Profile</h2>
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Manage your business information and contact details
+        </p>
+      </div>
+      
+      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+              <UserIcon className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Business Information</h3>
+          </div>
+          {initialData.isAllowed && (
+            <ModernButton
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingProfile(!isEditingProfile)}
+              icon={isEditingProfile ? undefined : Edit}
+            >
+              {isEditingProfile ? 'Cancel' : 'Edit'}
+            </ModernButton>
+          )}
+        </div>
+
         {isEditingProfile ? (
-          <CardContent className="pt-6">
-            <Form {...profileForm}>
-              <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                <FormField
-                  control={profileForm.control}
-                  name="businessName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your Business Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={profileForm.control}
-                  name="adminEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Admin Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="admin@example.com" {...field} disabled />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={profileForm.control}
-                  name="adminWebsite"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={profileForm.control}
-                  name="adminPhone"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <CountryPhoneInput
-                          value={field.value || ""}
-                          onChange={(val: string) => field.onChange(val)}
-                          error={!!fieldState.error}
-                          placeholder="Enter phone number"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" className="flex items-center gap-1">
-                    <Save className="h-4 w-4" /> Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
+          <Form {...profileForm}>
+            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+              <FormField
+                control={profileForm.control}
+                name="businessName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Your Business Name" 
+                        {...field} 
+                        className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="adminEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Admin Email</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="admin@example.com" 
+                        {...field} 
+                        disabled 
+                        className="bg-slate-100/80 dark:bg-slate-700/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="adminWebsite"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://" 
+                        {...field} 
+                        className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="adminPhone"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <CountryPhoneInput
+                        value={field.value || ""}
+                        onChange={(val: string) => field.onChange(val)}
+                        error={!!fieldState.error}
+                        placeholder="Enter phone number"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end pt-4">
+                <ModernButton type="submit" variant="primary" icon={Save}>
+                  Save Changes
+                </ModernButton>
+              </div>
+            </form>
+          </Form>
         ) : (
-          <CardContent className="pt-6 space-y-4">
-            <div>
-              <h3 className="font-medium">Business Name</h3>
-              <p className="text-muted-foreground">{profileForm.getValues().businessName}</p>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Business Name</h4>
+                <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().businessName || 'Not specified'}</p>
+              </div>
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Email</h4>
+                <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().adminEmail || 'Not specified'}</p>
+              </div>
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Website</h4>
+                <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().adminWebsite || 'Not specified'}</p>
+              </div>
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Phone</h4>
+                <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().adminPhone || 'Not specified'}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-medium">Email</h3>
-              <p className="text-muted-foreground">{profileForm.getValues().adminEmail}</p>
-            </div>
-            <div>
-              <h3 className="font-medium">Website</h3>
-              <p className="text-muted-foreground">{profileForm.getValues().adminWebsite}</p>
-            </div>
-            <div>
-              <h3 className="font-medium">Phone</h3>
-              <p className="text-muted-foreground">{profileForm.getValues().adminPhone}</p>
-            </div>
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
     </section>
   );
 };
