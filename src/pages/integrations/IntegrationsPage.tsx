@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -236,64 +235,71 @@ const IntegrationsPage = () => {
               </p>
             </div>
 
-            <div className="space-y-10">
+            <div className="space-y-8">
               {Object.entries(groupedIntegrations).map(([category, categoryIntegrations]) => (
-                <div key={category}>
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                      {category}
-                    </h2>
-                    <div className="h-px bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700"></div>
+                <section key={category} className="space-y-6">
+                  <div className="mb-6 pl-2">
+                    <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">{category}</h2>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {category === 'Messaging' && 'Connect with popular messaging platforms to reach your customers where they are.'}
+                      {category === 'Communication' && 'Integrate with communication tools to streamline team collaboration.'}
+                      {category === 'Social Media' && 'Connect with social media platforms to automate customer interactions.'}
+                      {category === 'Automation' && 'Connect with automation tools to create powerful workflows.'}
+                      {category === 'Support' && 'Integrate with customer support platforms to enhance your helpdesk operations.'}
+                      {category === 'CRM & Support' && 'Connect with CRM and enterprise support platforms for comprehensive customer management.'}
+                    </p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {categoryIntegrations.map((integration) => (
-                      <Card key={integration.id} className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200 group">
-                        <CardHeader className="pb-4">
-                          <div className="flex items-start justify-between mb-4">
-                            <div 
-                              className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow"
-                              style={{
-                                padding: '0',
-                                height: 'auto',
-                                width: 'auto',
-                                borderRadius: '14px',
-                                overflow: 'hidden'
-                              }}
-                            >
-                              <img 
-                                src={integration.logo} 
-                                alt={integration.name}
-                                className="w-16 h-16 object-contain"
-                              />
+                  <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {categoryIntegrations.map((integration) => (
+                        <Card key={integration.id} className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200 group">
+                          <CardHeader className="pb-4">
+                            <div className="flex items-start justify-between mb-4">
+                              <div 
+                                className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow"
+                                style={{
+                                  padding: '0',
+                                  height: 'auto',
+                                  width: 'auto',
+                                  borderRadius: '14px',
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                <img 
+                                  src={integration.logo} 
+                                  alt={integration.name}
+                                  className="w-16 h-16 object-contain"
+                                />
+                              </div>
+                              <Badge 
+                                variant="outline" 
+                                className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400"
+                              >
+                                not connected
+                              </Badge>
                             </div>
-                            <Badge 
+                            <CardTitle className="text-xl text-slate-900 dark:text-slate-100 mb-2">
+                              {integration.name}
+                            </CardTitle>
+                            <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                              {integration.description}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <ModernButton 
                               variant="outline" 
-                              className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400"
+                              className="w-full shadow-sm"
+                              onClick={() => setSelectedIntegration(integration.id)}
                             >
-                              not connected
-                            </Badge>
-                          </div>
-                          <CardTitle className="text-xl text-slate-900 dark:text-slate-100 mb-2">
-                            {integration.name}
-                          </CardTitle>
-                          <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            {integration.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <ModernButton 
-                            variant="outline" 
-                            className="w-full shadow-sm"
-                            onClick={() => setSelectedIntegration(integration.id)}
-                          >
-                            Configure Integration
-                          </ModernButton>
-                        </CardContent>
-                      </Card>
-                    ))}
+                              Configure Integration
+                            </ModernButton>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </section>
               ))}
             </div>
           </div>
