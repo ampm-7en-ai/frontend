@@ -30,6 +30,7 @@ const SupportTicket = () => {
                 className="absolute right-2 top-1/2 transform -translate-y-1/2"
                 icon={ArrowRight}
               >
+                Search
               </ModernButton>
             </div>
           </div>
