@@ -716,7 +716,7 @@ const KnowledgeBase = () => {
             {filteredDocuments.map((doc, index) => (
               <Card 
                 key={doc.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2"
               >
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between">
@@ -733,9 +733,6 @@ const KnowledgeBase = () => {
                           <h3 className={`font-semibold text-slate-900 dark:text-slate-100 text-sm truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
                             {doc.title}
                           </h3>
-                          <Badge variant="outline" className="font-medium text-xs px-2 py-0.5 rounded-full shrink-0 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400">
-                            {doc.sourceType.toUpperCase()}
-                          </Badge>
                           {canShowNestedView(doc.sourceType) && (
                             <ChevronRight className="h-3 w-3 text-slate-400 dark:text-slate-500 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
                           )}
@@ -820,7 +817,7 @@ const KnowledgeBase = () => {
     return (
       <div className="space-y-6">
         {/* Breadcrumb Navigation */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-4">
+        <div className="rounded-xl p-4 pl-0">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -848,12 +845,10 @@ const KnowledgeBase = () => {
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
-                {renderSourceIcon({sourceType: sourceType})}
-              </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-0 flex gap-2">
                   {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
+                  <Badge variant='outline'>{selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown"}</Badge>
                 </h2>
               </div>
             </div>
@@ -904,7 +899,7 @@ const KnowledgeBase = () => {
             {knowledgeSources.map((source) => (
               <Card 
                 key={source.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none"
+                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2"
               >
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between">
@@ -921,9 +916,6 @@ const KnowledgeBase = () => {
                           <span className="font-medium">
                             {formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size)}
                           </span>
-                          <Badge variant="outline" className="font-mono uppercase text-xs font-medium px-2 py-0.5 rounded-full border-slate-300 dark:border-slate-600">
-                            {source.metadata?.format || source.type || "Unknown"}
-                          </Badge>
                           <span className="font-medium">
                             {getContentMeasure(source)}
                           </span>
