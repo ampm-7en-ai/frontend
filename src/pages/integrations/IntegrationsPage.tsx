@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import ModernButton from '@/components/dashboard/ModernButton';
 import WhatsAppIntegration from '@/components/integrations/WhatsAppIntegration';
 import SlackIntegration from '@/components/integrations/SlackIntegration';
 import InstagramIntegration from '@/components/integrations/InstagramIntegration';
@@ -13,7 +13,7 @@ import FreshdeskIntegration from '@/components/integrations/FreshdeskIntegration
 import ZohoIntegration from '@/components/integrations/ZohoIntegration';
 import SalesforceIntegration from '@/components/integrations/SalesforceIntegration';
 import HubspotIntegration from '@/components/integrations/HubspotIntegration';
-import { MessageSquare, Slack, Instagram, Link, Phone, Headphones, Ticket, Building2, Cloud, Users } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
 
@@ -51,100 +51,80 @@ const IntegrationsPage = () => {
       id: 'whatsapp',
       name: 'WhatsApp Business',
       description: 'Connect your AI Agent with WhatsApp Business API to reach your customers where they are.',
-      icon: Phone,
+      logo: 'https://img.logo.dev/whatsapp.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-green-500',
-      textColor: 'text-white',
       category: 'Messaging',
     },
     {
       id: 'slack',
       name: 'Slack',
       description: 'Connect your AI Agent with Slack to engage with your team and customers.',
-      icon: Slack,
+      logo: 'https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-purple-600',
-      textColor: 'text-white',
       category: 'Communication',
     },
     {
       id: 'instagram',
       name: 'Instagram',
       description: 'Connect your AI Agent with Instagram to respond to DMs automatically.',
-      icon: Instagram,
+      logo: 'https://img.logo.dev/instagram.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400',
-      textColor: 'text-white',
       category: 'Social Media',
     },
     {
       id: 'messenger',
       name: 'Facebook Messenger',
       description: 'Connect your AI Agent with Facebook Messenger to automate customer conversations.',
-      icon: MessageSquare,
+      logo: 'https://img.logo.dev/facebook.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-blue-600',
-      textColor: 'text-white',
       category: 'Messaging',
     },
     {
       id: 'zapier',
       name: 'Zapier',
       description: 'Connect your AI Agent with thousands of apps through Zapier automation.',
-      icon: Link,
+      logo: 'https://img.logo.dev/zapier.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-orange-500',
-      textColor: 'text-white',
       category: 'Automation',
     },
     {
       id: 'zendesk',
       name: 'Zendesk',
       description: 'Connect your AI Agent with Zendesk to automate ticket management and customer support.',
-      icon: Headphones,
+      logo: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-teal-600',
-      textColor: 'text-white',
       category: 'Support',
     },
     {
       id: 'freshdesk',
       name: 'Freshdesk',
       description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
-      icon: Ticket,
+      logo: 'https://img.logo.dev/freshworks.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-emerald-500',
-      textColor: 'text-white',
       category: 'Support',
     },
     {
       id: 'zoho',
       name: 'Zoho Desk',
       description: 'Connect your AI Agent with Zoho Desk to streamline customer support and ticket handling.',
-      icon: Building2,
+      logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-red-600',
-      textColor: 'text-white',
       category: 'Support',
     },
     {
       id: 'salesforce',
       name: 'Salesforce Service Cloud',
       description: 'Connect your AI Agent with Salesforce to enhance customer service and case management.',
-      icon: Cloud,
+      logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-blue-500',
-      textColor: 'text-white',
       category: 'CRM & Support',
     },
     {
       id: 'hubspot',
       name: 'HubSpot Service Hub',
       description: 'Connect your AI Agent with HubSpot to automate customer support and ticketing workflows.',
-      icon: Users,
+      logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: 'not_connected' as const,
-      color: 'bg-orange-600',
-      textColor: 'text-white',
       category: 'CRM & Support',
     },
   ];
@@ -177,92 +157,110 @@ const IntegrationsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Integrations</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-            Connect your 7en.ai chatbot to various messaging platforms and services.
-          </p>
-        </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+      <div className="container mx-auto py-8 px-6 max-w-7xl">
         {selectedIntegration ? (
           <div className="space-y-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedIntegration(null)}
-              className="mb-4 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-600 hover:bg-white dark:hover:bg-slate-800"
-            >
-              ← Back to Integrations
-            </Button>
+            <div className="flex items-center gap-4 mb-6">
+              <ModernButton 
+                variant="outline" 
+                onClick={() => setSelectedIntegration(null)}
+                icon={ArrowLeft}
+                className="shadow-sm"
+              >
+                Back to Integrations
+              </ModernButton>
+            </div>
             
-            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-600/50 shadow-xl">
-              <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50 bg-slate-50/50 dark:bg-slate-700/50">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+              <div className="border-b border-slate-200 dark:border-slate-700 p-6">
                 <div className="flex items-center gap-4">
                   {(() => {
                     const integration = integrations.find(i => i.id === selectedIntegration);
-                    const Icon = integration?.icon;
                     return (
                       <>
-                        {Icon && (
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${integration?.color}`}>
-                            <Icon className={`h-6 w-6 ${integration?.textColor}`} />
-                          </div>
-                        )}
-                        <div>
-                          <CardTitle className="text-slate-900 dark:text-slate-100">{integration?.name}</CardTitle>
-                          <CardDescription className="text-slate-600 dark:text-slate-400">{integration?.description}</CardDescription>
+                        <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm">
+                          <img 
+                            src={integration?.logo} 
+                            alt={integration?.name}
+                            className="w-10 h-10 object-contain"
+                          />
                         </div>
+                        <div className="flex-1">
+                          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
+                            {integration?.name}
+                          </h1>
+                          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {integration?.description}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400">
+                          Not Connected
+                        </Badge>
                       </>
                     );
                   })()}
                 </div>
-              </CardHeader>
-              <CardContent className="p-8 bg-white/50 dark:bg-slate-800/50">
+              </div>
+              <div className="p-8">
                 {renderIntegrationComponent(selectedIntegration)}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {integrations.map((integration) => {
-              const Icon = integration.icon;
-              return (
-                <Card key={integration.id} className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-600/50 shadow-sm hover:shadow-lg transition-all duration-200 group">
+          <div className="space-y-8">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                Integrations
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+                Connect your 7en.ai chatbot to various messaging platforms and services to streamline your workflow.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {integrations.map((integration) => (
+                <Card key={integration.id} className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${integration.color} shadow-lg group-hover:scale-105 transition-transform duration-200`}>
-                        <Icon className={`h-7 w-7 ${integration.textColor}`} />
+                      <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                        <img 
+                          src={integration.logo} 
+                          alt={integration.name}
+                          className="w-10 h-10 object-contain"
+                        />
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <Badge 
                           variant="outline" 
-                          className="text-slate-500 border-slate-200 bg-slate-50/80 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400"
+                          className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400"
                         >
                           not connected
                         </Badge>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium px-2 py-1 bg-slate-100/80 dark:bg-slate-700/50 rounded-full">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
                           {integration.category}
                         </span>
                       </div>
                     </div>
-                    <CardTitle className="text-lg text-slate-900 dark:text-slate-100 mb-2">{integration.name}</CardTitle>
-                    <CardDescription className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                    <CardTitle className="text-xl text-slate-900 dark:text-slate-100 mb-2">
+                      {integration.name}
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed">
                       {integration.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <Button 
+                    <ModernButton 
                       variant="outline" 
-                      className="w-full font-medium bg-slate-50/80 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                      className="w-full shadow-sm"
                       onClick={() => setSelectedIntegration(integration.id)}
                     >
                       Configure Integration
-                    </Button>
+                    </ModernButton>
                   </CardContent>
                 </Card>
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
       </div>
