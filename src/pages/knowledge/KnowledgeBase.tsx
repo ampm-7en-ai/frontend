@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -659,33 +660,48 @@ const KnowledgeBase = () => {
           </Card>
         </div>
 
-        {/* Search and Filter Section */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Input 
-              placeholder="Search knowledge sources..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+        {/* Search and Filter Section - Styled like team invitation form */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="search" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Search Knowledge Sources
+            </Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+              <Input 
+                id="search"
+                placeholder="Search by name or type..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-11 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200" 
+              />
+            </div>
           </div>
-          <Select 
-            value={sourceTypeFilter} 
-            onValueChange={setSourceTypeFilter}
-          >
-            <SelectTrigger className="w-full sm:w-48 py-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sources</SelectItem>
-              <SelectItem value="docs">Documents</SelectItem>
-              <SelectItem value="website">Websites</SelectItem>
-              <SelectItem value="csv">Spreadsheets</SelectItem>
-              <SelectItem value="plain_text">Plain Text</SelectItem>
-              <SelectItem value="thirdparty">Third Party</SelectItem>
-            </SelectContent>
-          </Select>
+          
+          <div className="space-y-2">
+            <Label htmlFor="filter" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Filter by Type
+            </Label>
+            <Select 
+              value={sourceTypeFilter} 
+              onValueChange={setSourceTypeFilter}
+            >
+              <SelectTrigger 
+                id="filter"
+                className="h-11 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+              >
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                <SelectItem value="all">All Sources</SelectItem>
+                <SelectItem value="docs">Documents</SelectItem>
+                <SelectItem value="website">Websites</SelectItem>
+                <SelectItem value="csv">Spreadsheets</SelectItem>
+                <SelectItem value="plain_text">Plain Text</SelectItem>
+                <SelectItem value="thirdparty">Third Party</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         
         {/* Knowledge Sources Cards Grid */}
