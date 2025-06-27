@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, ArrowRight, MessageSquare, BookOpen, Headphones } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
+import SearchModal from '@/components/help/SearchModal';
 
 const SupportTicket = () => {
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="container mx-auto py-12 max-w-6xl px-6">
@@ -29,8 +32,9 @@ const SupportTicket = () => {
                 size="sm"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2"
                 icon={ArrowRight}
+                onClick={() => setIsSearchModalOpen(true)}
               >
-                Search
+                Ask AI
               </ModernButton>
             </div>
           </div>
@@ -141,6 +145,11 @@ const SupportTicket = () => {
           </div>
         </div>
       </div>
+
+      <SearchModal 
+        isOpen={isSearchModalOpen} 
+        onClose={() => setIsSearchModalOpen(false)} 
+      />
     </div>
   );
 };
