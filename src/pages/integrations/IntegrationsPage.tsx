@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import WhatsAppIntegration from '@/components/integrations/WhatsAppIntegration';
 import SlackIntegration from '@/components/integrations/SlackIntegration';
 import InstagramIntegration from '@/components/integrations/InstagramIntegration';
@@ -13,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
 
 const IntegrationsPage = () => {
-  const [activeTab, setActiveTab] = useState("whatsapp");
+  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
   const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const { toast } = useToast();
@@ -41,71 +43,88 @@ const IntegrationsPage = () => {
     }
   }, [toast, initialLoadComplete]);
 
-  const getTabIcon = (tab: string) => {
-    switch (tab) {
+  const integrations = [
+    {
+      id: 'whatsapp',
+      name: 'WhatsApp Business',
+      description: 'Connect your AI Agent with WhatsApp Business API to reach your customers where they are.',
+      icon: Phone,
+      status: 'not_connected' as const,
+      color: 'bg-green-100 text-green-600',
+    },
+    {
+      id: 'slack',
+      name: 'Slack',
+      description: 'Connect your AI Agent with Slack to engage with your team and customers.',
+      icon: Slack,
+      status: 'not_connected' as const,
+      color: 'bg-indigo-100 text-indigo-600',
+    },
+    {
+      id: 'instagram',
+      name: 'Instagram',
+      description: 'Connect your AI Agent with Instagram to respond to DMs automatically.',
+      icon: Instagram,
+      status: 'not_connected' as const,
+      color: 'bg-purple-100 text-purple-600',
+    },
+    {
+      id: 'messenger',
+      name: 'Facebook Messenger',
+      description: 'Connect your AI Agent with Facebook Messenger to automate customer conversations.',
+      icon: MessageSquare,
+      status: 'not_connected' as const,
+      color: 'bg-blue-100 text-blue-600',
+    },
+    {
+      id: 'zapier',
+      name: 'Zapier',
+      description: 'Connect your AI Agent with thousands of apps through Zapier automation.',
+      icon: Link,
+      status: 'not_connected' as const,
+      color: 'bg-orange-100 text-orange-600',
+    },
+    {
+      id: 'zendesk',
+      name: 'Zendesk',
+      description: 'Connect your AI Agent with Zendesk to automate ticket management and customer support.',
+      icon: Headphones,
+      status: 'not_connected' as const,
+      color: 'bg-teal-100 text-teal-600',
+    },
+    {
+      id: 'freshdesk',
+      name: 'Freshdesk',
+      description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
+      icon: Ticket,
+      status: 'not_connected' as const,
+      color: 'bg-rose-100 text-rose-600',
+    },
+  ];
+
+  const renderIntegrationComponent = (integrationId: string) => {
+    switch (integrationId) {
       case 'whatsapp':
-        return <Phone className="h-5 w-5 mr-2" />;
+        return <WhatsAppIntegration shouldCheckStatus={initialLoadComplete} />;
       case 'slack':
-        return <Slack className="h-5 w-5 mr-2" />;
+        return <SlackIntegration />;
       case 'instagram':
-        return <Instagram className="h-5 w-5 mr-2" />;
+        return <InstagramIntegration />;
       case 'messenger':
-        return <MessageSquare className="h-5 w-5 mr-2" />;
+        return <MessengerIntegration />;
       case 'zapier':
-        return <Link className="h-5 w-5 mr-2" />;
+        return <ZapierIntegration />;
       case 'zendesk':
-        return <Headphones className="h-5 w-5 mr-2" />;
+        return <ZendeskIntegration />;
       case 'freshdesk':
-        return <Ticket className="h-5 w-5 mr-2" />;
+        return <FreshdeskIntegration />;
       default:
         return null;
     }
   };
 
-  const getTabTitle = (tab: string) => {
-    switch (tab) {
-      case 'whatsapp':
-        return "WhatsApp Business";
-      case 'slack':
-        return "Slack";
-      case 'instagram':
-        return "Instagram";
-      case 'messenger':
-        return "Facebook Messenger";
-      case 'zapier':
-        return "Zapier";
-      case 'zendesk':
-        return "Zendesk";
-      case 'freshdesk':
-        return "Freshdesk";
-      default:
-        return "";
-    }
-  };
-
-  const getTabDescription = (tab: string) => {
-    switch (tab) {
-      case 'whatsapp':
-        return "Connect your AI Agent with WhatsApp Business API to reach your customers where they are.";
-      case 'slack':
-        return "Connect your AI Agent with Slack to engage with your team and customers.";
-      case 'instagram':
-        return "Connect your AI Agent with Instagram to respond to DMs automatically.";
-      case 'messenger':
-        return "Connect your AI Agent with Facebook Messenger to automate customer conversations.";
-      case 'zapier':
-        return "Connect your AI Agent with thousands of apps through Zapier automation.";
-      case 'zendesk':
-        return "Connect your AI Agent with Zendesk to automate ticket management and customer support.";
-      case 'freshdesk':
-        return "Connect your AI Agent with Freshdesk to automate ticket management and customer support.";
-      default:
-        return "";
-    }
-  };
-
   return (
-    <div className="container mx-auto py-8 max-w-5xl">
+    <div className="container mx-auto py-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Integrations</h1>
         <p className="text-muted-foreground mt-2">
@@ -113,128 +132,76 @@ const IntegrationsPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-6 mb-8">
-        <div
-          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
-            activeTab === 'whatsapp' 
-              ? 'bg-green-100 border-2 border-green-300 shadow-md' 
-              : 'bg-white border border-gray-200 hover:border-green-200 hover:bg-green-50'
-          }`}
-          onClick={() => setActiveTab('whatsapp')}
-        >
-          <div className={`p-3 rounded-full ${activeTab === 'whatsapp' ? 'bg-green-200' : 'bg-gray-100'}`}>
-            <Phone className={`h-6 w-6 ${activeTab === 'whatsapp' ? 'text-green-700' : 'text-gray-600'}`} />
-          </div>
-          <span className={activeTab === 'whatsapp' ? 'font-medium text-green-800' : 'text-gray-700'}>WhatsApp</span>
+      {selectedIntegration ? (
+        <div className="space-y-6">
+          <Button 
+            variant="outline" 
+            onClick={() => setSelectedIntegration(null)}
+            className="mb-4"
+          >
+            ← Back to Integrations
+          </Button>
+          
+          <Card className="border shadow-lg">
+            <CardHeader className="border-b bg-muted/40">
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const integration = integrations.find(i => i.id === selectedIntegration);
+                  const Icon = integration?.icon;
+                  return (
+                    <>
+                      {Icon && <Icon className="h-6 w-6" />}
+                      <div>
+                        <CardTitle>{integration?.name}</CardTitle>
+                        <CardDescription>{integration?.description}</CardDescription>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {renderIntegrationComponent(selectedIntegration)}
+            </CardContent>
+          </Card>
         </div>
-
-        <div
-          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
-            activeTab === 'slack' 
-              ? 'bg-indigo-100 border-2 border-indigo-300 shadow-md' 
-              : 'bg-white border border-gray-200 hover:border-indigo-200 hover:bg-indigo-50'
-          }`}
-          onClick={() => setActiveTab('slack')}
-        >
-          <div className={`p-3 rounded-full ${activeTab === 'slack' ? 'bg-indigo-200' : 'bg-gray-100'}`}>
-            <Slack className={`h-6 w-6 ${activeTab === 'slack' ? 'text-indigo-700' : 'text-gray-600'}`} />
-          </div>
-          <span className={activeTab === 'slack' ? 'font-medium text-indigo-800' : 'text-gray-700'}>Slack</span>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {integrations.map((integration) => {
+            const Icon = integration.icon;
+            return (
+              <Card key={integration.id} className="border shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${integration.color}`}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className="text-slate-500 border-slate-200 bg-slate-50"
+                    >
+                      not connected
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-lg">{integration.name}</CardTitle>
+                  <CardDescription className="text-sm leading-relaxed">
+                    {integration.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <Button 
+                    variant="outline" 
+                    className="w-full font-medium"
+                    onClick={() => setSelectedIntegration(integration.id)}
+                  >
+                    View integration
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-
-        <div
-          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
-            activeTab === 'instagram' 
-              ? 'bg-purple-100 border-2 border-purple-300 shadow-md' 
-              : 'bg-white border border-gray-200 hover:border-purple-200 hover:bg-purple-50'
-          }`}
-          onClick={() => setActiveTab('instagram')}
-        >
-          <div className={`p-3 rounded-full ${activeTab === 'instagram' ? 'bg-purple-200' : 'bg-gray-100'}`}>
-            <Instagram className={`h-6 w-6 ${activeTab === 'instagram' ? 'text-purple-700' : 'text-gray-600'}`} />
-          </div>
-          <span className={activeTab === 'instagram' ? 'font-medium text-purple-800' : 'text-gray-700'}>Instagram</span>
-        </div>
-
-        <div
-          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
-            activeTab === 'messenger' 
-              ? 'bg-blue-100 border-2 border-blue-300 shadow-md' 
-              : 'bg-white border border-gray-200 hover:border-blue-200 hover:bg-blue-50'
-          }`}
-          onClick={() => setActiveTab('messenger')}
-        >
-          <div className={`p-3 rounded-full ${activeTab === 'messenger' ? 'bg-blue-200' : 'bg-gray-100'}`}>
-            <MessageSquare className={`h-6 w-6 ${activeTab === 'messenger' ? 'text-blue-700' : 'text-gray-600'}`} />
-          </div>
-          <span className={activeTab === 'messenger' ? 'font-medium text-blue-800' : 'text-gray-700'}>Messenger</span>
-        </div>
-
-        <div
-          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
-            activeTab === 'zapier' 
-              ? 'bg-orange-100 border-2 border-orange-300 shadow-md' 
-              : 'bg-white border border-gray-200 hover:border-orange-200 hover:bg-orange-50'
-          }`}
-          onClick={() => setActiveTab('zapier')}
-        >
-          <div className={`p-3 rounded-full ${activeTab === 'zapier' ? 'bg-orange-200' : 'bg-gray-100'}`}>
-            <Link className={`h-6 w-6 ${activeTab === 'zapier' ? 'text-orange-700' : 'text-gray-600'}`} />
-          </div>
-          <span className={activeTab === 'zapier' ? 'font-medium text-orange-800' : 'text-gray-700'}>Zapier</span>
-        </div>
-
-        <div
-          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
-            activeTab === 'zendesk' 
-              ? 'bg-teal-100 border-2 border-teal-300 shadow-md' 
-              : 'bg-white border border-gray-200 hover:border-teal-200 hover:bg-teal-50'
-          }`}
-          onClick={() => setActiveTab('zendesk')}
-        >
-          <div className={`p-3 rounded-full ${activeTab === 'zendesk' ? 'bg-teal-200' : 'bg-gray-100'}`}>
-            <Headphones className={`h-6 w-6 ${activeTab === 'zendesk' ? 'text-teal-700' : 'text-gray-600'}`} />
-          </div>
-          <span className={activeTab === 'zendesk' ? 'font-medium text-teal-800' : 'text-gray-700'}>Zendesk</span>
-        </div>
-
-        <div
-          className={`p-4 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 ${
-            activeTab === 'freshdesk' 
-              ? 'bg-rose-100 border-2 border-rose-300 shadow-md' 
-              : 'bg-white border border-gray-200 hover:border-rose-200 hover:bg-rose-50'
-          }`}
-          onClick={() => setActiveTab('freshdesk')}
-        >
-          <div className={`p-3 rounded-full ${activeTab === 'freshdesk' ? 'bg-rose-200' : 'bg-gray-100'}`}>
-            <Ticket className={`h-6 w-6 ${activeTab === 'freshdesk' ? 'text-rose-700' : 'text-gray-600'}`} />
-          </div>
-          <span className={activeTab === 'freshdesk' ? 'font-medium text-rose-800' : 'text-gray-700'}>Freshdesk</span>
-        </div>
-      </div>
-
-      <Card className="border shadow-lg">
-        <CardHeader className="border-b bg-muted/40">
-          <div className="flex items-center">
-            {getTabIcon(activeTab)}
-            <div>
-              <CardTitle>{getTabTitle(activeTab)}</CardTitle>
-              <CardDescription>
-                {getTabDescription(activeTab)}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          {activeTab === 'whatsapp' && <WhatsAppIntegration shouldCheckStatus={initialLoadComplete} />}
-          {activeTab === 'slack' && <SlackIntegration />}
-          {activeTab === 'instagram' && <InstagramIntegration />}
-          {activeTab === 'messenger' && <MessengerIntegration />}
-          {activeTab === 'zapier' && <ZapierIntegration />}
-          {activeTab === 'zendesk' && <ZendeskIntegration />}
-          {activeTab === 'freshdesk' && <FreshdeskIntegration />}
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
 };
