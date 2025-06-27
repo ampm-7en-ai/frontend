@@ -179,11 +179,20 @@ const IntegrationsPage = () => {
                     const integration = integrations.find(i => i.id === selectedIntegration);
                     return (
                       <>
-                        <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm">
+                        <div 
+                          className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm"
+                          style={{
+                            padding: '0',
+                            height: 'auto',
+                            width: 'auto',
+                            borderRadius: '14px',
+                            overflow: 'hidden'
+                          }}
+                        >
                           <img 
                             src={integration?.logo} 
                             alt={integration?.name}
-                            className="w-10 h-10 object-contain"
+                            className="w-16 h-16 object-contain"
                           />
                         </div>
                         <div className="flex-1">
@@ -223,11 +232,20 @@ const IntegrationsPage = () => {
                 <Card key={integration.id} className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                      <div 
+                        className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow"
+                        style={{
+                          padding: '0',
+                          height: 'auto',
+                          width: 'auto',
+                          borderRadius: '14px',
+                          overflow: 'hidden'
+                        }}
+                      >
                         <img 
                           src={integration.logo} 
                           alt={integration.name}
-                          className="w-10 h-10 object-contain"
+                          className="w-16 h-16 object-contain"
                         />
                       </div>
                       <div className="flex flex-col items-end gap-2">
