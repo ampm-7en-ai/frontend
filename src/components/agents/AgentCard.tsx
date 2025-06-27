@@ -155,67 +155,36 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                       )}
                     </ModernButton>
                   </CollapsibleTrigger>
+                </Collapsible>
+              </div>
+            </div>
+          </CardContent>
+
+          {/* Expanded Knowledge Base Section - Full Width */}
+          <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
+            <CollapsibleContent>
+              <div className="px-6 pb-4">
+                <div className="bg-slate-50/80 dark:bg-slate-700/80 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      Knowledge Base
+                    </h4>
+                    <Link 
+                      to={`/agents/${agent.id}/edit?tab=knowledge`}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Manage
+                    </Link>
+                  </div>
                   
-                  <CollapsibleContent className="mt-4">
-                    <div className="bg-slate-50/80 dark:bg-slate-700/80 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          Knowledge Base
-                        </h4>
-                        <Link 
-                          to={`/agents/${agent.id}/edit?tab=knowledge`}
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium flex items-center gap-1"
-                        >
-                          <Plus className="h-3 w-3" />
-                          Manage
-                        </Link>
-                      </div>
-                      
-                      {agent.knowledgeSources && agent.knowledgeSources.length > 0 ? (
-                        shouldUseCarousel ? (
-                          <Carousel className="w-full">
-                            <CarouselContent className="-ml-2">
-                              {agent.knowledgeSources.map((source, index) => (
-                                <CarouselItem key={source.id} className="pl-2 basis-1/3 md:basis-1/4">
-                                  <div className="h-full p-2 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 transition-colors">
-                                    <div className="flex items-start gap-2">
-                                      <div className="text-slate-500 dark:text-slate-400 mt-0.5">
-                                        {getKnowledgeIcon(source.type)}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate mb-0.5">
-                                          {source.name}
-                                        </div>
-                                        <div className="text-xs text-slate-500 dark:text-slate-400 capitalize mb-1">
-                                          {source.type}
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                          {source.hasError && (
-                                            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" title="Has errors"></div>
-                                          )}
-                                          {source.hasIssue && (
-                                            <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" title="Has issues"></div>
-                                          )}
-                                          {!source.hasError && !source.hasIssue && (
-                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full" title="Active"></div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="left-1 h-6 w-6" />
-                            <CarouselNext className="right-1 h-6 w-6" />
-                          </Carousel>
-                        ) : (
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {agent.knowledgeSources.map((source, index) => (
-                              <div 
-                                key={source.id}
-                                className="p-2 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 transition-colors"
-                              >
+                  {agent.knowledgeSources && agent.knowledgeSources.length > 0 ? (
+                    shouldUseCarousel ? (
+                      <Carousel className="w-full">
+                        <CarouselContent className="-ml-2">
+                          {agent.knowledgeSources.map((source, index) => (
+                            <CarouselItem key={source.id} className="pl-2 basis-1/3 md:basis-1/6">
+                              <div className="h-full p-3 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 transition-colors">
                                 <div className="flex items-start gap-2">
                                   <div className="text-slate-500 dark:text-slate-400 mt-0.5">
                                     {getKnowledgeIcon(source.type)}
@@ -241,26 +210,62 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                                   </div>
                                 </div>
                               </div>
-                            ))}
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-1 h-6 w-6" />
+                        <CarouselNext className="right-1 h-6 w-6" />
+                      </Carousel>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                        {agent.knowledgeSources.map((source, index) => (
+                          <div 
+                            key={source.id}
+                            className="p-3 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 transition-colors"
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className="text-slate-500 dark:text-slate-400 mt-0.5">
+                                {getKnowledgeIcon(source.type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate mb-0.5">
+                                  {source.name}
+                                </div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400 capitalize mb-1">
+                                  {source.type}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {source.hasError && (
+                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" title="Has errors"></div>
+                                  )}
+                                  {source.hasIssue && (
+                                    <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" title="Has issues"></div>
+                                  )}
+                                  {!source.hasError && !source.hasIssue && (
+                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" title="Active"></div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        )
-                      ) : (
-                        <Link 
-                          to={`/agents/${agent.id}/edit?tab=knowledge`}
-                          className="flex items-center justify-center gap-2 p-4 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors group"
-                        >
-                          <Plus className="h-4 w-4 text-slate-400 group-hover:text-blue-500" />
-                          <span className="text-xs text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 font-medium">
-                            Add Knowledge Sources
-                          </span>
-                        </Link>
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    <Link 
+                      to={`/agents/${agent.id}/edit?tab=knowledge`}
+                      className="flex items-center justify-center gap-2 p-4 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors group"
+                    >
+                      <Plus className="h-4 w-4 text-slate-400 group-hover:text-blue-500" />
+                      <span className="text-xs text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 font-medium">
+                        Add Knowledge Sources
+                      </span>
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
           
           <CardFooter className="p-6 pt-4 border-t border-slate-200/30 dark:border-slate-700/30 bg-slate-50/30 dark:bg-slate-700/30 backdrop-blur-sm">
             <div className="flex items-center justify-end gap-2 w-full">
