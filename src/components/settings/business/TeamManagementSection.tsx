@@ -329,7 +329,7 @@ const TeamManagementSection = () => {
 
   return (
     <section className="p-8">
-      <div className="mb-8">
+      <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Team Management</h2>
         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
           Manage team members and their access to your 7en.ai workspace
@@ -508,9 +508,9 @@ const TeamManagementSection = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-8 w-8 p-0"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-10 w-10 p-0"
                   >
-                    <Trash className="h-3.5 w-3.5" />
+                    <Trash className="h-5 w-5" />
                   </ModernButton>
                 </div>
               ))}

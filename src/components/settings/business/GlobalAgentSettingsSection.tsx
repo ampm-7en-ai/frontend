@@ -89,7 +89,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
 
   return (
     <section className="p-8">
-      <div className="mb-8">
+      <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Global Agent Settings</h2>
         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
           Configure default settings that will apply to all your AI agents

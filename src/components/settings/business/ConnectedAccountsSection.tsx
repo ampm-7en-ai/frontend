@@ -15,7 +15,7 @@ const ConnectedAccountsSection = () => {
 
   return (
     <section className="p-8">
-      <h2 className="text-2xl font-semibold mb-6 text-slate-900 dark:text-slate-100">Connected Accounts</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-slate-900 dark:text-slate-100 pl-2">Connected Accounts</h2>
       <div className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50">
         <div className="flex items-center gap-6">
           <div className="flex-shrink-0">

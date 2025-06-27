@@ -15,7 +15,7 @@ const SearchModal = ({ isOpen, onClose }: SearchModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl w-full h-[90vh] p-0 gap-0">
         <iframe
-          src="http://localhost:8080/chat/preview/3"
+          src="http://localhost:8080/chat/assistant/3"
           width="100%"
           height="100%"
           frameBorder="0"

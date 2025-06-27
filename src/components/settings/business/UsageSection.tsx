@@ -25,7 +25,7 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
 
   return (
     <section className="p-8">
-      <div className="mb-8">
+      <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Usage</h2>
         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
           Monitor your current usage and limits for the billing period

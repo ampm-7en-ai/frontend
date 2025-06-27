@@ -82,7 +82,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
 
   return (
     <section className="p-8">
-      <div className="mb-8">
+      <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Business Profile</h2>
         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
           Manage your business information and contact details
