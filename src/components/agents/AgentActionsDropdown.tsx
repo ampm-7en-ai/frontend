@@ -15,12 +15,15 @@ import ModernButton from '@/components/dashboard/ModernButton';
 
 interface AgentActionsDropdownProps {
   agentId: string;
+  agentName: string;
   onDelete?: (agentId: string) => void;
+  onDuplicate?: (agentId: string) => void;
 }
 
-const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) => {
+const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: AgentActionsDropdownProps) => {
   const { toast } = useToast();
   const [deleting, setDeleting] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
 
   const handleDelete = async () => {
     if (deleting) return;
@@ -68,6 +71,52 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
     }
   };
 
+  const handleDuplicate = async () => {
+    if (duplicating) return;
+    setDuplicating(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        toast({
+          title: "Not authenticated",
+          description: "Please log in to duplicate agents.",
+          variant: 'destructive'
+        });
+        setDuplicating(false);
+        return;
+      }
+      const endpoint = getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/duplicate/`);
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+      });
+      if (!response.ok) {
+        let detail;
+        try {
+          const errJson = await response.json();
+          detail = (errJson && errJson.error.message) || await response.text();
+        } catch { /* ignore */ }
+        throw new Error(detail || response.statusText || 'Failed to duplicate agent');
+      }
+      toast({
+        title: "Agent duplicated",
+        description: `A copy of "${agentName}" has been created successfully.`,
+        variant: "default"
+      });
+      if (onDuplicate) {
+        onDuplicate(agentId);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Failed to duplicate agent",
+        description: err?.message || "An error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -82,9 +131,15 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
             Rename
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem 
+          onSelect={(e) => {
+            e.preventDefault();
+            handleDuplicate();
+          }}
+          disabled={duplicating}
+        >
           <Copy className="h-4 w-4 mr-2" />
-          Duplicate
+          {duplicating ? "Duplicating..." : "Duplicate"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
@@ -96,7 +151,7 @@ const AgentActionsDropdown = ({ agentId, onDelete }: AgentActionsDropdownProps) 
           disabled={deleting}
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          {deleting ? "Deleting..." : "Remove"}
+          {deleting ? "Deleting..." : "Delete"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

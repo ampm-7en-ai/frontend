@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CalendarClock, MessageSquare, ActivitySquare, Database, Globe, FileText, BookOpen, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { CalendarClock, MessageSquare, ActivitySquare, Database, Globe, FileText, BookOpen, Plus, ChevronDown, ChevronUp, Brain } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -22,7 +22,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import AgentActionsDropdown from './AgentActionsDropdown';
-import AgentModelBadge from './AgentModelBadge';
 import { Agent } from '@/hooks/useAgentFiltering';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -60,7 +59,40 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
     }
   };
 
+  const getModelDisplayName = () => {
+    return agent.model === 'gpt4' ? 'GPT-4 (OpenAI)' :
+           agent.model === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
+           agent.model === 'claude' ? 'Claude 3 (Anthropic)' :
+           agent.model === 'gemini' ? 'Gemini Pro (Google)' :
+           agent.model === 'mistral' ? 'Mistral Large (Mistral AI)' :
+           agent.model === 'llama' ? 'Llama 2 (Meta AI)' :
+           agent.model;
+  };
+
+  const getModelStyles = () => {
+    const colorName = getModelBadgeColor(agent.model);
+    
+    switch (colorName) {
+      case 'indigo':
+        return 'text-indigo-600 dark:text-indigo-400';
+      case 'green':
+        return 'text-green-600 dark:text-green-400';
+      case 'purple':
+        return 'text-purple-600 dark:text-purple-400';
+      case 'blue':
+      default:
+        return 'text-blue-600 dark:text-blue-400';
+    }
+  };
+
   const shouldUseCarousel = agent.knowledgeSources && agent.knowledgeSources.length > 4;
+  
+  const handleDuplicate = async (_agentId: string) => {
+    // Refresh the list after duplication
+    if (onDelete) {
+      onDelete(_agentId);
+    }
+  };
   
   return (
     <div className="w-full">
@@ -87,7 +119,12 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                 </CardDescription>
               </div>
               <div className="ml-4 flex-shrink-0">
-                <AgentActionsDropdown agentId={agent.id} onDelete={onDelete} />
+                <AgentActionsDropdown 
+                  agentId={agent.id} 
+                  agentName={agent.name}
+                  onDelete={onDelete}
+                  onDuplicate={handleDuplicate}
+                />
               </div>
             </div>
           </CardHeader>
@@ -114,29 +151,23 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     <CalendarClock className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
                       {formattedDate}
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">Last Updated</div>
                   </div>
                 </div>
                 
-                <div>
-                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
-                    AI Model
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/40 rounded-lg flex items-center justify-center">
+                    <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <AgentModelBadge 
-                    model={
-                      agent.model === 'gpt4' ? 'GPT-4 (OpenAI)' :
-                      agent.model === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
-                      agent.model === 'claude' ? 'Claude 3 (Anthropic)' :
-                      agent.model === 'gemini' ? 'Gemini Pro (Google)' :
-                      agent.model === 'mistral' ? 'Mistral Large (Mistral AI)' :
-                      agent.model === 'llama' ? 'Llama 2 (Meta AI)' :
-                      agent.model
-                    } 
-                    getModelBadgeColor={getModelBadgeColor} 
-                  />
+                  <div>
+                    <div className={`text-sm font-bold ${getModelStyles()}`}>
+                      {getModelDisplayName()}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">AI Model</div>
+                  </div>
                 </div>
               </div>
               
