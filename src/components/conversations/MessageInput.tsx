@@ -28,30 +28,30 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <form onSubmit={handleSendMessage} className="border-t p-3 bg-white">
-      <div className="flex items-center gap-2 relative">
-        <Input
-          placeholder="Type your message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1 pr-12 text-sm border-2 rounded-full pl-4 shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0"
-          style={{ 
-            borderColor: '#9b87f530',
-          }}
-        />
-        <button 
-          type="submit" 
-          className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
-          style={{ 
-            backgroundColor: '#9b87f5',
-            color: '#FFFFFF',
-            boxShadow: '0 2px 5px #9b87f540'
-          }}
-        >
-          <Send className="h-4 w-4" />
-        </button>
-      </div>
-    </form>
+    <div className="p-4 bg-white">
+      <form onSubmit={handleSendMessage}>
+        <div className="flex items-center gap-3 relative bg-gray-50/50 rounded-2xl border border-gray-200/60 p-2">
+          <Input
+            placeholder="Type your message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            className="flex-1 border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400"
+          />
+          <button 
+            type="submit" 
+            disabled={!newMessage.trim()}
+            className="p-2.5 rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ 
+              backgroundColor: newMessage.trim() ? '#3b82f6' : '#e5e7eb',
+              color: '#FFFFFF',
+              boxShadow: newMessage.trim() ? '0 2px 8px #3b82f620' : 'none'
+            }}
+          >
+            <Send className="h-4 w-4" />
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

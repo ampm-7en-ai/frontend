@@ -242,14 +242,14 @@ const ConversationListPanel = ({
       return Array(5).fill(0).map((_, index) => (
         <div key={`skeleton-${index}`} className="p-3">
           <div className="flex items-start gap-3">
-            <Skeleton className="h-9 w-9 rounded-none" />
+            <Skeleton className="h-9 w-9 rounded-none bg-gray-200" />
             <div className="flex-1">
-              <Skeleton className="h-4 w-24 mb-2" />
-              <Skeleton className="h-3 w-32 mb-3" />
-              <Skeleton className="h-3 w-40" />
+              <Skeleton className="h-4 w-24 mb-2 bg-gray-200" />
+              <Skeleton className="h-3 w-32 mb-3 bg-gray-200" />
+              <Skeleton className="h-3 w-40 bg-gray-200" />
               <div className="flex gap-2 mt-2">
-                <Skeleton className="h-4 w-12" />
-                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-12 bg-gray-200" />
+                <Skeleton className="h-4 w-12 bg-gray-200" />
               </div>
             </div>
           </div>
@@ -259,9 +259,15 @@ const ConversationListPanel = ({
 
     if (filteredSessions.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-full text-center p-4">
-          <p className="text-sm text-gray-500 mt-1">
-            No conversations found. Try adjusting your filters or refreshing.
+        <div className="flex flex-col items-center justify-center h-full text-center p-8">
+          <div className="text-gray-400 mb-3">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <h3 className="text-sm font-medium text-gray-700 mb-1">No conversations found</h3>
+          <p className="text-xs text-gray-500">
+            Try adjusting your filters or refreshing to see conversations.
           </p>
         </div>
       );
@@ -270,7 +276,7 @@ const ConversationListPanel = ({
     return (
       <>
         {visibleSessions.map((session) => (
-          <div key={session.id} className='px-[5px] my-1'>
+          <div key={session.id} className='px-2 my-1'>
             <ConversationCard 
               conversation={session}
               isSelected={selectedConversation === session.id}
@@ -283,10 +289,10 @@ const ConversationListPanel = ({
         {hasMore && (
           <div 
             ref={loadMoreRef} 
-            className="flex justify-center items-center p-3"
+            className="flex justify-center items-center p-4"
           >
-            <Loader className="h-5 w-5 animate-spin text-gray-400" />
-            <span className="ml-2 text-sm text-gray-500">Loading more...</span>
+            <Loader className="h-4 w-4 animate-spin text-gray-400" />
+            <span className="ml-2 text-xs text-gray-500">Loading more...</span>
           </div>
         )}
       </>
@@ -294,9 +300,9 @@ const ConversationListPanel = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-r max-w-[1440px] mx-auto">
+    <div className="flex flex-col h-full bg-white max-w-[1440px] mx-auto">
       {/* Filters */}
-      <div className="sticky top-0 z-10 bg-white">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
         <ConversationFilters 
           filterResolved={filterStatus}
           onFilterResolvedChange={setFilterStatus}
@@ -307,17 +313,12 @@ const ConversationListPanel = ({
         />
       </div>
       
-      {/* WebSocket Status Indicator */}
-      {/* <div className="px-4 py-1 flex items-center justify-between">
-        <div className={`text-xs ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
-          {isConnected ? 'Connected' : 'Connecting...'}
-        </div>
-      </div> */}
-      
       {/* Conversation List */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-[calc(100vh-12rem)]" style={{ height: "calc(100vh - 12rem)" }}>
-          {renderContent()}
+          <div className="py-2">
+            {renderContent()}
+          </div>
         </ScrollArea>
       </div>
     </div>

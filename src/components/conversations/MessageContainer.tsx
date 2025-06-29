@@ -100,7 +100,7 @@ const MessageContainer = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white">
       <ConversationHeader 
         conversation={conversation}
         selectedAgent={selectedAgent}
@@ -110,37 +110,37 @@ const MessageContainer = ({
         messageCount={validMessages?.filter(m => m.sender !== "system").length}
       />
       
-      <div className="flex-1 overflow-hidden" style={{background: "#f2f2f2"}}> 
+      <div className="flex-1 overflow-hidden" style={{background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)"}}> 
         <ScrollArea 
           className="h-[calc(100vh-12rem)]"
           style={{ height: "calc(100vh - 12rem)" }}
         >
           <div className="p-4 md:p-6">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-4xl mx-auto">
               {isLoading || validMessages.length === 0 ? (
                 // Show loading skeletons while messages are loading
                 <div className="space-y-6">
                   {[1, 2, 3, 4].map((i) => (
-                    i%2 == 0 ? (
+                    i % 2 == 0 ? (
                       <div key={i} className="flex items-start gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60" />
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-xl bg-gray-200" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60" />
                         </div>
                       </div>
                     ) : (
                       <div key={i} className="flex items-start gap-3 justify-end">
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-xl bg-gray-200" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60" />
                         </div>
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60" />
                       </div>
                     )
                   ))}
                 </div>
               ) : (
                 // Render actual messages
-                <div className="space-y-4" ref={messageContainerRef}>
+                <div className="space-y-6" ref={messageContainerRef}>
                 {  
                     validMessages.map((message: any) => (
                       <MessageList 
@@ -160,7 +160,9 @@ const MessageContainer = ({
         </ScrollArea>
       </div>
       
-      <MessageInput onSendMessage={handleSendMessage} />
+      <div className="border-t border-gray-100 bg-white">
+        <MessageInput onSendMessage={handleSendMessage} />
+      </div>
     </div>
   );
 };
