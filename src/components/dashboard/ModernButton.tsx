@@ -42,6 +42,10 @@ const ModernButton: React.FC<ModernButtonProps> = ({
     lg: "px-6 py-3 text-base rounded-2xl"
   };
 
+  // Check if this is an icon-only button (has p-0 in className and square dimensions)
+  const isIconOnly = className.includes('p-0') && (className.includes('w-8') || className.includes('h-8'));
+  const iconClasses = isIconOnly ? "w-5 h-5" : "w-4 h-4 mr-2";
+
   const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
   // When using asChild, we need to clone the child and add our props to it
@@ -51,7 +55,7 @@ const ModernButton: React.FC<ModernButtonProps> = ({
         {React.cloneElement(children as React.ReactElement, {
           children: (
             <>
-              {Icon && <Icon className="w-5 h-5 mr-2" />}
+              {Icon && <Icon className={iconClasses} />}
               {(children as React.ReactElement).props.children}
             </>
           )
@@ -67,7 +71,7 @@ const ModernButton: React.FC<ModernButtonProps> = ({
       disabled={disabled}
       className={buttonClasses}
     >
-      {Icon && <Icon className="w-5 h-5 mr-2" />}
+      {Icon && <Icon className={iconClasses} />}
       {children}
     </button>
   );
