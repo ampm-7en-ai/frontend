@@ -51,7 +51,7 @@ const ModernButton: React.FC<ModernButtonProps> = ({
         {React.cloneElement(children as React.ReactElement, {
           children: (
             <>
-              {Icon && <Icon className="w-4 h-4 mr-2" />}
+              {Icon && <Icon className="w-5 h-5 mr-2" />}
               {(children as React.ReactElement).props.children}
             </>
           )
@@ -67,7 +67,7 @@ const ModernButton: React.FC<ModernButtonProps> = ({
       disabled={disabled}
       className={buttonClasses}
     >
-      {Icon && <Icon className="w-4 h-4 mr-2" />}
+      {Icon && <Icon className="w-5 h-5 mr-2" />}
       {children}
     </button>
   );
