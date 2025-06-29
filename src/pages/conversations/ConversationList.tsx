@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -64,10 +63,10 @@ const ConversationList = () => {
 
   if (isDesktop) {
     return (
-      <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gray-50/30 dark:bg-slate-900/30">
+      <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-            <div className="h-full bg-white dark:bg-slate-900 border-r border-gray-200/80 dark:border-slate-700/80 shadow-sm">
+            <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-r border-gray-200/60 dark:border-slate-700/60 shadow-sm">
               <ConversationListPanel 
                 filterStatus={filterStatus}
                 setFilterStatus={setFilterStatus}
@@ -83,10 +82,10 @@ const ConversationList = () => {
             </div>
           </ResizablePanel>
           
-          <ResizableHandle withHandle className="bg-gray-200/60 dark:bg-slate-700/60 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors" />
+          <ResizableHandle withHandle className="bg-gray-200/40 dark:bg-slate-700/40 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors backdrop-blur-sm" />
           
           <ResizablePanel defaultSize={50}>
-            <div className="h-full bg-white dark:bg-slate-900">
+            <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
               <MessageContainer 
                 conversation={activeConversation}
                 selectedAgent={selectedAgent}
@@ -103,10 +102,10 @@ const ConversationList = () => {
             </div>
           </ResizablePanel>
           
-          <ResizableHandle withHandle className="bg-gray-200/60 dark:bg-slate-700/60 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors" />
+          <ResizableHandle withHandle className="bg-gray-200/40 dark:bg-slate-700/40 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors backdrop-blur-sm" />
           
           <ResizablePanel defaultSize={30}>
-            <div className="border-l border-gray-200/80 dark:border-slate-700/80 h-full overflow-y-auto bg-white dark:bg-slate-900 shadow-sm">
+            <div className="border-l border-gray-200/60 dark:border-slate-700/60 h-full overflow-y-auto bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-sm">
               <ConversationDetailsPanel 
                 conversation={activeConversation}
                 selectedAgent={selectedAgent}
@@ -129,9 +128,9 @@ const ConversationList = () => {
 
   // Mobile/Tablet layout
   return (
-    <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gray-50/30 dark:bg-slate-900/30">
+    <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
       <div className="flex h-full">
-        <div className="w-72 border-r border-gray-200/80 dark:border-slate-700/80 flex flex-col h-full bg-white dark:bg-slate-900 shadow-sm">
+        <div className="w-72 border-r border-gray-200/60 dark:border-slate-700/60 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-sm">
           <ConversationListPanel 
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
@@ -146,7 +145,7 @@ const ConversationList = () => {
           />
         </div>
         
-        <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-900">
+        <div className="flex-1 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
           <MessageContainer 
             conversation={activeConversation}
             selectedAgent={selectedAgent}

@@ -28,12 +28,12 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
+    <div className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-gray-200/80 dark:border-slate-700/80">
       <form onSubmit={handleSendMessage}>
         <div className="flex items-end gap-3">
           {/* Message Input */}
           <div className="flex-1 relative">
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-600 p-3 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-400 focus-within:border-transparent transition-all">
+            <div className="flex items-center gap-2 bg-gray-50/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 dark:border-slate-600/80 p-3 focus-within:ring-2 focus-within:ring-blue-500/50 dark:focus-within:ring-blue-400/50 focus-within:border-transparent transition-all">
               <Input
                 placeholder="Type your message..."
                 value={newMessage}
@@ -54,15 +54,19 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
                   variant="ghost"
                   size="sm"
                   icon={Paperclip}
-                  className="p-0 w-8 h-8 hover:bg-gray-200 dark:hover:bg-slate-700"
-                />
+                  className="p-0 w-8 h-8 hover:bg-gray-200/60 dark:hover:bg-slate-700/60"
+                >
+                  {/* Empty children for icon-only button */}
+                </ModernButton>
                 <ModernButton
                   type="button"
                   variant="ghost"
                   size="sm"
                   icon={Smile}
-                  className="p-0 w-8 h-8 hover:bg-gray-200 dark:hover:bg-slate-700"
-                />
+                  className="p-0 w-8 h-8 hover:bg-gray-200/60 dark:hover:bg-slate-700/60"
+                >
+                  {/* Empty children for icon-only button */}
+                </ModernButton>
               </div>
             </div>
           </div>
@@ -75,7 +79,9 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
             size="sm"
             icon={Send}
             className="p-0 w-10 h-10 rounded-full shadow-lg disabled:shadow-none transition-all duration-200"
-          />
+          >
+            {/* Empty children for icon-only button */}
+          </ModernButton>
         </div>
       </form>
     </div>

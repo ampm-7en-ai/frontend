@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Info, Phone, Video, MoreHorizontal, UserCheck, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +44,7 @@ const ConversationHeader = ({
   const agents = ['Sarah Johnson', 'Mike Chen', 'Alex Rivera']; // Mock data
 
   return (
-    <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 p-4">
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200/80 dark:border-slate-700/80 p-4">
       <div className="flex items-center justify-between">
         {/* Left Side - Customer Info */}
         <div className="flex items-center gap-3">
@@ -82,10 +83,10 @@ const ConversationHeader = ({
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500 dark:text-slate-400">Viewing:</span>
               <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                <SelectTrigger className="w-40 h-8 text-xs bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <SelectTrigger className="w-40 h-8 text-xs bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 backdrop-blur-sm">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200/80 dark:border-slate-700/80">
                   <SelectItem value="all">All Messages</SelectItem>
                   {agents.map((agent) => (
                     <SelectItem key={agent} value={agent}>
@@ -104,20 +105,26 @@ const ConversationHeader = ({
               size="sm"
               icon={Phone}
               className="p-0 w-8 h-8"
-            />
+            >
+              {/* Empty children for icon-only button */}
+            </ModernButton>
             <ModernButton
               variant="outline"
               size="sm"
               icon={Video}
               className="p-0 w-8 h-8"
-            />
+            >
+              {/* Empty children for icon-only button */}
+            </ModernButton>
             <ModernButton
               variant="outline"
               size="sm"
               icon={Info}
               onClick={onInfoClick}
               className="p-0 w-8 h-8"
-            />
+            >
+              {/* Empty children for icon-only button */}
+            </ModernButton>
             
             {/* More Actions */}
             <DropdownMenu>
@@ -127,9 +134,11 @@ const ConversationHeader = ({
                   size="sm"
                   icon={MoreHorizontal}
                   className="p-0 w-8 h-8"
-                />
+                >
+                  {/* Empty children for icon-only button */}
+                </ModernButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200/80 dark:border-slate-700/80">
                 <DropdownMenuItem>
                   <Clock className="h-4 w-4 mr-2" />
                   Set Reminder
