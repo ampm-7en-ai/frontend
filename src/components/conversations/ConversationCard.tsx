@@ -21,7 +21,7 @@ interface Conversation {
   channel: string;
   agentType?: "human" | "ai" | null;
   messages?: Array<any>;
-  isUnread?: boolean; // Added isUnread property
+  isUnread?: boolean;
 }
 
 interface ConversationCardProps {
@@ -47,56 +47,53 @@ const ConversationCard = ({
   
   // Get channel icon with brand-appropriate colors
   const getChannelIcon = () => {
+    const iconClass = "h-5 w-5";
+    const containerClass = "w-full h-full flex items-center justify-center rounded-lg border transition-colors";
+    
     switch (conversation.channel?.toLowerCase()) {
       case 'email':
         return (
-          <div className="bg-blue-600/10 w-full h-full flex items-center justify-center rounded-lg border border-blue-200/50">
-            <Mail className="h-5 w-5 text-blue-600" strokeWidth={2} />
+          <div className={cn(containerClass, "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800")}>
+            <Mail className={cn(iconClass, "text-blue-600 dark:text-blue-400")} strokeWidth={2} />
           </div>
         );
       case 'phone':
         return (
-          <div className="bg-slate-100 w-full h-full flex items-center justify-center rounded-lg border border-slate-200/50">
-            <Phone className="h-5 w-5 text-slate-600" strokeWidth={2} />
+          <div className={cn(containerClass, "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700")}>
+            <Phone className={cn(iconClass, "text-slate-600 dark:text-slate-400")} strokeWidth={2} />
           </div>
         );
       case 'slack':
         return (
-          <div className="bg-purple-100 w-full h-full flex items-center justify-center rounded-lg border border-purple-200/50">
-            <Slack className="h-5 w-5 text-purple-600" strokeWidth={2} />
+          <div className={cn(containerClass, "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800")}>
+            <Slack className={cn(iconClass, "text-purple-600 dark:text-purple-400")} strokeWidth={2} />
           </div>
         );
       case 'instagram':
         return (
-          <div className="bg-pink-100 w-full h-full flex items-center justify-center rounded-lg border border-pink-200/50">
-            <Instagram className="h-5 w-5 text-pink-600" strokeWidth={2} />
+          <div className={cn(containerClass, "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800")}>
+            <Instagram className={cn(iconClass, "text-pink-600 dark:text-pink-400")} strokeWidth={2} />
           </div>
         );
       case 'website':
         return (
-          <div className="bg-green-100 w-full h-full flex items-center justify-center rounded-lg border border-green-200/50">
-            <Globe className="h-5 w-5 text-green-600" strokeWidth={2} />
+          <div className={cn(containerClass, "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800")}>
+            <Globe className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
           </div>
         );
       case 'whatsapp':
       default:
         return (
-          <div className="bg-green-500/10 w-full h-full flex items-center justify-center rounded-lg border border-green-200/50 relative">
-            <MessageSquare className="h-5 w-5 text-green-600" strokeWidth={2} />
+          <div className={cn(containerClass, "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 relative")}>
+            <MessageSquare className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
             {conversation.agentType && (
-              <span className='absolute -bottom-1 -right-1 text-[8px] text-gray-600 bg-white px-1 py-0.5 shadow-sm rounded-full border border-gray-200 font-medium'>
+              <span className='absolute -bottom-1 -right-1 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
                 {conversation.agentType === 'ai' ? 'AI' : 'H'}
               </span>
             )}
           </div>
         );
     }
-  };
-
-  // Get channel name with proper capitalization
-  const getChannelName = () => {
-    if (!conversation.channel) return 'Chat';
-    return conversation.channel.charAt(0).toUpperCase() + conversation.channel.slice(1).toLowerCase();
   };
 
   //reformat date timestamp 
@@ -125,9 +122,9 @@ const ConversationCard = ({
   return (
     <Card 
       className={cn(
-        "hover:bg-gray-50/60 transition-all duration-200 cursor-pointer border-0 shadow-none rounded-xl bg-transparent",
+        "hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200 cursor-pointer border-0 shadow-none rounded-xl bg-transparent",
         isSelected 
-          ? "bg-blue-50/60 ring-1 ring-blue-200/50 shadow-sm" 
+          ? "bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-800 shadow-sm" 
           : "hover:shadow-sm"
       )}
       onClick={onClick}
@@ -142,7 +139,7 @@ const ConversationCard = ({
             <div className="flex justify-between items-start mb-1">
               <div className="flex items-center gap-2">
                 <h3 className={cn(
-                  "text-gray-800 text-sm truncate", 
+                  "text-gray-800 dark:text-slate-200 text-sm truncate", 
                   conversation.isUnread ? "font-semibold" : "font-medium"
                 )}>
                   {conversation.customer || "Visitor"}
@@ -154,7 +151,7 @@ const ConversationCard = ({
               <div className="flex flex-col items-end">
                 <p className={cn(
                   "text-xs whitespace-nowrap",
-                  conversation.isUnread ? "font-medium text-blue-600" : "text-gray-400"
+                  conversation.isUnread ? "font-medium text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-slate-500"
                 )}>
                   {reformatTimeAgo(conversation.time)}
                 </p>
@@ -163,7 +160,7 @@ const ConversationCard = ({
             
             <p className={cn(
               "text-xs mt-1 line-clamp-2 leading-relaxed",
-              conversation.isUnread ? "font-medium text-gray-700" : "text-gray-500"
+              conversation.isUnread ? "font-medium text-gray-700 dark:text-slate-300" : "text-gray-500 dark:text-slate-400"
             )}>
               {conversation.lastMessage}
             </p>
@@ -171,7 +168,7 @@ const ConversationCard = ({
             <div className="mt-3 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 {conversation.handoffCount > 0 && (
-                  <div className="flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                  <div className="flex items-center text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
                     <Users className="h-3 w-3 mr-1" />
                     {conversation.handoffCount}
                   </div>

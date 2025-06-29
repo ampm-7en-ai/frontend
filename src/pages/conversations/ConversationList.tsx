@@ -64,10 +64,10 @@ const ConversationList = () => {
 
   if (isDesktop) {
     return (
-      <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gray-50/30">
+      <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gray-50/30 dark:bg-slate-900/30">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-            <div className="h-full bg-white border-r border-gray-200/80 shadow-sm">
+            <div className="h-full bg-white dark:bg-slate-900 border-r border-gray-200/80 dark:border-slate-700/80 shadow-sm">
               <ConversationListPanel 
                 filterStatus={filterStatus}
                 setFilterStatus={setFilterStatus}
@@ -83,10 +83,10 @@ const ConversationList = () => {
             </div>
           </ResizablePanel>
           
-          <ResizableHandle withHandle className="bg-gray-200/60 hover:bg-gray-300/60 transition-colors" />
+          <ResizableHandle withHandle className="bg-gray-200/60 dark:bg-slate-700/60 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors" />
           
           <ResizablePanel defaultSize={50}>
-            <div className="h-full bg-white">
+            <div className="h-full bg-white dark:bg-slate-900">
               <MessageContainer 
                 conversation={activeConversation}
                 selectedAgent={selectedAgent}
@@ -103,10 +103,10 @@ const ConversationList = () => {
             </div>
           </ResizablePanel>
           
-          <ResizableHandle withHandle className="bg-gray-200/60 hover:bg-gray-300/60 transition-colors" />
+          <ResizableHandle withHandle className="bg-gray-200/60 dark:bg-slate-700/60 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors" />
           
           <ResizablePanel defaultSize={30}>
-            <div className="border-l border-gray-200/80 h-full overflow-y-auto bg-white shadow-sm">
+            <div className="border-l border-gray-200/80 dark:border-slate-700/80 h-full overflow-y-auto bg-white dark:bg-slate-900 shadow-sm">
               <ConversationDetailsPanel 
                 conversation={activeConversation}
                 selectedAgent={selectedAgent}
@@ -129,9 +129,9 @@ const ConversationList = () => {
 
   // Mobile/Tablet layout
   return (
-    <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gray-50/30">
+    <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gray-50/30 dark:bg-slate-900/30">
       <div className="flex h-full">
-        <div className="w-72 border-r border-gray-200/80 flex flex-col h-full bg-white shadow-sm">
+        <div className="w-72 border-r border-gray-200/80 dark:border-slate-700/80 flex flex-col h-full bg-white dark:bg-slate-900 shadow-sm">
           <ConversationListPanel 
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
@@ -146,7 +146,7 @@ const ConversationList = () => {
           />
         </div>
         
-        <div className="flex-1 flex flex-col h-full bg-white">
+        <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-900">
           <MessageContainer 
             conversation={activeConversation}
             selectedAgent={selectedAgent}

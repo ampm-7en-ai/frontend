@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send } from 'lucide-react';
+import { Send, Paperclip, Smile } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -28,27 +28,54 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <div className="p-4 bg-white">
+    <div className="p-4 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
       <form onSubmit={handleSendMessage}>
-        <div className="flex items-center gap-3 relative bg-gray-50/50 rounded-2xl border border-gray-200/60 p-2">
-          <Input
-            placeholder="Type your message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1 border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400"
-          />
-          <button 
-            type="submit" 
+        <div className="flex items-end gap-3">
+          {/* Message Input */}
+          <div className="flex-1 relative">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-600 p-3 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-400 focus-within:border-transparent transition-all">
+              <Input
+                placeholder="Type your message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="flex-1 border-0 bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500 dark:placeholder:text-slate-400 resize-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
+              />
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1">
+                <ModernButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon={Paperclip}
+                  className="p-0 w-8 h-8 hover:bg-gray-200 dark:hover:bg-slate-700"
+                />
+                <ModernButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon={Smile}
+                  className="p-0 w-8 h-8 hover:bg-gray-200 dark:hover:bg-slate-700"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Send Button */}
+          <ModernButton
+            type="submit"
             disabled={!newMessage.trim()}
-            className="p-2.5 rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ 
-              backgroundColor: newMessage.trim() ? '#3b82f6' : '#e5e7eb',
-              color: '#FFFFFF',
-              boxShadow: newMessage.trim() ? '0 2px 8px #3b82f620' : 'none'
-            }}
-          >
-            <Send className="h-4 w-4" />
-          </button>
+            variant={newMessage.trim() ? "primary" : "outline"}
+            size="sm"
+            icon={Send}
+            className="p-0 w-10 h-10 rounded-full shadow-lg disabled:shadow-none transition-all duration-200"
+          />
         </div>
       </form>
     </div>
