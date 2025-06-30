@@ -63,7 +63,7 @@ const ConversationList = () => {
 
   if (isDesktop) {
     return (
-      <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
+      <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
             <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-r border-gray-200/60 dark:border-slate-700/60 shadow-sm">
@@ -128,7 +128,7 @@ const ConversationList = () => {
 
   // Mobile/Tablet layout
   return (
-    <div className="h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
       <div className="flex h-full">
         <div className="w-72 border-r border-gray-200/60 dark:border-slate-700/60 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-sm">
           <ConversationListPanel 

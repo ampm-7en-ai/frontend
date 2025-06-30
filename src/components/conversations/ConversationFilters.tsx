@@ -1,8 +1,6 @@
 
 import React from 'react';
-import { Search, Filter, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Filter, X } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import ModernButton from '@/components/dashboard/ModernButton';
 import {
@@ -31,8 +29,6 @@ const ConversationFilters = ({
   agentTypeFilter,
   setAgentTypeFilter
 }: ConversationFiltersProps) => {
-  const [searchQuery, setSearchQuery] = React.useState('');
-
   const statusTabs = [
     { id: 'all', label: 'All' },
     { id: 'unresolved', label: 'Open' },
@@ -56,51 +52,41 @@ const ConversationFilters = ({
     { id: 'human', label: 'Human Agents' }
   ];
 
-  const hasActiveFilters = channelFilter !== 'all' || agentTypeFilter !== 'all' || searchQuery;
+  const hasActiveFilters = channelFilter !== 'all' || agentTypeFilter !== 'all';
 
   const clearAllFilters = () => {
     setChannelFilter('all');
     setAgentTypeFilter('all');
-    setSearchQuery('');
   };
 
   return (
-    <div className="p-4 space-y-4 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
-      {/* Status Tabs */}
-      <div className="flex items-center justify-between">
-        <ModernTabNavigation
-          tabs={statusTabs}
-          activeTab={filterResolved}
-          onTabChange={onFilterResolvedChange}
-          className="text-xs"
-        />
-        
-        {hasActiveFilters && (
-          <ModernButton
-            variant="outline"
-            size="sm"
-            icon={X}
-            onClick={clearAllFilters}
+    <div className="p-4 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
+      {/* Status Tabs and Clear Button */}
+      <div className="flex items-center justify-center mb-4">
+        <div className="flex items-center gap-4">
+          <ModernTabNavigation
+            tabs={statusTabs}
+            activeTab={filterResolved}
+            onTabChange={onFilterResolvedChange}
             className="text-xs"
-          >
-            Clear
-          </ModernButton>
-        )}
+          />
+          
+          {hasActiveFilters && (
+            <ModernButton
+              variant="outline"
+              size="sm"
+              icon={X}
+              onClick={clearAllFilters}
+              className="text-xs"
+            >
+              Clear
+            </ModernButton>
+          )}
+        </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex items-center gap-3">
-        {/* Search Input */}
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-400" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-600 focus:ring-blue-500 dark:focus:ring-blue-400"
-          />
-        </div>
-
+      {/* Filters */}
+      <div className="flex items-center justify-center gap-3">
         {/* Channel Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -113,7 +99,7 @@ const ConversationFilters = ({
               {channelOptions.find(opt => opt.id === channelFilter)?.label || 'Channel'}
             </ModernButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
             <DropdownMenuLabel>Filter by Channel</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {channelOptions.map((option) => (
@@ -140,7 +126,7 @@ const ConversationFilters = ({
               {agentTypeOptions.find(opt => opt.id === agentTypeFilter)?.label || 'Type'}
             </ModernButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
             <DropdownMenuLabel>Filter by Agent Type</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {agentTypeOptions.map((option) => (

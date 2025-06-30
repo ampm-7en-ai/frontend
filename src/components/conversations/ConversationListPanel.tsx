@@ -3,9 +3,8 @@ import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader, RefreshCw } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { useChatSessions } from '@/hooks/useChatSessions';
-import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 
 interface ConversationListPanelProps {
@@ -300,9 +299,9 @@ const ConversationListPanel = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 max-w-[1440px] mx-auto">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
       {/* Filters */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700">
+      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700">
         <ConversationFilters 
           filterResolved={filterStatus}
           onFilterResolvedChange={setFilterStatus}
@@ -314,8 +313,8 @@ const ConversationListPanel = ({
       </div>
       
       {/* Conversation List */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-12rem)]" style={{ height: "calc(100vh - 12rem)" }}>
+      <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full">
           <div className="py-2">
             {renderContent()}
           </div>
