@@ -35,6 +35,24 @@ const ConversationDetailsPanel = ({
     );
   }
 
+  // Mock handoff data - in a real app this would come from the conversation data
+  const mockHandoffs = [
+    {
+      id: '1',
+      from: 'AI Assistant',
+      to: 'Sarah Johnson',
+      timestamp: '2:30 PM',
+      reason: 'Customer requested human agent'
+    },
+    {
+      id: '2', 
+      from: 'Sarah Johnson',
+      to: 'Mike Chen',
+      timestamp: '3:15 PM',
+      reason: 'Technical expertise needed'
+    }
+  ];
+
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
       <div className="p-6 space-y-6">
@@ -183,8 +201,7 @@ const ConversationDetailsPanel = ({
           </CardHeader>
           <CardContent className="pt-0">
             <HandoffHistory 
-              conversation={conversation} 
-              selectedAgent={selectedAgent}
+              handoffs={mockHandoffs}
               onHandoffClick={onHandoffClick}
             />
           </CardContent>
