@@ -31,8 +31,7 @@ const ConversationFilters = ({
   const statusTabs = [
     { id: 'all', label: 'All' },
     { id: 'unresolved', label: 'Open' },
-    { id: 'resolved', label: 'Resolved' },
-    { id: 'pending', label: 'Pending' }
+    { id: 'resolved', label: 'Resolved' }
   ];
 
   const channelOptions = [
@@ -85,16 +84,18 @@ const ConversationFilters = ({
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <ModernButton
-                variant={hasActiveFilters ? 'secondary' : 'outline'}
-                size="sm"
-                icon={Filter}
-                className="text-xs"
+              <button
+                type="button"
+                className={`inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300 ${
+                  hasActiveFilters 
+                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700' 
+                    : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
               >
-                Filters
-              </ModernButton>
+                <Filter className="w-4 h-4" />
+              </button>
             </PopoverTrigger>
-            <PopoverContent className="w-64 p-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700" align="end">
+            <PopoverContent className="w-64 p-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 z-50" align="end">
               <div className="p-4">
                 <h4 className="font-medium text-sm mb-3">Filter Options</h4>
                 
