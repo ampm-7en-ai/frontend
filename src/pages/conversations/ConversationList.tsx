@@ -87,9 +87,17 @@ const ConversationList = () => {
           <ResizablePanel defaultSize={50}>
             <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
               <MessageContainer 
-                messages={activeConversation?.messages || []}
+                conversation={activeConversation}
                 selectedAgent={selectedAgent}
-                customer={activeConversation?.customer || 'Unknown'}
+                setSelectedAgent={setSelectedAgent}
+                onInfoClick={() => setSidebarOpen(true)}
+                getStatusBadge={getStatusBadge}
+                onSendMessage={(message) => {
+                  toast({
+                    title: "Message sent",
+                    description: "Your message has been sent to the customer.",
+                  });
+                }}
               />
             </div>
           </ResizablePanel>
@@ -139,9 +147,17 @@ const ConversationList = () => {
         
         <div className="flex-1 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
           <MessageContainer 
-            messages={activeConversation?.messages || []}
+            conversation={activeConversation}
             selectedAgent={selectedAgent}
-            customer={activeConversation?.customer || 'Unknown'}
+            setSelectedAgent={setSelectedAgent}
+            onInfoClick={() => setSidebarOpen(true)}
+            getStatusBadge={getStatusBadge}
+            onSendMessage={(message) => {
+              toast({
+                title: "Message sent",
+                description: "Your message has been sent to the customer.",
+              });
+            }}
           />
         </div>
       </div>

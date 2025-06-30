@@ -1,14 +1,5 @@
-
 import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
-
-export interface ChatSessionMessage {
-  id: string;
-  content: string;
-  timestamp: string;
-  sender: 'user' | 'agent' | 'ai';
-  agent?: string;
-}
 
 export interface ChatSessionData {
   id: string;
@@ -25,7 +16,20 @@ export interface ChatSessionData {
   topic: string[];
   channel: string;
   agentType?: "human" | "ai" | null;
-  messages?: ChatSessionMessage[];
+}
+
+export interface ChatSessionMessage {
+  id: string;
+  content: string;
+  timestamp: string;
+  sender: 'user' | 'bot' | 'system';
+  sessionId?: string;
+  metadata?: {
+    model?: string;
+    temperature?: number;
+    prompt?: string;
+    [key: string]: any;
+  };
 }
 
 interface ChatSessionsWebSocketEvents {
@@ -180,23 +184,17 @@ export class ChatSessionsWebSocketService {
       );
     }
     
-    // Map sender types to match our interface
-    let mappedSender: 'user' | 'agent' | 'ai' = 'agent';
-    if (messageSender === 'user') {
-      mappedSender = 'user';
-    } else if (messageSender === 'bot' || messageSender === 'system') {
-      mappedSender = 'ai';
-    } else {
-      mappedSender = 'agent';
-    }
-    
     // Emit the message event
     this.events.onMessage?.({
       id: messageId,
       content: messageContent,
       timestamp: messageTimestamp,
-      sender: mappedSender,
-      agent: data.agent || metadata.agent
+      sender: messageSender as 'user' | 'bot' | 'system',
+      metadata: {
+        model: metadata.model || data.model,
+        temperature: metadata.temperature || data.temperature,
+        prompt: metadata.prompt || data.prompt
+      }
     });
   }
 }

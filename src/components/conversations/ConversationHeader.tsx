@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -33,66 +32,64 @@ const ConversationHeader = ({
 }: ConversationHeaderProps) => {
   const getChannelBadge = (channel: string) => {
     const channelColors = {
-      whatsapp: 'bg-green-100 text-green-700 border-green-200',
-      email: 'bg-blue-100 text-blue-700 border-blue-200',
-      website: 'bg-purple-100 text-purple-700 border-purple-200',
-      phone: 'bg-orange-100 text-orange-700 border-orange-200',
-      slack: 'bg-pink-100 text-pink-700 border-pink-200',
-      instagram: 'bg-gradient-to-r from-pink-500 to-violet-500 text-white border-pink-300'
+      whatsapp: 'bg-green-100 text-green-700',
+      email: 'bg-blue-100 text-blue-700',
+      website: 'bg-purple-100 text-purple-700',
+      phone: 'bg-orange-100 text-orange-700',
+      slack: 'bg-pink-100 text-pink-700',
+      instagram: 'bg-gradient-to-r from-pink-500 to-violet-500 text-white'
     };
     
     return (
-      <Badge className={`text-xs px-2 py-1 rounded-lg border ${channelColors[channel as keyof typeof channelColors] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+      <Badge className={`text-xs ${channelColors[channel as keyof typeof channelColors] || 'bg-gray-100 text-gray-700'}`}>
         {channel?.charAt(0).toUpperCase() + channel?.slice(1)}
       </Badge>
     );
   };
 
   return (
-    <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-600/50">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600">
-            <AvatarFallback className="text-white font-medium text-sm">
-              {conversation.customer?.charAt(0)?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-base">{conversation.customer}</h3>
-              {getStatusBadge(conversation.status)}
-              {conversation.channel && getChannelBadge(conversation.channel)}
-            </div>
-            <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-              <span>{messageCount} messages</span>
-              {conversation.agent && (
-                <span>Assigned to {conversation.agent}</span>
-              )}
-              {selectedAgent && (
-                <span className="text-blue-600 dark:text-blue-400">Viewing {selectedAgent} messages</span>
-              )}
-            </div>
+    <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
+            {conversation.customer?.charAt(0)?.toUpperCase() || 'U'}
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">{conversation.customer}</h3>
+            {getStatusBadge(conversation.status)}
+            {conversation.channel && getChannelBadge(conversation.channel)}
+          </div>
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <span>{messageCount} messages</span>
+            {conversation.agent && (
+              <span>Assigned to {conversation.agent}</span>
+            )}
+            {selectedAgent && (
+              <span className="text-blue-600">Viewing {selectedAgent} messages</span>
+            )}
           </div>
         </div>
-        
-        {!hideActionButtons && (
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 rounded-lg">
-              <Phone className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 rounded-lg">
-              <Video className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onInfoClick} className="h-8 w-8 p-0 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 rounded-lg">
-              <Info className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 rounded-lg">
-              <MoreHorizontal className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-            </Button>
-          </div>
-        )}
       </div>
+      
+      {!hideActionButtons && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm">
+            <Phone className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Video className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onInfoClick}>
+            <Info className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
