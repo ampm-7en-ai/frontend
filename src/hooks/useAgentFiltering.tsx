@@ -62,15 +62,15 @@ export const useAgentFiltering = ({
   const getStatusBadgeColor = (status: string) => {
     const statusLower = status.toLowerCase();
     if (statusLower === 'active') {
-      return 'bg-green-50 text-green-700 border-green-200';
+      return 'bg-green-50 dark:bg-green-800/40 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/40';
     } else if (statusLower === 'training') {
-      return 'bg-blue-50 text-blue-700 border-blue-200';
+      return 'bg-blue-50 dark:bg-blue-800/40 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900/40';
     } else if (statusLower === 'issues') {
-      return 'bg-red-50 text-red-700 border-red-200';
+      return 'bg-red-50 dark:bg-red-800/40 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/40';
     } else if (statusLower === 'pending') {
-      return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      return 'bg-yellow-50 dark:bg-yellow-800/40 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900/40';
     } else {
-      return 'bg-gray-50 text-gray-700 border-gray-200';
+      return 'bg-gray-50 dark:bg-gray-700/40 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900/40';
     }
   };
   

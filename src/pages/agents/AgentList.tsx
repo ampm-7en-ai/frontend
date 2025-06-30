@@ -147,7 +147,7 @@ const AgentList = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="space-y-6 p-8">
             {/* Header Section */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-4">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">AI Agents</h1>
                 <p className="text-slate-600 dark:text-slate-400 text-base">Manage and create your AI agents</p>
@@ -162,56 +162,7 @@ const AgentList = () => {
             </div>
 
             {/* Search and Filter Section */}
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 dark:border-slate-700/50 shadow-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Search Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="search-agents" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Search Agents
-                  </Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <Input
-                      id="search-agents"
-                      placeholder="Search agents..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-11 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    />
-                  </div>
-                </div>
-
-                {/* Model Filter */}
-                <div className="space-y-2">
-                  <Label htmlFor="model-filter" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Filter by Model
-                  </Label>
-                  <Select value={modelFilter} onValueChange={setModelFilter}>
-                    <SelectTrigger 
-                      id="model-filter"
-                      className="h-11 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                    >
-                      <SelectValue placeholder="All Models" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl shadow-lg">
-                      <SelectItem value="all">All Models</SelectItem>
-                      <SelectItem value="gpt-4">GPT-4</SelectItem>
-                      <SelectItem value="gpt-3.5">GPT-3.5</SelectItem>
-                      <SelectItem value="claude-3">Claude-3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Results Summary */}
-              <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-                    {filteredAgents.length} agent{filteredAgents.length !== 1 ? 's' : ''} found
-                  </span>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Agents Grid */}
             {isLoading ? (

@@ -120,7 +120,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <ModernButton variant="outline" size="sm" className="h-8 w-8 p-0">
+        <ModernButton variant="outline" size="sm" className="h-8 w-8 p-0" iconOnly>
           <MoreVertical className="h-4 w-4" />
         </ModernButton>
       </DropdownMenuTrigger>

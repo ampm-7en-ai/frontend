@@ -428,9 +428,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             <div className="flex items-center justify-between">
               <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8 bg-gray-300 dark:bg-gray-600 p-[1px]">
-                      <AvatarFallback className="text-white text-sm font-medium">
+                  <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
+                    <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
+                      <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
@@ -499,8 +499,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             <div className="flex flex-col items-center space-y-2">
               <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
                   <DropdownMenuTrigger asChild>
-                    <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors">
-                      <Avatar className="h-8 w-8 bg-gray-300 dark:bg-gray-600 p-[1px]">
+                    <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
+                      <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
                         <AvatarFallback className="text-white text-sm font-medium">
                           {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </AvatarFallback>

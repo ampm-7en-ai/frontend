@@ -932,20 +932,22 @@ const KnowledgeBase = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <ModernButton 
+                          iconOnly
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDownloadFile(source)}
-                          className="h-10 w-10 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          className="w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700"
                         >
-                          <Download className="h-5 w-5" />
+                          <Download className="h-4 w-4" />
                         </ModernButton>
                         <ModernButton 
+                          iconOnly
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDeleteFile(source.id)}
-                          className="h-10 w-10 p-0 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-600"
+                          className="w-8 h-8 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-600"
                         >
-                          <Trash className="h-5 w-5" />
+                          <Trash className="h-4 w-4" />
                         </ModernButton>
                       </div>
                     </div>
