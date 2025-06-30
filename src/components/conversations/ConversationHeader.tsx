@@ -1,22 +1,8 @@
-
 import React from 'react';
-import { Info, Phone, Video, MoreHorizontal, UserCheck, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import ModernButton from '@/components/dashboard/ModernButton';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Info, Phone, Video, MoreHorizontal } from 'lucide-react';
 
 interface ConversationHeaderProps {
   conversation: {
@@ -25,137 +11,85 @@ interface ConversationHeaderProps {
     status: string;
     channel?: string;
     agent?: string;
+    // ... other properties
   };
   selectedAgent: string | null;
   setSelectedAgent: (agent: string | null) => void;
   onInfoClick: () => void;
   getStatusBadge: (status: string) => React.ReactNode;
   messageCount?: number;
+  hideActionButtons?: boolean;
 }
 
-const ConversationHeader = ({ 
-  conversation, 
-  selectedAgent, 
-  setSelectedAgent, 
-  onInfoClick, 
+const ConversationHeader = ({
+  conversation,
+  selectedAgent,
+  setSelectedAgent,
+  onInfoClick,
   getStatusBadge,
-  messageCount = 0 
+  messageCount = 0,
+  hideActionButtons = false
 }: ConversationHeaderProps) => {
-  const agents = ['Sarah Johnson', 'Mike Chen', 'Alex Rivera']; // Mock data
+  const getChannelBadge = (channel: string) => {
+    const channelColors = {
+      whatsapp: 'bg-green-100 text-green-700',
+      email: 'bg-blue-100 text-blue-700',
+      website: 'bg-purple-100 text-purple-700',
+      phone: 'bg-orange-100 text-orange-700',
+      slack: 'bg-pink-100 text-pink-700',
+      instagram: 'bg-gradient-to-r from-pink-500 to-violet-500 text-white'
+    };
+    
+    return (
+      <Badge className={`text-xs ${channelColors[channel as keyof typeof channelColors] || 'bg-gray-100 text-gray-700'}`}>
+        {channel?.charAt(0).toUpperCase() + channel?.slice(1)}
+      </Badge>
+    );
+  };
 
   return (
-    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200/80 dark:border-slate-700/80 p-4">
-      <div className="flex items-center justify-between">
-        {/* Left Side - Customer Info */}
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                {conversation.customer}
-              </h2>
-              {getStatusBadge(conversation.status)}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-              <span className="capitalize">{conversation.channel || 'Chat'}</span>
-              {messageCount > 0 && (
-                <>
-                  <span>•</span>
-                  <span>{messageCount} messages</span>
-                </>
-              )}
-              {conversation.agent && (
-                <>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <UserCheck className="h-3 w-3" />
-                    {conversation.agent}
-                  </span>
-                </>
-              )}
-            </div>
+    <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
+            {conversation.customer?.charAt(0)?.toUpperCase() || 'U'}
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">{conversation.customer}</h3>
+            {getStatusBadge(conversation.status)}
+            {conversation.channel && getChannelBadge(conversation.channel)}
           </div>
-        </div>
-
-        {/* Right Side - Actions */}
-        <div className="flex items-center gap-2">
-          {/* Agent Filter */}
-          {selectedAgent && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-slate-400">Viewing:</span>
-              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                <SelectTrigger className="w-40 h-8 text-xs bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 backdrop-blur-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200/80 dark:border-slate-700/80">
-                  <SelectItem value="all">All Messages</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent} value={agent}>
-                      {agent}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1">
-            <ModernButton
-              variant="outline"
-              size="sm"
-              icon={Phone}
-              className="p-0 w-8 h-8"
-            >
-              {/* Empty children for icon-only button */}
-            </ModernButton>
-            <ModernButton
-              variant="outline"
-              size="sm"
-              icon={Video}
-              className="p-0 w-8 h-8"
-            >
-              {/* Empty children for icon-only button */}
-            </ModernButton>
-            <ModernButton
-              variant="outline"
-              size="sm"
-              icon={Info}
-              onClick={onInfoClick}
-              className="p-0 w-8 h-8"
-            >
-              {/* Empty children for icon-only button */}
-            </ModernButton>
-            
-            {/* More Actions */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <ModernButton
-                  variant="outline"
-                  size="sm"
-                  icon={MoreHorizontal}
-                  className="p-0 w-8 h-8"
-                >
-                  {/* Empty children for icon-only button */}
-                </ModernButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200/80 dark:border-slate-700/80">
-                <DropdownMenuItem>
-                  <Clock className="h-4 w-4 mr-2" />
-                  Set Reminder
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  Assign Agent
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600 dark:text-red-400">
-                  Close Conversation
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <span>{messageCount} messages</span>
+            {conversation.agent && (
+              <span>Assigned to {conversation.agent}</span>
+            )}
+            {selectedAgent && (
+              <span className="text-blue-600">Viewing {selectedAgent} messages</span>
+            )}
           </div>
         </div>
       </div>
+      
+      {!hideActionButtons && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm">
+            <Phone className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Video className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onInfoClick}>
+            <Info className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

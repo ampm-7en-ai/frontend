@@ -104,7 +104,7 @@ const ConversationFilters = ({
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-xl z-50 rounded-2xl" align="end">
+            <PopoverContent className="w-80 p-0 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-xl z-50 rounded-2xl" align="start" side="right">
               <div className="p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Filter Conversations</h4>

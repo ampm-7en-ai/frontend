@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
 import MessageList from './MessageList';
-import MessageInput from './MessageInput';
 import ConversationHeader from './ConversationHeader';
 import ConversationEmptyState from './ConversationEmptyState';
 import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
@@ -108,12 +107,12 @@ const MessageContainer = ({
         onInfoClick={onInfoClick}
         getStatusBadge={getStatusBadge}
         messageCount={validMessages?.filter(m => m.sender !== "system").length}
+        hideActionButtons={true}
       />
       
       <div className="flex-1 overflow-hidden" style={{background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)"}}> 
         <ScrollArea 
-          className="h-[calc(100vh-12rem)]"
-          style={{ height: "calc(100vh - 12rem)" }}
+          className="h-full"
         >
           <div className="p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
@@ -158,10 +157,6 @@ const MessageContainer = ({
             </div>
           </div>
         </ScrollArea>
-      </div>
-      
-      <div className="border-t border-gray-100 bg-white">
-        <MessageInput onSendMessage={handleSendMessage} />
       </div>
     </div>
   );
