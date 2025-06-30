@@ -12,10 +12,10 @@ interface ConversationListPanelProps {
   setFilterStatus: (status: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  channelFilter: string;
-  setChannelFilter: (channel: string) => void;
-  agentTypeFilter: string;
-  setAgentTypeFilter: (type: string) => void;
+  channelFilter: string[];
+  setChannelFilter: (channels: string[]) => void;
+  agentTypeFilter: string[];
+  setAgentTypeFilter: (types: string[]) => void;
   selectedConversation: string | null;
   setSelectedConversation: (id: string) => void;
   isLoading?: boolean;
@@ -106,6 +106,17 @@ const ConversationListPanel = ({
     previousSessionsRef.current = JSON.parse(JSON.stringify(sessions));
   }, [sessions, selectedConversation]);
   
+  // Custom filter functions for array-based filters
+  const filterSessionsByChannels = (channels: string[]) => {
+    if (channels.length === 0) return sessions;
+    return sessions.filter(s => channels.includes(s.channel));
+  };
+  
+  const filterSessionsByAgentTypes = (types: string[]) => {
+    if (types.length === 0) return sessions;
+    return sessions.filter(s => types.includes(s.agentType));
+  };
+  
   // Apply all filters
   const filteredSessions = React.useMemo(() => {
     let result = sessions;
@@ -115,14 +126,14 @@ const ConversationListPanel = ({
       result = filterSessionsByStatus(filterStatus);
     }
     
-    // Apply channel filter
-    if (channelFilter !== 'all') {
-      result = filterSessionsByChannel(channelFilter);
+    // Apply channel filter (array-based)
+    if (channelFilter.length > 0) {
+      result = result.filter(s => channelFilter.includes(s.channel));
     }
     
-    // Apply agent type filter
-    if (agentTypeFilter !== 'all') {
-      result = filterSessionsByAgentType(agentTypeFilter);
+    // Apply agent type filter (array-based)
+    if (agentTypeFilter.length > 0) {
+      result = result.filter(s => agentTypeFilter.includes(s.agentType));
     }
     
     // Apply search filter
@@ -143,8 +154,6 @@ const ConversationListPanel = ({
     searchQuery,
     readSessions,
     filterSessionsByStatus,
-    filterSessionsByChannel,
-    filterSessionsByAgentType,
     filterSessionsBySearch
   ]);
   

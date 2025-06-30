@@ -14,10 +14,10 @@ import { Separator } from '@/components/ui/separator';
 interface ConversationFiltersProps {
   filterResolved: string;
   onFilterResolvedChange: (status: string) => void;
-  channelFilter: string;
-  setChannelFilter: (channel: string) => void;
-  agentTypeFilter: string;
-  setAgentTypeFilter: (type: string) => void;
+  channelFilter: string[];
+  setChannelFilter: (channels: string[]) => void;
+  agentTypeFilter: string[];
+  setAgentTypeFilter: (types: string[]) => void;
 }
 
 const ConversationFilters = ({
@@ -35,40 +35,44 @@ const ConversationFilters = ({
   ];
 
   const channelOptions = [
-    { id: 'whatsapp', label: 'WhatsApp' },
-    { id: 'email', label: 'Email' },
-    { id: 'website', label: 'Website' },
-    { id: 'phone', label: 'Phone' },
-    { id: 'slack', label: 'Slack' },
-    { id: 'instagram', label: 'Instagram' }
+    { id: 'whatsapp', label: 'WhatsApp', color: 'bg-green-100 text-green-700' },
+    { id: 'email', label: 'Email', color: 'bg-blue-100 text-blue-700' },
+    { id: 'website', label: 'Website', color: 'bg-purple-100 text-purple-700' },
+    { id: 'phone', label: 'Phone', color: 'bg-orange-100 text-orange-700' },
+    { id: 'slack', label: 'Slack', color: 'bg-pink-100 text-pink-700' },
+    { id: 'instagram', label: 'Instagram', color: 'bg-gradient-to-r from-pink-500 to-violet-500 text-white' }
   ];
 
   const agentTypeOptions = [
-    { id: 'ai', label: 'AI Agents' },
-    { id: 'human', label: 'Human Agents' }
+    { id: 'ai', label: 'AI Agents', icon: '🤖' },
+    { id: 'human', label: 'Human Agents', icon: '👤' }
   ];
 
-  const hasActiveFilters = channelFilter !== 'all' || agentTypeFilter !== 'all';
+  const hasActiveFilters = channelFilter.length > 0 || agentTypeFilter.length > 0;
 
   const clearAllFilters = () => {
-    setChannelFilter('all');
-    setAgentTypeFilter('all');
+    setChannelFilter([]);
+    setAgentTypeFilter([]);
   };
 
   const handleChannelChange = (channelId: string, checked: boolean) => {
     if (checked) {
-      setChannelFilter(channelId);
-    } else if (channelFilter === channelId) {
-      setChannelFilter('all');
+      setChannelFilter([...channelFilter, channelId]);
+    } else {
+      setChannelFilter(channelFilter.filter(id => id !== channelId));
     }
   };
 
   const handleAgentTypeChange = (typeId: string, checked: boolean) => {
     if (checked) {
-      setAgentTypeFilter(typeId);
-    } else if (agentTypeFilter === typeId) {
-      setAgentTypeFilter('all');
+      setAgentTypeFilter([...agentTypeFilter, typeId]);
+    } else {
+      setAgentTypeFilter(agentTypeFilter.filter(id => id !== typeId));
     }
+  };
+
+  const getActiveFiltersCount = () => {
+    return channelFilter.length + agentTypeFilter.length;
   };
 
   return (
@@ -86,83 +90,129 @@ const ConversationFilters = ({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300 ${
+                className={`relative inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300 ${
                   hasActiveFilters 
-                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800' 
                     : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <Filter className="w-4 h-4" />
+                {hasActiveFilters && (
+                  <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                    {getActiveFiltersCount()}
+                  </span>
+                )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-64 p-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 z-50" align="end">
-              <div className="p-4">
-                <h4 className="font-medium text-sm mb-3">Filter Options</h4>
+            <PopoverContent className="w-80 p-0 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-xl z-50" align="end">
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Filter Conversations</h4>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </div>
                 
                 {/* Channel Filters */}
-                <div className="mb-4">
-                  <h5 className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
-                    Channels
+                <div className="mb-5">
+                  <h5 className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-3 uppercase tracking-wide">
+                    Channels ({channelFilter.length} selected)
                   </h5>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {channelOptions.map((option) => (
-                      <div key={option.id} className="flex items-center space-x-2">
+                      <div key={option.id} className="flex items-center space-x-3 group">
                         <Checkbox
                           id={`channel-${option.id}`}
-                          checked={channelFilter === option.id}
+                          checked={channelFilter.includes(option.id)}
                           onCheckedChange={(checked) => handleChannelChange(option.id, !!checked)}
+                          className="rounded-md"
                         />
                         <label 
                           htmlFor={`channel-${option.id}`}
-                          className="text-sm cursor-pointer"
+                          className="text-sm cursor-pointer flex-1 flex items-center justify-between group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors"
                         >
-                          {option.label}
+                          <span>{option.label}</span>
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${option.color}`}>
+                            {option.label}
+                          </span>
                         </label>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <Separator />
+                <Separator className="my-4" />
 
                 {/* Agent Type Filters */}
-                <div className="mt-4">
-                  <h5 className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
-                    Agent Types
+                <div>
+                  <h5 className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-3 uppercase tracking-wide">
+                    Agent Types ({agentTypeFilter.length} selected)
                   </h5>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {agentTypeOptions.map((option) => (
-                      <div key={option.id} className="flex items-center space-x-2">
+                      <div key={option.id} className="flex items-center space-x-3 group">
                         <Checkbox
                           id={`agent-${option.id}`}
-                          checked={agentTypeFilter === option.id}
+                          checked={agentTypeFilter.includes(option.id)}
                           onCheckedChange={(checked) => handleAgentTypeChange(option.id, !!checked)}
+                          className="rounded-md"
                         />
                         <label 
                           htmlFor={`agent-${option.id}`}
-                          className="text-sm cursor-pointer"
+                          className="text-sm cursor-pointer flex-1 flex items-center space-x-2 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors"
                         >
-                          {option.label}
+                          <span className="text-base">{option.icon}</span>
+                          <span>{option.label}</span>
                         </label>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                {hasActiveFilters && (
+                  <>
+                    <Separator className="my-4" />
+                    <div className="flex flex-wrap gap-2">
+                      {channelFilter.map(channelId => {
+                        const channel = channelOptions.find(c => c.id === channelId);
+                        return channel ? (
+                          <span key={channelId} className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${channel.color}`}>
+                            {channel.label}
+                            <button
+                              onClick={() => handleChannelChange(channelId, false)}
+                              className="hover:bg-black/10 rounded-full p-0.5 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
+                      {agentTypeFilter.map(typeId => {
+                        const type = agentTypeOptions.find(t => t.id === typeId);
+                        return type ? (
+                          <span key={typeId} className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            <span>{type.icon}</span>
+                            {type.label}
+                            <button
+                              onClick={() => handleAgentTypeChange(typeId, false)}
+                              className="hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             </PopoverContent>
           </Popover>
-          
-          {hasActiveFilters && (
-            <ModernButton
-              variant="outline"
-              size="sm"
-              icon={X}
-              onClick={clearAllFilters}
-              className="text-xs"
-            >
-              Clear
-            </ModernButton>
-          )}
         </div>
       </div>
     </div>

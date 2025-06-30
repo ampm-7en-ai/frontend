@@ -21,8 +21,8 @@ const ConversationList = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('unresolved');
-  const [channelFilter, setChannelFilter] = useState('all');
-  const [agentTypeFilter, setAgentTypeFilter] = useState('all');
+  const [channelFilter, setChannelFilter] = useState<string[]>([]);
+  const [agentTypeFilter, setAgentTypeFilter] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
