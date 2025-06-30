@@ -55,177 +55,229 @@ const ConversationDetailsPanel = ({
 
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
-      <div className="p-6 space-y-6">
+      <div className="p-8 space-y-8">
         {/* Current Agent Section */}
-        <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <CardTitle className="text-sm font-medium text-gray-900 dark:text-slate-100">Current Agent</CardTitle>
+        <section>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">Current Agent</h2>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Agent currently handling this conversation
+            </p>
+          </div>
+          
+          <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Information</h3>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8 bg-blue-600">
-                <AvatarFallback className="text-white text-xs font-medium">
+
+            <div className="flex items-center gap-4">
+              <Avatar className="h-10 w-10 bg-blue-600">
+                <AvatarFallback className="text-white text-sm font-medium">
                   AI
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">AI Assistant</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Available 24/7</p>
+                <p className="text-base font-medium text-slate-900 dark:text-slate-100">AI Assistant</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Available 24/7</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         {/* Customer Information */}
-        <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              <CardTitle className="text-sm font-medium text-gray-900 dark:text-slate-100">Customer Information</CardTitle>
+        <section>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">Customer Information</h2>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Details about the customer in this conversation
+            </p>
+          </div>
+          
+          <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Customer Details</h3>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-600 dark:text-slate-300">Full Name</span>
-                <span className="text-sm text-gray-900 dark:text-slate-100 font-medium">{conversation.customer || "Visitor"}</span>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Full Name</h4>
+                <p className="text-slate-600 dark:text-slate-400">{conversation.customer || "Visitor"}</p>
               </div>
               
               {conversation.email && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-600 dark:text-slate-300 flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
+                <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
                     Email
-                  </span>
-                  <span className="text-sm text-gray-900 dark:text-slate-100">{conversation.email}</span>
+                  </h4>
+                  <p className="text-slate-600 dark:text-slate-400">{conversation.email}</p>
                 </div>
               )}
               
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-600 dark:text-slate-300 flex items-center gap-1">
-                  <Star className="h-3 w-3" />
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                  <Star className="h-4 w-4" />
                   Satisfaction
-                </span>
+                </h4>
                 <div>{getSatisfactionIndicator(conversation.satisfaction)}</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         {/* Customer Context */}
-        <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <CardTitle className="text-sm font-medium text-gray-900 dark:text-slate-100">Customer Context</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0 space-y-4">
-            {/* Account Status */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-slate-300">
-                <User className="h-3 w-3" />
-                Account Status
+        <section>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">Customer Context</h2>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Additional context and insights about this customer
+            </p>
+          </div>
+          
+          <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Context & Insights</h3>
               </div>
-              <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-xs font-medium px-2 py-1">
-                Premium Account
-              </Badge>
-            </div>
-
-            {/* Previous Interactions */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-slate-300">
-                <Clock className="h-3 w-3" />
-                Previous Interactions
-              </div>
-              <div className="text-sm text-gray-900 dark:text-slate-100">3 conversations this month</div>
             </div>
 
-            {/* Detected Topics */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-slate-300">
-                <Tag className="h-3 w-3" />
-                Detected Topics
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Account Status */}
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Account Status
+                </h4>
+                <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-sm font-medium px-3 py-1">
+                  Premium Account
+                </Badge>
               </div>
-              <div className="flex flex-wrap gap-1">
-                {conversation.topic?.slice(0, 3).map((topic: string, index: number) => (
-                  <Badge 
-                    key={index} 
-                    variant="outline" 
-                    className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-600"
-                  >
-                    {topic}
+
+              {/* Previous Interactions */}
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Previous Interactions
+                </h4>
+                <p className="text-slate-600 dark:text-slate-400">3 conversations this month</p>
+              </div>
+
+              {/* Detected Topics */}
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Detected Topics
+                </h4>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {conversation.topic?.slice(0, 3).map((topic: string, index: number) => (
+                    <Badge 
+                      key={index} 
+                      variant="outline" 
+                      className="text-xs px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600"
+                    >
+                      {topic}
+                    </Badge>
+                  )) || (
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600"
+                    >
+                      General Inquiry
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Customer Sentiment */}
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Customer Sentiment
+                </h4>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs px-2 py-1">
+                    Frustrated
                   </Badge>
-                )) || (
-                  <Badge 
-                    variant="outline" 
-                    className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-600"
-                  >
-                    General Inquiry
+                  <Badge className="bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-slate-300 border-gray-200 dark:border-slate-600 text-xs px-2 py-1">
+                    Neutral
                   </Badge>
-                )}
+                  <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800 text-xs px-2 py-1">
+                    Satisfied
+                  </Badge>
+                </div>
               </div>
             </div>
-
-            {/* Customer Sentiment */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-slate-300">
-                <TrendingUp className="h-3 w-3" />
-                Customer Sentiment
-              </div>
-              <div className="flex gap-1">
-                <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs px-2 py-1">
-                  Frustrated
-                </Badge>
-                <Badge className="bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-slate-300 border-gray-200 dark:border-slate-600 text-xs px-2 py-1">
-                  Neutral
-                </Badge>
-                <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800 text-xs px-2 py-1">
-                  Satisfied
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         {/* Handoff History */}
-        <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <CardTitle className="text-sm font-medium text-gray-900 dark:text-slate-100">Agent Handoffs</CardTitle>
+        <section>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">Agent Handoffs</h2>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              History of agent transfers for this conversation
+            </p>
+          </div>
+          
+          <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center">
+                  <MessageSquare className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Handoff Timeline</h3>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
+
             <HandoffHistory 
               handoffs={mockHandoffs}
               onHandoffClick={onHandoffClick}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         {/* Quick Actions */}
-        <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <CardTitle className="text-sm font-medium text-gray-900 dark:text-slate-100">Quick Actions</CardTitle>
+        <section>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">Quick Actions</h2>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Available actions for this conversation
+            </p>
+          </div>
+          
+          <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <Phone className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Available Actions</h3>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
+
             <div className="bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-sm rounded-lg p-4 border border-blue-200/60 dark:border-blue-800/60">
               <div className="flex items-center justify-center">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2">
                   <Phone className="h-4 w-4" />
                   Create Support Ticket
                 </button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
     </div>
   );
