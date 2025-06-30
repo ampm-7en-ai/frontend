@@ -1,6 +1,14 @@
 import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
 
+export interface ChatSessionMessage {
+  id: string;
+  content: string;
+  timestamp: string;
+  sender: 'user' | 'agent' | 'ai';
+  agent?: string;
+}
+
 export interface ChatSessionData {
   id: string;
   customer: string;
@@ -16,20 +24,7 @@ export interface ChatSessionData {
   topic: string[];
   channel: string;
   agentType?: "human" | "ai" | null;
-}
-
-export interface ChatSessionMessage {
-  id: string;
-  content: string;
-  timestamp: string;
-  sender: 'user' | 'bot' | 'system';
-  sessionId?: string;
-  metadata?: {
-    model?: string;
-    temperature?: number;
-    prompt?: string;
-    [key: string]: any;
-  };
+  messages?: ChatSessionMessage[];
 }
 
 interface ChatSessionsWebSocketEvents {
