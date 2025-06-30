@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import { ArrowLeft, Save, Eye, EyeOff, Settings, MessageSquare, Book, Zap, Chevr
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import AgentKnowledgeContainer from '@/components/agents/knowledge/AgentKnowledgeContainer';
+import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
 import ModernButton from '@/components/dashboard/ModernButton';
@@ -365,7 +364,11 @@ const AgentEdit = () => {
                     </TabsContent>
 
                     <TabsContent value="knowledge" className="mt-6">
-                      <AgentKnowledgeContainer agentId={agentId!} />
+                      <KnowledgeTrainingStatus
+                        agentId={agentId!}
+                        agentName={agent.name}
+                        preloadedKnowledgeSources={agent.knowledgeBases}
+                      />
                     </TabsContent>
 
                     <TabsContent value="guidelines" className="mt-6">
