@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,6 +49,10 @@ const AgentEdit = () => {
       selectedModel: 'gpt-3.5-turbo',
       temperature: 0.7,
       maxTokens: 2048
+    },
+    guidelines: {
+      dos: [] as string[],
+      donts: [] as string[]
     }
   });
   
@@ -88,6 +91,10 @@ const AgentEdit = () => {
           selectedModel: 'gpt-3.5-turbo',
           temperature: 0.7,
           maxTokens: 2048
+        },
+        guidelines: (agent as any).guidelines || {
+          dos: [],
+          donts: []
         }
       });
     }
@@ -138,6 +145,13 @@ const AgentEdit = () => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleGuidelinesChange = (guidelines: { dos: string[]; donts: string[] }) => {
+    setFormData(prev => ({
+      ...prev,
+      guidelines
     }));
   };
 
@@ -311,7 +325,10 @@ const AgentEdit = () => {
                     </TabsContent>
 
                     <TabsContent value="guidelines" className="mt-6">
-                      <GuidelinesSection agentId={agentId!} />
+                      <GuidelinesSection
+                        initialGuidelines={formData.guidelines}
+                        onChange={handleGuidelinesChange}
+                      />
                     </TabsContent>
 
                     <TabsContent value="advanced" className="space-y-6 mt-6">
