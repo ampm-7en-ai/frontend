@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import MessageList from './MessageList';
 import ConversationHeader from './ConversationHeader';
@@ -110,7 +111,7 @@ const MessageContainer = ({
         hideActionButtons={true}
       />
       
-      <div className="flex-1 overflow-hidden" style={{background: "linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(241,245,249,0.8) 100%)"}}> 
+      <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50/80 to-slate-100/80 dark:from-slate-900/80 dark:to-slate-800/80"> 
         <ScrollArea 
           className="h-full"
         >
@@ -122,17 +123,17 @@ const MessageContainer = ({
                   {[1, 2, 3, 4].map((i) => (
                     i % 2 == 0 ? (
                       <div key={i} className="flex items-start gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
                         </div>
                       </div>
                     ) : (
                       <div key={i} className="flex items-start gap-3 justify-end">
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
                         </div>
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
                       </div>
                     )
                   ))}

@@ -32,17 +32,17 @@ const ConversationHeader = ({
   hideActionButtons = false
 }: ConversationHeaderProps) => {
   const getChannelBadge = (channel: string) => {
-    const channelColors = {
-      whatsapp: 'bg-green-100 text-green-700',
-      email: 'bg-blue-100 text-blue-700',
-      website: 'bg-purple-100 text-purple-700',
-      phone: 'bg-orange-100 text-orange-700',
-      slack: 'bg-pink-100 text-pink-700',
-      instagram: 'bg-gradient-to-r from-pink-500 to-violet-500 text-white'
+    const channelStyles = {
+      whatsapp: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
+      email: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+      website: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+      phone: 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+      slack: 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800',
+      instagram: 'bg-gradient-to-r from-pink-500 to-violet-500 text-white border-transparent'
     };
     
     return (
-      <Badge className={`text-xs ${channelColors[channel as keyof typeof channelColors] || 'bg-gray-100 text-gray-700'}`}>
+      <Badge className={`text-xs border ${channelStyles[channel as keyof typeof channelStyles] || 'bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800'}`}>
         {channel?.charAt(0).toUpperCase() + channel?.slice(1)}
       </Badge>
     );
@@ -51,8 +51,8 @@ const ConversationHeader = ({
   return (
     <div className="flex items-center justify-between p-4 border-b border-gray-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
       <div className="flex items-center gap-3">
-        <Avatar className="h-10 w-10">
-          <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
+        <Avatar className="h-10 w-10 rounded-lg">
+          <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-medium rounded-lg">
             {conversation.customer?.charAt(0)?.toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
