@@ -57,6 +57,16 @@ const AgentEdit = () => {
     guidelines: {
       dos: [] as string[],
       donts: [] as string[]
+    },
+    appearance: {
+      primaryColor: '#3b82f6',
+      secondaryColor: '#f8fafc',
+      fontFamily: 'Inter',
+      chatbotName: '',
+      welcomeMessage: 'Hello! How can I help you today?',
+      buttonText: 'Chat with us',
+      position: 'bottom-right' as 'bottom-right' | 'bottom-left',
+      suggestions: [] as string[]
     }
   });
   
@@ -99,6 +109,16 @@ const AgentEdit = () => {
         guidelines: agent.guidelines || {
           dos: [],
           donts: []
+        },
+        appearance: {
+          primaryColor: '#3b82f6',
+          secondaryColor: '#f8fafc',
+          fontFamily: 'Inter',
+          chatbotName: agent.name,
+          welcomeMessage: 'Hello! How can I help you today?',
+          buttonText: 'Chat with us',
+          position: 'bottom-right',
+          suggestions: []
         }
       });
     }
@@ -156,6 +176,16 @@ const AgentEdit = () => {
     setFormData(prev => ({
       ...prev,
       guidelines
+    }));
+  };
+
+  const handleAppearanceChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      appearance: {
+        ...prev.appearance,
+        [field]: value
+      }
     }));
   };
 
@@ -330,11 +360,87 @@ const AgentEdit = () => {
 
                     <TabsContent value="appearance" className="space-y-6 mt-6">
                       <div className="grid gap-6">
-                        <div className="p-6 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                          <h3 className="text-lg font-semibold mb-4">Appearance Settings</h3>
-                          <p className="text-slate-600 dark:text-slate-400">
-                            Customize how your agent appears to users. This section will contain appearance customization options.
-                          </p>
+                        <div className="grid gap-4">
+                          <h3 className="text-lg font-semibold">Chatbox Appearance</h3>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="primaryColor" className="text-sm font-medium">Primary Color</Label>
+                              <Input
+                                id="primaryColor"
+                                type="color"
+                                value={formData.appearance.primaryColor}
+                                onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
+                                className="h-10 w-full"
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="secondaryColor" className="text-sm font-medium">Secondary Color</Label>
+                              <Input
+                                id="secondaryColor"
+                                type="color"
+                                value={formData.appearance.secondaryColor}
+                                onChange={(e) => handleAppearanceChange('secondaryColor', e.target.value)}
+                                className="h-10 w-full"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="grid gap-2">
+                            <Label htmlFor="chatbotName" className="text-sm font-medium">Chatbot Name</Label>
+                            <Input
+                              id="chatbotName"
+                              value={formData.appearance.chatbotName}
+                              onChange={(e) => handleAppearanceChange('chatbotName', e.target.value)}
+                              placeholder="AI Assistant"
+                              className="bg-white/50 dark:bg-slate-800/50"
+                            />
+                          </div>
+                          
+                          <div className="grid gap-2">
+                            <Label htmlFor="welcomeMessage" className="text-sm font-medium">Welcome Message</Label>
+                            <Textarea
+                              id="welcomeMessage"
+                              value={formData.appearance.welcomeMessage}
+                              onChange={(e) => handleAppearanceChange('welcomeMessage', e.target.value)}
+                              placeholder="Hello! How can I help you today?"
+                              className="bg-white/50 dark:bg-slate-800/50"
+                            />
+                          </div>
+                          
+                          <div className="grid gap-2">
+                            <Label htmlFor="buttonText" className="text-sm font-medium">Button Text</Label>
+                            <Input
+                              id="buttonText"
+                              value={formData.appearance.buttonText}
+                              onChange={(e) => handleAppearanceChange('buttonText', e.target.value)}
+                              placeholder="Chat with us"
+                              className="bg-white/50 dark:bg-slate-800/50"
+                            />
+                          </div>
+                          
+                          <div className="grid gap-2">
+                            <Label className="text-sm font-medium">Position</Label>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant={formData.appearance.position === 'bottom-right' ? 'default' : 'outline'}
+                                onClick={() => handleAppearanceChange('position', 'bottom-right')}
+                                className="flex-1"
+                              >
+                                Bottom Right
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={formData.appearance.position === 'bottom-left' ? 'default' : 'outline'}
+                                onClick={() => handleAppearanceChange('position', 'bottom-left')}
+                                className="flex-1"
+                              >
+                                Bottom Left
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </TabsContent>
@@ -410,14 +516,14 @@ const AgentEdit = () => {
                       <div className="h-[600px] overflow-hidden rounded-b-lg">
                         <ChatboxPreview
                           agentId={agentId!}
-                          primaryColor="#3b82f6"
-                          secondaryColor="#f8fafc"
-                          fontFamily="Inter"
-                          chatbotName={formData.name || 'AI Assistant'}
-                          welcomeMessage="Hello! How can I help you today?"
-                          buttonText="Chat with us"
-                          position="bottom-right"
-                          suggestions={[]}
+                          primaryColor={formData.appearance.primaryColor}
+                          secondaryColor={formData.appearance.secondaryColor}
+                          fontFamily={formData.appearance.fontFamily}
+                          chatbotName={formData.appearance.chatbotName || 'AI Assistant'}
+                          welcomeMessage={formData.appearance.welcomeMessage}
+                          buttonText={formData.appearance.buttonText}
+                          position={formData.appearance.position}
+                          suggestions={formData.appearance.suggestions}
                           className="w-full h-full"
                         />
                       </div>
