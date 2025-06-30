@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -87,17 +88,9 @@ const ConversationList = () => {
           <ResizablePanel defaultSize={50}>
             <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
               <MessageContainer 
-                conversation={activeConversation}
+                messages={activeConversation?.messages || []}
                 selectedAgent={selectedAgent}
-                setSelectedAgent={setSelectedAgent}
-                onInfoClick={() => setSidebarOpen(true)}
-                getStatusBadge={getStatusBadge}
-                onSendMessage={(message) => {
-                  toast({
-                    title: "Message sent",
-                    description: "Your message has been sent to the customer.",
-                  });
-                }}
+                customer={activeConversation?.customer || 'Unknown'}
               />
             </div>
           </ResizablePanel>
@@ -147,17 +140,9 @@ const ConversationList = () => {
         
         <div className="flex-1 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
           <MessageContainer 
-            conversation={activeConversation}
+            messages={activeConversation?.messages || []}
             selectedAgent={selectedAgent}
-            setSelectedAgent={setSelectedAgent}
-            onInfoClick={() => setSidebarOpen(true)}
-            getStatusBadge={getStatusBadge}
-            onSendMessage={(message) => {
-              toast({
-                title: "Message sent",
-                description: "Your message has been sent to the customer.",
-              });
-            }}
+            customer={activeConversation?.customer || 'Unknown'}
           />
         </div>
       </div>
