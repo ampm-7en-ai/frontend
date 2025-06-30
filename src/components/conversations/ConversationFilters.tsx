@@ -77,7 +77,7 @@ const ConversationFilters = ({
 
   return (
     <div className="p-4 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <ModernTabNavigation
           tabs={statusTabs}
           activeTab={filterResolved}
@@ -104,7 +104,7 @@ const ConversationFilters = ({
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-xl z-50" align="end">
+            <PopoverContent className="w-80 p-0 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-xl z-50 rounded-2xl" align="end">
               <div className="p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Filter Conversations</h4>
@@ -166,7 +166,6 @@ const ConversationFilters = ({
                           htmlFor={`agent-${option.id}`}
                           className="text-sm cursor-pointer flex-1 flex items-center space-x-2 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors"
                         >
-                          <span className="text-base">{option.icon}</span>
                           <span>{option.label}</span>
                         </label>
                       </div>
@@ -196,7 +195,6 @@ const ConversationFilters = ({
                         const type = agentTypeOptions.find(t => t.id === typeId);
                         return type ? (
                           <span key={typeId} className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                            <span>{type.icon}</span>
                             {type.label}
                             <button
                               onClick={() => handleAgentTypeChange(typeId, false)}
