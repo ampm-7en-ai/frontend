@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Eye, EyeOff, Settings, MessageSquare, Book, Zap, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, Settings, MessageSquare, Book, Zap, ChevronRight, ChevronLeft, Palette, Cog } from 'lucide-react';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -61,7 +62,7 @@ const AgentEdit = () => {
   });
   
   const [previewCollapsed, setPreviewCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = useState('general');
 
   // Fetch agent data
   const { data: agent, isLoading, error } = useQuery({
@@ -268,10 +269,18 @@ const AgentEdit = () => {
                 
                 <CardContent className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 bg-slate-100/70 dark:bg-slate-700/70">
-                      <TabsTrigger value="basic" className="flex items-center gap-2">
+                    <TabsList className="grid w-full grid-cols-5 bg-slate-100/70 dark:bg-slate-700/70">
+                      <TabsTrigger value="general" className="flex items-center gap-2">
                         <MessageSquare className="h-4 w-4" />
-                        Basic
+                        General
+                      </TabsTrigger>
+                      <TabsTrigger value="appearance" className="flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Appearance
+                      </TabsTrigger>
+                      <TabsTrigger value="advanced" className="flex items-center gap-2">
+                        <Cog className="h-4 w-4" />
+                        Advanced Settings
                       </TabsTrigger>
                       <TabsTrigger value="knowledge" className="flex items-center gap-2">
                         <Book className="h-4 w-4" />
@@ -279,15 +288,11 @@ const AgentEdit = () => {
                       </TabsTrigger>
                       <TabsTrigger value="guidelines" className="flex items-center gap-2">
                         <Zap className="h-4 w-4" />
-                        Guidelines
-                      </TabsTrigger>
-                      <TabsTrigger value="advanced" className="flex items-center gap-2">
-                        <Settings className="h-4 w-4" />
-                        Advanced
+                        Guidelines & Behavior
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="basic" className="space-y-6 mt-6">
+                    <TabsContent value="general" className="space-y-6 mt-6">
                       <div className="grid gap-6">
                         <div className="grid gap-2">
                           <Label htmlFor="name" className="text-sm font-medium">Agent Name</Label>
@@ -324,15 +329,15 @@ const AgentEdit = () => {
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="knowledge" className="mt-6">
-                      <AgentKnowledgeContainer agentId={agentId!} />
-                    </TabsContent>
-
-                    <TabsContent value="guidelines" className="mt-6">
-                      <GuidelinesSection
-                        initialGuidelines={formData.guidelines}
-                        onChange={handleGuidelinesChange}
-                      />
+                    <TabsContent value="appearance" className="space-y-6 mt-6">
+                      <div className="grid gap-6">
+                        <div className="p-6 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
+                          <h3 className="text-lg font-semibold mb-4">Appearance Settings</h3>
+                          <p className="text-slate-600 dark:text-slate-400">
+                            Customize how your agent appears to users. This section will contain appearance customization options.
+                          </p>
+                        </div>
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="advanced" className="space-y-6 mt-6">
@@ -357,6 +362,17 @@ const AgentEdit = () => {
                           </div>
                         </div>
                       </div>
+                    </TabsContent>
+
+                    <TabsContent value="knowledge" className="mt-6">
+                      <AgentKnowledgeContainer agentId={agentId!} />
+                    </TabsContent>
+
+                    <TabsContent value="guidelines" className="mt-6">
+                      <GuidelinesSection
+                        initialGuidelines={formData.guidelines}
+                        onChange={handleGuidelinesChange}
+                      />
                     </TabsContent>
                   </Tabs>
                 </CardContent>
