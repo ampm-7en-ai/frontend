@@ -16,7 +16,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import AgentKnowledgeContainer from '@/components/agents/knowledge/AgentKnowledgeContainer';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
-import { GuidelinesSection } from '@/components/agents/edit/GuidelinesSection';
+import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
