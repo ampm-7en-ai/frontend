@@ -1,162 +1,116 @@
-import React, { useRef, useEffect, useState } from 'react';
-import MessageList from './MessageList';
-import ConversationHeader from './ConversationHeader';
-import ConversationEmptyState from './ConversationEmptyState';
-import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader } from 'lucide-react';
 
-interface MessageContainerProps {
-  conversation: {
-    id: string;
-    customer: string;
-    status: string;
-    // ... other properties
-  } | null;
-  selectedAgent: string | null;
-  setSelectedAgent: (agent: string | null) => void;
-  onInfoClick: () => void;
-  getStatusBadge: (status: string) => React.ReactNode;
-  onSendMessage: (message: string) => void;
-  isTyping?: boolean; // New prop to show typing indicator
+import React from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'agent' | 'ai';
+  timestamp: string;
+  agent?: string;
 }
 
-const MessageContainer = ({
-  conversation,
-  selectedAgent,
-  setSelectedAgent,
-  onInfoClick,
-  getStatusBadge,
-  onSendMessage,
-  isTyping: externalIsTyping
-}: MessageContainerProps) => {
-  const messageContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Use conversation ID as key to force WebSocket hook to reinitialize when conversation changes
-  const conversationId = conversation?.id || null;
-  
-  // Use our WebSocket hook to fetch messages for the selected conversation
-  const { 
-    messages, 
-    isTyping: wsIsTyping,
-    isConnected,
-    sendMessage
-  } = useChatMessagesWebSocket({
-    sessionId: conversationId,
-    autoConnect: !!conversationId
-  });
-  
-  // Effect to scroll to agent messages when selectedAgent changes
-  useEffect(() => {
-    if (selectedAgent && messageContainerRef.current && messages) {
-      // Find the first message from the selected agent
-      const firstAgentMessage = messages.find(
-        (msg: any) => msg.sender === 'bot' && msg.agent === selectedAgent
-      );
-      
-      if (firstAgentMessage) {
-        // Find the corresponding element
-        const element = document.getElementById(`message-${firstAgentMessage.id}`);
-        if (element) {
-          // Scroll to the element with a small offset
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100); // Small delay to ensure the DOM is ready
-        }
-      }
-    }
-  }, [selectedAgent, messages]);
+interface MessageContainerProps {
+  messages: Message[];
+  selectedAgent: string | null;
+  customer: string;
+}
 
-  // Effect to scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messagesEndRef.current && !selectedAgent) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages?.length, selectedAgent]);
+const MessageContainer = ({ messages, selectedAgent, customer }: MessageContainerProps) => {
+  const filteredMessages = selectedAgent 
+    ? messages.filter(msg => 
+        msg.sender === 'user' || 
+        (msg.sender === 'agent' && msg.agent === selectedAgent) ||
+        (msg.sender === 'ai' && selectedAgent === 'AI Assistant')
+      )
+    : messages;
 
-  // Handle sending messages through the WebSocket
-  const handleSendMessage = (content: string) => {
-    sendMessage(content);
-    onSendMessage(content);
+  const getMessageAlignment = (sender: string) => {
+    return sender === 'user' ? 'justify-end' : 'justify-start';
   };
 
-  // Determine if there are messages loading
-  const isLoading = conversation && messages.length === 0 && !isConnected;
+  const getMessageBg = (sender: string) => {
+    if (sender === 'user') {
+      return 'bg-blue-600 text-white';
+    }
+    return 'bg-white/60 dark:bg-slate-700/60 text-slate-900 dark:text-slate-100 border border-slate-200/50 dark:border-slate-600/50';
+  };
 
-  // Use either the external isTyping prop or the one from the WebSocket
-  const isTyping = externalIsTyping !== undefined ? externalIsTyping : wsIsTyping;
-
-  // Filter out any empty/blank messages
-  const validMessages = messages?.filter(msg => 
-    msg && msg.content && msg.content.trim() !== '' && 
-    typeof msg.content === 'string'
-  ) || [];
-
-  if (!conversation) {
-    return <ConversationEmptyState />;
-  }
+  const getSenderAvatar = (msg: Message) => {
+    if (msg.sender === 'user') {
+      return (
+        <Avatar className="h-7 w-7 bg-gradient-to-br from-blue-500 to-blue-600">
+          <AvatarFallback className="text-white text-xs font-medium">
+            {customer?.charAt(0)?.toUpperCase() || 'U'}
+          </AvatarFallback>
+        </Avatar>
+      );
+    } else if (msg.sender === 'ai') {
+      return (
+        <Avatar className="h-7 w-7 bg-gradient-to-br from-purple-500 to-purple-600">
+          <AvatarFallback className="text-white text-xs font-medium">
+            AI
+          </AvatarFallback>
+        </Avatar>
+      );
+    } else {
+      return (
+        <Avatar className="h-7 w-7 bg-gradient-to-br from-green-500 to-green-600">
+          <AvatarFallback className="text-white text-xs font-medium">
+            {msg.agent?.charAt(0)?.toUpperCase() || 'A'}
+          </AvatarFallback>
+        </Avatar>
+      );
+    }
+  };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      <ConversationHeader 
-        conversation={conversation}
-        selectedAgent={selectedAgent}
-        setSelectedAgent={setSelectedAgent}
-        onInfoClick={onInfoClick}
-        getStatusBadge={getStatusBadge}
-        messageCount={validMessages?.filter(m => m.sender !== "system").length}
-        hideActionButtons={true}
-      />
-      
-      <div className="flex-1 overflow-hidden" style={{background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)"}}> 
-        <ScrollArea 
-          className="h-full"
-        >
-          <div className="p-4 md:p-6">
-            <div className="max-w-4xl mx-auto">
-              {isLoading || validMessages.length === 0 ? (
-                // Show loading skeletons while messages are loading
-                <div className="space-y-6">
-                  {[1, 2, 3, 4].map((i) => (
-                    i % 2 == 0 ? (
-                      <div key={i} className="flex items-start gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60" />
-                        <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div key={i} className="flex items-start gap-3 justify-end">
-                        <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60" />
-                        </div>
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60" />
-                      </div>
-                    )
-                  ))}
-                </div>
-              ) : (
-                // Render actual messages
-                <div className="space-y-6" ref={messageContainerRef}>
-                {  
-                    validMessages.map((message: any) => (
-                      <MessageList 
-                        key={message.id}
-                        message={message}
-                        selectedAgent={selectedAgent}
-                        messageContainerRef={messageContainerRef}
-                        isTyping={isTyping} 
-                      />
-                    ))
-                }
-                  <div ref={messagesEndRef} className="h-4" />
-                </div>
+    <div className="flex-1 overflow-y-auto bg-slate-50/30 dark:bg-slate-900/30 backdrop-blur-sm">
+      <div className="p-4 space-y-4">
+        {filteredMessages.length === 0 ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center">
+                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">No messages to display</p>
+              {selectedAgent && (
+                <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">
+                  Filtering by {selectedAgent}
+                </p>
               )}
             </div>
           </div>
-        </ScrollArea>
+        ) : (
+          filteredMessages.map((message) => (
+            <div key={message.id} className={`flex ${getMessageAlignment(message.sender)} gap-2`}>
+              {message.sender !== 'user' && getSenderAvatar(message)}
+              
+              <div className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-xl backdrop-blur-sm ${getMessageBg(message.sender)}`}>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                </div>
+                
+                <div className="flex items-center gap-2 mt-1">
+                  {message.sender !== 'user' && message.agent && (
+                    <Badge className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600 text-[10px] px-1.5 py-0.5">
+                      {message.agent}
+                    </Badge>
+                  )}
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
+                  </span>
+                </div>
+              </div>
+              
+              {message.sender === 'user' && getSenderAvatar(message)}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
