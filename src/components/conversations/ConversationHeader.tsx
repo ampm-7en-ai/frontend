@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -48,7 +49,7 @@ const ConversationHeader = ({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
+    <div className="flex items-center justify-between p-4 border-b border-gray-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
       <div className="flex items-center gap-3">
         <Avatar className="h-10 w-10">
           <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
@@ -58,17 +59,17 @@ const ConversationHeader = ({
         
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">{conversation.customer}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100">{conversation.customer}</h3>
             {getStatusBadge(conversation.status)}
             {conversation.channel && getChannelBadge(conversation.channel)}
           </div>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-slate-400">
             <span>{messageCount} messages</span>
             {conversation.agent && (
               <span>Assigned to {conversation.agent}</span>
             )}
             {selectedAgent && (
-              <span className="text-blue-600">Viewing {selectedAgent} messages</span>
+              <span className="text-blue-600 dark:text-blue-400">Viewing {selectedAgent} messages</span>
             )}
           </div>
         </div>
@@ -76,16 +77,16 @@ const ConversationHeader = ({
       
       {!hideActionButtons && (
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hover:bg-white/50 dark:hover:bg-slate-800/50">
             <Phone className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hover:bg-white/50 dark:hover:bg-slate-800/50">
             <Video className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={onInfoClick}>
+          <Button variant="ghost" size="sm" onClick={onInfoClick} className="hover:bg-white/50 dark:hover:bg-slate-800/50">
             <Info className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hover:bg-white/50 dark:hover:bg-slate-800/50">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </div>

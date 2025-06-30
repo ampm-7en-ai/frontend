@@ -99,7 +99,7 @@ const MessageContainer = ({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
       <ConversationHeader 
         conversation={conversation}
         selectedAgent={selectedAgent}
@@ -110,7 +110,7 @@ const MessageContainer = ({
         hideActionButtons={true}
       />
       
-      <div className="flex-1 overflow-hidden" style={{background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)"}}> 
+      <div className="flex-1 overflow-hidden" style={{background: "linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(241,245,249,0.8) 100%)"}}> 
         <ScrollArea 
           className="h-full"
         >
