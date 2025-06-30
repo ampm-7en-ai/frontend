@@ -1,3 +1,4 @@
+
 import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
 
@@ -179,17 +180,23 @@ export class ChatSessionsWebSocketService {
       );
     }
     
+    // Map sender types to match our interface
+    let mappedSender: 'user' | 'agent' | 'ai' = 'agent';
+    if (messageSender === 'user') {
+      mappedSender = 'user';
+    } else if (messageSender === 'bot' || messageSender === 'system') {
+      mappedSender = 'ai';
+    } else {
+      mappedSender = 'agent';
+    }
+    
     // Emit the message event
     this.events.onMessage?.({
       id: messageId,
       content: messageContent,
       timestamp: messageTimestamp,
-      sender: messageSender as 'user' | 'bot' | 'system',
-      metadata: {
-        model: metadata.model || data.model,
-        temperature: metadata.temperature || data.temperature,
-        prompt: metadata.prompt || data.prompt
-      }
+      sender: mappedSender,
+      agent: data.agent || metadata.agent
     });
   }
 }
