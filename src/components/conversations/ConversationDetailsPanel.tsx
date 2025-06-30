@@ -7,8 +7,6 @@ import { Separator } from '@/components/ui/separator';
 import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Calendar, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import HandoffHistory from './HandoffHistory';
-import GlobalAgentDisplay from '@/components/shared/GlobalAgentDisplay';
-import { useSettings } from '@/hooks/useSettings';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -23,8 +21,6 @@ const ConversationDetailsPanel = ({
   onHandoffClick, 
   getSatisfactionIndicator 
 }: ConversationDetailsPanelProps) => {
-  const { data: settings } = useSettings();
-
   if (!conversation) {
     return (
       <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-6 flex items-center justify-center">
@@ -60,12 +56,6 @@ const ConversationDetailsPanel = ({
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
       <div className="p-6 space-y-6">
-        {/* Global Agent Settings */}
-        <GlobalAgentDisplay 
-          settings={settings?.global_agent_settings}
-          compact={true}
-        />
-
         {/* Current Agent Section */}
         <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-sm">
           <CardHeader className="pb-3">

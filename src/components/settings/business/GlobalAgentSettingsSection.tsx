@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { Edit, Save } from 'lucide-react';
+import { Edit, Save, Settings } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from "@/hooks/use-toast";
 import { updateSettings } from "@/utils/api-config";
@@ -11,7 +12,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import ModernButton from '@/components/dashboard/ModernButton';
-import GlobalAgentDisplay from '@/components/shared/GlobalAgentDisplay';
 
 interface GlobalAgentSettingsProps {
   initialSettings?: {
@@ -96,19 +96,25 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         </p>
       </div>
       
-      <div className="flex items-center justify-end mb-6">
-        <ModernButton
-          variant="outline"
-          size="sm"
-          onClick={() => setIsEditingGlobalSettings(!isEditingGlobalSettings)}
-          icon={isEditingGlobalSettings ? undefined : Edit}
-        >
-          {isEditingGlobalSettings ? 'Cancel' : 'Edit'}
-        </ModernButton>
-      </div>
+      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+              <Settings className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Configuration</h3>
+          </div>
+          <ModernButton
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditingGlobalSettings(!isEditingGlobalSettings)}
+            icon={isEditingGlobalSettings ? undefined : Edit}
+          >
+            {isEditingGlobalSettings ? 'Cancel' : 'Edit'}
+          </ModernButton>
+        </div>
 
-      {isEditingGlobalSettings ? (
-        <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+        {isEditingGlobalSettings ? (
           <Form {...globalSettingsForm}>
             <form onSubmit={globalSettingsForm.handleSubmit(onGlobalSettingsSubmit)} className="space-y-4">
               <FormField
@@ -193,16 +199,33 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
               </div>
             </form>
           </Form>
-        </div>
-      ) : (
-        <GlobalAgentDisplay 
-          settings={{
-            response_model: globalSettingsForm.getValues().defaultModel,
-            token_length: globalSettingsForm.getValues().maxContextLength,
-            temperature: globalSettingsForm.getValues().defaultTemperature
-          }}
-        />
-      )}
+        ) : (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
+                <p className="text-slate-600 dark:text-slate-400">
+                  {globalSettingsForm.getValues().defaultModel === 'gpt-4o' ? 'GPT-4o (OpenAI)' :
+                   globalSettingsForm.getValues().defaultModel === 'gpt-4-turbo' ? 'GPT-4 Turbo (OpenAI)' :
+                   globalSettingsForm.getValues().defaultModel === 'gpt-3.5-turbo' ? 'GPT-3.5 Turbo (OpenAI)' :
+                   globalSettingsForm.getValues().defaultModel === 'mistral-large-latest' ? 'Mistral Large (Mistral AI)' :
+                   globalSettingsForm.getValues().defaultModel === 'mistral-medium-latest' ? 'Mistral Medium (Mistral AI)' :
+                   globalSettingsForm.getValues().defaultModel === 'mistral-small-latest' ? 'Mistral Small (Mistral AI)' :
+                   globalSettingsForm.getValues().defaultModel}
+                </p>
+              </div>
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Maximum Context Length</h4>
+                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
+              </div>
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
+                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().defaultTemperature}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </section>
   );
 };
