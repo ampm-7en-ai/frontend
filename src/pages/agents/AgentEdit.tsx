@@ -90,6 +90,10 @@ const AgentEdit = () => {
       avatarType: 'default' as 'default' | 'avatar1' | 'avatar2' | 'avatar3' | 'upload',
       avatarSrc: ''
     },
+    suggestedQuestions: {
+      enabled: true,
+      questions: ['', '', ''] as string[]
+    },
     agentType: 'general-assistant' as 'general-assistant' | 'customer-support' | 'sales-agent' | 'language-tutor' | 'tech-expert' | 'life-coach' | 'travel-agent' | 'custom',
     showSystemPrompt: false
   });
@@ -161,6 +165,10 @@ const AgentEdit = () => {
           suggestions: [],
           avatarType: 'default',
           avatarSrc: ''
+        },
+        suggestedQuestions: {
+          enabled: true,
+          questions: ['', '', '']
         },
         agentType: 'general-assistant',
         showSystemPrompt: false
@@ -255,6 +263,26 @@ const AgentEdit = () => {
       behaviorSettings: {
         ...prev.behaviorSettings,
         [field]: value
+      }
+    }));
+  };
+
+  const handleSuggestedQuestionsToggle = (enabled: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      suggestedQuestions: {
+        ...prev.suggestedQuestions,
+        enabled
+      }
+    }));
+  };
+
+  const handleSuggestedQuestionChange = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      suggestedQuestions: {
+        ...prev.suggestedQuestions,
+        questions: prev.suggestedQuestions.questions.map((q, i) => i === index ? value : q)
       }
     }));
   };
@@ -435,15 +463,38 @@ const AgentEdit = () => {
                           />
                         </div>
                         
-                        <div className="grid gap-2">
-                          <Label htmlFor="systemPrompt" className="text-sm font-medium text-slate-700 dark:text-slate-300">System Prompt</Label>
-                          <Textarea
-                            id="systemPrompt"
-                            value={formData.systemPrompt}
-                            onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
-                            placeholder="Enter the system prompt for your agent"
-                            className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40 min-h-[200px]"
-                          />
+                        {/* Suggested Questions Section */}
+                        <div className="grid gap-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Suggested Questions</Label>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Add up to 3 suggested questions for your users to click on
+                              </p>
+                            </div>
+                            <Switch
+                              checked={formData.suggestedQuestions.enabled}
+                              onCheckedChange={handleSuggestedQuestionsToggle}
+                            />
+                          </div>
+                          
+                          {formData.suggestedQuestions.enabled && (
+                            <div className="grid gap-3">
+                              {formData.suggestedQuestions.questions.map((question, index) => (
+                                <div key={index} className="grid gap-2">
+                                  <Label className="text-xs text-slate-600 dark:text-slate-400">
+                                    Suggestion {index + 1}
+                                  </Label>
+                                  <Input
+                                    value={question}
+                                    onChange={(e) => handleSuggestedQuestionChange(index, e.target.value)}
+                                    placeholder={`e.g. Suggestion ${index + 1}`}
+                                    className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </TabsContent>
