@@ -39,6 +39,9 @@ const ConversationDetailsPanel = ({
     }
   };
 
+  // Check if satisfaction data exists and is not empty
+  const hasSatisfactionData = conversation?.satisfaction && conversation.satisfaction.trim() !== '';
+
   if (!conversation) {
     return (
       <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-3 flex items-center justify-center">
@@ -142,55 +145,48 @@ const ConversationDetailsPanel = ({
                 </div>
               )}
               
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-0.5 flex items-center gap-1.5 text-xs">
-                  <Star className="h-2.5 w-2.5" />
-                  Satisfaction
-                </h4>
-                <div>{getSatisfactionIndicator(conversation.satisfaction)}</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Customer Context */}
-        <section>
-          <div className="mb-2">
-            <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Sentiment</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-              Emotional journey throughout the conversation
-            </p>
-          </div>
-          
-          <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-md flex items-center justify-center">
-                  <TrendingUp className="h-3 w-3 text-white" />
+              {hasSatisfactionData && (
+                <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-0.5 flex items-center gap-1.5 text-xs">
+                    <Star className="h-2.5 w-2.5" />
+                    Satisfaction
+                  </h4>
+                  <div>{getSatisfactionIndicator(conversation.satisfaction)}</div>
                 </div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Sentiment Journey</h3>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              {/* Customer Sentiment with Emojis */}
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50 text-center">
-                <div className="text-lg mb-1">{getSentimentEmoji('frustrated')}</div>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400">Frustrated</p>
-              </div>
-
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50 text-center">
-                <div className="text-lg mb-1">{getSentimentEmoji('neutral')}</div>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400">Neutral</p>
-              </div>
-
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50 text-center">
-                <div className="text-lg mb-1">{getSentimentEmoji('satisfied')}</div>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400">Satisfied</p>
-              </div>
+              )}
             </div>
           </div>
         </section>
+
+        {/* Customer Sentiment - Only show if satisfaction data exists */}
+        {hasSatisfactionData && (
+          <section>
+            <div className="mb-2">
+              <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Sentiment</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
+                Current customer satisfaction level
+              </p>
+            </div>
+            
+            <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-md flex items-center justify-center">
+                    <TrendingUp className="h-3 w-3 text-white" />
+                  </div>
+                  <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Current Sentiment</h3>
+                </div>
+              </div>
+
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-3 border border-slate-200/50 dark:border-slate-600/50 text-center">
+                <div className="text-2xl mb-2">{getSentimentEmoji(conversation.satisfaction)}</div>
+                <p className="text-xs font-medium text-slate-900 dark:text-slate-100 capitalize">
+                  {conversation.satisfaction}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Handoff History */}
         <section>
