@@ -12,7 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Eye, EyeOff, Settings, MessageSquare, Book, Zap, ChevronRight, ChevronLeft, Palette, Cog, Bot, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, Settings, MessageSquare, Book, Zap, ChevronRight, ChevronLeft, Palette, Cog, Bot, Upload, Rocket } from 'lucide-react';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -20,6 +20,7 @@ import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrai
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
 import ModernButton from '@/components/dashboard/ModernButton';
+import DeploymentDialog from '@/components/agents/DeploymentDialog';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface Agent {
@@ -99,6 +100,7 @@ const AgentEdit = () => {
   });
   
   const [previewCollapsed, setPreviewCollapsed] = useState(false);
+  const [deploymentDialogOpen, setDeploymentDialogOpen] = useState(false);
 
   // Fetch agent data
   const { data: agent, isLoading, error } = useQuery({
@@ -379,6 +381,15 @@ const AgentEdit = () => {
               
               <div className="flex items-center gap-3">
                 <ModernButton
+                  variant="cta"
+                  size="sm"
+                  icon={Rocket}
+                  onClick={() => setDeploymentDialogOpen(true)}
+                  className="backdrop-blur-sm"
+                >
+                  Deploy
+                </ModernButton>
+                <ModernButton
                   variant="ghost"
                   size="sm"
                   icon={previewCollapsed ? Eye : EyeOff}
@@ -406,291 +417,293 @@ const AgentEdit = () => {
           <div className="grid grid-cols-12 gap-6">
             {/* Main Edit Panel */}
             <div className={`${previewCollapsed ? 'col-span-12' : 'col-span-8'} transition-all duration-300`}>
-              <Card className="backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-white/20 dark:border-slate-700/20 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                    <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Agent Configuration</CardTitle>
-                  </div>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
-                    Configure your agent's behavior, knowledge, and settings
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="space-y-6">
-                  <Accordion type="multiple" defaultValue={["general"]} className="w-full">
-                    {/* General Configuration */}
-                    <AccordionItem value="general" className="border-white/20 dark:border-slate-700/20">
-                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="h-4 w-4" />
-                          General Configuration
+              <div className="space-y-4">
+                <Accordion type="multiple" defaultValue={["general"]} className="w-full space-y-4">
+                  {/* General Configuration */}
+                  <AccordionItem value="general" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                    <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                          <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="space-y-6 pt-4">
-                        <div className="grid gap-6">
+                        <div className="text-left">
+                          <h3 className="font-semibold">General Configuration</h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                            Basic settings and suggested questions
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6 space-y-6">
+                      <div className="grid gap-6">
+                        <div className="grid gap-2">
+                          <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Name</Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            placeholder="Enter agent name"
+                            className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                          />
+                        </div>
+                        
+                        <div className="grid gap-2">
+                          <Label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-300">Description</Label>
+                          <Textarea
+                            id="description"
+                            value={formData.description}
+                            onChange={(e) => handleInputChange('description', e.target.value)}
+                            placeholder="Describe what this agent does"
+                            className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40 min-h-[100px]"
+                          />
+                        </div>
+                        
+                        {/* Suggested Questions Section */}
+                        <div className="grid gap-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Suggested Questions</Label>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Add up to 3 suggested questions for your users to click on
+                              </p>
+                            </div>
+                            <Switch
+                              checked={formData.suggestedQuestions.enabled}
+                              onCheckedChange={handleSuggestedQuestionsToggle}
+                            />
+                          </div>
+                          
+                          {formData.suggestedQuestions.enabled && (
+                            <div className="grid gap-3">
+                              {formData.suggestedQuestions.questions.map((question, index) => (
+                                <div key={index} className="grid gap-2">
+                                  <Label className="text-xs text-slate-600 dark:text-slate-400">
+                                    Suggestion {index + 1}
+                                  </Label>
+                                  <Input
+                                    value={question}
+                                    onChange={(e) => handleSuggestedQuestionChange(index, e.target.value)}
+                                    placeholder={`e.g. Suggestion ${index + 1}`}
+                                    className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Appearance Configuration */}
+                  <AccordionItem value="appearance" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                    <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                          <Palette className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-semibold">Appearance Settings</h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                            Customize colors, fonts and visual elements
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6 space-y-6">
+                      <div className="grid gap-6">
+                        <div className="grid gap-4">
+                          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Visual Settings</h3>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Customize the look and feel of your chatbot</p>
+                          
+                          {/* Chat Avatar */}
+                          <div className="grid gap-3">
+                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Chat Avatar</Label>
+                            <div className="grid grid-cols-5 gap-3">
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${
+                                    formData.appearance.avatarType === 'default' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  onClick={() => handleAppearanceChange('avatarType', 'default')}
+                                >
+                                  <Bot className="h-8 w-8 text-blue-500" />
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Default</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                    formData.appearance.avatarType === 'avatar1' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                  onClick={() => handleAppearanceChange('avatarType', 'avatar1')}
+                                >
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 1</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                    formData.appearance.avatarType === 'avatar2' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23ef4444\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                  onClick={() => handleAppearanceChange('avatarType', 'avatar2')}
+                                >
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 2</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                    formData.appearance.avatarType === 'avatar3' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2310b981\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                  onClick={() => handleAppearanceChange('avatarType', 'avatar3')}
+                                >
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 3</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 border-dashed transition-all ${
+                                    formData.appearance.avatarType === 'upload' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                                  }`}
+                                  onClick={() => handleAppearanceChange('avatarType', 'upload')}
+                                >
+                                  <Upload className="h-6 w-6 text-gray-400" />
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Upload</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="primaryColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Primary Color</Label>
+                              <div className="flex gap-2 items-center">
+                                <Input
+                                  id="primaryColor"
+                                  type="color"
+                                  value={formData.appearance.primaryColor}
+                                  onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
+                                  className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                                <Input
+                                  value={formData.appearance.primaryColor}
+                                  onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
+                                  className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="textColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Text Color</Label>
+                              <div className="flex gap-2 items-center">
+                                <Input
+                                  id="textColor"
+                                  type="color"
+                                  value={formData.appearance.textColor}
+                                  onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
+                                  className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                                <Input
+                                  value={formData.appearance.textColor}
+                                  onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
+                                  className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
                           <div className="grid gap-2">
-                            <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Name</Label>
+                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Font Family</Label>
+                            <Select
+                              value={formData.appearance.fontFamily}
+                              onValueChange={(value) => handleAppearanceChange('fontFamily', value)}
+                            >
+                              <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
+                                <SelectValue placeholder="Select font family" />
+                              </SelectTrigger>
+                              <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
+                                <SelectItem value="Inter">Inter</SelectItem>
+                                <SelectItem value="Arial">Arial</SelectItem>
+                                <SelectItem value="Helvetica">Helvetica</SelectItem>
+                                <SelectItem value="Georgia">Georgia</SelectItem>
+                                <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                                <SelectItem value="Roboto">Roboto</SelectItem>
+                                <SelectItem value="Open Sans">Open Sans</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          {/* Chatbot Name, Welcome Message, Button Text, Position */}
+                          <div className="grid gap-2">
+                            <Label htmlFor="chatbotName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Chatbot Name</Label>
                             <Input
-                              id="name"
-                              value={formData.name}
-                              onChange={(e) => handleInputChange('name', e.target.value)}
-                              placeholder="Enter agent name"
+                              id="chatbotName"
+                              value={formData.appearance.chatbotName}
+                              onChange={(e) => handleAppearanceChange('chatbotName', e.target.value)}
+                              placeholder="AI Assistant"
                               className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
                             />
                           </div>
                           
                           <div className="grid gap-2">
-                            <Label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-300">Description</Label>
+                            <Label htmlFor="welcomeMessage" className="text-sm font-medium text-slate-700 dark:text-slate-300">Welcome Message</Label>
                             <Textarea
-                              id="description"
-                              value={formData.description}
-                              onChange={(e) => handleInputChange('description', e.target.value)}
-                              placeholder="Describe what this agent does"
-                              className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40 min-h-[100px]"
+                              id="welcomeMessage"
+                              value={formData.appearance.welcomeMessage}
+                              onChange={(e) => handleAppearanceChange('welcomeMessage', e.target.value)}
+                              placeholder="Hello! How can I help you today?"
+                              className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
                             />
                           </div>
                           
-                          {/* Suggested Questions Section */}
-                          <div className="grid gap-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Suggested Questions</Label>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                  Add up to 3 suggested questions for your users to click on
-                                </p>
-                              </div>
-                              <Switch
-                                checked={formData.suggestedQuestions.enabled}
-                                onCheckedChange={handleSuggestedQuestionsToggle}
-                              />
-                            </div>
-                            
-                            {formData.suggestedQuestions.enabled && (
-                              <div className="grid gap-3">
-                                {formData.suggestedQuestions.questions.map((question, index) => (
-                                  <div key={index} className="grid gap-2">
-                                    <Label className="text-xs text-slate-600 dark:text-slate-400">
-                                      Suggestion {index + 1}
-                                    </Label>
-                                    <Input
-                                      value={question}
-                                      onChange={(e) => handleSuggestedQuestionChange(index, e.target.value)}
-                                      placeholder={`e.g. Suggestion ${index + 1}`}
-                                      className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                          <div className="grid gap-2">
+                            <Label htmlFor="buttonText" className="text-sm font-medium text-slate-700 dark:text-slate-300">Button Text</Label>
+                            <Input
+                              id="buttonText"
+                              value={formData.appearance.buttonText}
+                              onChange={(e) => handleAppearanceChange('buttonText', e.target.value)}
+                              placeholder="Chat with us"
+                              className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                            />
                           </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-
-                    {/* Appearance Configuration */}
-                    <AccordionItem value="appearance" className="border-white/20 dark:border-slate-700/20">
-                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
-                        <div className="flex items-center gap-2">
-                          <Palette className="h-4 w-4" />
-                          Appearance Settings
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="space-y-6 pt-4">
-                        <div className="grid gap-6">
-                          <div className="grid gap-4">
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Visual Settings</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Customize the look and feel of your chatbot</p>
-                            
-                            {/* Chat Avatar */}
-                            <div className="grid gap-3">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Chat Avatar</Label>
-                              <div className="grid grid-cols-5 gap-3">
-                                <div className="text-center">
-                                  <div 
-                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${
-                                      formData.appearance.avatarType === 'default' 
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                    }`}
-                                    onClick={() => handleAppearanceChange('avatarType', 'default')}
-                                  >
-                                    <Bot className="h-8 w-8 text-blue-500" />
-                                  </div>
-                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Default</p>
-                                </div>
-                                
-                                <div className="text-center">
-                                  <div 
-                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
-                                      formData.appearance.avatarType === 'avatar1' 
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                    }`}
-                                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
-                                    onClick={() => handleAppearanceChange('avatarType', 'avatar1')}
-                                  >
-                                  </div>
-                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 1</p>
-                                </div>
-                                
-                                <div className="text-center">
-                                  <div 
-                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
-                                      formData.appearance.avatarType === 'avatar2' 
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                    }`}
-                                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23ef4444\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
-                                    onClick={() => handleAppearanceChange('avatarType', 'avatar2')}
-                                  >
-                                  </div>
-                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 2</p>
-                                </div>
-                                
-                                <div className="text-center">
-                                  <div 
-                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
-                                      formData.appearance.avatarType === 'avatar3' 
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                    }`}
-                                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2310b981\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
-                                    onClick={() => handleAppearanceChange('avatarType', 'avatar3')}
-                                  >
-                                  </div>
-                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 3</p>
-                                </div>
-                                
-                                <div className="text-center">
-                                  <div 
-                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 border-dashed transition-all ${
-                                      formData.appearance.avatarType === 'upload' 
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                                    }`}
-                                    onClick={() => handleAppearanceChange('avatarType', 'upload')}
-                                  >
-                                    <Upload className="h-6 w-6 text-gray-400" />
-                                  </div>
-                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Upload</p>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="primaryColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Primary Color</Label>
-                                <div className="flex gap-2 items-center">
-                                  <Input
-                                    id="primaryColor"
-                                    type="color"
-                                    value={formData.appearance.primaryColor}
-                                    onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
-                                    className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                  />
-                                  <Input
-                                    value={formData.appearance.primaryColor}
-                                    onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
-                                    className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                  />
-                                </div>
-                              </div>
-                              
-                              <div className="grid gap-2">
-                                <Label htmlFor="textColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Text Color</Label>
-                                <div className="flex gap-2 items-center">
-                                  <Input
-                                    id="textColor"
-                                    type="color"
-                                    value={formData.appearance.textColor}
-                                    onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
-                                    className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                  />
-                                  <Input
-                                    value={formData.appearance.textColor}
-                                    onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
-                                    className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Font Family</Label>
-                              <Select
-                                value={formData.appearance.fontFamily}
-                                onValueChange={(value) => handleAppearanceChange('fontFamily', value)}
+                          
+                          <div className="grid gap-2">
+                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Position</Label>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant={formData.appearance.position === 'bottom-right' ? 'default' : 'outline'}
+                                onClick={() => handleAppearanceChange('position', 'bottom-right')}
+                                className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
                               >
-                                <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
-                                  <SelectValue placeholder="Select font family" />
-                                </SelectTrigger>
-                                <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
-                                  <SelectItem value="Inter">Inter</SelectItem>
-                                  <SelectItem value="Arial">Arial</SelectItem>
-                                  <SelectItem value="Helvetica">Helvetica</SelectItem>
-                                  <SelectItem value="Georgia">Georgia</SelectItem>
-                                  <SelectItem value="Times New Roman">Times New Roman</SelectItem>
-                                  <SelectItem value="Roboto">Roboto</SelectItem>
-                                  <SelectItem value="Open Sans">Open Sans</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            {/* Chatbot Name, Welcome Message, Button Text, Position */}
-                            <div className="grid gap-2">
-                              <Label htmlFor="chatbotName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Chatbot Name</Label>
-                              <Input
-                                id="chatbotName"
-                                value={formData.appearance.chatbotName}
-                                onChange={(e) => handleAppearanceChange('chatbotName', e.target.value)}
-                                placeholder="AI Assistant"
-                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                              />
-                            </div>
-                            
-                            <div className="grid gap-2">
-                              <Label htmlFor="welcomeMessage" className="text-sm font-medium text-slate-700 dark:text-slate-300">Welcome Message</Label>
-                              <Textarea
-                                id="welcomeMessage"
-                                value={formData.appearance.welcomeMessage}
-                                onChange={(e) => handleAppearanceChange('welcomeMessage', e.target.value)}
-                                placeholder="Hello! How can I help you today?"
-                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                              />
-                            </div>
-                            
-                            <div className="grid gap-2">
-                              <Label htmlFor="buttonText" className="text-sm font-medium text-slate-700 dark:text-slate-300">Button Text</Label>
-                              <Input
-                                id="buttonText"
-                                value={formData.appearance.buttonText}
-                                onChange={(e) => handleAppearanceChange('buttonText', e.target.value)}
-                                placeholder="Chat with us"
-                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                              />
-                            </div>
-                            
-                            <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Position</Label>
-                              <div className="flex gap-2">
-                                <Button
-                                  type="button"
-                                  variant={formData.appearance.position === 'bottom-right' ? 'default' : 'outline'}
-                                  onClick={() => handleAppearanceChange('position', 'bottom-right')}
-                                  className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
-                                >
-                                  Bottom Right
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant={formData.appearance.position === 'bottom-left' ? 'default' : 'outline'}
-                                  onClick={() => handleAppearanceChange('position', 'bottom-left')}
-                                  className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
-                                >
-                                  Bottom Left
-                                </Button>
-                              </div>
+                                Bottom Right
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={formData.appearance.position === 'bottom-left' ? 'default' : 'outline'}
+                                onClick={() => handleAppearanceChange('position', 'bottom-left')}
+                                className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
+                              >
+                                Bottom Left
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -698,14 +711,21 @@ const AgentEdit = () => {
                     </AccordionItem>
 
                     {/* Advanced Settings */}
-                    <AccordionItem value="advanced" className="border-white/20 dark:border-slate-700/20">
-                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
-                        <div className="flex items-center gap-2">
-                          <Cog className="h-4 w-4" />
-                          Advanced Settings
+                    <AccordionItem value="advanced" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                      <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                            <Cog className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold">Advanced Settings</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                              AI model configuration and system prompts
+                            </p>
+                          </div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="space-y-6 pt-4">
+                      <AccordionContent className="px-6 pb-6 space-y-6">
                         <div className="grid gap-6">
                           {/* AI Model Configuration */}
                           <div className="grid gap-4">
@@ -847,14 +867,21 @@ const AgentEdit = () => {
                     </AccordionItem>
 
                     {/* Knowledge Base */}
-                    <AccordionItem value="knowledge" className="border-white/20 dark:border-slate-700/20">
-                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
-                        <div className="flex items-center gap-2">
-                          <Book className="h-4 w-4" />
-                          Knowledge Base
+                    <AccordionItem value="knowledge" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                      <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                            <Book className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold">Knowledge Base</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                              Upload and manage training data
+                            </p>
+                          </div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-4">
+                      <AccordionContent className="px-6 pb-6">
                         <KnowledgeTrainingStatus
                           agentId={agentId!}
                           agentName={agent.name}
@@ -864,14 +891,21 @@ const AgentEdit = () => {
                     </AccordionItem>
 
                     {/* Guidelines & Behavior */}
-                    <AccordionItem value="guidelines" className="border-white/20 dark:border-slate-700/20">
-                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
-                        <div className="flex items-center gap-2">
-                          <Zap className="h-4 w-4" />
-                          Guidelines & Behavior
+                    <AccordionItem value="guidelines" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                      <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30">
+                            <Zap className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold">Guidelines & Behavior</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                              Define do's, don'ts and behavior settings
+                            </p>
+                          </div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="space-y-6 pt-4">
+                      <AccordionContent className="px-6 pb-6 space-y-6">
                         <GuidelinesSection
                           initialGuidelines={formData.guidelines}
                           onChange={handleGuidelinesChange}
@@ -932,7 +966,6 @@ const AgentEdit = () => {
                                 <Switch
                                   checked={formData.behaviorSettings.expertHandoff}
                                   onCheckedChange={(checked) => handleBehaviorSettingChange('expertHandoff', checked)}
- 
                                 />
                               </div>
                               
@@ -1034,6 +1067,16 @@ const AgentEdit = () => {
             )}
           </div>
         </div>
+
+        {/* Deployment Dialog */}
+        <DeploymentDialog
+          open={deploymentDialogOpen}
+          onOpenChange={setDeploymentDialogOpen}
+          agent={{
+            id: agentId!,
+            name: agent.name
+          }}
+        />
       </div>
     </div>
   );
