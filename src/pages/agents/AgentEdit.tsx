@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,8 @@ const AgentEdit = () => {
   const { theme } = useAppTheme();
   const queryClient = useQueryClient();
   
+  console.log('AgentEdit component rendered, agentId:', agentId);
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -84,18 +87,25 @@ const AgentEdit = () => {
   const { data: agent, isLoading, error } = useQuery({
     queryKey: ['agent', agentId],
     queryFn: async (): Promise<Agent> => {
+      console.log('Fetching agent data for ID:', agentId);
       const token = getAccessToken();
-      if (!token) throw new Error('Authentication required');
+      if (!token) {
+        console.error('No access token found');
+        throw new Error('Authentication required');
+      }
       
       const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`), {
         headers: getAuthHeaders(token)
       });
+      
+      console.log('Agent fetch response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch agent: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('Agent data received:', data);
       return data.data;
     },
     enabled: !!agentId
@@ -103,6 +113,7 @@ const AgentEdit = () => {
 
   // Update form data when agent data is loaded
   useEffect(() => {
+    console.log('Agent data changed:', agent);
     if (agent) {
       setFormData({
         name: agent.name,
@@ -135,6 +146,12 @@ const AgentEdit = () => {
       });
     }
   }, [agent]);
+
+  // Log loading and error states
+  useEffect(() => {
+    console.log('Loading state:', isLoading);
+    console.log('Error state:', error);
+  }, [isLoading, error]);
 
   // Save agent mutation
   const saveMutation = useMutation({
@@ -222,7 +239,10 @@ const AgentEdit = () => {
     { value: 'custom', label: 'Custom', description: 'Create a custom agent type' }
   ];
 
+  console.log('Rendering AgentEdit component with loading:', isLoading, 'error:', error, 'agent:', agent);
+
   if (isLoading) {
+    console.log('Rendering loading state');
     return (
       <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900 flex items-center justify-center">
@@ -236,6 +256,7 @@ const AgentEdit = () => {
   }
 
   if (error || !agent) {
+    console.log('Rendering error state');
     return (
       <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900 flex items-center justify-center">
@@ -257,6 +278,8 @@ const AgentEdit = () => {
       </div>
     );
   }
+
+  console.log('Rendering main content');
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
