@@ -38,6 +38,13 @@ interface Agent {
     dos: string[];
     donts: string[];
   };
+  behaviorSettings: {
+    conversationMemory: boolean;
+    continuousLearning: boolean;
+    expertHandoff: boolean;
+    aiToAiHandoff: boolean;
+    multilingualSupport: boolean;
+  };
 }
 
 const AgentEdit = () => {
@@ -61,6 +68,13 @@ const AgentEdit = () => {
     guidelines: {
       dos: [] as string[],
       donts: [] as string[]
+    },
+    behaviorSettings: {
+      conversationMemory: true,
+      continuousLearning: false,
+      expertHandoff: false,
+      aiToAiHandoff: true,
+      multilingualSupport: false
     },
     appearance: {
       primaryColor: '#1e52f1',
@@ -126,6 +140,13 @@ const AgentEdit = () => {
         guidelines: agent.guidelines || {
           dos: [],
           donts: []
+        },
+        behaviorSettings: agent.behaviorSettings || {
+          conversationMemory: true,
+          continuousLearning: false,
+          expertHandoff: false,
+          aiToAiHandoff: true,
+          multilingualSupport: false
         },
         appearance: {
           primaryColor: '#1e52f1',
@@ -222,6 +243,16 @@ const AgentEdit = () => {
       ...prev,
       appearance: {
         ...prev.appearance,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleBehaviorSettingChange = (field: string, value: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      behaviorSettings: {
+        ...prev.behaviorSettings,
         [field]: value
       }
     }));
@@ -747,7 +778,7 @@ const AgentEdit = () => {
                                 value={formData.systemPrompt}
                                 onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
                                 placeholder="Enter the system prompt for your agent"
-                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40 min-h-[200px]"
+                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
                               />
                             </div>
                           )}
@@ -764,10 +795,103 @@ const AgentEdit = () => {
                     </TabsContent>
 
                     <TabsContent value="guidelines" className="mt-6">
-                      <GuidelinesSection
-                        initialGuidelines={formData.guidelines}
-                        onChange={handleGuidelinesChange}
-                      />
+                      <div className="space-y-6">
+                        <GuidelinesSection
+                          initialGuidelines={formData.guidelines}
+                          onChange={handleGuidelinesChange}
+                        />
+                        
+                        {/* Behavior Settings Section */}
+                        <Card className="backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 border-white/20 dark:border-slate-700/20">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Settings className="h-5 w-5" />
+                              Behavior Settings
+                            </CardTitle>
+                            <CardDescription>
+                              Configure how the agent works and learns
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                                <div className="space-y-1">
+                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    Conversation Memory
+                                  </Label>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                                    Enable conversation history so the agent remembers previous interactions
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={formData.behaviorSettings.conversationMemory}
+                                  onCheckedChange={(checked) => handleBehaviorSettingChange('conversationMemory', checked)}
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                                <div className="space-y-1">
+                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    Continuous Learning
+                                  </Label>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                                    Allow the agent to improve from interactions over time
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={formData.behaviorSettings.continuousLearning}
+                                  onCheckedChange={(checked) => handleBehaviorSettingChange('continuousLearning', checked)}
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                                <div className="space-y-1">
+                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    Expert Handoff
+                                  </Label>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                                    Allow the agent to escalate to human domain experts when needed
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={formData.behaviorSettings.expertHandoff}
+                                  onCheckedChange={(checked) => handleBehaviorSettingChange('expertHandoff', checked)}
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                                <div className="space-y-1">
+                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    AI to AI Handoff
+                                  </Label>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                                    Allow the agent to escalate to other AI agents when needed
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={formData.behaviorSettings.aiToAiHandoff}
+                                  onCheckedChange={(checked) => handleBehaviorSettingChange('aiToAiHandoff', checked)}
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                                <div className="space-y-1">
+                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    Multilingual Support
+                                  </Label>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                                    Enable automatic translation for non-primary languages
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={formData.behaviorSettings.multilingualSupport}
+                                  onCheckedChange={(checked) => handleBehaviorSettingChange('multilingualSupport', checked)}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
                     </TabsContent>
                   </Tabs>
                 </CardContent>
