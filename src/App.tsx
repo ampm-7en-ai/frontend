@@ -41,6 +41,7 @@ import IntegrationsPage from './pages/integrations/IntegrationsPage';
 import ChatPreview from './pages/preview/ChatPreview';
 import SearchAssistant from './pages/chat/SearchAssistant';
 import PaymentHistory from './pages/settings/business/PaymentHistory';
+import Index from './pages/Index';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,10 +80,11 @@ const ProtectedRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<MainLayout />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route index element={<Index />} />
         <Route path="/dashboard" element={
           user.role === 'SUPERADMIN' ? <SuperAdminDashboard /> : <AdminDashboard />
         } />
+        
         <Route 
           path="/dashboard/superadmin" 
           element={
