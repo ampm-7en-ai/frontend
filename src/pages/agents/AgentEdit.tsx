@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
@@ -99,7 +99,6 @@ const AgentEdit = () => {
   });
   
   const [previewCollapsed, setPreviewCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState('general');
 
   // Fetch agent data
   const { data: agent, isLoading, error } = useQuery({
@@ -327,10 +326,14 @@ const AgentEdit = () => {
               <p className="text-slate-600 dark:text-slate-400">
                 {error instanceof Error ? error.message : 'Failed to load agent'}
               </p>
-              <Button onClick={() => navigate('/agents')} className="mt-4">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+              <ModernButton
+                variant="secondary"
+                icon={ArrowLeft}
+                onClick={() => navigate('/agents')}
+                className="mt-4"
+              >
                 Back to Agents
-              </Button>
+              </ModernButton>
             </CardContent>
           </Card>
         </div>
@@ -415,439 +418,460 @@ const AgentEdit = () => {
                 </CardHeader>
                 
                 <CardContent className="space-y-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-5 backdrop-blur-sm bg-white/30 dark:bg-slate-700/30 border border-white/20 dark:border-slate-600/20">
-                      <TabsTrigger value="general" className="flex items-center gap-2 data-[state=active]:bg-white/50 dark:data-[state=active]:bg-slate-800/50">
-                        <MessageSquare className="h-4 w-4" />
-                        General
-                      </TabsTrigger>
-                      <TabsTrigger value="appearance" className="flex items-center gap-2 data-[state=active]:bg-white/50 dark:data-[state=active]:bg-slate-800/50">
-                        <Palette className="h-4 w-4" />
-                        Appearance
-                      </TabsTrigger>
-                      <TabsTrigger value="advanced" className="flex items-center gap-2 data-[state=active]:bg-white/50 dark:data-[state=active]:bg-slate-800/50">
-                        <Cog className="h-4 w-4" />
-                        Advanced Settings
-                      </TabsTrigger>
-                      <TabsTrigger value="knowledge" className="flex items-center gap-2 data-[state=active]:bg-white/50 dark:data-[state=active]:bg-slate-800/50">
-                        <Book className="h-4 w-4" />
-                        Knowledge
-                      </TabsTrigger>
-                      <TabsTrigger value="guidelines" className="flex items-center gap-2 data-[state=active]:bg-white/50 dark:data-[state=active]:bg-slate-800/50">
-                        <Zap className="h-4 w-4" />
-                        Guidelines & Behavior
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="general" className="space-y-6 mt-6">
-                      <div className="grid gap-6">
-                        <div className="grid gap-2">
-                          <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Name</Label>
-                          <Input
-                            id="name"
-                            value={formData.name}
-                            onChange={(e) => handleInputChange('name', e.target.value)}
-                            placeholder="Enter agent name"
-                            className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                          />
+                  <Accordion type="multiple" defaultValue={["general"]} className="w-full">
+                    {/* General Configuration */}
+                    <AccordionItem value="general" className="border-white/20 dark:border-slate-700/20">
+                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4" />
+                          General Configuration
                         </div>
-                        
-                        <div className="grid gap-2">
-                          <Label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-300">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={formData.description}
-                            onChange={(e) => handleInputChange('description', e.target.value)}
-                            placeholder="Describe what this agent does"
-                            className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40 min-h-[100px]"
-                          />
-                        </div>
-                        
-                        {/* Suggested Questions Section */}
-                        <div className="grid gap-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Suggested Questions</Label>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                Add up to 3 suggested questions for your users to click on
-                              </p>
-                            </div>
-                            <Switch
-                              checked={formData.suggestedQuestions.enabled}
-                              onCheckedChange={handleSuggestedQuestionsToggle}
-                            />
-                          </div>
-                          
-                          {formData.suggestedQuestions.enabled && (
-                            <div className="grid gap-3">
-                              {formData.suggestedQuestions.questions.map((question, index) => (
-                                <div key={index} className="grid gap-2">
-                                  <Label className="text-xs text-slate-600 dark:text-slate-400">
-                                    Suggestion {index + 1}
-                                  </Label>
-                                  <Input
-                                    value={question}
-                                    onChange={(e) => handleSuggestedQuestionChange(index, e.target.value)}
-                                    placeholder={`e.g. Suggestion ${index + 1}`}
-                                    className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="appearance" className="space-y-6 mt-6">
-                      <div className="grid gap-6">
-                        <div className="grid gap-4">
-                          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Visual Settings</h3>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">Customize the look and feel of your chatbot</p>
-                          
-                          {/* Chat Avatar */}
-                          <div className="grid gap-3">
-                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Chat Avatar</Label>
-                            <div className="grid grid-cols-5 gap-3">
-                              <div className="text-center">
-                                <div 
-                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${
-                                    formData.appearance.avatarType === 'default' 
-                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                  }`}
-                                  onClick={() => handleAppearanceChange('avatarType', 'default')}
-                                >
-                                  <Bot className="h-8 w-8 text-blue-500" />
-                                </div>
-                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Default</p>
-                              </div>
-                              
-                              <div className="text-center">
-                                <div 
-                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
-                                    formData.appearance.avatarType === 'avatar1' 
-                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                  }`}
-                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
-                                  onClick={() => handleAppearanceChange('avatarType', 'avatar1')}
-                                >
-                                </div>
-                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 1</p>
-                              </div>
-                              
-                              <div className="text-center">
-                                <div 
-                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
-                                    formData.appearance.avatarType === 'avatar2' 
-                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                  }`}
-                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23ef4444\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
-                                  onClick={() => handleAppearanceChange('avatarType', 'avatar2')}
-                                >
-                                </div>
-                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 2</p>
-                              </div>
-                              
-                              <div className="text-center">
-                                <div 
-                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
-                                    formData.appearance.avatarType === 'avatar3' 
-                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                  }`}
-                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2310b981\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
-                                  onClick={() => handleAppearanceChange('avatarType', 'avatar3')}
-                                >
-                                </div>
-                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 3</p>
-                              </div>
-                              
-                              <div className="text-center">
-                                <div 
-                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 border-dashed transition-all ${
-                                    formData.appearance.avatarType === 'upload' 
-                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                                  }`}
-                                  onClick={() => handleAppearanceChange('avatarType', 'upload')}
-                                >
-                                  <Upload className="h-6 w-6 text-gray-400" />
-                                </div>
-                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Upload</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                              <Label htmlFor="primaryColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Primary Color</Label>
-                              <div className="flex gap-2 items-center">
-                                <Input
-                                  id="primaryColor"
-                                  type="color"
-                                  value={formData.appearance.primaryColor}
-                                  onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
-                                  className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                />
-                                <Input
-                                  value={formData.appearance.primaryColor}
-                                  onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
-                                  className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="grid gap-2">
-                              <Label htmlFor="textColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Text Color</Label>
-                              <div className="flex gap-2 items-center">
-                                <Input
-                                  id="textColor"
-                                  type="color"
-                                  value={formData.appearance.textColor}
-                                  onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
-                                  className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                />
-                                <Input
-                                  value={formData.appearance.textColor}
-                                  onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
-                                  className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-6 pt-4">
+                        <div className="grid gap-6">
                           <div className="grid gap-2">
-                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Font Family</Label>
-                            <Select
-                              value={formData.appearance.fontFamily}
-                              onValueChange={(value) => handleAppearanceChange('fontFamily', value)}
-                            >
-                              <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
-                                <SelectValue placeholder="Select font family" />
-                              </SelectTrigger>
-                              <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
-                                <SelectItem value="Inter">Inter</SelectItem>
-                                <SelectItem value="Arial">Arial</SelectItem>
-                                <SelectItem value="Helvetica">Helvetica</SelectItem>
-                                <SelectItem value="Georgia">Georgia</SelectItem>
-                                <SelectItem value="Times New Roman">Times New Roman</SelectItem>
-                                <SelectItem value="Roboto">Roboto</SelectItem>
-                                <SelectItem value="Open Sans">Open Sans</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          {/* Chatbot Name, Welcome Message, Button Text, Position */}
-                          <div className="grid gap-2">
-                            <Label htmlFor="chatbotName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Chatbot Name</Label>
+                            <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Name</Label>
                             <Input
-                              id="chatbotName"
-                              value={formData.appearance.chatbotName}
-                              onChange={(e) => handleAppearanceChange('chatbotName', e.target.value)}
-                              placeholder="AI Assistant"
+                              id="name"
+                              value={formData.name}
+                              onChange={(e) => handleInputChange('name', e.target.value)}
+                              placeholder="Enter agent name"
                               className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
                             />
                           </div>
                           
                           <div className="grid gap-2">
-                            <Label htmlFor="welcomeMessage" className="text-sm font-medium text-slate-700 dark:text-slate-300">Welcome Message</Label>
+                            <Label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-300">Description</Label>
                             <Textarea
-                              id="welcomeMessage"
-                              value={formData.appearance.welcomeMessage}
-                              onChange={(e) => handleAppearanceChange('welcomeMessage', e.target.value)}
-                              placeholder="Hello! How can I help you today?"
-                              className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                              id="description"
+                              value={formData.description}
+                              onChange={(e) => handleInputChange('description', e.target.value)}
+                              placeholder="Describe what this agent does"
+                              className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40 min-h-[100px]"
                             />
                           </div>
                           
-                          <div className="grid gap-2">
-                            <Label htmlFor="buttonText" className="text-sm font-medium text-slate-700 dark:text-slate-300">Button Text</Label>
-                            <Input
-                              id="buttonText"
-                              value={formData.appearance.buttonText}
-                              onChange={(e) => handleAppearanceChange('buttonText', e.target.value)}
-                              placeholder="Chat with us"
-                              className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                            />
-                          </div>
-                          
-                          <div className="grid gap-2">
-                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Position</Label>
-                            <div className="flex gap-2">
-                              <Button
-                                type="button"
-                                variant={formData.appearance.position === 'bottom-right' ? 'default' : 'outline'}
-                                onClick={() => handleAppearanceChange('position', 'bottom-right')}
-                                className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
-                              >
-                                Bottom Right
-                              </Button>
-                              <Button
-                                type="button"
-                                variant={formData.appearance.position === 'bottom-left' ? 'default' : 'outline'}
-                                onClick={() => handleAppearanceChange('position', 'bottom-left')}
-                                className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
-                              >
-                                Bottom Left
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="advanced" className="space-y-6 mt-6">
-                      <div className="grid gap-6">
-                        {/* AI Model Configuration */}
-                        <div className="grid gap-4">
-                          <div className="flex items-center gap-2">
-                            <Cog className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Model Configuration</h3>
-                          </div>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">Configure the underlying AI model</p>
-                          
+                          {/* Suggested Questions Section */}
                           <div className="grid gap-4">
-                            <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
-                              <Select
-                                value={formData.model.selectedModel}
-                                onValueChange={(value) => handleModelChange('selectedModel', value)}
-                              >
-                                <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
-                                  <SelectValue placeholder="Select a model" />
-                                </SelectTrigger>
-                                <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
-                                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
-                                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                                  <SelectItem value="gpt-4">GPT-4 (OpenAI)</SelectItem>
-                                  <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
-                                  <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
-                                  <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Button variant="link" className="text-xs p-0 h-auto justify-start text-blue-600 dark:text-blue-400">
-                                Test this model in a new tab →
-                              </Button>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Suggested Questions</Label>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                  Add up to 3 suggested questions for your users to click on
+                                </p>
+                              </div>
+                              <Switch
+                                checked={formData.suggestedQuestions.enabled}
+                                onCheckedChange={handleSuggestedQuestionsToggle}
+                              />
                             </div>
                             
-                            <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Temperature
-                              </Label>
-                              <div className="flex items-center gap-4">
-                                <Input
-                                  type="number"
-                                  value={formData.model.temperature}
-                                  onChange={(e) => handleModelChange('temperature', parseFloat(e.target.value))}
-                                  step="0.1"
-                                  min="0"
-                                  max="2"
-                                  className="w-20 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                />
-                                <div className="flex-1">
-                                  <Slider
-                                    value={[formData.model.temperature]}
-                                    onValueChange={(value) => handleModelChange('temperature', value[0])}
-                                    max={2}
-                                    min={0}
-                                    step={0.1}
-                                    className="w-full"
+                            {formData.suggestedQuestions.enabled && (
+                              <div className="grid gap-3">
+                                {formData.suggestedQuestions.questions.map((question, index) => (
+                                  <div key={index} className="grid gap-2">
+                                    <Label className="text-xs text-slate-600 dark:text-slate-400">
+                                      Suggestion {index + 1}
+                                    </Label>
+                                    <Input
+                                      value={question}
+                                      onChange={(e) => handleSuggestedQuestionChange(index, e.target.value)}
+                                      placeholder={`e.g. Suggestion ${index + 1}`}
+                                      className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Appearance Configuration */}
+                    <AccordionItem value="appearance" className="border-white/20 dark:border-slate-700/20">
+                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          <Palette className="h-4 w-4" />
+                          Appearance Settings
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-6 pt-4">
+                        <div className="grid gap-6">
+                          <div className="grid gap-4">
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Visual Settings</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Customize the look and feel of your chatbot</p>
+                            
+                            {/* Chat Avatar */}
+                            <div className="grid gap-3">
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Chat Avatar</Label>
+                              <div className="grid grid-cols-5 gap-3">
+                                <div className="text-center">
+                                  <div 
+                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${
+                                      formData.appearance.avatarType === 'default' 
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
+                                    onClick={() => handleAppearanceChange('avatarType', 'default')}
+                                  >
+                                    <Bot className="h-8 w-8 text-blue-500" />
+                                  </div>
+                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Default</p>
+                                </div>
+                                
+                                <div className="text-center">
+                                  <div 
+                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                      formData.appearance.avatarType === 'avatar1' 
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
+                                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                    onClick={() => handleAppearanceChange('avatarType', 'avatar1')}
+                                  >
+                                  </div>
+                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 1</p>
+                                </div>
+                                
+                                <div className="text-center">
+                                  <div 
+                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                      formData.appearance.avatarType === 'avatar2' 
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
+                                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23ef4444\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                    onClick={() => handleAppearanceChange('avatarType', 'avatar2')}
+                                  >
+                                  </div>
+                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 2</p>
+                                </div>
+                                
+                                <div className="text-center">
+                                  <div 
+                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                      formData.appearance.avatarType === 'avatar3' 
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
+                                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2310b981\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                    onClick={() => handleAppearanceChange('avatarType', 'avatar3')}
+                                  >
+                                  </div>
+                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 3</p>
+                                </div>
+                                
+                                <div className="text-center">
+                                  <div 
+                                    className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 border-dashed transition-all ${
+                                      formData.appearance.avatarType === 'upload' 
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                                    }`}
+                                    onClick={() => handleAppearanceChange('avatarType', 'upload')}
+                                  >
+                                    <Upload className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Upload</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="primaryColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Primary Color</Label>
+                                <div className="flex gap-2 items-center">
+                                  <Input
+                                    id="primaryColor"
+                                    type="color"
+                                    value={formData.appearance.primaryColor}
+                                    onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
+                                    className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                  />
+                                  <Input
+                                    value={formData.appearance.primaryColor}
+                                    onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
+                                    className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
                                   />
                                 </div>
                               </div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Higher values make responses more creative but less predictable
-                              </p>
+                              
+                              <div className="grid gap-2">
+                                <Label htmlFor="textColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Text Color</Label>
+                                <div className="flex gap-2 items-center">
+                                  <Input
+                                    id="textColor"
+                                    type="color"
+                                    value={formData.appearance.textColor}
+                                    onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
+                                    className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                  />
+                                  <Input
+                                    value={formData.appearance.textColor}
+                                    onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
+                                    className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                  />
+                                </div>
+                              </div>
                             </div>
                             
                             <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Maximum Response Length</Label>
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Font Family</Label>
                               <Select
-                                value={formData.model.maxTokens?.toString() || '2048'}
-                                onValueChange={(value) => handleModelChange('maxTokens', parseInt(value))}
+                                value={formData.appearance.fontFamily}
+                                onValueChange={(value) => handleAppearanceChange('fontFamily', value)}
                               >
                                 <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
-                                  <SelectValue placeholder="Select max tokens" />
+                                  <SelectValue placeholder="Select font family" />
                                 </SelectTrigger>
                                 <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
-                                  <SelectItem value="1000">1,000 tokens</SelectItem>
-                                  <SelectItem value="2000">2,000 tokens</SelectItem>
-                                  <SelectItem value="4000">4,000 tokens</SelectItem>
-                                  <SelectItem value="8000">8,000 tokens</SelectItem>
+                                  <SelectItem value="Inter">Inter</SelectItem>
+                                  <SelectItem value="Arial">Arial</SelectItem>
+                                  <SelectItem value="Helvetica">Helvetica</SelectItem>
+                                  <SelectItem value="Georgia">Georgia</SelectItem>
+                                  <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                                  <SelectItem value="Roboto">Roboto</SelectItem>
+                                  <SelectItem value="Open Sans">Open Sans</SelectItem>
                                 </SelectContent>
                               </Select>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Controls the typical length of responses from your agent.
-                              </p>
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Agent Type & System Prompt */}
-                        <div className="grid gap-4">
-                          <div className="flex items-center gap-2">
-                            <Bot className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Type & System Prompt</h3>
-                            <Button 
-                              variant="link" 
-                              className="text-xs p-0 h-auto ml-auto text-blue-600 dark:text-blue-400"
-                              onClick={() => setFormData(prev => ({ ...prev, showSystemPrompt: !prev.showSystemPrompt }))}
-                            >
-                              {formData.showSystemPrompt ? 'Hide' : 'Show'} System Prompt
-                            </Button>
-                          </div>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">Define the agent's role and behavior</p>
-                          
-                          <div className="grid gap-2">
-                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Type</Label>
-                            <RadioGroup
-                              value={formData.agentType}
-                              onValueChange={(value) => setFormData(prev => ({ ...prev, agentType: value as any }))}
-                              className="grid grid-cols-2 gap-4"
-                            >
-                              {agentTypeOptions.map((option) => (
-                                <div key={option.value} className="flex items-center space-x-2 p-3 border border-white/20 dark:border-slate-700/20 rounded-lg backdrop-blur-sm bg-white/20 dark:bg-slate-800/20">
-                                  <RadioGroupItem value={option.value} id={option.value} />
-                                  <div className="flex flex-col">
-                                    <Label htmlFor={option.value} className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                      {option.label}
-                                    </Label>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400">{option.description}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                          </div>
-
-                          {formData.showSystemPrompt && (
+                            
+                            {/* Chatbot Name, Welcome Message, Button Text, Position */}
                             <div className="grid gap-2">
-                              <Label htmlFor="systemPrompt" className="text-sm font-medium text-slate-700 dark:text-slate-300">System Prompt</Label>
-                              <Textarea
-                                id="systemPrompt"
-                                value={formData.systemPrompt}
-                                onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
-                                placeholder="Enter the system prompt for your agent"
+                              <Label htmlFor="chatbotName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Chatbot Name</Label>
+                              <Input
+                                id="chatbotName"
+                                value={formData.appearance.chatbotName}
+                                onChange={(e) => handleAppearanceChange('chatbotName', e.target.value)}
+                                placeholder="AI Assistant"
                                 className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
                               />
                             </div>
-                          )}
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="welcomeMessage" className="text-sm font-medium text-slate-700 dark:text-slate-300">Welcome Message</Label>
+                              <Textarea
+                                id="welcomeMessage"
+                                value={formData.appearance.welcomeMessage}
+                                onChange={(e) => handleAppearanceChange('welcomeMessage', e.target.value)}
+                                placeholder="Hello! How can I help you today?"
+                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="buttonText" className="text-sm font-medium text-slate-700 dark:text-slate-300">Button Text</Label>
+                              <Input
+                                id="buttonText"
+                                value={formData.appearance.buttonText}
+                                onChange={(e) => handleAppearanceChange('buttonText', e.target.value)}
+                                placeholder="Chat with us"
+                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Position</Label>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant={formData.appearance.position === 'bottom-right' ? 'default' : 'outline'}
+                                  onClick={() => handleAppearanceChange('position', 'bottom-right')}
+                                  className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
+                                >
+                                  Bottom Right
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant={formData.appearance.position === 'bottom-left' ? 'default' : 'outline'}
+                                  onClick={() => handleAppearanceChange('position', 'bottom-left')}
+                                  className="flex-1 backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border-white/20 dark:border-slate-700/20"
+                                >
+                                  Bottom Left
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </TabsContent>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                    <TabsContent value="knowledge" className="mt-6">
-                      <KnowledgeTrainingStatus
-                        agentId={agentId!}
-                        agentName={agent.name}
-                        preloadedKnowledgeSources={agent.knowledgeBases}
-                      />
-                    </TabsContent>
+                    {/* Advanced Settings */}
+                    <AccordionItem value="advanced" className="border-white/20 dark:border-slate-700/20">
+                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          <Cog className="h-4 w-4" />
+                          Advanced Settings
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-6 pt-4">
+                        <div className="grid gap-6">
+                          {/* AI Model Configuration */}
+                          <div className="grid gap-4">
+                            <div className="flex items-center gap-2">
+                              <Cog className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Model Configuration</h3>
+                            </div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Configure the underlying AI model</p>
+                            
+                            <div className="grid gap-4">
+                              <div className="grid gap-2">
+                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
+                                <Select
+                                  value={formData.model.selectedModel}
+                                  onValueChange={(value) => handleModelChange('selectedModel', value)}
+                                >
+                                  <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
+                                    <SelectValue placeholder="Select a model" />
+                                  </SelectTrigger>
+                                  <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
+                                    <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
+                                    <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                                    <SelectItem value="gpt-4">GPT-4 (OpenAI)</SelectItem>
+                                    <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
+                                    <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                                    <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Button variant="link" className="text-xs p-0 h-auto justify-start text-blue-600 dark:text-blue-400">
+                                  Test this model in a new tab →
+                                </Button>
+                              </div>
+                              
+                              <div className="grid gap-2">
+                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                  Temperature
+                                </Label>
+                                <div className="flex items-center gap-4">
+                                  <Input
+                                    type="number"
+                                    value={formData.model.temperature}
+                                    onChange={(e) => handleModelChange('temperature', parseFloat(e.target.value))}
+                                    step="0.1"
+                                    min="0"
+                                    max="2"
+                                    className="w-20 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                  />
+                                  <div className="flex-1">
+                                    <Slider
+                                      value={[formData.model.temperature]}
+                                      onValueChange={(value) => handleModelChange('temperature', value[0])}
+                                      max={2}
+                                      min={0}
+                                      step={0.1}
+                                      className="w-full"
+                                    />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  Higher values make responses more creative but less predictable
+                                </p>
+                              </div>
+                              
+                              <div className="grid gap-2">
+                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Maximum Response Length</Label>
+                                <Select
+                                  value={formData.model.maxTokens?.toString() || '2048'}
+                                  onValueChange={(value) => handleModelChange('maxTokens', parseInt(value))}
+                                >
+                                  <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
+                                    <SelectValue placeholder="Select max tokens" />
+                                  </SelectTrigger>
+                                  <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
+                                    <SelectItem value="1000">1,000 tokens</SelectItem>
+                                    <SelectItem value="2000">2,000 tokens</SelectItem>
+                                    <SelectItem value="4000">4,000 tokens</SelectItem>
+                                    <SelectItem value="8000">8,000 tokens</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  Controls the typical length of responses from your agent.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
 
-                    <TabsContent value="guidelines" className="mt-6">
-                      <div className="space-y-6">
+                          {/* Agent Type & System Prompt */}
+                          <div className="grid gap-4">
+                            <div className="flex items-center gap-2">
+                              <Bot className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Type & System Prompt</h3>
+                              <ModernButton 
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs ml-auto"
+                                onClick={() => setFormData(prev => ({ ...prev, showSystemPrompt: !prev.showSystemPrompt }))}
+                              >
+                                {formData.showSystemPrompt ? 'Hide' : 'Show'} System Prompt
+                              </ModernButton>
+                            </div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Define the agent's role and behavior</p>
+                            
+                            <div className="grid gap-2">
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Type</Label>
+                              <RadioGroup
+                                value={formData.agentType}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, agentType: value as any }))}
+                                className="grid grid-cols-2 gap-4"
+                              >
+                                {agentTypeOptions.map((option) => (
+                                  <div key={option.value} className="flex items-center space-x-2 p-3 border border-white/20 dark:border-slate-700/20 rounded-lg backdrop-blur-sm bg-white/20 dark:bg-slate-800/20">
+                                    <RadioGroupItem value={option.value} id={option.value} />
+                                    <div className="flex flex-col">
+                                      <Label htmlFor={option.value} className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                        {option.label}
+                                      </Label>
+                                      <p className="text-xs text-slate-600 dark:text-slate-400">{option.description}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </RadioGroup>
+                            </div>
+
+                            {formData.showSystemPrompt && (
+                              <div className="grid gap-2">
+                                <Label htmlFor="systemPrompt" className="text-sm font-medium text-slate-700 dark:text-slate-300">System Prompt</Label>
+                                <Textarea
+                                  id="systemPrompt"
+                                  value={formData.systemPrompt}
+                                  onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
+                                  placeholder="Enter the system prompt for your agent"
+                                  className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Knowledge Base */}
+                    <AccordionItem value="knowledge" className="border-white/20 dark:border-slate-700/20">
+                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          <Book className="h-4 w-4" />
+                          Knowledge Base
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-4">
+                        <KnowledgeTrainingStatus
+                          agentId={agentId!}
+                          agentName={agent.name}
+                          preloadedKnowledgeSources={agent.knowledgeBases}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Guidelines & Behavior */}
+                    <AccordionItem value="guidelines" className="border-white/20 dark:border-slate-700/20">
+                      <AccordionTrigger className="text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-4 w-4" />
+                          Guidelines & Behavior
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-6 pt-4">
                         <GuidelinesSection
                           initialGuidelines={formData.guidelines}
                           onChange={handleGuidelinesChange}
@@ -908,6 +932,7 @@ const AgentEdit = () => {
                                 <Switch
                                   checked={formData.behaviorSettings.expertHandoff}
                                   onCheckedChange={(checked) => handleBehaviorSettingChange('expertHandoff', checked)}
+ 
                                 />
                               </div>
                               
@@ -943,9 +968,9 @@ const AgentEdit = () => {
                             </div>
                           </CardContent>
                         </Card>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </CardContent>
               </Card>
             </div>
@@ -961,14 +986,13 @@ const AgentEdit = () => {
                           <MessageSquare className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                           <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Live Preview</CardTitle>
                         </div>
-                        <Button
+                        <ModernButton
                           variant="ghost"
                           size="sm"
+                          icon={ChevronRight}
                           onClick={() => setPreviewCollapsed(true)}
                           className="backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 dark:hover:bg-slate-700/30 border border-white/20 dark:border-slate-700/20"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
+                        />
                       </div>
                       <CardDescription className="text-slate-600 dark:text-slate-400">
                         See how your agent will appear to users
@@ -999,14 +1023,13 @@ const AgentEdit = () => {
             {/* Collapsed Preview Trigger */}
             {previewCollapsed && (
               <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-30">
-                <Button
+                <ModernButton
                   variant="outline"
                   size="sm"
+                  icon={ChevronLeft}
                   onClick={() => setPreviewCollapsed(false)}
                   className="backdrop-blur-md bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/20 shadow-lg hover:shadow-xl transition-all duration-200 hover:bg-white/60 dark:hover:bg-slate-700/60"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
+                />
               </div>
             )}
           </div>
