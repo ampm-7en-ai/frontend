@@ -707,305 +707,305 @@ const AgentEdit = () => {
                             </div>
                           </div>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
 
-                    {/* Advanced Settings */}
-                    <AccordionItem value="advanced" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
-                      <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                            <Cog className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                          </div>
-                          <div className="text-left">
-                            <h3 className="font-semibold">Advanced Settings</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
-                              AI model configuration and system prompts
-                            </p>
-                          </div>
+                  {/* Advanced Settings */}
+                  <AccordionItem value="advanced" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                    <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                          <Cog className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-6 pb-6 space-y-6">
-                        <div className="grid gap-6">
-                          {/* AI Model Configuration */}
-                          <div className="grid gap-4">
-                            <div className="flex items-center gap-2">
-                              <Cog className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Model Configuration</h3>
-                            </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Configure the underlying AI model</p>
-                            
-                            <div className="grid gap-4">
-                              <div className="grid gap-2">
-                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
-                                <Select
-                                  value={formData.model.selectedModel}
-                                  onValueChange={(value) => handleModelChange('selectedModel', value)}
-                                >
-                                  <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
-                                    <SelectValue placeholder="Select a model" />
-                                  </SelectTrigger>
-                                  <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
-                                    <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
-                                    <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                                    <SelectItem value="gpt-4">GPT-4 (OpenAI)</SelectItem>
-                                    <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
-                                    <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
-                                    <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Button variant="link" className="text-xs p-0 h-auto justify-start text-blue-600 dark:text-blue-400">
-                                  Test this model in a new tab →
-                                </Button>
-                              </div>
-                              
-                              <div className="grid gap-2">
-                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                  Temperature
-                                </Label>
-                                <div className="flex items-center gap-4">
-                                  <Input
-                                    type="number"
-                                    value={formData.model.temperature}
-                                    onChange={(e) => handleModelChange('temperature', parseFloat(e.target.value))}
-                                    step="0.1"
-                                    min="0"
-                                    max="2"
-                                    className="w-20 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                                  />
-                                  <div className="flex-1">
-                                    <Slider
-                                      value={[formData.model.temperature]}
-                                      onValueChange={(value) => handleModelChange('temperature', value[0])}
-                                      max={2}
-                                      min={0}
-                                      step={0.1}
-                                      className="w-full"
-                                    />
-                                  </div>
-                                </div>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  Higher values make responses more creative but less predictable
-                                </p>
-                              </div>
-                              
-                              <div className="grid gap-2">
-                                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Maximum Response Length</Label>
-                                <Select
-                                  value={formData.model.maxTokens?.toString() || '2048'}
-                                  onValueChange={(value) => handleModelChange('maxTokens', parseInt(value))}
-                                >
-                                  <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
-                                    <SelectValue placeholder="Select max tokens" />
-                                  </SelectTrigger>
-                                  <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
-                                    <SelectItem value="1000">1,000 tokens</SelectItem>
-                                    <SelectItem value="2000">2,000 tokens</SelectItem>
-                                    <SelectItem value="4000">4,000 tokens</SelectItem>
-                                    <SelectItem value="8000">8,000 tokens</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  Controls the typical length of responses from your agent.
-                                </p>
-                              </div>
-                            </div>
+                        <div className="text-left">
+                          <h3 className="font-semibold">Advanced Settings</h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                            AI model configuration and system prompts
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6 space-y-6">
+                      <div className="grid gap-6">
+                        {/* AI Model Configuration */}
+                        <div className="grid gap-4">
+                          <div className="flex items-center gap-2">
+                            <Cog className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Model Configuration</h3>
                           </div>
-
-                          {/* Agent Type & System Prompt */}
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Configure the underlying AI model</p>
+                          
                           <div className="grid gap-4">
-                            <div className="flex items-center gap-2">
-                              <Bot className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Type & System Prompt</h3>
-                              <ModernButton 
-                                variant="ghost"
-                                size="sm"
-                                className="text-xs ml-auto"
-                                onClick={() => setFormData(prev => ({ ...prev, showSystemPrompt: !prev.showSystemPrompt }))}
+                            <div className="grid gap-2">
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
+                              <Select
+                                value={formData.model.selectedModel}
+                                onValueChange={(value) => handleModelChange('selectedModel', value)}
                               >
-                                {formData.showSystemPrompt ? 'Hide' : 'Show'} System Prompt
-                              </ModernButton>
+                                <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
+                                  <SelectValue placeholder="Select a model" />
+                                </SelectTrigger>
+                                <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
+                                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
+                                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                                  <SelectItem value="gpt-4">GPT-4 (OpenAI)</SelectItem>
+                                  <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
+                                  <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                                  <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button variant="link" className="text-xs p-0 h-auto justify-start text-blue-600 dark:text-blue-400">
+                                Test this model in a new tab →
+                              </Button>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Define the agent's role and behavior</p>
                             
                             <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Type</Label>
-                              <RadioGroup
-                                value={formData.agentType}
-                                onValueChange={(value) => setFormData(prev => ({ ...prev, agentType: value as any }))}
-                                className="grid grid-cols-2 gap-4"
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Temperature
+                              </Label>
+                              <div className="flex items-center gap-4">
+                                <Input
+                                  type="number"
+                                  value={formData.model.temperature}
+                                  onChange={(e) => handleModelChange('temperature', parseFloat(e.target.value))}
+                                  step="0.1"
+                                  min="0"
+                                  max="2"
+                                  className="w-20 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                                <div className="flex-1">
+                                  <Slider
+                                    value={[formData.model.temperature]}
+                                    onValueChange={(value) => handleModelChange('temperature', value[0])}
+                                    max={2}
+                                    min={0}
+                                    step={0.1}
+                                    className="w-full"
+                                  />
+                                </div>
+                              </div>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Higher values make responses more creative but less predictable
+                              </p>
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Maximum Response Length</Label>
+                              <Select
+                                value={formData.model.maxTokens?.toString() || '2048'}
+                                onValueChange={(value) => handleModelChange('maxTokens', parseInt(value))}
                               >
-                                {agentTypeOptions.map((option) => (
-                                  <div key={option.value} className="flex items-center space-x-2 p-3 border border-white/20 dark:border-slate-700/20 rounded-lg backdrop-blur-sm bg-white/20 dark:bg-slate-800/20">
-                                    <RadioGroupItem value={option.value} id={option.value} />
-                                    <div className="flex flex-col">
-                                      <Label htmlFor={option.value} className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                        {option.label}
-                                      </Label>
-                                      <p className="text-xs text-slate-600 dark:text-slate-400">{option.description}</p>
-                                    </div>
+                                <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
+                                  <SelectValue placeholder="Select max tokens" />
+                                </SelectTrigger>
+                                <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
+                                  <SelectItem value="1000">1,000 tokens</SelectItem>
+                                  <SelectItem value="2000">2,000 tokens</SelectItem>
+                                  <SelectItem value="4000">4,000 tokens</SelectItem>
+                                  <SelectItem value="8000">8,000 tokens</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Controls the typical length of responses from your agent.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Agent Type & System Prompt */}
+                        <div className="grid gap-4">
+                          <div className="flex items-center gap-2">
+                            <Bot className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Type & System Prompt</h3>
+                            <ModernButton 
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs ml-auto"
+                              onClick={() => setFormData(prev => ({ ...prev, showSystemPrompt: !prev.showSystemPrompt }))}
+                            >
+                              {formData.showSystemPrompt ? 'Hide' : 'Show'} System Prompt
+                            </ModernButton>
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Define the agent's role and behavior</p>
+                          
+                          <div className="grid gap-2">
+                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Type</Label>
+                            <RadioGroup
+                              value={formData.agentType}
+                              onValueChange={(value) => setFormData(prev => ({ ...prev, agentType: value as any }))}
+                              className="grid grid-cols-2 gap-4"
+                            >
+                              {agentTypeOptions.map((option) => (
+                                <div key={option.value} className="flex items-center space-x-2 p-3 border border-white/20 dark:border-slate-700/20 rounded-lg backdrop-blur-sm bg-white/20 dark:bg-slate-800/20">
+                                  <RadioGroupItem value={option.value} id={option.value} />
+                                  <div className="flex flex-col">
+                                    <Label htmlFor={option.value} className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                      {option.label}
+                                    </Label>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400">{option.description}</p>
                                   </div>
-                                ))}
-                              </RadioGroup>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                          </div>
+
+                          {formData.showSystemPrompt && (
+                            <div className="grid gap-2">
+                              <Label htmlFor="systemPrompt" className="text-sm font-medium text-slate-700 dark:text-slate-300">System Prompt</Label>
+                              <Textarea
+                                id="systemPrompt"
+                                value={formData.systemPrompt}
+                                onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
+                                placeholder="Enter the system prompt for your agent"
+                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
+                              />
                             </div>
-
-                            {formData.showSystemPrompt && (
-                              <div className="grid gap-2">
-                                <Label htmlFor="systemPrompt" className="text-sm font-medium text-slate-700 dark:text-slate-300">System Prompt</Label>
-                                <Textarea
-                                  id="systemPrompt"
-                                  value={formData.systemPrompt}
-                                  onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
-                                  placeholder="Enter the system prompt for your agent"
-                                  className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40"
-                                />
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
 
-                    {/* Knowledge Base */}
-                    <AccordionItem value="knowledge" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
-                      <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                            <Book className="h-5 w-5 text-green-600 dark:text-green-400" />
-                          </div>
-                          <div className="text-left">
-                            <h3 className="font-semibold">Knowledge Base</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
-                              Upload and manage training data
-                            </p>
-                          </div>
+                  {/* Knowledge Base */}
+                  <AccordionItem value="knowledge" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                    <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                          <Book className="h-5 w-5 text-green-600 dark:text-green-400" />
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-6 pb-6">
-                        <KnowledgeTrainingStatus
-                          agentId={agentId!}
-                          agentName={agent.name}
-                          preloadedKnowledgeSources={agent.knowledgeBases}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
+                        <div className="text-left">
+                          <h3 className="font-semibold">Knowledge Base</h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                            Upload and manage training data
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6">
+                      <KnowledgeTrainingStatus
+                        agentId={agentId!}
+                        agentName={agent.name}
+                        preloadedKnowledgeSources={agent.knowledgeBases}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
 
-                    {/* Guidelines & Behavior */}
-                    <AccordionItem value="guidelines" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
-                      <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30">
-                            <Zap className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                          </div>
-                          <div className="text-left">
-                            <h3 className="font-semibold">Guidelines & Behavior</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
-                              Define do's, don'ts and behavior settings
-                            </p>
-                          </div>
+                  {/* Guidelines & Behavior */}
+                  <AccordionItem value="guidelines" className="overflow-hidden rounded-xl backdrop-blur-md bg-white/40 dark:bg-slate-800/40 border-0 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20">
+                    <AccordionTrigger className="px-6 py-4 text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 hover:no-underline [&[data-state=open]]:bg-white/60 dark:[&[data-state=open]]:bg-slate-800/60 transition-all duration-200">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30">
+                          <Zap className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-6 pb-6 space-y-6">
-                        <GuidelinesSection
-                          initialGuidelines={formData.guidelines}
-                          onChange={handleGuidelinesChange}
-                        />
-                        
-                        {/* Behavior Settings Section */}
-                        <Card className="backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 border-white/20 dark:border-slate-700/20">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <Settings className="h-5 w-5" />
-                              Behavior Settings
-                            </CardTitle>
-                            <CardDescription>
-                              Configure how the agent works and learns
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-6">
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
-                                <div className="space-y-1">
-                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                    Conversation Memory
-                                  </Label>
-                                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                                    Enable conversation history so the agent remembers previous interactions
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={formData.behaviorSettings.conversationMemory}
-                                  onCheckedChange={(checked) => handleBehaviorSettingChange('conversationMemory', checked)}
-                                />
+                        <div className="text-left">
+                          <h3 className="font-semibold">Guidelines & Behavior</h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                            Define do's, don'ts and behavior settings
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6 space-y-6">
+                      <GuidelinesSection
+                        initialGuidelines={formData.guidelines}
+                        onChange={handleGuidelinesChange}
+                      />
+                      
+                      {/* Behavior Settings Section */}
+                      <Card className="backdrop-blur-sm bg-white/20 dark:bg-slate-800/20 border-white/20 dark:border-slate-700/20">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Settings className="h-5 w-5" />
+                            Behavior Settings
+                          </CardTitle>
+                          <CardDescription>
+                            Configure how the agent works and learns
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                  Conversation Memory
+                                </Label>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
+                                  Enable conversation history so the agent remembers previous interactions
+                                </p>
                               </div>
-                              
-                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
-                                <div className="space-y-1">
-                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                    Continuous Learning
-                                  </Label>
-                                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                                    Allow the agent to improve from interactions over time
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={formData.behaviorSettings.continuousLearning}
-                                  onCheckedChange={(checked) => handleBehaviorSettingChange('continuousLearning', checked)}
-                                />
-                              </div>
-                              
-                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
-                                <div className="space-y-1">
-                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                    Expert Handoff
-                                  </Label>
-                                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                                    Allow the agent to escalate to human domain experts when needed
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={formData.behaviorSettings.expertHandoff}
-                                  onCheckedChange={(checked) => handleBehaviorSettingChange('expertHandoff', checked)}
-                                />
-                              </div>
-                              
-                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
-                                <div className="space-y-1">
-                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                    AI to AI Handoff
-                                  </Label>
-                                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                                    Allow the agent to escalate to other AI agents when needed
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={formData.behaviorSettings.aiToAiHandoff}
-                                  onCheckedChange={(checked) => handleBehaviorSettingChange('aiToAiHandoff', checked)}
-                                />
-                              </div>
-                              
-                              <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
-                                <div className="space-y-1">
-                                  <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                    Multilingual Support
-                                  </Label>
-                                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                                    Enable automatic translation for non-primary languages
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={formData.behaviorSettings.multilingualSupport}
-                                  onCheckedChange={(checked) => handleBehaviorSettingChange('multilingualSupport', checked)}
-                                />
-                              </div>
+                              <Switch
+                                checked={formData.behaviorSettings.conversationMemory}
+                                onCheckedChange={(checked) => handleBehaviorSettingChange('conversationMemory', checked)}
+                              />
                             </div>
-                          </CardContent>
-                        </Card>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-              </Card>
+                            
+                            <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                  Continuous Learning
+                                </Label>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
+                                  Allow the agent to improve from interactions over time
+                                </p>
+                              </div>
+                              <Switch
+                                checked={formData.behaviorSettings.continuousLearning}
+                                onCheckedChange={(checked) => handleBehaviorSettingChange('continuousLearning', checked)}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                  Expert Handoff
+                                </Label>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
+                                  Allow the agent to escalate to human domain experts when needed
+                                </p>
+                              </div>
+                              <Switch
+                                checked={formData.behaviorSettings.expertHandoff}
+                                onCheckedChange={(checked) => handleBehaviorSettingChange('expertHandoff', checked)}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                  AI to AI Handoff
+                                </Label>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
+                                  Allow the agent to escalate to other AI agents when needed
+                                </p>
+                              </div>
+                              <Switch
+                                checked={formData.behaviorSettings.aiToAiHandoff}
+                                onCheckedChange={(checked) => handleBehaviorSettingChange('aiToAiHandoff', checked)}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between p-4 rounded-lg backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700/20">
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                  Multilingual Support
+                                </Label>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
+                                  Enable automatic translation for non-primary languages
+                                </p>
+                              </div>
+                              <Switch
+                                checked={formData.behaviorSettings.multilingualSupport}
+                                onCheckedChange={(checked) => handleBehaviorSettingChange('multilingualSupport', checked)}
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
             </div>
 
             {/* Collapsible Preview Panel */}
