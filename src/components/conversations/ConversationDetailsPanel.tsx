@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Calendar, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import HandoffHistory from './HandoffHistory';
+import CreateSupportTicketModal from './CreateSupportTicketModal';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -21,6 +21,8 @@ const ConversationDetailsPanel = ({
   onHandoffClick, 
   getSatisfactionIndicator 
 }: ConversationDetailsPanelProps) => {
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+
   const getSentimentEmoji = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
       case 'satisfied':
@@ -235,7 +237,10 @@ const ConversationDetailsPanel = ({
 
             <div className="bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-sm rounded-md p-2 border border-blue-200/60 dark:border-blue-800/60">
               <div className="flex items-center justify-center">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-xs font-medium py-1.5 px-3 rounded-md transition-colors duration-200 flex items-center justify-center gap-1.5">
+                <button 
+                  onClick={() => setIsTicketModalOpen(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-xs font-medium py-1.5 px-3 rounded-md transition-colors duration-200 flex items-center justify-center gap-1.5"
+                >
                   <Phone className="h-3 w-3" />
                   Create Support Ticket
                 </button>
@@ -244,6 +249,13 @@ const ConversationDetailsPanel = ({
           </div>
         </section>
       </div>
+
+      {/* Support Ticket Modal */}
+      <CreateSupportTicketModal
+        open={isTicketModalOpen}
+        onOpenChange={setIsTicketModalOpen}
+        conversation={conversation}
+      />
     </div>
   );
 };
