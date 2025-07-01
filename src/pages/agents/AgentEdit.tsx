@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Eye, EyeOff, Settings, MessageSquare, Book, Zap, ChevronRight, ChevronLeft, Palette, Cog } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, Settings, MessageSquare, Book, Zap, ChevronRight, ChevronLeft, Palette, Cog, Bot, Upload } from 'lucide-react';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -61,15 +61,20 @@ const AgentEdit = () => {
       donts: [] as string[]
     },
     appearance: {
-      primaryColor: '#3b82f6',
+      primaryColor: '#1e52f1',
       secondaryColor: '#f8fafc',
+      textColor: '#ffffff',
       fontFamily: 'Inter',
       chatbotName: '',
       welcomeMessage: 'Hello! How can I help you today?',
       buttonText: 'Chat with us',
       position: 'bottom-right' as 'bottom-right' | 'bottom-left',
-      suggestions: [] as string[]
-    }
+      suggestions: [] as string[],
+      avatarType: 'default' as 'default' | 'avatar1' | 'avatar2' | 'avatar3' | 'upload',
+      avatarSrc: ''
+    },
+    agentType: 'general-assistant' as 'general-assistant' | 'customer-support' | 'sales-agent' | 'language-tutor' | 'tech-expert' | 'life-coach' | 'travel-agent' | 'custom',
+    showSystemPrompt: false
   });
   
   const [previewCollapsed, setPreviewCollapsed] = useState(false);
@@ -113,15 +118,20 @@ const AgentEdit = () => {
           donts: []
         },
         appearance: {
-          primaryColor: '#3b82f6',
+          primaryColor: '#1e52f1',
           secondaryColor: '#f8fafc',
+          textColor: '#ffffff',
           fontFamily: 'Inter',
           chatbotName: agent.name,
           welcomeMessage: 'Hello! How can I help you today?',
           buttonText: 'Chat with us',
           position: 'bottom-right',
-          suggestions: []
-        }
+          suggestions: [],
+          avatarType: 'default',
+          avatarSrc: ''
+        },
+        agentType: 'general-assistant',
+        showSystemPrompt: false
       });
     }
   }, [agent]);
@@ -200,6 +210,17 @@ const AgentEdit = () => {
       }
     }));
   };
+
+  const agentTypeOptions = [
+    { value: 'general-assistant', label: 'General assistant', description: 'General Purpose AI Assistant' },
+    { value: 'customer-support', label: 'Customer support agent', description: 'Helps with customer inquiries' },
+    { value: 'sales-agent', label: 'Sales agent', description: 'Helps convert leads and answer product questions' },
+    { value: 'language-tutor', label: 'Language tutor', description: 'Helps users learn languages' },
+    { value: 'tech-expert', label: 'Tech expert', description: 'Helps with programming and development' },
+    { value: 'life-coach', label: 'Life coach', description: 'Provides guidance and motivation' },
+    { value: 'travel-agent', label: 'Travel Agent', description: 'Helps with travel advice and travel suggestions' },
+    { value: 'custom', label: 'Custom', description: 'Create a custom agent type' }
+  ];
 
   if (isLoading) {
     return (
@@ -376,32 +397,145 @@ const AgentEdit = () => {
                     <TabsContent value="appearance" className="space-y-6 mt-6">
                       <div className="grid gap-6">
                         <div className="grid gap-4">
-                          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Chatbox Appearance</h3>
+                          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Visual Settings</h3>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Customize the look and feel of your chatbot</p>
+                          
+                          {/* Chat Avatar */}
+                          <div className="grid gap-3">
+                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Chat Avatar</Label>
+                            <div className="grid grid-cols-5 gap-3">
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${
+                                    formData.appearance.avatarType === 'default' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  onClick={() => handleAppearanceChange('avatarType', 'default')}
+                                >
+                                  <Bot className="h-8 w-8 text-blue-500" />
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Default</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                    formData.appearance.avatarType === 'avatar1' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                  onClick={() => handleAppearanceChange('avatarType', 'avatar1')}
+                                >
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 1</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                    formData.appearance.avatarType === 'avatar2' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23ef4444\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                  onClick={() => handleAppearanceChange('avatarType', 'avatar2')}
+                                >
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 2</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all overflow-hidden ${
+                                    formData.appearance.avatarType === 'avatar3' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                  }`}
+                                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2310b981\'/%3E%3Ccircle cx=\'35\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Ccircle cx=\'65\' cy=\'40\' r=\'5\' fill=\'%23000\'/%3E%3Cpath d=\'M35 65 Q50 75 65 65\' stroke=\'%23000\' stroke-width=\'3\' fill=\'none\'/%3E%3C/svg%3E")', backgroundSize: 'cover' }}
+                                  onClick={() => handleAppearanceChange('avatarType', 'avatar3')}
+                                >
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Avatar 3</p>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div 
+                                  className={`w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-2 border-dashed transition-all ${
+                                    formData.appearance.avatarType === 'upload' 
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                                  }`}
+                                  onClick={() => handleAppearanceChange('avatarType', 'upload')}
+                                >
+                                  <Upload className="h-6 w-6 text-gray-400" />
+                                </div>
+                                <p className="text-xs mt-1 text-slate-600 dark:text-slate-400">Upload</p>
+                              </div>
+                            </div>
+                          </div>
                           
                           <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                               <Label htmlFor="primaryColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Primary Color</Label>
-                              <Input
-                                id="primaryColor"
-                                type="color"
-                                value={formData.appearance.primaryColor}
-                                onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
-                                className="h-10 w-full backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                              />
+                              <div className="flex gap-2 items-center">
+                                <Input
+                                  id="primaryColor"
+                                  type="color"
+                                  value={formData.appearance.primaryColor}
+                                  onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
+                                  className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                                <Input
+                                  value={formData.appearance.primaryColor}
+                                  onChange={(e) => handleAppearanceChange('primaryColor', e.target.value)}
+                                  className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                              </div>
                             </div>
                             
                             <div className="grid gap-2">
-                              <Label htmlFor="secondaryColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Secondary Color</Label>
-                              <Input
-                                id="secondaryColor"
-                                type="color"
-                                value={formData.appearance.secondaryColor}
-                                onChange={(e) => handleAppearanceChange('secondaryColor', e.target.value)}
-                                className="h-10 w-full backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
-                              />
+                              <Label htmlFor="textColor" className="text-sm font-medium text-slate-700 dark:text-slate-300">Text Color</Label>
+                              <div className="flex gap-2 items-center">
+                                <Input
+                                  id="textColor"
+                                  type="color"
+                                  value={formData.appearance.textColor}
+                                  onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
+                                  className="h-10 w-16 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                                <Input
+                                  value={formData.appearance.textColor}
+                                  onChange={(e) => handleAppearanceChange('textColor', e.target.value)}
+                                  className="flex-1 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                              </div>
                             </div>
                           </div>
                           
+                          <div className="grid gap-2">
+                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Font Family</Label>
+                            <Select
+                              value={formData.appearance.fontFamily}
+                              onValueChange={(value) => handleAppearanceChange('fontFamily', value)}
+                            >
+                              <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
+                                <SelectValue placeholder="Select font family" />
+                              </SelectTrigger>
+                              <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
+                                <SelectItem value="Inter">Inter</SelectItem>
+                                <SelectItem value="Arial">Arial</SelectItem>
+                                <SelectItem value="Helvetica">Helvetica</SelectItem>
+                                <SelectItem value="Georgia">Georgia</SelectItem>
+                                <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                                <SelectItem value="Roboto">Roboto</SelectItem>
+                                <SelectItem value="Open Sans">Open Sans</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          {/* Chatbot Name, Welcome Message, Button Text, Position */}
                           <div className="grid gap-2">
                             <Label htmlFor="chatbotName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Chatbot Name</Label>
                             <Input
@@ -462,12 +596,17 @@ const AgentEdit = () => {
 
                     <TabsContent value="advanced" className="space-y-6 mt-6">
                       <div className="grid gap-6">
+                        {/* AI Model Configuration */}
                         <div className="grid gap-4">
-                          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Model Configuration</h3>
+                          <div className="flex items-center gap-2">
+                            <Cog className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Model Configuration</h3>
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Configure the underlying AI model</p>
                           
                           <div className="grid gap-4">
                             <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Model</Label>
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
                               <Select
                                 value={formData.model.selectedModel}
                                 onValueChange={(value) => handleModelChange('selectedModel', value)}
@@ -476,50 +615,120 @@ const AgentEdit = () => {
                                   <SelectValue placeholder="Select a model" />
                                 </SelectTrigger>
                                 <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
-                                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                                  <SelectItem value="gpt-4">GPT-4</SelectItem>
-                                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
+                                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                                  <SelectItem value="gpt-4">GPT-4 (OpenAI)</SelectItem>
                                   <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
                                   <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
                                   <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <Button variant="link" className="text-xs p-0 h-auto justify-start text-blue-600 dark:text-blue-400">
+                                Test this model in a new tab →
+                              </Button>
                             </div>
                             
                             <div className="grid gap-2">
                               <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Temperature: {formData.model.temperature}
+                                Temperature
                               </Label>
-                              <Slider
-                                value={[formData.model.temperature]}
-                                onValueChange={(value) => handleModelChange('temperature', value[0])}
-                                max={2}
-                                min={0}
-                                step={0.1}
-                                className="w-full"
-                              />
+                              <div className="flex items-center gap-4">
+                                <Input
+                                  type="number"
+                                  value={formData.model.temperature}
+                                  onChange={(e) => handleModelChange('temperature', parseFloat(e.target.value))}
+                                  step="0.1"
+                                  min="0"
+                                  max="2"
+                                  className="w-20 backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20"
+                                />
+                                <div className="flex-1">
+                                  <Slider
+                                    value={[formData.model.temperature]}
+                                    onValueChange={(value) => handleModelChange('temperature', value[0])}
+                                    max={2}
+                                    min={0}
+                                    step={0.1}
+                                    className="w-full"
+                                  />
+                                </div>
+                              </div>
                               <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Controls randomness. Lower values make responses more focused and deterministic.
+                                Higher values make responses more creative but less predictable
                               </p>
                             </div>
                             
                             <div className="grid gap-2">
-                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Max Tokens: {formData.model.maxTokens}
-                              </Label>
-                              <Slider
-                                value={[formData.model.maxTokens]}
-                                onValueChange={(value) => handleModelChange('maxTokens', value[0])}
-                                max={4096}
-                                min={256}
-                                step={256}
-                                className="w-full"
-                              />
+                              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Maximum Response Length</Label>
+                              <Select
+                                value={formData.model.maxTokens.toString()}
+                                onValueChange={(value) => handleModelChange('maxTokens', parseInt(value))}
+                              >
+                                <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
+                                  <SelectValue placeholder="Select max tokens" />
+                                </SelectTrigger>
+                                <SelectContent className="backdrop-blur-md bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/20">
+                                  <SelectItem value="1000">1,000 tokens</SelectItem>
+                                  <SelectItem value="2000">2,000 tokens</SelectItem>
+                                  <SelectItem value="4000">4,000 tokens</SelectItem>
+                                  <SelectItem value="8000">8,000 tokens</SelectItem>
+                                </SelectContent>
+                              </Select>
                               <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Maximum length of the response. Higher values allow longer responses.
+                                Controls the typical length of responses from your agent.
                               </p>
                             </div>
                           </div>
+                        </div>
+
+                        {/* Agent Type & System Prompt */}
+                        <div className="grid gap-4">
+                          <div className="flex items-center gap-2">
+                            <Bot className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Type & System Prompt</h3>
+                            <Button 
+                              variant="link" 
+                              className="text-xs p-0 h-auto ml-auto text-blue-600 dark:text-blue-400"
+                              onClick={() => setFormData(prev => ({ ...prev, showSystemPrompt: !prev.showSystemPrompt }))}
+                            >
+                              {formData.showSystemPrompt ? 'Hide' : 'Show'} System Prompt
+                            </Button>
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Define the agent's role and behavior</p>
+                          
+                          <div className="grid gap-2">
+                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Agent Type</Label>
+                            <RadioGroup
+                              value={formData.agentType}
+                              onValueChange={(value) => setFormData(prev => ({ ...prev, agentType: value as any }))}
+                              className="grid grid-cols-2 gap-4"
+                            >
+                              {agentTypeOptions.map((option) => (
+                                <div key={option.value} className="flex items-center space-x-2 p-3 border border-white/20 dark:border-slate-700/20 rounded-lg backdrop-blur-sm bg-white/20 dark:bg-slate-800/20">
+                                  <RadioGroupItem value={option.value} id={option.value} />
+                                  <div className="flex flex-col">
+                                    <Label htmlFor={option.value} className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                      {option.label}
+                                    </Label>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400">{option.description}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                          </div>
+
+                          {formData.showSystemPrompt && (
+                            <div className="grid gap-2">
+                              <Label htmlFor="systemPrompt" className="text-sm font-medium text-slate-700 dark:text-slate-300">System Prompt</Label>
+                              <Textarea
+                                id="systemPrompt"
+                                value={formData.systemPrompt}
+                                onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
+                                placeholder="Enter the system prompt for your agent"
+                                className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20 focus:bg-white/40 dark:focus:bg-slate-800/40 min-h-[200px]"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </TabsContent>
