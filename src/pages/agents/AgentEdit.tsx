@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -684,7 +683,7 @@ const AgentEdit = () => {
                             <div className="grid gap-2">
                               <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Maximum Response Length</Label>
                               <Select
-                                value={formData.model.maxTokens.toString()}
+                                value={formData.model.maxTokens?.toString() || '2048'}
                                 onValueChange={(value) => handleModelChange('maxTokens', parseInt(value))}
                               >
                                 <SelectTrigger className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/20">
