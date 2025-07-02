@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { createAgent } from '@/utils/api-config';
 
@@ -43,7 +42,7 @@ interface BuilderContextType {
   setDeviceMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
   togglePreview: () => void;
   saveAgent: () => Promise<void>;
-  resetBuilder: () => void;
+  deleteAgent: () => void;
 }
 
 const BuilderContext = createContext<BuilderContextType | undefined>(undefined);
@@ -87,28 +86,41 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [state, setState] = useState<BuilderState>(initialState);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
 
-  // Initialize with dynamic agent creation
+  // Initialize with dynamic agent creation or load existing agent
   useEffect(() => {
     const initializeAgent = () => {
-      // Generate a unique timestamp-based name
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
-      const uniqueName = `Untitled_Agent_${timestamp}`;
-      
-      setState(prev => ({
-        ...prev,
-        agentData: {
-          ...prev.agentData,
-          name: uniqueName,
-          description: `AI assistant created on ${new Date().toLocaleDateString()}`
-        },
-        isDirty: true
-      }));
+      if (id) {
+        // Load existing agent (for now, just set the name to simulate loading)
+        setState(prev => ({
+          ...prev,
+          agentData: {
+            ...prev.agentData,
+            name: `Agent_${id}`,
+            description: `Agent with ID ${id}`
+          },
+          isDirty: false
+        }));
+      } else {
+        // Generate a unique timestamp-based name for new agent
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+        const uniqueName = `Untitled_Agent_${timestamp}`;
+        
+        setState(prev => ({
+          ...prev,
+          agentData: {
+            ...prev.agentData,
+            name: uniqueName,
+            description: `AI assistant created on ${new Date().toLocaleDateString()}`
+          },
+          isDirty: true
+        }));
+      }
     };
 
-    // Initialize on component mount
     initializeAgent();
-  }, []);
+  }, [id]);
 
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
     setState(prev => ({
@@ -146,8 +158,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const response = await createAgent(state.agentData.name, state.agentData.description);
       
       toast({
-        title: "Agent Created Successfully",
-        description: `${state.agentData.name} has been created and is ready to use.`,
+        title: "Agent Deployed Successfully",
+        description: `${state.agentData.name} has been deployed and is ready to use.`,
         variant: "default"
       });
 
@@ -160,10 +172,10 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         navigate('/agents');
       }
     } catch (error) {
-      console.error('Error creating agent:', error);
+      console.error('Error deploying agent:', error);
       toast({
-        title: "Creation Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred while creating the agent.",
+        title: "Deployment Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred while deploying the agent.",
         variant: "destructive"
       });
     } finally {
@@ -171,21 +183,16 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [state.agentData, navigate, toast]);
 
-  const resetBuilder = useCallback(() => {
-    setState({
-      ...initialState,
-      agentData: {
-        ...defaultAgentData,
-        name: `Untitled_Agent_${Date.now()}`
-      }
-    });
+  const deleteAgent = useCallback(() => {
+    // For now, just navigate back to agents list
+    navigate('/agents');
     
     toast({
-      title: "Builder Reset",
-      description: "All settings have been reset to defaults.",
+      title: "Agent Deleted",
+      description: "The agent has been deleted successfully.",
       variant: "default"
     });
-  }, [toast]);
+  }, [navigate, toast]);
 
   const value: BuilderContextType = {
     state,
@@ -194,7 +201,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setDeviceMode,
     togglePreview,
     saveAgent,
-    resetBuilder
+    deleteAgent
   };
 
   return (

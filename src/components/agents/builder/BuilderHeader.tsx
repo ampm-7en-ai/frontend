@@ -3,11 +3,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useBuilder } from './BuilderContext';
-import { ArrowLeft, Save, Play, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowLeft, Rocket, Play, Trash2, Sparkles } from 'lucide-react';
 
 export const BuilderHeader = () => {
   const navigate = useNavigate();
-  const { state, saveAgent, resetBuilder } = useBuilder();
+  const { state, saveAgent, deleteAgent } = useBuilder();
 
   return (
     <div className="h-18 bg-gradient-to-r from-white via-blue-50 to-purple-50 border-b border-gray-200/50 flex items-center justify-between px-8 shadow-sm">
@@ -43,11 +43,11 @@ export const BuilderHeader = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={resetBuilder}
-          className="flex items-center gap-2 hover:bg-white/60 transition-all duration-200"
+          onClick={deleteAgent}
+          className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all duration-200"
         >
-          <RotateCcw className="h-4 w-4" />
-          Reset
+          <Trash2 className="h-4 w-4" />
+          Delete
         </Button>
         
         <Button
@@ -63,10 +63,10 @@ export const BuilderHeader = () => {
         <Button
           onClick={saveAgent}
           disabled={state.isLoading || !state.agentData.name.trim()}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg transition-all duration-200 hover:scale-105"
+          className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-200 hover:scale-105"
         >
-          <Save className="h-4 w-4" />
-          {state.isLoading ? 'Creating...' : 'Create Agent'}
+          <Rocket className="h-4 w-4" />
+          {state.isLoading ? 'Deploying...' : 'Deploy Agent'}
         </Button>
       </div>
     </div>
