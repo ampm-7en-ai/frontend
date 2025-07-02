@@ -6,6 +6,7 @@ import { createAgent } from '@/utils/api-config';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
 interface AgentFormData {
+  id?: string | number;
   name: string;
   description: string;
   agentType: string;
@@ -116,6 +117,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         // Map API response to our form structure
         const mappedData: AgentFormData = {
+          id: agentData.id || id,
           name: agentData.name || 'Untitled Agent',
           description: agentData.description || 'A helpful AI assistant created with our builder.',
           agentType: agentData.agentType || 'Customer Support',
