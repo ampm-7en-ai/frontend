@@ -81,18 +81,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   
   // Check if we're on knowledge pages
   const isKnowledgePage = location.pathname.startsWith('/knowledge');
   
   console.log('Sidebar - isKnowledgePage:', isKnowledgePage, 'theme:', theme);
-  
-  // Agent creation form state
-  const [agentName, setAgentName] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [nameError, setNameError] = useState(false);
 
   // Toggle expand function
   const toggleExpand = (itemId: string) => {
@@ -108,69 +103,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     navigate('/knowledge/upload');
   };
 
-  // Handle agent plus action - navigate to builder
-  const handleAgentPlus = () => {
-    navigate('/agents/builder');
-  };
-
-  // Handle agent name change
-  const handleAgentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAgentName(e.target.value);
-    if (e.target.value.trim()) setNameError(false);
-  };
-  
-  // Validate form function
-  const validateForm = () => {
-    let isValid = true;
+  // Handle agent plus action - create agent and redirect to builder
+  const handleAgentPlus = async () => {
+    if (isCreatingAgent) return;
     
-    if (!agentName.trim()) {
-      setNameError(true);
-      isValid = false;
-    }
-    
-    if (!isValid) {
-      toast({
-        title: "Required Fields Missing",
-        description: "Please enter an agent name.",
-        variant: "destructive"
-      });
-    }
-    
-    return isValid;
-  };
-  
-  // Handle create agent function
-  const handleCreateAgent = async () => {
-    if (!validateForm()) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    console.log("Starting agent creation...");
+    setIsCreatingAgent(true);
+    console.log("Creating agent directly from sidebar...");
     
     try {
-      console.log("Sending agent creation request with:", { agentName });
-      const data = await createAgent(agentName, `AI Agent: ${agentName}`);
+      const data = await createAgent('Untitled Agent', 'AI Agent created from builder');
       
       console.log("Agent creation successful:", data);
       
-      // Show success toast with message from response
+      // Show success toast
       toast({
-        title: "Agent Created Successfully",
-        description: data.message || `${agentName} has been successfully created.`,
+        title: "Agent Created",
+        description: "New agent created successfully. Redirecting to builder...",
         variant: "default"
       });
       
-      // Reset form and close dropdown
-      setAgentName('');
-      setNameError(false);
-      setIsAgentDropdownOpen(false);
-      
-      // Navigate to agent edit page with the new agent id
+      // Navigate to agent builder page with the new agent id
       if (data.data?.id) {
-        navigate(`/agents/${data.data.id}/edit`);
+        navigate(`/agents/builder/${data.data.id}`);
       } else {
-        navigate('/agents');
+        navigate('/agents/builder');
       }
     } catch (error) {
       console.error('Error creating agent:', error);
@@ -180,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         variant: "destructive"
       });
     } finally {
-      setIsSubmitting(false);
+      setIsCreatingAgent(false);
     }
   };
 
@@ -349,77 +305,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     
                     {/* Plus icon for specific items */}
                     {!isCollapsed && item.showPlusOnHover && (
-                      <>
-                        {item.id === 'agents' ? (
-                          <DropdownMenu open={isAgentDropdownOpen} onOpenChange={setIsAgentDropdownOpen}>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:text-gray-200"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-[280px] p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Bot className="h-5 w-5 dark:text-gray-300" />
-                                  <h3 className="text-sm font-semibold dark:text-gray-200">Create New Agent</h3>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="agentName" className="text-xs dark:text-gray-300">Agent Name</Label>
-                                  <Input
-                                    id="agentName"
-                                    placeholder="Enter agent name"
-                                    value={agentName}
-                                    onChange={handleAgentNameChange}
-                                    className={`h-8 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 ${nameError ? "border-red-500" : ""}`}
-                                    disabled={isSubmitting}
-                                  />
-                                  {nameError && (
-                                    <p className="text-xs text-red-500 flex items-center">
-                                      <AlertCircle className="h-3 w-3 mr-1" />
-                                      Please enter an agent name
-                                    </p>
-                                  )}
-                                </div>
-                                <Button 
-                                  onClick={handleCreateAgent} 
-                                  className="w-full h-8 text-sm"
-                                  disabled={isSubmitting}
-                                >
-                                  {isSubmitting ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                      Creating...
-                                    </>
-                                  ) : (
-                                    "Create Agent"
-                                  )}
-                                </Button>
-                              </div>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:text-gray-200"
+                        disabled={isCreatingAgent && item.id === 'agents'}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (item.plusAction) item.plusAction();
+                        }}
+                      >
+                        {isCreatingAgent && item.id === 'agents' ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:text-gray-200"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (item.plusAction) item.plusAction();
-                            }}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
+                          <Plus className="h-3 w-3" />
                         )}
-                      </>
+                      </Button>
                     )}
                   </NavLink>
                 </div>

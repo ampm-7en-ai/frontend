@@ -1,7 +1,9 @@
+
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { createAgent } from '@/utils/api-config';
+import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
 interface AgentFormData {
   name: string;
@@ -88,39 +90,74 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { toast } = useToast();
   const { id } = useParams();
 
-  // Initialize with dynamic agent creation or load existing agent
+  // Fetch agent data when ID is present
   useEffect(() => {
-    const initializeAgent = () => {
-      if (id) {
-        // Load existing agent (for now, just set the name to simulate loading)
+    const loadAgentData = async () => {
+      if (!id) return;
+
+      setState(prev => ({ ...prev, isLoading: true }));
+
+      try {
+        const token = getAccessToken();
+        if (!token) {
+          throw new Error('No authentication token available');
+        }
+
+        const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${id}/`), {
+          headers: getAuthHeaders(token)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch agent: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        const agentData = result.data;
+
+        // Map API response to our form structure
+        const mappedData: AgentFormData = {
+          name: agentData.name || 'Untitled Agent',
+          description: agentData.description || 'A helpful AI assistant created with our builder.',
+          agentType: agentData.agentType || 'Customer Support',
+          model: agentData.settings?.response_model || agentData.model?.selectedModel || 'gpt-3.5-turbo',
+          temperature: agentData.settings?.temperature || agentData.model?.temperature || 0.7,
+          maxTokens: parseInt(agentData.settings?.token_length) || agentData.model?.maxResponseLength || 1000,
+          systemPrompt: agentData.systemPrompt || 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
+          primaryColor: agentData.appearance?.primaryColor || '#3b82f6',
+          secondaryColor: agentData.appearance?.secondaryColor || '#ffffff',
+          fontFamily: agentData.appearance?.fontFamily || 'Inter',
+          chatbotName: agentData.appearance?.chatbotName || 'AI Assistant',
+          welcomeMessage: agentData.appearance?.welcomeMessage || 'Hello! How can I help you today?',
+          buttonText: agentData.appearance?.buttonText || 'Chat with us',
+          position: agentData.appearance?.position || 'bottom-right',
+          suggestions: agentData.appearance?.suggestions || ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
+          avatarUrl: agentData.appearance?.avatarSrc,
+          guidelines: {
+            dos: agentData.behavior?.guidelines?.dos || ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
+            donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
+          }
+        };
+
         setState(prev => ({
           ...prev,
-          agentData: {
-            ...prev.agentData,
-            name: `Agent_${id}`,
-            description: `Agent with ID ${id}`
-          },
-          isDirty: false
+          agentData: mappedData,
+          isDirty: false,
+          isLoading: false
         }));
-      } else {
-        // Generate a unique timestamp-based name for new agent
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
-        const uniqueName = `Untitled_Agent_${timestamp}`;
-        
-        setState(prev => ({
-          ...prev,
-          agentData: {
-            ...prev.agentData,
-            name: uniqueName,
-            description: `AI assistant created on ${new Date().toLocaleDateString()}`
-          },
-          isDirty: true
-        }));
+
+      } catch (error) {
+        console.error('Error loading agent:', error);
+        toast({
+          title: "Error Loading Agent",
+          description: error instanceof Error ? error.message : "Failed to load agent data.",
+          variant: "destructive"
+        });
+        setState(prev => ({ ...prev, isLoading: false }));
       }
     };
 
-    initializeAgent();
-  }, [id]);
+    loadAgentData();
+  }, [id, toast]);
 
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
     setState(prev => ({
@@ -155,7 +192,59 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setState(prev => ({ ...prev, isLoading: true }));
 
     try {
-      const response = await createAgent(state.agentData.name, state.agentData.description);
+      let response;
+      
+      if (id) {
+        // Update existing agent
+        const token = getAccessToken();
+        if (!token) {
+          throw new Error('No authentication token available');
+        }
+
+        const updatePayload = {
+          name: state.agentData.name,
+          description: state.agentData.description,
+          agentType: state.agentData.agentType,
+          systemPrompt: state.agentData.systemPrompt,
+          settings: {
+            temperature: state.agentData.temperature,
+            token_length: state.agentData.maxTokens.toString(),
+            response_model: state.agentData.model
+          },
+          appearance: {
+            primaryColor: state.agentData.primaryColor,
+            secondaryColor: state.agentData.secondaryColor,
+            fontFamily: state.agentData.fontFamily,
+            chatbotName: state.agentData.chatbotName,
+            welcomeMessage: state.agentData.welcomeMessage,
+            buttonText: state.agentData.buttonText,
+            position: state.agentData.position,
+            suggestions: state.agentData.suggestions,
+            avatarSrc: state.agentData.avatarUrl
+          },
+          behavior: {
+            guidelines: state.agentData.guidelines
+          }
+        };
+
+        const updateResponse = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${id}/`), {
+          method: 'PUT',
+          headers: {
+            ...getAuthHeaders(token),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatePayload)
+        });
+
+        if (!updateResponse.ok) {
+          throw new Error(`Failed to update agent: ${updateResponse.statusText}`);
+        }
+
+        response = await updateResponse.json();
+      } else {
+        // Create new agent
+        response = await createAgent(state.agentData.name, state.agentData.description);
+      }
       
       toast({
         title: "Agent Deployed Successfully",
@@ -166,10 +255,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Reset dirty state
       setState(prev => ({ ...prev, isDirty: false }));
 
-      if (response.data?.id) {
-        navigate(`/agents/${response.data.id}/edit`);
-      } else {
-        navigate('/agents');
+      if (response.data?.id && !id) {
+        navigate(`/agents/builder/${response.data.id}`);
       }
     } catch (error) {
       console.error('Error deploying agent:', error);
@@ -181,18 +268,45 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [state.agentData, navigate, toast]);
+  }, [state.agentData, navigate, toast, id]);
 
-  const deleteAgent = useCallback(() => {
-    // For now, just navigate back to agents list
-    navigate('/agents');
-    
-    toast({
-      title: "Agent Deleted",
-      description: "The agent has been deleted successfully.",
-      variant: "default"
-    });
-  }, [navigate, toast]);
+  const deleteAgent = useCallback(async () => {
+    if (!id) {
+      navigate('/agents');
+      return;
+    }
+
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${id}/`), {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete agent: ${response.statusText}`);
+      }
+
+      toast({
+        title: "Agent Deleted",
+        description: "The agent has been deleted successfully.",
+        variant: "default"
+      });
+
+      navigate('/agents');
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      toast({
+        title: "Delete Failed",
+        description: error instanceof Error ? error.message : "Failed to delete the agent.",
+        variant: "destructive"
+      });
+    }
+  }, [navigate, toast, id]);
 
   const value: BuilderContextType = {
     state,
