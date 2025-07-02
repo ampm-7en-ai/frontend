@@ -11,6 +11,7 @@ import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import NotFound from './pages/NotFound';
 import AgentList from './pages/agents/AgentList';
+import AgentBuilder from './pages/agents/AgentBuilder';
 import AgentTest from './pages/agents/AgentTest';
 import AgentEdit from './pages/agents/AgentEdit';
 import BusinessSettings from './pages/settings/business/BusinessSettings';
@@ -100,6 +101,7 @@ const ProtectedRoutes = () => {
           } 
         />
         <Route path="/agents" element={<AgentList />} />
+        <Route path="/agents/builder" element={<AgentBuilder />} />
         <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
         
         <Route 

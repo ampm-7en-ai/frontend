@@ -108,6 +108,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     navigate('/knowledge/upload');
   };
 
+  // Handle agent plus action - navigate to builder
+  const handleAgentPlus = () => {
+    navigate('/agents/builder');
+  };
+
   // Handle agent name change
   const handleAgentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAgentName(e.target.value);
@@ -191,7 +196,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       href: '/agents', 
       icon: Bot, 
       permission: 'agents',
-      showPlusOnHover: true
+      showPlusOnHover: true,
+      plusAction: handleAgentPlus
     },
     { 
       id: 'knowledge', 
