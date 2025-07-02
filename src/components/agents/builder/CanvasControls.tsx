@@ -55,6 +55,7 @@ export const CanvasControls = () => {
             size="sm"
             onClick={() => setCanvasMode('embedded')}
             className="h-8 w-8 p-0"
+            title="Embedded Chat"
           >
             <MessageSquare className="h-4 w-4" />
           </Button>
@@ -63,6 +64,7 @@ export const CanvasControls = () => {
             size="sm"
             onClick={() => setCanvasMode('popup')}
             className="h-8 w-8 p-0"
+            title="Popup Chat"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
