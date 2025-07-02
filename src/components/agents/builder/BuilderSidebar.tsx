@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Card } from '@/components/ui/card';
@@ -12,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ChevronRight, Plus, X, Bot, Palette, MessageSquare, Brain, Settings, Zap, Shield, Globe } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, X, Bot, Palette, MessageSquare, Brain, Settings, Zap, Shield, Globe, FileText, Users, AlertTriangle, Webhook, Key, Bell, Database, Upload } from 'lucide-react';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 
 const agentTypes = ['Customer Support', 'Sales Assistant', 'Technical Support', 'HR Assistant', 'General Assistant'];
@@ -34,7 +33,11 @@ export const BuilderSidebar = () => {
     behavior: false,
     advanced: false,
     knowledge: false,
-    integrations: false
+    security: false,
+    integrations: false,
+    notifications: false,
+    analytics: false,
+    deployment: false
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -130,6 +133,21 @@ export const BuilderSidebar = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Avatar</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={agentData.avatarUrl || ''}
+                    onChange={(e) => updateAgentData({ avatarUrl: e.target.value })}
+                    placeholder="Avatar URL"
+                    className="flex-1 h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <Button variant="outline" size="sm" className="h-8 w-8 p-0 dark:border-gray-600">
+                    <Upload className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -239,17 +257,37 @@ export const BuilderSidebar = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              <Separator className="dark:bg-gray-700" />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Dark Mode Support</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Allow theme switching</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Animation Effects</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Enable UI animations</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         </Card>
 
-        {/* Behavior */}
+        {/* Behavior & Suggestions */}
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <Collapsible open={expandedSections.behavior} onOpenChange={() => toggleSection('behavior')}>
             <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">Suggested Questions</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">Behavior & Suggestions</span>
                 {agentData.suggestions.filter(Boolean).length > 0 && (
                   <Badge variant="secondary" className="text-xs px-1 dark:bg-gray-700 dark:text-gray-300">
                     {agentData.suggestions.filter(Boolean).length}
@@ -259,36 +297,67 @@ export const BuilderSidebar = () => {
               {expandedSections.behavior ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3 space-y-2">
-              {agentData.suggestions.map((suggestion, index) => (
-                <div key={index} className="flex items-center gap-1">
-                  <Input
-                    value={suggestion}
-                    onChange={(e) => handleSuggestionChange(index, e.target.value)}
-                    placeholder={`Suggestion ${index + 1}`}
-                    className="flex-1 h-6 text-sm dark:bg-gray-700 dark:border-gray-600"
-                  />
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Suggested Questions</Label>
+                {agentData.suggestions.map((suggestion, index) => (
+                  <div key={index} className="flex items-center gap-1">
+                    <Input
+                      value={suggestion}
+                      onChange={(e) => handleSuggestionChange(index, e.target.value)}
+                      placeholder={`Suggestion ${index + 1}`}
+                      className="flex-1 h-6 text-sm dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeSuggestion(index)}
+                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+                
+                {agentData.suggestions.length < 5 && (
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    onClick={() => removeSuggestion(index)}
-                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    onClick={addSuggestion}
+                    className="w-full h-6 text-xs dark:border-gray-600 dark:hover:bg-gray-700"
                   >
-                    <X className="h-3 w-3" />
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Suggestion
                   </Button>
+                )}
+              </div>
+
+              <Separator className="dark:bg-gray-700" />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Conversation Memory</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Remember conversation context</p>
+                  </div>
+                  <Switch defaultChecked />
                 </div>
-              ))}
-              
-              {agentData.suggestions.length < 5 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={addSuggestion}
-                  className="w-full h-6 text-xs dark:border-gray-600 dark:hover:bg-gray-700"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Suggestion
-                </Button>
-              )}
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Auto-Greet Visitors</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Show welcome message automatically</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Typing Indicators</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Show typing animation</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         </Card>
@@ -299,7 +368,7 @@ export const BuilderSidebar = () => {
             <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">Advanced Settings</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">Advanced Model Settings</span>
               </div>
               {expandedSections.advanced ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
             </CollapsibleTrigger>
@@ -440,16 +509,7 @@ export const BuilderSidebar = () => {
 
               <Separator className="dark:bg-gray-700" />
 
-              {/* Behavior Settings */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Conversation Memory</Label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Remember conversation context</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Expert Handoff</Label>
@@ -462,6 +522,14 @@ export const BuilderSidebar = () => {
                   <div className="space-y-0.5">
                     <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Multilingual Support</Label>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Respond in user's language</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Context Aware Responses</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Use conversation history</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -486,6 +554,86 @@ export const BuilderSidebar = () => {
                 agentName={agentData.name || 'New Agent'}
                 preloadedKnowledgeSources={[]}
               />
+              
+              <Separator className="my-3 dark:bg-gray-700" />
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Auto-Learning</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Learn from conversations</p>
+                  </div>
+                  <Switch />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Knowledge Confidence</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Show confidence scores</p>
+                  </div>
+                  <Switch />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Security & Privacy */}
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <Collapsible open={expandedSections.security} onOpenChange={() => toggleSection('security')}>
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Security & Privacy</span>
+              </div>
+              {expandedSections.security ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Data Encryption</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Encrypt all conversations</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">GDPR Compliance</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Enable data protection</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Content Filtering</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Filter inappropriate content</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Allowed Domains</Label>
+                <Input
+                  placeholder="domain1.com, domain2.com"
+                  className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Rate Limiting</Label>
+                <Select defaultValue="standard">
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="low" className="text-sm dark:text-gray-300">Low (100/hour)</SelectItem>
+                    <SelectItem value="standard" className="text-sm dark:text-gray-300">Standard (500/hour)</SelectItem>
+                    <SelectItem value="high" className="text-sm dark:text-gray-300">High (1000/hour)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         </Card>
@@ -523,6 +671,188 @@ export const BuilderSidebar = () => {
                   <p className="text-xs text-gray-500 dark:text-gray-400">Enable API endpoint access</p>
                 </div>
                 <Switch />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Zapier Integration</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Connect with 5000+ apps</p>
+                </div>
+                <Switch />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Slack Integration</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Send notifications to Slack</p>
+                </div>
+                <Switch />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">CRM Integration</Label>
+                <Select defaultValue="none">
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="none" className="text-sm dark:text-gray-300">None</SelectItem>
+                    <SelectItem value="hubspot" className="text-sm dark:text-gray-300">HubSpot</SelectItem>
+                    <SelectItem value="salesforce" className="text-sm dark:text-gray-300">Salesforce</SelectItem>
+                    <SelectItem value="pipedrive" className="text-sm dark:text-gray-300">Pipedrive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Notifications */}
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <Collapsible open={expandedSections.notifications} onOpenChange={() => toggleSection('notifications')}>
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Notifications</span>
+              </div>
+              {expandedSections.notifications ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Email Notifications</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Get notified via email</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Browser Notifications</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Push notifications in browser</p>
+                </div>
+                <Switch />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">New Conversation Alerts</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Alert when new chat starts</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Notification Email</Label>
+                <Input
+                  placeholder="admin@company.com"
+                  className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Analytics & Reporting */}
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <Collapsible open={expandedSections.analytics} onOpenChange={() => toggleSection('analytics')}>
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-pink-600 dark:text-pink-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Analytics & Reporting</span>
+              </div>
+              {expandedSections.analytics ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Usage Analytics</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Track conversation metrics</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Performance Monitoring</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Monitor response times</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">User Feedback Collection</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Collect user ratings</p>
+                </div>
+                <Switch />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Data Retention Period</Label>
+                <Select defaultValue="90">
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="30" className="text-sm dark:text-gray-300">30 days</SelectItem>
+                    <SelectItem value="90" className="text-sm dark:text-gray-300">90 days</SelectItem>
+                    <SelectItem value="365" className="text-sm dark:text-gray-300">1 year</SelectItem>
+                    <SelectItem value="forever" className="text-sm dark:text-gray-300">Forever</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Deployment Settings */}
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <Collapsible open={expandedSections.deployment} onOpenChange={() => toggleSection('deployment')}>
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <Upload className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Deployment Settings</span>
+              </div>
+              {expandedSections.deployment ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Auto-Deploy</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Deploy changes automatically</p>
+                </div>
+                <Switch />
+              </div>
+              
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Environment</Label>
+                <Select defaultValue="production">
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="development" className="text-sm dark:text-gray-300">Development</SelectItem>
+                    <SelectItem value="staging" className="text-sm dark:text-gray-300">Staging</SelectItem>
+                    <SelectItem value="production" className="text-sm dark:text-gray-300">Production</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Custom Domain</Label>
+                <Input
+                  placeholder="chat.yoursite.com"
+                  className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">SSL Certificate</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Enable HTTPS</p>
+                </div>
+                <Switch defaultChecked />
               </div>
             </CollapsibleContent>
           </Collapsible>
