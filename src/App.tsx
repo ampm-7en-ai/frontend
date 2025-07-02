@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -101,7 +102,7 @@ const ProtectedRoutes = () => {
           } 
         />
         <Route path="/agents" element={<AgentList />} />
-        <Route path="/agents/builder" element={<AgentBuilder />} />
+        <Route path="/agents/builder/:id" element={<AgentBuilder />} />
         <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
         
         <Route 
