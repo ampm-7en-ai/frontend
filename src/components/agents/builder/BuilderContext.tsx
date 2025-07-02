@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { createAgent, updateAgent } from '@/utils/api-config';
+import { createAgent } from '@/utils/api-config';
 
 interface AgentFormData {
-  id?: string;
   name: string;
   description: string;
   agentType: string;
@@ -34,7 +34,6 @@ interface BuilderState {
   isPreviewActive: boolean;
   isDirty: boolean;
   isLoading: boolean;
-  isInitializing: boolean;
 }
 
 interface BuilderContextType {
@@ -50,14 +49,14 @@ interface BuilderContextType {
 const BuilderContext = createContext<BuilderContextType | undefined>(undefined);
 
 const defaultAgentData: AgentFormData = {
-  name: 'Untitled Agent',
-  description: 'A helpful AI assistant ready to help with your questions.',
+  name: '',
+  description: '',
   agentType: 'Customer Support',
   model: 'gpt-3.5-turbo',
   temperature: 0.7,
   maxTokens: 1000,
-  systemPrompt: 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
-  primaryColor: '#6366f1',
+  systemPrompt: 'You are a helpful AI assistant.',
+  primaryColor: '#9b87f5',
   secondaryColor: '#ffffff',
   fontFamily: 'Inter',
   chatbotName: 'AI Assistant',
@@ -66,79 +65,24 @@ const defaultAgentData: AgentFormData = {
   position: 'bottom-right',
   suggestions: ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
   guidelines: {
-    dos: ['Be helpful and polite', 'Provide accurate information', 'Ask clarifying questions when needed'],
-    donts: ['Don\'t be rude or dismissive', 'Don\'t provide false information', 'Don\'t ignore user questions']
+    dos: ['Be helpful and polite', 'Provide accurate information'],
+    donts: ['Don\'t be rude', 'Don\'t provide false information']
   }
 };
 
 const initialState: BuilderState = {
   agentData: defaultAgentData,
-  canvasMode: 'popup',
+  canvasMode: 'embedded',
   deviceMode: 'desktop',
   isPreviewActive: true,
   isDirty: false,
-  isLoading: false,
-  isInitializing: true
+  isLoading: false
 };
 
 export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<BuilderState>(initialState);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { id } = useParams();
-
-  // Initialize agent when component mounts
-  useEffect(() => {
-    const initializeAgent = async () => {
-      setState(prev => ({ ...prev, isInitializing: true }));
-      
-      try {
-        if (id && id !== 'new') {
-          // For now, we'll simulate loading an existing agent
-          // In a real app, you would fetch from your API
-          setState(prev => ({
-            ...prev,
-            agentData: { ...defaultAgentData, id, name: `Agent ${id}` },
-            isInitializing: false,
-            isDirty: false
-          }));
-        } else {
-          // Create new agent automatically
-          const response = await createAgent('Untitled Agent', 'A helpful AI assistant ready to help with your questions.');
-          
-          if (response.data?.id) {
-            setState(prev => ({
-              ...prev,
-              agentData: { ...defaultAgentData, id: response.data.id },
-              isInitializing: false,
-              isDirty: false
-            }));
-            
-            // Update URL to reflect the new agent ID
-            navigate(`/agents/builder/${response.data.id}`, { replace: true });
-            
-            toast({
-              title: "Agent Created",
-              description: "New agent created successfully. You can now customize it.",
-              variant: "default"
-            });
-          } else {
-            throw new Error('Failed to create agent');
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing agent:', error);
-        toast({
-          title: "Initialization Error",
-          description: "Failed to initialize agent. Using default settings.",
-          variant: "destructive"
-        });
-        setState(prev => ({ ...prev, isInitializing: false }));
-      }
-    };
-
-    initializeAgent();
-  }, [id, navigate, toast]);
 
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
     setState(prev => ({
@@ -173,44 +117,23 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setState(prev => ({ ...prev, isLoading: true }));
 
     try {
-      if (state.agentData.id) {
-        // Update existing agent
-        await updateAgent(state.agentData.id, {
-          name: state.agentData.name,
-          description: state.agentData.description
-        });
-        
-        toast({
-          title: "Agent Updated",
-          description: `${state.agentData.name} has been updated successfully.`,
-          variant: "default"
-        });
-        
-        setState(prev => ({ ...prev, isDirty: false }));
+      const response = await createAgent(state.agentData.name, state.agentData.description);
+      
+      toast({
+        title: "Agent Created Successfully",
+        description: `${state.agentData.name} has been created.`,
+        variant: "default"
+      });
+
+      if (response.data?.id) {
+        navigate(`/agents/${response.data.id}/edit`);
       } else {
-        // This shouldn't happen with auto-creation, but handle it
-        const response = await createAgent(state.agentData.name, state.agentData.description);
-        
-        if (response.data?.id) {
-          setState(prev => ({
-            ...prev,
-            agentData: { ...prev.agentData, id: response.data.id },
-            isDirty: false
-          }));
-          
-          navigate(`/agents/builder/${response.data.id}`, { replace: true });
-          
-          toast({
-            title: "Agent Created",
-            description: `${state.agentData.name} has been created successfully.`,
-            variant: "default"
-          });
-        }
+        navigate('/agents');
       }
     } catch (error) {
-      console.error('Error saving agent:', error);
+      console.error('Error creating agent:', error);
       toast({
-        title: "Save Failed",
+        title: "Creation Failed",
         description: error instanceof Error ? error.message : "An unexpected error occurred.",
         variant: "destructive"
       });
@@ -220,10 +143,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [state.agentData, navigate, toast]);
 
   const resetBuilder = useCallback(() => {
-    setState(prev => ({
-      ...initialState,
-      agentData: { ...defaultAgentData, id: prev.agentData.id }
-    }));
+    setState(initialState);
   }, []);
 
   const value: BuilderContextType = {

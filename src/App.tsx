@@ -101,7 +101,7 @@ const ProtectedRoutes = () => {
           } 
         />
         <Route path="/agents" element={<AgentList />} />
-        <Route path="/agents/builder/:id?" element={<AgentBuilder />} />
+        <Route path="/agents/builder" element={<AgentBuilder />} />
         <Route path="/agents/:agentId/edit" element={<AgentEdit />} />
         
         <Route 
