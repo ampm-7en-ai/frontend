@@ -9,11 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronRight, Plus, X, Bot, Palette, MessageSquare, Brain, Settings } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
+import { ChevronDown, ChevronRight, Plus, X, Bot, Palette, MessageSquare, Brain, Settings, Zap, Shield, Globe } from 'lucide-react';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 
 const agentTypes = ['Customer Support', 'Sales Assistant', 'Technical Support', 'HR Assistant', 'General Assistant'];
 const fontFamilies = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat'];
+const models = [
+  { id: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', badge: 'Popular' },
+  { id: 'gpt-4', label: 'GPT-4', badge: 'Advanced' },
+  { id: 'claude-3-sonnet', label: 'Claude 3 Sonnet', badge: 'New' },
+  { id: 'claude-3-haiku', label: 'Claude 3 Haiku', badge: 'Fast' }
+];
 
 export const BuilderSidebar = () => {
   const { state, updateAgentData } = useBuilder();
@@ -21,9 +30,11 @@ export const BuilderSidebar = () => {
   
   const [expandedSections, setExpandedSections] = useState({
     basic: true,
-    appearance: true,
+    appearance: false,
     behavior: false,
-    knowledge: false
+    advanced: false,
+    knowledge: false,
+    integrations: false
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -47,57 +58,75 @@ export const BuilderSidebar = () => {
     updateAgentData({ suggestions: newSuggestions });
   };
 
+  const handleGuidelineChange = (type: 'dos' | 'donts', index: number, value: string) => {
+    const newGuidelines = { ...agentData.guidelines };
+    newGuidelines[type][index] = value;
+    updateAgentData({ guidelines: newGuidelines });
+  };
+
+  const addGuideline = (type: 'dos' | 'donts') => {
+    const newGuidelines = { ...agentData.guidelines };
+    newGuidelines[type].push('');
+    updateAgentData({ guidelines: newGuidelines });
+  };
+
+  const removeGuideline = (type: 'dos' | 'donts', index: number) => {
+    const newGuidelines = { ...agentData.guidelines };
+    newGuidelines[type] = newGuidelines[type].filter((_, i) => i !== index);
+    updateAgentData({ guidelines: newGuidelines });
+  };
+
   return (
-    <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
-      <div className="p-4 border-b border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Settings className="h-5 w-5 text-blue-600" />
+    <div className="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+      <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           Agent Settings
         </h2>
       </div>
       
       <div className="p-4 space-y-4">
         {/* Basic Information */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <Collapsible open={expandedSections.basic} onOpenChange={() => toggleSection('basic')}>
-            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 rounded-t-lg">
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
               <div className="flex items-center gap-2">
-                <Bot className="h-4 w-4 text-blue-600" />
-                <span className="font-medium">Basic Information</span>
+                <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Basic Information</span>
               </div>
-              {expandedSections.basic ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {expandedSections.basic ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3 space-y-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Agent Name</Label>
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Agent Name</Label>
                 <Input
                   value={agentData.name}
                   onChange={(e) => updateAgentData({ name: e.target.value })}
                   placeholder="Enter agent name"
-                  className="h-8 text-sm"
+                  className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
               
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Description</Label>
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Description</Label>
                 <Textarea
                   value={agentData.description}
                   onChange={(e) => updateAgentData({ description: e.target.value })}
                   placeholder="Describe your agent's purpose"
                   rows={2}
-                  className="text-sm resize-none"
+                  className="text-sm resize-none dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
               
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Agent Type</Label>
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
                 <Select value={agentData.agentType} onValueChange={(value) => updateAgentData({ agentType: value })}>
-                  <SelectTrigger className="h-8 text-sm">
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
                     {agentTypes.map((type) => (
-                      <SelectItem key={type} value={type} className="text-sm">{type}</SelectItem>
+                      <SelectItem key={type} value={type} className="text-sm dark:text-gray-300">{type}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -107,19 +136,19 @@ export const BuilderSidebar = () => {
         </Card>
 
         {/* Appearance */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <Collapsible open={expandedSections.appearance} onOpenChange={() => toggleSection('appearance')}>
-            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 rounded-t-lg">
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
               <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-purple-600" />
-                <span className="font-medium">Appearance</span>
+                <Palette className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Appearance</span>
               </div>
-              {expandedSections.appearance ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {expandedSections.appearance ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3 space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-700">Primary Color</Label>
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Primary Color</Label>
                   <div className="flex items-center gap-1">
                     <Input
                       type="color"
@@ -130,13 +159,13 @@ export const BuilderSidebar = () => {
                     <Input
                       value={agentData.primaryColor}
                       onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                      className="flex-1 text-xs font-mono h-6"
+                      className="flex-1 text-xs font-mono h-6 dark:bg-gray-700 dark:border-gray-600"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-700">Secondary Color</Label>
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Secondary Color</Label>
                   <div className="flex items-center gap-1">
                     <Input
                       type="color"
@@ -147,64 +176,87 @@ export const BuilderSidebar = () => {
                     <Input
                       value={agentData.secondaryColor}
                       onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                      className="flex-1 text-xs font-mono h-6"
+                      className="flex-1 text-xs font-mono h-6 dark:bg-gray-700 dark:border-gray-600"
                     />
                   </div>
                 </div>
               </div>
               
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Font Family</Label>
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Font Family</Label>
                 <Select value={agentData.fontFamily} onValueChange={(value) => updateAgentData({ fontFamily: value })}>
-                  <SelectTrigger className="h-8 text-sm">
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
                     {fontFamilies.map((font) => (
-                      <SelectItem key={font} value={font} className="text-sm">{font}</SelectItem>
+                      <SelectItem key={font} value={font} className="text-sm dark:text-gray-300">{font}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Chatbot Name</Label>
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Chatbot Name</Label>
                 <Input
                   value={agentData.chatbotName}
                   onChange={(e) => updateAgentData({ chatbotName: e.target.value })}
                   placeholder="Assistant"
-                  className="h-8 text-sm"
+                  className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
               
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Welcome Message</Label>
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Welcome Message</Label>
                 <Textarea
                   value={agentData.welcomeMessage}
                   onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
                   placeholder="Hello! How can I help you today?"
                   rows={2}
-                  className="text-sm resize-none"
+                  className="text-sm resize-none dark:bg-gray-700 dark:border-gray-600"
                 />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Button Text</Label>
+                <Input
+                  value={agentData.buttonText}
+                  onChange={(e) => updateAgentData({ buttonText: e.target.value })}
+                  placeholder="Chat with us"
+                  className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Position</Label>
+                <Select value={agentData.position} onValueChange={(value: 'bottom-right' | 'bottom-left') => updateAgentData({ position: value })}>
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="bottom-right" className="text-sm dark:text-gray-300">Bottom Right</SelectItem>
+                    <SelectItem value="bottom-left" className="text-sm dark:text-gray-300">Bottom Left</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CollapsibleContent>
           </Collapsible>
         </Card>
 
         {/* Behavior */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <Collapsible open={expandedSections.behavior} onOpenChange={() => toggleSection('behavior')}>
-            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 rounded-t-lg">
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-green-600" />
-                <span className="font-medium">Suggested Questions</span>
+                <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Suggested Questions</span>
                 {agentData.suggestions.filter(Boolean).length > 0 && (
-                  <Badge variant="secondary" className="text-xs px-1">
+                  <Badge variant="secondary" className="text-xs px-1 dark:bg-gray-700 dark:text-gray-300">
                     {agentData.suggestions.filter(Boolean).length}
                   </Badge>
                 )}
               </div>
-              {expandedSections.behavior ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {expandedSections.behavior ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3 space-y-2">
               {agentData.suggestions.map((suggestion, index) => (
@@ -213,13 +265,13 @@ export const BuilderSidebar = () => {
                     value={suggestion}
                     onChange={(e) => handleSuggestionChange(index, e.target.value)}
                     placeholder={`Suggestion ${index + 1}`}
-                    className="flex-1 h-6 text-sm"
+                    className="flex-1 h-6 text-sm dark:bg-gray-700 dark:border-gray-600"
                   />
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeSuggestion(index)}
-                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -231,7 +283,7 @@ export const BuilderSidebar = () => {
                   variant="outline"
                   size="sm"
                   onClick={addSuggestion}
-                  className="w-full h-6 text-xs"
+                  className="w-full h-6 text-xs dark:border-gray-600 dark:hover:bg-gray-700"
                 >
                   <Plus className="h-3 w-3 mr-1" />
                   Add Suggestion
@@ -241,22 +293,237 @@ export const BuilderSidebar = () => {
           </Collapsible>
         </Card>
 
-        {/* Knowledge Base */}
-        <Card className="border-0 shadow-sm">
-          <Collapsible open={expandedSections.knowledge} onOpenChange={() => toggleSection('knowledge')}>
-            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 rounded-t-lg">
+        {/* Advanced Settings */}
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <Collapsible open={expandedSections.advanced} onOpenChange={() => toggleSection('advanced')}>
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
               <div className="flex items-center gap-2">
-                <Brain className="h-4 w-4 text-orange-600" />
-                <span className="font-medium">Knowledge Base</span>
+                <Zap className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Advanced Settings</span>
               </div>
-              {expandedSections.knowledge ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {expandedSections.advanced ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-3">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">AI Model</Label>
+                <Select value={agentData.model} onValueChange={(value) => updateAgentData({ model: value })}>
+                  <SelectTrigger className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    {models.map((model) => (
+                      <SelectItem key={model.id} value={model.id} className="dark:text-gray-300">
+                        <div className="flex items-center gap-2">
+                          <span>{model.label}</span>
+                          <Badge variant="outline" className="text-xs dark:border-gray-600">
+                            {model.badge}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  Temperature: {agentData.temperature}
+                </Label>
+                <Slider
+                  min={0}
+                  max={2}
+                  step={0.1}
+                  value={[agentData.temperature]}
+                  onValueChange={(value) => updateAgentData({ temperature: value[0] })}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Lower values make responses more focused and deterministic
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  Max Tokens: {agentData.maxTokens}
+                </Label>
+                <Slider
+                  min={100}
+                  max={4000}
+                  step={100}
+                  value={[agentData.maxTokens]}
+                  onValueChange={(value) => updateAgentData({ maxTokens: value[0] })}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
+                <Textarea
+                  value={agentData.systemPrompt}
+                  onChange={(e) => updateAgentData({ systemPrompt: e.target.value })}
+                  placeholder="Define your agent's behavior and personality..."
+                  rows={3}
+                  className="font-mono text-xs dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
+
+              <Separator className="dark:bg-gray-700" />
+
+              {/* Guidelines */}
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-green-700 dark:text-green-400">
+                    Do's - What your agent should do
+                  </Label>
+                  {agentData.guidelines.dos.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        value={item}
+                        onChange={(e) => handleGuidelineChange('dos', index, e.target.value)}
+                        placeholder="Enter a guideline..."
+                        className="flex-1 h-6 text-xs border-green-200 focus:border-green-300 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeGuideline('dos', index)}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => addGuideline('dos')}
+                    className="h-6 text-xs text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Do
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-red-700 dark:text-red-400">
+                    Don'ts - What your agent should avoid
+                  </Label>
+                  {agentData.guidelines.donts.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        value={item}
+                        onChange={(e) => handleGuidelineChange('donts', index, e.target.value)}
+                        placeholder="Enter what to avoid..."
+                        className="flex-1 h-6 text-xs border-red-200 focus:border-red-300 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeGuideline('donts', index)}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => addGuideline('donts')}
+                    className="h-6 text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Don't
+                  </Button>
+                </div>
+              </div>
+
+              <Separator className="dark:bg-gray-700" />
+
+              {/* Behavior Settings */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Conversation Memory</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Remember conversation context</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Expert Handoff</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Escalate complex queries</p>
+                  </div>
+                  <Switch />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Multilingual Support</Label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Respond in user's language</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Knowledge Base */}
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <Collapsible open={expandedSections.knowledge} onOpenChange={() => toggleSection('knowledge')}>
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Knowledge Base</span>
+              </div>
+              {expandedSections.knowledge ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3">
               <KnowledgeTrainingStatus
-                agentId={agentData.name || 'preview-agent'}
+                agentId={agentData.id?.toString() || 'preview-agent'}
                 agentName={agentData.name || 'New Agent'}
                 preloadedKnowledgeSources={[]}
               />
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Integrations */}
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <Collapsible open={expandedSections.integrations} onOpenChange={() => toggleSection('integrations')}>
+            <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Integrations</span>
+              </div>
+              {expandedSections.integrations ? <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Webhook Integration</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Send data to external systems</p>
+                </div>
+                <Switch />
+              </div>
+              
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Webhook URL</Label>
+                <Input
+                  placeholder="https://your-webhook-url.com"
+                  className="h-8 text-sm dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">API Access</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Enable API endpoint access</p>
+                </div>
+                <Switch />
+              </div>
             </CollapsibleContent>
           </Collapsible>
         </Card>

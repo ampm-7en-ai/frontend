@@ -26,10 +26,10 @@ export const InteractiveCanvas = () => {
     if (!isPreviewActive) {
       return (
         <div className="flex items-center justify-center h-full">
-          <div className="text-center p-8 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20">
+          <div className="text-center p-8 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20 dark:border-gray-700/20">
             <div className="text-6xl mb-4 animate-pulse">🤖</div>
-            <p className="text-lg font-medium text-gray-700 mb-2">Preview is disabled</p>
-            <p className="text-sm text-gray-500">Enable preview to see your agent in action</p>
+            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Preview is disabled</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Enable preview to see your agent in action</p>
           </div>
         </div>
       );
@@ -39,21 +39,21 @@ export const InteractiveCanvas = () => {
       return (
         <div className="h-full w-full relative rounded-2xl overflow-hidden">
           {/* Website mockup background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
             <div className="p-8 h-full">
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20 dark:border-gray-700/20">
                 <div className="space-y-6">
                   <div className="space-y-3">
-                    <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-3/4 animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-1/2 animate-pulse"></div>
+                    <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded-lg w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-1/2 animate-pulse"></div>
                   </div>
-                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl relative overflow-hidden">
+                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-purple-400/20"></div>
                   </div>
                   <div className="space-y-3">
-                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-full animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-5/6 animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-4/6 animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
                   </div>
                 </div>
               </div>
@@ -78,9 +78,9 @@ export const InteractiveCanvas = () => {
           
           {/* Chat popup window */}
           <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 h-[500px] z-20`}>
-            <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 backdrop-blur-sm">
+            <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 dark:border-gray-700/20 backdrop-blur-sm">
               <ChatboxPreview
-                agentId={agentData.name || 'preview-agent'}
+                agentId={agentData.id?.toString() || 'preview-agent'}
                 primaryColor={agentData.primaryColor}
                 secondaryColor={agentData.secondaryColor}
                 fontFamily={agentData.fontFamily}
@@ -100,10 +100,10 @@ export const InteractiveCanvas = () => {
 
     return (
       <div className="h-full flex items-center justify-center p-8">
-        <Card className={`${getDeviceClass()} transition-all duration-500 shadow-2xl overflow-hidden border-0`}>
+        <Card className={`${getDeviceClass()} transition-all duration-500 shadow-2xl overflow-hidden border-0 dark:bg-gray-800`}>
           <div className="w-full h-full rounded-2xl overflow-hidden">
             <ChatboxPreview
-              agentId={agentData.name || 'preview-agent'}
+              agentId={agentData.id?.toString() || 'preview-agent'}
               primaryColor={agentData.primaryColor}
               secondaryColor={agentData.secondaryColor}
               fontFamily={agentData.fontFamily}
@@ -122,7 +122,7 @@ export const InteractiveCanvas = () => {
   };
 
   return (
-    <div className="relative w-full h-full bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50">
+    <div className="relative w-full h-full bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
       <CanvasControls />
       
       <div className="absolute inset-0 overflow-auto">

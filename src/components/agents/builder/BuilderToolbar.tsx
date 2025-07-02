@@ -11,38 +11,38 @@ export const BuilderToolbar = () => {
   const { agentData, isPreviewActive, deviceMode, isLoading } = state;
 
   return (
-    <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm">
+    <div className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm">
       {/* Left Section */}
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('/agents')}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         
-        <div className="h-6 w-px bg-gray-300" />
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
         
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <span className="text-white text-sm font-bold">A</span>
           </div>
-          <span className="font-medium text-gray-900">
+          <span className="font-medium text-gray-900 dark:text-gray-100">
             {agentData.name || 'Untitled Agent'}
           </span>
         </div>
       </div>
 
       {/* Center Section - Device Controls */}
-      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+      <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
         <Button
           variant={deviceMode === 'desktop' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setDeviceMode('desktop')}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 dark:hover:bg-gray-700"
         >
           <Monitor className="h-4 w-4" />
         </Button>
@@ -50,7 +50,7 @@ export const BuilderToolbar = () => {
           variant={deviceMode === 'tablet' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setDeviceMode('tablet')}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 dark:hover:bg-gray-700"
         >
           <Tablet className="h-4 w-4" />
         </Button>
@@ -58,7 +58,7 @@ export const BuilderToolbar = () => {
           variant={deviceMode === 'mobile' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setDeviceMode('mobile')}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 dark:hover:bg-gray-700"
         >
           <Smartphone className="h-4 w-4" />
         </Button>
@@ -70,7 +70,7 @@ export const BuilderToolbar = () => {
           variant="ghost"
           size="sm"
           onClick={togglePreview}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
         >
           {isPreviewActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           Preview
@@ -79,8 +79,8 @@ export const BuilderToolbar = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(`/agents/test`)}
-          className="flex items-center gap-2"
+          onClick={() => navigate(`/agents/${agentData.id}/test`)}
+          className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
         >
           <Play className="h-4 w-4" />
           Test
@@ -90,7 +90,7 @@ export const BuilderToolbar = () => {
           variant="ghost"
           size="sm"
           onClick={deleteAgent}
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
         >
           <Trash2 className="h-4 w-4" />
           Delete
@@ -99,7 +99,7 @@ export const BuilderToolbar = () => {
         <Button
           onClick={saveAgent}
           disabled={isLoading || !agentData.name.trim()}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           <Rocket className="h-4 w-4" />
           {isLoading ? 'Deploying...' : 'Deploy'}

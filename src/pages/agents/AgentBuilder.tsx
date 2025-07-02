@@ -8,7 +8,7 @@ import { InteractiveCanvas } from '@/components/agents/builder/InteractiveCanvas
 const AgentBuilder = () => {
   return (
     <BuilderProvider>
-      <div className="h-screen flex flex-col bg-gray-50">
+      <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         {/* Top Toolbar */}
         <BuilderToolbar />
         
@@ -17,7 +17,7 @@ const AgentBuilder = () => {
           <BuilderSidebar />
           
           {/* Center Canvas */}
-          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 relative">
+          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 relative">
             <InteractiveCanvas />
           </div>
         </div>
