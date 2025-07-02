@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, Plus } from 'lucide-react';
+import { Upload, X, Plus, Palette, MessageSquare, Brain, Settings } from 'lucide-react';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
 
@@ -52,40 +52,52 @@ export const ConfigurationPanel = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-4">
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Configuration</h2>
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+      <div className="p-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <Settings className="h-4 w-4 text-white" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900">Configuration</h2>
+        </div>
         
-        <Accordion type="multiple" defaultValue={["identity", "appearance"]} className="space-y-2">
+        <Accordion type="multiple" defaultValue={["identity", "appearance"]} className="space-y-4">
           {/* Agent Identity */}
-          <AccordionItem value="identity">
-            <AccordionTrigger className="text-sm font-medium">Agent Identity</AccordionTrigger>
-            <AccordionContent className="space-y-4 pt-2">
+          <AccordionItem value="identity" className="border rounded-xl bg-white shadow-sm">
+            <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-blue-600" />
+                <span className="font-medium">Agent Identity</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Agent Name</Label>
+                <Label htmlFor="name" className="text-sm font-medium">Agent Name</Label>
                 <Input
                   id="name"
                   value={agentData.name}
                   onChange={(e) => updateAgentData({ name: e.target.value })}
                   placeholder="Enter agent name"
+                  className="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-sm font-medium">Description</Label>
                 <Textarea
                   id="description"
                   value={agentData.description}
                   onChange={(e) => updateAgentData({ description: e.target.value })}
                   placeholder="Describe your agent's purpose"
                   rows={3}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="type">Agent Type</Label>
+                <Label htmlFor="type" className="text-sm font-medium">Agent Type</Label>
                 <Select value={agentData.agentType} onValueChange={(value) => updateAgentData({ agentType: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -99,49 +111,54 @@ export const ConfigurationPanel = () => {
           </AccordionItem>
 
           {/* Appearance */}
-          <AccordionItem value="appearance">
-            <AccordionTrigger className="text-sm font-medium">Appearance</AccordionTrigger>
-            <AccordionContent className="space-y-4 pt-2">
+          <AccordionItem value="appearance" className="border rounded-xl bg-white shadow-sm">
+            <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-purple-600" />
+                <span className="font-medium">Appearance</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="primaryColor">Primary Color</Label>
+                  <Label htmlFor="primaryColor" className="text-sm font-medium">Primary Color</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       id="primaryColor"
                       type="color"
                       value={agentData.primaryColor}
                       onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                      className="w-12 h-8 p-1 border rounded"
+                      className="w-12 h-9 p-1 border rounded cursor-pointer"
                     />
                     <Input
                       value={agentData.primaryColor}
                       onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                      className="flex-1 text-xs"
+                      className="flex-1 text-xs font-mono"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="secondaryColor">Secondary Color</Label>
+                  <Label htmlFor="secondaryColor" className="text-sm font-medium">Secondary Color</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       id="secondaryColor"
                       type="color"
                       value={agentData.secondaryColor}
                       onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                      className="w-12 h-8 p-1 border rounded"
+                      className="w-12 h-9 p-1 border rounded cursor-pointer"
                     />
                     <Input
                       value={agentData.secondaryColor}
                       onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                      className="flex-1 text-xs"
+                      className="flex-1 text-xs font-mono"
                     />
                   </div>
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="fontFamily">Font Family</Label>
+                <Label htmlFor="fontFamily" className="text-sm font-medium">Font Family</Label>
                 <Select value={agentData.fontFamily} onValueChange={(value) => updateAgentData({ fontFamily: value })}>
                   <SelectTrigger>
                     <SelectValue />
@@ -155,7 +172,7 @@ export const ConfigurationPanel = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="chatbotName">Chatbot Name</Label>
+                <Label htmlFor="chatbotName" className="text-sm font-medium">Chatbot Name</Label>
                 <Input
                   id="chatbotName"
                   value={agentData.chatbotName}
@@ -165,7 +182,7 @@ export const ConfigurationPanel = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="welcomeMessage">Welcome Message</Label>
+                <Label htmlFor="welcomeMessage" className="text-sm font-medium">Welcome Message</Label>
                 <Textarea
                   id="welcomeMessage"
                   value={agentData.welcomeMessage}
@@ -176,7 +193,7 @@ export const ConfigurationPanel = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="buttonText">Button Text</Label>
+                <Label htmlFor="buttonText" className="text-sm font-medium">Button Text</Label>
                 <Input
                   id="buttonText"
                   value={agentData.buttonText}
@@ -188,16 +205,19 @@ export const ConfigurationPanel = () => {
           </AccordionItem>
 
           {/* Suggestions */}
-          <AccordionItem value="suggestions">
-            <AccordionTrigger className="text-sm font-medium">
-              Suggested Questions
-              {agentData.suggestions.filter(Boolean).length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {agentData.suggestions.filter(Boolean).length}
-                </Badge>
-              )}
+          <AccordionItem value="suggestions" className="border rounded-xl bg-white shadow-sm">
+            <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-green-600" />
+                <span className="font-medium">Suggested Questions</span>
+                {agentData.suggestions.filter(Boolean).length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {agentData.suggestions.filter(Boolean).length}
+                  </Badge>
+                )}
+              </div>
             </AccordionTrigger>
-            <AccordionContent className="space-y-3 pt-2">
+            <AccordionContent className="px-4 pb-4 space-y-3">
               {agentData.suggestions.map((suggestion, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <Input
@@ -210,7 +230,7 @@ export const ConfigurationPanel = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => removeSuggestion(index)}
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -222,7 +242,7 @@ export const ConfigurationPanel = () => {
                   variant="outline"
                   size="sm"
                   onClick={addSuggestion}
-                  className="w-full"
+                  className="w-full hover:bg-blue-50 hover:border-blue-300"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Suggestion
@@ -232,30 +252,38 @@ export const ConfigurationPanel = () => {
           </AccordionItem>
 
           {/* Knowledge Base */}
-          <AccordionItem value="knowledge">
-            <AccordionTrigger className="text-sm font-medium">Knowledge Base</AccordionTrigger>
-            <AccordionContent className="pt-2">
-              <div className="text-sm">
-                <KnowledgeTrainingStatus
-                  agentId="builder-preview"
-                  agentName={agentData.name || 'New Agent'}
-                  preloadedKnowledgeSources={[]}
-                />
+          <AccordionItem value="knowledge" className="border rounded-xl bg-white shadow-sm">
+            <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-orange-600" />
+                <span className="font-medium">Knowledge Base</span>
               </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <KnowledgeTrainingStatus
+                agentId={agentData.name || 'preview-agent'}
+                agentName={agentData.name || 'New Agent'}
+                preloadedKnowledgeSources={[]}
+              />
             </AccordionContent>
           </AccordionItem>
 
           {/* Deployment */}
-          <AccordionItem value="deployment">
-            <AccordionTrigger className="text-sm font-medium">Deployment</AccordionTrigger>
-            <AccordionContent className="pt-2">
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+          <AccordionItem value="deployment" className="border rounded-xl bg-white shadow-sm">
+            <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Upload className="h-4 w-4 text-indigo-600" />
+                <span className="font-medium">Deployment</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
                   Deploy your agent to start using it in production.
                 </p>
                 <Button
                   onClick={() => setIsDeploymentOpen(true)}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   disabled={!agentData.name.trim()}
                 >
                   Open Deployment Options
@@ -270,7 +298,7 @@ export const ConfigurationPanel = () => {
         open={isDeploymentOpen}
         onOpenChange={setIsDeploymentOpen}
         agent={{
-          id: 'builder-preview',
+          id: agentData.name || 'preview-agent',
           name: agentData.name || 'New Agent'
         }}
       />

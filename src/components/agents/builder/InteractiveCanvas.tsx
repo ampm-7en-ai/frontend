@@ -5,7 +5,7 @@ import { CanvasControls } from './CanvasControls';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Sparkles } from 'lucide-react';
 
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
@@ -18,18 +18,18 @@ export const InteractiveCanvas = () => {
       case 'tablet':
         return 'w-[600px] h-[700px]';
       default:
-        return 'w-[800px] h-[600px]';
+        return 'w-[900px] h-[650px]';
     }
   };
 
   const getCanvasContent = () => {
     if (!isPreviewActive) {
       return (
-        <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🤖</div>
-            <p className="text-lg">Preview is disabled</p>
-            <p className="text-sm">Enable preview to see your agent</p>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center p-8 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20">
+            <div className="text-6xl mb-4 animate-pulse">🤖</div>
+            <p className="text-lg font-medium text-gray-700 mb-2">Preview is disabled</p>
+            <p className="text-sm text-gray-500">Enable preview to see your agent in action</p>
           </div>
         </div>
       );
@@ -37,39 +37,73 @@ export const InteractiveCanvas = () => {
 
     if (canvasMode === 'popup') {
       return (
-        <div className="h-full w-full relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
-          {/* Simulated website background */}
-          <div className="absolute inset-0 p-8">
-            <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm h-full p-6">
-              <div className="space-y-4">
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
-                <div className="h-32 bg-gray-100 dark:bg-gray-600 rounded"></div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-5/6"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-4/6"></div>
+        <div className="h-full w-full relative rounded-2xl overflow-hidden">
+          {/* Website mockup background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+            <div className="p-8 h-full">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20">
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-1/2 animate-pulse"></div>
+                  </div>
+                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-purple-400/20"></div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-full animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-4/6 animate-pulse"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Chat button positioned based on agent settings */}
-          <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-6 left-6' : 'bottom-6 right-6'} z-10`}>
+          {/* Floating chat button */}
+          <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} z-10`}>
             <Button
-              className="rounded-full shadow-lg hover:scale-105 transition-transform"
-              style={{ backgroundColor: agentData.primaryColor }}
+              className="rounded-full shadow-2xl hover:scale-110 transition-all duration-300 animate-pulse"
+              style={{ 
+                backgroundColor: agentData.primaryColor,
+                boxShadow: `0 10px 30px ${agentData.primaryColor}40, 0 0 0 1px ${agentData.primaryColor}20`
+              }}
               size="lg"
             >
               <MessageSquare className="h-5 w-5 mr-2" />
               {agentData.buttonText}
+              <Sparkles className="h-4 w-4 ml-2" />
             </Button>
           </div>
           
-          {/* Popup chat when "opened" */}
-          <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-20 left-6' : 'bottom-20 right-6'} w-80 h-96 z-20`}>
+          {/* Chat popup window */}
+          <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 h-[500px] z-20`}>
+            <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 backdrop-blur-sm">
+              <ChatboxPreview
+                agentId={agentData.name || 'preview-agent'}
+                primaryColor={agentData.primaryColor}
+                secondaryColor={agentData.secondaryColor}
+                fontFamily={agentData.fontFamily}
+                chatbotName={agentData.chatbotName}
+                welcomeMessage={agentData.welcomeMessage}
+                buttonText={agentData.buttonText}
+                position={agentData.position}
+                suggestions={agentData.suggestions.filter(Boolean)}
+                avatarSrc={agentData.avatarUrl}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-full flex items-center justify-center p-8">
+        <Card className={`${getDeviceClass()} transition-all duration-500 shadow-2xl overflow-hidden border-0`}>
+          <div className="w-full h-full rounded-2xl overflow-hidden">
             <ChatboxPreview
-              agentId="builder-preview"
+              agentId={agentData.name || 'preview-agent'}
               primaryColor={agentData.primaryColor}
               secondaryColor={agentData.secondaryColor}
               fontFamily={agentData.fontFamily}
@@ -79,36 +113,16 @@ export const InteractiveCanvas = () => {
               position={agentData.position}
               suggestions={agentData.suggestions.filter(Boolean)}
               avatarSrc={agentData.avatarUrl}
-              className="w-full h-full shadow-2xl"
+              className="w-full h-full"
             />
           </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="h-full flex items-center justify-center">
-        <Card className={`${getDeviceClass()} transition-all duration-300 shadow-2xl overflow-hidden`}>
-          <ChatboxPreview
-            agentId="builder-preview"
-            primaryColor={agentData.primaryColor}
-            secondaryColor={agentData.secondaryColor}
-            fontFamily={agentData.fontFamily}
-            chatbotName={agentData.chatbotName}
-            welcomeMessage={agentData.welcomeMessage}
-            buttonText={agentData.buttonText}
-            position={agentData.position}
-            suggestions={agentData.suggestions.filter(Boolean)}
-            avatarSrc={agentData.avatarUrl}
-            className="w-full h-full"
-          />
         </Card>
       </div>
     );
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50">
       <CanvasControls />
       
       <div className="absolute inset-0 overflow-auto">
@@ -117,17 +131,18 @@ export const InteractiveCanvas = () => {
         </div>
       </div>
       
-      {/* Grid Background */}
-      <div 
-        className="absolute inset-0 opacity-10 pointer-events-none" 
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '20px 20px'
-        }}
-      />
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, ${agentData.primaryColor} 1px, transparent 0)`,
+          backgroundSize: '24px 24px',
+          animation: 'float 20s ease-in-out infinite'
+        }} />
+      </div>
+      
+      {/* Floating elements */}
+      <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-xl animate-pulse" />
+      <div className="absolute bottom-20 right-20 w-24 h-24 bg-gradient-to-br from-pink-400/10 to-orange-400/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
     </div>
   );
 };
