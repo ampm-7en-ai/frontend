@@ -1,6 +1,6 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useTheme } from '@/components/theme-provider';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -58,7 +58,6 @@ const sidebarItems: SidebarItemProps[] = [
 export function Sidebar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const { theme } = useTheme()
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   React.useEffect(() => {
@@ -88,7 +87,7 @@ export function Sidebar() {
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="h-auto w-full justify-start px-4 py-2 font-normal text-sm"
+                      className="h-auto w-full justify-start px-4 py-2 font-normal text-sm group"
                       onClick={() => navigate(item.href)}
                     >
                       <item.icon className="mr-2 h-4 w-4" />
@@ -97,7 +96,10 @@ export function Sidebar() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate('/agents/builder/new')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/agents/builder/new');
+                          }}
                           className="h-6 w-6 p-0 ml-auto opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <Plus className="h-3 w-3" />

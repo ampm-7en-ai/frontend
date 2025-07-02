@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { createAgent, getAgent, updateAgent } from '@/utils/api-config';
+import { createAgent, updateAgent } from '@/utils/api-config';
 
 interface AgentFormData {
   id?: string;
@@ -95,16 +94,14 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       try {
         if (id && id !== 'new') {
-          // Load existing agent
-          const response = await getAgent(id);
-          if (response.data) {
-            setState(prev => ({
-              ...prev,
-              agentData: { ...defaultAgentData, ...response.data },
-              isInitializing: false,
-              isDirty: false
-            }));
-          }
+          // For now, we'll simulate loading an existing agent
+          // In a real app, you would fetch from your API
+          setState(prev => ({
+            ...prev,
+            agentData: { ...defaultAgentData, id, name: `Agent ${id}` },
+            isInitializing: false,
+            isDirty: false
+          }));
         } else {
           // Create new agent automatically
           const response = await createAgent('Untitled Agent', 'A helpful AI assistant ready to help with your questions.');
