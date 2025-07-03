@@ -91,11 +91,19 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { toast } = useToast();
   const { id } = useParams();
 
+  // Enhanced logging for debugging
+  console.log('BuilderProvider - Agent ID from URL:', id);
+  console.log('BuilderProvider - Current agent data:', state.agentData);
+
   // Fetch agent data when ID is present
   useEffect(() => {
     const loadAgentData = async () => {
-      if (!id) return;
+      if (!id) {
+        console.log('No agent ID provided, using default data');
+        return;
+      }
 
+      console.log('Loading agent data for ID:', id);
       setState(prev => ({ ...prev, isLoading: true }));
 
       try {
@@ -114,6 +122,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         const result = await response.json();
         const agentData = result.data;
+        
+        console.log('Fetched agent data:', agentData);
 
         // Map API response to our form structure
         const mappedData: AgentFormData = {
@@ -139,6 +149,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
           }
         };
+
+        console.log('Mapped agent data:', mappedData);
 
         setState(prev => ({
           ...prev,
@@ -191,6 +203,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return;
     }
 
+    console.log('Saving agent with data:', state.agentData);
     setState(prev => ({ ...prev, isLoading: true }));
 
     try {
@@ -229,6 +242,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         };
 
+        console.log('Update payload:', updatePayload);
+
         const updateResponse = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${id}/`), {
           method: 'PUT',
           headers: {
@@ -243,9 +258,11 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         response = await updateResponse.json();
+        console.log('Update response:', response);
       } else {
         // Create new agent
         response = await createAgent(state.agentData.name, state.agentData.description);
+        console.log('Create response:', response);
       }
       
       toast({
