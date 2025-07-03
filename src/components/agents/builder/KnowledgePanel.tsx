@@ -13,7 +13,6 @@ export const KnowledgePanel = () => {
   const { state } = useBuilder();
   const { agentData } = state;
 
-  // Fetch knowledge bases for this agent
   const { data: knowledgeBases = [], isLoading } = useQuery({
     queryKey: ['agentKnowledgeBases', agentData.id?.toString()],
     queryFn: async () => {
@@ -45,31 +44,33 @@ export const KnowledgePanel = () => {
         </h2>
       </div>
       
-      <ScrollArea className="flex-1 p-4" hideScrollbar>
-        <Accordion type="single" className="space-y-4">
-          <AccordionItem value="knowledge" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
-            <AccordionTrigger className="py-3 hover:no-underline">
-              <div className="flex items-center gap-2">
-                <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <span className="text-sm font-medium">Knowledge Sources ({knowledgeBases.length})</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pb-4">
-              <div className="space-y-4">
-                <KnowledgeTrainingStatus
-                  agentId={agentData.id?.toString() || 'preview-agent'}
-                  agentName={agentData.name || 'New Agent'}
-                  preloadedKnowledgeSources={[]}
-                />
-                <EnhancedKnowledgeSourceList
-                  knowledgeBases={knowledgeBases}
-                  isLoading={isLoading}
-                  agentId={agentData.id?.toString()}
-                />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+      <ScrollArea className="flex-1 h-[calc(100%-80px)]">
+        <div className="p-4">
+          <Accordion type="single" collapsible defaultValue="knowledge" className="space-y-4">
+            <AccordionItem value="knowledge" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+              <AccordionTrigger className="py-3 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <span className="text-sm font-medium">Knowledge Sources ({knowledgeBases.length})</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4">
+                <div className="space-y-4">
+                  <KnowledgeTrainingStatus
+                    agentId={agentData.id?.toString() || 'preview-agent'}
+                    agentName={agentData.name || 'New Agent'}
+                    preloadedKnowledgeSources={[]}
+                  />
+                  <EnhancedKnowledgeSourceList
+                    knowledgeBases={knowledgeBases}
+                    isLoading={isLoading}
+                    agentId={agentData.id?.toString()}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
       </ScrollArea>
     </div>
   );

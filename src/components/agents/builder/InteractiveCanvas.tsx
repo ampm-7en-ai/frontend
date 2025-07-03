@@ -15,16 +15,8 @@ export const InteractiveCanvas = () => {
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
   const { theme } = useAppTheme();
 
-  // Use the actual agent ID from the loaded agent data - ensure it's properly formatted
   const currentAgentId = agentData.id ? agentData.id.toString() : null;
-  
-  // Build the deployment iframe URL with the correct agent ID and theme
   const shareableLink = currentAgentId ? `${window.location.origin}/chat/preview/${currentAgentId}?theme=${theme}` : '';
-
-  console.log('Current agent ID in canvas:', currentAgentId);
-  console.log('Agent data loaded:', !!agentData.id);
-  console.log('Shareable link:', shareableLink);
-  console.log('Current theme:', theme);
 
   const getCanvasContent = () => {
     if (!isPreviewActive) {
@@ -39,7 +31,6 @@ export const InteractiveCanvas = () => {
       );
     }
 
-    // Show loading state if agent ID is not available yet
     if (!currentAgentId) {
       return (
         <div className="flex items-center justify-center h-full">
@@ -57,12 +48,11 @@ export const InteractiveCanvas = () => {
       
       return (
         <div className="h-full w-full relative overflow-hidden">
-          {/* Enhanced website mockup with better gradients */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-indigo-900/20 dark:to-purple-900/20">
-            {/* Mock website content */}
+          {/* Website mockup */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
             <div className="p-8 h-full">
               <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-2xl h-full p-8 border border-white/40 dark:border-gray-700/40 relative overflow-hidden">
-                {/* Enhanced mock website header */}
+                {/* Mock website content */}
                 <div className="space-y-8 opacity-70">
                   <div className="space-y-4">
                     <div className="h-10 bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 dark:from-gray-600 dark:to-gray-500 rounded-xl w-3/4 animate-pulse shadow-sm"></div>
@@ -80,7 +70,7 @@ export const InteractiveCanvas = () => {
                   </div>
                 </div>
                 
-                {/* Enhanced chat button with proper text handling */}
+                {/* Chat button */}
                 <div 
                   className={`absolute z-50 ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'}`}
                 >
@@ -105,10 +95,10 @@ export const InteractiveCanvas = () => {
                   </Button>
                 </div>
                 
-                {/* Enhanced chat popup */}
+                {/* Chat popup - with z-index higher than dot pattern */}
                 {isChatOpen && (
                   <div 
-                    className={`absolute z-40 ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 h-[500px]`}
+                    className={`absolute z-[60] ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 h-[500px]`}
                   >
                     <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
                       <ChatboxPreview
@@ -137,12 +127,11 @@ export const InteractiveCanvas = () => {
     if (canvasMode === 'popup') {
       return (
         <div className="h-full w-full relative">
-          {/* Enhanced popup search interface */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
             <div className="p-8 h-full">
               <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-2xl h-full p-8 border border-white/40 dark:border-gray-700/40 relative">
-                {/* Enhanced Ask AI search bar */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4 z-[9999]">
+                {/* Ask AI search bar */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4 z-[60]">
                   <div 
                     onClick={() => setIsAskAiOpen(true)}
                     className="relative cursor-pointer group"
@@ -172,7 +161,7 @@ export const InteractiveCanvas = () => {
                   </p>
                 </div>
 
-                {/* Enhanced background content */}
+                {/* Background content */}
                 <div className="space-y-8 opacity-40">
                   <div className="space-y-4">
                     <div className="h-8 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-gray-600 dark:to-gray-500 rounded-xl w-3/4 animate-pulse"></div>
@@ -194,7 +183,6 @@ export const InteractiveCanvas = () => {
       );
     }
 
-    // Enhanced fullscreen mode iframe
     return (
       <div className="h-full w-full bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
         <div className="h-full w-full rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
@@ -215,24 +203,20 @@ export const InteractiveCanvas = () => {
 
   return (
     <>
-      <div className="relative w-full h-full bg-gradient-to-br from-violet-100 via-blue-100 to-cyan-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+      <div className="relative w-full h-full bg-white dark:bg-gray-900">
         <div className="absolute inset-0 overflow-hidden">
           <div className="h-full flex items-center justify-center">
             {getCanvasContent()}
           </div>
         </div>
         
-        {/* Enhanced animated background pattern */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, ${agentData.primaryColor} 1px, transparent 0)`,
-            backgroundSize: '32px 32px',
-            animation: 'float 25s ease-in-out infinite'
-          }} />
-        </div>
+        {/* Dot pattern background - lower z-index */}
+        <div className="absolute inset-0 opacity-30 pointer-events-none z-10" style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)',
+          backgroundSize: '20px 20px'
+        }} />
       </div>
 
-      {/* Ask AI Modal with higher z-index */}
       <AskAiModal 
         isOpen={isAskAiOpen} 
         onClose={() => setIsAskAiOpen(false)}
