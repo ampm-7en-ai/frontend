@@ -1,310 +1,332 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useBuilder } from './BuilderContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, Plus, Palette, MessageSquare, Brain, Settings } from 'lucide-react';
-import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
-import DeploymentDialog from '@/components/agents/DeploymentDialog';
-
-const agentTypes = [
-  'Customer Support',
-  'Sales Assistant',
-  'Technical Support',
-  'HR Assistant',
-  'General Assistant'
-];
-
-const fontFamilies = [
-  'Inter',
-  'Roboto',
-  'Open Sans',
-  'Lato',
-  'Montserrat'
-];
+import { X, Palette, MessageSquare, Settings, User, Sparkles } from 'lucide-react';
 
 export const ConfigurationPanel = () => {
-  const { state, updateAgentData } = useBuilder();
+  const { state, dispatch } = useBuilder();
   const { agentData } = state;
-  const [isDeploymentOpen, setIsDeploymentOpen] = useState(false);
+
+  const handleNameChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { name: value }
+    });
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { description: value }
+    });
+  };
+
+  const handlePrimaryColorChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { primaryColor: value }
+    });
+  };
+
+  const handleSecondaryColorChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { secondaryColor: value }
+    });
+  };
+
+  const handleFontFamilyChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { fontFamily: value }
+    });
+  };
+
+  const handleChatbotNameChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { chatbotName: value }
+    });
+  };
+
+  const handleWelcomeMessageChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { welcomeMessage: value }
+    });
+  };
+
+  const handleButtonTextChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { buttonText: value }
+    });
+  };
+
+  const handlePositionChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { position: value }
+    });
+  };
 
   const handleSuggestionChange = (index: number, value: string) => {
     const newSuggestions = [...agentData.suggestions];
     newSuggestions[index] = value;
-    updateAgentData({ suggestions: newSuggestions });
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { suggestions: newSuggestions }
+    });
   };
 
   const addSuggestion = () => {
-    if (agentData.suggestions.length < 5) {
-      updateAgentData({ suggestions: [...agentData.suggestions, ''] });
-    }
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { suggestions: [...agentData.suggestions, ''] }
+    });
   };
 
   const removeSuggestion = (index: number) => {
-    const newSuggestions = agentData.suggestions.filter((_, i) => i !== index);
-    updateAgentData({ suggestions: newSuggestions });
+    const newSuggestions = [...agentData.suggestions];
+    newSuggestions.splice(index, 1);
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { suggestions: newSuggestions }
+    });
+  };
+
+  const handleAvatarUrlChange = (value: string) => {
+    dispatch({
+      type: 'UPDATE_AGENT_DATA',
+      payload: { avatarUrl: value }
+    });
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
-      <div className="p-4 space-y-3">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Settings className="h-3 w-3 text-white" />
-          </div>
-          <h2 className="text-lg font-bold text-gray-900">Configuration</h2>
-        </div>
-        
-        <Accordion type="multiple" defaultValue={["identity", "appearance"]} className="space-y-2">
-          {/* Agent Identity */}
-          <AccordionItem value="identity" className="border rounded-lg bg-white shadow-sm">
-            <AccordionTrigger className="px-3 py-2 hover:bg-gray-50 rounded-t-lg">
-              <div className="flex items-center gap-2">
-                <Brain className="h-3 w-3 text-blue-600" />
-                <span className="text-sm font-medium">Agent Identity</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-3 pb-3 space-y-2">
-              <div className="space-y-1">
-                <Label htmlFor="name" className="text-xs font-medium">Agent Name</Label>
-                <Input
-                  id="name"
-                  value={agentData.name}
-                  onChange={(e) => updateAgentData({ name: e.target.value })}
-                  placeholder="Enter agent name"
-                  className="h-8 text-sm"
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="description" className="text-xs font-medium">Description</Label>
-                <Textarea
-                  id="description"
-                  value={agentData.description}
-                  onChange={(e) => updateAgentData({ description: e.target.value })}
-                  placeholder="Describe your agent's purpose"
-                  rows={2}
-                  className="text-sm resize-none"
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="type" className="text-xs font-medium">Agent Type</Label>
-                <Select value={agentData.agentType} onValueChange={(value) => updateAgentData({ agentType: value })}>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agentTypes.map((type) => (
-                      <SelectItem key={type} value={type} className="text-sm">{type}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+    <div className="p-4">
+      <Accordion type="multiple" className="space-y-4">
+        <AccordionItem value="basic-info" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+          <AccordionTrigger className="py-3 hover:no-underline">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium">Basic Information</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-3">
+              <Label htmlFor="agent-name" className="text-sm font-medium">
+                Agent Name
+              </Label>
+              <Input
+                type="text"
+                id="agent-name"
+                placeholder="Enter agent name"
+                value={agentData.name || ''}
+                onChange={(e) => handleNameChange(e.target.value)}
+              />
+            </div>
+            <div className="space-y-3 mt-4">
+              <Label htmlFor="agent-description" className="text-sm font-medium">
+                Description
+              </Label>
+              <Textarea
+                id="agent-description"
+                placeholder="Enter agent description"
+                value={agentData.description || ''}
+                onChange={(e) => handleDescriptionChange(e.target.value)}
+                className="min-h-[80px] resize-none"
+              />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-          {/* Appearance */}
-          <AccordionItem value="appearance" className="border rounded-lg bg-white shadow-sm">
-            <AccordionTrigger className="px-3 py-2 hover:bg-gray-50 rounded-t-lg">
-              <div className="flex items-center gap-2">
-                <Palette className="h-3 w-3 text-purple-600" />
-                <span className="text-sm font-medium">Appearance</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-3 pb-3 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="primaryColor" className="text-xs font-medium">Primary Color</Label>
-                  <div className="flex items-center gap-1">
-                    <Input
-                      id="primaryColor"
-                      type="color"
-                      value={agentData.primaryColor}
-                      onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                      className="w-8 h-7 p-0 border rounded cursor-pointer"
-                    />
-                    <Input
-                      value={agentData.primaryColor}
-                      onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                      className="flex-1 text-xs font-mono h-7"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor="secondaryColor" className="text-xs font-medium">Secondary Color</Label>
-                  <div className="flex items-center gap-1">
-                    <Input
-                      id="secondaryColor"
-                      type="color"
-                      value={agentData.secondaryColor}
-                      onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                      className="w-8 h-7 p-0 border rounded cursor-pointer"
-                    />
-                    <Input
-                      value={agentData.secondaryColor}
-                      onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                      className="flex-1 text-xs font-mono h-7"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="fontFamily" className="text-xs font-medium">Font Family</Label>
-                <Select value={agentData.fontFamily} onValueChange={(value) => updateAgentData({ fontFamily: value })}>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fontFamilies.map((font) => (
-                      <SelectItem key={font} value={font} className="text-sm">{font}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="chatbotName" className="text-xs font-medium">Chatbot Name</Label>
-                <Input
-                  id="chatbotName"
-                  value={agentData.chatbotName}
-                  onChange={(e) => updateAgentData({ chatbotName: e.target.value })}
-                  placeholder="Assistant"
-                  className="h-8 text-sm"
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="welcomeMessage" className="text-xs font-medium">Welcome Message</Label>
-                <Textarea
-                  id="welcomeMessage"
-                  value={agentData.welcomeMessage}
-                  onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
-                  placeholder="Hello! How can I help you today?"
-                  rows={2}
-                  className="text-sm resize-none"
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="buttonText" className="text-xs font-medium">Button Text</Label>
-                <Input
-                  id="buttonText"
-                  value={agentData.buttonText}
-                  onChange={(e) => updateAgentData({ buttonText: e.target.value })}
-                  placeholder="Chat with us"
-                  className="h-8 text-sm"
-                />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+        <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+          <AccordionTrigger className="py-3 hover:no-underline">
+            <div className="flex items-center gap-2">
+              <Palette className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <span className="text-sm font-medium">Appearance & Style</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-3">
+              <Label htmlFor="primary-color" className="text-sm font-medium">
+                Primary Color
+              </Label>
+              <Input
+                type="color"
+                id="primary-color"
+                value={agentData.primaryColor || '#6366f1'}
+                onChange={(e) => handlePrimaryColorChange(e.target.value)}
+              />
+            </div>
+            <div className="space-y-3 mt-4">
+              <Label htmlFor="secondary-color" className="text-sm font-medium">
+                Secondary Color
+              </Label>
+              <Input
+                type="color"
+                id="secondary-color"
+                value={agentData.secondaryColor || '#4ade80'}
+                onChange={(e) => handleSecondaryColorChange(e.target.value)}
+              />
+            </div>
+            <div className="space-y-3 mt-4">
+              <Label htmlFor="font-family" className="text-sm font-medium">
+                Font Family
+              </Label>
+              <Select onValueChange={handleFontFamilyChange} defaultValue={agentData.fontFamily || 'Inter'}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a font" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Inter">Inter</SelectItem>
+                  <SelectItem value="Arial">Arial</SelectItem>
+                  <SelectItem value="Roboto">Roboto</SelectItem>
+                  <SelectItem value="Helvetica">Helvetica</SelectItem>
+                  <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-3 mt-4">
+              <Label htmlFor="avatar-url" className="text-sm font-medium">
+                Avatar Image URL
+              </Label>
+              <Input
+                type="url"
+                id="avatar-url"
+                placeholder="Enter image URL"
+                value={agentData.avatarUrl || ''}
+                onChange={(e) => handleAvatarUrlChange(e.target.value)}
+              />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-          {/* Suggestions */}
-          <AccordionItem value="suggestions" className="border rounded-lg bg-white shadow-sm">
-            <AccordionTrigger className="px-3 py-2 hover:bg-gray-50 rounded-t-lg">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-3 w-3 text-green-600" />
-                <span className="text-sm font-medium">Suggested Questions</span>
-                {agentData.suggestions.filter(Boolean).length > 0 && (
-                  <Badge variant="secondary" className="ml-1 text-xs px-1">
-                    {agentData.suggestions.filter(Boolean).length}
-                  </Badge>
-                )}
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-3 pb-3 space-y-2">
+        <AccordionItem value="chat-behavior" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+          <AccordionTrigger className="py-3 hover:no-underline">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium">Chat Behavior</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-3">
+              <Label htmlFor="chatbot-name" className="text-sm font-medium">
+                Chatbot Name
+              </Label>
+              <Input
+                type="text"
+                id="chatbot-name"
+                placeholder="Enter chatbot name"
+                value={agentData.chatbotName || ''}
+                onChange={(e) => handleChatbotNameChange(e.target.value)}
+              />
+            </div>
+            <div className="space-y-3 mt-4">
+              <Label htmlFor="welcome-message" className="text-sm font-medium">
+                Welcome Message
+              </Label>
+              <Textarea
+                id="welcome-message"
+                placeholder="Enter welcome message"
+                value={agentData.welcomeMessage || ''}
+                onChange={(e) => handleWelcomeMessageChange(e.target.value)}
+                className="min-h-[80px] resize-none"
+              />
+            </div>
+            <div className="space-y-3 mt-4">
+              <Label htmlFor="button-text" className="text-sm font-medium">
+                Button Text
+              </Label>
+              <Input
+                type="text"
+                id="button-text"
+                placeholder="Enter button text"
+                value={agentData.buttonText || ''}
+                onChange={(e) => handleButtonTextChange(e.target.value)}
+              />
+            </div>
+            <div className="space-y-3 mt-4">
+              <Label htmlFor="position" className="text-sm font-medium">
+                Position
+              </Label>
+              <Select onValueChange={handlePositionChange} defaultValue={agentData.position || 'bottom-right'}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select position" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                  <SelectItem value="bottom-left">Bottom Left</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+          <AccordionTrigger className="py-3 hover:no-underline">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              <span className="text-sm font-medium">Quick Suggestions</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-3">
               {agentData.suggestions.map((suggestion, index) => (
-                <div key={index} className="flex items-center gap-1">
+                <div key={index} className="flex items-center gap-2">
                   <Input
+                    type="text"
+                    placeholder={`Suggestion ${index + 1}`}
                     value={suggestion}
                     onChange={(e) => handleSuggestionChange(index, e.target.value)}
-                    placeholder={`Suggestion ${index + 1}`}
-                    className="flex-1 h-7 text-sm"
+                    className="flex-1"
                   />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeSuggestion(index)}
-                    className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <X className="h-3 w-3" />
+                  <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-500/10" onClick={() => removeSuggestion(index)}>
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-              
-              {agentData.suggestions.length < 5 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={addSuggestion}
-                  className="w-full h-7 text-xs hover:bg-blue-50 hover:border-blue-300"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Suggestion
-                </Button>
-              )}
-            </AccordionContent>
-          </AccordionItem>
+              <Button variant="secondary" size="sm" onClick={addSuggestion}>
+                Add Suggestion
+              </Button>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-          {/* Knowledge Base */}
-          <AccordionItem value="knowledge" className="border rounded-lg bg-white shadow-sm">
-            <AccordionTrigger className="px-3 py-2 hover:bg-gray-50 rounded-t-lg">
-              <div className="flex items-center gap-2">
-                <Brain className="h-3 w-3 text-orange-600" />
-                <span className="text-sm font-medium">Knowledge Base</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-3 pb-3">
-              <KnowledgeTrainingStatus
-                agentId={agentData.name || 'preview-agent'}
-                agentName={agentData.name || 'New Agent'}
-                preloadedKnowledgeSources={[]}
+        <AccordionItem value="advanced" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+          <AccordionTrigger className="py-3 hover:no-underline">
+            <div className="flex items-center gap-2">
+              <Settings className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium">Advanced Settings</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-3">
+              <Label htmlFor="advanced-settings" className="text-sm font-medium">
+                Advanced Settings
+              </Label>
+              <Textarea
+                id="advanced-settings"
+                placeholder="Enter advanced settings"
+                value={agentData.advancedSettings || ''}
+                onChange={(e) =>
+                  dispatch({
+                    type: 'UPDATE_AGENT_DATA',
+                    payload: { advancedSettings: e.target.value }
+                  })
+                }
+                className="min-h-[80px] resize-none"
               />
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Deployment */}
-          <AccordionItem value="deployment" className="border rounded-lg bg-white shadow-sm">
-            <AccordionTrigger className="px-3 py-2 hover:bg-gray-50 rounded-t-lg">
-              <div className="flex items-center gap-2">
-                <Upload className="h-3 w-3 text-indigo-600" />
-                <span className="text-sm font-medium">Deployment</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-3 pb-3">
-              <div className="space-y-2">
-                <p className="text-xs text-gray-600">
-                  Deploy your agent to start using it in production.
-                </p>
-                <Button
-                  onClick={() => setIsDeploymentOpen(true)}
-                  className="w-full h-8 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={!agentData.name.trim()}
-                >
-                  Open Deployment Options
-                </Button>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-
-      <DeploymentDialog
-        open={isDeploymentOpen}
-        onOpenChange={setIsDeploymentOpen}
-        agent={{
-          id: agentData.name || 'preview-agent',
-          name: agentData.name || 'New Agent'
-        }}
-      />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };
