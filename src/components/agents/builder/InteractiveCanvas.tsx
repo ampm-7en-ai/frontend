@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
@@ -5,22 +6,25 @@ import { AskAiModal } from './AskAiModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageSquare, Search } from 'lucide-react';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
   const { agentData, canvasMode, isPreviewActive } = state;
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
+  const { theme } = useAppTheme();
 
   // Use the actual agent ID from the loaded agent data - ensure it's properly formatted
   const currentAgentId = agentData.id ? agentData.id.toString() : null;
   
-  // Build the deployment iframe URL with the correct agent ID
-  const shareableLink = currentAgentId ? `${window.location.origin}/chat/preview/${currentAgentId}` : '';
+  // Build the deployment iframe URL with the correct agent ID and theme
+  const shareableLink = currentAgentId ? `${window.location.origin}/chat/preview/${currentAgentId}?theme=${theme}` : '';
 
   console.log('Current agent ID in canvas:', currentAgentId);
   console.log('Agent data loaded:', !!agentData.id);
   console.log('Shareable link:', shareableLink);
+  console.log('Current theme:', theme);
 
   const getCanvasContent = () => {
     if (!isPreviewActive) {
@@ -77,18 +81,19 @@ export const InteractiveCanvas = () => {
                 >
                   <Button
                     onClick={() => setIsChatOpen(!isChatOpen)}
-                    className="rounded-full shadow-2xl hover:scale-110 transition-all duration-300 w-16 h-16 p-0 border-4 border-white/20"
+                    className="rounded-full shadow-2xl hover:scale-110 transition-all duration-300 w-16 h-16 p-0 border-4 border-white/20 group"
                     style={{ 
                       backgroundColor: agentData.primaryColor,
-                      boxShadow: `0 8px 25px ${agentData.primaryColor}60, 0 4px 12px ${agentData.primaryColor}40`
+                      boxShadow: `0 8px 25px ${agentData.primaryColor}60, 0 4px 12px ${agentData.primaryColor}40`,
+                      fontFamily: agentData.fontFamily
                     }}
                   >
                     <MessageSquare className="h-7 w-7 text-white" />
                   </Button>
                   
-                  {/* Chat button tooltip */}
-                  <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-20 left-0' : 'bottom-20 right-0'} bg-black/80 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}>
-                    {agentData.buttonText}
+                  {/* Chat button tooltip - shows the actual button text from configuration */}
+                  <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-20 left-0' : 'bottom-20 right-0'} bg-black/80 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50`}>
+                    {agentData.buttonText || 'Chat with us'}
                   </div>
                 </div>
                 
@@ -129,30 +134,35 @@ export const InteractiveCanvas = () => {
             {/* Website mockup background */}
             <div className="p-8 h-full">
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20 dark:border-gray-700/20 relative">
-                {/* Ask AI search bar in the middle */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4">
+                {/* Ask AI search bar in the middle - with higher z-index */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4 z-50">
                   <div 
                     onClick={() => setIsAskAiOpen(true)}
                     className="relative cursor-pointer group"
                   >
                     <Input
-                      placeholder="Ask AI anything..."
-                      className="w-full h-14 pr-14 text-base shadow-xl border-2 hover:border-primary/50 transition-all duration-200 group-hover:shadow-2xl rounded-full"
+                      placeholder={`Ask ${agentData.chatbotName || 'AI'} anything...`}
+                      className="w-full h-14 pr-14 text-base shadow-xl border-2 hover:border-primary/50 transition-all duration-200 group-hover:shadow-2xl rounded-full bg-white dark:bg-gray-800"
                       style={{
                         borderColor: `${agentData.primaryColor}30`,
-                        backgroundColor: 'white'
+                        fontFamily: agentData.fontFamily
                       }}
                       readOnly
                     />
                     <Button 
                       size="sm" 
                       className="absolute right-2 top-2 h-10 w-10 p-0 rounded-full"
-                      style={{ backgroundColor: agentData.primaryColor }}
+                      style={{ 
+                        backgroundColor: agentData.primaryColor,
+                        fontFamily: agentData.fontFamily
+                      }}
                     >
                       <Search className="h-5 w-5" />
                     </Button>
                   </div>
-                  <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-3">Click to open AI assistant</p>
+                  <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-3" style={{ fontFamily: agentData.fontFamily }}>
+                    Click to open {agentData.chatbotName || 'AI assistant'}
+                  </p>
                 </div>
 
                 {/* Background content */}
@@ -177,7 +187,7 @@ export const InteractiveCanvas = () => {
       );
     }
 
-    // Default fullscreen mode - renders the actual deployment iframe with correct agent ID
+    // Default fullscreen mode - renders the actual deployment iframe with correct agent ID and theme
     return (
       <div className="h-full w-full">
         <iframe
@@ -188,7 +198,7 @@ export const InteractiveCanvas = () => {
           allow="microphone"
           className="w-full h-full rounded-lg border border-gray-200 dark:border-gray-700"
           title="Agent Preview"
-          key={currentAgentId} // Force iframe reload when agent ID changes
+          key={`${currentAgentId}-${theme}`} // Force iframe reload when agent ID or theme changes
         />
       </div>
     );
@@ -213,7 +223,7 @@ export const InteractiveCanvas = () => {
         </div>
       </div>
 
-      {/* Ask AI Modal - using the same agent ID and proper popup handling */}
+      {/* Ask AI Modal - using the same agent ID and proper popup handling with higher z-index */}
       <AskAiModal 
         isOpen={isAskAiOpen} 
         onClose={() => setIsAskAiOpen(false)}

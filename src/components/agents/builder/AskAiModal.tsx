@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface AskAiModalProps {
   isOpen: boolean;
@@ -12,14 +13,16 @@ interface AskAiModalProps {
 }
 
 export const AskAiModal = ({ isOpen, onClose, agentId }: AskAiModalProps) => {
-  // Use the provided agent ID or fallback to a default
+  const { theme } = useAppTheme();
+  
+  // Use the provided agent ID or fallback to a default, include theme parameter
   const modalUrl = agentId 
-    ? `${window.location.origin}/chat/preview/${agentId}`
-    : 'https://staging.7en.ai/chat/assistant/3';
+    ? `${window.location.origin}/chat/preview/${agentId}?theme=${theme}`
+    : `https://staging.7en.ai/chat/assistant/3?theme=${theme}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-full h-[90vh] p-0 gap-0">
+      <DialogContent className="max-w-6xl w-full h-[90vh] p-0 gap-0 z-[100]">
         <iframe
           src={modalUrl}
           width="100%"
@@ -28,6 +31,7 @@ export const AskAiModal = ({ isOpen, onClose, agentId }: AskAiModalProps) => {
           allow="microphone"
           className="w-full h-full rounded-2xl"
           title="Ask AI"
+          key={`${agentId}-${theme}`} // Force reload when agent or theme changes
         />
       </DialogContent>
     </Dialog>
