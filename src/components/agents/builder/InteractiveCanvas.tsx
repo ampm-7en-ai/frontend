@@ -13,14 +13,15 @@ export const InteractiveCanvas = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
 
-  // Use the actual agent ID from the loaded agent data
-  const currentAgentId = agentData.id?.toString() || 'preview-agent';
+  // Use the actual agent ID from the loaded agent data - ensure it's properly formatted
+  const currentAgentId = agentData.id ? agentData.id.toString() : null;
   
   // Build the deployment iframe URL with the correct agent ID
-  const shareableLink = `${window.location.origin}/chat/preview/${currentAgentId}`;
+  const shareableLink = currentAgentId ? `${window.location.origin}/chat/preview/${currentAgentId}` : '';
 
   console.log('Current agent ID in canvas:', currentAgentId);
-  console.log('Agent data:', agentData);
+  console.log('Agent data loaded:', !!agentData.id);
+  console.log('Shareable link:', shareableLink);
 
   const getCanvasContent = () => {
     if (!isPreviewActive) {
@@ -30,6 +31,19 @@ export const InteractiveCanvas = () => {
             <div className="text-6xl mb-4 animate-pulse">🤖</div>
             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Preview is disabled</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Enable preview to see your agent in action</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Show loading state if agent ID is not available yet
+    if (!currentAgentId) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center p-8 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20 dark:border-gray-700/20">
+            <div className="text-6xl mb-4 animate-pulse">⏳</div>
+            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Loading agent...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we load your agent configuration</p>
           </div>
         </div>
       );
@@ -58,10 +72,9 @@ export const InteractiveCanvas = () => {
                   </div>
                 </div>
                 
-                {/* Chat button - positioned absolutely in true corners */}
+                {/* Chat button - positioned absolutely at true corners */}
                 <div 
-                  className={`fixed z-50 ${agentData.position === 'bottom-left' ? 'bottom-6 left-6' : 'bottom-6 right-6'}`}
-                  style={{ position: 'absolute' }}
+                  className={`absolute z-50 ${agentData.position === 'bottom-left' ? 'bottom-6 left-6' : 'bottom-6 right-6'}`}
                 >
                   <Button
                     onClick={() => setIsChatOpen(!isChatOpen)}

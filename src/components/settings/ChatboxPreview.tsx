@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -13,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 
 interface Message {
-  type: string;  // Changed from 'user' | 'bot' to string to accommodate any message types from the WebSocket
+  type: string;
   content: string;
   timestamp: string;
 }
@@ -51,14 +50,17 @@ export const ChatboxPreview = ({
   const [inputValue, setInputValue] = useState('');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
- 
-  // useEffect(() => {
-  //   setMessages([{ type: 'bot_response', content: welcomeMessage, timestamp: new Date().toISOString() }]);
-  // }, [welcomeMessage]);
+  // Add welcome message when component mounts
+  useEffect(() => {
+    if (welcomeMessage) {
+      setMessages([{ type: 'bot_response', content: welcomeMessage, timestamp: new Date().toISOString() }]);
+    }
+  }, [welcomeMessage]);
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
@@ -78,7 +80,16 @@ export const ChatboxPreview = ({
   }, []);
 
   useEffect(() => {
+    // Don't initialize if no agent ID
+    if (!agentId) {
+      console.log("No agent ID provided to ChatboxPreview");
+      setConnectionError("No agent ID provided");
+      setIsInitializing(false);
+      return;
+    }
+
     console.log("Initializing ChatWebSocketService with agent ID:", agentId);
+    setConnectionError(null);
     
     chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
     
@@ -98,17 +109,22 @@ export const ChatboxPreview = ({
       },
       onError: (error) => {
         console.error('Chat error:', error);
+        setConnectionError(error);
         toast({
           title: "Connection Error",
           description: "Failed to connect to chat service. Please try again.",
           variant: "destructive",
         });
         setIsConnected(false);
+        setIsInitializing(false);
       },
       onConnectionChange: (status) => {
         console.log("Connection status changed:", status);
         setIsConnected(status);
         setIsInitializing(false);
+        if (status) {
+          setConnectionError(null);
+        }
       }
     });
     
@@ -230,6 +246,11 @@ export const ChatboxPreview = ({
         
         {isInitializing ? (
           <LoadingSpinner size="sm" className="text-white/70" />
+        ) : connectionError ? (
+          <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
+            <AlertCircle size={14} className="text-white/90" />
+            <span className="text-xs text-white/90">Error</span>
+          </div>
         ) : !isConnected ? (
           <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
             <WifiOff size={14} className="text-white/90" />
@@ -245,6 +266,13 @@ export const ChatboxPreview = ({
           style={{ height: 'calc(100% - 85px)' }}
         >
           <div className="p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white min-h-full">
+            {connectionError && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle size={16} className="text-red-600" />
+                <span className="text-sm text-red-800">Connection failed. Please check your agent configuration.</span>
+              </div>
+            )}
+            
             {messages.map((message, index) => (
               <div 
                 key={index} 
@@ -295,8 +323,6 @@ export const ChatboxPreview = ({
                           const match = /language-(\w+)/.exec(className || '');
                           const language = match ? match[1] : '';
                           
-                          // Fix: checking inline property correctly by examining props and node structure
-                          // Instead of using `inline` directly, check if there's no language specified and it's a short code block
                           const isInline = !match && children.toString().split('\n').length === 1;
                           
                           if (isInline) {
