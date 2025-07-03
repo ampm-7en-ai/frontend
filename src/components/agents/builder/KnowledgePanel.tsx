@@ -1,14 +1,12 @@
 
 import React from 'react';
 import { useBuilder } from './BuilderContext';
-import { Brain, Plus, Zap } from 'lucide-react';
+import { Brain } from 'lucide-react';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useQuery } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import EnhancedKnowledgeSourceList from './EnhancedKnowledgeSourceList';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const KnowledgePanel = () => {
   const { state } = useBuilder();
@@ -38,29 +36,33 @@ export const KnowledgePanel = () => {
   });
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="w-full h-full bg-white dark:bg-gray-900 overflow-y-auto">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            Knowledge Base
-          </h2>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Import
-            </Button>
-            <Button size="sm" className="gap-2 bg-purple-600 hover:bg-purple-700">
-              <Zap className="h-4 w-4" />
-              Train
-            </Button>
-          </div>
-        </div>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          Knowledge Base
+        </h2>
       </div>
       
-      <ScrollArea className="flex-1 p-4" hideScrollbar>
-        <Accordion type="single" className="space-y-4">
-          <AccordionItem value="knowledge-sources" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+      <div className="p-4">
+        <Accordion type="single" defaultValue="knowledge" className="space-y-4">
+          <AccordionItem value="knowledge" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+            <AccordionTrigger className="py-3 hover:no-underline">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <span className="text-sm font-medium">Training & Sources</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pb-4">
+              <KnowledgeTrainingStatus
+                agentId={agentData.id?.toString() || 'preview-agent'}
+                agentName={agentData.name || 'New Agent'}
+                preloadedKnowledgeSources={[]}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="sources" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
             <AccordionTrigger className="py-3 hover:no-underline">
               <div className="flex items-center gap-2">
                 <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -68,22 +70,15 @@ export const KnowledgePanel = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
-              <div className="space-y-4">
-                <KnowledgeTrainingStatus
-                  agentId={agentData.id?.toString() || 'preview-agent'}
-                  agentName={agentData.name || 'New Agent'}
-                  preloadedKnowledgeSources={[]}
-                />
-                <EnhancedKnowledgeSourceList
-                  knowledgeBases={knowledgeBases}
-                  isLoading={isLoading}
-                  agentId={agentData.id?.toString()}
-                />
-              </div>
+              <EnhancedKnowledgeSourceList
+                knowledgeBases={knowledgeBases}
+                isLoading={isLoading}
+                agentId={agentData.id?.toString()}
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-      </ScrollArea>
+      </div>
     </div>
   );
 };

@@ -30,9 +30,9 @@ export const InteractiveCanvas = () => {
     if (!isPreviewActive) {
       return (
         <div className="flex items-center justify-center h-full">
-          <div className="text-center p-12 rounded-3xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/30 dark:border-gray-700/30 shadow-2xl">
-            <div className="text-8xl mb-6 animate-bounce">🤖</div>
-            <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Preview is disabled</p>
+          <div className="text-center p-8 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20 dark:border-gray-700/20">
+            <div className="text-6xl mb-4 animate-pulse">🤖</div>
+            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Preview is disabled</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Enable preview to see your agent in action</p>
           </div>
         </div>
@@ -43,9 +43,9 @@ export const InteractiveCanvas = () => {
     if (!currentAgentId) {
       return (
         <div className="flex items-center justify-center h-full">
-          <div className="text-center p-12 rounded-3xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/30 dark:border-gray-700/30 shadow-2xl">
-            <div className="text-8xl mb-6 animate-spin">⏳</div>
-            <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Loading agent...</p>
+          <div className="text-center p-8 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20 dark:border-gray-700/20">
+            <div className="text-6xl mb-4 animate-pulse">⏳</div>
+            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Loading agent...</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we load your agent configuration</p>
           </div>
         </div>
@@ -55,56 +55,54 @@ export const InteractiveCanvas = () => {
     if (canvasMode === 'embedded') {
       return (
         <div className="h-full w-full relative overflow-hidden">
-          {/* Modern gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-            {/* Animated background elements */}
-            <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/10 dark:bg-blue-400/5 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/10 dark:bg-purple-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-            
+          {/* Simulate a website with embedded chat - using fixed positioning for proper corner placement */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
             {/* Mock website content */}
-            <div className="p-8 h-full relative z-10">
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-2xl h-full p-8 border border-white/40 dark:border-gray-700/40">
+            <div className="p-8 h-full">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20 dark:border-gray-700/20 relative overflow-hidden">
                 {/* Mock website header */}
-                <div className="space-y-8 opacity-40">
-                  <div className="space-y-4">
-                    <div className="h-12 bg-gradient-to-r from-blue-300/50 to-purple-300/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded-xl w-2/3 animate-pulse"></div>
-                    <div className="h-6 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded-lg w-1/2 animate-pulse"></div>
+                <div className="space-y-6 opacity-60">
+                  <div className="space-y-3">
+                    <div className="h-8 bg-gradient-to-r from-blue-200 to-purple-200 dark:from-gray-600 dark:to-gray-500 rounded-lg w-2/3 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-1/2 animate-pulse"></div>
                   </div>
-                  <div className="h-64 bg-gradient-to-br from-gray-200/50 to-gray-300/50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-2xl relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10"></div>
+                  <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-purple-400/20"></div>
                   </div>
-                  <div className="space-y-4">
-                    <div className="h-4 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded w-full animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded w-5/6 animate-pulse"></div>
+                  <div className="space-y-3">
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
                   </div>
                 </div>
                 
                 {/* Chat button - positioned absolutely at true corners */}
-                <div className={`absolute z-50 ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'}`}>
+                <div 
+                  className={`absolute z-50 ${agentData.position === 'bottom-left' ? 'bottom-6 left-6' : 'bottom-6 right-6'}`}
+                >
                   <Button
                     onClick={() => setIsChatOpen(!isChatOpen)}
-                    className={`${agentData.buttonText ? 'rounded-full px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group backdrop-blur-sm`}
+                    className="rounded-full shadow-2xl hover:scale-110 transition-all duration-300 w-16 h-16 p-0 border-4 border-white/20 group"
                     style={{ 
                       backgroundColor: agentData.primaryColor,
-                      boxShadow: `0 12px 40px ${agentData.primaryColor}40, 0 6px 16px ${agentData.primaryColor}30`,
+                      boxShadow: `0 8px 25px ${agentData.primaryColor}60, 0 4px 12px ${agentData.primaryColor}40`,
                       fontFamily: agentData.fontFamily
                     }}
                   >
-                    {agentData.buttonText ? (
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="h-5 w-5 text-white" />
-                        <span className="text-white font-medium">{agentData.buttonText}</span>
-                      </div>
-                    ) : (
-                      <MessageSquare className="h-7 w-7 text-white" />
-                    )}
+                    <MessageSquare className="h-7 w-7 text-white" />
                   </Button>
+                  
+                  {/* Chat button tooltip - shows the actual button text from configuration */}
+                  <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-20 left-0' : 'bottom-20 right-0'} bg-black/80 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50`}>
+                    {agentData.buttonText || 'Chat with us'}
+                  </div>
                 </div>
                 
-                {/* Chat popup when clicked */}
+                {/* Chat popup when clicked - positioned relative to button */}
                 {isChatOpen && (
-                  <div className={`absolute z-40 ${agentData.position === 'bottom-left' ? 'bottom-28 left-8' : 'bottom-28 right-8'} w-96 h-[500px]`}>
-                    <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-xl">
+                  <div 
+                    className={`absolute z-40 ${agentData.position === 'bottom-left' ? 'bottom-24 left-6' : 'bottom-24 right-6'} w-96 h-[500px]`}
+                  >
+                    <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 dark:border-gray-700/20 backdrop-blur-sm">
                       <ChatboxPreview
                         agentId={currentAgentId}
                         primaryColor={agentData.primaryColor}
@@ -131,29 +129,29 @@ export const InteractiveCanvas = () => {
     if (canvasMode === 'popup') {
       return (
         <div className="h-full w-full relative">
-          {/* Modern search-focused background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-cyan-900/20">
-            {/* Animated background elements */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-400/8 dark:bg-cyan-400/4 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-400/8 dark:bg-blue-400/4 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-            
-            <div className="p-8 h-full relative z-10">
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-2xl h-full p-8 border border-white/40 dark:border-gray-700/40 relative">
-                {/* Ask AI search bar in the center with higher z-index */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4 z-[60]">
-                  <div onClick={() => setIsAskAiOpen(true)} className="relative cursor-pointer group">
+          {/* Simulate a website with popup search */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+            {/* Website mockup background */}
+            <div className="p-8 h-full">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20 dark:border-gray-700/20 relative">
+                {/* Ask AI search bar in the middle - with higher z-index */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4 z-50">
+                  <div 
+                    onClick={() => setIsAskAiOpen(true)}
+                    className="relative cursor-pointer group"
+                  >
                     <Input
                       placeholder={`Ask ${agentData.chatbotName || 'AI'} anything...`}
-                      className="w-full h-16 pr-16 text-lg shadow-2xl border-2 hover:border-primary/50 transition-all duration-300 group-hover:shadow-3xl rounded-2xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm"
+                      className="w-full h-14 pr-14 text-base shadow-xl border-2 hover:border-primary/50 transition-all duration-200 group-hover:shadow-2xl rounded-full bg-white dark:bg-gray-800"
                       style={{
-                        borderColor: `${agentData.primaryColor}40`,
+                        borderColor: `${agentData.primaryColor}30`,
                         fontFamily: agentData.fontFamily
                       }}
                       readOnly
                     />
                     <Button 
                       size="sm" 
-                      className="absolute right-3 top-3 h-10 w-10 p-0 rounded-xl shadow-lg"
+                      className="absolute right-2 top-2 h-10 w-10 p-0 rounded-full"
                       style={{ 
                         backgroundColor: agentData.primaryColor,
                         fontFamily: agentData.fontFamily
@@ -162,22 +160,24 @@ export const InteractiveCanvas = () => {
                       <Search className="h-5 w-5" />
                     </Button>
                   </div>
-                  <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4 font-medium" style={{ fontFamily: agentData.fontFamily }}>
+                  <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-3" style={{ fontFamily: agentData.fontFamily }}>
                     Click to open {agentData.chatbotName || 'AI assistant'}
                   </p>
                 </div>
 
                 {/* Background content */}
-                <div className="space-y-8 opacity-20">
-                  <div className="space-y-4">
-                    <div className="h-8 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded-xl w-3/4 animate-pulse"></div>
-                    <div className="h-6 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded-lg w-1/2 animate-pulse"></div>
+                <div className="space-y-6 opacity-30">
+                  <div className="space-y-3">
+                    <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded-lg w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-1/2 animate-pulse"></div>
                   </div>
-                  <div className="h-48 bg-gradient-to-br from-gray-200/50 to-gray-300/50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-2xl"></div>
-                  <div className="space-y-4">
-                    <div className="h-4 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded w-full animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded w-5/6 animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-300/50 to-gray-400/50 dark:from-gray-600/50 dark:to-gray-500/50 rounded w-4/6 animate-pulse"></div>
+                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-purple-400/20"></div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
                   </div>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export const InteractiveCanvas = () => {
       );
     }
 
-    // Default fullscreen mode
+    // Default fullscreen mode - renders the actual deployment iframe with correct agent ID and theme
     return (
       <div className="h-full w-full">
         <iframe
@@ -196,9 +196,9 @@ export const InteractiveCanvas = () => {
           height="100%"
           frameBorder="0"
           allow="microphone"
-          className="w-full h-full rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-2xl"
+          className="w-full h-full rounded-lg border border-gray-200 dark:border-gray-700"
           title="Agent Preview"
-          key={`${currentAgentId}-${theme}`}
+          key={`${currentAgentId}-${theme}`} // Force iframe reload when agent ID or theme changes
         />
       </div>
     );
@@ -206,24 +206,24 @@ export const InteractiveCanvas = () => {
 
   return (
     <>
-      <div className="relative w-full h-full bg-gradient-to-br from-violet-50/50 via-blue-50/50 to-cyan-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+      <div className="relative w-full h-full bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="h-full flex items-center justify-center p-4">
+          <div className="h-full flex items-center justify-center">
             {getCanvasContent()}
           </div>
         </div>
         
-        {/* Subtle animated background pattern */}
-        <div className="absolute inset-0 opacity-3 pointer-events-none">
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none">
           <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, ${agentData.primaryColor} 1px, transparent 0)`,
-            backgroundSize: '32px 32px',
-            animation: 'float 30s ease-in-out infinite'
+            backgroundImage: `radial-gradient(circle at 1px 1px, ${agentData.primaryColor} 1px, transparent 0)`,
+            backgroundSize: '24px 24px',
+            animation: 'float 20s ease-in-out infinite'
           }} />
         </div>
       </div>
 
-      {/* Ask AI Modal with higher z-index */}
+      {/* Ask AI Modal - using the same agent ID and proper popup handling with higher z-index */}
       <AskAiModal 
         isOpen={isAskAiOpen} 
         onClose={() => setIsAskAiOpen(false)}
