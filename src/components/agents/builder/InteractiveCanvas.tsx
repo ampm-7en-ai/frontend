@@ -1,30 +1,20 @@
 
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
-import { CanvasControls } from './CanvasControls';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { AskAiModal } from './AskAiModal';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageSquare, Search } from 'lucide-react';
 
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
-  const { agentData, canvasMode, deviceMode, isPreviewActive } = state;
+  const { agentData, canvasMode, isPreviewActive } = state;
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
 
-  const getDeviceClass = () => {
-    switch (deviceMode) {
-      case 'mobile':
-        return 'w-80 h-[600px]';
-      case 'tablet':
-        return 'w-[600px] h-[700px]';
-      default:
-        return 'w-[900px] h-[650px]';
-    }
-  };
+  // Build the deployment iframe URL
+  const shareableLink = `${window.location.origin}/chat/preview/${agentData.id || 'preview-agent'}`;
 
   const getCanvasContent = () => {
     if (!isPreviewActive) {
@@ -41,76 +31,69 @@ export const InteractiveCanvas = () => {
 
     if (canvasMode === 'embedded') {
       return (
-        <div className="h-full w-full relative rounded-2xl overflow-hidden">
-          {/* Website mockup background */}
+        <div className="h-full w-full relative">
+          {/* Simulate a website with embedded chat */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
-            <div className="p-8 h-full">
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20 dark:border-gray-700/20">
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded-lg w-3/4 animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-1/2 animate-pulse"></div>
-                  </div>
-                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-purple-400/20"></div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
-                  </div>
+            {/* Embedded script simulation - loads the actual iframe */}
+            <iframe
+              src={shareableLink}
+              className="w-full h-full border-0"
+              title="Embedded Agent Preview"
+              style={{ 
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e0e7ff 100%)',
+                borderRadius: '0'
+              }}
+            />
+            
+            {/* Chat button overlay - positioned based on settings */}
+            <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} z-10`}>
+              <Button
+                onClick={() => setIsChatOpen(!isChatOpen)}
+                className="rounded-full shadow-lg hover:scale-110 transition-all duration-300 w-14 h-14 p-0"
+                style={{ 
+                  backgroundColor: agentData.primaryColor,
+                  boxShadow: `0 4px 12px ${agentData.primaryColor}40`
+                }}
+              >
+                <MessageSquare className="h-6 w-6" />
+              </Button>
+              {/* Chat button label */}
+              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                {agentData.buttonText}
+              </div>
+            </div>
+            
+            {/* Chat popup when clicked */}
+            {isChatOpen && (
+              <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 h-[500px] z-20`}>
+                <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 dark:border-gray-700/20 backdrop-blur-sm">
+                  <ChatboxPreview
+                    agentId={agentData.id?.toString() || 'preview-agent'}
+                    primaryColor={agentData.primaryColor}
+                    secondaryColor={agentData.secondaryColor}
+                    fontFamily={agentData.fontFamily}
+                    chatbotName={agentData.chatbotName}
+                    welcomeMessage={agentData.welcomeMessage}
+                    buttonText={agentData.buttonText}
+                    position={agentData.position}
+                    suggestions={agentData.suggestions.filter(Boolean)}
+                    avatarSrc={agentData.avatarUrl}
+                    className="w-full h-full"
+                  />
                 </div>
               </div>
-            </div>
+            )}
           </div>
-          
-          {/* Chat button - positioned based on settings */}
-          <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} z-10`}>
-            <Button
-              onClick={() => setIsChatOpen(!isChatOpen)}
-              className="rounded-full shadow-lg hover:scale-110 transition-all duration-300 w-14 h-14 p-0"
-              style={{ 
-                backgroundColor: agentData.primaryColor,
-                boxShadow: `0 4px 12px ${agentData.primaryColor}40`
-              }}
-            >
-              <MessageSquare className="h-6 w-6" />
-            </Button>
-            {/* Chat button label */}
-            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-              {agentData.buttonText}
-            </div>
-          </div>
-          
-          {/* Chat popup when clicked */}
-          {isChatOpen && (
-            <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 h-[500px] z-20`}>
-              <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 dark:border-gray-700/20 backdrop-blur-sm">
-                <ChatboxPreview
-                  agentId={agentData.id?.toString() || 'preview-agent'}
-                  primaryColor={agentData.primaryColor}
-                  secondaryColor={agentData.secondaryColor}
-                  fontFamily={agentData.fontFamily}
-                  chatbotName={agentData.chatbotName}
-                  welcomeMessage={agentData.welcomeMessage}
-                  buttonText={agentData.buttonText}
-                  position={agentData.position}
-                  suggestions={agentData.suggestions.filter(Boolean)}
-                  avatarSrc={agentData.avatarUrl}
-                  className="w-full h-full"
-                />
-              </div>
-            </div>
-          )}
         </div>
       );
     }
 
     if (canvasMode === 'popup') {
       return (
-        <div className="h-full w-full relative rounded-2xl overflow-hidden">
-          {/* Website mockup background */}
+        <div className="h-full w-full relative">
+          {/* Simulate a website with popup search */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+            {/* Website mockup background */}
             <div className="p-8 h-full">
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl h-full p-6 border border-white/20 dark:border-gray-700/20 relative">
                 {/* Ask AI search bar in the middle */}
@@ -157,26 +140,18 @@ export const InteractiveCanvas = () => {
       );
     }
 
-    // Default fullscreen mode
+    // Default fullscreen mode - renders the actual deployment iframe
     return (
-      <div className="h-full flex items-center justify-center p-8">
-        <Card className={`${getDeviceClass()} transition-all duration-500 shadow-2xl overflow-hidden border-0 dark:bg-gray-800`}>
-          <div className="w-full h-full rounded-2xl overflow-hidden">
-            <ChatboxPreview
-              agentId={agentData.id?.toString() || 'preview-agent'}
-              primaryColor={agentData.primaryColor}
-              secondaryColor={agentData.secondaryColor}
-              fontFamily={agentData.fontFamily}
-              chatbotName={agentData.chatbotName}
-              welcomeMessage={agentData.welcomeMessage}
-              buttonText={agentData.buttonText}
-              position={agentData.position}
-              suggestions={agentData.suggestions.filter(Boolean)}
-              avatarSrc={agentData.avatarUrl}
-              className="w-full h-full"
-            />
-          </div>
-        </Card>
+      <div className="h-full w-full">
+        <iframe
+          src={shareableLink}
+          width="100%"
+          height="100%"
+          frameBorder="0"
+          allow="microphone"
+          className="w-full h-full rounded-lg border border-gray-200 dark:border-gray-700"
+          title="Agent Preview"
+        />
       </div>
     );
   };
@@ -184,8 +159,6 @@ export const InteractiveCanvas = () => {
   return (
     <>
       <div className="relative w-full h-full bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
-        <CanvasControls />
-        
         <div className="absolute inset-0 overflow-auto">
           <div className="min-h-full flex items-center justify-center p-8">
             {getCanvasContent()}
@@ -200,10 +173,6 @@ export const InteractiveCanvas = () => {
             animation: 'float 20s ease-in-out infinite'
           }} />
         </div>
-        
-        {/* Floating elements */}
-        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-xl animate-pulse" />
-        <div className="absolute bottom-20 right-20 w-24 h-24 bg-gradient-to-br from-pink-400/10 to-orange-400/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       {/* Ask AI Modal */}

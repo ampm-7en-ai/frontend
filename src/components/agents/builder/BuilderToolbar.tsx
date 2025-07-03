@@ -3,12 +3,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useBuilder } from './BuilderContext';
-import { ArrowLeft, Rocket, Play, Trash2, Eye, EyeOff, Monitor, Tablet, Smartphone } from 'lucide-react';
+import { ArrowLeft, Rocket, Play, Trash2, Eye, EyeOff, Monitor, MessageSquare, Search } from 'lucide-react';
 
 export const BuilderToolbar = () => {
   const navigate = useNavigate();
-  const { state, saveAgent, deleteAgent, togglePreview, setDeviceMode } = useBuilder();
-  const { agentData, isPreviewActive, deviceMode, isLoading } = state;
+  const { state, saveAgent, deleteAgent, togglePreview, setCanvasMode } = useBuilder();
+  const { agentData, isPreviewActive, canvasMode, isLoading } = state;
 
   return (
     <div className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm">
@@ -36,31 +36,34 @@ export const BuilderToolbar = () => {
         </div>
       </div>
 
-      {/* Center Section - Device Controls */}
+      {/* Center Section - Mode Controls */}
       <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
         <Button
-          variant={deviceMode === 'desktop' ? 'default' : 'ghost'}
+          variant={canvasMode === 'fullscreen' ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => setDeviceMode('desktop')}
-          className="h-8 w-8 p-0 dark:hover:bg-gray-700"
+          onClick={() => setCanvasMode('fullscreen')}
+          className="h-8 px-3 text-xs"
         >
-          <Monitor className="h-4 w-4" />
+          <Monitor className="h-4 w-4 mr-1" />
+          Fullscreen
         </Button>
         <Button
-          variant={deviceMode === 'tablet' ? 'default' : 'ghost'}
+          variant={canvasMode === 'embedded' ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => setDeviceMode('tablet')}
-          className="h-8 w-8 p-0 dark:hover:bg-gray-700"
+          onClick={() => setCanvasMode('embedded')}
+          className="h-8 px-3 text-xs"
         >
-          <Tablet className="h-4 w-4" />
+          <MessageSquare className="h-4 w-4 mr-1" />
+          Embedded
         </Button>
         <Button
-          variant={deviceMode === 'mobile' ? 'default' : 'ghost'}
+          variant={canvasMode === 'popup' ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => setDeviceMode('mobile')}
-          className="h-8 w-8 p-0 dark:hover:bg-gray-700"
+          onClick={() => setCanvasMode('popup')}
+          className="h-8 px-3 text-xs"
         >
-          <Smartphone className="h-4 w-4" />
+          <Search className="h-4 w-4 mr-1" />
+          Popup
         </Button>
       </div>
 

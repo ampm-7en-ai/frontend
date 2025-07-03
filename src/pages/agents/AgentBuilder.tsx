@@ -15,7 +15,7 @@ const AgentBuilder = () => {
         <BuilderToolbar />
         
         <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar - Settings */}
+          {/* Left Sidebar - Agent Configuration */}
           <div className="w-80 border-r border-gray-200 dark:border-gray-700">
             <BuilderSidebar />
           </div>
