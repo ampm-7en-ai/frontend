@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Settings, Plus, X, Target, Zap } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
@@ -49,7 +50,7 @@ export const GuidelinesPanel = () => {
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900 overflow-y-auto">
+    <div className="w-full h-full bg-white dark:bg-gray-900">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <Settings className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -57,8 +58,8 @@ export const GuidelinesPanel = () => {
         </h2>
       </div>
       
-      <div className="p-4">
-        <Accordion type="multiple" defaultValue={["behavior", "model", "suggestions"]} className="space-y-4">
+      <ScrollArea className="flex-1 p-4" hideScrollbar>
+        <Accordion type="multiple" className="space-y-4">
           {/* Behavior Guidelines */}
           <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
             <AccordionTrigger className="py-3 hover:no-underline">
@@ -239,7 +240,7 @@ export const GuidelinesPanel = () => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-      </div>
+      </ScrollArea>
     </div>
   );
 };

@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Bot, Palette, MessageSquare } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const BuilderSidebar = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900 overflow-y-auto">
+    <div className="w-full h-full bg-white dark:bg-gray-900">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <Bot className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -21,8 +22,8 @@ export const BuilderSidebar = () => {
         </h2>
       </div>
       
-      <div className="p-4">
-        <Accordion type="multiple" defaultValue={["basic", "appearance", "messages"]} className="space-y-4">
+      <ScrollArea className="flex-1 p-4" hideScrollbar>
+        <Accordion type="multiple" className="space-y-4">
           {/* Basic Settings */}
           <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
             <AccordionTrigger className="py-3 hover:no-underline">
@@ -177,7 +178,7 @@ export const BuilderSidebar = () => {
                     id="buttonText"
                     value={agentData.buttonText}
                     onChange={(e) => updateAgentData({ buttonText: e.target.value })}
-                    placeholder="Chat with us"
+                    placeholder="Leave empty for icon-only button"
                     className="h-8 text-xs"
                   />
                 </div>
@@ -185,7 +186,7 @@ export const BuilderSidebar = () => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-      </div>
+      </ScrollArea>
     </div>
   );
 };
