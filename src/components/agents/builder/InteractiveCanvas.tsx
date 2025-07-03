@@ -7,7 +7,7 @@ import { AskAiModal } from './AskAiModal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, Sparkles, Search } from 'lucide-react';
+import { MessageSquare, Search } from 'lucide-react';
 
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
@@ -64,7 +64,7 @@ export const InteractiveCanvas = () => {
             </div>
           </div>
           
-          {/* Small chat icon - positioned based on settings */}
+          {/* Chat button - positioned based on settings */}
           <div className={`absolute ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} z-10`}>
             <Button
               onClick={() => setIsChatOpen(!isChatOpen)}
@@ -76,7 +76,7 @@ export const InteractiveCanvas = () => {
             >
               <MessageSquare className="h-6 w-6" />
             </Button>
-            {/* Chat icon label */}
+            {/* Chat button label */}
             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
               {agentData.buttonText}
             </div>
