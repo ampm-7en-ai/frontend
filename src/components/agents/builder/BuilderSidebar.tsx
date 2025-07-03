@@ -127,7 +127,10 @@ export const BuilderSidebar = () => {
             
             <div>
               <Label htmlFor="position" className="text-xs font-medium">Chat Button Position</Label>
-              <Select value={agentData.position} onValueChange={(value) => updateAgentData({ position: value })}>
+              <Select 
+                value={agentData.position} 
+                onValueChange={(value) => updateAgentData({ position: value as 'bottom-right' | 'bottom-left' })}
+              >
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
