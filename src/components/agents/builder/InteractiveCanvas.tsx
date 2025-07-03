@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
@@ -153,7 +152,7 @@ export const InteractiveCanvas = () => {
                       <Search className="h-5 w-5" />
                     </Button>
                   </div>
-                  <p className="text-center text-sm text-gray-500 mt-3">Click to open AI assistant</p>
+                  <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-3">Click to open AI assistant</p>
                 </div>
 
                 {/* Background content */}
@@ -214,10 +213,11 @@ export const InteractiveCanvas = () => {
         </div>
       </div>
 
-      {/* Ask AI Modal - using the same agent ID */}
+      {/* Ask AI Modal - using the same agent ID and proper popup handling */}
       <AskAiModal 
         isOpen={isAskAiOpen} 
-        onClose={() => setIsAskAiOpen(false)} 
+        onClose={() => setIsAskAiOpen(false)}
+        agentId={currentAgentId}
       />
     </>
   );

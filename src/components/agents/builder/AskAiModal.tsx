@@ -8,14 +8,20 @@ import {
 interface AskAiModalProps {
   isOpen: boolean;
   onClose: () => void;
+  agentId?: string | null;
 }
 
-export const AskAiModal = ({ isOpen, onClose }: AskAiModalProps) => {
+export const AskAiModal = ({ isOpen, onClose, agentId }: AskAiModalProps) => {
+  // Use the provided agent ID or fallback to a default
+  const modalUrl = agentId 
+    ? `${window.location.origin}/chat/preview/${agentId}`
+    : 'https://staging.7en.ai/chat/assistant/3';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl w-full h-[90vh] p-0 gap-0">
         <iframe
-          src="https://staging.7en.ai/chat/assistant/3"
+          src={modalUrl}
           width="100%"
           height="100%"
           frameBorder="0"
