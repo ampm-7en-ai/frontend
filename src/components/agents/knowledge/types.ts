@@ -1,10 +1,11 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
   type: string;
   size: string;
   lastUpdated: string;
-  trainingStatus: 'idle' | 'training' | 'success' | 'error';
+  trainingStatus: 'idle' | 'training' | 'success' | 'error' | 'Active' | 'Training' | 'Issues';
   progress?: number;
   linkBroken?: boolean;
   hasError?: boolean;

@@ -1,21 +1,9 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { createAgent } from '@/utils/api-config';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
-
-interface KnowledgeSource {
-  id: number;
-  name: string;
-  type: string;
-  size: string; // Changed from optional to required
-  lastUpdated: string;
-  trainingStatus: 'idle' | 'training' | 'success' | 'error' | 'Active' | 'Training' | 'Issues';
-  linkBroken?: boolean;
-  knowledge_sources?: any[];
-  metadata?: any;
-}
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 interface AgentFormData {
   id?: string | number;
