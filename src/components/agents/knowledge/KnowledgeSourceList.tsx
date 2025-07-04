@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link, ExternalLink, CircleAlert } from 'lucide-react';
+import { ChevronDown, ChevronRight, Globe, FileText, File, Database, Trash2, Link, ExternalLink, CircleAlert, CheckCircle2 } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -62,15 +63,19 @@ const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
     case 'pdf':
     case 'docs':
     case 'csv':
-      const fileCount = knowledgeBase.knowledge_sources.filter(source => source.is_selected).length;
-      return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
+      const selectedFileCount = knowledgeBase.knowledge_sources.filter(source => source.is_selected).length;
+      const totalFileCount = knowledgeBase.knowledge_sources.length;
+      return `${selectedFileCount}/${totalFileCount} ${totalFileCount === 1 ? 'file' : 'files'}`;
       
     case 'website':
-      let urlCount = 0;
+      let selectedUrlCount = 0;
+      let totalUrlCount = 0;
+      
       if (firstSource.metadata?.sub_urls?.children) {
-        urlCount = firstSource.metadata.sub_urls.children.filter(url => url.is_selected).length;
+        totalUrlCount = firstSource.metadata.sub_urls.children.length;
+        selectedUrlCount = firstSource.metadata.sub_urls.children.filter(url => url.is_selected).length;
       }
-      return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
+      return `${selectedUrlCount}/${totalUrlCount} ${totalUrlCount === 1 ? 'URL' : 'URLs'}`;
       
     case 'plain_text':
       if (firstSource.metadata?.no_of_chars) {
@@ -136,6 +141,7 @@ const renderChildUrls = (childUrls: any[]) => {
       {selectedUrls.map((subUrl) => (
         <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md text-sm">
           <div className="flex items-center gap-2 max-w-[70%]">
+            <CheckCircle2 className="h-3 w-3 flex-shrink-0 text-green-500" />
             <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
             <a 
               href={subUrl.url} 
@@ -366,11 +372,13 @@ const KnowledgeBaseCard = ({
                       <div key={source.id} className="py-2">
                         {source.metadata?.sub_urls?.children && source.metadata.sub_urls.children.some(subUrl => subUrl.is_selected) ? (
                           <div className="space-y-1.5">
+                            <div className="text-xs font-medium text-gray-600 mb-2">Selected URLs:</div>
                             {source.metadata.sub_urls.children
                               .filter(subUrl => subUrl.is_selected)
                               .map((subUrl) => (
-                                <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-md">
+                                <div key={subUrl.key} className="flex justify-between items-center py-1.5 px-3 bg-green-50 rounded-md border border-green-200">
                                   <div className="flex items-center gap-2 max-w-[70%]">
+                                    <CheckCircle2 className="h-3 w-3 flex-shrink-0 text-green-600" />
                                     <Link className="h-3 w-3 flex-shrink-0 text-blue-500" />
                                     <a 
                                       href={subUrl.url} 
@@ -435,8 +443,9 @@ const KnowledgeBaseCard = ({
                     ) : (
                       source.is_selected &&  (
                         <div key={source.id} className="py-2">
-                          <div className="flex justify-between items-center mb-1.5">
+                          <div className="flex justify-between items-center mb-1.5 p-2 bg-green-50 rounded-md border border-green-200">
                             <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-3 w-3 flex-shrink-0 text-green-600" />
                               <KnowledgeSourceBadge 
                                 source={createKnowledgeSourceFromApi(source, knowledgeBase.type)}
                                 size="sm"
@@ -543,3 +552,4 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
 };
 
 export default KnowledgeSourceList;
+

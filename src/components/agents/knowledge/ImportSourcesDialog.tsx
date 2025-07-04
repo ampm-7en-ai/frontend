@@ -5,7 +5,7 @@ import { KnowledgeSource, UrlNode } from './types';
 import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown, ArrowUp, ExternalLink } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
-import { formatFileSizeToMB, getKnowledgeBaseEndpoint, addKnowledgeSourcesToAgent } from '@/utils/api-config';
+import { formatFileSizeToMB, addKnowledgeSourcesToAgent, BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { cn } from '@/lib/utils';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { renderSourceIcon } from './knowledgeUtils';
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ImportSourcesDialogProps {
@@ -27,15 +27,62 @@ interface ImportSourcesDialogProps {
   isLoading?: boolean;
 }
 
+// Hook to fetch knowledge bases from correct endpoint
+const useKnowledgeBases = (agentId?: string) => {
+  return useQuery({
+    queryKey: ['knowledgeBases', agentId],
+    queryFn: async () => {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      // Use the correct endpoint with status filters
+      const url = `${BASE_URL}knowledgebase/?status=active&status=issues${agentId ? `&agent_id=${agentId}` : ''}`;
+      console.log('Fetching knowledge bases from:', url);
+      
+      const response = await fetch(url, {
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch knowledge bases: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Knowledge bases response:', result);
+      
+      // Transform the response to match KnowledgeSource format
+      const knowledgeBases = (result.data || result || []).map((kb: any) => ({
+        id: kb.id,
+        name: kb.name,
+        type: kb.type,
+        size: kb.size || 'N/A',
+        lastUpdated: kb.last_updated || new Date().toISOString(),
+        trainingStatus: kb.training_status || kb.status || 'idle',
+        hasError: kb.status === 'deleted',
+        hasIssue: kb.status === 'issues',
+        linkBroken: false,
+        knowledge_sources: kb.knowledge_sources || [],
+        metadata: kb.metadata || {},
+        chunks: kb.chunks
+      }));
+
+      return knowledgeBases;
+    },
+    enabled: true
+  });
+};
+
 export const ImportSourcesDialog = ({
   isOpen,
   onOpenChange,
-  externalSources,
+  externalSources: propExternalSources,
   currentSources,
   onImport,
   agentId = "",
   preventMultipleCalls = false,
-  isLoading = false,
+  isLoading: propIsLoading = false,
 }: ImportSourcesDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -54,6 +101,17 @@ export const ImportSourcesDialog = ({
   const [urlKeyMap, setUrlKeyMap] = useState<Record<string, string>>({});
   const thirdPanelRef = useRef<HTMLDivElement>(null);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+  // Use the new hook to fetch knowledge bases
+  const { data: fetchedKnowledgeBases = [], isLoading: isFetchingKnowledgeBases, error: fetchError } = useKnowledgeBases(agentId);
+  
+  // Use fetched knowledge bases if available, otherwise fall back to props
+  const externalSources = fetchedKnowledgeBases.length > 0 ? fetchedKnowledgeBases : propExternalSources;
+  const isLoading = isFetchingKnowledgeBases || propIsLoading;
+
+  console.log('External sources in dialog:', externalSources);
+  console.log('Is loading:', isLoading);
+  console.log('Fetch error:', fetchError);
 
   const scrollToTop = () => {
     if (thirdPanelRef.current) {
@@ -982,6 +1040,9 @@ export const ImportSourcesDialog = ({
               <FileText className="h-12 w-12 text-muted-foreground/40 mb-4" />
               <p className="text-lg text-muted-foreground">No knowledge sources available</p>
               <p className="text-sm text-muted-foreground mt-1">Try uploading some documents or adding websites</p>
+              {fetchError && (
+                <p className="text-xs text-red-500 mt-2">Error: {fetchError.message}</p>
+              )}
             </div>
           </div>
         ) : (
