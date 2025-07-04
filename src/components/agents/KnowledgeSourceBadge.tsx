@@ -1,108 +1,81 @@
-import React from 'react';
-import { BookOpen, Database, Globe, AlertTriangle, Link2Off, FileText } from 'lucide-react';
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from '@/components/ui/tooltip';
 
-export interface KnowledgeSourceBadgeProps {
-  source: {
-    name: string;
-    type: string;
-    id?: number;
-    size?: string;
-    lastUpdated?: string;
-    trainingStatus?: 'idle' | 'training' | 'success' | 'error';
-    linkBroken?: boolean;
-    hasError?: boolean;
-    hasIssue?: boolean;
-  };
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Globe, Database, File, AlertTriangle, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
+
+interface KnowledgeSourceBadgeProps {
+  source: KnowledgeSource;
   onClick?: () => void;
-  size?: 'sm' | 'md';
 }
 
-const KnowledgeSourceBadge = ({ source, onClick, size = 'md' }: KnowledgeSourceBadgeProps) => {
-  const getIcon = () => {
-    switch (source.type) {
-      case 'document':
-      case 'pdf':
-        return <FileText className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
-      case 'database':
-        return <Database className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
-      case 'webpage':
-      case 'website':
-      case 'url':
-        return <Globe className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
-      default:
-        return <BookOpen className={size === 'sm' ? "h-2.5 w-2.5" : "h-3 w-3"} />;
-    }
-  };
+const getIconForType = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'website':
+      return Globe;
+    case 'document':
+    case 'pdf':
+      return FileText;
+    case 'csv':
+      return Database;
+    case 'plain_text':
+      return File;
+    default:
+      return File;
+  }
+};
 
-  const getBadgeStyle = () => {
-    if (source.linkBroken || source.hasIssue) {
-      return 'bg-orange-50 text-orange-700 hover:bg-orange-100';
-    } else if (source.hasError) {
-      return 'bg-red-50 text-red-700 hover:bg-red-100';
-    } else {
-      return 'bg-primary/5 text-primary hover:bg-primary/10';
-    }
-  };
-  
-  const getTextColor = () => {
-    if (source.linkBroken) {
-      return 'text-orange-500';
-    } else if (source.hasError) {
-      return 'text-red-500';
-    } else if (source.hasIssue) {
-      return 'text-orange-500';
-    }  else {
-      return 'text-primary';
-    }
-  };
+const getStatusIcon = (status: KnowledgeSource['trainingStatus']) => {
+  switch (status) {
+    case 'success':
+    case 'Active':
+      return CheckCircle;
+    case 'training':
+    case 'Training':
+      return Clock;
+    case 'error':
+    case 'Issues':
+      return AlertTriangle;
+    case 'idle':
+    default:
+      return AlertCircle;
+  }
+};
 
-  const getTooltipContent = () => {
-    if (source.linkBroken) {
-      return 'Knowledge source link is broken';
-    } else if (source.hasError) {
-      return 'Knowledge source is deleted';
-    } else if (source.hasIssue) {
-      return 'Some source is deleted';
-    } else {
-      return `Type: ${source.type}`;
-    }
-  };
+const getStatusColor = (status: KnowledgeSource['trainingStatus']) => {
+  switch (status) {
+    case 'success':
+    case 'Active':
+      return 'bg-green-100 text-green-700 border-green-200';
+    case 'training':
+    case 'Training':
+      return 'bg-blue-100 text-blue-700 border-blue-200';
+    case 'error':
+    case 'Issues':
+      return 'bg-red-100 text-red-700 border-red-200';
+    case 'idle':
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};
 
-  const sizeClasses = size === 'sm' 
-    ? 'px-1.5 py-0.5 text-[10px]' 
-    : 'px-2 py-0.5 text-xs';
+const KnowledgeSourceBadge = ({ source, onClick }: KnowledgeSourceBadgeProps) => {
+  const IconComponent = getIconForType(source.type);
+  const StatusIcon = getStatusIcon(source.trainingStatus);
+  const statusColor = getStatusColor(source.trainingStatus);
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div 
-            className={`inline-flex items-center gap-1.5 rounded-full transition-colors duration-200 cursor-pointer ${getBadgeStyle()} ${sizeClasses}`}
-            onClick={onClick}
-          >
-            <span className={getTextColor()}>
-              {getIcon()}
-            </span>
-            <span className={`font-medium ${size === 'sm' ? 'text-[10px]' : 'text-xs'}`}>{source.name}</span>
-            {source.hasError && (
-              <AlertTriangle className={size === 'sm' ? "h-2.5 w-2.5 text-red-500" : "h-3 w-3 text-red-500"} />
-            )}
-            {source.linkBroken && (
-              <Link2Off className={size === 'sm' ? "h-2.5 w-2.5 text-orange-500" : "h-3 w-3 text-orange-500"} />
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          {getTooltipContent()}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Badge 
+      variant="outline" 
+      className={`inline-flex items-center gap-1 px-2 py-1 text-xs ${statusColor} ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+      onClick={onClick}
+    >
+      <IconComponent className="h-3 w-3" />
+      <span className="truncate max-w-[100px]">{source.name}</span>
+      {(source.hasError || source.hasIssue || source.trainingStatus === 'error' || source.trainingStatus === 'Issues') && (
+        <StatusIcon className="h-3 w-3" />
+      )}
+    </Badge>
   );
 };
 
