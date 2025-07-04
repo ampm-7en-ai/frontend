@@ -306,16 +306,6 @@ const KnowledgeBaseCard = ({
     }
   };
 
-  const getSourceType = (source: any): KnowledgeSourceBadgeProps['source'] => {
-    return {
-      name: source.title || "Unknown",
-      type: source.metadata?.format?.toLowerCase() || knowledgeBase.type,
-      id: source.id || 0,
-      hasError: source.status === 'deleted',
-      linkBroken: source.url && !source.url.startsWith('http')
-    };
-  };
-
   const createKnowledgeSourceFromApi = (source: any, baseType: string) => ({
     id: source.id || 0,
     name: source.title || "Unknown",
@@ -408,6 +398,7 @@ const KnowledgeBaseCard = ({
                             <div className="flex items-center gap-2 max-w-[70%]">
                               <KnowledgeSourceBadge 
                                 source={createKnowledgeSourceFromApi(source, knowledgeBase.type)}
+                                size="sm"
                               />
                               {source.url && (
                                 <a 
@@ -448,6 +439,7 @@ const KnowledgeBaseCard = ({
                             <div className="flex items-center gap-2">
                               <KnowledgeSourceBadge 
                                 source={createKnowledgeSourceFromApi(source, knowledgeBase.type)}
+                                size="sm"
                               />
                             </div>
                             <div className="flex items-center gap-2">
