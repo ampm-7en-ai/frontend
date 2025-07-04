@@ -64,8 +64,10 @@ export const GuidelinesPanel = () => {
             {/* Behavior Guidelines */}
             <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                    <Target className="h-4 w-4 text-white" />
+                  </div>
                   <span className="text-sm font-medium">Behavior Guidelines</span>
                 </div>
               </AccordionTrigger>
@@ -143,8 +145,10 @@ export const GuidelinesPanel = () => {
             {/* Model Settings */}
             <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                    <Zap className="h-4 w-4 text-white" />
+                  </div>
                   <span className="text-sm font-medium">Model Settings</span>
                 </div>
               </AccordionTrigger>
@@ -203,8 +207,10 @@ export const GuidelinesPanel = () => {
             {/* Suggestions */}
             <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                    <Target className="h-4 w-4 text-white" />
+                  </div>
                   <span className="text-sm font-medium">Quick Suggestions</span>
                 </div>
               </AccordionTrigger>

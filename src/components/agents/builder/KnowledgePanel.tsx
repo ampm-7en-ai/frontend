@@ -46,11 +46,13 @@ export const KnowledgePanel = () => {
       
       <ScrollArea className="flex-1 h-[calc(100%-80px)]">
         <div className="p-4">
-          <Accordion type="single" collapsible defaultValue="knowledge" className="space-y-4">
+          <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem value="knowledge" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                    <Brain className="h-4 w-4 text-white" />
+                  </div>
                   <span className="text-sm font-medium">Knowledge Sources ({knowledgeBases.length})</span>
                 </div>
               </AccordionTrigger>
