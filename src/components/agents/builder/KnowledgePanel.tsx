@@ -46,7 +46,7 @@ export const KnowledgePanel = () => {
       
       <ScrollArea className="flex-1 h-[calc(100%-80px)]">
         <div className="p-4">
-          <Accordion type="single" collapsible className="space-y-4">
+          <Accordion type="single" collapsible defaultValue="knowledge" className="space-y-4">
             <AccordionItem value="knowledge" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">

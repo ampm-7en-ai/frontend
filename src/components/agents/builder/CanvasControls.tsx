@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useBuilder } from './BuilderContext';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   Monitor, 
@@ -13,6 +12,7 @@ import {
   EyeOff,
   Expand
 } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 export const CanvasControls = () => {
   const { state, setCanvasMode, setDeviceMode, togglePreview } = useBuilder();
@@ -25,33 +25,30 @@ export const CanvasControls = () => {
         <div className="flex items-center gap-2 pr-4 border-r border-gray-200/60">
           <span className="text-xs font-medium text-gray-600 mb-1">Mode</span>
           <div className="flex gap-1">
-            <Button
-              variant={canvasMode === 'embedded' ? 'default' : 'ghost'}
+            <ModernButton
+              variant={canvasMode === 'embedded' ? 'primary' : 'ghost'}
               size="sm"
+              icon={MessageSquare}
+              iconOnly
               onClick={() => setCanvasMode('embedded')}
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-              title="Embedded Chat"
-            >
-              <MessageSquare className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={canvasMode === 'popup' ? 'default' : 'ghost'}
+            />
+            <ModernButton
+              variant={canvasMode === 'popup' ? 'primary' : 'ghost'}
               size="sm"
+              icon={Maximize2}
+              iconOnly
               onClick={() => setCanvasMode('popup')}
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-              title="Popup Chat"
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={canvasMode === 'fullscreen' ? 'default' : 'ghost'}
+            />
+            <ModernButton
+              variant={canvasMode === 'fullscreen' ? 'primary' : 'ghost'}
               size="sm"
+              icon={Expand}
+              iconOnly
               onClick={() => setCanvasMode('fullscreen')}
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-              title="Fullscreen Chat"
-            >
-              <Expand className="h-4 w-4" />
-            </Button>
+            />
           </div>
         </div>
 
@@ -59,47 +56,44 @@ export const CanvasControls = () => {
         <div className="flex items-center gap-2 pr-4 border-r border-gray-200/60">
           <span className="text-xs font-medium text-gray-600 mb-1">Device</span>
           <div className="flex gap-1">
-            <Button
-              variant={deviceMode === 'desktop' ? 'default' : 'ghost'}
+            <ModernButton
+              variant={deviceMode === 'desktop' ? 'primary' : 'ghost'}
               size="sm"
+              icon={Monitor}
+              iconOnly
               onClick={() => setDeviceMode('desktop')}
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-              title="Desktop View"
-            >
-              <Monitor className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={deviceMode === 'tablet' ? 'default' : 'ghost'}
+            />
+            <ModernButton
+              variant={deviceMode === 'tablet' ? 'primary' : 'ghost'}
               size="sm"
+              icon={Tablet}
+              iconOnly
               onClick={() => setDeviceMode('tablet')}
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-              title="Tablet View"
-            >
-              <Tablet className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={deviceMode === 'mobile' ? 'default' : 'ghost'}
+            />
+            <ModernButton
+              variant={deviceMode === 'mobile' ? 'primary' : 'ghost'}
               size="sm"
+              icon={Smartphone}
+              iconOnly
               onClick={() => setDeviceMode('mobile')}
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-              title="Mobile View"
-            >
-              <Smartphone className="h-4 w-4" />
-            </Button>
+            />
           </div>
         </div>
 
         {/* Preview Toggle */}
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-gray-600">Preview</span>
-          <Button
-            variant={isPreviewActive ? 'default' : 'ghost'}
+          <ModernButton
+            variant={isPreviewActive ? 'primary' : 'ghost'}
             size="sm"
+            icon={isPreviewActive ? Eye : EyeOff}
+            iconOnly
             onClick={togglePreview}
             className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-          >
-            {isPreviewActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-          </Button>
+          />
         </div>
       </div>
     </Card>

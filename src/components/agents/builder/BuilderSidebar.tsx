@@ -3,15 +3,34 @@ import React from 'react';
 import { useBuilder } from './BuilderContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Bot, Palette, MessageSquare } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 export const BuilderSidebar = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
+
+  const fontOptions = [
+    { value: 'Inter', label: 'Inter' },
+    { value: 'Arial', label: 'Arial' },
+    { value: 'Helvetica', label: 'Helvetica' },
+    { value: 'Georgia', label: 'Georgia' },
+    { value: 'Times New Roman', label: 'Times New Roman' }
+  ];
+
+  const positionOptions = [
+    { value: 'bottom-right', label: 'Bottom Right' },
+    { value: 'bottom-left', label: 'Bottom Left' }
+  ];
 
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900">
@@ -44,7 +63,7 @@ export const BuilderSidebar = () => {
                       value={agentData.name}
                       onChange={(e) => updateAgentData({ name: e.target.value })}
                       placeholder="Enter agent name"
-                      className="mt-1.5 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
                     />
                   </div>
                   
@@ -55,7 +74,7 @@ export const BuilderSidebar = () => {
                       value={agentData.chatbotName}
                       onChange={(e) => updateAgentData({ chatbotName: e.target.value })}
                       placeholder="Enter chatbot name"
-                      className="mt-1.5 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
                     />
                   </div>
                   
@@ -66,7 +85,7 @@ export const BuilderSidebar = () => {
                       value={agentData.description}
                       onChange={(e) => updateAgentData({ description: e.target.value })}
                       placeholder="Describe your agent's purpose"
-                      className="mt-1.5 min-h-[80px] rounded-lg border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
                     />
                   </div>
                 </div>
@@ -93,12 +112,12 @@ export const BuilderSidebar = () => {
                         type="color"
                         value={agentData.primaryColor}
                         onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                        className="w-12 h-10 p-1 rounded-lg border-gray-200 dark:border-gray-700"
+                        className="w-12 h-10 p-1 rounded-xl border-gray-200 dark:border-gray-700"
                       />
                       <Input
                         value={agentData.primaryColor}
                         onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
                       />
                     </div>
                   </div>
@@ -111,46 +130,62 @@ export const BuilderSidebar = () => {
                         type="color"
                         value={agentData.secondaryColor}
                         onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                        className="w-12 h-10 p-1 rounded-lg border-gray-200 dark:border-gray-700"
+                        className="w-12 h-10 p-1 rounded-xl border-gray-200 dark:border-gray-700"
                       />
                       <Input
                         value={agentData.secondaryColor}
                         onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
                       />
                     </div>
                   </div>
                   
                   <div>
                     <Label htmlFor="fontFamily" className="text-sm font-medium text-gray-700 dark:text-gray-300">Font Family</Label>
-                    <Select value={agentData.fontFamily} onValueChange={(value) => updateAgentData({ fontFamily: value })}>
-                      <SelectTrigger className="mt-1.5 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Inter">Inter</SelectItem>
-                        <SelectItem value="Arial">Arial</SelectItem>
-                        <SelectItem value="Helvetica">Helvetica</SelectItem>
-                        <SelectItem value="Georgia">Georgia</SelectItem>
-                        <SelectItem value="Times New Roman">Times New Roman</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <ModernButton
+                          variant="outline"
+                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700"
+                        >
+                          {agentData.fontFamily}
+                        </ModernButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full">
+                        {fontOptions.map((font) => (
+                          <DropdownMenuItem
+                            key={font.value}
+                            onClick={() => updateAgentData({ fontFamily: font.value })}
+                          >
+                            {font.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   
                   <div>
                     <Label htmlFor="position" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat Button Position</Label>
-                    <Select 
-                      value={agentData.position} 
-                      onValueChange={(value) => updateAgentData({ position: value as 'bottom-right' | 'bottom-left' })}
-                    >
-                      <SelectTrigger className="mt-1.5 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                        <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <ModernButton
+                          variant="outline"
+                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700"
+                        >
+                          {positionOptions.find(pos => pos.value === agentData.position)?.label}
+                        </ModernButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full">
+                        {positionOptions.map((position) => (
+                          <DropdownMenuItem
+                            key={position.value}
+                            onClick={() => updateAgentData({ position: position.value as 'bottom-right' | 'bottom-left' })}
+                          >
+                            {position.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </AccordionContent>
@@ -175,7 +210,7 @@ export const BuilderSidebar = () => {
                       value={agentData.welcomeMessage}
                       onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
                       placeholder="Enter welcome message"
-                      className="mt-1.5 min-h-[80px] rounded-lg border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
+                      className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
                     />
                   </div>
                   
@@ -186,7 +221,7 @@ export const BuilderSidebar = () => {
                       value={agentData.buttonText}
                       onChange={(e) => updateAgentData({ buttonText: e.target.value })}
                       placeholder="Leave empty for icon-only button"
-                      className="mt-1.5 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
+                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
                     />
                   </div>
                 </div>

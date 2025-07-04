@@ -3,17 +3,29 @@ import React from 'react';
 import { useBuilder } from './BuilderContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Settings, Plus, X, Target, Zap } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
+
+  const modelOptions = [
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+    { value: 'gpt-4', label: 'GPT-4' },
+    { value: 'claude-3-haiku', label: 'Claude 3 Haiku' },
+    { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' }
+  ];
 
   const addGuideline = (type: 'dos' | 'donts') => {
     const newGuidelines = { ...agentData.guidelines };
@@ -82,27 +94,27 @@ export const GuidelinesPanel = () => {
                             value={guideline}
                             onChange={(e) => updateGuideline('dos', index, e.target.value)}
                             placeholder="Enter a do guideline"
-                            className="h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
+                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
                           />
-                          <Button
+                          <ModernButton
                             variant="ghost"
                             size="sm"
+                            icon={X}
+                            iconOnly
                             onClick={() => removeGuideline('dos', index)}
-                            className="h-10 w-10 p-0 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                            className="h-10 w-10 p-0 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          />
                         </div>
                       ))}
-                      <Button
+                      <ModernButton
                         variant="ghost"
                         size="sm"
+                        icon={Plus}
                         onClick={() => addGuideline('dos')}
-                        className="h-10 rounded-lg text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                        className="h-10 rounded-xl text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
                         Add Do
-                      </Button>
+                      </ModernButton>
                     </div>
                   </div>
 
@@ -115,27 +127,27 @@ export const GuidelinesPanel = () => {
                             value={guideline}
                             onChange={(e) => updateGuideline('donts', index, e.target.value)}
                             placeholder="Enter a don't guideline"
-                            className="h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-red-500 dark:focus:border-red-400"
+                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-red-500 dark:focus:border-red-400"
                           />
-                          <Button
+                          <ModernButton
                             variant="ghost"
                             size="sm"
+                            icon={X}
+                            iconOnly
                             onClick={() => removeGuideline('donts', index)}
-                            className="h-10 w-10 p-0 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                            className="h-10 w-10 p-0 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          />
                         </div>
                       ))}
-                      <Button
+                      <ModernButton
                         variant="ghost"
                         size="sm"
+                        icon={Plus}
                         onClick={() => addGuideline('donts')}
-                        className="h-10 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="h-10 rounded-xl text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
                         Add Don't
-                      </Button>
+                      </ModernButton>
                     </div>
                   </div>
                 </div>
@@ -156,17 +168,26 @@ export const GuidelinesPanel = () => {
                 <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
-                    <Select value={agentData.model} onValueChange={(value) => updateAgentData({ model: value })}>
-                      <SelectTrigger className="mt-1.5 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                        <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
-                        <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <ModernButton
+                          variant="outline"
+                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700"
+                        >
+                          {modelOptions.find(model => model.value === agentData.model)?.label}
+                        </ModernButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full">
+                        {modelOptions.map((model) => (
+                          <DropdownMenuItem
+                            key={model.value}
+                            onClick={() => updateAgentData({ model: model.value })}
+                          >
+                            {model.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   <div>
@@ -187,7 +208,7 @@ export const GuidelinesPanel = () => {
                       type="number"
                       value={agentData.maxTokens}
                       onChange={(e) => updateAgentData({ maxTokens: parseInt(e.target.value) || 1000 })}
-                      className="mt-1.5 h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
                     />
                   </div>
 
@@ -197,7 +218,7 @@ export const GuidelinesPanel = () => {
                       value={agentData.systemPrompt}
                       onChange={(e) => updateAgentData({ systemPrompt: e.target.value })}
                       placeholder="Enter system prompt"
-                      className="mt-1.5 min-h-[100px] rounded-lg border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
                     />
                   </div>
                 </div>
@@ -222,27 +243,27 @@ export const GuidelinesPanel = () => {
                         value={suggestion}
                         onChange={(e) => updateSuggestion(index, e.target.value)}
                         placeholder="Enter a suggestion"
-                        className="h-10 rounded-lg border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                        className="h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
                       />
-                      <Button
+                      <ModernButton
                         variant="ghost"
                         size="sm"
+                        icon={X}
+                        iconOnly
                         onClick={() => removeSuggestion(index)}
-                        className="h-10 w-10 p-0 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                        className="h-10 w-10 p-0 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      />
                     </div>
                   ))}
-                  <Button
+                  <ModernButton
                     variant="ghost"
                     size="sm"
+                    icon={Plus}
                     onClick={addSuggestion}
-                    className="h-10 rounded-lg text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    className="h-10 rounded-xl text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
                     Add Suggestion
-                  </Button>
+                  </ModernButton>
                 </div>
               </AccordionContent>
             </AccordionItem>
