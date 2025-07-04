@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -9,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
+import CompactKnowledgeSourceCard from '@/components/agents/knowledge/CompactKnowledgeSourceCard';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -39,58 +39,23 @@ const getBadgeForStatus = (status: string) => {
   }
 };
 
-const KnowledgeSourceCard = ({ knowledgeSource }: { knowledgeSource: any }) => {
-  const IconComponent = getIconForType(knowledgeSource.type);
-
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600 h-32">
-      <div className="p-4 h-full flex flex-col">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-sm flex-shrink-0">
-            <IconComponent className="h-5 w-5 text-white" />
-          </div>
-          {getBadgeForStatus(knowledgeSource.trainingStatus)}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm mb-1">
-            {knowledgeSource.name}
-          </h3>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 dark:text-gray-400 capitalize bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-              {knowledgeSource.type}
-            </span>
-          </div>
-          
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            {knowledgeSource.size} • {knowledgeSource.lastUpdated}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const AddKnowledgeCard = ({ onClick }: { onClick: () => void }) => {
   return (
     <div 
-      className="group relative overflow-hidden rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 h-32 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+      className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg border-2 border-dashed border-slate-600/50 hover:border-blue-500/50 hover:bg-slate-600/30 transition-colors cursor-pointer group"
       onClick={onClick}
     >
-      <div className="p-4 h-full flex flex-col items-center justify-center text-center">
-        <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl shadow-sm mb-3 group-hover:from-blue-500 group-hover:to-purple-600 transition-all duration-200">
-          <Plus className="h-6 w-6 text-white" />
-        </div>
-        
-        <div>
-          <h3 className="font-medium text-gray-700 dark:text-gray-300 text-sm mb-1 group-hover:text-gray-900 dark:group-hover:text-gray-100">
-            Add Knowledge
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Import new sources
-          </p>
-        </div>
+      <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg group-hover:from-blue-500 group-hover:to-purple-600 transition-all duration-200 flex-shrink-0">
+        <Plus className="h-4 w-4 text-white" />
+      </div>
+      
+      <div className="flex-1">
+        <h3 className="text-sm font-medium text-slate-300 group-hover:text-white mb-1">
+          Add Knowledge Source
+        </h3>
+        <p className="text-xs text-slate-500">
+          Import new sources
+        </p>
       </div>
     </div>
   );
@@ -226,18 +191,18 @@ export const KnowledgePanel = () => {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900">
-      <div className="p-6 border-b border-gray-100 dark:border-gray-800">
+    <div className="w-full h-full bg-slate-900">
+      <div className="p-6 border-b border-slate-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg font-semibold text-white">
                 Knowledge Base
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-slate-400">
                 {agentData.knowledgeSources.length} source{agentData.knowledgeSources.length !== 1 ? 's' : ''} imported
               </p>
             </div>
@@ -256,24 +221,27 @@ export const KnowledgePanel = () => {
       </div>
       
       <ScrollArea className="flex-1 h-[calc(100%-120px)]">
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
-            {agentData.knowledgeSources.map((knowledgeSource) => (
-              <KnowledgeSourceCard
-                key={knowledgeSource.id}
-                knowledgeSource={knowledgeSource}
-              />
-            ))}
-          </div>
+        <div className="p-6 space-y-3">
+          <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
+          
+          {agentData.knowledgeSources.map((knowledgeSource) => (
+            <CompactKnowledgeSourceCard
+              key={knowledgeSource.id}
+              source={knowledgeSource}
+              onClick={() => {
+                // Handle knowledge source click if needed
+                console.log('Knowledge source clicked:', knowledgeSource.name);
+              }}
+            />
+          ))}
           
           {agentData.knowledgeSources.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Brain className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No knowledge sources yet</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
+              <h3 className="text-lg font-semibold text-white mb-2">No knowledge sources yet</h3>
+              <p className="text-sm text-slate-400 max-w-sm mx-auto mb-4">
                 Import knowledge sources to improve your agent's responses and make it more knowledgeable.
               </p>
               <ModernButton
