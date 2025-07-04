@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,8 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQueryClient } from '@tanstack/react-query';
 import { Separator } from '@/components/ui/separator';
-import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
-import { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
+import KnowledgeSourceBadge, { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface KnowledgeSourceListProps {
@@ -318,6 +316,19 @@ const KnowledgeBaseCard = ({
     };
   };
 
+  const createKnowledgeSourceFromApi = (source: any, baseType: string) => ({
+    id: source.id || 0,
+    name: source.title || "Unknown",
+    type: source.metadata?.format?.toLowerCase() || baseType,
+    size: source.metadata?.file_size || source.metadata?.size || 'N/A',
+    lastUpdated: source.metadata?.last_updated || new Date().toISOString(),
+    trainingStatus: source.training_status || source.status || 'idle' as const,
+    hasError: source.status === 'deleted',
+    hasIssue: false,
+    linkBroken: source.url && !source.url.startsWith('http'),
+    metadata: source.metadata || {}
+  });
+
   return (
     <>
       <div className="overflow-hidden rounded-md border border-gray-200 shadow-sm bg-white">
@@ -395,7 +406,9 @@ const KnowledgeBaseCard = ({
                         ) : (
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2 max-w-[70%]">
-                              <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
+                              <KnowledgeSourceBadge 
+                                source={createKnowledgeSourceFromApi(source, knowledgeBase.type)}
+                              />
                               {source.url && (
                                 <a 
                                   href={source.url} 
@@ -429,12 +442,13 @@ const KnowledgeBaseCard = ({
                         )}
                       </div>
                     ) : (
-                    
                       source.is_selected &&  (
                         <div key={source.id} className="py-2">
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2">
-                              <KnowledgeSourceBadge source={getSourceType(source)} size="md" />
+                              <KnowledgeSourceBadge 
+                                source={createKnowledgeSourceFromApi(source, knowledgeBase.type)}
+                              />
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-muted-foreground">{getFormattedSize(source)}</span>
@@ -444,13 +458,7 @@ const KnowledgeBaseCard = ({
                           <Separator className="mt-2 bg-gray-100" />
                         </div>
                       )
-                    
-                      
                     )}
-                    
-                    {/* {index < knowledgeBase.knowledge_sources.length - 1 && (
-                      <Separator className="mt-2 bg-gray-100" />
-                    )} */}
                   </>
                 );
               })}

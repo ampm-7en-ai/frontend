@@ -23,8 +23,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQueryClient } from '@tanstack/react-query';
-import KnowledgeSourceBadge from '@/components/agents/KnowledgeSourceBadge';
-import { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
+import KnowledgeSourceBadge, { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
 
 interface EnhancedKnowledgeSourceListProps {
   knowledgeBases: ApiKnowledgeBase[];
@@ -225,6 +224,19 @@ const KnowledgeBaseCard = ({
     }
   };
 
+  const createKnowledgeSourceFromApi = (source: any, baseType: string) => ({
+    id: source.id || 0,
+    name: source.title || "Unknown",
+    type: source.metadata?.format?.toLowerCase() || baseType,
+    size: source.metadata?.file_size || source.metadata?.size || 'N/A',
+    lastUpdated: source.metadata?.last_updated || new Date().toISOString(),
+    trainingStatus: source.training_status || source.status || 'idle' as const,
+    hasError: source.status === 'deleted',
+    hasIssue: false,
+    linkBroken: source.url && !source.url.startsWith('http'),
+    metadata: source.metadata || {}
+  });
+
   return (
     <>
       <div className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600">
@@ -321,13 +333,7 @@ const KnowledgeBaseCard = ({
                             <div className="flex justify-between items-center">
                               <div className="flex items-center gap-2">
                                 <KnowledgeSourceBadge 
-                                  source={{
-                                    name: source.title || "Unknown",
-                                    type: source.metadata?.format?.toLowerCase() || knowledgeBase.type,
-                                    id: source.id || 0,
-                                    hasError: source.status === 'deleted',
-                                    linkBroken: source.url && !source.url.startsWith('http')
-                                  }} 
+                                  source={createKnowledgeSourceFromApi(source, knowledgeBase.type)}
                                   size="sm" 
                                 />
                                 {source.url && (
@@ -352,13 +358,7 @@ const KnowledgeBaseCard = ({
                         source.is_selected && (
                           <div className="flex justify-between items-center">
                             <KnowledgeSourceBadge 
-                              source={{
-                                name: source.title || "Unknown",
-                                type: source.metadata?.format?.toLowerCase() || knowledgeBase.type,
-                                id: source.id || 0,
-                                hasError: source.status === 'deleted',
-                                linkBroken: source.url && !source.url.startsWith('http')
-                              }} 
+                              source={createKnowledgeSourceFromApi(source, knowledgeBase.type)}
                               size="sm" 
                             />
                             <div className="flex items-center gap-2">
