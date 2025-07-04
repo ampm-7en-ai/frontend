@@ -1,9 +1,20 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { createAgent } from '@/utils/api-config';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+
+interface KnowledgeSource {
+  id: number;
+  name: string;
+  type: string;
+  size?: string;
+  lastUpdated: string;
+  trainingStatus: 'idle' | 'training' | 'success' | 'error' | 'Active' | 'Training' | 'Issues';
+  linkBroken?: boolean;
+  knowledge_sources?: any[];
+  metadata?: any;
+}
 
 interface AgentFormData {
   id?: string | number;
@@ -27,6 +38,7 @@ interface AgentFormData {
     dos: string[];
     donts: string[];
   };
+  knowledgeSources: KnowledgeSource[];
 }
 
 interface BuilderState {
@@ -73,7 +85,8 @@ const defaultAgentData: AgentFormData = {
   guidelines: {
     dos: ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
     donts: ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
-  }
+  },
+  knowledgeSources: []
 };
 
 const initialState: BuilderState = {
@@ -94,6 +107,23 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Enhanced logging for debugging
   console.log('BuilderProvider - Agent ID from URL:', id);
   console.log('BuilderProvider - Current agent data:', state.agentData);
+
+  // Helper function to format knowledge sources
+  const formatKnowledgeSources = (knowledgeBases: any[]): KnowledgeSource[] => {
+    if (!knowledgeBases || !Array.isArray(knowledgeBases)) return [];
+    
+    return knowledgeBases.map(kb => ({
+      id: kb.id,
+      name: kb.name,
+      type: kb.type,
+      size: kb.size || 'N/A',
+      lastUpdated: kb.last_updated ? new Date(kb.last_updated).toLocaleDateString('en-GB') : 'N/A',
+      trainingStatus: kb.training_status || kb.status || 'idle',
+      linkBroken: false,
+      knowledge_sources: kb.knowledge_sources || [],
+      metadata: kb.metadata || {}
+    }));
+  };
 
   // Fetch agent data when ID is present
   useEffect(() => {
@@ -147,10 +177,11 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           guidelines: {
             dos: agentData.behavior?.guidelines?.dos || ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
             donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
-          }
+          },
+          knowledgeSources: formatKnowledgeSources(agentData.knowledge_bases || agentData.knowledgeSources || [])
         };
 
-        console.log('Mapped agent data:', mappedData);
+        console.log('Mapped agent data with knowledge sources:', mappedData);
 
         setState(prev => ({
           ...prev,

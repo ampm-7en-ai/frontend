@@ -2,14 +2,12 @@
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
-import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import { ImportSourcesDialog } from '@/components/agents/knowledge/ImportSourcesDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { ApiKnowledgeBase, KnowledgeSource } from '@/components/agents/knowledge/types';
 import { useToast } from '@/hooks/use-toast';
 
 const getIconForType = (type: string) => {
@@ -28,38 +26,6 @@ const getIconForType = (type: string) => {
   }
 };
 
-const getTypeDescription = (knowledgeBase: ApiKnowledgeBase): string => {
-  const { type } = knowledgeBase;
-  
-  const firstSource = knowledgeBase.knowledge_sources?.[0];
-  if (!firstSource) return type;
-  
-  switch (type.toLowerCase()) {
-    case 'document':
-    case 'pdf':
-    case 'docs':
-    case 'csv':
-      const fileCount = knowledgeBase.knowledge_sources.filter(source => source.is_selected).length;
-      return `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
-      
-    case 'website':
-      let urlCount = 0;
-      if (firstSource.metadata?.sub_urls?.children) {
-        urlCount = firstSource.metadata.sub_urls.children.filter(url => url.is_selected).length;
-      }
-      return `${urlCount} ${urlCount === 1 ? 'URL' : 'URLs'}`;
-      
-    case 'plain_text':
-      if (firstSource.metadata?.no_of_chars) {
-        return `${firstSource.metadata.no_of_chars} chars`;
-      }
-      return type;
-      
-    default:
-      return type;
-  }
-};
-
 const getBadgeForStatus = (status: string) => {
   switch (status) {
     case 'Active':
@@ -73,8 +39,8 @@ const getBadgeForStatus = (status: string) => {
   }
 };
 
-const KnowledgeSourceCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBase }) => {
-  const IconComponent = getIconForType(knowledgeBase.type);
+const KnowledgeSourceCard = ({ knowledgeSource }: { knowledgeSource: any }) => {
+  const IconComponent = getIconForType(knowledgeSource.type);
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600 h-32">
@@ -83,22 +49,22 @@ const KnowledgeSourceCard = ({ knowledgeBase }: { knowledgeBase: ApiKnowledgeBas
           <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-sm flex-shrink-0">
             <IconComponent className="h-5 w-5 text-white" />
           </div>
-          {getBadgeForStatus(knowledgeBase.training_status)}
+          {getBadgeForStatus(knowledgeSource.trainingStatus)}
         </div>
         
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm mb-1">
-            {knowledgeBase.name}
+            {knowledgeSource.name}
           </h3>
           
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-600 dark:text-gray-400 capitalize bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-              {knowledgeBase.type}
+              {knowledgeSource.type}
             </span>
           </div>
           
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            {getTypeDescription(knowledgeBase)}
+            {knowledgeSource.size} • {knowledgeSource.lastUpdated}
           </p>
         </div>
       </div>
@@ -131,37 +97,15 @@ const AddKnowledgeCard = ({ onClick }: { onClick: () => void }) => {
 };
 
 export const KnowledgePanel = () => {
-  const { state } = useBuilder();
+  const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
-  const { data: knowledgeBases = [], isLoading, error } = useQuery({
-    queryKey: ['agentKnowledgeBases', agentData.id?.toString()],
-    queryFn: async () => {
-      if (!agentData.id) return [];
-      
-      const token = getAccessToken();
-      if (!token) throw new Error('No authentication token');
-
-      const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-bases/`, {
-        headers: getAuthHeaders(token)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch agent knowledge bases');
-      }
-
-      const result = await response.json();
-      return result.data || [];
-    },
-    enabled: !!agentData.id
-  });
-
   // Fetch external knowledge sources for import dialog
   const { data: externalSources = [] } = useQuery({
-    queryKey: ['knowledgeSources'],
+    queryKey: ['availableKnowledgeSources'],
     queryFn: async () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
@@ -182,10 +126,35 @@ export const KnowledgePanel = () => {
 
   const handleImport = async (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
     try {
-      // Refresh the knowledge bases after import
-      await queryClient.invalidateQueries({ 
-        queryKey: ['agentKnowledgeBases', agentData.id?.toString()]
-      });
+      // After successful import, refresh the agent data to get updated knowledge sources
+      if (agentData.id) {
+        const token = getAccessToken();
+        if (!token) throw new Error('No authentication token');
+
+        const response = await fetch(`${BASE_URL}agents/${agentData.id}/`, {
+          headers: getAuthHeaders(token)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          const updatedKnowledgeSources = result.data.knowledge_bases || [];
+          
+          // Format and update the knowledge sources
+          const formattedSources = updatedKnowledgeSources.map((kb: any) => ({
+            id: kb.id,
+            name: kb.name,
+            type: kb.type,
+            size: kb.size || 'N/A',
+            lastUpdated: kb.last_updated ? new Date(kb.last_updated).toLocaleDateString('en-GB') : 'N/A',
+            trainingStatus: kb.training_status || kb.status || 'idle',
+            linkBroken: false,
+            knowledge_sources: kb.knowledge_sources || [],
+            metadata: kb.metadata || {}
+          }));
+
+          updateAgentData({ knowledgeSources: formattedSources });
+        }
+      }
       
       toast({
         title: "Knowledge sources imported",
@@ -222,10 +191,13 @@ export const KnowledgePanel = () => {
         description: "Your agent's knowledge base is being trained.",
       });
 
-      // Refresh knowledge bases to update training status
-      queryClient.invalidateQueries({ 
-        queryKey: ['agentKnowledgeBases', agentData.id?.toString()]
-      });
+      // Update training status for knowledge sources
+      const updatedSources = agentData.knowledgeSources.map(source => ({
+        ...source,
+        trainingStatus: 'Training' as const
+      }));
+      
+      updateAgentData({ knowledgeSources: updatedSources });
     } catch (error) {
       console.error('Error training knowledge:', error);
       toast({
@@ -266,7 +238,7 @@ export const KnowledgePanel = () => {
                 Knowledge Base
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {knowledgeBases.length} source{knowledgeBases.length !== 1 ? 's' : ''} imported
+                {agentData.knowledgeSources.length} source{agentData.knowledgeSources.length !== 1 ? 's' : ''} imported
               </p>
             </div>
           </div>
@@ -276,7 +248,7 @@ export const KnowledgePanel = () => {
             size="sm"
             className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
             onClick={handleTrainKnowledge}
-            disabled={knowledgeBases.length === 0}
+            disabled={agentData.knowledgeSources.length === 0}
           >
             Train Knowledge
           </ModernButton>
@@ -285,37 +257,17 @@ export const KnowledgePanel = () => {
       
       <ScrollArea className="flex-1 h-[calc(100%-120px)]">
         <div className="p-6">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-2xl"></div>
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Brain className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Error loading knowledge sources</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                {error instanceof Error ? error.message : 'Failed to load knowledge sources'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
-              {knowledgeBases.map((knowledgeBase) => (
-                <KnowledgeSourceCard
-                  key={knowledgeBase.id}
-                  knowledgeBase={knowledgeBase}
-                />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
+            {agentData.knowledgeSources.map((knowledgeSource) => (
+              <KnowledgeSourceCard
+                key={knowledgeSource.id}
+                knowledgeSource={knowledgeSource}
+              />
+            ))}
+          </div>
           
-          {!isLoading && !error && knowledgeBases.length === 0 && (
+          {agentData.knowledgeSources.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Brain className="h-8 w-8 text-white" />
@@ -341,7 +293,7 @@ export const KnowledgePanel = () => {
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         externalSources={externalSources}
-        currentSources={knowledgeBases}
+        currentSources={agentData.knowledgeSources}
         onImport={handleImport}
         agentId={agentData.id?.toString()}
       />
