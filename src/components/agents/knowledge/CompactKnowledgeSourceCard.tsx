@@ -47,7 +47,7 @@ const CompactKnowledgeSourceCard = ({ source, onClick }: CompactKnowledgeSourceC
 
   return (
     <div 
-      className="flex items-center gap-3 p-3 bg-slate-700/60 rounded-lg border border-slate-600/50 hover:bg-slate-600/60 transition-colors cursor-pointer min-w-0"
+      className="flex items-center gap-3 p-3 bg-slate-700/60 dark:bg-slate-700/60 rounded-lg border border-slate-600/50 dark:border-slate-600/50 hover:bg-slate-600/60 dark:hover:bg-slate-600/60 transition-colors cursor-pointer min-w-0"
       onClick={onClick}
     >
       <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex-shrink-0">
@@ -56,14 +56,14 @@ const CompactKnowledgeSourceCard = ({ source, onClick }: CompactKnowledgeSourceC
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <h3 className="text-sm font-medium text-white truncate">
+          <h3 className="text-sm font-medium text-white dark:text-white truncate">
             {source.name}
           </h3>
           {getStatusBadge(source.trainingStatus)}
         </div>
         
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 capitalize bg-slate-800/50 px-2 py-0.5 rounded-full">
+          <span className="text-xs text-slate-400 dark:text-slate-400 capitalize bg-slate-800/50 dark:bg-slate-800/50 px-2 py-0.5 rounded-full">
             {source.type}
           </span>
         </div>
