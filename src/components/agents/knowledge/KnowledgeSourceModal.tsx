@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog';
 import { KnowledgeSource } from './types';
@@ -63,8 +62,7 @@ const KnowledgeSourceModal = ({
     }
   };
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteClick = () => {
     setShowDeleteDialog(true);
   };
 
