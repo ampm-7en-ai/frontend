@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import CompactKnowledgeSourceCard from '@/components/agents/knowledge/CompactKnowledgeSourceCard';
+import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -68,6 +68,8 @@ export const KnowledgePanel = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch external knowledge sources for import dialog
   const { data: externalSources = [] } = useQuery({
@@ -174,6 +176,54 @@ export const KnowledgePanel = () => {
     }
   };
 
+  const handleSourceClick = (sourceId: number) => {
+    setSelectedSourceId(sourceId);
+    setIsModalOpen(true);
+  };
+
+  const handleSourceDelete = async (sourceId: number) => {
+    if (!agentData.id) return;
+
+    try {
+      const token = getAccessToken();
+      if (!token) throw new Error('No authentication token');
+
+      const response = await fetch(`${BASE_URL}agents/${agentData.id}/remove-knowledge-sources/`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          knowledgeSources: [sourceId]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete knowledge source');
+      }
+
+      // Update local state
+      const updatedSources = agentData.knowledgeSources.filter(source => source.id !== sourceId);
+      updateAgentData({ knowledgeSources: updatedSources });
+      
+      // Close modal if the deleted source was selected
+      if (selectedSourceId === sourceId) {
+        setIsModalOpen(false);
+        setSelectedSourceId(null);
+      }
+
+      toast({
+        title: "Knowledge source removed",
+        description: "The knowledge source has been successfully removed from your agent.",
+      });
+    } catch (error) {
+      console.error('Error deleting knowledge source:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was an error removing the knowledge source.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Show error state if not in agent context
   if (!agentData.id) {
     return (
@@ -221,8 +271,8 @@ export const KnowledgePanel = () => {
         </div>
       </div>
       
-      <ScrollArea className="flex-1 h-[calc(100%-120px)]">
-        <div className="p-6">
+      <div className="flex-1 h-[calc(100%-120px)] overflow-hidden">
+        <div className="p-6 h-full">
           {agentData.knowledgeSources.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -242,26 +292,25 @@ export const KnowledgePanel = () => {
               </ModernButton>
             </div>
           ) : (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {agentData.knowledgeSources.map((knowledgeSource) => (
-                <div key={knowledgeSource.id} className="flex-shrink-0 w-72">
-                  <CompactKnowledgeSourceCard
-                    source={knowledgeSource}
-                    onClick={() => {
-                      // Handle knowledge source click if needed
-                      console.log('Knowledge source clicked:', knowledgeSource.name);
-                    }}
-                  />
+            <div className="overflow-x-auto">
+              <div className="flex gap-3 pb-2 min-w-max">
+                {agentData.knowledgeSources.map((knowledgeSource) => (
+                  <div key={knowledgeSource.id} className="flex-shrink-0 w-72">
+                    <CompactKnowledgeSourceCard
+                      source={knowledgeSource}
+                      onClick={() => handleSourceClick(knowledgeSource.id)}
+                    />
+                  </div>
+                ))}
+                
+                <div className="flex-shrink-0 w-72">
+                  <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
                 </div>
-              ))}
-              
-              <div className="flex-shrink-0 w-72">
-                <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
               </div>
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       <ImportSourcesDialog
         isOpen={isImportDialogOpen}
@@ -270,6 +319,15 @@ export const KnowledgePanel = () => {
         currentSources={agentData.knowledgeSources}
         onImport={handleImport}
         agentId={agentData.id?.toString()}
+      />
+
+      <KnowledgeSourceModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        sources={agentData.knowledgeSources}
+        initialSourceId={selectedSourceId}
+        agentId={agentData.id?.toString()}
+        onSourceDelete={handleSourceDelete}
       />
     </div>
   );
