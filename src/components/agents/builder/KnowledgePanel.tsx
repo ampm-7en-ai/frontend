@@ -62,7 +62,7 @@ const AddKnowledgeCard = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-export const KnowledgePanel = () => {
+export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed = false }: { leftPanelCollapsed?: boolean, rightPanelCollapsed?: boolean }) => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
   const { toast } = useToast();
@@ -224,6 +224,21 @@ export const KnowledgePanel = () => {
     }
   };
 
+  // Calculate dynamic width based on collapsed panels
+  const getScrollAreaWidth = () => {
+    let baseWidth = 'calc(100vw - 60rem)'; // Default when both panels are open
+    
+    if (leftPanelCollapsed && rightPanelCollapsed) {
+      baseWidth = 'calc(100vw - 6rem)'; // Both collapsed
+    } else if (leftPanelCollapsed) {
+      baseWidth = 'calc(100vw - 32.75rem)'; // Left collapsed, right open
+    } else if (rightPanelCollapsed) {
+      baseWidth = 'calc(100vw - 32.75rem)'; // Right collapsed, left open
+    }
+    
+    return baseWidth;
+  };
+
   // Show error state if not in agent context
   if (!agentData.id) {
     return (
@@ -302,8 +317,14 @@ export const KnowledgePanel = () => {
               </ModernButton>
             </div>
           ) : (
-            <div className="w-full h-full" style={{maxWidth:"calc(100vw - 60rem)",overflow: "hidden",overflowX:"scroll"}} id="sources-card">
-              
+            <div className="w-full h-full" id="sources-card">
+              <ScrollArea 
+                className="w-full h-full" 
+                style={{ 
+                  maxWidth: getScrollAreaWidth(),
+                  overflow: "hidden"
+                }}
+              >
                 <div className="flex gap-3 pb-4">
                   {agentData.knowledgeSources.map((knowledgeSource) => (
                     <div key={knowledgeSource.id} className="flex-shrink-0 w-72">
@@ -318,6 +339,7 @@ export const KnowledgePanel = () => {
                     <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
                   </div>
                 </div>
+              </ScrollArea>
             </div>
           )}
         </div>

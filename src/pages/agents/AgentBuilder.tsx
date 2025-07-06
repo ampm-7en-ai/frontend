@@ -51,7 +51,12 @@ const AgentBuilder = () => {
               >
                 {bottomPanelCollapsed ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </Button>
-              {!bottomPanelCollapsed && <KnowledgePanel />}
+              {!bottomPanelCollapsed && (
+                <KnowledgePanel 
+                  leftPanelCollapsed={leftPanelCollapsed} 
+                  rightPanelCollapsed={rightPanelCollapsed} 
+                />
+              )}
               {bottomPanelCollapsed && (
                 <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
                   <span className="text-sm text-gray-500 dark:text-gray-400">Knowledge Base (Collapsed)</span>
