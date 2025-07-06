@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -243,7 +242,7 @@ export const KnowledgePanel = () => {
   }
 
   return (
-    <div className="w-full max-w-[400px] h-full bg-slate-900 dark:bg-slate-900 flex flex-col">
+    <div className="w-full h-full bg-slate-900 dark:bg-slate-900 flex flex-col" style={{ maxWidth: '400px' }}>
       <div className="p-6 border-b border-slate-800 dark:border-slate-800 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -260,20 +259,30 @@ export const KnowledgePanel = () => {
             </div>
           </div>
           
-          <ModernButton
-            variant="secondary"
-            size="sm"
-            className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700"
-            onClick={handleTrainKnowledge}
-            disabled={agentData.knowledgeSources.length === 0}
-          >
-            Train Knowledge
-          </ModernButton>
+          <div className="flex gap-2">
+            <ModernButton
+              variant="outline"
+              size="sm"
+              className="bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-600"
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              Import
+            </ModernButton>
+            <ModernButton
+              variant="secondary"
+              size="sm"
+              className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700"
+              onClick={handleTrainKnowledge}
+              disabled={agentData.knowledgeSources.length === 0}
+            >
+              Train Knowledge
+            </ModernButton>
+          </div>
         </div>
       </div>
       
-      <div className="flex-1 overflow-hidden">
-        <div className="p-6 h-full">
+      <div className="flex-1" style={{ overflow: 'hidden' }}>
+        <div className="p-6 h-full w-full">
           {agentData.knowledgeSources.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
