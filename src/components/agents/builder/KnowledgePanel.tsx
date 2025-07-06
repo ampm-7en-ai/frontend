@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -295,7 +293,7 @@ export const KnowledgePanel = () => {
             </div>
           ) : (
             <div className="h-full overflow-hidden">
-              <ScrollArea className="h-full" orientation="horizontal">
+              <ScrollArea className="h-full">
                 <div className="flex gap-3 pb-4" style={{ width: 'max-content' }}>
                   {agentData.knowledgeSources.map((knowledgeSource) => (
                     <div key={knowledgeSource.id} className="flex-shrink-0 w-72">
@@ -336,4 +334,3 @@ export const KnowledgePanel = () => {
     </div>
   );
 };
-
