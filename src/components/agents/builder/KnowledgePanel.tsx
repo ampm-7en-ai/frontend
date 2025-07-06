@@ -244,8 +244,8 @@ export const KnowledgePanel = () => {
   }
 
   return (
-    <div className="w-full h-full bg-slate-900 dark:bg-slate-900">
-      <div className="p-6 border-b border-slate-800 dark:border-slate-800">
+    <div className="w-full max-w-[400px] h-full bg-slate-900 dark:bg-slate-900 flex flex-col">
+      <div className="p-6 border-b border-slate-800 dark:border-slate-800 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
@@ -273,7 +273,7 @@ export const KnowledgePanel = () => {
         </div>
       </div>
       
-      <div className="flex-1 h-[calc(100%-120px)] overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <div className="p-6 h-full">
           {agentData.knowledgeSources.length === 0 ? (
             <div className="text-center py-12">
@@ -294,9 +294,9 @@ export const KnowledgePanel = () => {
               </ModernButton>
             </div>
           ) : (
-            <div className="w-full h-full overflow-hidden">
-              <ScrollArea className="w-full h-full">
-                <div className="flex gap-3 pb-4 w-max">
+            <div className="h-full overflow-hidden">
+              <ScrollArea className="h-full" orientation="horizontal">
+                <div className="flex gap-3 pb-4" style={{ width: 'max-content' }}>
                   {agentData.knowledgeSources.map((knowledgeSource) => (
                     <div key={knowledgeSource.id} className="flex-shrink-0 w-72">
                       <CompactKnowledgeSourceCard
