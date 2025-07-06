@@ -83,3 +83,13 @@
     animation: float 3s ease-in-out infinite;
   }
 }
+#sources-card::-webkit-scrollbar,
+#sources-card::-mox-scrollbar,
+#sources-card::scrollbar
+{
+  visibility: hidden;
+  display: none;
+  height: 0;
+  width: 0;
+  background: transparent;
+}
