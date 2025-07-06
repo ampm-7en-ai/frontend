@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -321,8 +322,7 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
               <ScrollArea 
                 className="w-full h-full" 
                 style={{ 
-                  maxWidth: getScrollAreaWidth(),
-                  overflow: "hidden"
+                  maxWidth: getScrollAreaWidth()
                 }}
               >
                 <div className="flex gap-3 pb-4">
