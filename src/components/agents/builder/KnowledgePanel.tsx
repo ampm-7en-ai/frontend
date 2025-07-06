@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -292,9 +293,9 @@ export const KnowledgePanel = () => {
               </ModernButton>
             </div>
           ) : (
-            <div className="h-full overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="flex gap-3 pb-4" style={{ width: 'max-content' }}>
+            <div className="w-full h-full">
+              <ScrollArea className="w-full h-full">
+                <div className="flex gap-3 pb-4 w-max">
                   {agentData.knowledgeSources.map((knowledgeSource) => (
                     <div key={knowledgeSource.id} className="flex-shrink-0 w-72">
                       <CompactKnowledgeSourceCard
