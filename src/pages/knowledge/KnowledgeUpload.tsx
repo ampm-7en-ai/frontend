@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -398,7 +397,9 @@ const KnowledgeUpload = () => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleFileUploadClick = () => {
+  const handleFileUploadClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     document.getElementById('file-upload')?.click();
   };
 
@@ -509,7 +510,7 @@ const KnowledgeUpload = () => {
         return (
           <div className="space-y-6">
             <div 
-              className={`border-2 border-dashed rounded-2xl p-8 transition-all duration-200 cursor-pointer ${
+              className={`border-2 border-dashed rounded-2xl p-8 transition-all duration-200 ${
                 isDragOver 
                   ? 'border-blue-400 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-950/30 scale-[1.02]' 
                   : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white/50 dark:bg-slate-800/20'
@@ -517,7 +518,6 @@ const KnowledgeUpload = () => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={handleFileUploadClick}
             >
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 transition-colors duration-200">
