@@ -298,20 +298,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
             </CollapsibleContent>
           </Collapsible>
           
-          <CardFooter className="p-6 pt-4 border-t border-slate-200/30 dark:border-slate-700/30 bg-slate-50/30 dark:bg-slate-700/30 backdrop-blur-sm">
-            <div className="flex items-center justify-end gap-2 w-full">
-              <Link to={`/agents/${agent.id}/edit`}>
-                <ModernButton variant="outline" size="sm" icon={Settings}>
-                  Edit
-                </ModernButton>
-              </Link>
-              <Link to={`/agents/${agent.id}/test`}>
-                <ModernButton variant="primary" size="sm" icon={Play}>
-                  Test
-                </ModernButton>
-              </Link>
-            </div>
-          </CardFooter>
+          
         </Card>
       </div>
     </div>

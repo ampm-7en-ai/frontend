@@ -1,3 +1,6 @@
+
+// ... keep existing code (imports and initial component setup) the same until the filteredDocuments definition
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -51,6 +53,17 @@ const KnowledgeBase = () => {
     { value: 'date-asc', label: 'Date (Oldest)', description: 'Sort by date ascending' },
     { value: 'date-desc', label: 'Date (Newest)', description: 'Sort by date descending' },
   ];
+
+  const sourceTypeOptions = [
+    { value: 'all', label: 'All Sources' },
+    { value: 'docs', label: 'Documents' },
+    { value: 'website', label: 'Websites' },
+    { value: 'csv', label: 'Spreadsheets' },
+    { value: 'plain_text', label: 'Plain Text' },
+    { value: 'thirdparty', label: 'Third Party' },
+  ];
+
+  // ... keep existing code (fetchKnowledgeBases, useQuery, useEffects, and helper functions) the same until the renderMainView function
 
   const fetchKnowledgeBases = async () => {
     console.log('Fetching knowledge bases...');
@@ -278,6 +291,8 @@ const KnowledgeBase = () => {
 
     return stats;
   }, [documents, isLoading]);
+
+  // ... keep existing code (helper functions) the same until renderMainView
 
   const canShowNestedView = (sourceType) => {
     return sourceType !== 'website' && sourceType !== 'plain_text';
@@ -698,22 +713,14 @@ const KnowledgeBase = () => {
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
           </div>
-          <Select 
-            value={sourceTypeFilter} 
-            onValueChange={setSourceTypeFilter}
-          >
-            <SelectTrigger className="w-full sm:w-48 py-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sources</SelectItem>
-              <SelectItem value="docs">Documents</SelectItem>
-              <SelectItem value="website">Websites</SelectItem>
-              <SelectItem value="csv">Spreadsheets</SelectItem>
-              <SelectItem value="plain_text">Plain Text</SelectItem>
-              <SelectItem value="thirdparty">Third Party</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full sm:w-48">
+            <ModernDropdown
+              value={sourceTypeFilter}
+              onValueChange={setSourceTypeFilter}
+              options={sourceTypeOptions}
+              placeholder="Filter by type"
+            />
+          </div>
           <div className="w-full sm:w-48">
             <ModernDropdown
               value={sortOrder}
