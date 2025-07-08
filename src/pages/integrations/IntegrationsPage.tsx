@@ -268,7 +268,7 @@ const IntegrationsPage = () => {
                                 variant="outline" 
                                 className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400"
                               >
-                                not connected
+                                Not connected
                               </Badge>
                             </div>
                             <CardTitle className="font-medium text-base text-slate-900 dark:text-slate-100 mb-2">
