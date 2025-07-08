@@ -88,45 +88,38 @@ const KnowledgeSourceTreeCard = ({ source, onClick, expanded, onToggle }: {
       {expanded && (
         <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-750/50">
           <div className="space-y-2">
-            {source.knowledge_sources?.map((ks: any, index: number) => (
+            {source.knowledge_sources?.filter((ks: any) => ks.is_selected).map((ks: any, index: number) => (
               <div key={index} className="space-y-1">
                 {/* Main source file/url */}
                 <div className="flex items-center gap-2 text-xs">
-                  <File className="h-3 w-3 text-gray-400" />
+                  <File className="h-3 w-3 text-green-500" />
                   <span className="text-gray-600 dark:text-gray-400 truncate">
                     {ks.title || ks.url || `Source ${index + 1}`}
                   </span>
-                  {ks.is_selected && (
-                    <Badge variant="outline" className="text-[8px] px-1 py-0">Selected</Badge>
-                  )}
+                  <Badge variant="default" className="text-[8px] px-1 py-0 bg-green-100 text-green-700 border-green-200">Selected</Badge>
                 </div>
                 
-                {/* Sub URLs for websites */}
+                {/* Sub URLs for websites - only selected ones */}
                 {source.type === 'website' && ks.sub_urls?.children?.length > 0 && (
                   <div className="ml-4 space-y-1">
-                    {ks.sub_urls.children.slice(0, 3).map((subUrl: any, subIndex: number) => (
+                    {ks.sub_urls.children.filter((subUrl: any) => subUrl.is_selected).map((subUrl: any, subIndex: number) => (
                       <div key={subIndex} className="flex items-center gap-2 text-xs">
-                        <ChevronRight className="h-2 w-2 text-gray-400" />
+                        <ChevronRight className="h-2 w-2 text-green-400" />
                         <span className="text-gray-500 dark:text-gray-500 truncate text-[10px]">
                           {subUrl.url}
                         </span>
-                        {subUrl.is_selected && (
-                          <Badge variant="outline" className="text-[8px] px-1 py-0">Selected</Badge>
-                        )}
+                        <Badge variant="default" className="text-[8px] px-1 py-0 bg-green-100 text-green-700 border-green-200">Selected</Badge>
                       </div>
                     ))}
-                    {ks.sub_urls.children.length > 3 && (
-                      <div className="flex items-center gap-2 text-xs">
-                        <ChevronRight className="h-2 w-2 text-gray-400" />
-                        <span className="text-gray-400 dark:text-gray-500 text-[10px]">
-                          +{ks.sub_urls.children.length - 3} more pages
-                        </span>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
             ))}
+            {source.knowledge_sources?.filter((ks: any) => ks.is_selected).length === 0 && (
+              <div className="text-center py-2">
+                <p className="text-xs text-gray-400">No files selected</p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -327,37 +320,17 @@ export const BuilderSidebar = () => {
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-              <Brain className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Knowledge Base
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {agentData.knowledgeSources.length} source{agentData.knowledgeSources.length !== 1 ? 's' : ''} imported
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+            <Brain className="h-5 w-5 text-white" />
           </div>
-          
-          <div className="flex gap-2">
-            <ModernButton
-              variant="outline"
-              size="sm"
-              onClick={() => setIsImportDialogOpen(true)}
-            >
-              Import
-            </ModernButton>
-            <ModernButton
-              variant="secondary"
-              size="sm"
-              onClick={handleTrainKnowledge}
-              disabled={agentData.knowledgeSources.length === 0}
-            >
-              Train Knowledge
-            </ModernButton>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Knowledge Base
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {agentData.knowledgeSources.length} source{agentData.knowledgeSources.length !== 1 ? 's' : ''} imported
+            </p>
           </div>
         </div>
       </div>
@@ -396,6 +369,29 @@ export const BuilderSidebar = () => {
             )}
           </div>
         </ScrollArea>
+      </div>
+
+      {/* Bottom Action Buttons */}
+      <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex-shrink-0 bg-gray-50 dark:bg-gray-800/50">
+        <div className="flex gap-2 w-full">
+          <ModernButton
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => setIsImportDialogOpen(true)}
+          >
+            Import Sources
+          </ModernButton>
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+            onClick={handleTrainKnowledge}
+            disabled={agentData.knowledgeSources.length === 0}
+          >
+            Train Knowledge
+          </ModernButton>
+        </div>
       </div>
 
       <ImportSourcesDialog
