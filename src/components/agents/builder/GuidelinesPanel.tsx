@@ -19,7 +19,7 @@ export const GuidelinesPanel = () => {
   const { agentData } = state;
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { prompts, isLoading: promptsLoading } = useAgentPrompts();
+  const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
 
   const fontOptions = [
     { value: 'Inter', label: 'Inter' },

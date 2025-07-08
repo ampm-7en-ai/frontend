@@ -25,11 +25,13 @@ interface AgentPromptResponse {
   status: string;
 }
 
-export const useAgentPrompts = () => {
+export const useAgentPrompts = (isAdminPanel: boolean = false) => {
   const { toast } = useToast();
   const { getToken } = useAuth();
   const [prompts, setPrompts] = useState<AgentPrompt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const getEndpoint = () => isAdminPanel ? 'settings/system-prompts/' : 'admin/agent-prompts/';
 
   const fetchPrompts = async () => {
     try {
@@ -39,7 +41,7 @@ export const useAgentPrompts = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(getApiUrl('settings/system-prompts/'), {
+      const response = await fetch(getApiUrl(getEndpoint()), {
         headers: getAuthHeaders(token)
       });
 
