@@ -40,7 +40,7 @@ interface Agent {
     dos: string[];
     donts: string[];
   };
-  behaviorSettings: {
+  behavior: {
     conversationMemory: boolean;
     continuousLearning: boolean;
     expertHandoff: boolean;
@@ -71,7 +71,7 @@ const AgentEdit = () => {
       dos: [] as string[],
       donts: [] as string[]
     },
-    behaviorSettings: {
+    behavior: {
       conversationMemory: true,
       continuousLearning: false,
       expertHandoff: false,
@@ -147,7 +147,7 @@ const AgentEdit = () => {
           dos: [],
           donts: []
         },
-        behaviorSettings: agent.behaviorSettings || {
+        behavior: agent.behavior || {
           conversationMemory: true,
           continuousLearning: false,
           expertHandoff: false,
@@ -261,8 +261,8 @@ const AgentEdit = () => {
   const handleBehaviorSettingChange = (field: string, value: boolean) => {
     setFormData(prev => ({
       ...prev,
-      behaviorSettings: {
-        ...prev.behaviorSettings,
+      behavior: {
+        ...prev.behavior,
         [field]: value
       }
     }));
@@ -935,7 +935,7 @@ const AgentEdit = () => {
                                 </p>
                               </div>
                               <Switch
-                                checked={formData.behaviorSettings.conversationMemory}
+                                checked={formData.behavior.conversationMemory}
                                 onCheckedChange={(checked) => handleBehaviorSettingChange('conversationMemory', checked)}
                               />
                             </div>
@@ -950,7 +950,7 @@ const AgentEdit = () => {
                                 </p>
                               </div>
                               <Switch
-                                checked={formData.behaviorSettings.continuousLearning}
+                                checked={formData.behavior.continuousLearning}
                                 onCheckedChange={(checked) => handleBehaviorSettingChange('continuousLearning', checked)}
                               />
                             </div>
@@ -965,7 +965,7 @@ const AgentEdit = () => {
                                 </p>
                               </div>
                               <Switch
-                                checked={formData.behaviorSettings.expertHandoff}
+                                checked={formData.behavior.expertHandoff}
                                 onCheckedChange={(checked) => handleBehaviorSettingChange('expertHandoff', checked)}
                               />
                             </div>
@@ -980,7 +980,7 @@ const AgentEdit = () => {
                                 </p>
                               </div>
                               <Switch
-                                checked={formData.behaviorSettings.aiToAiHandoff}
+                                checked={formData.behavior.aiToAiHandoff}
                                 onCheckedChange={(checked) => handleBehaviorSettingChange('aiToAiHandoff', checked)}
                               />
                             </div>
@@ -995,7 +995,7 @@ const AgentEdit = () => {
                                 </p>
                               </div>
                               <Switch
-                                checked={formData.behaviorSettings.multilingualSupport}
+                                checked={formData.behavior.multilingualSupport}
                                 onCheckedChange={(checked) => handleBehaviorSettingChange('multilingualSupport', checked)}
                               />
                             </div>

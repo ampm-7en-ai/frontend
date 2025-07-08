@@ -126,9 +126,9 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 <SelectItem value="website">Website</SelectItem>
               </SelectContent>
             </Select>
-            <ModernButton variant="outline" size="sm" icon={Download}>
+            {/* <ModernButton variant="outline" size="sm" icon={Download}>
               Export
-            </ModernButton>
+            </ModernButton> */}
           </div>
         </div>
       </CardHeader>

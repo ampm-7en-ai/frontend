@@ -42,7 +42,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
       <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Floating Notifications */}
-        <div className="absolute top-4 right-4 z-50">
+        {/* <div className="absolute top-4 right-4 z-50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -104,7 +104,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
+        </div> */}
 
         <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage || isAgentEditPage ? 'p-0' : ''}`}>
           <div className={`${isConversationsPage || isAgentEditPage ? '' : ''}`}>
