@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
 import { ArrowLeft, Rocket, Play, Trash2, Eye, EyeOff, Monitor, MessageSquare, Search } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
+import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 
 export const BuilderToolbar = () => {
   const navigate = useNavigate();
@@ -36,35 +37,16 @@ export const BuilderToolbar = () => {
       </div>
 
       {/* Center Section - Mode Controls */}
-      <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-2xl p-1">
-        <ModernButton
-          variant={canvasMode === 'fullscreen' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={Monitor}
-          onClick={() => setCanvasMode('fullscreen')}
-          className="h-8 px-3 text-xs"
-        >
-          Fullscreen
-        </ModernButton>
-        <ModernButton
-          variant={canvasMode === 'embedded' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={MessageSquare}
-          onClick={() => setCanvasMode('embedded')}
-          className="h-8 px-3 text-xs"
-        >
-          Embedded
-        </ModernButton>
-        <ModernButton
-          variant={canvasMode === 'popup' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={Search}
-          onClick={() => setCanvasMode('popup')}
-          className="h-8 px-3 text-xs"
-        >
-          Popup
-        </ModernButton>
-      </div>
+      <ModernTabNavigation
+        tabs={[
+          { id: 'fullscreen', label: 'Fullscreen' },
+          { id: 'embedded', label: 'Embedded' },
+          { id: 'popup', label: 'Popup' }
+        ]}
+        activeTab={canvasMode}
+        onTabChange={setCanvasMode}
+        className="text-xs"
+      />
 
       {/* Right Section */}
       <div className="flex items-center gap-2">

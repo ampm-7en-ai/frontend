@@ -27,6 +27,13 @@ interface AgentFormData {
     dos: string[];
     donts: string[];
   };
+  behavior?: {
+    conversationMemory?: boolean;
+    continuousLearning?: boolean;
+    expertHandoff?: boolean;
+    aiToAiHandoff?: boolean;
+    multilingualSupport?: boolean;
+  };
   knowledgeSources: KnowledgeSource[];
 }
 
