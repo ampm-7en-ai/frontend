@@ -360,11 +360,6 @@ const KnowledgeBase = () => {
       toast({
         title: "Info",
         description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`,
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-            <Info className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
       return;
     }
@@ -398,11 +393,6 @@ const KnowledgeBase = () => {
         title: "Error",
         description: "Cannot upload file: No knowledge base selected",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
       return;
     }
@@ -411,11 +401,6 @@ const KnowledgeBase = () => {
       toast({
         title: "Uploading file...",
         description: "Please wait while the file is being uploaded.",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-            <Upload className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
       
       await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
@@ -423,11 +408,7 @@ const KnowledgeBase = () => {
       toast({
         title: "Success",
         description: "File has been successfully uploaded.",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-            <CheckCircle className="h-4 w-4 text-white" />
-          </div>
-        ),
+        variant: "success",
       });
       
       await refetch();
@@ -444,11 +425,6 @@ const KnowledgeBase = () => {
         title: "Upload failed",
         description: error.message || "There was an error uploading the file. Please try again.",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
     } finally {
       e.target.value = '';
@@ -461,11 +437,6 @@ const KnowledgeBase = () => {
         title: "Error",
         description: "Cannot delete file: Missing source ID",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
       return;
     }
@@ -474,11 +445,6 @@ const KnowledgeBase = () => {
       toast({
         title: "Deleting file...",
         description: "Please wait while the file is being deleted.",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <Trash className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
 
       await deleteKnowledgeSource(sourceId);
@@ -486,11 +452,7 @@ const KnowledgeBase = () => {
       toast({
         title: "Success",
         description: "File has been successfully deleted.",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-            <CheckCircle className="h-4 w-4 text-white" />
-          </div>
-        ),
+        variant: "success",
       });
       
       queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
@@ -506,11 +468,6 @@ const KnowledgeBase = () => {
         title: "Delete failed",
         description: error.message || "There was an error deleting the file. Please try again.",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
     }
   };
@@ -521,11 +478,6 @@ const KnowledgeBase = () => {
         title: "Error",
         description: "Cannot delete knowledge base: Missing ID",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
       return;
     }
@@ -534,11 +486,6 @@ const KnowledgeBase = () => {
       toast({
         title: "Deleting knowledge base...",
         description: "Please wait while the knowledge base is being deleted.",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <Trash className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
 
       await deleteKnowledgeBase(knowledgeBaseId);
@@ -546,11 +493,7 @@ const KnowledgeBase = () => {
       toast({
         title: "Success",
         description: "Knowledge base has been successfully deleted.",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-            <CheckCircle className="h-4 w-4 text-white" />
-          </div>
-        ),
+        variant: "success",
       });
       
       queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
@@ -560,11 +503,6 @@ const KnowledgeBase = () => {
         title: "Delete failed",
         description: error.message || "There was an error deleting the knowledge base. Please try again.",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
     }
   };
@@ -575,11 +513,6 @@ const KnowledgeBase = () => {
         title: "Download error",
         description: "No file URL available for download.",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
       return;
     }
@@ -587,11 +520,6 @@ const KnowledgeBase = () => {
     toast({
       title: "Downloading file",
       description: `Downloading file: ${file.title || 'Unnamed file'}`,
-      action: (
-        <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-          <Download className="h-4 w-4 text-white" />
-        </div>
-      ),
     });
     
     try {
@@ -602,11 +530,6 @@ const KnowledgeBase = () => {
         title: "Download failed",
         description: "There was an error downloading the file.",
         variant: "destructive",
-        action: (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-            <AlertTriangle className="h-4 w-4 text-white" />
-          </div>
-        ),
       });
     }
   };
