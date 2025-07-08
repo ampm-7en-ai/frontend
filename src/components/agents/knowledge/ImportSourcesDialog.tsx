@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ImportSourcesDialogProps {
   isOpen: boolean;
@@ -748,10 +749,7 @@ export const ImportSourcesDialog = ({
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleExcludeUrl(urlNode.url);
-                }}
+                onClick={() => toggleExcludeUrl(urlNode.url)}
               >
                 {excludedUrls.has(urlNode.url) ? (
                   <Badge variant="outline" className="px-1 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 text-xs">
@@ -1236,15 +1234,23 @@ export const ImportSourcesDialog = ({
                   
                   {selectedKnowledgeBase && showScrollToTop && (
                     <div className="sticky bottom-4 right-4 flex justify-end p-4">
-                      <ModernButton
-                        variant="outline"
-                        size="sm"
-                        className="h-10 w-10 rounded-full shadow-md hover:shadow-lg"
-                        onClick={scrollToTop}
-                        title="Back to top"
-                      >
-                        <ArrowUp className="h-5 w-5" />
-                      </ModernButton>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <ModernButton
+                              variant="outline"
+                              size="sm"
+                              className="h-10 w-10 rounded-full shadow-md hover:shadow-lg"
+                              onClick={scrollToTop}
+                            >
+                              <ArrowUp className="h-5 w-5" />
+                            </ModernButton>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Back to top</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   )}
                 </ScrollArea>
