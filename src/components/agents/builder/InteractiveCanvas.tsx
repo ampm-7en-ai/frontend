@@ -111,7 +111,7 @@ export const InteractiveCanvas = () => {
                         buttonText={agentData.buttonText}
                         position={agentData.position}
                         suggestions={agentData.suggestions.filter(Boolean)}
-                        avatarSrc={agentData.avatar}
+                        avatarSrc={agentData.avatar || agentData.avatarUrl}
                         className="w-full h-full"
                       />
                     </div>

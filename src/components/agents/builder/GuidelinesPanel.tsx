@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
-import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User } from 'lucide-react';
+import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload } from 'lucide-react';
+import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,8 @@ export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { prompts, isLoading: promptsLoading } = useAgentPrompts();
 
   const fontOptions = [
     { value: 'Inter', label: 'Inter' },
@@ -50,16 +53,39 @@ export const GuidelinesPanel = () => {
     { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' }
   ];
 
-  const agentTypeOptions = [
-    { value: 'general-assistant', label: 'General assistant', description: 'General Purpose AI Assistant' },
-    { value: 'customer-support', label: 'Customer support agent', description: 'Helps with customer inquiries' },
-    { value: 'sales-agent', label: 'Sales agent', description: 'Helps convert leads and answer product questions' },
-    { value: 'language-tutor', label: 'Language tutor', description: 'Helps users learn languages' },
-    { value: 'tech-expert', label: 'Tech expert', description: 'Helps with programming and development' },
-    { value: 'life-coach', label: 'Life coach', description: 'Provides guidance and motivation' },
-    { value: 'travel-agent', label: 'Travel Agent', description: 'Helps with travel advice and travel suggestions' },
-    { value: 'custom', label: 'Custom', description: 'Create a custom agent type' }
-  ];
+  // Generate dynamic agent type options from API data
+  const agentTypeOptions = prompts.length > 0 
+    ? prompts.map(prompt => ({
+        value: prompt.agent_type,
+        label: prompt.agent_type.split('-').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' '),
+        description: `${prompt.agent_type} agent type`
+      }))
+    : [
+        { value: 'general-assistant', label: 'General assistant', description: 'General Purpose AI Assistant' },
+        { value: 'customer-support', label: 'Customer support agent', description: 'Helps with customer inquiries' }
+      ];
+
+  // Handle image upload
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      updateAgentData({ avatar: imageUrl });
+    }
+  };
+
+  // Handle agent type change and update system prompt
+  const handleAgentTypeChange = (agentType: string) => {
+    updateAgentData({ agentType });
+    
+    // Find matching prompt from API data
+    const matchingPrompt = prompts.find(p => p.agent_type === agentType);
+    if (matchingPrompt) {
+      updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
+    }
+  };
 
   const addGuideline = (type: 'dos' | 'donts') => {
     const newGuidelines = { ...agentData.guidelines };
@@ -238,14 +264,46 @@ export const GuidelinesPanel = () => {
                    </div>
                    
                    <div>
-                     <Label htmlFor="avatar" className="text-sm font-medium text-gray-700 dark:text-gray-300">Avatar URL</Label>
-                     <Input
-                       id="avatar"
-                       value={agentData.avatar || ''}
-                       onChange={(e) => updateAgentData({ avatar: e.target.value })}
-                       placeholder="Enter avatar image URL"
-                       className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
-                     />
+                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Avatar Image</Label>
+                     <div className="mt-1.5 space-y-3">
+                       {agentData.avatar && (
+                         <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                           <img 
+                             src={agentData.avatar} 
+                             alt="Avatar preview" 
+                             className="w-full h-full object-cover"
+                           />
+                         </div>
+                       )}
+                       <div className="flex gap-2">
+                         <input
+                           ref={fileInputRef}
+                           type="file"
+                           accept="image/*"
+                           onChange={handleImageUpload}
+                           className="hidden"
+                         />
+                         <Button
+                           type="button"
+                           variant="outline"
+                           onClick={() => fileInputRef.current?.click()}
+                           className="flex items-center gap-2 h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                         >
+                           <Upload className="h-4 w-4" />
+                           Upload Image
+                         </Button>
+                         {agentData.avatar && (
+                           <Button
+                             type="button"
+                             variant="outline"
+                             onClick={() => updateAgentData({ avatar: '' })}
+                             className="h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                           >
+                             Remove
+                           </Button>
+                         )}
+                       </div>
+                     </div>
                    </div>
                    
                    <div>
@@ -279,12 +337,13 @@ export const GuidelinesPanel = () => {
                   <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
                     <div className="mt-1.5">
-                      <ModernDropdown
-                        value={agentData.agentType || 'general-assistant'}
-                        onValueChange={(value) => updateAgentData({ agentType: value })}
-                        options={agentTypeOptions}
-                        placeholder="Select agent type"
-                      />
+                       <ModernDropdown
+                         value={agentData.agentType || 'general-assistant'}
+                         onValueChange={handleAgentTypeChange}
+                         options={agentTypeOptions}
+                         placeholder="Select agent type"
+                         disabled={promptsLoading}
+                       />
                     </div>
                   </div>
 
