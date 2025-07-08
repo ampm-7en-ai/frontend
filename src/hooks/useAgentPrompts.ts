@@ -39,7 +39,7 @@ export const useAgentPrompts = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(getApiUrl('admin/agent-prompts/'), {
+      const response = await fetch(getApiUrl('settings/system-prompts/'), {
         headers: getAuthHeaders(token)
       });
 
