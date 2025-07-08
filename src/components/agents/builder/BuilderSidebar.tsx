@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
-import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen } from 'lucide-react';
+import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X } from 'lucide-react';
 import { ImportSourcesDialog } from '@/components/agents/knowledge/ImportSourcesDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -40,81 +40,100 @@ const getBadgeForStatus = (status: string) => {
   }
 };
 
-const KnowledgeSourceTreeCard = ({ source, onClick, expanded, onToggle }: { 
+const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: { 
   source: any, 
-  onClick: () => void, 
   expanded: boolean,
-  onToggle: () => void 
+  onToggle: () => void,
+  onDelete: () => void
 }) => {
   const IconComponent = getIconForType(source.type);
   
   return (
-    <div className="group border border-border/50 rounded-lg bg-card hover:bg-accent/30 transition-all duration-200">
+    <div className="group border border-border/50 rounded-lg bg-card hover:bg-accent/20 transition-all duration-200">
       {/* Compact Header */}
-      <div 
-        className="flex items-center gap-2 p-2 cursor-pointer"
-        onClick={onClick}
-      >
+      <div className="flex items-center gap-2 p-3">
         <Button
           variant="ghost"
           size="sm"
           className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground transition-colors"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle();
-          }}
+          onClick={onToggle}
         >
           {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         </Button>
         
-        <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-primary to-primary/80 rounded-md flex-shrink-0">
-          <IconComponent className="h-3 w-3 text-primary-foreground" />
+        <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-primary to-primary/80 rounded-md flex-shrink-0">
+          <IconComponent className="h-3.5 w-3.5 text-primary-foreground" />
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-medium text-foreground truncate">
+            <h3 className="text-sm font-medium text-foreground truncate">
               {source.name}
             </h3>
             {getBadgeForStatus(source.trainingStatus)}
           </div>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground mt-0.5">
             {source.type}
           </p>
         </div>
+
+        <ModernButton
+          variant="ghost"
+          size="sm"
+          icon={X}
+          iconOnly
+          onClick={onDelete}
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+        />
       </div>
       
       {/* Tree View Content */}
       {expanded && (
-        <div className="border-t border-border/30 px-2 pb-2">
-          <div className="space-y-1 mt-1">
+        <div className="border-t border-border/30 px-3 pb-3">
+          <div className="space-y-0.5 mt-2">
             {source.knowledge_sources?.filter((ks: any) => ks.is_selected).map((ks: any, index: number) => (
-              <div key={index} className="ml-6">
+              <div key={index} className="ml-4">
                 {/* Main source node */}
-                <div className="flex items-center gap-1.5 py-1">
+                <div className="flex items-center gap-2 py-1">
                   <div className="w-3 flex justify-center">
                     <div className="w-0.5 h-3 bg-border/50"></div>
                   </div>
                   <div className="w-2 h-0.5 bg-border/50"></div>
-                  <File className="h-2.5 w-2.5 text-green-500 flex-shrink-0" />
-                  <span className="text-[10px] text-foreground/80 truncate flex-1">
-                    {ks.title || ks.url || `Source ${index + 1}`}
-                  </span>
+                  <File className="h-3 w-3 text-green-500 flex-shrink-0" />
+                  {ks.url ? (
+                    <a 
+                      href={ks.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:text-primary/80 underline truncate flex-1"
+                    >
+                      {ks.title || ks.url || `Source ${index + 1}`}
+                    </a>
+                  ) : (
+                    <span className="text-xs text-foreground/80 truncate flex-1">
+                      {ks.title || `Source ${index + 1}`}
+                    </span>
+                  )}
                 </div>
                 
                 {/* Sub URLs as tree branches */}
                 {source.type === 'website' && ks.sub_urls?.children?.length > 0 && (
                   <div className="space-y-0.5">
                     {ks.sub_urls.children.filter((subUrl: any) => subUrl.is_selected).map((subUrl: any, subIndex: number) => (
-                      <div key={subIndex} className="flex items-center gap-1.5 py-0.5 ml-3">
+                      <div key={subIndex} className="flex items-center gap-2 py-0.5 ml-2">
                         <div className="w-3 flex justify-center">
                           <div className="w-0.5 h-2 bg-border/30"></div>
                         </div>
                         <div className="w-2 h-0.5 bg-border/30"></div>
-                        <Globe className="h-2 w-2 text-blue-400 flex-shrink-0" />
-                        <span className="text-[9px] text-muted-foreground truncate flex-1">
+                        <Globe className="h-2.5 w-2.5 text-blue-500 flex-shrink-0" />
+                        <a 
+                          href={subUrl.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:text-primary/80 underline truncate flex-1"
+                        >
                           {subUrl.url.replace(/^https?:\/\//, '')}
-                        </span>
+                        </a>
                       </div>
                     ))}
                   </div>
@@ -122,11 +141,11 @@ const KnowledgeSourceTreeCard = ({ source, onClick, expanded, onToggle }: {
               </div>
             ))}
             {source.knowledge_sources?.filter((ks: any) => ks.is_selected).length === 0 && (
-              <div className="text-center py-3">
-                <div className="w-4 h-4 rounded-full bg-muted/50 mx-auto mb-1 flex items-center justify-center">
-                  <File className="h-2 w-2 text-muted-foreground" />
+              <div className="text-center py-4">
+                <div className="w-5 h-5 rounded-full bg-muted/50 mx-auto mb-2 flex items-center justify-center">
+                  <File className="h-2.5 w-2.5 text-muted-foreground" />
                 </div>
-                <p className="text-[10px] text-muted-foreground">No sources selected</p>
+                <p className="text-xs text-muted-foreground">No sources selected</p>
               </div>
             )}
           </div>
@@ -312,13 +331,13 @@ export const BuilderSidebar = () => {
   // Show error state if not in agent context
   if (!agentData.id) {
     return (
-      <div className="w-full h-full bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="w-full h-full bg-background flex items-center justify-center">
         <div className="text-center py-12">
-          <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             No Agent Context
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
             Knowledge panel requires an agent context. Please navigate to an agent builder page.
           </p>
         </div>
@@ -327,11 +346,11 @@ export const BuilderSidebar = () => {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col">
-      <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+    <div className="w-full h-full bg-background flex flex-col">
+      <div className="p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg font-semibold text-foreground">
               Knowledge Base
             </h2>
           </div>
@@ -346,8 +365,8 @@ export const BuilderSidebar = () => {
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Brain className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No knowledge sources yet</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
+                <h3 className="text-lg font-semibold text-foreground mb-2">No knowledge sources yet</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
                   Import knowledge sources to improve your agent's responses and make it more knowledgeable.
                 </p>
                 <ModernButton
@@ -364,9 +383,9 @@ export const BuilderSidebar = () => {
                 <KnowledgeSourceTreeCard
                   key={knowledgeSource.id}
                   source={knowledgeSource}
-                  onClick={() => handleSourceClick(knowledgeSource.id)}
                   expanded={expandedSources.has(knowledgeSource.id)}
                   onToggle={() => toggleSourceExpansion(knowledgeSource.id)}
+                  onDelete={() => handleSourceDelete(knowledgeSource.id)}
                 />
               ))
             )}
@@ -375,7 +394,7 @@ export const BuilderSidebar = () => {
       </div>
 
       {/* Bottom Action Buttons */}
-      <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex-shrink-0 bg-gray-50 dark:bg-gray-800/50">
+      <div className="p-4 border-t border-border flex-shrink-0 bg-muted/30">
         <div className="flex gap-2 w-full">
           <ModernButton
             variant="outline"
