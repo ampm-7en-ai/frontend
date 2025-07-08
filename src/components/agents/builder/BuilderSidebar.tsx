@@ -49,32 +49,16 @@ const KnowledgeSourceTreeCard = ({ source, onClick, expanded, onToggle }: {
   const IconComponent = getIconForType(source.type);
   
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-      {/* Header */}
+    <div className="group border border-border/50 rounded-lg bg-card hover:bg-accent/30 transition-all duration-200">
+      {/* Compact Header */}
       <div 
-        className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 rounded-t-lg"
+        className="flex items-center gap-2 p-2 cursor-pointer"
         onClick={onClick}
       >
-        <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex-shrink-0">
-          <IconComponent className="h-4 w-4 text-white" />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              {source.name}
-            </h3>
-            {getBadgeForStatus(source.trainingStatus)}
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            {source.type} • {source.lastUpdated}
-          </p>
-        </div>
-        
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0"
+          className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             onToggle();
@@ -82,33 +66,55 @@ const KnowledgeSourceTreeCard = ({ source, onClick, expanded, onToggle }: {
         >
           {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         </Button>
+        
+        <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-primary to-primary/80 rounded-md flex-shrink-0">
+          <IconComponent className="h-3 w-3 text-primary-foreground" />
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-medium text-foreground truncate">
+              {source.name}
+            </h3>
+            {getBadgeForStatus(source.trainingStatus)}
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            {source.type}
+          </p>
+        </div>
       </div>
       
-      {/* Expandable Content */}
+      {/* Tree View Content */}
       {expanded && (
-        <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-750/50">
-          <div className="space-y-2">
+        <div className="border-t border-border/30 px-2 pb-2">
+          <div className="space-y-1 mt-1">
             {source.knowledge_sources?.filter((ks: any) => ks.is_selected).map((ks: any, index: number) => (
-              <div key={index} className="space-y-1">
-                {/* Main source file/url */}
-                <div className="flex items-center gap-2 text-xs">
-                  <File className="h-3 w-3 text-green-500" />
-                  <span className="text-gray-600 dark:text-gray-400 truncate">
+              <div key={index} className="ml-6">
+                {/* Main source node */}
+                <div className="flex items-center gap-1.5 py-1">
+                  <div className="w-3 flex justify-center">
+                    <div className="w-0.5 h-3 bg-border/50"></div>
+                  </div>
+                  <div className="w-2 h-0.5 bg-border/50"></div>
+                  <File className="h-2.5 w-2.5 text-green-500 flex-shrink-0" />
+                  <span className="text-[10px] text-foreground/80 truncate flex-1">
                     {ks.title || ks.url || `Source ${index + 1}`}
                   </span>
-                  <Badge variant="default" className="text-[8px] px-1 py-0 bg-green-100 text-green-700 border-green-200">Selected</Badge>
                 </div>
                 
-                {/* Sub URLs for websites - only selected ones */}
+                {/* Sub URLs as tree branches */}
                 {source.type === 'website' && ks.sub_urls?.children?.length > 0 && (
-                  <div className="ml-4 space-y-1">
+                  <div className="space-y-0.5">
                     {ks.sub_urls.children.filter((subUrl: any) => subUrl.is_selected).map((subUrl: any, subIndex: number) => (
-                      <div key={subIndex} className="flex items-center gap-2 text-xs">
-                        <ChevronRight className="h-2 w-2 text-green-400" />
-                        <span className="text-gray-500 dark:text-gray-500 truncate text-[10px]">
-                          {subUrl.url}
+                      <div key={subIndex} className="flex items-center gap-1.5 py-0.5 ml-3">
+                        <div className="w-3 flex justify-center">
+                          <div className="w-0.5 h-2 bg-border/30"></div>
+                        </div>
+                        <div className="w-2 h-0.5 bg-border/30"></div>
+                        <Globe className="h-2 w-2 text-blue-400 flex-shrink-0" />
+                        <span className="text-[9px] text-muted-foreground truncate flex-1">
+                          {subUrl.url.replace(/^https?:\/\//, '')}
                         </span>
-                        <Badge variant="default" className="text-[8px] px-1 py-0 bg-green-100 text-green-700 border-green-200">Selected</Badge>
                       </div>
                     ))}
                   </div>
@@ -116,8 +122,11 @@ const KnowledgeSourceTreeCard = ({ source, onClick, expanded, onToggle }: {
               </div>
             ))}
             {source.knowledge_sources?.filter((ks: any) => ks.is_selected).length === 0 && (
-              <div className="text-center py-2">
-                <p className="text-xs text-gray-400">No files selected</p>
+              <div className="text-center py-3">
+                <div className="w-4 h-4 rounded-full bg-muted/50 mx-auto mb-1 flex items-center justify-center">
+                  <File className="h-2 w-2 text-muted-foreground" />
+                </div>
+                <p className="text-[10px] text-muted-foreground">No sources selected</p>
               </div>
             )}
           </div>
