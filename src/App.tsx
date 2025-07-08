@@ -219,8 +219,8 @@ function App() {
       <Router>
         <AuthProvider>
           <NotificationProvider>
-            <TrainingStatusProvider>
-              <FloatingToastProvider>
+            <FloatingToastProvider>
+              <TrainingStatusProvider>
                 <Routes>
                   {/* Public routes that don't require authentication */}
                   <Route path="/login" element={<Login />} />
@@ -233,9 +233,8 @@ function App() {
                   {/* Protected routes that require authentication */}
                   <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
-                
-              </FloatingToastProvider>
-            </TrainingStatusProvider>
+              </TrainingStatusProvider>
+            </FloatingToastProvider>
           </NotificationProvider>
         </AuthProvider>
       </Router>
