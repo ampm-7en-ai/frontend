@@ -1,9 +1,6 @@
 
 import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
+import { ModernModal } from '@/components/ui/modern-modal';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface AskAiModalProps {
@@ -21,19 +18,23 @@ export const AskAiModal = ({ isOpen, onClose, agentId }: AskAiModalProps) => {
     : `https://staging.7en.ai/chat/assistant/3?theme=${theme}`;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-full h-[90vh] p-0 gap-0 z-[100]">
-        <iframe
-          src={modalUrl}
-          width="100%"
-          height="100%"
-          frameBorder="0"
-          allow="microphone"
-          className="w-full h-full rounded-2xl"
-          title="Ask AI"
-          key={`${agentId}-${theme}`} // Force reload when agent or theme changes
-        />
-      </DialogContent>
-    </Dialog>
+    <ModernModal
+      open={isOpen}
+      onOpenChange={onClose}
+      title="Ask AI Assistant"
+      size="6xl"
+      className="h-[90vh] p-0 gap-0"
+    >
+      <iframe
+        src={modalUrl}
+        width="100%"
+        height="100%"
+        frameBorder="0"
+        allow="microphone"
+        className="w-full h-full rounded-2xl"
+        title="Ask AI"
+        key={`${agentId}-${theme}`}
+      />
+    </ModernModal>
   );
 };

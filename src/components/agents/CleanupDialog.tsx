@@ -1,14 +1,7 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { ModernModal } from '@/components/ui/modern-modal';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +11,7 @@ import { useNotifications } from '@/context/NotificationContext';
 import { NotificationTypes } from '@/types/notification';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Trash2, RefreshCw } from 'lucide-react';
 
 interface CleanupDialogProps {
   open: boolean;
@@ -87,10 +80,7 @@ const CleanupDialog = ({
   const handleRetrain = async () => {
     try {
       setIsLoading(true);
-      // Clear previous toasts
-      // dismissToast() - handled by floating toast system
       
-      // Get knowledge source IDs from the agent's knowledge links
       const response = await fetch(`${BASE_URL}agents/${agentId}/`, {
         headers: getAuthHeaders(getAccessToken() || '')
       });
@@ -101,7 +91,6 @@ const CleanupDialog = ({
 
       const agentData = await response.json();
       
-      // Extract knowledge source IDs from knowledge_links
       const knowledgeSourceIds = agentData.data.knowledge_links
         ?.map((link: any) => link.knowledge_source);
 
@@ -110,7 +99,6 @@ const CleanupDialog = ({
         return;
       }
 
-      // Add notification for training started
       addNotification({
         title: "Agent Training Started",
         message: `Retraining agent with cleaned up knowledge sources`,
@@ -136,7 +124,6 @@ const CleanupDialog = ({
       }
 
     } catch (error) {
-      // Add notification for training failed
       addNotification({
         title: "Agent Training Failed",
         message: error instanceof Error ? error.message : "An error occurred during retraining",
@@ -153,17 +140,56 @@ const CleanupDialog = ({
     }
   };
 
+  const getFooterButtons = () => {
+    if (!isCleanupDone) {
+      return (
+        <div className="flex gap-3">
+          <ModernButton variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </ModernButton>
+          <ModernButton 
+            variant="gradient" 
+            onClick={handleCleanup} 
+            disabled={isLoading}
+            icon={isLoading ? RefreshCw : Trash2}
+          >
+            {isLoading ? "Cleaning up..." : "Clean Up Knowledge Base"}
+          </ModernButton>
+        </div>
+      );
+    }
+
+    if (noValidSources) {
+      return (
+        <ModernButton variant="gradient" onClick={handleGoToKnowledgeTab}>
+          Import Knowledge
+        </ModernButton>
+      );
+    }
+
+    return (
+      <ModernButton 
+        variant="gradient" 
+        onClick={handleRetrain}
+        disabled={isLoading}
+        icon={RefreshCw}
+      >
+        {isLoading ? "Retraining..." : "Retrain Agent"}
+      </ModernButton>
+    );
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Knowledge Base Cleanup Required</DialogTitle>
-          <DialogDescription>
-            The following knowledge sources need to be cleaned up before retraining:
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex flex-wrap gap-2 py-4">
+    <ModernModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Knowledge Base Cleanup Required"
+      description="The following knowledge sources need to be cleaned up before retraining:"
+      size="lg"
+      footer={getFooterButtons()}
+    >
+      <div className="space-y-6">
+        <div className="flex flex-wrap gap-2">
           {problematicSources.map((source) => (
             <KnowledgeSourceBadge key={source.id} source={source} />
           ))}
@@ -174,30 +200,10 @@ const CleanupDialog = ({
             message="After cleanup, there are no more knowledge bases given to this agent."
             variant="warning"
             icon={<AlertTriangle className="h-4 w-4" />}
-            className="mb-4"
           />
         )}
-
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          {!isCleanupDone ? (
-            <Button onClick={handleCleanup} disabled={isLoading}>
-              {isLoading ? "Cleaning up..." : "Clean Up Knowledge Base"}
-            </Button>
-          ) : noValidSources ? (
-            <Button onClick={handleGoToKnowledgeTab}>
-              Import Knowledge
-            </Button>
-          ) : (
-            <Button onClick={handleRetrain}>
-              {isLoading ? "Retraining..." : "Retrain Agent"}
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ModernModal>
   );
 };
 
