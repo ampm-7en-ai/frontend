@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
 import { FloatingToast, FloatingToastProps } from '@/components/ui/floating-toast'
+import { setGlobalToast } from '@/hooks/use-toast'
 
 
 interface FloatingToastContextType {
@@ -61,6 +62,50 @@ export const FloatingToastProvider: React.FC<{ children: ReactNode }> = ({ child
     }))
   }, [hideToast])
 
+  // Initialize global toast function
+  useEffect(() => {
+    const mapVariant = (variant?: "default" | "destructive" | "success" | "warning" | "loading") => {
+      switch (variant) {
+        case "destructive": return "error"
+        case "success": return "success"
+        case "loading": return "loading"
+        case "warning":
+        case "default":
+        default:
+          return "default"
+      }
+    }
+
+    const globalToast = ({ title, description, variant, duration }: {
+      title?: string
+      description?: string
+      variant?: "default" | "destructive" | "success" | "warning" | "loading"
+      duration?: number
+    }) => {
+      const id = showToast({
+        title,
+        description,
+        variant: mapVariant(variant),
+        duration
+      })
+
+      return {
+        id,
+        dismiss: () => hideToast(id),
+        update: (updates: {
+          title?: string
+          description?: string
+          variant?: "default" | "destructive" | "success" | "warning" | "loading"
+          duration?: number
+        }) => updateToast(id, {
+          ...updates,
+          variant: mapVariant(updates.variant)
+        })
+      }
+    }
+
+    setGlobalToast(globalToast)
+  }, [showToast, hideToast, updateToast])
 
   return (
     <FloatingToastContext.Provider value={{ showToast, hideToast, updateToast }}>

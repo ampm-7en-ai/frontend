@@ -1,46 +1,67 @@
 import { useFloatingToast } from '@/context/FloatingToastContext'
 
-// Simple hook that matches the old useToast interface but uses floating toast
+const mapVariant = (variant?: "default" | "destructive" | "success" | "warning" | "loading") => {
+  switch (variant) {
+    case "destructive": return "error"
+    case "success": return "success"
+    case "loading": return "loading"
+    case "warning":
+    case "default":
+    default:
+      return "default"
+  }
+}
+
 export const useToast = () => {
   const { showToast, hideToast, updateToast } = useFloatingToast()
 
   const toast = ({ title, description, variant, duration }: {
     title?: string
     description?: string
-    variant?: "default" | "destructive" | "success" | "warning"
+    variant?: "default" | "destructive" | "success" | "warning" | "loading"
     duration?: number
   }) => {
-    const mappedVariant = variant === "destructive" ? "error" : 
-                         variant === "warning" ? "default" :
-                         variant === "success" ? "success" : "default"
-    
     const id = showToast({
       title,
       description,
-      variant: mappedVariant as any,
+      variant: mapVariant(variant),
       duration
     })
 
     return {
       id,
       dismiss: () => hideToast(id),
-      update: (updates: any) => updateToast(id, {
+      update: (updates: {
+        title?: string
+        description?: string
+        variant?: "default" | "destructive" | "success" | "warning" | "loading"
+        duration?: number
+      }) => updateToast(id, {
         ...updates,
-        variant: updates.variant === "destructive" ? "error" : 
-                updates.variant === "success" ? "success" : "default"
+        variant: mapVariant(updates.variant)
       })
     }
   }
 
-  return { toast, showToast, updateToast, hideToast, toasts: [] }
+  return { toast, toasts: [] }
 }
 
-export const toast = ({ title, description, variant, duration }: {
+// Global toast instance - will be set by the provider
+let globalToastFn: ReturnType<typeof useToast>['toast'] | null = null
+
+export const setGlobalToast = (toastFn: ReturnType<typeof useToast>['toast']) => {
+  globalToastFn = toastFn
+}
+
+export const toast = (params: {
   title?: string
   description?: string
-  variant?: "default" | "destructive" | "success" | "warning"
+  variant?: "default" | "destructive" | "success" | "warning" | "loading"
   duration?: number
 }) => {
-  // This will be initialized by the context
-  console.warn('Direct toast calls require context initialization')
+  if (!globalToastFn) {
+    console.warn('Toast called before FloatingToastProvider initialization')
+    return { id: '', dismiss: () => {}, update: () => {} }
+  }
+  return globalToastFn(params)
 }

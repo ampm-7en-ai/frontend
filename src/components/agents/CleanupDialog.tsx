@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
-import { useFloatingToast } from '@/context/FloatingToastContext';
+import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
@@ -33,7 +33,7 @@ const CleanupDialog = ({
   knowledgeSources,
   agentId,
 }: CleanupDialogProps) => {
-  const { showToast, updateToast } = useFloatingToast();
+  const { toast } = useToast();
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const [isCleanupDone, setIsCleanupDone] = useState(false);
@@ -60,7 +60,7 @@ const CleanupDialog = ({
         throw new Error(errorText || "Cleanup request failed.");
       }
 
-      showToast({
+      toast({
         title: "Cleanup successful",
         description: "Knowledge base has been cleaned up successfully.",
         variant: "success"
@@ -69,10 +69,10 @@ const CleanupDialog = ({
       setIsCleanupDone(true);
 
     } catch (error) {
-      showToast({
+      toast({
         title: "Cleanup failed",
         description: error instanceof Error ? error.message : "An error occurred during cleanup.",
-        variant: "error"
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -126,7 +126,7 @@ const CleanupDialog = ({
       );
 
       if (success) {
-        showToast({
+        toast({
           title: "Retraining started",
           description: "Agent retraining is running in the background.",
           variant: "success"
@@ -145,10 +145,10 @@ const CleanupDialog = ({
         agentName: "Agent"
       });
 
-      showToast({
+      toast({
         title: "Retraining failed",
         description: error instanceof Error ? error.message : "An error occurred during retraining.",
-        variant: "error"
+        variant: "destructive"
       });
     }
   };
