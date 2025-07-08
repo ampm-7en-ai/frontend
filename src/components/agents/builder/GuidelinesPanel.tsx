@@ -29,7 +29,19 @@ export const GuidelinesPanel = () => {
     { value: 'Arial', label: 'Arial' },
     { value: 'Helvetica', label: 'Helvetica' },
     { value: 'Georgia', label: 'Georgia' },
-    { value: 'Times New Roman', label: 'Times New Roman' }
+    { value: 'Times New Roman', label: 'Times New Roman' },
+    { value: 'Roboto', label: 'Roboto' },
+    { value: 'Open Sans', label: 'Open Sans' },
+    { value: 'Lato', label: 'Lato' },
+    { value: 'Montserrat', label: 'Montserrat' },
+    { value: 'Poppins', label: 'Poppins' }
+  ];
+
+  const maxTokensOptions = [
+    { value: 4000, label: '4,000 tokens' },
+    { value: 8000, label: '8,000 tokens' },
+    { value: 16000, label: '16,000 tokens' },
+    { value: 32000, label: '32,000 tokens' }
   ];
 
   const positionOptions = [
@@ -200,18 +212,20 @@ export const GuidelinesPanel = () => {
                     <Label htmlFor="fontFamily" className="text-sm font-medium text-gray-700 dark:text-gray-300">Font Family</Label>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <ModernButton
+                        <Button
                           variant="outline"
-                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700"
+                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal"
                         >
                           {agentData.fontFamily}
-                        </ModernButton>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full">
+                      <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         {fontOptions.map((font) => (
                           <DropdownMenuItem
                             key={font.value}
                             onClick={() => updateAgentData({ fontFamily: font.value })}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal"
                           >
                             {font.label}
                           </DropdownMenuItem>
@@ -222,27 +236,28 @@ export const GuidelinesPanel = () => {
                   
                    <div>
                      <Label htmlFor="position" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat Button Position</Label>
-                     <DropdownMenu>
-                       <DropdownMenuTrigger asChild>
-                         <Button
-                           variant="outline"
-                           className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                         >
-                           {positionOptions.find(pos => pos.value === agentData.position)?.label}
-                           <ChevronRight className="h-4 w-4" />
-                         </Button>
-                       </DropdownMenuTrigger>
-                       <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                         {positionOptions.map((position) => (
-                           <DropdownMenuItem
-                             key={position.value}
-                             onClick={() => updateAgentData({ position: position.value as 'bottom-right' | 'bottom-left' })}
-                           >
-                             {position.label}
-                           </DropdownMenuItem>
-                         ))}
-                       </DropdownMenuContent>
-                     </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal"
+                        >
+                          {positionOptions.find(pos => pos.value === agentData.position)?.label}
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        {positionOptions.map((position) => (
+                          <DropdownMenuItem
+                            key={position.value}
+                            onClick={() => updateAgentData({ position: position.value as 'bottom-right' | 'bottom-left' })}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal"
+                          >
+                            {position.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                    </div>
                    
                    <div>
@@ -283,6 +298,62 @@ export const GuidelinesPanel = () => {
               </AccordionTrigger>
               <AccordionContent className="pb-4">
                 <div className="space-y-6">
+                  {/* Agent Type Selection */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal"
+                        >
+                          {agentTypeOptions.find(type => type.value === agentData.agentType)?.label || 'Select agent type'}
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        {agentTypeOptions.map((type) => (
+                          <DropdownMenuItem
+                            key={type.value}
+                            onClick={() => updateAgentData({ agentType: type.value })}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal"
+                          >
+                            <div>
+                              <div className="font-medium">{type.label}</div>
+                              <div className="text-xs text-gray-500">{type.description}</div>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {/* System Prompt */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
+                      <SystemPromptModal
+                        value={agentData.systemPrompt}
+                        onChange={(value) => updateAgentData({ systemPrompt: value })}
+                        trigger={
+                          <ModernButton
+                            variant="ghost"
+                            size="sm"
+                            icon={Expand}
+                            iconOnly
+                            className="h-8 w-8 p-0 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          />
+                        }
+                      />
+                    </div>
+                    <Textarea
+                      value={agentData.systemPrompt}
+                      onChange={(e) => updateAgentData({ systemPrompt: e.target.value })}
+                      placeholder="Define how your agent behaves..."
+                      className="min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-orange-500 dark:focus:border-orange-400"
+                    />
+                  </div>
+
                   <div>
                     <Label className="text-sm font-medium text-green-600 dark:text-green-400">Do's</Label>
                     <div className="space-y-3 mt-2">
