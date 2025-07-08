@@ -308,7 +308,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:text-gray-200"
+                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300"
                         disabled={isCreatingAgent && item.id === 'agents'}
                         onClick={(e) => {
                           e.preventDefault();

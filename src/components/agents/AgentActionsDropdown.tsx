@@ -146,17 +146,12 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
     {
       value: 'configure',
       label: 'Configure',
-      description: 'Edit agent settings'
-    },
-    {
-      value: 'duplicate',
-      label: duplicating ? 'Duplicating...' : 'Duplicate',
-      description: 'Create a copy of this agent'
+      description: 'Edit settings and behavior'
     },
     {
       value: 'delete',
       label: deleting ? 'Deleting...' : 'Delete',
-      description: 'Remove this agent permanently'
+      description: ''
     }
   ];
 
@@ -182,7 +177,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
           }
           renderOption={(option) => (
             <div
-              className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg cursor-pointer ${
+              className={`flex items-center gap-3 ${
                 option.value === 'delete'
                   ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
