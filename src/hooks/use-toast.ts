@@ -1,104 +1,46 @@
+import { useFloatingToast } from '@/context/FloatingToastContext'
 
-import * as React from "react"
-import { useFloatingToast } from "@/context/FloatingToastContext"
-
-// Legacy compatibility interface
-interface ToastProps {
-  title?: string
-  description?: string
-  variant?: "default" | "destructive" | "success" | "warning"
-  duration?: number
-}
-
-// Map legacy variants to floating toast variants
-const mapVariant = (variant?: string) => {
-  switch (variant) {
-    case "destructive":
-      return "error"
-    case "success":
-      return "success"
-    case "warning":
-      return "default"
-    default:
-      return "default"
-  }
-}
-
-// Create a context for the toast function to access hooks
-let toastContext: any = null
-
-// Initialize the context
-export const initToastContext = (context: any) => {
-  toastContext = context
-}
-
-// Legacy toast function for backward compatibility
-function toast(props: ToastProps) {
-  if (!toastContext) {
-    console.warn('Toast context not initialized. Using fallback.')
-    return {
-      id: Date.now().toString(),
-      dismiss: () => {},
-      update: () => {},
-    }
-  }
-  
-  const id = toastContext.showToast({
-    title: props.title,
-    description: props.description,
-    variant: mapVariant(props.variant) as any,
-    duration: props.duration,
-  })
-
-  return {
-    id,
-    dismiss: () => toastContext.hideToast(id),
-    update: (updates: Partial<ToastProps>) => toastContext.updateToast(id, {
-      title: updates.title,
-      description: updates.description,
-      variant: updates.variant ? mapVariant(updates.variant) as any : undefined,
-      duration: updates.duration,
-    }),
-  }
-}
-
-// Legacy useToast hook for backward compatibility  
-function useToast() {
+// Simple hook that matches the old useToast interface but uses floating toast
+export const useToast = () => {
   const { showToast, hideToast, updateToast } = useFloatingToast()
 
-  const toastFn = React.useCallback((props: ToastProps) => {
+  const toast = ({ title, description, variant, duration }: {
+    title?: string
+    description?: string
+    variant?: "default" | "destructive" | "success" | "warning"
+    duration?: number
+  }) => {
+    const mappedVariant = variant === "destructive" ? "error" : 
+                         variant === "warning" ? "default" :
+                         variant === "success" ? "success" : "default"
+    
     const id = showToast({
-      title: props.title,
-      description: props.description,
-      variant: mapVariant(props.variant) as any,
-      duration: props.duration,
+      title,
+      description,
+      variant: mappedVariant as any,
+      duration
     })
 
     return {
       id,
       dismiss: () => hideToast(id),
-      update: (updates: Partial<ToastProps>) => updateToast(id, {
-        title: updates.title,
-        description: updates.description,
-        variant: updates.variant ? mapVariant(updates.variant) as any : undefined,
-        duration: updates.duration,
-      }),
+      update: (updates: any) => updateToast(id, {
+        ...updates,
+        variant: updates.variant === "destructive" ? "error" : 
+                updates.variant === "success" ? "success" : "default"
+      })
     }
-  }, [showToast, hideToast, updateToast])
-
-  // Enhanced toast function that returns the same interface as individual toasts
-  const createToast = React.useCallback((props: ToastProps) => {
-    return toastFn(props)
-  }, [toastFn])
-
-  return {
-    toasts: [],
-    toast: createToast,
-    dismiss: hideToast,
-    updateToast,
-    showToast,
-    hideToast,
   }
+
+  return { toast, showToast, updateToast, hideToast, toasts: [] }
 }
 
-export { useToast, toast }
+export const toast = ({ title, description, variant, duration }: {
+  title?: string
+  description?: string
+  variant?: "default" | "destructive" | "success" | "warning"
+  duration?: number
+}) => {
+  // This will be initialized by the context
+  console.warn('Direct toast calls require context initialization')
+}

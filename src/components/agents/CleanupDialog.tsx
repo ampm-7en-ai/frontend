@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
-import { useToast } from "@/hooks/use-toast";
+import { useFloatingToast } from '@/context/FloatingToastContext';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
@@ -33,7 +33,7 @@ const CleanupDialog = ({
   knowledgeSources,
   agentId,
 }: CleanupDialogProps) => {
-  const { toast } = useToast();
+  const { showToast, updateToast } = useFloatingToast();
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const [isCleanupDone, setIsCleanupDone] = useState(false);
@@ -60,19 +60,19 @@ const CleanupDialog = ({
         throw new Error(errorText || "Cleanup request failed.");
       }
 
-      toast({
+      showToast({
         title: "Cleanup successful",
         description: "Knowledge base has been cleaned up successfully.",
-        variant: "default"
+        variant: "success"
       });
 
       setIsCleanupDone(true);
 
     } catch (error) {
-      toast({
+      showToast({
         title: "Cleanup failed",
         description: error instanceof Error ? error.message : "An error occurred during cleanup.",
-        variant: "destructive"
+        variant: "error"
       });
     } finally {
       setIsLoading(false);
@@ -126,10 +126,10 @@ const CleanupDialog = ({
       );
 
       if (success) {
-        toast({
+        showToast({
           title: "Retraining started",
           description: "Agent retraining is running in the background.",
-          variant: "default"
+          variant: "success"
         });
         onOpenChange(false);
         setIsLoading(false);
@@ -145,10 +145,10 @@ const CleanupDialog = ({
         agentName: "Agent"
       });
 
-      toast({
+      showToast({
         title: "Retraining failed",
         description: error instanceof Error ? error.message : "An error occurred during retraining.",
-        variant: "destructive"
+        variant: "error"
       });
     }
   };
