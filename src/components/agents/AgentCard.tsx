@@ -272,9 +272,6 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                                   {source.hasIssue && (
                                     <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" title="Has issues"></div>
                                   )}
-                                  {!source.hasError && !source.hasIssue && (
-                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" title="Active"></div>
-                                  )}
                                 </div>
                               </div>
                             </div>
