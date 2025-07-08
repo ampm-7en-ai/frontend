@@ -25,6 +25,7 @@ interface ModernDropdownProps {
   disabled?: boolean;
   trigger?: React.ReactNode;
   renderOption?: (option: ModernDropdownOption) => React.ReactNode;
+  align?: 'start' | 'center' | 'end';
 }
 
 export const ModernDropdown = ({ 
@@ -35,7 +36,8 @@ export const ModernDropdown = ({
   className,
   disabled = false,
   trigger,
-  renderOption
+  renderOption,
+  align = 'start'
 }: ModernDropdownProps) => {
   const selectedOption = options.find(option => option.value === value);
 
@@ -61,7 +63,7 @@ export const ModernDropdown = ({
       <DropdownMenuContent 
         className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999]" 
         sideOffset={4}
-        align="start"
+        align={align}
       >
         {options.map((option) => (
           <DropdownMenuItem

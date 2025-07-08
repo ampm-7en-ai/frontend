@@ -6,6 +6,16 @@ import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface AgentActionsDropdownProps {
   agentId: string;
@@ -19,6 +29,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleDelete = async () => {
     if (deleting) return;
@@ -63,6 +74,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
       });
     } finally {
       setDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -125,7 +137,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
         handleDuplicate();
         break;
       case 'delete':
-        handleDelete();
+        setShowDeleteDialog(true);
         break;
     }
   };
@@ -149,50 +161,74 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
   ];
 
   return (
-    <div className="relative">
-      <ModernDropdown
-        value=""
-        onValueChange={handleActionSelect}
-        options={actionOptions}
-        placeholder=""
-        className="h-8 w-8 p-0"
-        trigger={
-          <ModernButton
-            variant="outline"
-            size="sm"
-            className="h-8 w-8 p-0"
-            iconOnly
-          >
-            <MoreVertical className="h-4 w-4" />
-          </ModernButton>
-        }
-        renderOption={(option) => (
-          <div
-            className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg cursor-pointer ${
-              option.value === 'delete'
-                ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-            }`}
-          >
-            <div className={`p-1 rounded-lg ${
-              option.value === 'delete'
-                ? 'bg-gradient-to-br from-red-500 to-red-600'
-                : option.value === 'duplicate'
-                ? 'bg-gradient-to-br from-green-500 to-green-600'
-                : 'bg-gradient-to-br from-blue-500 to-blue-600'
-            }`}>
-              {option.value === 'configure' && <Edit className="h-3 w-3 text-white" />}
-              {option.value === 'duplicate' && <Copy className="h-3 w-3 text-white" />}
-              {option.value === 'delete' && <Trash2 className="h-3 w-3 text-white" />}
+    <>
+      <div className="relative">
+        <ModernDropdown
+          value=""
+          onValueChange={handleActionSelect}
+          options={actionOptions}
+          placeholder=""
+          className="h-8 w-8 p-0"
+          align="end"
+          trigger={
+            <ModernButton
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              iconOnly
+            >
+              <MoreVertical className="h-4 w-4" />
+            </ModernButton>
+          }
+          renderOption={(option) => (
+            <div
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg cursor-pointer ${
+                option.value === 'delete'
+                  ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              <div className={`p-1 rounded-lg ${
+                option.value === 'delete'
+                  ? 'bg-gradient-to-br from-red-500 to-red-600'
+                  : option.value === 'duplicate'
+                  ? 'bg-gradient-to-br from-green-500 to-green-600'
+                  : 'bg-gradient-to-br from-blue-500 to-blue-600'
+              }`}>
+                {option.value === 'configure' && <Edit className="h-3 w-3 text-white" />}
+                {option.value === 'duplicate' && <Copy className="h-3 w-3 text-white" />}
+                {option.value === 'delete' && <Trash2 className="h-3 w-3 text-white" />}
+              </div>
+              <div className="flex-1 text-left">
+                <div className="font-medium">{option.label}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
+              </div>
             </div>
-            <div className="flex-1 text-left">
-              <div className="font-medium">{option.label}</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
-            </div>
-          </div>
-        )}
-      />
-    </div>
+          )}
+        />
+      </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Agent</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{agentName}"? This action cannot be undone and will permanently remove the agent and all its conversations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+            >
+              {deleting ? 'Deleting...' : 'Delete Agent'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
