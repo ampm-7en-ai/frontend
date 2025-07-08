@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
-import ModernModal from '@/components/ui/modern-modal';
+import { ModernModal } from '@/components/ui/modern-modal';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
