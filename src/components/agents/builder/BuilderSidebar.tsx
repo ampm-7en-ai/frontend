@@ -83,7 +83,7 @@ const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: {
           icon={X}
           iconOnly
           onClick={onDelete}
-          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
         />
       </div>
       
@@ -348,12 +348,18 @@ export const BuilderSidebar = () => {
   return (
     <div className="w-full h-full bg-background flex flex-col">
       <div className="p-4 border-b border-border flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              Knowledge Base
-            </h2>
-          </div>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">
+            Knowledge Base
+          </h2>
+          <ModernButton
+            variant="ghost"
+            size="sm"
+            onClick={handleTrainKnowledge}
+            disabled={agentData.knowledgeSources.length === 0}
+          >
+            Train
+          </ModernButton>
         </div>
       </div>
       
@@ -379,43 +385,31 @@ export const BuilderSidebar = () => {
                 </ModernButton>
               </div>
             ) : (
-              agentData.knowledgeSources.map((knowledgeSource) => (
-                <KnowledgeSourceTreeCard
-                  key={knowledgeSource.id}
-                  source={knowledgeSource}
-                  expanded={expandedSources.has(knowledgeSource.id)}
-                  onToggle={() => toggleSourceExpansion(knowledgeSource.id)}
-                  onDelete={() => handleSourceDelete(knowledgeSource.id)}
-                />
-              ))
+              <>
+                {agentData.knowledgeSources.map((knowledgeSource) => (
+                  <KnowledgeSourceTreeCard
+                    key={knowledgeSource.id}
+                    source={knowledgeSource}
+                    expanded={expandedSources.has(knowledgeSource.id)}
+                    onToggle={() => toggleSourceExpansion(knowledgeSource.id)}
+                    onDelete={() => handleSourceDelete(knowledgeSource.id)}
+                  />
+                ))}
+                <ModernButton
+                  variant="ghost"
+                  size="sm"
+                  icon={Plus}
+                  onClick={() => setIsImportDialogOpen(true)}
+                  className="w-full border-2 border-dashed border-border hover:border-primary/50 h-12"
+                >
+                  Add Source
+                </ModernButton>
+              </>
             )}
           </div>
         </ScrollArea>
       </div>
 
-      {/* Bottom Action Buttons */}
-      <div className="p-4 border-t border-border flex-shrink-0 bg-muted/30">
-        <div className="flex gap-2 w-full">
-          <ModernButton
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            icon={Plus}
-            onClick={() => setIsImportDialogOpen(true)}
-          >
-            Import
-          </ModernButton>
-          <ModernButton
-            variant="cta"
-            size="sm"
-            className="flex-1"
-            onClick={handleTrainKnowledge}
-            disabled={agentData.knowledgeSources.length === 0}
-          >
-            Train Agent
-          </ModernButton>
-        </div>
-      </div>
 
       <ImportSourcesDialog
         isOpen={isImportDialogOpen}
