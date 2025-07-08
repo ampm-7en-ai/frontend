@@ -119,12 +119,12 @@ export const BuilderToolbar = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAgent}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Yes
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -135,7 +135,7 @@ export const BuilderToolbar = () => {
         open={showDeployDialog}
         onOpenChange={setShowDeployDialog}
         agent={{
-          id: agentData.id,
+          id: String(agentData.id),
           name: agentData.name || 'Untitled Agent'
         }}
       />
