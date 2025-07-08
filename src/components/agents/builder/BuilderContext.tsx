@@ -22,6 +22,7 @@ interface AgentFormData {
   buttonText: string;
   position: 'bottom-right' | 'bottom-left';
   suggestions: string[];
+  avatar?: string;
   avatarUrl?: string;
   guidelines: {
     dos: string[];
@@ -169,6 +170,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           buttonText: agentData.appearance?.buttonText || 'Chat with us',
           position: agentData.appearance?.position || 'bottom-right',
           suggestions: agentData.appearance?.suggestions || ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
+          avatar: agentData.appearance?.avatarSrc,
           avatarUrl: agentData.appearance?.avatarSrc,
           guidelines: {
             dos: agentData.behavior?.guidelines?.dos || ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],

@@ -1,23 +1,17 @@
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
-import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, ChevronRight } from 'lucide-react';
+import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { SystemPromptModal } from './SystemPromptModal';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
@@ -38,10 +32,10 @@ export const GuidelinesPanel = () => {
   ];
 
   const maxTokensOptions = [
-    { value: 4000, label: '4,000 tokens' },
-    { value: 8000, label: '8,000 tokens' },
-    { value: 16000, label: '16,000 tokens' },
-    { value: 32000, label: '32,000 tokens' }
+    { value: '4000', label: '4,000 tokens' },
+    { value: '8000', label: '8,000 tokens' },
+    { value: '16000', label: '16,000 tokens' },
+    { value: '32000', label: '32,000 tokens' }
   ];
 
   const positionOptions = [
@@ -210,54 +204,26 @@ export const GuidelinesPanel = () => {
                   
                   <div>
                     <Label htmlFor="fontFamily" className="text-sm font-medium text-gray-700 dark:text-gray-300">Font Family</Label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal"
-                        >
-                          {agentData.fontFamily}
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        {fontOptions.map((font) => (
-                          <DropdownMenuItem
-                            key={font.value}
-                            onClick={() => updateAgentData({ fontFamily: font.value })}
-                            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal"
-                          >
-                            {font.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="mt-1.5">
+                      <ModernDropdown
+                        value={agentData.fontFamily || 'Inter'}
+                        onValueChange={(value) => updateAgentData({ fontFamily: value })}
+                        options={fontOptions}
+                        placeholder="Select font family"
+                      />
+                    </div>
                   </div>
                   
                    <div>
                      <Label htmlFor="position" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat Button Position</Label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal"
-                        >
-                          {positionOptions.find(pos => pos.value === agentData.position)?.label}
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        {positionOptions.map((position) => (
-                          <DropdownMenuItem
-                            key={position.value}
-                            onClick={() => updateAgentData({ position: position.value as 'bottom-right' | 'bottom-left' })}
-                            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal"
-                          >
-                            {position.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                     <div className="mt-1.5">
+                       <ModernDropdown
+                         value={agentData.position || 'bottom-right'}
+                         onValueChange={(value) => updateAgentData({ position: value as 'bottom-right' | 'bottom-left' })}
+                         options={positionOptions}
+                         placeholder="Select position"
+                       />
+                     </div>
                    </div>
                    
                    <div>
@@ -267,6 +233,17 @@ export const GuidelinesPanel = () => {
                        value={agentData.buttonText}
                        onChange={(e) => updateAgentData({ buttonText: e.target.value })}
                        placeholder="Leave empty for icon-only button"
+                       className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                     />
+                   </div>
+                   
+                   <div>
+                     <Label htmlFor="avatar" className="text-sm font-medium text-gray-700 dark:text-gray-300">Avatar URL</Label>
+                     <Input
+                       id="avatar"
+                       value={agentData.avatar || ''}
+                       onChange={(e) => updateAgentData({ avatar: e.target.value })}
+                       placeholder="Enter avatar image URL"
                        className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
                      />
                    </div>
@@ -301,31 +278,14 @@ export const GuidelinesPanel = () => {
                   {/* Agent Type Selection */}
                   <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal"
-                        >
-                          {agentTypeOptions.find(type => type.value === agentData.agentType)?.label || 'Select agent type'}
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        {agentTypeOptions.map((type) => (
-                          <DropdownMenuItem
-                            key={type.value}
-                            onClick={() => updateAgentData({ agentType: type.value })}
-                            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal"
-                          >
-                            <div>
-                              <div className="font-medium">{type.label}</div>
-                              <div className="text-xs text-gray-500">{type.description}</div>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="mt-1.5">
+                      <ModernDropdown
+                        value={agentData.agentType || 'general-assistant'}
+                        onValueChange={(value) => updateAgentData({ agentType: value })}
+                        options={agentTypeOptions}
+                        placeholder="Select agent type"
+                      />
+                    </div>
                   </div>
 
                   {/* System Prompt */}
@@ -436,49 +396,15 @@ export const GuidelinesPanel = () => {
               <AccordionContent className="pb-4">
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
-                    <RadioGroup
-                      value={agentData.agentType || 'general-assistant'}
-                      onValueChange={(value) => updateAgentData({ agentType: value })}
-                      className="grid grid-cols-1 gap-3 mt-2"
-                    >
-                      {agentTypeOptions.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-                          <RadioGroupItem value={option.value} id={option.value} />
-                          <div className="flex flex-col">
-                            <Label htmlFor={option.value} className="text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
-                              {option.label}
-                            </Label>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">{option.description}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                        >
-                          {modelOptions.find(model => model.value === agentData.model)?.label}
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        {modelOptions.map((model) => (
-                          <DropdownMenuItem
-                            key={model.value}
-                            onClick={() => updateAgentData({ model: model.value })}
-                          >
-                            {model.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="mt-1.5">
+                      <ModernDropdown
+                        value={agentData.model || 'gpt-3.5-turbo'}
+                        onValueChange={(value) => updateAgentData({ model: value })}
+                        options={modelOptions}
+                        placeholder="Select model"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -495,34 +421,14 @@ export const GuidelinesPanel = () => {
 
                   <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Max Tokens</Label>
-                    <Input
-                      type="number"
-                      value={agentData.maxTokens}
-                      onChange={(e) => updateAgentData({ maxTokens: parseInt(e.target.value) || 1000 })}
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
-                      <SystemPromptModal
-                        value={agentData.systemPrompt || ''}
-                        onChange={(value) => updateAgentData({ systemPrompt: value })}
-                        trigger={
-                          <Button variant="outline" size="sm" className="h-8 gap-2">
-                            <Expand className="h-3 w-3" />
-                            Expand
-                          </Button>
-                        }
+                    <div className="mt-1.5">
+                      <ModernDropdown
+                        value={agentData.maxTokens?.toString() || '4000'}
+                        onValueChange={(value) => updateAgentData({ maxTokens: parseInt(value) })}
+                        options={maxTokensOptions}
+                        placeholder="Select max tokens"
                       />
                     </div>
-                    <Textarea
-                      value={agentData.systemPrompt}
-                      onChange={(e) => updateAgentData({ systemPrompt: e.target.value })}
-                      placeholder="Enter system prompt"
-                      className="mt-1.5 min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
-                    />
                   </div>
                 </div>
               </AccordionContent>
