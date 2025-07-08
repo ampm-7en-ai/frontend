@@ -153,7 +153,7 @@ const AgentList = () => {
                 <p className="text-slate-600 dark:text-slate-400 text-base">Manage and create your AI agents</p>
               </div>
               <div className="flex items-center gap-3">
-                <Link to="/agents/create">
+                <Link to="/agents/builder">
                   <ModernButton variant="gradient" icon={Plus}>
                     Create Agent
                   </ModernButton>
@@ -183,7 +183,7 @@ const AgentList = () => {
                     ? "Try adjusting your search filters"
                     : "Create your first AI agent to get started"}
                 </p>
-                <Link to="/agents/create">
+                <Link to="/agents/builder">
                   <ModernButton variant="gradient" icon={Plus}>
                     Create Agent
                   </ModernButton>
