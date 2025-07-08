@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
@@ -6,13 +5,7 @@ import { Clock, MessageCircle, Star, TrendingUp, TrendingDown, Download } from '
 import { AgentPerformanceSummary as PerformanceSummaryType, AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface AgentPerformanceSummaryProps {
   agentPerformanceSummary: PerformanceSummaryType;
@@ -35,6 +28,14 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
     { id: '1W', label: '1W' },
     { id: '1M', label: '1M' },
     { id: '1Y', label: '1Y' }
+  ];
+
+  const channelOptions = [
+    { value: 'all', label: 'All Channels' },
+    { value: 'whatsapp', label: 'WhatsApp' },
+    { value: 'slack', label: 'Slack' },
+    { value: 'messenger', label: 'Messenger' },
+    { value: 'website', label: 'Website' }
   ];
 
   // Generate conversation data based on selected filters
@@ -114,21 +115,13 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
               onTabChange={setActiveTab}
               className="text-xs"
             />
-            <Select value={selectedChannel} onValueChange={setSelectedChannel}>
-              <SelectTrigger className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700">
-                <SelectValue placeholder="Channel" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
-                <SelectItem value="all">All Channels</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="slack">Slack</SelectItem>
-                <SelectItem value="messenger">Messenger</SelectItem>
-                <SelectItem value="website">Website</SelectItem>
-              </SelectContent>
-            </Select>
-            {/* <ModernButton variant="outline" size="sm" icon={Download}>
-              Export
-            </ModernButton> */}
+            <ModernDropdown
+              value={selectedChannel}
+              onValueChange={setSelectedChannel}
+              options={channelOptions}
+              placeholder="Select Channel"
+              className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700"
+            />
           </div>
         </div>
       </CardHeader>
