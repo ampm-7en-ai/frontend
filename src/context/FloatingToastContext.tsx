@@ -43,9 +43,22 @@ export const FloatingToastProvider: React.FC<{ children: ReactNode }> = ({ child
   }, [])
 
   const updateToast = useCallback((id: string, updates: Partial<FloatingToastProps>) => {
-    setToasts(prev => prev.map(toast => 
-      toast.id === id ? { ...toast, ...updates } : toast
-    ))
+    setToasts(prev => prev.map(toast => {
+      if (toast.id === id) {
+        const updatedToast = { ...toast, ...updates }
+        
+        // If variant changed from loading to something else, set auto-hide timer
+        if (toast.variant === 'loading' && updates.variant && updates.variant !== 'loading') {
+          const duration = updates.duration || 5000
+          setTimeout(() => {
+            hideToast(id)
+          }, duration)
+        }
+        
+        return updatedToast
+      }
+      return toast
+    }))
   }, [])
 
   // Initialize the toast context for legacy compatibility
