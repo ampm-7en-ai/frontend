@@ -77,7 +77,8 @@ export const GuidelinesPanel = () => {
     <div className="w-full h-full bg-white dark:bg-gray-900">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          Configurations
+          <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          Configuration & Guidelines
         </h2>
       </div>
       

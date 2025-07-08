@@ -320,7 +320,6 @@ export const BuilderSidebar = () => {
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
-<<<<<<< Updated upstream
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
             <Brain className="h-5 w-5 text-white" />
@@ -333,37 +332,6 @@ export const BuilderSidebar = () => {
               {agentData.knowledgeSources.length} source{agentData.knowledgeSources.length !== 1 ? 's' : ''} imported
             </p>
           </div>
-=======
-        <div className="flex items-start flex-col">
-          <div className="flex items-center gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Knowledge Base
-              </h2>
-              {/* <p className="text-sm text-gray-500 dark:text-gray-400">
-                {agentData.knowledgeSources.length} source{agentData.knowledgeSources.length !== 1 ? 's' : ''} imported
-              </p> */}
-            </div>
-          </div>
-          
-          {/* <div className="flex gap-2">
-            <ModernButton
-              variant="outline"
-              size="sm"
-              onClick={() => setIsImportDialogOpen(true)}
-            >
-              Import
-            </ModernButton>
-            <ModernButton
-              variant="secondary"
-              size="sm"
-              onClick={handleTrainKnowledge}
-              disabled={agentData.knowledgeSources.length === 0}
-            >
-              Train Knowledge
-            </ModernButton>
-          </div> */}
->>>>>>> Stashed changes
         </div>
       </div>
       
