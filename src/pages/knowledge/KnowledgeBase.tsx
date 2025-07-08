@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft } from 'lucide-react';
+import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,6 +25,7 @@ import {
 import { getNewKnowledgeBase, clearNewKnowledgeBase, hasNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 const KnowledgeBase = () => {
   console.log('KnowledgeBase component rendering...');
@@ -38,10 +39,18 @@ const KnowledgeBase = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('name-asc');
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
   const [hasProcessedLocalStorage, setHasProcessedLocalStorage] = useState(false);
+
+  const sortOptions = [
+    { value: 'name-asc', label: 'Name A-Z', description: 'Sort by name ascending' },
+    { value: 'name-desc', label: 'Name Z-A', description: 'Sort by name descending' },
+    { value: 'date-asc', label: 'Date (Oldest)', description: 'Sort by date ascending' },
+    { value: 'date-desc', label: 'Date (Newest)', description: 'Sort by date descending' },
+  ];
 
   const fetchKnowledgeBases = async () => {
     console.log('Fetching knowledge bases...');
@@ -184,6 +193,9 @@ const KnowledgeBase = () => {
         pages: metadataInfo.count,
         agents: agentNames,
         uploadedAt: uploadDate,
+        uploadedAtDate: firstSource && firstSource.metadata && firstSource.metadata.upload_date 
+          ? new Date(firstSource.metadata.upload_date) 
+          : new Date(kb.last_updated || 0),
         provider: null,
         status: kb.status,
         trainingStatus: kb.training_status,
@@ -203,6 +215,19 @@ const KnowledgeBase = () => {
     const matchesType = sourceTypeFilter === 'all' || doc.sourceType === sourceTypeFilter;
     
     return matchesSearch && matchesType;
+  }).sort((a, b) => {
+    switch (sortOrder) {
+      case 'name-asc':
+        return a.title.localeCompare(b.title);
+      case 'name-desc':
+        return b.title.localeCompare(a.title);
+      case 'date-asc':
+        return a.uploadedAtDate.getTime() - b.uploadedAtDate.getTime();
+      case 'date-desc':
+        return b.uploadedAtDate.getTime() - a.uploadedAtDate.getTime();
+      default:
+        return 0;
+    }
   });
 
   const knowledgeStats = useMemo(() => {
@@ -334,7 +359,12 @@ const KnowledgeBase = () => {
     if (!canShowNestedView(doc.sourceType)) {
       toast({
         title: "Info",
-        description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`
+        description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`,
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+            <Info className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       return;
     }
@@ -367,7 +397,12 @@ const KnowledgeBase = () => {
       toast({
         title: "Error",
         description: "Cannot upload file: No knowledge base selected",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       return;
     }
@@ -375,14 +410,24 @@ const KnowledgeBase = () => {
     try {
       toast({
         title: "Uploading file...",
-        description: "Please wait while the file is being uploaded."
+        description: "Please wait while the file is being uploaded.",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+            <Upload className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       
       await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
       
       toast({
         title: "Success",
-        description: "File has been successfully uploaded."
+        description: "File has been successfully uploaded.",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+            <CheckCircle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       
       await refetch();
@@ -398,7 +443,12 @@ const KnowledgeBase = () => {
       toast({
         title: "Upload failed",
         description: error.message || "There was an error uploading the file. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
     } finally {
       e.target.value = '';
@@ -410,7 +460,12 @@ const KnowledgeBase = () => {
       toast({
         title: "Error",
         description: "Cannot delete file: Missing source ID",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       return;
     }
@@ -418,14 +473,24 @@ const KnowledgeBase = () => {
     try {
       toast({
         title: "Deleting file...",
-        description: "Please wait while the file is being deleted."
+        description: "Please wait while the file is being deleted.",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <Trash className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
 
       await deleteKnowledgeSource(sourceId);
       
       toast({
         title: "Success",
-        description: "File has been successfully deleted."
+        description: "File has been successfully deleted.",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+            <CheckCircle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       
       queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
@@ -440,7 +505,12 @@ const KnowledgeBase = () => {
       toast({
         title: "Delete failed",
         description: error.message || "There was an error deleting the file. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
     }
   };
@@ -450,7 +520,12 @@ const KnowledgeBase = () => {
       toast({
         title: "Error",
         description: "Cannot delete knowledge base: Missing ID",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       return;
     }
@@ -458,14 +533,24 @@ const KnowledgeBase = () => {
     try {
       toast({
         title: "Deleting knowledge base...",
-        description: "Please wait while the knowledge base is being deleted."
+        description: "Please wait while the knowledge base is being deleted.",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <Trash className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
 
       await deleteKnowledgeBase(knowledgeBaseId);
       
       toast({
         title: "Success",
-        description: "Knowledge base has been successfully deleted."
+        description: "Knowledge base has been successfully deleted.",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+            <CheckCircle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       
       queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
@@ -474,7 +559,12 @@ const KnowledgeBase = () => {
       toast({
         title: "Delete failed",
         description: error.message || "There was an error deleting the knowledge base. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
     }
   };
@@ -484,14 +574,24 @@ const KnowledgeBase = () => {
       toast({
         title: "Download error",
         description: "No file URL available for download.",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
       return;
     }
     
     toast({
       title: "Downloading file",
-      description: `Downloading file: ${file.title || 'Unnamed file'}`
+      description: `Downloading file: ${file.title || 'Unnamed file'}`,
+      action: (
+        <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+          <Download className="h-4 w-4 text-white" />
+        </div>
+      ),
     });
     
     try {
@@ -501,7 +601,12 @@ const KnowledgeBase = () => {
       toast({
         title: "Download failed",
         description: "There was an error downloading the file.",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+            <AlertTriangle className="h-4 w-4 text-white" />
+          </div>
+        ),
       });
     }
   };
@@ -686,6 +791,14 @@ const KnowledgeBase = () => {
               <SelectItem value="thirdparty">Third Party</SelectItem>
             </SelectContent>
           </Select>
+          <div className="w-full sm:w-48">
+            <ModernDropdown
+              value={sortOrder}
+              onValueChange={setSortOrder}
+              options={sortOptions}
+              placeholder="Sort by..."
+            />
+          </div>
         </div>
         
         {/* Knowledge Sources Cards Grid */}
@@ -790,7 +903,9 @@ const KnowledgeBase = () => {
                             className="flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
                             onClick={() => handleDeleteKnowledgeBase(doc.id)}
                           >
-                            <Trash className="h-4 w-4" />
+                            <div className="p-1 rounded-lg bg-gradient-to-br from-red-500 to-red-600">
+                              <Trash className="h-3 w-3 text-white" />
+                            </div>
                             Delete Source
                           </DropdownMenuItem>
                         </DropdownMenuContent>
