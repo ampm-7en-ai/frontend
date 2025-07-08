@@ -7,6 +7,7 @@ import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
@@ -164,6 +165,8 @@ export const BuilderSidebar = () => {
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
 
   // Fetch external knowledge sources for import dialog
   const { data: externalSources = [] } = useQuery({
@@ -275,8 +278,13 @@ export const BuilderSidebar = () => {
     setIsModalOpen(true);
   };
 
-  const handleSourceDelete = async (sourceId: number) => {
-    if (!agentData.id) return;
+  const handleDeleteConfirm = (sourceId: number) => {
+    setSourceToDelete(sourceId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleSourceDelete = async () => {
+    if (!agentData.id || !sourceToDelete) return;
 
     try {
       const token = getAccessToken();
@@ -286,7 +294,7 @@ export const BuilderSidebar = () => {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
-          knowledgeSources: [sourceId]
+          knowledgeSources: [sourceToDelete]
         })
       });
 
@@ -295,11 +303,11 @@ export const BuilderSidebar = () => {
       }
 
       // Update local state
-      const updatedSources = agentData.knowledgeSources.filter(source => source.id !== sourceId);
+      const updatedSources = agentData.knowledgeSources.filter(source => source.id !== sourceToDelete);
       updateAgentData({ knowledgeSources: updatedSources });
       
       // Close modal if the deleted source was selected
-      if (selectedSourceId === sourceId) {
+      if (selectedSourceId === sourceToDelete) {
         setIsModalOpen(false);
         setSelectedSourceId(null);
       }
@@ -315,6 +323,9 @@ export const BuilderSidebar = () => {
         description: "There was an error removing the knowledge source.",
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setSourceToDelete(null);
     }
   };
 
@@ -392,7 +403,7 @@ export const BuilderSidebar = () => {
                     source={knowledgeSource}
                     expanded={expandedSources.has(knowledgeSource.id)}
                     onToggle={() => toggleSourceExpansion(knowledgeSource.id)}
-                    onDelete={() => handleSourceDelete(knowledgeSource.id)}
+                    onDelete={() => handleDeleteConfirm(knowledgeSource.id)}
                   />
                 ))}
                 <ModernButton
@@ -426,8 +437,23 @@ export const BuilderSidebar = () => {
         sources={agentData.knowledgeSources}
         initialSourceId={selectedSourceId}
         agentId={agentData.id?.toString()}
-        onSourceDelete={handleSourceDelete}
+        onSourceDelete={() => {}}
       />
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Knowledge Source</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this knowledge source from your agent? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSourceDelete}>Yes</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
