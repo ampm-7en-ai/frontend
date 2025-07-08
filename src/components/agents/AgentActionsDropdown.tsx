@@ -2,10 +2,16 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Copy, Trash2, MoreVertical } from 'lucide-react';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface AgentActionsDropdownProps {
   agentId: string;
@@ -111,49 +117,44 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
     }
   };
 
-  const actionOptions = [
-    {
-      value: 'rename',
-      label: 'Rename',
-      description: 'Edit agent name'
-    },
-    {
-      value: 'duplicate',
-      label: duplicating ? 'Duplicating...' : 'Duplicate',
-      description: 'Create a copy of this agent'
-    },
-    {
-      value: 'delete',
-      label: deleting ? 'Deleting...' : 'Delete',
-      description: 'Remove this agent permanently'
-    }
-  ];
-
-  const handleActionChange = (value: string) => {
-    switch (value) {
-      case 'rename':
-        window.location.href = `/agents/${agentId}/edit`;
-        break;
-      case 'duplicate':
-        handleDuplicate();
-        break;
-      case 'delete':
-        handleDelete();
-        break;
-    }
-  };
-
   return (
-    <div className="relative">
-      <ModernDropdown
-        value=""
-        onValueChange={handleActionChange}
-        options={actionOptions}
-        placeholder={<MoreVertical className="h-4 w-4" />}
-        className="h-8 w-8 p-0 border-gray-200 dark:border-gray-700"
-        disabled={deleting || duplicating}
-      />
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <ModernButton variant="outline" size="sm" className="h-8 w-8 p-0" iconOnly>
+          <MoreVertical className="h-4 w-4" />
+        </ModernButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link to={`/agents/${agentId}/edit`}>
+            <Edit className="h-4 w-4 mr-2" />
+            Rename
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onSelect={(e) => {
+            e.preventDefault();
+            handleDuplicate();
+          }}
+          disabled={duplicating}
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          {duplicating ? "Duplicating..." : "Duplicate"}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          variant="destructive"
+          onSelect={(e) => {
+            e.preventDefault();
+            handleDelete();
+          }}
+          disabled={deleting}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          {deleting ? "Deleting..." : "Delete"}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

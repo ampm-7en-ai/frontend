@@ -17,11 +17,21 @@ import {
   Play, 
   Rocket, 
   AlertTriangle, 
+  MoreVertical, 
+  Edit, 
+  Copy, 
+  Trash2,
   Check
 } from 'lucide-react';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import DeploymentDialog from './DeploymentDialog';
-import AgentActionsDropdown from './AgentActionsDropdown';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 interface AgentTableProps {
@@ -132,10 +142,30 @@ const AgentTable = ({ agents, getModelBadgeColor }: AgentTableProps) => {
                       </>
                     )}
                   </Button>
-                  <AgentActionsDropdown 
-                    agentId={agent.id} 
-                    agentName={agent.name}
-                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to={`/agents/${agent.id}/edit`}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-red-500">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </TableCell>
             </TableRow>
