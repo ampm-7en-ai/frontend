@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
 import { FloatingToast, FloatingToastProps } from '@/components/ui/floating-toast'
+import { initToastContext } from '@/hooks/use-toast'
 
 interface FloatingToastContextType {
   showToast: (toast: Omit<FloatingToastProps, 'id' | 'onClose'>) => string
@@ -46,6 +47,11 @@ export const FloatingToastProvider: React.FC<{ children: ReactNode }> = ({ child
       toast.id === id ? { ...toast, ...updates } : toast
     ))
   }, [])
+
+  // Initialize the toast context for legacy compatibility
+  useEffect(() => {
+    initToastContext({ showToast, hideToast, updateToast })
+  }, [showToast, hideToast, updateToast])
 
   return (
     <FloatingToastContext.Provider value={{ showToast, hideToast, updateToast }}>

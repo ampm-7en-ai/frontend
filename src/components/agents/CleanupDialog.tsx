@@ -33,7 +33,7 @@ const CleanupDialog = ({
   knowledgeSources,
   agentId,
 }: CleanupDialogProps) => {
-  const { toast, dismiss: dismissToast } = useToast();
+  const { toast } = useToast();
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const [isCleanupDone, setIsCleanupDone] = useState(false);
@@ -88,7 +88,7 @@ const CleanupDialog = ({
     try {
       setIsLoading(true);
       // Clear previous toasts
-      dismissToast();
+      // dismissToast() - handled by floating toast system
       
       // Get knowledge source IDs from the agent's knowledge links
       const response = await fetch(`${BASE_URL}agents/${agentId}/`, {

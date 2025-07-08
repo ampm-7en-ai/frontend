@@ -29,7 +29,7 @@ import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
 import Documentation from './pages/help/Documentation';
 import SupportTicket from './pages/help/SupportTicket';
 import { ProtectedRoute } from './utils/routeUtils';
-import { Toaster } from "@/components/ui/toaster";
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TrainingStatusProvider } from './context/TrainingStatusContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -233,7 +233,7 @@ function App() {
                   {/* Protected routes that require authentication */}
                   <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
-                <Toaster />
+                
               </FloatingToastProvider>
             </TrainingStatusProvider>
           </NotificationProvider>
