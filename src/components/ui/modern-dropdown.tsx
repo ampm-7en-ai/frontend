@@ -58,12 +58,16 @@ export const ModernDropdown = ({
           </Button>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50">
+      <DropdownMenuContent 
+        className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999]" 
+        sideOffset={4}
+        align="start"
+      >
         {options.map((option) => (
           <DropdownMenuItem
             key={option.value}
             onClick={() => onValueChange(option.value)}
-            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5"
+            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5 focus:bg-gray-100 dark:focus:bg-gray-700"
             asChild={!!renderOption}
           >
             {renderOption ? (

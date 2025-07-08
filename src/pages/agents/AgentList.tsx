@@ -10,7 +10,7 @@ import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/util
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Label } from '@/components/ui/label';
@@ -40,6 +40,7 @@ const AgentList = () => {
   const [modelFilter, setModelFilter] = useState('all');
   const { toast } = useToast();
   const { theme } = useAppTheme();
+  const navigate = useNavigate();
 
   const fetchAgents = async (): Promise<Agent[]> => {
     const token = getAccessToken();
@@ -141,6 +142,56 @@ const AgentList = () => {
     refetch();
   };
 
+  const handleCreateAgent = async () => {
+    const token = getAccessToken();
+    if (!token) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create an agent.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          name: `New Agent ${Date.now()}`,
+          description: 'A new AI agent ready to be configured.',
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Failed to create agent');
+      }
+      
+      toast({
+        title: "Agent Created",
+        description: data.data?.message || "New agent has been created successfully.",
+        variant: "default"
+      });
+      
+      // Navigate to the builder page with the newly created agent ID
+      if (data.data?.id) {
+        navigate(`/agents/builder/${data.data.id}`);
+      } else {
+        navigate('/agents/builder');
+      }
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      toast({
+        title: "Creation Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
@@ -153,11 +204,9 @@ const AgentList = () => {
                 <p className="text-slate-600 dark:text-slate-400 text-base">Manage and create your AI agents</p>
               </div>
               <div className="flex items-center gap-3">
-                <Link to="/agents/builder">
-                  <ModernButton variant="gradient" icon={Plus}>
-                    Create Agent
-                  </ModernButton>
-                </Link>
+                <ModernButton variant="gradient" icon={Plus} onClick={handleCreateAgent}>
+                  Create Agent
+                </ModernButton>
               </div>
             </div>
 
@@ -183,11 +232,9 @@ const AgentList = () => {
                     ? "Try adjusting your search filters"
                     : "Create your first AI agent to get started"}
                 </p>
-                <Link to="/agents/builder">
-                  <ModernButton variant="gradient" icon={Plus}>
-                    Create Agent
-                  </ModernButton>
-                </Link>
+                <ModernButton variant="gradient" icon={Plus} onClick={handleCreateAgent}>
+                  Create Agent
+                </ModernButton>
               </div>
             ) : (
               <div className="space-y-6">

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Edit, Copy, Trash2, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
@@ -16,6 +16,7 @@ interface AgentActionsDropdownProps {
 
 const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: AgentActionsDropdownProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
 
@@ -111,15 +112,21 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
     }
   };
 
+  const handleConfigure = () => {
+    navigate(`/agents/builder/${agentId}`);
+  };
+
   const handleActionSelect = (value: string) => {
     switch (value) {
+      case 'configure':
+        handleConfigure();
+        break;
       case 'duplicate':
         handleDuplicate();
         break;
       case 'delete':
         handleDelete();
         break;
-      // configure is handled by Link navigation
     }
   };
 
@@ -159,52 +166,31 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
             <MoreVertical className="h-4 w-4" />
           </ModernButton>
         }
-        renderOption={(option) => {
-          if (option.value === 'configure') {
-            return (
-              <Link 
-                to={`/agents/builder?id=${agentId}`}
-                className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer w-full"
-              >
-                <div className="p-1 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
-                  <Edit className="h-3 w-3 text-white" />
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="font-medium">{option.label}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
-                </div>
-              </Link>
-            );
-          }
-
-          return (
-            <button
-              onClick={() => handleActionSelect(option.value)}
-              disabled={duplicating || deleting}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg cursor-pointer ${
-                option.value === 'delete'
-                  ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-              }`}
-            >
-              <div className={`p-1 rounded-lg ${
-                option.value === 'delete'
-                  ? 'bg-gradient-to-br from-red-500 to-red-600'
-                  : 'bg-gradient-to-br from-green-500 to-green-600'
-              }`}>
-                {option.value === 'duplicate' ? (
-                  <Copy className="h-3 w-3 text-white" />
-                ) : (
-                  <Trash2 className="h-3 w-3 text-white" />
-                )}
-              </div>
-              <div className="flex-1 text-left">
-                <div className="font-medium">{option.label}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
-              </div>
-            </button>
-          );
-        }}
+        renderOption={(option) => (
+          <div
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg cursor-pointer ${
+              option.value === 'delete'
+                ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+            }`}
+          >
+            <div className={`p-1 rounded-lg ${
+              option.value === 'delete'
+                ? 'bg-gradient-to-br from-red-500 to-red-600'
+                : option.value === 'duplicate'
+                ? 'bg-gradient-to-br from-green-500 to-green-600'
+                : 'bg-gradient-to-br from-blue-500 to-blue-600'
+            }`}>
+              {option.value === 'configure' && <Edit className="h-3 w-3 text-white" />}
+              {option.value === 'duplicate' && <Copy className="h-3 w-3 text-white" />}
+              {option.value === 'delete' && <Trash2 className="h-3 w-3 text-white" />}
+            </div>
+            <div className="flex-1 text-left">
+              <div className="font-medium">{option.label}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
+            </div>
+          </div>
+        )}
       />
     </div>
   );
