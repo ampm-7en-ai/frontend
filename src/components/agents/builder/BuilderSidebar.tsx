@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
+import ModernModal from '@/components/ui/modern-modal';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -437,7 +438,6 @@ export const BuilderSidebar = () => {
         </ScrollArea>
       </div>
 
-
       <ImportSourcesDialog
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
@@ -456,20 +456,33 @@ export const BuilderSidebar = () => {
         onSourceDelete={() => {}}
       />
 
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Knowledge Source</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this knowledge source from your agent? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSourceDelete}>Yes</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ModernModal
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Knowledge Source"
+        description="Are you sure you want to remove this knowledge source from your agent? This action cannot be undone."
+        size="md"
+        footer={
+          <div className="flex gap-3">
+            <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancel
+            </ModernButton>
+            <ModernButton 
+              variant="gradient" 
+              onClick={handleSourceDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </ModernButton>
+          </div>
+        }
+      >
+        <div className="py-4">
+          <p className="text-slate-600 dark:text-slate-400">
+            This will permanently remove the knowledge source from your agent.
+          </p>
+        </div>
+      </ModernModal>
     </div>
   );
 };

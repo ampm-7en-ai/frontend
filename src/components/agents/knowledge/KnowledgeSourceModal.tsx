@@ -1,20 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog';
+import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeSource } from './types';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, FileText, Globe, Database, Check, Trash2, ExternalLink } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface KnowledgeSourceModalProps {
@@ -121,10 +112,10 @@ const KnowledgeSourceModal = ({
     return (
       <div className="space-y-2">
         {selectedFiles.map((file, index) => (
-          <div key={index} className="flex items-center justify-between p-3 bg-slate-800/50 dark:bg-slate-800/50 rounded-lg border border-slate-700/50">
+          <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700/50">
             <div className="flex items-center gap-3">
-              <FileText className="h-4 w-4 text-blue-400" />
-              <span className="text-sm text-slate-200 dark:text-slate-200">{file.title || `File ${index + 1}`}</span>
+              <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+              <span className="text-sm text-slate-700 dark:text-slate-200">{file.title || `File ${index + 1}`}</span>
             </div>
             {file.url && (
               <ModernButton
@@ -158,14 +149,14 @@ const KnowledgeSourceModal = ({
     return (
       <div className="space-y-2">
         {selectedUrls.map((url, index) => (
-          <div key={index} className="flex items-center justify-between p-3 bg-slate-800/50 dark:bg-slate-800/50 rounded-lg border border-slate-700/50">
+          <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700/50">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Globe className="h-4 w-4 text-green-400 flex-shrink-0" />
-              <span className="text-sm text-slate-200 dark:text-slate-200 truncate">{url.url}</span>
+              <Globe className="h-4 w-4 text-green-500 dark:text-green-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-200 truncate">{url.url}</span>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {url.chars && (
-                <span className="text-xs text-slate-400 dark:text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {url.chars.toLocaleString()} chars
                 </span>
               )}
@@ -186,138 +177,145 @@ const KnowledgeSourceModal = ({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleModalClose}>
-        <DialogContent className="sm:max-w-[900px] max-h-[80vh] overflow-hidden p-0 bg-slate-900/95 dark:bg-slate-900/95 border-slate-700/50" fixedFooter>
-          <DialogHeader className="px-6 pt-6 pb-2">
-            <DialogTitle className="text-white dark:text-white">Knowledge Source Details</DialogTitle>
-          </DialogHeader>
-          
-          <DialogBody className="flex flex-col md:flex-row gap-4 p-6">
-            {/* Source list */}
-            <div className="w-full md:w-1/3">
-              <ScrollArea className="h-[300px] md:h-[400px]">
-                <div className="space-y-2 pr-4">
-                  {sources.map(source => (
-                    <Card 
-                      key={source.id} 
-                      className={`p-3 cursor-pointer transition-all hover:shadow-md bg-slate-800/50 dark:bg-slate-800/50 border-slate-700/50 hover:border-slate-600/50 ${
-                        selectedSourceId === source.id ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''
-                      }`}
-                      onClick={() => handleSourceClick(source.id)}
-                    >
-                      <div className="flex items-center gap-3">
-                        {getSourceIcon(source.type)}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate text-slate-200 dark:text-slate-200">{source.name}</p>
-                          <p className="text-xs text-slate-400 dark:text-slate-400">{source.type} • {source.size}</p>
-                        </div>
-                        {source.trainingStatus === 'training' && source.progress !== undefined && (
-                          <Progress value={source.progress} className="h-2 w-16" />
-                        )}
-                        {getStatusIcon(source.trainingStatus)}
+      <ModernModal
+        open={open}
+        onOpenChange={handleModalClose}
+        title="Knowledge Source Details"
+        size="6xl"
+        className="h-[90vh]"
+        fixedFooter
+      >
+        <div className="flex flex-col md:flex-row gap-6 h-full">
+          {/* Source list */}
+          <div className="w-full md:w-1/3">
+            <ScrollArea className="h-[400px] md:h-[500px]">
+              <div className="space-y-3 pr-4">
+                {sources.map(source => (
+                  <Card 
+                    key={source.id} 
+                    className={`p-4 cursor-pointer transition-all hover:shadow-md bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600/50 ${
+                      selectedSourceId === source.id ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-500/10' : ''
+                    }`}
+                    onClick={() => handleSourceClick(source.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      {getSourceIcon(source.type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate text-slate-900 dark:text-slate-100">{source.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{source.type} • {source.size}</p>
                       </div>
-                    </Card>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-            
-            {/* Source details */}
-            <div className="flex-1">
-              {currentSource ? (
-                <ScrollArea className="h-[400px]">
-                  <div className="space-y-4 pr-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-white dark:text-white">{currentSource.name}</h3>
-                      <ModernButton 
-                        variant="outline" 
-                        size="sm"
-                        className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30 hover:border-red-500/50"
-                        icon={Trash2}
-                        onClick={handleDeleteClick}
-                      >
-                        Delete
-                      </ModernButton>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-slate-400 dark:text-slate-400">Type:</p>
-                        <p className="text-slate-200 dark:text-slate-200">{currentSource.type}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 dark:text-slate-400">Size:</p>
-                        <p className="text-slate-200 dark:text-slate-200">{currentSource.size}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 dark:text-slate-400">Last Updated:</p>
-                        <p className="text-slate-200 dark:text-slate-200">{currentSource.lastUpdated}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 dark:text-slate-400">Status:</p>
-                        <p className="text-slate-200 dark:text-slate-200">{currentSource.trainingStatus}</p>
-                      </div>
-                      {currentSource.metadata?.no_of_chars && (
-                        <div>
-                          <p className="text-slate-400 dark:text-slate-400">Characters:</p>
-                          <p className="text-slate-200 dark:text-slate-200">{currentSource.metadata.no_of_chars.toLocaleString()}</p>
-                        </div>
+                      {source.trainingStatus === 'training' && source.progress !== undefined && (
+                        <Progress value={source.progress} className="h-2 w-16" />
                       )}
+                      {getStatusIcon(source.trainingStatus)}
                     </div>
-
-                    <div className="mt-4">
-                      <h4 className="text-md font-medium mb-3 text-white dark:text-white">
-                        {currentSource.type.toLowerCase() === 'website' ? 'Selected URLs' : 'Selected Files'}
-                      </h4>
-                      {currentSource.type.toLowerCase() === 'website' 
-                        ? renderSourceUrls(currentSource)
-                        : renderSourceFiles(currentSource)
-                      }
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+          
+          {/* Source details */}
+          <div className="flex-1">
+            {currentSource ? (
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-6 pr-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">{currentSource.name}</h3>
+                    <ModernButton 
+                      variant="outline" 
+                      size="sm"
+                      className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      icon={Trash2}
+                      onClick={handleDeleteClick}
+                    >
+                      Delete
+                    </ModernButton>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400">Type:</p>
+                      <p className="text-slate-900 dark:text-slate-100 font-medium">{currentSource.type}</p>
                     </div>
-
-                    {currentSource.content && (
-                      <div className="mt-4">
-                        <h4 className="text-md font-medium mb-2 text-white dark:text-white">Content Preview</h4>
-                        <div className="bg-slate-800/50 dark:bg-slate-800/50 p-4 rounded-lg overflow-auto max-h-[300px] whitespace-pre-wrap border border-slate-700/50">
-                          <pre className="text-slate-200 dark:text-slate-200 text-sm">{currentSource.content}</pre>
-                        </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400">Size:</p>
+                      <p className="text-slate-900 dark:text-slate-100 font-medium">{currentSource.size}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400">Last Updated:</p>
+                      <p className="text-slate-900 dark:text-slate-100 font-medium">{currentSource.lastUpdated}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400">Status:</p>
+                      <p className="text-slate-900 dark:text-slate-100 font-medium">{currentSource.trainingStatus}</p>
+                    </div>
+                    {currentSource.metadata?.no_of_chars && (
+                      <div className="col-span-2">
+                        <p className="text-slate-500 dark:text-slate-400">Characters:</p>
+                        <p className="text-slate-900 dark:text-slate-100 font-medium">{currentSource.metadata.no_of_chars.toLocaleString()}</p>
                       </div>
                     )}
                   </div>
-                </ScrollArea>
-              ) : (
-                <div className="flex items-center justify-center h-[400px]">
-                  <p className="text-slate-400 dark:text-slate-400">
-                    {sources.length ? "Select a source to view details" : "No knowledge sources available"}
-                  </p>
-                </div>
-              )}
-            </div>
-          </DialogBody>
-        </DialogContent>
-      </Dialog>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-slate-900/95 dark:bg-slate-900/95 border-slate-700/50">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white dark:text-white">Delete Knowledge Source</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400 dark:text-slate-400">
-              Are you sure you want to delete "{currentSource?.name}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600">
+                  <div className="mt-6">
+                    <h4 className="text-md font-medium mb-4 text-slate-900 dark:text-slate-100">
+                      {currentSource.type.toLowerCase() === 'website' ? 'Selected URLs' : 'Selected Files'}
+                    </h4>
+                    {currentSource.type.toLowerCase() === 'website' 
+                      ? renderSourceUrls(currentSource)
+                      : renderSourceFiles(currentSource)
+                    }
+                  </div>
+
+                  {currentSource.content && (
+                    <div className="mt-6">
+                      <h4 className="text-md font-medium mb-3 text-slate-900 dark:text-slate-100">Content Preview</h4>
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl overflow-auto max-h-[300px] whitespace-pre-wrap border border-slate-200 dark:border-slate-700/50">
+                        <pre className="text-slate-700 dark:text-slate-300 text-sm">{currentSource.content}</pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="flex items-center justify-center h-[500px]">
+                <p className="text-slate-500 dark:text-slate-400">
+                  {sources.length ? "Select a source to view details" : "No knowledge sources available"}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </ModernModal>
+
+      <ModernModal
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Knowledge Source"
+        description={`Are you sure you want to delete "${currentSource?.name}"? This action cannot be undone.`}
+        size="md"
+        footer={
+          <div className="flex gap-3">
+            <ModernButton variant="outline" onClick={() => setShowDeleteDialog(false)}>
               Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction 
+            </ModernButton>
+            <ModernButton 
+              variant="gradient" 
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </ModernButton>
+          </div>
+        }
+      >
+        <div className="py-4">
+          <p className="text-slate-600 dark:text-slate-400">
+            This will permanently remove the knowledge source from your agent. All associated data will be lost.
+          </p>
+        </div>
+      </ModernModal>
     </>
   );
 };
