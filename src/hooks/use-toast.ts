@@ -53,13 +53,18 @@ function toast(props: ToastProps) {
   return {
     id,
     dismiss: () => toastContext.hideToast(id),
-    update: () => {},
+    update: (updates: Partial<ToastProps>) => toastContext.updateToast(id, {
+      title: updates.title,
+      description: updates.description,
+      variant: updates.variant ? mapVariant(updates.variant) as any : undefined,
+      duration: updates.duration,
+    }),
   }
 }
 
 // Legacy useToast hook for backward compatibility
 function useToast() {
-  const { showToast, hideToast } = useFloatingToast()
+  const { showToast, hideToast, updateToast } = useFloatingToast()
 
   const toastFn = React.useCallback((props: ToastProps) => {
     const id = showToast({
@@ -72,14 +77,20 @@ function useToast() {
     return {
       id,
       dismiss: () => hideToast(id),
-      update: () => {},
+      update: (updates: Partial<ToastProps>) => updateToast(id, {
+        title: updates.title,
+        description: updates.description,
+        variant: updates.variant ? mapVariant(updates.variant) as any : undefined,
+        duration: updates.duration,
+      }),
     }
-  }, [showToast, hideToast])
+  }, [showToast, hideToast, updateToast])
 
   return {
     toasts: [],
     toast: toastFn,
     dismiss: hideToast,
+    updateToast,
   }
 }
 
