@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
@@ -63,7 +63,7 @@ const CleanupDialog = ({
       toast({
         title: "Cleanup successful",
         description: "Knowledge base has been cleaned up successfully.",
-        variant: "success"
+        variant: "default"
       });
 
       setIsCleanupDone(true);
@@ -129,7 +129,7 @@ const CleanupDialog = ({
         toast({
           title: "Retraining started",
           description: "Agent retraining is running in the background.",
-          variant: "success"
+          variant: "default"
         });
         onOpenChange(false);
         setIsLoading(false);

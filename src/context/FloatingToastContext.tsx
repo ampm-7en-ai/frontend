@@ -1,8 +1,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
 import { FloatingToast, FloatingToastProps } from '@/components/ui/floating-toast'
-import { setGlobalToast } from '@/hooks/use-toast'
-
+import { initToastContext } from '@/hooks/use-toast'
 
 interface FloatingToastContextType {
   showToast: (toast: Omit<FloatingToastProps, 'id' | 'onClose'>) => string
@@ -44,67 +43,14 @@ export const FloatingToastProvider: React.FC<{ children: ReactNode }> = ({ child
   }, [])
 
   const updateToast = useCallback((id: string, updates: Partial<FloatingToastProps>) => {
-    setToasts(prev => prev.map(toast => {
-      if (toast.id === id) {
-        const updatedToast = { ...toast, ...updates }
-        
-        // If variant changed from loading to something else, set auto-hide timer
-        if (toast.variant === 'loading' && updates.variant && updates.variant !== 'loading') {
-          const duration = updates.duration || 5000
-          setTimeout(() => {
-            hideToast(id)
-          }, duration)
-        }
-        
-        return updatedToast
-      }
-      return toast
-    }))
-  }, [hideToast])
+    setToasts(prev => prev.map(toast => 
+      toast.id === id ? { ...toast, ...updates } : toast
+    ))
+  }, [])
 
-  // Initialize global toast function
+  // Initialize the toast context for legacy compatibility
   useEffect(() => {
-    const mapVariant = (variant?: "default" | "destructive" | "success" | "warning" | "loading") => {
-      switch (variant) {
-        case "destructive": return "error"
-        case "success": return "success"
-        case "loading": return "loading"
-        case "warning":
-        case "default":
-        default:
-          return "default"
-      }
-    }
-
-    const globalToast = ({ title, description, variant, duration }: {
-      title?: string
-      description?: string
-      variant?: "default" | "destructive" | "success" | "warning" | "loading"
-      duration?: number
-    }) => {
-      const id = showToast({
-        title,
-        description,
-        variant: mapVariant(variant),
-        duration
-      })
-
-      return {
-        id,
-        dismiss: () => hideToast(id),
-        update: (updates: {
-          title?: string
-          description?: string
-          variant?: "default" | "destructive" | "success" | "warning" | "loading"
-          duration?: number
-        }) => updateToast(id, {
-          ...updates,
-          variant: mapVariant(updates.variant)
-        })
-      }
-    }
-
-    setGlobalToast(globalToast)
+    initToastContext({ showToast, hideToast, updateToast })
   }, [showToast, hideToast, updateToast])
 
   return (
