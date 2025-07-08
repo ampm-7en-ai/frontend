@@ -11,7 +11,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
   const { agentData, canvasMode, isPreviewActive } = state;
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
   const { theme } = useAppTheme();
 
@@ -49,24 +49,24 @@ export const InteractiveCanvas = () => {
       return (
         <div className="h-full w-full relative overflow-hidden">
           {/* Website mockup */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
             <div className="p-8 h-full">
               <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-2xl h-full p-8 border border-white/40 dark:border-gray-700/40 relative overflow-hidden">
                 {/* Mock website content */}
                 <div className="space-y-8 opacity-70">
                   <div className="space-y-4">
-                    <div className="h-10 bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 dark:from-gray-600 dark:to-gray-500 rounded-xl w-3/4 animate-pulse shadow-sm"></div>
-                    <div className="h-5 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded-lg w-1/2 animate-pulse"></div>
+                    <div className="h-10 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded-xl w-3/4 shadow-sm"></div>
+                    <div className="h-5 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded-lg w-1/2"></div>
                   </div>
-                  <div className="h-64 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-2xl relative overflow-hidden shadow-inner">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 to-purple-400/30"></div>
-                    <div className="absolute top-4 left-4 w-16 h-16 bg-white/50 dark:bg-gray-800/50 rounded-full animate-pulse"></div>
-                    <div className="absolute bottom-4 right-4 w-24 h-4 bg-white/50 dark:bg-gray-800/50 rounded-full animate-pulse"></div>
+                  <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl relative overflow-hidden shadow-inner">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500"></div>
+                    <div className="absolute top-4 left-4 w-16 h-16 bg-white/50 dark:bg-gray-800/50 rounded-full"></div>
+                    <div className="absolute bottom-4 right-4 w-24 h-4 bg-white/50 dark:bg-gray-800/50 rounded-full"></div>
                   </div>
                   <div className="space-y-4">
-                    <div className="h-4 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-full"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-5/6"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-4/6"></div>
                   </div>
                 </div>
                 
@@ -165,15 +165,15 @@ export const InteractiveCanvas = () => {
                 <div className="space-y-8 opacity-40">
                   <div className="space-y-4">
                     <div className="h-8 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-gray-600 dark:to-gray-500 rounded-xl w-3/4 animate-pulse"></div>
-                    <div className="h-5 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded-lg w-1/2 animate-pulse"></div>
+                    <div className="h-5 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded-lg w-1/2 animate-pulse"></div>
                   </div>
                   <div className="h-48 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-2xl relative overflow-hidden shadow-inner">
                     <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 to-purple-400/30"></div>
                   </div>
                   <div className="space-y-4">
-                    <div className="h-4 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
                   </div>
                 </div>
               </div>
@@ -210,11 +210,6 @@ export const InteractiveCanvas = () => {
           </div>
         </div>
         
-        {/* Dot pattern background - lower z-index */}
-        <div className="absolute inset-0 opacity-30 pointer-events-none z-10" style={{
-          backgroundImage: 'radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)',
-          backgroundSize: '20px 20px'
-        }} />
       </div>
 
       <AskAiModal 

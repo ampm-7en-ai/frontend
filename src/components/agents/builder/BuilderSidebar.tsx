@@ -321,16 +321,10 @@ export const BuilderSidebar = () => {
     <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-            <Brain className="h-5 w-5 text-white" />
-          </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Knowledge Base
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {agentData.knowledgeSources.length} source{agentData.knowledgeSources.length !== 1 ? 's' : ''} imported
-            </p>
           </div>
         </div>
       </div>
@@ -378,18 +372,19 @@ export const BuilderSidebar = () => {
             variant="outline"
             size="sm"
             className="flex-1"
+            icon={Plus}
             onClick={() => setIsImportDialogOpen(true)}
           >
-            Import Sources
+            Import
           </ModernButton>
           <ModernButton
-            variant="secondary"
+            variant="cta"
             size="sm"
             className="flex-1"
             onClick={handleTrainKnowledge}
             disabled={agentData.knowledgeSources.length === 0}
           >
-            Train Knowledge
+            Train Agent
           </ModernButton>
         </div>
       </div>
