@@ -62,7 +62,7 @@ function toast(props: ToastProps) {
   }
 }
 
-// Legacy useToast hook for backward compatibility
+// Legacy useToast hook for backward compatibility  
 function useToast() {
   const { showToast, hideToast, updateToast } = useFloatingToast()
 
@@ -86,11 +86,18 @@ function useToast() {
     }
   }, [showToast, hideToast, updateToast])
 
+  // Enhanced toast function that returns the same interface as individual toasts
+  const createToast = React.useCallback((props: ToastProps) => {
+    return toastFn(props)
+  }, [toastFn])
+
   return {
     toasts: [],
-    toast: toastFn,
+    toast: createToast,
     dismiss: hideToast,
     updateToast,
+    showToast,
+    hideToast,
   }
 }
 

@@ -59,7 +59,7 @@ export const FloatingToastProvider: React.FC<{ children: ReactNode }> = ({ child
       }
       return toast
     }))
-  }, [])
+  }, [hideToast])
 
   // Initialize the toast context for legacy compatibility
   useEffect(() => {
