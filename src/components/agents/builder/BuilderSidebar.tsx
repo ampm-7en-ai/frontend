@@ -1,233 +1,137 @@
 
 import React from 'react';
 import { useBuilder } from './BuilderContext';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Bot, Palette, MessageSquare } from 'lucide-react';
+import { Database, FileText, Globe, Plus, ChevronRight, ChevronDown } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import ModernButton from '@/components/dashboard/ModernButton';
 
 export const BuilderSidebar = () => {
-  const { state, updateAgentData } = useBuilder();
-  const { agentData } = state;
+  const { state } = useBuilder();
 
-  const fontOptions = [
-    { value: 'Inter', label: 'Inter' },
-    { value: 'Arial', label: 'Arial' },
-    { value: 'Helvetica', label: 'Helvetica' },
-    { value: 'Georgia', label: 'Georgia' },
-    { value: 'Times New Roman', label: 'Times New Roman' }
+  const mockKnowledgeSources = [
+    {
+      id: '1',
+      name: 'Company Website',
+      type: 'website',
+      status: 'active',
+      files: [
+        { name: 'About Us', url: '/about' },
+        { name: 'Services', url: '/services' },
+        { name: 'Contact', url: '/contact' }
+      ]
+    },
+    {
+      id: '2',
+      name: 'Product Documentation',
+      type: 'document',
+      status: 'active',
+      files: [
+        { name: 'User Guide.pdf', size: '2.4 MB' },
+        { name: 'API Reference.pdf', size: '1.8 MB' }
+      ]
+    },
+    {
+      id: '3',
+      name: 'FAQ Database',
+      type: 'database',
+      status: 'training',
+      files: [
+        { name: 'Common Questions', entries: 45 },
+        { name: 'Technical Support', entries: 23 }
+      ]
+    }
   ];
 
-  const positionOptions = [
-    { value: 'bottom-right', label: 'Bottom Right' },
-    { value: 'bottom-left', label: 'Bottom Left' }
-  ];
+  const getSourceIcon = (type: string) => {
+    switch (type) {
+      case 'website': return <Globe className="h-4 w-4" />;
+      case 'document': return <FileText className="h-4 w-4" />;
+      case 'database': return <Database className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-600 dark:text-green-400';
+      case 'training': return 'text-yellow-600 dark:text-yellow-400';
+      case 'error': return 'text-red-600 dark:text-red-400';
+      default: return 'text-gray-600 dark:text-gray-400';
+    }
+  };
 
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          <Bot className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          Configuration
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            Knowledge Base
+          </h2>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       
       <ScrollArea className="flex-1 h-[calc(100%-80px)]">
-        <div className="p-4">
-          <Accordion type="multiple" className="space-y-4">
-            {/* Basic Settings */}
-            <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
-              <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                    <Bot className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Basic Settings</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Name</Label>
-                    <Input
-                      id="name"
-                      value={agentData.name}
-                      onChange={(e) => updateAgentData({ name: e.target.value })}
-                      placeholder="Enter agent name"
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="chatbotName" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chatbot Display Name</Label>
-                    <Input
-                      id="chatbotName"
-                      value={agentData.chatbotName}
-                      onChange={(e) => updateAgentData({ chatbotName: e.target.value })}
-                      placeholder="Enter chatbot name"
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={agentData.description}
-                      onChange={(e) => updateAgentData({ description: e.target.value })}
-                      placeholder="Describe your agent's purpose"
-                      className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
-                    />
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Appearance */}
-            <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
-              <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                    <Palette className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Appearance</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="primaryColor" className="text-sm font-medium text-gray-700 dark:text-gray-300">Primary Color</Label>
-                    <div className="flex gap-3 mt-1.5">
-                      <Input
-                        id="primaryColor"
-                        type="color"
-                        value={agentData.primaryColor}
-                        onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                        className="w-12 h-10 p-1 rounded-xl border-gray-200 dark:border-gray-700"
-                      />
-                      <Input
-                        value={agentData.primaryColor}
-                        onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
-                      />
+        <div className="p-4 space-y-4">
+          {mockKnowledgeSources.map((source) => (
+            <Card key={source.id} className="border border-gray-200 dark:border-gray-700">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/50">
+                      {getSourceIcon(source.type)}
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-medium">{source.name}</CardTitle>
+                      <CardDescription className={`text-xs capitalize ${getStatusColor(source.status)}`}>
+                        {source.status}
+                      </CardDescription>
                     </div>
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="secondaryColor" className="text-sm font-medium text-gray-700 dark:text-gray-300">Secondary Color</Label>
-                    <div className="flex gap-3 mt-1.5">
-                      <Input
-                        id="secondaryColor"
-                        type="color"
-                        value={agentData.secondaryColor}
-                        onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                        className="w-12 h-10 p-1 rounded-xl border-gray-200 dark:border-gray-700"
-                      />
-                      <Input
-                        value={agentData.secondaryColor}
-                        onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
-                      />
+                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {source.files.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 pl-4">
+                      <ChevronRight className="h-3 w-3" />
+                      <span className="flex-1 truncate">
+                        {file.name || file.url}
+                      </span>
+                      {file.size && (
+                        <span className="text-gray-500 dark:text-gray-500">
+                          {file.size}
+                        </span>
+                      )}
+                      {file.entries && (
+                        <span className="text-gray-500 dark:text-gray-500">
+                          {file.entries} entries
+                        </span>
+                      )}
                     </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="fontFamily" className="text-sm font-medium text-gray-700 dark:text-gray-300">Font Family</Label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <ModernButton
-                          variant="outline"
-                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700"
-                        >
-                          {agentData.fontFamily}
-                        </ModernButton>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full">
-                        {fontOptions.map((font) => (
-                          <DropdownMenuItem
-                            key={font.value}
-                            onClick={() => updateAgentData({ fontFamily: font.value })}
-                          >
-                            {font.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="position" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat Button Position</Label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <ModernButton
-                          variant="outline"
-                          className="w-full mt-1.5 h-10 justify-between rounded-xl border-gray-200 dark:border-gray-700"
-                        >
-                          {positionOptions.find(pos => pos.value === agentData.position)?.label}
-                        </ModernButton>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full">
-                        {positionOptions.map((position) => (
-                          <DropdownMenuItem
-                            key={position.value}
-                            onClick={() => updateAgentData({ position: position.value as 'bottom-right' | 'bottom-left' })}
-                          >
-                            {position.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  ))}
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Messages */}
-            <AccordionItem value="messages" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
-              <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                    <MessageSquare className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Messages</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="welcomeMessage" className="text-sm font-medium text-gray-700 dark:text-gray-300">Welcome Message</Label>
-                    <Textarea
-                      id="welcomeMessage"
-                      value={agentData.welcomeMessage}
-                      onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
-                      placeholder="Enter welcome message"
-                      className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="buttonText" className="text-sm font-medium text-gray-700 dark:text-gray-300">Button Text</Label>
-                    <Input
-                      id="buttonText"
-                      value={agentData.buttonText}
-                      onChange={(e) => updateAgentData({ buttonText: e.target.value })}
-                      placeholder="Leave empty for icon-only button"
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
-                    />
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              </CardContent>
+            </Card>
+          ))}
+          
+          {mockKnowledgeSources.length === 0 && (
+            <div className="text-center py-8">
+              <Database className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-sm text-gray-500 dark:text-gray-400">No knowledge sources added yet</p>
+              <Button variant="outline" size="sm" className="mt-2">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Knowledge Source
+              </Button>
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>

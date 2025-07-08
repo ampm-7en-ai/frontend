@@ -243,6 +243,15 @@ const KnowledgeUpload = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!documentName.trim()) {
+      showToast({
+        title: "Source Name Required",
+        description: "Please enter a name for your knowledge source.",
+        variant: "error"
+      });
+      return;
+    }
+
     if (!validateForm()) {
       showToast({
         title: "Validation Error",
