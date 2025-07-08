@@ -72,6 +72,7 @@ const KnowledgeUpload = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -392,6 +393,67 @@ const KnowledgeUpload = () => {
     document.getElementById('file-upload')?.click();
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    if (droppedFiles.length > 0) {
+      const acceptedTypes = sourceConfigs[sourceType].acceptedTypes;
+      if (acceptedTypes) {
+        const allowedExtensions = acceptedTypes.split(',').map(ext => ext.trim());
+        const validFiles = droppedFiles.filter(file => {
+          const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+          return allowedExtensions.includes(fileExtension);
+        });
+
+        if (validFiles.length !== droppedFiles.length) {
+          toast({
+            title: "Invalid file types",
+            description: `Only ${sourceType === 'document' ? 'PDF, DOCX, TXT' : 'CSV, XLSX, XLS'} files are allowed.`,
+            variant: "destructive"
+          });
+        }
+
+        if (validFiles.length > 0) {
+          const uniqueNewFiles = validFiles.filter(newFile => {
+            return !files.some(existingFile =>
+              existingFile.name === newFile.name &&
+              existingFile.size === newFile.size
+            );
+          });
+
+          setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
+
+          if (uniqueNewFiles.length > 0) {
+            setValidationErrors(prev => ({ ...prev, files: undefined }));
+          }
+
+          if (uniqueNewFiles.length < validFiles.length) {
+            toast({
+              title: "Duplicate files detected",
+              description: "Some files were skipped because they were already selected.",
+              variant: "default"
+            });
+          }
+        }
+      }
+    }
+  };
+
   const renderSourceTypeContent = () => {
     switch (sourceType) {
       case 'url':
@@ -437,7 +499,17 @@ const KnowledgeUpload = () => {
       case 'csv':
         return (
           <div className="space-y-6">
-            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 transition-colors duration-200 hover:border-slate-300 dark:hover:border-slate-600 bg-white/50 dark:bg-slate-800/20">
+            <div 
+              className={`border-2 border-dashed rounded-2xl p-8 transition-all duration-200 cursor-pointer ${
+                isDragOver 
+                  ? 'border-blue-400 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-950/30 scale-[1.02]' 
+                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white/50 dark:bg-slate-800/20'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={handleFileUploadClick}
+            >
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 transition-colors duration-200">
                   {sourceConfigs[sourceType].icon}
