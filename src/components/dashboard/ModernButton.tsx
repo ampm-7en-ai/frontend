@@ -3,12 +3,11 @@ import React from 'react';
 import { LucideIcon } from 'lucide-react';
 import { Slot } from '@radix-ui/react-slot';
 
-interface ModernButtonProps {
+interface ModernButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'outline' | 'gradient' | 'cta' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   icon?: LucideIcon;
-  onClick?: () => void;
   className?: string;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
@@ -16,7 +15,7 @@ interface ModernButtonProps {
   iconOnly?: boolean;
 }
 
-const ModernButton: React.FC<ModernButtonProps> = ({
+const ModernButton = React.forwardRef<HTMLButtonElement, ModernButtonProps>(({
   children,
   variant = 'primary',
   size = 'md',
@@ -26,8 +25,9 @@ const ModernButton: React.FC<ModernButtonProps> = ({
   disabled = false,
   type = 'button',
   asChild = false,
-  iconOnly = false
-}) => {
+  iconOnly = false,
+  ...props
+}, ref) => {
   const baseClasses = "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variantClasses = {
@@ -54,7 +54,7 @@ const ModernButton: React.FC<ModernButtonProps> = ({
   // When using asChild, we need to clone the child and add our props to it
   if (asChild) {
     return (
-      <Slot className={buttonClasses}>
+      <Slot className={buttonClasses} ref={ref} {...props}>
         {React.cloneElement(children as React.ReactElement, {
           children: (
             <>
@@ -69,15 +69,19 @@ const ModernButton: React.FC<ModernButtonProps> = ({
 
   return (
     <button
+      ref={ref}
       type={type}
       onClick={onClick}
       disabled={disabled}
       className={buttonClasses}
+      {...props}
     >
       {Icon && <Icon className={iconClasses} />}
       {children}
     </button>
   );
-};
+});
+
+ModernButton.displayName = "ModernButton";
 
 export default ModernButton;
