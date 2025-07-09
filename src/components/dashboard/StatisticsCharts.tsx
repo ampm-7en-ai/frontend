@@ -1,11 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
-import ModernTabNavigation from './ModernTabNavigation';
-import CSATChart from './charts/CSATChart';
-import SatisfactionChart from './charts/SatisfactionChart';
-import NPSChart from './charts/NPSChart';
+import CSATvsNPSChart from './charts/CSATvsNPSChart';
 
 interface StatisticsChartsProps {
   satisfactionTrends?: Array<{ name: string; satisfaction: number; csat?: number; nps?: number; }>;
@@ -16,32 +13,24 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   satisfactionTrends = [],
   satisfactionBreakdown = []
 }) => {
-  const [activeTab, setActiveTab] = useState('csat');
-
-  const tabs = [
-    { id: 'csat', label: 'CSAT' },
-    { id: 'satisfaction', label: 'Satisfaction' },
-    { id: 'nps', label: 'NPS' }
-  ];
-
-  // Use real satisfaction trend data from API
+  // Use real satisfaction trend data from API with updated CSAT values (0-100 scale)
   const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
     name: item.name,
     satisfaction: item.satisfaction || null,
     csat: item.csat || null,
     nps: item.nps || null
   })) : [
-    { name: 'Week 1', satisfaction: 8.8, csat: 4.2, nps: 55 },
-    { name: 'Week 2', satisfaction: 9.1, csat: 4.4, nps: 62 },
-    { name: 'Week 3', satisfaction: 8.7, csat: 4.1, nps: 48 },
-    { name: 'Week 4', satisfaction: 9.3, csat: 4.6, nps: 71 },
-    { name: 'Week 5', satisfaction: 9.5, csat: 4.8, nps: 78 },
-    { name: 'Week 6', satisfaction: 9.2, csat: 4.7, nps: 68 },
-    { name: 'Week 7', satisfaction: 9.6, csat: 4.9, nps: 82 },
+    { name: 'Week 1', satisfaction: 8.8, csat: 84, nps: 55 },
+    { name: 'Week 2', satisfaction: 9.1, csat: 88, nps: 62 },
+    { name: 'Week 3', satisfaction: 8.7, csat: 82, nps: 48 },
+    { name: 'Week 4', satisfaction: 9.3, csat: 92, nps: 71 },
+    { name: 'Week 5', satisfaction: 9.5, csat: 96, nps: 78 },
+    { name: 'Week 6', satisfaction: 9.2, csat: 94, nps: 68 },
+    { name: 'Week 7', satisfaction: 9.6, csat: 98, nps: 82 },
   ];
 
-  // Process data for each metric
-  const processMetricData = (dataKey: 'satisfaction' | 'csat' | 'nps') => {
+  // Process data for CSAT and NPS metrics
+  const processMetricData = (dataKey: 'csat' | 'nps') => {
     const validData = satisfactionTrendData.filter(item => item[dataKey] !== null && item[dataKey] !== 0);
     const hasData = validData.length > 0;
     
@@ -50,111 +39,55 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
         currentValue: 0,
         trend: 'neutral' as const,
         trendValue: 0,
-        sparklineData: [],
         hasData: false
       };
-    }
-
-    // Create sparkline data with the correct property name for each metric
-    let sparklineData;
-    if (dataKey === 'csat') {
-      sparklineData = satisfactionTrendData.map(item => ({
-        name: item.name,
-        csat: item.csat || 0
-      }));
-    } else if (dataKey === 'satisfaction') {
-      sparklineData = satisfactionTrendData.map(item => ({
-        name: item.name,
-        satisfaction: item.satisfaction || 0
-      }));
-    } else {
-      sparklineData = satisfactionTrendData.map(item => ({
-        name: item.name,
-        nps: item.nps || 0
-      }));
     }
 
     const currentValue = validData[validData.length - 1][dataKey];
     const previousValue = validData.length > 1 ? validData[validData.length - 2][dataKey] : currentValue;
     
-    const trendValue = previousValue !== 0 ? ((currentValue - previousValue) / previousValue) * 100 : 0;
+    const trendValue = previousValue !== 0 ? ((currentValue - previousValue) / Math.abs(previousValue)) * 100 : 0;
     const trend: 'up' | 'down' | 'neutral' = trendValue > 0 ? 'up' : trendValue < 0 ? 'down' : 'neutral';
 
     return {
       currentValue,
       trend,
       trendValue: Math.abs(trendValue),
-      sparklineData,
       hasData: true
     };
   };
 
-  const satisfactionData = processMetricData('satisfaction');
   const csatData = processMetricData('csat');
   const npsData = processMetricData('nps');
 
   // Calculate overall data quality
   const totalWeeks = satisfactionTrendData.length;
   const weeksWithData = satisfactionTrendData.filter(item => 
-    item.satisfaction > 0 || item.csat > 0 || item.nps !== 0
+    (item.csat && item.csat > 0) || (item.nps !== null && item.nps !== 0)
   ).length;
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'csat':
-        return (
-          <CSATChart
-            data={csatData.sparklineData}
-            currentValue={csatData.currentValue}
-            trend={csatData.trend}
-            trendValue={csatData.trendValue}
-            hasData={csatData.hasData}
-          />
-        );
-      case 'satisfaction':
-        return (
-          <SatisfactionChart
-            data={satisfactionData.sparklineData}
-            currentValue={satisfactionData.currentValue}
-            trend={satisfactionData.trend}
-            trendValue={satisfactionData.trendValue}
-            hasData={satisfactionData.hasData}
-          />
-        );
-      case 'nps':
-        return (
-          <NPSChart
-            data={npsData.sparklineData}
-            currentValue={npsData.currentValue}
-            trend={npsData.trend}
-            trendValue={npsData.trendValue}
-            hasData={npsData.hasData}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  // Prepare chart data
+  const chartData = satisfactionTrendData.map(item => ({
+    name: item.name,
+    csat: item.csat || null,
+    nps: item.nps || null
+  }));
+
+  const hasData = csatData.hasData || npsData.hasData;
 
   return (
     <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ModernTabNavigation 
-              tabs={tabs}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              className="text-xs"
-            />
-          </div>
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
-            <Heart className="h-4 w-4 text-white" />
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
+              <Heart className="h-4 w-4 text-white" />
+            </div>
           </div>
         </div>
         <div className="mt-2">
           <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Customer Satisfaction Metrics
+            CSAT vs NPS Comparison
           </CardTitle>
           <CardDescription className="text-slate-500 dark:text-slate-400">
             {weeksWithData} of {totalWeeks} weeks have satisfaction data
@@ -162,9 +95,17 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Tab Content */}
         <div className="min-h-[400px]">
-          {renderTabContent()}
+          <CSATvsNPSChart
+            data={chartData}
+            currentCSAT={csatData.currentValue}
+            currentNPS={npsData.currentValue}
+            csatTrend={csatData.trend}
+            npsTrend={npsData.trend}
+            csatTrendValue={csatData.trendValue}
+            npsTrendValue={npsData.trendValue}
+            hasData={hasData}
+          />
         </div>
       </CardContent>
     </Card>
