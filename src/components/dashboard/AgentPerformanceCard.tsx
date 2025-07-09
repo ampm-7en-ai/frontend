@@ -39,8 +39,10 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
       responseTime: agent.avg_response_time,
       satisfaction: agent.satisfaction,
       efficiency: agent.efficiency,
-      resolved: agent.resolved, // Use actual API value
-      pending: agent.pending, // Use actual API value
+      resolved: agent.resolved,
+      pending: agent.pending,
+      csat: agent.csat || 0,
+      nps: agent.nps || 0,
     }));
   };
 
@@ -155,7 +157,11 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={performanceData}>
             <defs>
-              <linearGradient id="satisfactionGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="csatGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              </linearGradient>
+              <linearGradient id="npsGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
               </linearGradient>
@@ -188,12 +194,21 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             />
             <Area 
               type="monotone" 
-              dataKey="satisfaction" 
+              dataKey="csat" 
+              stroke="#3b82f6" 
+              fillOpacity={1} 
+              fill="url(#csatGradient)"
+              strokeWidth={2}
+              name="CSAT Score"
+            />
+            <Area 
+              type="monotone" 
+              dataKey="nps" 
               stroke="#f59e0b" 
               fillOpacity={1} 
-              fill="url(#satisfactionGradient)"
+              fill="url(#npsGradient)"
               strokeWidth={2}
-              name="Satisfaction Score"
+              name="NPS Score"
             />
           </AreaChart>
         </ResponsiveContainer>

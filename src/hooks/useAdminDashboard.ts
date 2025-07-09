@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { getApiUrl, API_ENDPOINTS, getAuthHeaders } from '@/utils/api-config';
 import { useAuth } from "@/context/AuthContext";
@@ -17,6 +16,8 @@ export interface AgentPerformanceComparison {
   efficiency: number;
   resolved: number;
   pending: number;
+  csat?: number;
+  nps?: number;
 }
 
 export interface UsageHistoryItem {
