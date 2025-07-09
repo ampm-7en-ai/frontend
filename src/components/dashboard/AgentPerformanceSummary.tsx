@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
@@ -11,6 +12,7 @@ interface AgentPerformanceSummaryProps {
   agentPerformanceSummary: PerformanceSummaryType;
   agentPerformanceComparison: AgentPerformanceComparison[];
   conversationChannel: Record<string, number>;
+  weeklyPerformanceData?: Array<{ name: string; queries: number; conversions: number; }>;
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -19,6 +21,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
   agentPerformanceSummary,
   agentPerformanceComparison,
   conversationChannel,
+  weeklyPerformanceData = [],
 }) => {
   const [activeTab, setActiveTab] = useState('Today');
   const [selectedChannel, setSelectedChannel] = useState('all');
@@ -30,67 +33,75 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
     { id: '1Y', label: '1Y' }
   ];
 
+  // Generate channel options from actual conversation_channels data
   const channelOptions = [
     { value: 'all', label: 'All Channels' },
-    { value: 'whatsapp', label: 'WhatsApp' },
-    { value: 'slack', label: 'Slack' },
-    { value: 'messenger', label: 'Messenger' },
-    { value: 'website', label: 'Website' }
+    ...Object.keys(conversationChannel).map(channel => ({
+      value: channel,
+      label: channel.charAt(0).toUpperCase() + channel.slice(1)
+    }))
   ];
 
-  // Generate conversation data based on selected filters
+  // Use real weekly performance data if available, otherwise generate mock data
   const generateConversationData = () => {
     let baseData;
     
-    if (activeTab === 'Today') {
-      baseData = [
-        { name: '6AM', queries: 15, conversions: 8 },
-        { name: '9AM', queries: 25, conversions: 12 },
-        { name: '12PM', queries: 45, conversions: 28 },
-        { name: '3PM', queries: 65, conversions: 42 },
-        { name: '6PM', queries: 50, conversions: 30 },
-        { name: '9PM', queries: 30, conversions: 18 },
-        { name: '12AM', queries: 10, conversions: 5 },
-      ];
-    } else if (activeTab === '1W') {
-      baseData = [
-        { name: 'Mon', queries: 65, conversions: 32 },
-        { name: 'Tue', queries: 78, conversions: 45 },
-        { name: 'Wed', queries: 82, conversions: 53 },
-        { name: 'Thu', queries: 70, conversions: 40 },
-        { name: 'Fri', queries: 90, conversions: 58 },
-        { name: 'Sat', queries: 50, conversions: 28 },
-        { name: 'Sun', queries: 40, conversions: 22 },
-      ];
-    } else if (activeTab === '1M') {
-      baseData = Array.from({ length: 30 }, (_, i) => ({
-        name: `${i + 1}`,
-        queries: 50 + Math.floor(Math.random() * 100),
-        conversions: 25 + Math.floor(Math.random() * 50),
-      }));
-    } else { // 1Y
-      baseData = [
-        { name: 'Jan', queries: 1850, conversions: 920 },
-        { name: 'Feb', queries: 2100, conversions: 1260 },
-        { name: 'Mar', queries: 2350, conversions: 1530 },
-        { name: 'Apr', queries: 2000, conversions: 1200 },
-        { name: 'May', queries: 2600, conversions: 1690 },
-        { name: 'Jun', queries: 2200, conversions: 1320 },
-        { name: 'Jul', queries: 2800, conversions: 1820 },
-        { name: 'Aug', queries: 2450, conversions: 1590 },
-        { name: 'Sep', queries: 2150, conversions: 1400 },
-        { name: 'Oct', queries: 2750, conversions: 1790 },
-        { name: 'Nov', queries: 2950, conversions: 1920 },
-        { name: 'Dec', queries: 3100, conversions: 2015 },
-      ];
+    if (weeklyPerformanceData && weeklyPerformanceData.length > 0) {
+      // Use real data from API
+      baseData = weeklyPerformanceData;
+    } else {
+      // Fallback to generated data based on activeTab
+      if (activeTab === 'Today') {
+        baseData = [
+          { name: '6AM', queries: 15, conversions: 8 },
+          { name: '9AM', queries: 25, conversions: 12 },
+          { name: '12PM', queries: 45, conversions: 28 },
+          { name: '3PM', queries: 65, conversions: 42 },
+          { name: '6PM', queries: 50, conversions: 30 },
+          { name: '9PM', queries: 30, conversions: 18 },
+          { name: '12AM', queries: 10, conversions: 5 },
+        ];
+      } else if (activeTab === '1W') {
+        baseData = [
+          { name: 'Mon', queries: 65, conversions: 32 },
+          { name: 'Tue', queries: 78, conversions: 45 },
+          { name: 'Wed', queries: 82, conversions: 53 },
+          { name: 'Thu', queries: 70, conversions: 40 },
+          { name: 'Fri', queries: 90, conversions: 58 },
+          { name: 'Sat', queries: 50, conversions: 28 },
+          { name: 'Sun', queries: 40, conversions: 22 },
+        ];
+      } else if (activeTab === '1M') {
+        baseData = Array.from({ length: 30 }, (_, i) => ({
+          name: `${i + 1}`,
+          queries: 50 + Math.floor(Math.random() * 100),
+          conversions: 25 + Math.floor(Math.random() * 50),
+        }));
+      } else { // 1Y
+        baseData = [
+          { name: 'Jan', queries: 1850, conversions: 920 },
+          { name: 'Feb', queries: 2100, conversions: 1260 },
+          { name: 'Mar', queries: 2350, conversions: 1530 },
+          { name: 'Apr', queries: 2000, conversions: 1200 },
+          { name: 'May', queries: 2600, conversions: 1690 },
+          { name: 'Jun', queries: 2200, conversions: 1320 },
+          { name: 'Jul', queries: 2800, conversions: 1820 },
+          { name: 'Aug', queries: 2450, conversions: 1590 },
+          { name: 'Sep', queries: 2150, conversions: 1400 },
+          { name: 'Oct', queries: 2750, conversions: 1790 },
+          { name: 'Nov', queries: 2950, conversions: 1920 },
+          { name: 'Dec', queries: 3100, conversions: 2015 },
+        ];
+      }
     }
 
-    // Modify data based on selected channel
+    // Apply channel filter multiplier based on actual channel data
     let multiplier = 1;
-    if (selectedChannel === 'whatsapp') multiplier = 0.8;
-    else if (selectedChannel === 'slack') multiplier = 0.6;
-    else if (selectedChannel === 'messenger') multiplier = 0.4;
-    else if (selectedChannel === 'website') multiplier = 0.9;
+    if (selectedChannel !== 'all' && conversationChannel[selectedChannel] !== undefined) {
+      const totalConversations = Object.values(conversationChannel).reduce((sum, count) => sum + count, 0);
+      const channelConversations = conversationChannel[selectedChannel];
+      multiplier = totalConversations > 0 ? channelConversations / totalConversations : 0;
+    }
 
     return baseData.map(item => ({
       ...item,

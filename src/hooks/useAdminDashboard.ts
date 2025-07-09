@@ -14,6 +14,9 @@ export interface AgentPerformanceComparison {
   conversations: number;
   avg_response_time: number;
   satisfaction: number;
+  efficiency: number;
+  resolved: number;
+  pending: number;
 }
 
 export interface UsageHistoryItem {
@@ -21,22 +24,38 @@ export interface UsageHistoryItem {
   count: number;
 }
 
+export interface SatisfactionTrendItem {
+  name: string;
+  satisfaction: number;
+}
+
+export interface ChartDataItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface WeeklyPerformanceItem {
+  name: string;
+  queries: number;
+  conversions: number;
+}
+
 export interface AdminDashboardData {
   my_agents: number;
   conversations: number;
   knowledge_base: number;
   team_members: number;
-  agent_performance_summary: AgentPerformanceSummary;
   conversation_channels: Record<string, number>;
   agent_performance_comparison: AgentPerformanceComparison[];
-  agent_use: {
-    credits_used: number;
-    credits_total: number;
-    agents_used: number;
-  };
   usage_history: UsageHistoryItem[];
+  satisfaction_trends: SatisfactionTrendItem[];
+  chart_data: {
+    agent_distribution: ChartDataItem[];
+    satisfaction_breakdown: ChartDataItem[];
+    weekly_performance: WeeklyPerformanceItem[];
+  };
 }
-
 
 async function fetchAdminDashboard(): Promise<AdminDashboardData> {
   const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;

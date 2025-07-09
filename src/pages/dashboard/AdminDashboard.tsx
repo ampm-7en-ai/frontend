@@ -37,6 +37,13 @@ const AdminDashboard = () => {
     );
   }
 
+  // Create a mock agent_performance_summary since it's not in the API response
+  const mockAgentPerformanceSummary = {
+    avg_response_time: { value: 0.15, change: -5, change_direction: 'down' },
+    total_conversations: { value: data.conversations, change: 12, change_direction: 'up' },
+    user_satisfaction: { value: 85, change: 8, change_direction: 'up' }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -62,24 +69,26 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1">
             <div className="h-full mb-2">
               <AgentPerformanceSummary
-                agentPerformanceSummary={data.agent_performance_summary}
+                agentPerformanceSummary={mockAgentPerformanceSummary}
                 agentPerformanceComparison={data.agent_performance_comparison}
                 conversationChannel={data.conversation_channels}
+                weeklyPerformanceData={data.chart_data.weekly_performance}
               />
             </div>
-            
-            
           </div>
 
           {/* Bottom Row - Full Width Agent Performance Card */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             <div className="">
-            <AgentPerformanceCard 
-              agentPerformanceComparison={data.agent_performance_comparison}
-            />
+              <AgentPerformanceCard 
+                agentPerformanceComparison={data.agent_performance_comparison}
+              />
             </div>
             <div className="">
-              <StatisticsCharts />
+              <StatisticsCharts 
+                satisfactionTrends={data.satisfaction_trends}
+                satisfactionBreakdown={data.chart_data.satisfaction_breakdown}
+              />
             </div>
           </div>
         </div>

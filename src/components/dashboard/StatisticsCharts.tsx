@@ -15,7 +15,15 @@ import {
 } from "@/components/ui/select";
 import { Download } from 'lucide-react';
 
-const StatisticsCharts = () => {
+interface StatisticsChartsProps {
+  satisfactionTrends?: Array<{ name: string; satisfaction: number; }>;
+  satisfactionBreakdown?: Array<{ name: string; value: number; color: string; }>;
+}
+
+const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
+  satisfactionTrends = [],
+  satisfactionBreakdown = []
+}) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedChannel, setSelectedChannel] = useState('all');
   const [conversationActiveTab, setConversationActiveTab] = useState('Today');
@@ -33,8 +41,13 @@ const StatisticsCharts = () => {
     { id: '1Y', label: '1Y' }
   ];
 
-  // Sample satisfaction trend data for line chart
-  const satisfactionTrendData = [
+  // Use real satisfaction trend data or fallback to mock data
+  const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
+    name: item.name,
+    satisfaction: item.satisfaction,
+    csat: item.satisfaction > 0 ? (item.satisfaction / 10 * 5).toFixed(1) : 0, // Convert to 5-point scale
+    nps: item.satisfaction > 0 ? item.satisfaction * 10 : 0 // Convert to NPS scale
+  })) : [
     { name: 'Week 1', satisfaction: 88, csat: 4.2, nps: 55 },
     { name: 'Week 2', satisfaction: 91, csat: 4.4, nps: 62 },
     { name: 'Week 3', satisfaction: 87, csat: 4.1, nps: 48 },
@@ -62,8 +75,6 @@ const StatisticsCharts = () => {
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        
-
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={satisfactionTrendData}>
