@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
 import { Clock, MessageCircle, Star, TrendingUp, TrendingDown, Download } from 'lucide-react';
-import { AgentPerformanceSummary as PerformanceSummaryType, AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
+import { AgentPerformanceSummary as PerformanceSummaryType, AgentPerformanceComparison, PerformanceDataItem } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
@@ -12,7 +12,12 @@ interface AgentPerformanceSummaryProps {
   agentPerformanceSummary: PerformanceSummaryType;
   agentPerformanceComparison: AgentPerformanceComparison[];
   conversationChannel: Record<string, number>;
-  weeklyPerformanceData?: Array<{ name: string; queries: number; conversions: number; }>;
+  chartData?: {
+    daily_performance: PerformanceDataItem[];
+    weekly_performance: PerformanceDataItem[];
+    monthly_performance: PerformanceDataItem[];
+    yearly_performance: PerformanceDataItem[];
+  };
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -21,7 +26,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
   agentPerformanceSummary,
   agentPerformanceComparison,
   conversationChannel,
-  weeklyPerformanceData = [],
+  chartData,
 }) => {
   const [activeTab, setActiveTab] = useState('Today');
   const [selectedChannel, setSelectedChannel] = useState('all');
@@ -42,56 +47,26 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
     }))
   ];
 
-  // Use real weekly performance data if available, otherwise generate mock data
-  const generateConversationData = () => {
-    let baseData;
+  // Use real chart data based on activeTab
+  const getConversationData = () => {
+    let baseData: PerformanceDataItem[] = [];
     
-    if (weeklyPerformanceData && weeklyPerformanceData.length > 0) {
-      // Use real data from API
-      baseData = weeklyPerformanceData;
-    } else {
-      // Fallback to generated data based on activeTab
-      if (activeTab === 'Today') {
-        baseData = [
-          { name: '6AM', queries: 15, conversions: 8 },
-          { name: '9AM', queries: 25, conversions: 12 },
-          { name: '12PM', queries: 45, conversions: 28 },
-          { name: '3PM', queries: 65, conversions: 42 },
-          { name: '6PM', queries: 50, conversions: 30 },
-          { name: '9PM', queries: 30, conversions: 18 },
-          { name: '12AM', queries: 10, conversions: 5 },
-        ];
-      } else if (activeTab === '1W') {
-        baseData = [
-          { name: 'Mon', queries: 65, conversions: 32 },
-          { name: 'Tue', queries: 78, conversions: 45 },
-          { name: 'Wed', queries: 82, conversions: 53 },
-          { name: 'Thu', queries: 70, conversions: 40 },
-          { name: 'Fri', queries: 90, conversions: 58 },
-          { name: 'Sat', queries: 50, conversions: 28 },
-          { name: 'Sun', queries: 40, conversions: 22 },
-        ];
-      } else if (activeTab === '1M') {
-        baseData = Array.from({ length: 30 }, (_, i) => ({
-          name: `${i + 1}`,
-          queries: 50 + Math.floor(Math.random() * 100),
-          conversions: 25 + Math.floor(Math.random() * 50),
-        }));
-      } else { // 1Y
-        baseData = [
-          { name: 'Jan', queries: 1850, conversions: 920 },
-          { name: 'Feb', queries: 2100, conversions: 1260 },
-          { name: 'Mar', queries: 2350, conversions: 1530 },
-          { name: 'Apr', queries: 2000, conversions: 1200 },
-          { name: 'May', queries: 2600, conversions: 1690 },
-          { name: 'Jun', queries: 2200, conversions: 1320 },
-          { name: 'Jul', queries: 2800, conversions: 1820 },
-          { name: 'Aug', queries: 2450, conversions: 1590 },
-          { name: 'Sep', queries: 2150, conversions: 1400 },
-          { name: 'Oct', queries: 2750, conversions: 1790 },
-          { name: 'Nov', queries: 2950, conversions: 1920 },
-          { name: 'Dec', queries: 3100, conversions: 2015 },
-        ];
+    if (chartData) {
+      switch (activeTab) {
+        case 'Today':
+          baseData = chartData.daily_performance || [];
+          break;
+        case '1W':
+          baseData = chartData.weekly_performance || [];
+          break;
+        case '1M':
+          baseData = chartData.monthly_performance || [];
+          break;
+        case '1Y':
+          baseData = chartData.yearly_performance || [];
+          break;
+        default:
+          baseData = chartData.daily_performance || [];
       }
     }
 
@@ -104,13 +79,12 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
     }
 
     return baseData.map(item => ({
-      ...item,
+      name: item.name,
       queries: Math.round(item.queries * multiplier),
-      conversions: Math.round(item.conversions * multiplier)
     }));
   };
 
-  const conversationData = generateConversationData();
+  const conversationData = getConversationData();
 
   return (
     <Card className="bg-transparent border-0 0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
@@ -144,10 +118,6 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 <linearGradient id="queriesGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="conversionsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
@@ -183,16 +153,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 fillOpacity={1} 
                 fill="url(#queriesGradient)"
                 strokeWidth={2}
-                name="Total Queries"
-              />
-              <Area 
-                type="monotone" 
-                dataKey="conversions" 
-                stroke="#10b981" 
-                fillOpacity={1} 
-                fill="url(#conversionsGradient)"
-                strokeWidth={2}
-                name="Successful Conversions"
+                name="Total Conversations"
               />
             </AreaChart>
           </ResponsiveContainer>

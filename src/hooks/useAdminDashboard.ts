@@ -35,10 +35,15 @@ export interface ChartDataItem {
   color: string;
 }
 
+export interface PerformanceDataItem {
+  name: string;
+  queries: number;
+}
+
 export interface WeeklyPerformanceItem {
   name: string;
   queries: number;
-  conversions: number;
+  conversions?: number;
 }
 
 export interface AdminDashboardData {
@@ -53,7 +58,10 @@ export interface AdminDashboardData {
   chart_data: {
     agent_distribution: ChartDataItem[];
     satisfaction_breakdown: ChartDataItem[];
-    weekly_performance: WeeklyPerformanceItem[];
+    daily_performance: PerformanceDataItem[];
+    weekly_performance: PerformanceDataItem[];
+    monthly_performance: PerformanceDataItem[];
+    yearly_performance: PerformanceDataItem[];
   };
 }
 

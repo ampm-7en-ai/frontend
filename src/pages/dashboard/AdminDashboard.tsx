@@ -72,7 +72,7 @@ const AdminDashboard = () => {
                 agentPerformanceSummary={mockAgentPerformanceSummary}
                 agentPerformanceComparison={data.agent_performance_comparison}
                 conversationChannel={data.conversation_channels}
-                weeklyPerformanceData={data.chart_data.weekly_performance}
+                chartData={data.chart_data}
               />
             </div>
           </div>
