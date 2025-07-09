@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Users, Clock, Star, TrendingUp, TrendingDown, Bot, Heart } from 'lucide-react';
 import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
@@ -80,10 +80,11 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: 'none',
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
               }}
               labelFormatter={(label) => {
                 const agent = performanceData.find(a => a.name === label);
@@ -131,10 +132,11 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: 'none',
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
               }}
               labelFormatter={(label) => {
                 const agent = performanceData.find(a => a.name === label);
@@ -155,17 +157,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
     } else {
       return (
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={performanceData}>
-            <defs>
-              <linearGradient id="csatGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-              </linearGradient>
-              <linearGradient id="npsGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
+          <LineChart data={performanceData}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="name" 
@@ -182,35 +174,34 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: 'none',
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
               }}
               labelFormatter={(label) => {
                 const agent = performanceData.find(a => a.name === label);
                 return agent ? agent.fullName : label;
               }}
             />
-            <Area 
+            <Line 
               type="monotone" 
               dataKey="csat" 
               stroke="#3b82f6" 
-              fillOpacity={1} 
-              fill="url(#csatGradient)"
               strokeWidth={2}
+              dot={{ r: 4, fill: '#3b82f6' }}
               name="CSAT Score"
             />
-            <Area 
+            <Line 
               type="monotone" 
               dataKey="nps" 
               stroke="#f59e0b" 
-              fillOpacity={1} 
-              fill="url(#npsGradient)"
               strokeWidth={2}
+              dot={{ r: 4, fill: '#f59e0b' }}
               name="NPS Score"
             />
-          </AreaChart>
+          </LineChart>
         </ResponsiveContainer>
       );
     }

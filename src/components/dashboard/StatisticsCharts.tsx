@@ -95,10 +95,11 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
               />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: 'none',
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '12px',
                   boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                  color: 'hsl(var(--foreground))',
                   fontSize: '12px'
                 }}
               />
