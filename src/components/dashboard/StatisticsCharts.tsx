@@ -1,19 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { CheckCircle, Star, Heart, Users, TrendingUp, Bot } from 'lucide-react';
-import { AgentPerformanceChart } from './AgentPerformanceChart';
-import ModernTabNavigation from './ModernTabNavigation';
-import ModernButton from './ModernButton';
+import { Heart } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Download } from 'lucide-react';
 
 interface StatisticsChartsProps {
   satisfactionTrends?: Array<{ name: string; satisfaction: number; csat?: number; nps?: number; }>;
@@ -24,43 +13,26 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   satisfactionTrends = [],
   satisfactionBreakdown = []
 }) => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [selectedChannel, setSelectedChannel] = useState('all');
-  const [conversationActiveTab, setConversationActiveTab] = useState('Today');
-
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'performance', label: 'Performance' },
-    { id: 'satisfaction', label: 'Satisfaction' }
-  ];
-
-  const conversationTabs = [
-    { id: 'Today', label: 'Today' },
-    { id: '1W', label: '1W' },
-    { id: '1M', label: '1M' },
-    { id: '1Y', label: '1Y' }
-  ];
-
-  // Use real satisfaction trend data from API
+  // Transform satisfaction data to -100 to 100 scale and update mock data to match reference
   const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
     name: item.name,
-    satisfaction: item.satisfaction || null,
-    csat: item.csat || null,
-    nps: item.nps || null
+    satisfaction: item.satisfaction ? (item.satisfaction - 5) * 20 : 0, // Transform 0-10 to -100 to 100 scale
+    csat: item.csat || 0,
+    nps: item.nps || 0
   })) : [
-    { name: 'Week 1', satisfaction: 8.8, csat: 4.2, nps: 55 },
-    { name: 'Week 2', satisfaction: 9.1, csat: 4.4, nps: 62 },
-    { name: 'Week 3', satisfaction: 8.7, csat: 4.1, nps: 48 },
-    { name: 'Week 4', satisfaction: 9.3, csat: 4.6, nps: 71 },
-    { name: 'Week 5', satisfaction: 9.5, csat: 4.8, nps: 78 },
-    { name: 'Week 6', satisfaction: 9.2, csat: 4.7, nps: 68 },
-    { name: 'Week 7', satisfaction: 9.6, csat: 4.9, nps: 82 },
+    { name: 'Week 1', satisfaction: 0, csat: 0, nps: 0 },
+    { name: 'Week 2', satisfaction: 0, csat: 0, nps: 0 },
+    { name: 'Week 3', satisfaction: 0, csat: 0, nps: 0 },
+    { name: 'Week 4', satisfaction: 0, csat: 0, nps: 0 },
+    { name: 'Week 5', satisfaction: 0, csat: 65, nps: 35 },
+    { name: 'Week 6', satisfaction: 0, csat: 0, nps: 0 },
+    { name: 'Week 7', satisfaction: 0, csat: 0, nps: 0 },
   ];
 
   // Calculate data quality metrics
   const totalWeeks = satisfactionTrendData.length;
   const weeksWithData = satisfactionTrendData.filter(item => 
-    item.satisfaction > 0 || item.csat > 0 || item.nps !== 0
+    item.satisfaction !== 0 || item.csat !== 0 || item.nps !== 0
   ).length;
 
   return (
@@ -69,7 +41,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-              Customer Satisfaction Trends
+              Satisfaction, CSAT, and NPS Trends Over Weeks
             </CardTitle>
             <CardDescription className="text-slate-500 dark:text-slate-400">
               {weeksWithData} of {totalWeeks} weeks have satisfaction data
@@ -93,23 +65,12 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 tickLine={false}
               />
               <YAxis 
-                yAxisId="left"
-                tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
-                axisLine={false}
-                tickLine={false}
-                domain={[0, 10]}
-                label={{ value: 'Satisfaction (0-10)', angle: -90, position: 'insideLeft' }}
-              />
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
                 tick={{ fontSize: 12, fill: 'currentColor' }}
                 className="text-slate-600 dark:text-slate-400"
                 axisLine={false}
                 tickLine={false}
                 domain={[-100, 100]}
-                label={{ value: 'CSAT % / NPS', angle: 90, position: 'insideRight' }}
+                label={{ value: 'Score', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -124,13 +85,13 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                   if (value === null || value === 0) {
                     return ['No data', name];
                   }
-                  if (name === 'Avg Satisfaction') {
-                    return [`${value}/10`, name];
+                  if (name === 'Satisfaction') {
+                    return [`${value}`, name];
                   }
-                  if (name === 'CSAT Score') {
+                  if (name === 'CSAT') {
                     return [`${value}%`, name];
                   }
-                  if (name === 'NPS Score') {
+                  if (name === 'NPS') {
                     return [`${value}`, name];
                   }
                   return [value, name];
@@ -141,34 +102,31 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 iconType="line"
               />
               <Line 
-                yAxisId="left"
                 type="monotone" 
                 dataKey="satisfaction" 
                 stroke="#22c55e" 
                 strokeWidth={3}
                 dot={{ r: 4, fill: '#22c55e' }}
                 connectNulls={false}
-                name="Avg Satisfaction"
+                name="Satisfaction"
               />
               <Line 
-                yAxisId="right"
                 type="monotone" 
                 dataKey="csat" 
                 stroke="#3b82f6" 
                 strokeWidth={3}
                 dot={{ r: 4, fill: '#3b82f6' }}
                 connectNulls={false}
-                name="CSAT Score"
+                name="CSAT"
               />
               <Line 
-                yAxisId="right"
                 type="monotone" 
                 dataKey="nps" 
-                stroke="#8b5cf6" 
+                stroke="#f59e0b" 
                 strokeWidth={3}
-                dot={{ r: 4, fill: '#8b5cf6' }}
+                dot={{ r: 4, fill: '#f59e0b' }}
                 connectNulls={false}
-                name="NPS Score"
+                name="NPS"
               />
             </LineChart>
           </ResponsiveContainer>
