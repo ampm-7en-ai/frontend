@@ -30,7 +30,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
     { id: 'satisfaction', label: 'Satisfaction' }
   ];
 
-  // Generate performance data based on real data
+  // Generate performance data using actual API values
   const generatePerformanceData = () => {
     return agentPerformanceComparison.map((agent, index) => ({
       name: agent.agent_name.substring(0, 10) + (agent.agent_name.length > 10 ? '...' : ''),
@@ -38,9 +38,9 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
       conversations: agent.conversations,
       responseTime: agent.avg_response_time,
       satisfaction: agent.satisfaction,
-      efficiency: Math.round((agent.conversations / agent.avg_response_time) * 100) / 100,
-      resolved: Math.round(agent.conversations * 0.85), // 85% resolution rate
-      pending: Math.round(agent.conversations * 0.15), // 15% pending
+      efficiency: agent.efficiency,
+      resolved: agent.resolved, // Use actual API value
+      pending: agent.pending, // Use actual API value
     }));
   };
 
@@ -92,7 +92,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               dataKey="conversations" 
               fill="#3b82f6" 
               radius={[4, 4, 0, 0]}
-              name="Conversations"
+              name="Total Conversations"
             />
             <Bar 
               dataKey="resolved" 
@@ -102,9 +102,9 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             />
             <Bar 
               dataKey="pending" 
-              fill="#ffcccc" 
+              fill="#f59e0b" 
               radius={[4, 4, 0, 0]}
-              name="Unresolved"
+              name="Pending"
             />
           </BarChart>
         </ResponsiveContainer>
@@ -147,7 +147,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               dot={{ r: 6, fill: '#8b5cf6' }}
               name="Efficiency Score"
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       );
     } else {
@@ -193,7 +193,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               fillOpacity={1} 
               fill="url(#satisfactionGradient)"
               strokeWidth={2}
-              name="Satisfaction %"
+              name="Satisfaction Score"
             />
           </AreaChart>
         </ResponsiveContainer>
