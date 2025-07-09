@@ -5,7 +5,7 @@ import { CheckCircle, Star, Heart, Users, TrendingUp, Bot } from 'lucide-react';
 import { AgentPerformanceChart } from './AgentPerformanceChart';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, RadialBarChart, RadialBar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, RadialBarChart, RadialBar, PieChart, Pie, Cell, ComposedChart, Legend } from 'recharts';
 import {
   Select,
   SelectContent,
@@ -76,9 +76,9 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <div className="h-72">
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={satisfactionTrendData}>
+            <ComposedChart data={satisfactionTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
               <XAxis 
                 dataKey="name" 
@@ -88,11 +88,23 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 tickLine={false}
               />
               <YAxis 
+                yAxisId="left"
                 tick={{ fontSize: 12, fill: 'currentColor' }}
                 className="text-slate-600 dark:text-slate-400"
                 axisLine={false}
                 tickLine={false}
                 domain={[0, 10]}
+                label={{ value: 'Score (0-10)', angle: -90, position: 'insideLeft' }}
+              />
+              <YAxis 
+                yAxisId="right"
+                orientation="right"
+                tick={{ fontSize: 12, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
+                domain={[-100, 100]}
+                label={{ value: 'NPS (-100 to +100)', angle: 90, position: 'insideRight' }}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -110,34 +122,47 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                   if (name === 'CSAT Score') {
                     return [`${value}/10`, name];
                   }
+                  if (name === 'NPS Score') {
+                    return [`${value}`, name];
+                  }
                   return [value, name];
                 }}
               />
-              <Line 
+              <Legend 
+                wrapperStyle={{ paddingTop: '20px' }}
+                iconType="line"
+              />
+              <Area 
+                yAxisId="left"
                 type="monotone" 
                 dataKey="satisfaction" 
-                stroke="#22c55e" 
+                fill="#22c55e" 
+                fillOpacity={0.1}
+                stroke="#22c55e"
                 strokeWidth={2}
                 dot={false}
                 name="Avg Satisfaction Score"
               />
-              <Line 
-                type="monotone" 
+              <Bar 
+                yAxisId="left"
                 dataKey="csat" 
-                stroke="#3b82f6" 
-                strokeWidth={2}
-                dot={false}
+                fill="#3b82f6" 
+                fillOpacity={0.8}
+                radius={[2, 2, 0, 0]}
                 name="CSAT Score"
+                barSize={20}
               />
               <Line 
+                yAxisId="right"
                 type="monotone" 
                 dataKey="nps" 
                 stroke="#8b5cf6" 
-                strokeWidth={2}
-                dot={false}
+                strokeWidth={3}
+                dot={{ r: 4, fill: '#8b5cf6' }}
                 name="NPS Score"
+                connectNulls={false}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
