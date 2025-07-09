@@ -33,7 +33,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
   // Generate performance data using actual API values
   const generatePerformanceData = () => {
     return agentPerformanceComparison.map((agent, index) => ({
-      name: agent.agent_name.substring(0, 10) + (agent.agent_name.length > 10 ? '...' : ''),
+      name: agent.agent_name.substring(0, 8) + (agent.agent_name.length > 8 ? '...' : ''),
       fullName: agent.agent_name,
       conversations: agent.conversations,
       responseTime: agent.avg_response_time,
@@ -41,7 +41,8 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
       efficiency: agent.efficiency,
       resolved: agent.resolved,
       pending: agent.pending,
-      csat: agent.csat || 0,
+      // Convert CSAT to percentage scale (0-100) - assuming it comes as 0-5 scale
+      csat: agent.csat ? (agent.csat * 20) : 0, // Convert 0-5 to 0-100
       nps: agent.nps || 0,
     }));
   };
@@ -59,11 +60,24 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
     return `${Math.round(time / 60)}m`;
   };
 
+  // Calculate appropriate chart height based on number of agents
+  const getChartHeight = () => {
+    if (activeTab === 'efficiency') {
+      // For horizontal bars, height should increase with more agents
+      const baseHeight = 300;
+      const additionalHeight = Math.max(0, (performanceData.length - 5) * 25);
+      return Math.min(baseHeight + additionalHeight, 600); // Cap at 600px
+    }
+    return 300;
+  };
+
   const renderChart = () => {
+    const chartHeight = getChartHeight();
+    
     if (activeTab === 'performance') {
       return (
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={performanceData}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
+          <BarChart data={performanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="name" 
@@ -71,6 +85,9 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
+              angle={performanceData.length > 10 ? -45 : 0}
+              textAnchor={performanceData.length > 10 ? 'end' : 'middle'}
+              height={performanceData.length > 10 ? 60 : 30}
             />
             <YAxis 
               tick={{ fontSize: 12, fill: 'currentColor' }}
@@ -96,36 +113,37 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               fill="#3b82f6" 
               radius={[4, 4, 0, 0]}
               name="Total Conversations"
-              className="hover:fill-blue-700 dark:hover:fill-blue-400"
+              className="hover:fill-blue-700 dark:hover:fill-blue-800"
             />
             <Bar 
               dataKey="resolved" 
               fill="#10b981" 
               radius={[4, 4, 0, 0]}
               name="Resolved"
-              className="hover:fill-green-700 dark:hover:fill-green-400"
+              className="hover:fill-green-700 dark:hover:fill-green-800"
             />
             <Bar 
               dataKey="pending" 
               fill="#f59e0b" 
               radius={[4, 4, 0, 0]}
               name="Pending"
-              className="hover:fill-amber-700 dark:hover:fill-amber-400"
+              className="hover:fill-amber-700 dark:hover:fill-amber-800"
             />
           </BarChart>
         </ResponsiveContainer>
       );
     } else if (activeTab === 'efficiency') {
       return (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart 
             data={performanceData} 
-            layout="horizontal"
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            layout="vertical"
+            margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               type="number"
+              domain={[0, 100]}
               tick={{ fontSize: 12, fill: 'currentColor' }}
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
@@ -134,11 +152,11 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             <YAxis 
               type="category"
               dataKey="name" 
-              tick={{ fontSize: 12, fill: 'currentColor' }}
+              tick={{ fontSize: 11, fill: 'currentColor' }}
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
-              width={80}
+              width={70}
             />
             <Tooltip 
               contentStyle={{ 
@@ -167,15 +185,15 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               fill="#8b5cf6" 
               radius={[0, 4, 4, 0]}
               name="Efficiency Score"
-              className="hover:fill-purple-800 dark:hover:fill-purple-400"
+              className="hover:fill-purple-700 dark:hover:fill-purple-800"
             />
           </BarChart>
         </ResponsiveContainer>
       );
     } else {
       return (
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={performanceData}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
+          <ComposedChart data={performanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="name" 
@@ -183,6 +201,9 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
+              angle={performanceData.length > 10 ? -45 : 0}
+              textAnchor={performanceData.length > 10 ? 'end' : 'middle'}
+              height={performanceData.length > 10 ? 60 : 30}
             />
             <YAxis 
               yAxisId="left"
@@ -190,7 +211,8 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
-              domain={[0, 5]}
+              domain={[0, 100]}
+              label={{ value: 'CSAT (%)', angle: -90, position: 'insideLeft' }}
             />
             <YAxis 
               yAxisId="right"
@@ -200,6 +222,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               axisLine={false}
               tickLine={false}
               domain={[-100, 100]}
+              label={{ value: 'NPS', angle: 90, position: 'insideRight' }}
             />
             <Tooltip 
               contentStyle={{ 
@@ -215,7 +238,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               }}
               formatter={(value, name) => {
                 if (name === 'CSAT Score') {
-                  return [`${value}/5`, name];
+                  return [`${value}%`, name];
                 }
                 if (name === 'NPS Score') {
                   return [`${value}`, name];
@@ -229,7 +252,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               fill="#3b82f6" 
               radius={[4, 4, 0, 0]}
               name="CSAT Score"
-              className="hover:fill-blue-700 dark:hover:fill-blue-400"
+              className="hover:fill-blue-700 dark:hover:fill-blue-800"
             />
             <Line 
               yAxisId="right"
@@ -237,7 +260,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               dataKey="nps" 
               stroke="#f59e0b" 
               strokeWidth={3}
-              dot={{ r: 6, fill: '#f59e0b' }}
+              dot={{ r: 4, fill: '#f59e0b' }}
               name="NPS Score"
               connectNulls={false}
             />
@@ -265,9 +288,15 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {performanceData.length > 15 && (
+          <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
+            <span className="font-medium">Note:</span> Showing {performanceData.length} agents. 
+            {performanceData.length > 20 && " Consider filtering for better readability."}
+          </div>
+        )}
         
         {/* Chart */}
-        <div className="h-80">
+        <div className="overflow-hidden">
           {renderChart()}
         </div>
       </CardContent>
