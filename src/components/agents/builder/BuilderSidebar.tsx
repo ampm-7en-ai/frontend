@@ -12,6 +12,10 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 import { ModernModal } from '@/components/ui/modern-modal';
+import { AgentTrainingService } from '@/services/AgentTrainingService';
+import { useNotifications } from '@/context/NotificationContext';
+import CleanupDialog from '@/components/agents/CleanupDialog';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -161,6 +165,7 @@ export const BuilderSidebar = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const queryClient = useQueryClient();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
@@ -169,8 +174,9 @@ export const BuilderSidebar = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
   const [isTraining, setIsTraining] = useState(false);
+  const [showCleanupDialog, setShowCleanupDialog] = useState(false);
+  const [showTrainingAlert, setShowTrainingAlert] = useState(false);
 
-  // Fetch external knowledge sources for import dialog
   const { data: externalSources = [] } = useQuery({
     queryKey: ['availableKnowledgeSources'],
     queryFn: async () => {
@@ -237,48 +243,105 @@ export const BuilderSidebar = () => {
     }
   };
 
+  const hasProblematicSources = (knowledgeSources: any[]) => {
+    return knowledgeSources.some(kb => 
+      kb.status === 'deleted' || 
+      kb.knowledge_sources?.some((source: any) => source.status === 'deleted' && source.is_selected === true)
+    );
+  };
+
   const handleTrainKnowledge = async () => {
     if (!agentData.id) return;
     
-    try {
-      setIsTraining(true);
-      const token = getAccessToken();
-      if (!token) throw new Error('No authentication token');
-
-      const response = await fetch(`${BASE_URL}agents/${agentData.id}/train/`, {
-        method: 'POST',
-        headers: getAuthHeaders(token)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to start training');
-      }
-
+    if (agentData.knowledgeSources.length === 0) {
       toast({
-        title: "Training started",
-        description: "Your agent's knowledge base is being trained.",
-      });
-
-      // Update training status for knowledge sources
-      const updatedSources = agentData.knowledgeSources.map(source => ({
-        ...source,
-        trainingStatus: 'Training' as const
-      }));
-      
-      updateAgentData({ knowledgeSources: updatedSources });
-      
-      // Reset training state after a delay
-      setTimeout(() => {
-        setIsTraining(false);
-      }, 3000);
-    } catch (error) {
-      console.error('Error training knowledge:', error);
-      toast({
-        title: "Training failed",
-        description: "There was an error starting the training process.",
+        title: "No sources selected",
+        description: "Please import at least one knowledge source to train.",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (hasProblematicSources(agentData.knowledgeSources)) {
+      setShowCleanupDialog(true);
+      return;
+    }
+
+    setIsTraining(true);
+    setShowTrainingAlert(true);
+    
+    addNotification({
+      title: 'Training Started',
+      message: `Processing ${agentData.name} with ${agentData.knowledgeSources.length} knowledge sources`,
+      type: 'training_started',
+      agentId: agentData.id.toString(),
+      agentName: agentData.name
+    });
+    
+    toast({
+      title: "Training started",
+      description: `Processing ${agentData.knowledgeSources.length} knowledge sources. This may take a while.`
+    });
+
+    try {
+      const knowledgeSourceIds = agentData.knowledgeSources
+        .flatMap(kb => kb.knowledge_sources || [])
+        .filter(source => source.is_selected !== false)
+        .map(s => s.id);
+
+      const websiteUrls = agentData.knowledgeSources
+        .filter(kb => kb.type === "website")
+        .flatMap(kb => kb.knowledge_sources || [])
+        .filter(source => source.is_selected !== false)
+        .flatMap(s => s.sub_urls?.children || [])
+        .filter(su => su.is_selected !== false)
+        .map(url => url.url);
+
+      const success = await AgentTrainingService.trainAgent(
+        agentData.id.toString(), 
+        knowledgeSourceIds, 
+        agentData.name, 
+        websiteUrls
+      );
+      
+      if (success) {
+        addNotification({
+          title: 'Training Complete',
+          message: `Agent "${agentData.name}" training has completed successfully.`,
+          type: 'training_completed',
+          agentId: agentData.id.toString(),
+          agentName: agentData.name
+        });
+
+        // Update training status for knowledge sources
+        const updatedSources = agentData.knowledgeSources.map(source => ({
+          ...source,
+          trainingStatus: 'Active' as const
+        }));
+        
+        updateAgentData({ knowledgeSources: updatedSources });
+      } else {
+        addNotification({
+          title: 'Training Failed',
+          message: `Agent "${agentData.name}" training has failed.`,
+          type: 'training_failed',
+          agentId: agentData.id.toString(),
+          agentName: agentData.name
+        });
+      }
+    } catch (error) {
+      console.error("Error training agent:", error);
+      
+      addNotification({
+        title: 'Training Failed',
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        type: 'training_failed',
+        agentId: agentData.id.toString(),
+        agentName: agentData.name
+      });
+    } finally {
       setIsTraining(false);
+      setShowTrainingAlert(false);
     }
   };
 
@@ -394,6 +457,15 @@ export const BuilderSidebar = () => {
       <div className="flex-1">
         <ScrollArea className="h-full">
           <div className="p-4 space-y-3">
+            {showTrainingAlert && (
+              <div className="mb-4">
+                <AlertBanner 
+                  message="Training started! It will take some time depending on the number of pages."
+                  variant="info"
+                />
+              </div>
+            )}
+
             {agentData.knowledgeSources.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -454,6 +526,24 @@ export const BuilderSidebar = () => {
         initialSourceId={selectedSourceId}
         agentId={agentData.id?.toString()}
         onSourceDelete={() => {}}
+      />
+
+      <CleanupDialog
+        open={showCleanupDialog}
+        onOpenChange={setShowCleanupDialog}
+        knowledgeSources={
+          agentData.knowledgeSources?.flatMap(kb => 
+            kb.knowledge_sources?.filter((s: any) => s.is_selected === true).map((source: any) => ({
+              id: source.id,
+              name: source.title,
+              type: kb.type,
+              hasError: source.status === 'deleted' || kb.status === 'deleted',
+              hasIssue: source.status === 'deleted'
+            }))
+          ).filter(source => source.hasError || source.hasIssue) || []
+        }
+        agentId={agentData.id?.toString()}
+        onCleanupCompleted={handleCleanupCompleted}
       />
 
       <ModernModal
