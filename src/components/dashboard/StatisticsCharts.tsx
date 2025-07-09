@@ -5,7 +5,7 @@ import { CheckCircle, Star, Heart, Users, TrendingUp, Bot } from 'lucide-react';
 import { AgentPerformanceChart } from './AgentPerformanceChart';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, RadialBarChart, RadialBar, PieChart, Pie, Cell, ComposedChart, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import {
   Select,
   SelectContent,
@@ -44,10 +44,9 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   // Use real satisfaction trend data from API
   const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
     name: item.name,
-    satisfaction: item.satisfaction,
-    // Use actual CSAT and NPS values from API if available, otherwise fallback to 0
-    csat: item.csat || 0,
-    nps: item.nps || 0
+    satisfaction: item.satisfaction || null,
+    csat: item.csat || null,
+    nps: item.nps || null
   })) : [
     { name: 'Week 1', satisfaction: 8.8, csat: 4.2, nps: 55 },
     { name: 'Week 2', satisfaction: 9.1, csat: 4.4, nps: 62 },
@@ -58,16 +57,22 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     { name: 'Week 7', satisfaction: 9.6, csat: 4.9, nps: 82 },
   ];
 
+  // Calculate data quality metrics
+  const totalWeeks = satisfactionTrendData.length;
+  const weeksWithData = satisfactionTrendData.filter(item => 
+    item.satisfaction > 0 || item.csat > 0 || item.nps !== 0
+  ).length;
+
   return (
     <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-              Customer Satisfaction
+              Customer Satisfaction Trends
             </CardTitle>
             <CardDescription className="text-slate-500 dark:text-slate-400">
-              Satisfaction metrics and trends
+              {weeksWithData} of {totalWeeks} weeks have satisfaction data
             </CardDescription>
           </div>
           <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
@@ -78,7 +83,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
       <CardContent className="flex-1">
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={satisfactionTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <LineChart data={satisfactionTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
               <XAxis 
                 dataKey="name" 
@@ -94,7 +99,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 axisLine={false}
                 tickLine={false}
                 domain={[0, 10]}
-                label={{ value: 'Score (0-10)', angle: -90, position: 'insideLeft' }}
+                label={{ value: 'Satisfaction (0-10)', angle: -90, position: 'insideLeft' }}
               />
               <YAxis 
                 yAxisId="right"
@@ -104,7 +109,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 axisLine={false}
                 tickLine={false}
                 domain={[-100, 100]}
-                label={{ value: 'NPS (-100 to +100)', angle: 90, position: 'insideRight' }}
+                label={{ value: 'CSAT % / NPS', angle: 90, position: 'insideRight' }}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -116,11 +121,14 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                   fontSize: '12px'
                 }}
                 formatter={(value, name) => {
-                  if (name === 'Avg Satisfaction Score') {
+                  if (value === null || value === 0) {
+                    return ['No data', name];
+                  }
+                  if (name === 'Avg Satisfaction') {
                     return [`${value}/10`, name];
                   }
                   if (name === 'CSAT Score') {
-                    return [`${value}/10`, name];
+                    return [`${value}%`, name];
                   }
                   if (name === 'NPS Score') {
                     return [`${value}`, name];
@@ -132,25 +140,25 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 wrapperStyle={{ paddingTop: '20px' }}
                 iconType="line"
               />
-              <Area 
+              <Line 
                 yAxisId="left"
                 type="monotone" 
                 dataKey="satisfaction" 
-                fill="#22c55e" 
-                fillOpacity={0.1}
-                stroke="#22c55e"
-                strokeWidth={2}
-                dot={false}
-                name="Avg Satisfaction Score"
+                stroke="#22c55e" 
+                strokeWidth={3}
+                dot={{ r: 4, fill: '#22c55e' }}
+                connectNulls={false}
+                name="Avg Satisfaction"
               />
-              <Bar 
-                yAxisId="left"
+              <Line 
+                yAxisId="right"
+                type="monotone" 
                 dataKey="csat" 
-                fill="#3b82f6" 
-                fillOpacity={0.8}
-                radius={[2, 2, 0, 0]}
+                stroke="#3b82f6" 
+                strokeWidth={3}
+                dot={{ r: 4, fill: '#3b82f6' }}
+                connectNulls={false}
                 name="CSAT Score"
-                barSize={20}
               />
               <Line 
                 yAxisId="right"
@@ -159,10 +167,10 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 stroke="#8b5cf6" 
                 strokeWidth={3}
                 dot={{ r: 4, fill: '#8b5cf6' }}
-                name="NPS Score"
                 connectNulls={false}
+                name="NPS Score"
               />
-            </ComposedChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
