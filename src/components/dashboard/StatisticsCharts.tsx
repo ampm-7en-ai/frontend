@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Heart, Star, ThumbsUp } from 'lucide-react';
-import MetricCard from './MetricCard';
+import { Heart } from 'lucide-react';
+import ModernTabNavigation from './ModernTabNavigation';
+import CSATChart from './charts/CSATChart';
+import SatisfactionChart from './charts/SatisfactionChart';
+import NPSChart from './charts/NPSChart';
 
 interface StatisticsChartsProps {
   satisfactionTrends?: Array<{ name: string; satisfaction: number; csat?: number; nps?: number; }>;
@@ -13,6 +16,14 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   satisfactionTrends = [],
   satisfactionBreakdown = []
 }) => {
+  const [activeTab, setActiveTab] = useState('csat');
+
+  const tabs = [
+    { id: 'csat', label: 'CSAT' },
+    { id: 'satisfaction', label: 'Satisfaction' },
+    { id: 'nps', label: 'NPS' }
+  ];
+
   // Use real satisfaction trend data from API
   const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
     name: item.name,
@@ -45,7 +56,8 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     }
 
     const sparklineData = satisfactionTrendData.map(item => ({
-      value: item[dataKey]
+      name: item.name,
+      [dataKey]: item[dataKey]
     }));
 
     const currentValue = validData[validData.length - 1][dataKey];
@@ -73,6 +85,43 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     item.satisfaction > 0 || item.csat > 0 || item.nps !== 0
   ).length;
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'csat':
+        return (
+          <CSATChart
+            data={csatData.sparklineData}
+            currentValue={csatData.currentValue}
+            trend={csatData.trend}
+            trendValue={csatData.trendValue}
+            hasData={csatData.hasData}
+          />
+        );
+      case 'satisfaction':
+        return (
+          <SatisfactionChart
+            data={satisfactionData.sparklineData}
+            currentValue={satisfactionData.currentValue}
+            trend={satisfactionData.trend}
+            trendValue={satisfactionData.trendValue}
+            hasData={satisfactionData.hasData}
+          />
+        );
+      case 'nps':
+        return (
+          <NPSChart
+            data={npsData.sparklineData}
+            currentValue={npsData.currentValue}
+            trend={npsData.trend}
+            trendValue={npsData.trendValue}
+            hasData={npsData.hasData}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
@@ -90,43 +139,19 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MetricCard
-            title="Avg Satisfaction"
-            value={satisfactionData.hasData ? satisfactionData.currentValue.toFixed(1) : '—'}
-            unit="/10"
-            trend={satisfactionData.trend}
-            trendValue={satisfactionData.trendValue}
-            sparklineData={satisfactionData.sparklineData}
-            color="#22c55e"
-            icon={<Heart className="h-4 w-4 text-white" />}
-            hasData={satisfactionData.hasData}
+      <CardContent className="space-y-6">
+        {/* Tab Navigation */}
+        <div className="flex justify-center">
+          <ModernTabNavigation 
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
-          
-          <MetricCard
-            title="CSAT Score"
-            value={csatData.hasData ? Math.round((csatData.currentValue / 5) * 100) : '—'}
-            unit="%"
-            trend={csatData.trend}
-            trendValue={csatData.trendValue}
-            sparklineData={csatData.sparklineData.map(item => ({ value: item.value ? (item.value / 5) * 100 : null }))}
-            color="#3b82f6"
-            icon={<Star className="h-4 w-4 text-white" />}
-            hasData={csatData.hasData}
-          />
-          
-          <MetricCard
-            title="NPS Score"
-            value={npsData.hasData ? npsData.currentValue : '—'}
-            unit=""
-            trend={npsData.trend}
-            trendValue={npsData.trendValue}
-            sparklineData={npsData.sparklineData}
-            color="#8b5cf6"
-            icon={<ThumbsUp className="h-4 w-4 text-white" />}
-            hasData={npsData.hasData}
-          />
+        </div>
+
+        {/* Tab Content */}
+        <div className="min-h-[400px]">
+          {renderTabContent()}
         </div>
       </CardContent>
     </Card>
