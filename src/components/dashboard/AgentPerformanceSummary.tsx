@@ -135,7 +135,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
               dataKey="queries" 
               stroke="#1f2937" 
               strokeWidth={3}
-              dot={{ r: 4, fill: '#1f2937' }}
+              dot={false}
               name="Total Conversations"
             />
             {/* Individual channel lines */}
@@ -146,7 +146,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 dataKey={`${channel}_queries`}
                 stroke={CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280'}
                 strokeWidth={2}
-                dot={{ r: 3, fill: CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280' }}
+                dot={false}
                 name={channel.charAt(0).toUpperCase() + channel.slice(1)}
               />
             ))}
