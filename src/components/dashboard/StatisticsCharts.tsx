@@ -52,7 +52,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     const previousValue = validData.length > 1 ? validData[validData.length - 2][dataKey] : currentValue;
     
     const trendValue = previousValue !== 0 ? ((currentValue - previousValue) / previousValue) * 100 : 0;
-    const trend = trendValue > 0 ? 'up' : trendValue < 0 ? 'down' : 'neutral';
+    const trend: 'up' | 'down' | 'neutral' = trendValue > 0 ? 'up' : trendValue < 0 ? 'down' : 'neutral';
 
     return {
       currentValue,
