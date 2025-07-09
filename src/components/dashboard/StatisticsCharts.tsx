@@ -56,15 +56,23 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     }
 
     // Create sparkline data with the correct property name for each metric
-    const sparklineData = satisfactionTrendData.map(item => {
-      if (dataKey === 'csat') {
-        return { name: item.name, csat: item.csat };
-      } else if (dataKey === 'satisfaction') {
-        return { name: item.name, satisfaction: item.satisfaction };
-      } else {
-        return { name: item.name, nps: item.nps };
-      }
-    });
+    let sparklineData;
+    if (dataKey === 'csat') {
+      sparklineData = satisfactionTrendData.map(item => ({
+        name: item.name,
+        csat: item.csat || 0
+      }));
+    } else if (dataKey === 'satisfaction') {
+      sparklineData = satisfactionTrendData.map(item => ({
+        name: item.name,
+        satisfaction: item.satisfaction || 0
+      }));
+    } else {
+      sparklineData = satisfactionTrendData.map(item => ({
+        name: item.name,
+        nps: item.nps || 0
+      }));
+    }
 
     const currentValue = validData[validData.length - 1][dataKey];
     const previousValue = validData.length > 1 ? validData[validData.length - 2][dataKey] : currentValue;
