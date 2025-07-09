@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface StatisticsChartsProps {
   satisfactionTrends?: Array<{ name: string; satisfaction: number; csat?: number; nps?: number; }>;
@@ -13,13 +13,8 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   satisfactionTrends = [],
   satisfactionBreakdown = []
 }) => {
-  // Transform satisfaction data to -100 to 100 scale and update mock data to match reference
-  const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
-    name: item.name,
-    satisfaction: item.satisfaction ? (item.satisfaction - 5) * 20 : 0, // Transform 0-10 to -100 to 100 scale
-    csat: item.csat || 0,
-    nps: item.nps || 0
-  })) : [
+  // Use raw API data without any transformations
+  const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends : [
     { name: 'Week 1', satisfaction: 0, csat: 0, nps: 0 },
     { name: 'Week 2', satisfaction: 0, csat: 0, nps: 0 },
     { name: 'Week 3', satisfaction: 0, csat: 0, nps: 0 },
@@ -29,23 +24,14 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     { name: 'Week 7', satisfaction: 0, csat: 0, nps: 0 },
   ];
 
-  // Calculate data quality metrics
-  const totalWeeks = satisfactionTrendData.length;
-  const weeksWithData = satisfactionTrendData.filter(item => 
-    item.satisfaction !== 0 || item.csat !== 0 || item.nps !== 0
-  ).length;
-
   return (
     <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-              Satisfaction, CSAT, and NPS Trends Over Weeks
+              Customer Satisfaction
             </CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
-              {weeksWithData} of {totalWeeks} weeks have satisfaction data
-            </CardDescription>
           </div>
           <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
             <Heart className="h-4 w-4 text-white" />
@@ -97,16 +83,12 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                   return [value, name];
                 }}
               />
-              <Legend 
-                wrapperStyle={{ paddingTop: '20px' }}
-                iconType="line"
-              />
               <Line 
                 type="monotone" 
                 dataKey="satisfaction" 
                 stroke="#22c55e" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#22c55e' }}
+                strokeWidth={2}
+                dot={false}
                 connectNulls={false}
                 name="Satisfaction"
               />
@@ -114,8 +96,8 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 type="monotone" 
                 dataKey="csat" 
                 stroke="#3b82f6" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#3b82f6' }}
+                strokeWidth={2}
+                dot={false}
                 connectNulls={false}
                 name="CSAT"
               />
@@ -123,8 +105,8 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 type="monotone" 
                 dataKey="nps" 
                 stroke="#f59e0b" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#f59e0b' }}
+                strokeWidth={2}
+                dot={false}
                 connectNulls={false}
                 name="NPS"
               />
