@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts';
 import { Users, Clock, Star, TrendingUp, TrendingDown, Bot, Heart } from 'lucide-react';
 import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
@@ -118,20 +118,27 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
     } else if (activeTab === 'efficiency') {
       return (
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={performanceData}>
+          <BarChart 
+            data={performanceData} 
+            layout="horizontal"
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
-              dataKey="name" 
+              type="number"
               tick={{ fontSize: 12, fill: 'currentColor' }}
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
             <YAxis 
+              type="category"
+              dataKey="name" 
               tick={{ fontSize: 12, fill: 'currentColor' }}
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
+              width={80}
             />
             <Tooltip 
               contentStyle={{ 
@@ -145,22 +152,30 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
                 const agent = performanceData.find(a => a.name === label);
                 return agent ? agent.fullName : label;
               }}
+              formatter={(value, name) => {
+                if (name === 'Efficiency Score') {
+                  return [`${value}%`, name];
+                }
+                if (name === 'Avg Response Time') {
+                  return [formatResponseTime(value as number), name];
+                }
+                return [value, name];
+              }}
             />
-            <Line 
-              type="monotone" 
+            <Bar 
               dataKey="efficiency" 
-              stroke="#8b5cf6" 
-              strokeWidth={3}
-              dot={{ r: 6, fill: '#8b5cf6' }}
+              fill="#8b5cf6" 
+              radius={[0, 4, 4, 0]}
               name="Efficiency Score"
+              className="hover:fill-purple-800 dark:hover:fill-purple-400"
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       );
     } else {
       return (
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={performanceData}>
+          <ComposedChart data={performanceData}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="name" 
@@ -170,10 +185,21 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               tickLine={false}
             />
             <YAxis 
+              yAxisId="left"
               tick={{ fontSize: 12, fill: 'currentColor' }}
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
+              domain={[0, 5]}
+            />
+            <YAxis 
+              yAxisId="right"
+              orientation="right"
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
+              axisLine={false}
+              tickLine={false}
+              domain={[-100, 100]}
             />
             <Tooltip 
               contentStyle={{ 
@@ -187,22 +213,35 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
                 const agent = performanceData.find(a => a.name === label);
                 return agent ? agent.fullName : label;
               }}
+              formatter={(value, name) => {
+                if (name === 'CSAT Score') {
+                  return [`${value}/5`, name];
+                }
+                if (name === 'NPS Score') {
+                  return [`${value}`, name];
+                }
+                return [value, name];
+              }}
             />
             <Bar 
+              yAxisId="left"
               dataKey="csat" 
               fill="#3b82f6" 
               radius={[4, 4, 0, 0]}
               name="CSAT Score"
               className="hover:fill-blue-700 dark:hover:fill-blue-400"
             />
-            <Bar 
+            <Line 
+              yAxisId="right"
+              type="monotone" 
               dataKey="nps" 
-              fill="#f59e0b" 
-              radius={[4, 4, 0, 0]}
+              stroke="#f59e0b" 
+              strokeWidth={3}
+              dot={{ r: 6, fill: '#f59e0b' }}
               name="NPS Score"
-              className="hover:fill-amber-700 dark:hover:fill-amber-400"
+              connectNulls={false}
             />
-          </BarChart>
+          </ComposedChart>
         </ResponsiveContainer>
       );
     }
