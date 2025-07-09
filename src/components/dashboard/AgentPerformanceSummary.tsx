@@ -99,10 +99,39 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
   // Render the chart based on selected channel
   const renderChart = () => {
     if (selectedChannel === 'all') {
-      // Show all channels as different lines
+      // Show all channels as area chart with gradients
       return (
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartDisplayData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+          <AreaChart data={chartDisplayData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+            <defs>
+              {/* Create gradients for each channel */}
+              {availableChannels.map(channel => (
+                <linearGradient 
+                  key={`${channel}Gradient`}
+                  id={`${channel}Gradient`} 
+                  x1="0" 
+                  y1="0" 
+                  x2="0" 
+                  y2="1"
+                >
+                  <stop 
+                    offset="5%" 
+                    stopColor={CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280'} 
+                    stopOpacity={0.3}
+                  />
+                  <stop 
+                    offset="95%" 
+                    stopColor={CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280'} 
+                    stopOpacity={0.05}
+                  />
+                </linearGradient>
+              ))}
+              {/* Total queries gradient */}
+              <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#1f2937" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#1f2937" stopOpacity={0.05}/>
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="name" 
@@ -131,30 +160,32 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
             />
             <Legend 
               wrapperStyle={{ paddingTop: '20px' }}
-              iconType="line"
+              iconType="rect"
             />
-            {/* Total queries line */}
-            <Line 
+            {/* Total queries area */}
+            <Area 
               type="monotone" 
               dataKey="queries" 
               stroke="#1f2937" 
+              fill="url(#totalGradient)"
               strokeWidth={3}
-              dot={false}
+              fillOpacity={1}
               name="Total Conversations"
             />
-            {/* Individual channel lines */}
+            {/* Individual channel areas */}
             {availableChannels.map(channel => (
-              <Line
+              <Area
                 key={channel}
                 type="monotone"
                 dataKey={`${channel}_queries`}
                 stroke={CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280'}
+                fill={`url(#${channel}Gradient)`}
                 strokeWidth={2}
-                dot={false}
+                fillOpacity={1}
                 name={channel.charAt(0).toUpperCase() + channel.slice(1)}
               />
             ))}
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       );
     } else {
