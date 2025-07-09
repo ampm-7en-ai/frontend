@@ -20,7 +20,14 @@ interface AgentPerformanceSummaryProps {
   };
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const CHANNEL_COLORS = {
+  website: '#3b82f6',
+  facebook: '#1877f2',
+  whatsapp: '#25d366',
+  instagram: '#e4405f',
+  playground: '#8b5cf6',
+  ticketing: '#f59e0b'
+};
 
 const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
   agentPerformanceSummary,
@@ -47,8 +54,8 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
     }))
   ];
 
-  // Use real chart data based on activeTab
-  const getConversationData = () => {
+  // Get chart data based on activeTab
+  const getChartData = () => {
     let baseData: PerformanceDataItem[] = [];
     
     if (chartData) {
@@ -70,21 +77,136 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
       }
     }
 
-    // Apply channel filter multiplier based on actual channel data
-    let multiplier = 1;
-    if (selectedChannel !== 'all' && conversationChannel[selectedChannel] !== undefined) {
-      const totalConversations = Object.values(conversationChannel).reduce((sum, count) => sum + count, 0);
-      const channelConversations = conversationChannel[selectedChannel];
-      multiplier = totalConversations > 0 ? channelConversations / totalConversations : 0;
-    }
-
-    return baseData.map(item => ({
-      name: item.name,
-      queries: Math.round(item.queries * multiplier),
-    }));
+    return baseData;
   };
 
-  const conversationData = getConversationData();
+  const chartDisplayData = getChartData();
+
+  // Get available channels from the data
+  const getAvailableChannels = () => {
+    if (!chartDisplayData.length) return [];
+    
+    const firstDataPoint = chartDisplayData[0];
+    const channelKeys = Object.keys(firstDataPoint).filter(key => 
+      key.endsWith('_queries') && key !== 'queries'
+    );
+    
+    return channelKeys.map(key => key.replace('_queries', ''));
+  };
+
+  const availableChannels = getAvailableChannels();
+
+  // Render the chart based on selected channel
+  const renderChart = () => {
+    if (selectedChannel === 'all') {
+      // Show all channels as different lines
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartDisplayData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+            <XAxis 
+              dataKey="name" 
+              tick={{ fontSize: 10, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+              angle={activeTab === '1M' ? -45 : 0}
+              textAnchor={activeTab === '1M' ? 'end' : 'middle'}
+              height={activeTab === '1M' ? 80 : 60}
+            />
+            <YAxis 
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: 'none',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+              }}
+            />
+            {/* Total queries line */}
+            <Line 
+              type="monotone" 
+              dataKey="queries" 
+              stroke="#1f2937" 
+              strokeWidth={3}
+              dot={{ r: 4, fill: '#1f2937' }}
+              name="Total Conversations"
+            />
+            {/* Individual channel lines */}
+            {availableChannels.map(channel => (
+              <Line
+                key={channel}
+                type="monotone"
+                dataKey={`${channel}_queries`}
+                stroke={CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280'}
+                strokeWidth={2}
+                dot={{ r: 3, fill: CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280' }}
+                name={channel.charAt(0).toUpperCase() + channel.slice(1)}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      );
+    } else {
+      // Show single channel as area chart
+      const channelDataKey = `${selectedChannel}_queries`;
+      const channelColor = CHANNEL_COLORS[selectedChannel as keyof typeof CHANNEL_COLORS] || '#3b82f6';
+      
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartDisplayData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+            <defs>
+              <linearGradient id="channelGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={channelColor} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={channelColor} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+            <XAxis 
+              dataKey="name" 
+              tick={{ fontSize: 10, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+              angle={activeTab === '1M' ? -45 : 0}
+              textAnchor={activeTab === '1M' ? 'end' : 'middle'}
+              height={activeTab === '1M' ? 80 : 60}
+            />
+            <YAxis 
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: 'none',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+              }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey={channelDataKey}
+              stroke={channelColor}
+              fillOpacity={1} 
+              fill="url(#channelGradient)"
+              strokeWidth={2}
+              name={`${selectedChannel.charAt(0).toUpperCase() + selectedChannel.slice(1)} Conversations`}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    }
+  };
 
   return (
     <Card className="bg-transparent border-0 0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
@@ -112,51 +234,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
       </CardHeader>
       <CardContent className="flex-1 pl-0 pb-0">
         <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={conversationData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
-              <defs>
-                <linearGradient id="queriesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 10, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
-                axisLine={false}
-                tickLine={false}
-                interval={0}
-                angle={activeTab === '1M' ? -45 : 0}
-                textAnchor={activeTab === '1M' ? 'end' : 'middle'}
-                height={activeTab === '1M' ? 80 : 60}
-              />
-              <YAxis 
-                tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="queries" 
-                stroke="#3b82f6" 
-                fillOpacity={1} 
-                fill="url(#queriesGradient)"
-                strokeWidth={2}
-                name="Total Conversations"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {renderChart()}
         </div>
       </CardContent>
     </Card>

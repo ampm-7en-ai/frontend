@@ -38,6 +38,12 @@ export interface ChartDataItem {
 export interface PerformanceDataItem {
   name: string;
   queries: number;
+  website_queries?: number;
+  facebook_queries?: number;
+  whatsapp_queries?: number;
+  instagram_queries?: number;
+  playground_queries?: number;
+  ticketing_queries?: number;
 }
 
 export interface WeeklyPerformanceItem {
