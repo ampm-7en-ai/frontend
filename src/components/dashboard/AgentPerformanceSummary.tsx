@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart, Legend } from 'recharts';
 import { Clock, MessageCircle, Star, TrendingUp, TrendingDown, Download } from 'lucide-react';
 import { AgentPerformanceSummary as PerformanceSummaryType, AgentPerformanceComparison, PerformanceDataItem } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
@@ -129,6 +129,10 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
               }}
             />
+            <Legend 
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="line"
+            />
             {/* Total queries line */}
             <Line 
               type="monotone" 
@@ -192,6 +196,10 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
               }}
+            />
+            <Legend 
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="rect"
             />
             <Area 
               type="monotone" 
