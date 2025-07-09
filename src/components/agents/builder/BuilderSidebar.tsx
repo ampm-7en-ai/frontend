@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X } from 'lucide-react';
@@ -581,7 +580,6 @@ export const BuilderSidebar = () => {
           ).filter(source => source.hasError || source.hasIssue) || []
         }
         agentId={agentData.id?.toString()}
-        onCleanupCompleted={handleCleanupCompleted}
       />
 
       <ModernModal
