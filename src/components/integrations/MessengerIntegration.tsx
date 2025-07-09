@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Check, Loader, MessageSquare } from 'lucide-react';
+import { AlertCircle, Check, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const MessengerIntegration = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -134,11 +135,11 @@ const MessengerIntegration = () => {
               onClick={handleConnect} 
               disabled={isConnecting}
               size="lg"
-              className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+              className="gap-2 bg-indigo-600 hover:bg-indigo-700 flex items-center"
             >
               {isConnecting ? (
                 <>
-                  <Loader className="h-4 w-4 animate-spin" />
+                  <LoadingSpinner size="sm" className="!mb-0" />
                   Connecting...
                 </>
               ) : (

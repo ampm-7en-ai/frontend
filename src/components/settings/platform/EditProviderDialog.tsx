@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
 import { LLMProvider } from '@/hooks/useLLMProviders';
-import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface EditProviderDialogProps {
   isOpen: boolean;
@@ -181,10 +181,10 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="flex items-center gap-2">
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoadingSpinner size="sm" className="!mb-0" />
                   Updating...
                 </>
               ) : (

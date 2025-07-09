@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Cloud, ExternalLink, Shield } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const SalesforceIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -106,9 +107,16 @@ const SalesforceIntegration = () => {
             <Button 
               onClick={handleConnect}
               disabled={isConnecting}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
+              className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
             >
-              {isConnecting ? "Connecting..." : "Connect Salesforce"}
+              {isConnecting ? (
+                <>
+                  <LoadingSpinner size="sm" className="!mb-0" />
+                  Connecting...
+                </>
+              ) : (
+                "Connect Salesforce"
+              )}
             </Button>
             <Button 
               variant="outline" 

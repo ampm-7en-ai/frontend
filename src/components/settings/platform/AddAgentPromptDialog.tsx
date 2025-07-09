@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface AddAgentPromptDialogProps {
   isOpen: boolean;
@@ -97,10 +97,11 @@ const AddAgentPromptDialog = ({ isOpen, onClose, onPromptAdded }: AddAgentPrompt
             <Button 
               type="submit" 
               disabled={isLoading || !formData.agent_type || !formData.system_prompt}
+              className="flex items-center gap-2"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoadingSpinner size="sm" className="!mb-0" />
                   Creating...
                 </>
               ) : (

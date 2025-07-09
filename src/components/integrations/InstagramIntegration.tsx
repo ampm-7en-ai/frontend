@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Check, Loader, Instagram } from 'lucide-react';
+import { AlertCircle, Check, Instagram } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const InstagramIntegration = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -138,11 +139,11 @@ const InstagramIntegration = () => {
               onClick={handleConnect} 
               disabled={isConnecting}
               size="lg"
-              className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center"
             >
               {isConnecting ? (
                 <>
-                  <Loader className="h-4 w-4 animate-spin" />
+                  <LoadingSpinner size="sm" className="!mb-0" />
                   Connecting...
                 </>
               ) : (

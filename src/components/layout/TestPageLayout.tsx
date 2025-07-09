@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export const dottedBackgroundStyle = `
   .dotted-background {
@@ -19,7 +20,7 @@ export function TestPageLayout() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <LoadingSpinner size="md" text="Loading..." />
       </div>
     );
   }

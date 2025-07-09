@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { usePermission, Permission } from '@/context/PermissionContext';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders } from '@/utils/api-config';
-import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface RoleCreateDialogProps {
   isOpen: boolean;
@@ -136,8 +136,7 @@ const RoleCreateDialog: React.FC<RoleCreateDialogProps> = ({ isOpen, onClose, on
             <Label>Permissions</Label>
             {isLoadingPermissions ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                <span className="ml-2 text-sm text-muted-foreground">Loading permissions...</span>
+                <LoadingSpinner size="sm" text="Loading permissions..." />
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3">
@@ -175,10 +174,11 @@ const RoleCreateDialog: React.FC<RoleCreateDialogProps> = ({ isOpen, onClose, on
             <Button 
               type="submit" 
               disabled={isSubmitting || !name}
+              className="flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoadingSpinner size="sm" className="!mb-0" />
                   Creating...
                 </>
               ) : "Create Role"}
