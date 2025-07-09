@@ -1,19 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { CheckCircle, Star, Heart, Users, TrendingUp, Bot } from 'lucide-react';
-import { AgentPerformanceChart } from './AgentPerformanceChart';
-import ModernTabNavigation from './ModernTabNavigation';
-import ModernButton from './ModernButton';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Download } from 'lucide-react';
+import { Heart, Star, ThumbsUp } from 'lucide-react';
+import MetricCard from './MetricCard';
 
 interface StatisticsChartsProps {
   satisfactionTrends?: Array<{ name: string; satisfaction: number; csat?: number; nps?: number; }>;
@@ -24,23 +13,6 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   satisfactionTrends = [],
   satisfactionBreakdown = []
 }) => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [selectedChannel, setSelectedChannel] = useState('all');
-  const [conversationActiveTab, setConversationActiveTab] = useState('Today');
-
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'performance', label: 'Performance' },
-    { id: 'satisfaction', label: 'Satisfaction' }
-  ];
-
-  const conversationTabs = [
-    { id: 'Today', label: 'Today' },
-    { id: '1W', label: '1W' },
-    { id: '1M', label: '1M' },
-    { id: '1Y', label: '1Y' }
-  ];
-
   // Use real satisfaction trend data from API
   const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
     name: item.name,
@@ -57,7 +29,45 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     { name: 'Week 7', satisfaction: 9.6, csat: 4.9, nps: 82 },
   ];
 
-  // Calculate data quality metrics
+  // Process data for each metric
+  const processMetricData = (dataKey: 'satisfaction' | 'csat' | 'nps') => {
+    const validData = satisfactionTrendData.filter(item => item[dataKey] !== null && item[dataKey] !== 0);
+    const hasData = validData.length > 0;
+    
+    if (!hasData) {
+      return {
+        currentValue: 0,
+        trend: 'neutral' as const,
+        trendValue: 0,
+        sparklineData: [],
+        hasData: false
+      };
+    }
+
+    const sparklineData = satisfactionTrendData.map(item => ({
+      value: item[dataKey]
+    }));
+
+    const currentValue = validData[validData.length - 1][dataKey];
+    const previousValue = validData.length > 1 ? validData[validData.length - 2][dataKey] : currentValue;
+    
+    const trendValue = previousValue !== 0 ? ((currentValue - previousValue) / previousValue) * 100 : 0;
+    const trend = trendValue > 0 ? 'up' : trendValue < 0 ? 'down' : 'neutral';
+
+    return {
+      currentValue,
+      trend,
+      trendValue: Math.abs(trendValue),
+      sparklineData,
+      hasData: true
+    };
+  };
+
+  const satisfactionData = processMetricData('satisfaction');
+  const csatData = processMetricData('csat');
+  const npsData = processMetricData('nps');
+
+  // Calculate overall data quality
   const totalWeeks = satisfactionTrendData.length;
   const weeksWithData = satisfactionTrendData.filter(item => 
     item.satisfaction > 0 || item.csat > 0 || item.nps !== 0
@@ -69,7 +79,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-              Customer Satisfaction Trends
+              Customer Satisfaction Metrics
             </CardTitle>
             <CardDescription className="text-slate-500 dark:text-slate-400">
               {weeksWithData} of {totalWeeks} weeks have satisfaction data
@@ -80,98 +90,43 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1">
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={satisfactionTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis 
-                yAxisId="left"
-                tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
-                axisLine={false}
-                tickLine={false}
-                domain={[0, 10]}
-                label={{ value: 'Satisfaction (0-10)', angle: -90, position: 'insideLeft' }}
-              />
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
-                tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
-                axisLine={false}
-                tickLine={false}
-                domain={[-100, 100]}
-                label={{ value: 'CSAT % / NPS', angle: 90, position: 'insideRight' }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                  color: 'hsl(var(--foreground))',
-                  fontSize: '12px'
-                }}
-                formatter={(value, name) => {
-                  if (value === null || value === 0) {
-                    return ['No data', name];
-                  }
-                  if (name === 'Avg Satisfaction') {
-                    return [`${value}/10`, name];
-                  }
-                  if (name === 'CSAT Score') {
-                    return [`${value}%`, name];
-                  }
-                  if (name === 'NPS Score') {
-                    return [`${value}`, name];
-                  }
-                  return [value, name];
-                }}
-              />
-              <Legend 
-                wrapperStyle={{ paddingTop: '20px' }}
-                iconType="line"
-              />
-              <Line 
-                yAxisId="left"
-                type="monotone" 
-                dataKey="satisfaction" 
-                stroke="#22c55e" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#22c55e' }}
-                connectNulls={false}
-                name="Avg Satisfaction"
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey="csat" 
-                stroke="#3b82f6" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#3b82f6' }}
-                connectNulls={false}
-                name="CSAT Score"
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey="nps" 
-                stroke="#8b5cf6" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: '#8b5cf6' }}
-                connectNulls={false}
-                name="NPS Score"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <MetricCard
+            title="Avg Satisfaction"
+            value={satisfactionData.hasData ? satisfactionData.currentValue.toFixed(1) : '—'}
+            unit="/10"
+            trend={satisfactionData.trend}
+            trendValue={satisfactionData.trendValue}
+            sparklineData={satisfactionData.sparklineData}
+            color="#22c55e"
+            icon={<Heart className="h-4 w-4 text-white" />}
+            hasData={satisfactionData.hasData}
+          />
+          
+          <MetricCard
+            title="CSAT Score"
+            value={csatData.hasData ? Math.round((csatData.currentValue / 5) * 100) : '—'}
+            unit="%"
+            trend={csatData.trend}
+            trendValue={csatData.trendValue}
+            sparklineData={csatData.sparklineData.map(item => ({ value: item.value ? (item.value / 5) * 100 : null }))}
+            color="#3b82f6"
+            icon={<Star className="h-4 w-4 text-white" />}
+            hasData={csatData.hasData}
+          />
+          
+          <MetricCard
+            title="NPS Score"
+            value={npsData.hasData ? npsData.currentValue : '—'}
+            unit=""
+            trend={npsData.trend}
+            trendValue={npsData.trendValue}
+            sparklineData={npsData.sparklineData}
+            color="#8b5cf6"
+            icon={<ThumbsUp className="h-4 w-4 text-white" />}
+            hasData={npsData.hasData}
+          />
         </div>
       </CardContent>
     </Card>
