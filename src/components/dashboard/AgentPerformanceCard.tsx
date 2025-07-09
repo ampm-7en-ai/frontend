@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts';
@@ -41,8 +40,8 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
       efficiency: agent.efficiency,
       resolved: agent.resolved,
       pending: agent.pending,
-      // Convert CSAT to percentage scale (0-100) - assuming it comes as 0-5 scale
-      csat: agent.csat ? (agent.csat * 20) : 0, // Convert 0-5 to 0-100
+      // Keep CSAT as original value (0-5 or 0-10 scale)
+      csat: agent.csat || 0,
       nps: agent.nps || 0,
     }));
   };
@@ -211,8 +210,8 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
-              domain={[0, 100]}
-              label={{ value: 'CSAT (%)', angle: -90, position: 'insideLeft' }}
+              domain={[0, 10]}
+              label={{ value: 'CSAT Score', angle: -90, position: 'insideLeft' }}
             />
             <YAxis 
               yAxisId="right"
@@ -238,7 +237,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               }}
               formatter={(value, name) => {
                 if (name === 'CSAT Score') {
-                  return [`${value}%`, name];
+                  return [`${value}/10`, name];
                 }
                 if (name === 'NPS Score') {
                   return [`${value}`, name];

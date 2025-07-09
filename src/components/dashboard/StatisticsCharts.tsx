@@ -49,13 +49,13 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     csat: item.csat || 0,
     nps: item.nps || 0
   })) : [
-    { name: 'Week 1', satisfaction: 88, csat: 4.2, nps: 55 },
-    { name: 'Week 2', satisfaction: 91, csat: 4.4, nps: 62 },
-    { name: 'Week 3', satisfaction: 87, csat: 4.1, nps: 48 },
-    { name: 'Week 4', satisfaction: 93, csat: 4.6, nps: 71 },
-    { name: 'Week 5', satisfaction: 95, csat: 4.8, nps: 78 },
-    { name: 'Week 6', satisfaction: 92, csat: 4.7, nps: 68 },
-    { name: 'Week 7', satisfaction: 96, csat: 4.9, nps: 82 },
+    { name: 'Week 1', satisfaction: 8.8, csat: 4.2, nps: 55 },
+    { name: 'Week 2', satisfaction: 9.1, csat: 4.4, nps: 62 },
+    { name: 'Week 3', satisfaction: 8.7, csat: 4.1, nps: 48 },
+    { name: 'Week 4', satisfaction: 9.3, csat: 4.6, nps: 71 },
+    { name: 'Week 5', satisfaction: 9.5, csat: 4.8, nps: 78 },
+    { name: 'Week 6', satisfaction: 9.2, csat: 4.7, nps: 68 },
+    { name: 'Week 7', satisfaction: 9.6, csat: 4.9, nps: 82 },
   ];
 
   return (
@@ -92,6 +92,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 className="text-slate-600 dark:text-slate-400"
                 axisLine={false}
                 tickLine={false}
+                domain={[0, 10]}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -102,6 +103,15 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                   color: 'hsl(var(--foreground))',
                   fontSize: '12px'
                 }}
+                formatter={(value, name) => {
+                  if (name === 'Avg Satisfaction Score') {
+                    return [`${value}/10`, name];
+                  }
+                  if (name === 'CSAT Score') {
+                    return [`${value}/10`, name];
+                  }
+                  return [value, name];
+                }}
               />
               <Line 
                 type="monotone" 
@@ -109,7 +119,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
                 stroke="#22c55e" 
                 strokeWidth={2}
                 dot={false}
-                name="Overall Satisfaction %"
+                name="Avg Satisfaction Score"
               />
               <Line 
                 type="monotone" 
