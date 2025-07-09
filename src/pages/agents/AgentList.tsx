@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,10 +215,7 @@ const AgentList = () => {
             {/* Agents Grid */}
             {isLoading ? (
               <div className="flex items-center justify-center py-16">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-                  <span className="text-slate-600 dark:text-slate-400 font-medium">Loading agents...</span>
-                </div>
+                <LoadingSpinner size="lg" text="Loading agents..." />
               </div>
             ) : filteredAgents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">

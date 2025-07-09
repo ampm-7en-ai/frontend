@@ -10,6 +10,7 @@ import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, RefreshCw, Settings } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const AdminDashboard = () => {
   const { data, isLoading, error } = useAdminDashboard();
@@ -24,7 +25,7 @@ const AdminDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-80">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <LoadingSpinner size="md" />
       </div>
     );
   }
