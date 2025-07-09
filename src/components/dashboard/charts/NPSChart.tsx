@@ -43,11 +43,9 @@ const NPSChart: React.FC<NPSChartProps> = ({
     return '#ef4444'; // Red
   };
 
-  const npsPercentage = hasData ? ((currentValue + 100) / 200) * 100 : 50; // Convert -100 to 100 range to 0-100%
-
   return (
     <div className="space-y-6">
-      {/* NPS Horizontal Bar */}
+      {/* NPS Header and Progress Bar */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -64,19 +62,21 @@ const NPSChart: React.FC<NPSChartProps> = ({
           )}
         </div>
         
-        <div className="relative w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4">
+        <div className="relative w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
           {/* Zero line marker */}
-          <div className="absolute left-1/2 top-0 h-4 w-0.5 bg-slate-400 z-10"></div>
+          <div className="absolute left-1/2 top-0 h-3 w-0.5 bg-slate-400 z-10 transform -translate-x-0.5"></div>
           
           {/* NPS bar */}
-          <div 
-            className="h-4 rounded-full transition-all duration-1000 ease-out"
-            style={{ 
-              backgroundColor: hasData ? getNPSColor(currentValue) : '#e5e7eb',
-              width: `${npsPercentage}%`,
-              marginLeft: currentValue < 0 ? `${50 + (currentValue / 200) * 100}%` : '50%',
-            }}
-          />
+          {hasData && (
+            <div 
+              className="h-3 rounded-full transition-all duration-1000 ease-out absolute top-0"
+              style={{ 
+                backgroundColor: getNPSColor(currentValue),
+                width: `${Math.abs(currentValue / 2)}%`,
+                left: currentValue >= 0 ? '50%' : `${50 + (currentValue / 2)}%`,
+              }}
+            />
+          )}
         </div>
         
         <div className="flex justify-between text-xs text-slate-500">

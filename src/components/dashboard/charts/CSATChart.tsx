@@ -20,12 +20,6 @@ const CSATChart: React.FC<CSATChartProps> = ({
 }) => {
   const csatPercentage = hasData ? Math.round((currentValue / 5) * 100) : 0;
   
-  const getGaugeColor = (percentage: number) => {
-    if (percentage >= 80) return '#10b981'; // Green
-    if (percentage >= 60) return '#f59e0b'; // Yellow
-    return '#ef4444'; // Red
-  };
-
   const getTrendIcon = () => {
     if (trend === 'up') return '↗';
     if (trend === 'down') return '↘';
@@ -40,50 +34,27 @@ const CSATChart: React.FC<CSATChartProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* CSAT Gauge */}
-      <div className="flex items-center justify-center">
-        <div className="relative w-48 h-24">
-          <svg className="w-full h-full" viewBox="0 0 200 100">
-            {/* Background arc */}
-            <path
-              d="M 20 80 A 80 80 0 0 1 180 80"
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
-            {/* Progress arc */}
-            <path
-              d="M 20 80 A 80 80 0 0 1 180 80"
-              fill="none"
-              stroke={hasData ? getGaugeColor(csatPercentage) : '#e5e7eb'}
-              strokeWidth="12"
-              strokeLinecap="round"
-              strokeDasharray={`${hasData ? (csatPercentage / 100) * 251.2 : 0} 251.2`}
-              className="transition-all duration-1000 ease-out"
-            />
-          </svg>
-          
-          {/* Center content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="flex items-center gap-2 mb-1">
-              <Star className="h-5 w-5 text-blue-500" fill="currentColor" />
-              <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {hasData ? csatPercentage : '—'}%
-              </span>
-            </div>
-            {hasData && (
-              <div className={`flex items-center gap-1 text-sm ${getTrendColor()}`}>
-                <span>{getTrendIcon()}</span>
-                <span>{trendValue.toFixed(1)}%</span>
-              </div>
-            )}
-          </div>
+      {/* CSAT Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Star className="h-5 w-5 text-blue-500" fill="currentColor" />
+          <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            {hasData ? currentValue.toFixed(1) : '—'}/5
+          </span>
+          <span className="text-sm text-slate-500">
+            ({hasData ? csatPercentage : '—'}%)
+          </span>
         </div>
+        {hasData && (
+          <div className={`flex items-center gap-1 text-sm ${getTrendColor()}`}>
+            <span>{getTrendIcon()}</span>
+            <span>{trendValue.toFixed(1)}%</span>
+          </div>
+        )}
       </div>
 
       {/* CSAT Trend Chart */}
-      <div className="h-48">
+      <div className="h-64">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data}>

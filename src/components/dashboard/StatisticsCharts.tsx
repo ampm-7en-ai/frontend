@@ -140,29 +140,28 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     <Card className="bg-white dark:bg-slate-900 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-              Customer Satisfaction Metrics
-            </CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
-              {weeksWithData} of {totalWeeks} weeks have satisfaction data
-            </CardDescription>
+          <div className="flex items-center gap-3">
+            <ModernTabNavigation 
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              className="text-xs"
+            />
           </div>
           <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
             <Heart className="h-4 w-4 text-white" />
           </div>
         </div>
+        <div className="mt-2">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Customer Satisfaction Metrics
+          </CardTitle>
+          <CardDescription className="text-slate-500 dark:text-slate-400">
+            {weeksWithData} of {totalWeeks} weeks have satisfaction data
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Tab Navigation */}
-        <div className="flex justify-center">
-          <ModernTabNavigation 
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </div>
-
         {/* Tab Content */}
         <div className="min-h-[400px]">
           {renderTabContent()}
