@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader } from 'lucide-react';
+import { Send } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -48,7 +49,7 @@ export const ChatInput = ({ onSendMessage, primaryColor, isDisabled = false }: C
           opacity: (inputValue.trim() && !isDisabled) ? 1 : 0.7
         }}
       >
-        {isDisabled ? <Loader className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        {isDisabled ? <LoadingSpinner size="sm" className="!mb-0" /> : <Send className="h-4 w-4" />}
       </Button>
     </form>
   );

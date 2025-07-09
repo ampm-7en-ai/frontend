@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Bot } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface TestPageHeaderProps {
   selectedAgentId: string;
@@ -37,32 +38,38 @@ export const TestPageHeader = ({
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Select 
-            value={selectedAgentId} 
-            onValueChange={onAgentChange}
-            disabled={isLoading}
-          >
-            <SelectTrigger className="w-full sm:w-[280px]">
-              <SelectValue placeholder="Select agent" />
-            </SelectTrigger>
-            <SelectContent>
-              {agents.map((agent: any) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  <div className="flex items-center">
-                    {agent.avatarSrc ? (
-                      <Avatar className="h-6 w-6 mr-2">
-                        <AvatarImage src={agent.avatarSrc} alt={agent.name} />
-                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <Bot className="mr-2 h-4 w-4 text-primary" />
-                    )}
-                    {agent.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isLoading ? (
+            <div className="w-[280px] h-10 flex items-center justify-center border rounded-md">
+              <LoadingSpinner size="sm" text="Loading agents..." />
+            </div>
+          ) : (
+            <Select 
+              value={selectedAgentId} 
+              onValueChange={onAgentChange}
+              disabled={isLoading}
+            >
+              <SelectTrigger className="w-full sm:w-[280px]">
+                <SelectValue placeholder="Select agent" />
+              </SelectTrigger>
+              <SelectContent>
+                {agents.map((agent: any) => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    <div className="flex items-center">
+                      {agent.avatarSrc ? (
+                        <Avatar className="h-6 w-6 mr-2">
+                          <AvatarImage src={agent.avatarSrc} alt={agent.name} />
+                          <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <Bot className="mr-2 h-4 w-4 text-primary" />
+                      )}
+                      {agent.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         
         <div className="flex items-center gap-3">

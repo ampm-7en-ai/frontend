@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Building2, ExternalLink, Shield } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const ZohoIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -97,9 +98,14 @@ const ZohoIntegration = () => {
             <Button 
               onClick={handleConnect}
               disabled={isConnecting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2"
             >
-              {isConnecting ? "Connecting..." : "Connect Zoho Desk"}
+              {isConnecting ? (
+                <>
+                  <LoadingSpinner size="sm" className="!mb-0" />
+                  Connecting...
+                </>
+              ) : "Connect Zoho Desk"}
             </Button>
             <Button 
               variant="outline" 

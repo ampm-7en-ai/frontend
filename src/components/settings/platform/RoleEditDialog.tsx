@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { usePermission, Permission } from '@/context/PermissionContext';
 import { getRoleEndpoint, getApiUrl, getAuthHeaders } from '@/utils/api-config';
-import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export interface Role {
   id: number;
@@ -153,8 +153,7 @@ const RoleEditDialog: React.FC<RoleEditDialogProps> = ({ isOpen, onClose, role, 
               <Label>Permissions</Label>
               {isLoadingPermissions ? (
                 <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-sm text-muted-foreground">Loading permissions...</span>
+                  <LoadingSpinner size="sm" text="Loading permissions..." />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
@@ -192,10 +191,11 @@ const RoleEditDialog: React.FC<RoleEditDialogProps> = ({ isOpen, onClose, role, 
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
+                className="flex items-center gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <LoadingSpinner size="sm" className="!mb-0" />
                     Saving...
                   </>
                 ) : "Save Changes"}
@@ -204,7 +204,7 @@ const RoleEditDialog: React.FC<RoleEditDialogProps> = ({ isOpen, onClose, role, 
           </form>
         ) : (
           <div className="flex items-center justify-center h-[50vh]">
-            <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+            <LoadingSpinner size="lg" text="Loading role..." />
           </div>
         )}
       </SheetContent>

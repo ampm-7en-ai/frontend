@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface AddProviderDialogProps {
   isOpen: boolean;
@@ -205,10 +205,10 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="flex items-center gap-2">
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoadingSpinner size="sm" className="!mb-0" />
                   Creating...
                 </>
               ) : (

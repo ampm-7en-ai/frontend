@@ -1,7 +1,8 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { X, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import { X, CheckCircle, AlertCircle } from "lucide-react"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 export interface FloatingToastProps {
   id: string
@@ -23,7 +24,7 @@ const variantIcons = {
   default: null,
   success: <CheckCircle className="h-4 w-4 text-green-400" />,
   error: <AlertCircle className="h-4 w-4 text-red-400" />,
-  loading: <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+  loading: <LoadingSpinner size="sm" className="!mb-0" />
 }
 
 export const FloatingToast: React.FC<FloatingToastProps> = ({

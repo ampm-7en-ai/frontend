@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Loader2, Brain } from 'lucide-react';
+import { Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface TrainingAlertBadgeProps {
   isVisible: boolean;
@@ -30,7 +31,7 @@ export const TrainingAlertBadge: React.FC<TrainingAlertBadgeProps> = ({
           </div>
           
           <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
+            <LoadingSpinner size="sm" className="!mb-0" />
             <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
               {message}
             </span>

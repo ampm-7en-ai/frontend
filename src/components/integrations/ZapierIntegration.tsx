@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const ZapierIntegration = () => {
   const [webhookUrl, setWebhookUrl] = useState("");
@@ -86,10 +87,10 @@ const ZapierIntegration = () => {
               className="w-full"
             />
           </div>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} className="flex items-center gap-2">
             {isLoading ? (
               <>
-                <Loader className="h-4 w-4 mr-2 animate-spin" />
+                <LoadingSpinner size="sm" className="!mb-0" />
                 Testing Connection...
               </>
             ) : (
