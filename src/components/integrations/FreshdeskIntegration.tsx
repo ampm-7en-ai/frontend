@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, Copy, RefreshCw, Loader2, CheckCircle } from 'lucide-react';
+import { ExternalLink, Copy, RefreshCw, CheckCircle } from 'lucide-react';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface FreshdeskIntegration {
   id: string;
@@ -132,8 +133,7 @@ const FreshdeskIntegration = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Checking Freshdesk integration...</span>
+        <LoadingSpinner size="lg" text="Checking Freshdesk integration..." />
       </div>
     );
   }
@@ -192,7 +192,7 @@ const FreshdeskIntegration = () => {
                     >
                       {isUpdating ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <LoadingSpinner size="sm" className="!mb-0 mr-2" />
                           Updating...
                         </>
                       ) : (

@@ -1,482 +1,105 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Home,
-  LayoutDashboard,
-  Settings,
-  Building,
-  MessageSquare,
-  Bot,
-  Book,
-  HelpCircle,
-  ChevronRight,
-  ChevronDown,
-  BarChart2,
+
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Bot, 
+  MessageSquare, 
+  BookOpen, 
+  Settings, 
   Users,
-  Upload,
-  ExternalLink,
-  Palette,
-  Plus,
-  ChevronLeft,
-  Loader2,
-  AlertCircle,
-  Link,
-  Search,
-  ArrowRightFromLine,
-  ArrowLeftFromLine,
-  LogOut,
-  CreditCard,
-  User,
-  Moon,
-  Sun
+  BarChart3,
+  FileText,
+  HelpCircle,
+  Loader2
 } from 'lucide-react';
-import { NavLink, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { useToast } from "@/hooks/use-toast";
-import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { createAgent } from '@/utils/api-config';
-import { useAppTheme } from '@/hooks/useAppTheme';
+import { cn } from '@/lib/utils';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface SidebarProps {
-  isCollapsed: boolean;
-  toggleSidebar: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  userRole?: string;
+  isLoading?: boolean;
 }
 
-const UserPermissions = {
-  conversation: 'conversation',
-  knowledgebase: 'knowledgebase',
-  agents: 'agents',
-  settings: 'settings',
-  dashboard: 'dashboard',
-  superadmin: 'superadmin',
-  integrations: 'integrations'
-} as const;
+const navigationItems = [
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['admin', 'user'] },
+  { name: 'Agents', href: '/agents', icon: Bot, roles: ['admin', 'user'] },
+  { name: 'Conversations', href: '/conversations', icon: MessageSquare, roles: ['admin', 'user'] },
+  { name: 'Knowledge Base', href: '/knowledge', icon: BookOpen, roles: ['admin', 'user'] },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['admin'] },
+  { name: 'Users', href: '/users', icon: Users, roles: ['admin'] },
+  { name: 'Templates', href: '/templates', icon: FileText, roles: ['admin'] },
+  { name: 'Settings', href: '/settings', icon: Settings, roles: ['admin', 'user'] },
+  { name: 'Help', href: '/help', icon: HelpCircle, roles: ['admin', 'user'] },
+];
 
-interface SidebarItem {
-  id: string;
-  label: string;
-  href: string;
-  icon: React.ElementType;
-  children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
-  action?: React.ReactNode;
-  permission?: keyof typeof UserPermissions;
-  highlight?: boolean;
-  showPlusOnHover?: boolean;
-  plusAction?: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
-  const { user, logout } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { theme, toggleTheme } = useAppTheme();
-  const userRole = user?.role;
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
-  
-  // Check if we're on knowledge pages
-  const isKnowledgePage = location.pathname.startsWith('/knowledge');
-  
-  console.log('Sidebar - isKnowledgePage:', isKnowledgePage, 'theme:', theme);
-
-  // Toggle expand function
-  const toggleExpand = (itemId: string) => {
-    if (expandedItems.includes(itemId)) {
-      setExpandedItems(expandedItems.filter(id => id !== itemId));
-    } else {
-      setExpandedItems([...expandedItems, itemId]);
-    }
-  };
-
-  // Handle knowledge plus action
-  const handleKnowledgePlus = () => {
-    navigate('/knowledge/upload');
-  };
-
-  // Handle agent plus action - create agent and redirect to builder
-  const handleAgentPlus = async () => {
-    if (isCreatingAgent) return;
-    
-    setIsCreatingAgent(true);
-    console.log("Creating agent directly from sidebar...");
-    
-    try {
-      const data = await createAgent('Untitled Agent', 'AI Agent created from builder');
-      
-      console.log("Agent creation successful:", data);
-      
-      // Show success toast
-      toast({
-        title: "Agent Created",
-        description: "New agent created successfully. Redirecting to builder...",
-        variant: "default"
-      });
-      
-      // Navigate to agent builder page with the new agent id
-      if (data.data?.id) {
-        navigate(`/agents/builder/${data.data.id}`);
-      } else {
-        navigate('/agents/builder');
-      }
-    } catch (error) {
-      console.error('Error creating agent:', error);
-      toast({
-        title: "Creation Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred while creating the agent.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreatingAgent(false);
-    }
-  };
-
-  const commonItems: SidebarItem[] = [
-    { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
-  ];
-
-  const adminItems: SidebarItem[] = [
-    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
-    { 
-      id: 'agents', 
-      label: 'AI Agents', 
-      href: '/agents', 
-      icon: Bot, 
-      permission: 'agents',
-      showPlusOnHover: true,
-      plusAction: handleAgentPlus
-    },
-    { 
-      id: 'knowledge', 
-      label: 'Knowledge', 
-      href: '/knowledge', 
-      icon: Book, 
-      permission: 'knowledgebase',
-      showPlusOnHover: true,
-      plusAction: handleKnowledgePlus
-    },
-    { 
-      id: 'integrations', 
-      label: 'Integrations', 
-      href: '/integrations', 
-      icon: Link, 
-      permission: 'settings',
-      highlight: true 
-    },
-    { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
-    { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
-  ];
-
-  const superAdminItems: SidebarItem[] = [
-    { 
-      id: 'business-management',
-      label: 'Businesses', 
-      href: '/businesses', 
-      icon: Building,
-      permission: 'dashboard'
-    },
-    { 
-      id: 'platform',
-      label: 'Platform Settings', 
-      href: '/settings', 
-      icon: LayoutDashboard,
-      permission: 'dashboard', 
-      children: [
-        { label: 'General', href: '/settings/platform/general',permission: 'dashboard' },
-        { label: 'Security', href: '/settings/platform/security',permission: 'dashboard' },
-        { label: 'LLM Providers', href: '/settings/platform/llm-providers',permission: 'dashboard' },
-        { label: 'Compliance', href: '/settings/platform/compliance',permission: 'dashboard' },
-        { label: 'Billing & Subscriptions', href: '/settings/platform/billing',permission: 'dashboard' },
-        { label: 'Customization', href: '/settings/platform/customization',permission: 'dashboard' },
-      ]
-    },
-  ];
-
-  const roleBasedItems = userRole === "SUPERADMIN" 
-    ? [...superAdminItems] 
-    : adminItems;
-
-  const userPermissions = JSON.parse(localStorage.getItem('user'))?.permission || {};
-
-  const filteredRoleBasedItems = roleBasedItems.filter(item => !item.permission || userPermissions[item.permission]).map(item => ({
-    ...item,
-    children: item.children?.filter(child => !child.permission || userPermissions[child.permission]) 
-  }));
-
-  // Filter items based on search query
-  const filteredItems = [...commonItems, ...filteredRoleBasedItems].filter(item => 
-    searchQuery === '' || 
-    item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.children && item.children.some(child => 
-      child.label.toLowerCase().includes(searchQuery.toLowerCase())
-    ))
+export const Sidebar = ({ isOpen, onClose, userRole = 'user', isLoading = false }: SidebarProps) => {
+  const filteredItems = navigationItems.filter(item => 
+    item.roles.includes(userRole)
   );
+
+  if (isLoading) {
+    return (
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-border transform transition-transform duration-200 ease-in-out",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="flex items-center justify-center h-16 border-b border-border">
+          <LoadingSpinner size="sm" text="Loading menu..." />
+        </div>
+      </aside>
+    );
+  }
 
   return (
-    <div className="relative flex">
-      <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out border-r border-gray-100 dark:border-gray-800 overflow-hidden`}>
-        {/* Header with Logo */}
-        <div className="flex items-center justify-between h-14 px-4">
-          {!isCollapsed ? 
-            theme === 'light' ? (<img src='/logo.svg' className="h-8" alt="Logo" />) : (<img src='/logo-white-onblack.png' className="h-8" alt="Logo" />)
-           : (
-            <img src='/logo-icon.svg' className="h-8 w-8" alt="Logo" />
-          )}
-        </div>
-        
-        {/* Search Bar */}
-        {!isCollapsed && (
-          <div className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
-              <Input
-                placeholder="Search Ctrl+K"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-9 bg-gray-50 dark:bg-gray-800 border-0 focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-600 text-sm dark:text-gray-200 dark:placeholder-gray-400"
-              />
-            </div>
+    <>
+      {/* Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-border transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-center h-16 border-b border-border">
+            <h2 className="text-xl font-bold text-primary">7en.ai</h2>
           </div>
-        )}
-        
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {filteredItems.map((item) => (
-            <div key={item.id}>
-              {item.children ? (
-                <>
-                  <button
-                    className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors
-                    ${expandedItems.includes(item.id) ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'}`}
-                    onClick={() => !isCollapsed && toggleExpand(item.id)}
-                  >
-                    <div className="flex items-center">
-                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
-                      {!isCollapsed && <span>{item.label}</span>}
-                    </div>
-                    {!isCollapsed && (
-                      expandedItems.includes(item.id) ? 
-                        <ChevronDown className="w-4 h-4" /> :
-                        <ChevronRight className="w-4 h-4" />
-                    )}
-                  </button>
-                  {!isCollapsed && expandedItems.includes(item.id) && item.children && (
-                    <div className="mt-1 space-y-1 pl-7">
-                      {item.children.map((child) => (
-                        <NavLink
-                          key={child.label}
-                          to={child.href}
-                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
-                        >
-                          <span>{child.label}</span>
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="relative group">
-                  <NavLink
-                    to={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
-                  >
-                    <div className="flex items-center">
-                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600 dark:text-green-400' : ''}`} />
-                      {!isCollapsed && (
-                        <span className={`${item.highlight ? 'font-medium' : ''}`}>
-                          {item.label}
-                          {item.highlight && (
-                            <span className="ml-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs py-0.5 px-1.5 rounded-full">
-                              New
-                            </span>
-                          )}
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Plus icon for specific items */}
-                    {!isCollapsed && item.showPlusOnHover && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300"
-                        disabled={isCreatingAgent && item.id === 'agents'}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (item.plusAction) item.plusAction();
-                        }}
-                      >
-                        {isCreatingAgent && item.id === 'agents' ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Plus className="h-3 w-3" />
-                        )}
-                      </Button>
-                    )}
-                  </NavLink>
-                </div>
-              )}
-            </div>
-          ))}
-        </nav>
-        
-        {/* User Profile Section */}
-        <div className="p-4">
-          {!isCollapsed ? (
-            <div className="flex items-center justify-between">
-              <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
-                      <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
-                        {user?.name?.charAt(0).toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-50">
-                  <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4">
-                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {user?.name || 'User'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {user?.email || 'user@example.com'}
-                    </p>
-                  </div>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
-                    <User className="h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
-                    <CreditCard className="h-4 w-4" />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      console.log('Theme toggle clicked, current theme:', theme);
-                      toggleTheme();
-                    }}
-                  >
-                    {theme === 'light' ? (
-                      <>
-                        <Moon className="h-4 w-4" />
-                        Switch to Dark
-                      </>
-                    ) : (
-                      <>
-                        <Sun className="h-4 w-4" />
-                        Switch to Light
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
-                    onClick={logout}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
+          
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {filteredItems.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )
+                }
+                onClick={() => {
+                  // Close sidebar on mobile after navigation
+                  if (window.innerWidth < 1024) {
+                    onClose();
+                  }
+                }}
               >
-                <ArrowLeftFromLine className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center space-y-2">
-              <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
-                      <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
-                        <AvatarFallback className="text-white text-sm font-medium">
-                          {user?.name?.charAt(0).toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-50">
-                  <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4">
-                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {user?.name || 'User'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {user?.email || 'user@example.com'}
-                    </p>
-                  </div>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
-                    <User className="h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
-                    <CreditCard className="h-4 w-4" />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      console.log('Theme toggle clicked, current theme:', theme);
-                      toggleTheme();
-                    }}
-                  >
-                    {theme === 'light' ? (
-                      <>
-                        <Moon className="h-4 w-4" />
-                        Switch to Dark
-                      </>
-                    ) : (
-                      <>
-                        <Sun className="h-4 w-4" />
-                        Switch to Light
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
-                    onClick={logout}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <ArrowRightFromLine className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.name}
+              </NavLink>
+            ))}
+          </nav>
         </div>
-      </div>
-    </div>
+      </aside>
+    </>
   );
 };
-
-export default Sidebar;
