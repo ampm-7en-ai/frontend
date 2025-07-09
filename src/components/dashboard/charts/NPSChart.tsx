@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, Cell } from 'recharts';
 import { ThumbsUp } from 'lucide-react';
 
 interface NPSChartProps {
@@ -120,9 +120,15 @@ const NPSChart: React.FC<NPSChartProps> = ({
               <ReferenceLine y={0} stroke="#64748b" strokeDasharray="3 3" />
               <Bar 
                 dataKey="nps" 
-                fill={(entry) => entry?.nps >= 0 ? '#10b981' : '#ef4444'}
                 radius={[2, 2, 2, 2]}
-              />
+              >
+                {data.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.nps && entry.nps >= 0 ? '#10b981' : '#ef4444'} 
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
