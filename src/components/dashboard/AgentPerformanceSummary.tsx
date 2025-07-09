@@ -126,17 +126,11 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                   />
                 </linearGradient>
               ))}
-              {/* Total queries gradient */}
-              <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#1f2937" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#1f2937" stopOpacity={0.05}/>
-              </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis 
               dataKey="name" 
-              tick={{ fontSize: 10, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               axisLine={false}
               tickLine={false}
               interval={0}
@@ -145,32 +139,22 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
               height={activeTab === '1M' ? 80 : 60}
             />
             <YAxis 
-              tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: 'none',
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))'
               }}
             />
             <Legend 
-              wrapperStyle={{ paddingTop: '20px' }}
+              wrapperStyle={{ paddingTop: '20px', color: 'hsl(var(--foreground))' }}
               iconType="rect"
-            />
-            {/* Total queries area */}
-            <Area 
-              type="monotone" 
-              dataKey="queries" 
-              stroke="#1f2937" 
-              fill="url(#totalGradient)"
-              strokeWidth={3}
-              fillOpacity={1}
-              name="Total Conversations"
             />
             {/* Individual channel areas */}
             {availableChannels.map(channel => (
@@ -202,11 +186,10 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 <stop offset="95%" stopColor={channelColor} stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis 
               dataKey="name" 
-              tick={{ fontSize: 10, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               axisLine={false}
               tickLine={false}
               interval={0}
@@ -215,21 +198,21 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
               height={activeTab === '1M' ? 80 : 60}
             />
             <YAxis 
-              tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: 'none',
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))'
               }}
             />
             <Legend 
-              wrapperStyle={{ paddingTop: '20px' }}
+              wrapperStyle={{ paddingTop: '20px', color: 'hsl(var(--foreground))' }}
               iconType="rect"
             />
             <Area 
