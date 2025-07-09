@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from './Sidebar';
+import { Sidebar } from './Sidebar';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {

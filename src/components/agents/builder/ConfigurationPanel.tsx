@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, Plus, Palette, MessageSquare, Brain, Settings } from 'lucide-react';
-import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
+import { KnowledgeTrainingStatus } from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
 
 const agentTypes = [

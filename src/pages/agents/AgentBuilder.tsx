@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const AgentBuilder = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('config');
 
   return (
     <BuilderProvider>
@@ -29,7 +30,14 @@ const AgentBuilder = () => {
             >
               {leftPanelCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
             </Button>
-            {!leftPanelCollapsed && <BuilderSidebar />}
+            {!leftPanelCollapsed && (
+              <BuilderSidebar 
+                selectedTab={selectedTab}
+                onTabChange={setSelectedTab}
+                isCollapsed={leftPanelCollapsed}
+                onToggleCollapse={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+              />
+            )}
           </div>
           
           {/* Center Canvas */}
