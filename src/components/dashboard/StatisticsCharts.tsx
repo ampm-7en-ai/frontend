@@ -16,7 +16,7 @@ import {
 import { Download } from 'lucide-react';
 
 interface StatisticsChartsProps {
-  satisfactionTrends?: Array<{ name: string; satisfaction: number; }>;
+  satisfactionTrends?: Array<{ name: string; satisfaction: number; csat?: number; nps?: number; }>;
   satisfactionBreakdown?: Array<{ name: string; value: number; color: string; }>;
 }
 
@@ -41,12 +41,13 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     { id: '1Y', label: '1Y' }
   ];
 
-  // Use real satisfaction trend data or fallback to mock data
+  // Use real satisfaction trend data from API
   const satisfactionTrendData = satisfactionTrends.length > 0 ? satisfactionTrends.map(item => ({
     name: item.name,
     satisfaction: item.satisfaction,
-    csat: item.satisfaction > 0 ? (item.satisfaction / 10 * 5).toFixed(1) : 0, // Convert to 5-point scale
-    nps: item.satisfaction > 0 ? item.satisfaction * 10 : 0 // Convert to NPS scale
+    // Use actual CSAT and NPS values from API if available, otherwise fallback to 0
+    csat: item.csat || 0,
+    nps: item.nps || 0
   })) : [
     { name: 'Week 1', satisfaction: 88, csat: 4.2, nps: 55 },
     { name: 'Week 2', satisfaction: 91, csat: 4.4, nps: 62 },

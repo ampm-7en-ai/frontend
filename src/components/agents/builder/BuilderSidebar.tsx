@@ -15,7 +15,7 @@ import { ModernModal } from '@/components/ui/modern-modal';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import CleanupDialog from '@/components/agents/CleanupDialog';
-import { AlertBanner } from '@/components/ui/alert-banner';
+import { TrainingAlertBadge } from '@/components/ui/training-alert-badge';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -175,7 +175,6 @@ export const BuilderSidebar = () => {
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
   const [isTraining, setIsTraining] = useState(false);
   const [showCleanupDialog, setShowCleanupDialog] = useState(false);
-  const [showTrainingAlert, setShowTrainingAlert] = useState(false);
 
   const { data: externalSources = [] } = useQuery({
     queryKey: ['availableKnowledgeSources'],
@@ -268,7 +267,6 @@ export const BuilderSidebar = () => {
     }
 
     setIsTraining(true);
-    setShowTrainingAlert(true);
     
     addNotification({
       title: 'Training Started',
@@ -342,7 +340,6 @@ export const BuilderSidebar = () => {
       });
     } finally {
       setIsTraining(false);
-      setShowTrainingAlert(false);
     }
   };
 
@@ -402,39 +399,6 @@ export const BuilderSidebar = () => {
     }
   };
 
-  const handleCleanupCompleted = () => {
-    // Refresh the agent data after cleanup
-    if (agentData.id) {
-      const token = getAccessToken();
-      if (!token) return;
-
-      fetch(`${BASE_URL}agents/${agentData.id}/`, {
-        headers: getAuthHeaders(token)
-      })
-      .then(response => response.json())
-      .then(result => {
-        const updatedKnowledgeSources = result.data.knowledge_bases || [];
-        
-        const formattedSources = updatedKnowledgeSources.map((kb: any) => ({
-          id: kb.id,
-          name: kb.name,
-          type: kb.type,
-          size: kb.size || 'N/A',
-          lastUpdated: kb.last_updated ? new Date(kb.last_updated).toLocaleDateString('en-GB') : 'N/A',
-          trainingStatus: kb.training_status || kb.status || 'idle',
-          linkBroken: false,
-          knowledge_sources: kb.knowledge_sources || [],
-          metadata: kb.metadata || {}
-        }));
-
-        updateAgentData({ knowledgeSources: formattedSources });
-      })
-      .catch(error => {
-        console.error('Error refreshing agent data after cleanup:', error);
-      });
-    }
-  };
-
   const toggleSourceExpansion = (sourceId: number) => {
     const newExpanded = new Set(expandedSources);
     if (newExpanded.has(sourceId)) {
@@ -463,152 +427,150 @@ export const BuilderSidebar = () => {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Knowledge Base
-          </h2>
-          <ModernButton
-            variant="primary"
-            size="sm"
-            onClick={handleTrainKnowledge}
-            disabled={agentData.knowledgeSources.length === 0 || isTraining}
-            className="relative"
-          >
-            {isTraining ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                Training...
-              </>
-            ) : (
-              'Train'
-            )}
-          </ModernButton>
-        </div>
-      </div>
+    <>
+      <TrainingAlertBadge 
+        isVisible={isTraining}
+        message={`Training ${agentData.name}...`}
+      />
       
-      <div className="flex-1">
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-3">
-            {showTrainingAlert && (
-              <div className="mb-4">
-                <AlertBanner 
-                  message="Training started! It will take some time depending on the number of pages."
-                  variant="info"
-                />
-              </div>
-            )}
-
-            {agentData.knowledgeSources.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Brain className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No knowledge sources yet</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto mb-4">
-                  Import knowledge sources to improve your agent's responses and make it more knowledgeable.
-                </p>
-                <ModernButton
-                  variant="primary"
-                  size="sm"
-                  icon={Plus}
-                  onClick={() => setIsImportDialogOpen(true)}
-                >
-                  Add Knowledge Source
-                </ModernButton>
-              </div>
-            ) : (
-              <>
-                {agentData.knowledgeSources.map((knowledgeSource) => (
-                  <KnowledgeSourceTreeCard
-                    key={knowledgeSource.id}
-                    source={knowledgeSource}
-                    expanded={expandedSources.has(knowledgeSource.id)}
-                    onToggle={() => toggleSourceExpansion(knowledgeSource.id)}
-                    onDelete={() => handleDeleteConfirm(knowledgeSource.id)}
-                  />
-                ))}
-                <ModernButton
-                  variant="ghost"
-                  size="sm"
-                  icon={Plus}
-                  onClick={() => setIsImportDialogOpen(true)}
-                  className="w-full h-10 rounded-lg text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600"
-                >
-                  Add Source
-                </ModernButton>
-              </>
-            )}
-          </div>
-        </ScrollArea>
-      </div>
-
-      <ImportSourcesDialog
-        isOpen={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        externalSources={externalSources}
-        currentSources={agentData.knowledgeSources}
-        onImport={handleImport}
-        agentId={agentData.id?.toString()}
-      />
-
-      <KnowledgeSourceModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        sources={agentData.knowledgeSources}
-        initialSourceId={selectedSourceId}
-        agentId={agentData.id?.toString()}
-        onSourceDelete={() => {}}
-      />
-
-      <CleanupDialog
-        open={showCleanupDialog}
-        onOpenChange={setShowCleanupDialog}
-        knowledgeSources={
-          agentData.knowledgeSources?.flatMap(kb => 
-            kb.knowledge_sources?.filter((s: any) => s.is_selected === true).map((source: any) => ({
-              id: source.id,
-              name: source.title,
-              type: kb.type,
-              size: 'N/A',
-              lastUpdated: 'N/A',
-              trainingStatus: source.status || 'idle',
-              hasError: source.status === 'deleted' || kb.training_status === 'deleted',
-              hasIssue: source.status === 'deleted'
-            }))
-          ).filter(source => source.hasError || source.hasIssue) || []
-        }
-        agentId={agentData.id?.toString()}
-      />
-
-      <ModernModal
-        open={deleteConfirmOpen}
-        onOpenChange={setDeleteConfirmOpen}
-        title="Delete Knowledge Source"
-        description="Are you sure you want to remove this knowledge source from your agent? This action cannot be undone."
-        size="md"
-        footer={
-          <div className="flex gap-3">
-            <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
-              Cancel
-            </ModernButton>
-            <ModernButton 
-              variant="gradient" 
-              onClick={handleSourceDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+      <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Knowledge Base
+            </h2>
+            <ModernButton
+              variant="primary"
+              size="sm"
+              onClick={handleTrainKnowledge}
+              disabled={agentData.knowledgeSources.length === 0 || isTraining}
+              className="relative"
             >
-              Delete
+              {isTraining ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  Training...
+                </>
+              ) : (
+                'Train'
+              )}
             </ModernButton>
           </div>
-        }
-      >
-        <div className="py-4">
-          <p className="text-slate-600 dark:text-slate-400">
-            This will permanently remove the knowledge source from your agent.
-          </p>
         </div>
-      </ModernModal>
-    </div>
+        
+        <div className="flex-1">
+          <ScrollArea className="h-full">
+            <div className="p-4 space-y-3">
+              {agentData.knowledgeSources.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Brain className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No knowledge sources yet</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto mb-4">
+                    Import knowledge sources to improve your agent's responses and make it more knowledgeable.
+                  </p>
+                  <ModernButton
+                    variant="primary"
+                    size="sm"
+                    icon={Plus}
+                    onClick={() => setIsImportDialogOpen(true)}
+                  >
+                    Add Knowledge Source
+                  </ModernButton>
+                </div>
+              ) : (
+                <>
+                  {agentData.knowledgeSources.map((knowledgeSource) => (
+                    <KnowledgeSourceTreeCard
+                      key={knowledgeSource.id}
+                      source={knowledgeSource}
+                      expanded={expandedSources.has(knowledgeSource.id)}
+                      onToggle={() => toggleSourceExpansion(knowledgeSource.id)}
+                      onDelete={() => handleDeleteConfirm(knowledgeSource.id)}
+                    />
+                  ))}
+                  <ModernButton
+                    variant="ghost"
+                    size="sm"
+                    icon={Plus}
+                    onClick={() => setIsImportDialogOpen(true)}
+                    className="w-full h-10 rounded-lg text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600"
+                  >
+                    Add Source
+                  </ModernButton>
+                </>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+
+        <ImportSourcesDialog
+          isOpen={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+          externalSources={externalSources}
+          currentSources={agentData.knowledgeSources}
+          onImport={handleImport}
+          agentId={agentData.id?.toString()}
+        />
+
+        <KnowledgeSourceModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          sources={agentData.knowledgeSources}
+          initialSourceId={selectedSourceId}
+          agentId={agentData.id?.toString()}
+          onSourceDelete={() => {}}
+        />
+
+        <CleanupDialog
+          open={showCleanupDialog}
+          onOpenChange={setShowCleanupDialog}
+          knowledgeSources={
+            agentData.knowledgeSources?.flatMap(kb => 
+              kb.knowledge_sources?.filter((s: any) => s.is_selected === true).map((source: any) => ({
+                id: source.id,
+                name: source.title,
+                type: kb.type,
+                size: 'N/A',
+                lastUpdated: 'N/A',
+                trainingStatus: source.status || 'idle',
+                hasError: source.status === 'deleted' || kb.training_status === 'deleted',
+                hasIssue: source.status === 'deleted'
+              }))
+            ).filter(source => source.hasError || source.hasIssue) || []
+          }
+          agentId={agentData.id?.toString()}
+        />
+
+        <ModernModal
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+          title="Delete Knowledge Source"
+          description="Are you sure you want to remove this knowledge source from your agent? This action cannot be undone."
+          size="md"
+          footer={
+            <div className="flex gap-3">
+              <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+                Cancel
+              </ModernButton>
+              <ModernButton 
+                variant="gradient" 
+                onClick={handleSourceDelete}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete
+              </ModernButton>
+            </div>
+          }
+        >
+          <div className="py-4">
+            <p className="text-slate-600 dark:text-slate-400">
+              This will permanently remove the knowledge source from your agent.
+            </p>
+          </div>
+        </ModernModal>
+      </div>
+    </>
   );
 };

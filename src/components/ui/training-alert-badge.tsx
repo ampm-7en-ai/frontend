@@ -1,0 +1,42 @@
+
+import React from 'react';
+import { Loader2, Brain } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface TrainingAlertBadgeProps {
+  isVisible: boolean;
+  message?: string;
+  className?: string;
+}
+
+export const TrainingAlertBadge: React.FC<TrainingAlertBadgeProps> = ({
+  isVisible,
+  message = "Training in progress...",
+  className
+}) => {
+  if (!isVisible) return null;
+
+  return (
+    <div className={cn(
+      "fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-out",
+      "animate-in slide-in-from-top-2 fade-in-0",
+      isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2",
+      className
+    )}>
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg backdrop-blur-sm">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+            <Brain className="h-4 w-4 text-white" />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              {message}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
