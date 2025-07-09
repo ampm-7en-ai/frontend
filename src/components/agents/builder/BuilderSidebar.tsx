@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X } from 'lucide-react';
@@ -123,9 +124,9 @@ const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: {
                 </div>
                 
                 {/* Sub URLs as tree branches */}
-                {source.type === 'website' && ks.sub_urls?.children?.length > 0 && (
+                {source.type === 'website' && ks.metadata?.sub_urls?.children?.length > 0 && (
                   <div className="space-y-0.5">
-                    {ks.sub_urls.children.filter((subUrl: any) => subUrl.is_selected).map((subUrl: any, subIndex: number) => (
+                    {ks.metadata.sub_urls.children.filter((subUrl: any) => subUrl.is_selected).map((subUrl: any, subIndex: number) => (
                       <div key={subIndex} className="flex items-center gap-2 py-0.5 ml-2">
                         <div className="w-3 flex justify-center">
                           <div className="w-0.5 h-2 bg-gray-200 dark:bg-gray-600"></div>
@@ -245,7 +246,7 @@ export const BuilderSidebar = () => {
 
   const hasProblematicSources = (knowledgeSources: any[]) => {
     return knowledgeSources.some(kb => 
-      kb.status === 'deleted' || 
+      kb.training_status === 'deleted' || 
       kb.knowledge_sources?.some((source: any) => source.status === 'deleted' && source.is_selected === true)
     );
   };
@@ -287,13 +288,14 @@ export const BuilderSidebar = () => {
       const knowledgeSourceIds = agentData.knowledgeSources
         .flatMap(kb => kb.knowledge_sources || [])
         .filter(source => source.is_selected !== false)
-        .map(s => s.id);
+        .map(s => typeof s.id === 'number' ? s.id : parseInt(s.id.toString()))
+        .filter(id => !isNaN(id));
 
       const websiteUrls = agentData.knowledgeSources
         .filter(kb => kb.type === "website")
         .flatMap(kb => kb.knowledge_sources || [])
         .filter(source => source.is_selected !== false)
-        .flatMap(s => s.sub_urls?.children || [])
+        .flatMap(s => s.metadata?.sub_urls?.children || [])
         .filter(su => su.is_selected !== false)
         .map(url => url.url);
 
@@ -398,6 +400,39 @@ export const BuilderSidebar = () => {
     } finally {
       setDeleteConfirmOpen(false);
       setSourceToDelete(null);
+    }
+  };
+
+  const handleCleanupCompleted = () => {
+    // Refresh the agent data after cleanup
+    if (agentData.id) {
+      const token = getAccessToken();
+      if (!token) return;
+
+      fetch(`${BASE_URL}agents/${agentData.id}/`, {
+        headers: getAuthHeaders(token)
+      })
+      .then(response => response.json())
+      .then(result => {
+        const updatedKnowledgeSources = result.data.knowledge_bases || [];
+        
+        const formattedSources = updatedKnowledgeSources.map((kb: any) => ({
+          id: kb.id,
+          name: kb.name,
+          type: kb.type,
+          size: kb.size || 'N/A',
+          lastUpdated: kb.last_updated ? new Date(kb.last_updated).toLocaleDateString('en-GB') : 'N/A',
+          trainingStatus: kb.training_status || kb.status || 'idle',
+          linkBroken: false,
+          knowledge_sources: kb.knowledge_sources || [],
+          metadata: kb.metadata || {}
+        }));
+
+        updateAgentData({ knowledgeSources: formattedSources });
+      })
+      .catch(error => {
+        console.error('Error refreshing agent data after cleanup:', error);
+      });
     }
   };
 
@@ -537,7 +572,10 @@ export const BuilderSidebar = () => {
               id: source.id,
               name: source.title,
               type: kb.type,
-              hasError: source.status === 'deleted' || kb.status === 'deleted',
+              size: 'N/A',
+              lastUpdated: 'N/A',
+              trainingStatus: source.status || 'idle',
+              hasError: source.status === 'deleted' || kb.training_status === 'deleted',
               hasIssue: source.status === 'deleted'
             }))
           ).filter(source => source.hasError || source.hasIssue) || []
