@@ -147,7 +147,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               dot={{ r: 6, fill: '#8b5cf6' }}
               name="Efficiency Score"
             />
-          </BarChart>
+          </LineChart>
         </ResponsiveContainer>
       );
     } else {
