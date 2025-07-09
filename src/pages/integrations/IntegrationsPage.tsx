@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,12 +16,67 @@ import HubspotIntegration from '@/components/integrations/HubspotIntegration';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+
+type IntegrationStatus = 'connected' | 'not_connected' | 'loading';
+
+interface IntegrationStatusResponse {
+  message: string;
+  data: {
+    [key: string]: string;
+  };
+  status: string;
+}
 
 const IntegrationsPage = () => {
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
   const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [integrationStatuses, setIntegrationStatuses] = useState<Record<string, IntegrationStatus>>({});
+  const [isLoadingStatuses, setIsLoadingStatuses] = useState(true);
   const { toast } = useToast();
+
+  // Fetch integration statuses from API
+  const fetchIntegrationStatuses = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        console.error("No access token available");
+        setIsLoadingStatuses(false);
+        return;
+      }
+
+      const response = await fetch(getApiUrl('integrations-status'), {
+        method: 'GET',
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch integration statuses: ${response.status}`);
+      }
+
+      const result: IntegrationStatusResponse = await response.json();
+      console.log('Integration statuses fetched:', result);
+
+      // Convert API response to our status format
+      const statusMap: Record<string, IntegrationStatus> = {};
+      Object.entries(result.data).forEach(([key, value]) => {
+        statusMap[key] = value as IntegrationStatus;
+      });
+
+      setIntegrationStatuses(statusMap);
+    } catch (error) {
+      console.error('Error fetching integration statuses:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch integration statuses. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingStatuses(false);
+    }
+  };
 
   useEffect(() => {
     // Initialize Facebook SDK when the integrations page loads - only once
@@ -43,6 +99,9 @@ const IntegrationsPage = () => {
     if (!initialLoadComplete) {
       initFacebook();
     }
+
+    // Fetch integration statuses
+    fetchIntegrationStatuses();
   }, [toast, initialLoadComplete]);
 
   const integrations = [
@@ -51,7 +110,7 @@ const IntegrationsPage = () => {
       name: 'WhatsApp Business',
       description: 'Connect your AI Agent with WhatsApp Business API to reach your customers where they are.',
       logo: 'https://img.logo.dev/whatsapp.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.whatsapp || 'not_connected' as const,
       category: 'Messaging',
     },
     {
@@ -59,7 +118,7 @@ const IntegrationsPage = () => {
       name: 'Facebook Messenger',
       description: 'Connect your AI Agent with Facebook Messenger to automate customer conversations.',
       logo: 'https://img.logo.dev/facebook.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.messenger || 'not_connected' as const,
       category: 'Messaging',
     },
     {
@@ -67,7 +126,7 @@ const IntegrationsPage = () => {
       name: 'Slack',
       description: 'Connect your AI Agent with Slack to engage with your team and customers.',
       logo: 'https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.slack || 'not_connected' as const,
       category: 'Communication',
     },
     {
@@ -75,7 +134,7 @@ const IntegrationsPage = () => {
       name: 'Instagram',
       description: 'Connect your AI Agent with Instagram to respond to DMs automatically.',
       logo: 'https://img.logo.dev/instagram.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.instagram || 'not_connected' as const,
       category: 'Social Media',
     },
     {
@@ -83,7 +142,7 @@ const IntegrationsPage = () => {
       name: 'Zapier',
       description: 'Connect your AI Agent with thousands of apps through Zapier automation.',
       logo: 'https://img.logo.dev/zapier.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.zapier || 'not_connected' as const,
       category: 'Automation',
     },
     {
@@ -91,7 +150,7 @@ const IntegrationsPage = () => {
       name: 'Zendesk',
       description: 'Connect your AI Agent with Zendesk to automate ticket management and customer support.',
       logo: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.zendesk || 'not_connected' as const,
       category: 'Support',
     },
     {
@@ -99,7 +158,7 @@ const IntegrationsPage = () => {
       name: 'Freshdesk',
       description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
       logo: 'https://img.logo.dev/freshworks.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.freshdesk || 'not_connected' as const,
       category: 'Support',
     },
     {
@@ -107,7 +166,7 @@ const IntegrationsPage = () => {
       name: 'Zoho Desk',
       description: 'Connect your AI Agent with Zoho Desk to streamline customer support and ticket handling.',
       logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.zoho || 'not_connected' as const,
       category: 'Support',
     },
     {
@@ -115,7 +174,7 @@ const IntegrationsPage = () => {
       name: 'Salesforce Service Cloud',
       description: 'Connect your AI Agent with Salesforce to enhance customer service and case management.',
       logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.salesforce || 'not_connected' as const,
       category: 'CRM & Support',
     },
     {
@@ -123,7 +182,7 @@ const IntegrationsPage = () => {
       name: 'HubSpot Service Hub',
       description: 'Connect your AI Agent with HubSpot to automate customer support and ticketing workflows.',
       logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: 'not_connected' as const,
+      status: integrationStatuses.hubspot || 'not_connected' as const,
       category: 'CRM & Support',
     },
   ];
@@ -163,6 +222,33 @@ const IntegrationsPage = () => {
         return null;
     }
   };
+
+  const getStatusBadge = (status: IntegrationStatus) => {
+    if (status === 'connected') {
+      return (
+        <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
+          Connected
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400">
+        Not connected
+      </Badge>
+    );
+  };
+
+  if (isLoadingStatuses) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="container mx-auto py-8 px-4 max-w-5xl pt-12">
+          <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" text="Loading integrations..." />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -211,9 +297,7 @@ const IntegrationsPage = () => {
                             {integration?.description}
                           </p>
                         </div>
-                        <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400">
-                          Not Connected
-                        </Badge>
+                        {integration && getStatusBadge(integration.status)}
                       </>
                     );
                   })()}
@@ -264,19 +348,11 @@ const IntegrationsPage = () => {
                                   className="w-16 h-16 object-contain"
                                 />
                               </div>
-                                <Badge 
-                                variant="outline" 
-                                className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400"
-                              >
-                                Not connected
-                              </Badge>
+                              {getStatusBadge(integration.status)}
                             </div>
                             <CardTitle className="font-medium text-base text-slate-900 dark:text-slate-100 mb-2">
                               {integration.name}
                             </CardTitle>
-                            {/* <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                              {integration.description}
-                            </CardDescription> */}
                           </CardHeader>
                           <CardContent className="pt-0">
                             <ModernButton 
