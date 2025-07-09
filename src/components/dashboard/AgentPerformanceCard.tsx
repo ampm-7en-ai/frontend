@@ -96,18 +96,21 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               fill="#3b82f6" 
               radius={[4, 4, 0, 0]}
               name="Total Conversations"
+              className="hover:fill-blue-700 dark:hover:fill-blue-400"
             />
             <Bar 
               dataKey="resolved" 
               fill="#10b981" 
               radius={[4, 4, 0, 0]}
               name="Resolved"
+              className="hover:fill-green-700 dark:hover:fill-green-400"
             />
             <Bar 
               dataKey="pending" 
               fill="#f59e0b" 
               radius={[4, 4, 0, 0]}
               name="Pending"
+              className="hover:fill-amber-700 dark:hover:fill-amber-400"
             />
           </BarChart>
         </ResponsiveContainer>
@@ -157,7 +160,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
     } else {
       return (
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={performanceData}>
+          <BarChart data={performanceData}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="name" 
@@ -185,23 +188,21 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
                 return agent ? agent.fullName : label;
               }}
             />
-            <Line 
-              type="monotone" 
+            <Bar 
               dataKey="csat" 
-              stroke="#3b82f6" 
-              strokeWidth={2}
-              dot={{ r: 4, fill: '#3b82f6' }}
+              fill="#3b82f6" 
+              radius={[4, 4, 0, 0]}
               name="CSAT Score"
+              className="hover:fill-blue-700 dark:hover:fill-blue-400"
             />
-            <Line 
-              type="monotone" 
+            <Bar 
               dataKey="nps" 
-              stroke="#f59e0b" 
-              strokeWidth={2}
-              dot={{ r: 4, fill: '#f59e0b' }}
+              fill="#f59e0b" 
+              radius={[4, 4, 0, 0]}
               name="NPS Score"
+              className="hover:fill-amber-700 dark:hover:fill-amber-400"
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       );
     }
