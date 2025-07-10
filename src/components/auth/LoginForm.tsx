@@ -329,13 +329,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-medium">Username</FormLabel>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
                       placeholder="Enter your username" 
                       variant="modern"
                       size="lg"
-                      className="pl-10 pr-4"
+                      className="pl-12 pr-4"
                       {...field}
                     />
                   </FormControl>
@@ -364,21 +364,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password" 
                       variant="modern"
                       size="lg"
-                      className="pl-10 pr-12"
+                      className="pl-12 pr-12"
                       {...field}
                     />
                   </FormControl>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>

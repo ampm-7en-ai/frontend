@@ -210,13 +210,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-medium">Business Name</FormLabel>
                 <div className="relative">
-                  <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
                       placeholder="Your Business Name" 
                       variant="modern"
                       size="lg"
-                      className="pl-10 pr-4"
+                      className="pl-12 pr-4"
                       {...field} 
                     />
                   </FormControl>
@@ -234,13 +234,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                 <FormItem>
                   <FormLabel className="text-gray-700 font-medium">Username</FormLabel>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
                       <Input 
                         placeholder="username" 
                         variant="modern"
                         size="lg"
-                        className="pl-10 pr-4"
+                        className="pl-12 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -257,14 +257,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                 <FormItem>
                   <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
                       <Input 
                         type="email" 
                         placeholder="email@example.com" 
                         variant="modern"
                         size="lg"
-                        className="pl-10 pr-4"
+                        className="pl-12 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -283,21 +283,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                 <FormItem>
                   <FormLabel className="text-gray-700 font-medium">Password</FormLabel>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
                       <Input 
                         type={showSignupPassword ? "text" : "password"} 
                         placeholder="••••••••" 
                         variant="modern"
                         size="lg"
-                        className="pl-10 pr-12"
+                        className="pl-12 pr-12"
                         {...field} 
                       />
                     </FormControl>
                     <button
                       type="button"
                       onClick={() => setShowSignupPassword(!showSignupPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
                     >
                       {showSignupPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -314,13 +314,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                 <FormItem>
                   <FormLabel className="text-gray-700 font-medium">Phone Number</FormLabel>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
                       <Input 
                         placeholder="+1234567890" 
                         variant="modern"
                         size="lg"
-                        className="pl-10 pr-4"
+                        className="pl-12 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -338,13 +338,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-medium">Website (Optional)</FormLabel>
                 <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
                       placeholder="www.example.com" 
                       variant="modern"
                       size="lg"
-                      className="pl-10 pr-4"
+                      className="pl-12 pr-4"
                       {...field} 
                     />
                   </FormControl>
@@ -361,13 +361,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-medium">Address</FormLabel>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
                       placeholder="Business Address" 
                       variant="modern"
                       size="lg"
-                      className="pl-10 pr-4"
+                      className="pl-12 pr-4"
                       {...field} 
                     />
                   </FormControl>
