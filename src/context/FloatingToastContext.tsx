@@ -48,6 +48,20 @@ export const FloatingToastProvider: React.FC<{ children: ReactNode }> = ({ child
     ))
   }, [])
 
+  // Listen for global toast events (e.g., from token expiration)
+  useEffect(() => {
+    const handleGlobalToast = (event: CustomEvent) => {
+      const { title, description, variant, duration } = event.detail;
+      showToast({ title, description, variant, duration });
+    };
+
+    window.addEventListener('show-toast', handleGlobalToast as EventListener);
+    
+    return () => {
+      window.removeEventListener('show-toast', handleGlobalToast as EventListener);
+    };
+  }, [showToast]);
+
   // Initialize the toast context for legacy compatibility
   useEffect(() => {
     initToastContext({ showToast, hideToast, updateToast })

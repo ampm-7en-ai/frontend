@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
@@ -35,17 +34,22 @@ interface AuthContextType {
   pendingVerificationEmail: string | null;
   setPendingVerificationEmail: (email: string | null) => void;
   getToken: () => string | null;
+  handleTokenExpiration: () => void;
 }
 
 interface AuthData {
-  accessToken: string;
-  refreshToken: string | null;
-  userId: number;
-  role: UserRole;
-  isVerified?: boolean;
-  email: string | null;
-  teamRole: string;
-  permissions: {};
+  access: string;
+  refresh: string;
+  user_id: number;
+  userData: {
+    username: string;
+    email: string;
+    avatar: string | null;
+    team_role: string;
+    user_role: UserRole;
+    permissions: {};
+    is_verified: boolean;
+  };
 }
 
 // Create the context with a default value
@@ -73,6 +77,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const getToken = (): string | null => {
     return user?.accessToken || null;
   };
+
+  // Handle token expiration
+  const handleTokenExpiration = () => {
+    console.log('Token expired, logging out user');
+    
+    // Show toast notification
+    const event = new CustomEvent('show-toast', {
+      detail: {
+        title: 'Session Expired',
+        description: 'Your session has expired. Please log in again.',
+        variant: 'error'
+      }
+    });
+    window.dispatchEvent(event);
+    
+    // Clear user data and redirect
+    setUser(null);
+    setIsAuthenticated(false);
+    setNeedsVerification(false);
+    setPendingVerificationEmail(null);
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  // Listen for token expiration events
+  useEffect(() => {
+    const handleTokenExpirationEvent = () => {
+      handleTokenExpiration();
+    };
+
+    window.addEventListener('token-expired', handleTokenExpirationEvent);
+    
+    return () => {
+      window.removeEventListener('token-expired', handleTokenExpirationEvent);
+    };
+  }, []);
 
   // Check if user is already logged in on mount
   useEffect(() => {
@@ -145,20 +185,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       // If authData is provided, we use it (API response)
       if (authData) {
-        const isVerified = authData.isVerified !== false; // Default to true if not explicitly false
+        const isVerified = authData.userData.is_verified !== false;
         
         const userData = {
-          id: authData.userId.toString(),
-          name: username,
-          email: authData.email, // This would come from the API in a real app
-          role: authData.role,
-          accessToken: authData.accessToken,
-          refreshToken: authData.refreshToken,
-          avatar: `https://ui-avatars.com/api/?name=${username}&background=0D8ABC&color=fff`,
-          ...(authData.role === "USER" ? { businessId: 'b1' } : {}),
+          id: authData.user_id.toString(),
+          name: authData.userData.username,
+          email: authData.userData.email,
+          role: authData.userData.user_role,
+          accessToken: authData.access,
+          refreshToken: authData.refresh,
+          avatar: authData.userData.avatar || `https://ui-avatars.com/api/?name=${authData.userData.username}&background=0D8ABC&color=fff`,
+          ...(authData.userData.user_role === "USER" ? { businessId: 'b1' } : {}),
           isVerified: isVerified,
-          teamRole: authData.teamRole,
-          permission: authData.permissions
+          teamRole: authData.userData.team_role,
+          permission: authData.userData.permissions
         };
         
         setUser(userData);
@@ -240,7 +280,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setNeedsVerification,
     pendingVerificationEmail,
     setPendingVerificationEmail,
-    getToken
+    getToken,
+    handleTokenExpiration
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

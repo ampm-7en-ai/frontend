@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   VALIDATE_INVITE: "users/validate_invite_token/",
   FORGOT_PASSWORD: "users/forgot_password/",
   RESET_PASSWORD: "users/reset_password/",
+  TOKEN_REFRESH: "users/token/refresh/",
   
   // Agent and knowledge base endpoints
   AGENTS: "agents/",
@@ -165,23 +166,18 @@ export const getSourceMetadataInfo = (source: { type: string, metadata: any }): 
   return result;
 };
 
-// Function to fetch agent details (including knowledge bases)
+// Import the new API interceptor
+import { apiRequest, apiGet, apiPost, apiPut, apiDelete } from './api-interceptor';
+
+// Function to fetch agent details (including knowledge bases) - Updated to use interceptor
 export const fetchAgentDetails = async (agentId: string): Promise<any> => {
   console.log(`Starting fetchAgentDetails for agentId: ${agentId}`);
-  
-  const token = getAccessToken();
-  if (!token) {
-    console.error("No access token available for fetchAgentDetails");
-    throw new Error("Authentication required");
-  }
   
   const url = `${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`;
   console.log(`Fetching agent details from URL: ${url}`);
   
   try {
-    const response = await fetch(url, {
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiGet(url);
     
     console.log(`Agent details response status: ${response.status}`);
     
@@ -209,16 +205,9 @@ export const fetchAgentDetails = async (agentId: string): Promise<any> => {
   }
 };
 
-// Function to fetch knowledge source details
+// Function to fetch knowledge source details - Updated to use interceptor
 export const fetchKnowledgeSourceDetails = async (sourceId: number): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${sourceId}/`, {
-    headers: getAuthHeaders(token),
-  });
+  const response = await apiGet(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${sourceId}/`);
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -228,17 +217,10 @@ export const fetchKnowledgeSourceDetails = async (sourceId: number): Promise<any
   return response.json();
 };
 
-// Function to fetch external knowledge sources for an agent
+// Function to fetch external knowledge sources for an agent - Updated to use interceptor
 export const fetchExternalKnowledgeSources = async (agentId?: string): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
   const endpoint = getKnowledgeBaseEndpoint(agentId);
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: getAuthHeaders(token),
-  });
+  const response = await apiGet(`${BASE_URL}${endpoint}`);
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -248,23 +230,13 @@ export const fetchExternalKnowledgeSources = async (agentId?: string): Promise<a
   return response.json();
 };
 
-// Function to create a new agent
+// Function to create a new agent - Updated to use interceptor
 export const createAgent = async (name: string, description: string): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
+  console.log('Creating agent with data:', { name, description });
   
-  console.log('Creating agent with token:', token);
-  console.log('Agent data:', { name, description });
-  
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
-    method: 'POST',
-    headers: getAuthHeaders(token),
-    body: JSON.stringify({
-      name,
-      description,
-    })
+  const response = await apiPost(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
+    name,
+    description,
   });
   
   console.log('Create agent response status:', response.status);
@@ -278,19 +250,10 @@ export const createAgent = async (name: string, description: string): Promise<an
   return response.json();
 };
 
-// Function to create a new knowledge base
+// Function to create a new knowledge base - Updated to use interceptor
 export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
+  const response = await apiRequest(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      // Note: Do not set 'Content-Type': 'application/json' for FormData
-    },
     body: formData
   });
   
@@ -316,13 +279,8 @@ const fileToDataURL = (file: File): Promise<string> => {
   });
 };
 
-// Function to update an agent
+// Function to update an agent - Updated to use interceptor
 export const updateAgent = async (agentId: string, agentData: any): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
   console.log('Updating agent with ID:', agentId);
   console.log('Agent data:', agentData);
   
@@ -368,12 +326,8 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   
   console.log('Sending JSON payload:', payload);
   
-  // Send the entire payload as JSON
-  const response = await fetch(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, {
-    method: 'PUT',
-    headers: getAuthHeaders(token),
-    body: JSON.stringify(payload)
-  });
+  // Send the entire payload as JSON using interceptor
+  const response = await apiPut(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, payload);
   
   console.log('Update agent response status:', response.status);
   
@@ -386,19 +340,10 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   return response.json();
 };
 
-// Function to delete a knowledge source
+// Function to delete a knowledge source - Updated to use interceptor
 export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
   try {
-    // Updated URL to use the getApiUrl helper
-    const response = await fetch(getApiUrl(`knowledgesource/${sourceId}/`), {
-      method: 'DELETE',
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiDelete(getApiUrl(`knowledgesource/${sourceId}/`));
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -412,18 +357,10 @@ export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> 
   }
 };
 
-// Function to delete an entire knowledge base
+// Function to delete an entire knowledge base - Updated to use interceptor
 export const deleteKnowledgeBase = async (knowledgeBaseId: number): Promise<boolean> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
   try {
-    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${knowledgeBaseId}/`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiDelete(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${knowledgeBaseId}/`);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -437,25 +374,15 @@ export const deleteKnowledgeBase = async (knowledgeBaseId: number): Promise<bool
   }
 };
 
-// Function to add a new file to existing knowledge base
+// Function to add a new file to existing knowledge base - Updated to use interceptor
 export const addFileToKnowledgeBase = async (knowledgeBaseId: number, file: File): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
   try {
     const formData = new FormData();
     formData.append('knowledge_base', knowledgeBaseId.toString());
     formData.append('file', file);
     
-    // Updated to use getApiUrl
-    const response = await fetch(getApiUrl('knowledgesource/'), {
+    const response = await apiRequest(getApiUrl('knowledgesource/'), {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        // Note: Do not set 'Content-Type': 'application/json' for FormData
-      },
       body: formData
     });
     
@@ -471,22 +398,12 @@ export const addFileToKnowledgeBase = async (knowledgeBaseId: number, file: File
   }
 };
 
-// Function to add knowledge sources to an agent
+// Function to add knowledge sources to an agent - Updated to use interceptor
 export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSources: number[], selectedKnowledgeSources: string[]): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-  
   try {
-    // Updated to use getApiUrl
-    const response = await fetch(getApiUrl(`agents/${agentId}/add-knowledge-sources/`), {
-      method: 'POST',
-      headers: getAuthHeaders(token),
-      body: JSON.stringify({
-        knowledgeSources,
-        selected_knowledge_sources: selectedKnowledgeSources
-      })
+    const response = await apiPost(getApiUrl(`agents/${agentId}/add-knowledge-sources/`), {
+      knowledgeSources,
+      selected_knowledge_sources: selectedKnowledgeSources
     });
     
     if (!response.ok) {
@@ -506,16 +423,11 @@ export const getRoleEndpoint = (roleId: number): string => {
   return `${API_ENDPOINTS.USER_ROLE}/${roleId}/`;
 };
 
-// PATCH settings API call
+// PATCH settings API call - Updated to use interceptor
 export const updateSettings = async (payload: any): Promise<any> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-
-  const response = await fetch(`${BASE_URL}settings/`, {
+  const response = await apiRequest(`${BASE_URL}settings/`, {
     method: "PATCH",
-    headers: getAuthHeaders(token),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 
