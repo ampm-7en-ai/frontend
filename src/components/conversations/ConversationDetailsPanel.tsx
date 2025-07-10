@@ -26,7 +26,10 @@ const ConversationDetailsPanel = ({
 
   // Extract real handoff data from messages
   const handoffData = useMemo(() => {
-    if (!conversation?.messages) return { handoffs: [], currentAgent: 'AI Assistant' };
+    // Add proper null checks to prevent errors
+    if (!conversation?.messages || !Array.isArray(conversation.messages) || conversation.messages.length === 0) {
+      return { handoffs: [], currentAgent: 'AI Assistant', allAgents: ['AI Assistant'] };
+    }
 
     const agents = new Set<string>();
     const handoffs: any[] = [];
@@ -37,6 +40,8 @@ const ConversationDetailsPanel = ({
 
     // Go through messages to find agent changes
     conversation.messages.forEach((message: any, index: number) => {
+      if (!message) return; // Skip null/undefined messages
+      
       const currentAgent = message.agent || (message.sender === 'user' ? null : 'AI Assistant');
       
       if (currentAgent && currentAgent !== previousAgent) {
