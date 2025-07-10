@@ -14,8 +14,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
-import { Ticket, AlertCircle } from 'lucide-react';
+import { Ticket, AlertCircle, Loader2 } from 'lucide-react';
+import { useTicketingIntegrations } from '@/hooks/useTicketingIntegrations';
+import { createTicket } from '@/services/ticketingServices';
 
 interface CreateSupportTicketModalProps {
   open: boolean;
@@ -31,8 +32,16 @@ const CreateSupportTicketModal = ({
   const [isCreating, setIsCreating] = useState(false);
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
-  const [priority, setPriority] = useState('MEDIUM');
+  const [priority, setPriority] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState('');
   const { toast } = useToast();
+  
+  const { 
+    connectedProviders, 
+    isLoading: isLoadingProviders, 
+    error: providersError,
+    hasConnectedProviders 
+  } = useTicketingIntegrations();
 
   // Pre-populate fields based on conversation data
   React.useEffect(() => {
@@ -42,7 +51,37 @@ const CreateSupportTicketModal = ({
     }
   }, [conversation, open]);
 
+  // Reset form when modal opens/closes
+  React.useEffect(() => {
+    if (!open) {
+      setSubject('');
+      setContent('');
+      setPriority('');
+      setSelectedProvider('');
+    }
+  }, [open]);
+
+  // Set default provider and priority when providers load
+  React.useEffect(() => {
+    if (connectedProviders.length > 0 && !selectedProvider) {
+      const defaultProvider = connectedProviders[0];
+      setSelectedProvider(defaultProvider.id);
+      setPriority(defaultProvider.capabilities.priorities[1] || defaultProvider.capabilities.priorities[0]);
+    }
+  }, [connectedProviders, selectedProvider]);
+
+  const selectedProviderData = connectedProviders.find(p => p.id === selectedProvider);
+
   const handleCreateTicket = async () => {
+    if (!selectedProvider) {
+      toast({
+        title: "Provider Required",
+        description: "Please select a ticketing provider.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!subject.trim() || !content.trim()) {
       toast({
         title: "Validation Error",
@@ -52,48 +91,35 @@ const CreateSupportTicketModal = ({
       return;
     }
 
+    if (!priority) {
+      toast({
+        title: "Priority Required",
+        description: "Please select a priority level.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsCreating(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const payload = {
-        ticket_data: {
-          properties: {
-            subject: subject,
-            content: content,
-            hs_ticket_priority: priority
-          }
-        }
-      };
-
-      const response = await fetch(getApiUrl('hubspot/ticket/create/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
+      const result = await createTicket(selectedProvider, {
+        subject,
+        content,
+        priority,
+        conversation
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to create ticket: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      if (result.status === 'success') {
+      if (result.success) {
         toast({
           title: "Ticket Created Successfully",
-          description: `Support ticket #${result.data.ticket_id} has been created in HubSpot.`,
+          description: result.message,
         });
         
         // Reset form and close modal
         setSubject('');
         setContent('');
-        setPriority('MEDIUM');
+        setPriority('');
+        setSelectedProvider('');
         onOpenChange(false);
       } else {
         throw new Error(result.message || 'Failed to create ticket');
@@ -113,9 +139,49 @@ const CreateSupportTicketModal = ({
   const handleCancel = () => {
     setSubject('');
     setContent('');
-    setPriority('MEDIUM');
+    setPriority('');
+    setSelectedProvider('');
     onOpenChange(false);
   };
+
+  if (isLoadingProviders) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span>Loading ticketing providers...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (providersError || !hasConnectedProviders) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-600" />
+              No Connected Providers
+            </DialogTitle>
+            <DialogDescription>
+              {providersError 
+                ? `Error loading providers: ${providersError}`
+                : "No ticketing providers are currently connected. Please connect a provider first."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -126,11 +192,29 @@ const CreateSupportTicketModal = ({
             Create Support Ticket
           </DialogTitle>
           <DialogDescription>
-            Create a new support ticket in HubSpot for this conversation.
+            Create a new support ticket using your connected ticketing provider.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="provider">Ticketing Provider *</Label>
+            <Select value={selectedProvider} onValueChange={setSelectedProvider} disabled={isCreating}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a ticketing provider" />
+              </SelectTrigger>
+              <SelectContent>
+                {connectedProviders.map((provider) => (
+                  <SelectItem key={provider.id} value={provider.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{provider.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="subject">Subject *</Label>
             <Input
@@ -143,15 +227,17 @@ const CreateSupportTicketModal = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="priority">Priority</Label>
-            <Select value={priority} onValueChange={setPriority} disabled={isCreating}>
+            <Label htmlFor="priority">Priority *</Label>
+            <Select value={priority} onValueChange={setPriority} disabled={isCreating || !selectedProviderData}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="LOW">Low</SelectItem>
-                <SelectItem value="MEDIUM">Medium</SelectItem>
-                <SelectItem value="HIGH">High</SelectItem>
+                {selectedProviderData?.capabilities.priorities.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -178,14 +264,32 @@ const CreateSupportTicketModal = ({
               </div>
             </div>
           )}
+
+          {selectedProviderData && (
+            <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <Ticket className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-gray-700 dark:text-gray-300">
+                  <strong>Provider:</strong> Ticket will be created in {selectedProviderData.name}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel} disabled={isCreating}>
             Cancel
           </Button>
-          <Button onClick={handleCreateTicket} disabled={isCreating}>
-            {isCreating ? "Creating..." : "Create Ticket"}
+          <Button onClick={handleCreateTicket} disabled={isCreating || !selectedProvider}>
+            {isCreating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Creating...
+              </>
+            ) : (
+              "Create Ticket"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
