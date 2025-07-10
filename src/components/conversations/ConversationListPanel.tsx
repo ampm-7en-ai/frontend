@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFiltersModern from './ConversationFiltersModern';
@@ -41,7 +40,6 @@ const ConversationListPanel = ({
   isLoading: externalLoading = false
 }: ConversationListPanelProps) => {
   const [displayCount, setDisplayCount] = useState(10);
-  const [agentNameFilter, setAgentNameFilter] = useState('all');
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
@@ -181,15 +179,6 @@ const ConversationListPanel = ({
       });
       console.log(`After agent type filter: ${result.length} sessions`);
     }
-
-    // Apply agent name filter
-    if (agentNameFilter !== 'all') {
-      result = result.filter(s => {
-        if (!s || !s.agent) return false;
-        return s.agent === agentNameFilter;
-      });
-      console.log(`After agent name filter: ${result.length} sessions`);
-    }
     
     // Apply search filter
     if (searchQuery) {
@@ -219,7 +208,6 @@ const ConversationListPanel = ({
     filterStatus, 
     channelFilter, 
     agentTypeFilter, 
-    agentNameFilter,
     searchQuery,
     readSessions,
     validateSessions
@@ -277,7 +265,7 @@ const ConversationListPanel = ({
   useEffect(() => {
     console.log('Filters changed, resetting display count');
     setDisplayCount(10);
-  }, [filterStatus, channelFilter, agentTypeFilter, agentNameFilter, searchQuery]);
+  }, [filterStatus, channelFilter, agentTypeFilter, searchQuery]);
   
   // Show error if WebSocket fails
   useEffect(() => {
@@ -398,8 +386,8 @@ const ConversationListPanel = ({
           setChannelFilter={setChannelFilter}
           agentTypeFilter={agentTypeFilter}
           setAgentTypeFilter={setAgentTypeFilter}
-          agentNameFilter={agentNameFilter}
-          setAgentNameFilter={setAgentNameFilter}
+          agentNameFilter="all"
+          setAgentNameFilter={() => {}}
           availableAgents={availableAgents}
         />
       </div>
