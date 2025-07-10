@@ -116,7 +116,7 @@ export function useUpdateCustomizationSettings() {
       // Optionally refetch to ensure we have the latest data
       queryClient.invalidateQueries({ queryKey: ['platform-settings'] });
     },
-    onError: (error) {
+    onError: (error) => {
       console.error('Customization settings update failed:', error);
     },
   });
