@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { getAuthHeaders, getApiUrl } from '@/utils/api-config';
-import { useAuth } from '@/context/AuthContext';
+import { getApiUrl } from '@/utils/api-config';
+import { apiGet, apiPost, apiRequest } from '@/utils/api-interceptor';
 
 export interface AgentPrompt {
   id: number;
@@ -27,7 +27,6 @@ interface AgentPromptResponse {
 
 export const useAgentPrompts = (isAdminPanel: boolean = false) => {
   const { toast } = useToast();
-  const { getToken } = useAuth();
   const [prompts, setPrompts] = useState<AgentPrompt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -36,14 +35,7 @@ export const useAgentPrompts = (isAdminPanel: boolean = false) => {
   const fetchPrompts = async () => {
     try {
       setIsLoading(true);
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(getApiUrl(getEndpoint()), {
-        headers: getAuthHeaders(token)
-      });
+      const response = await apiGet(getApiUrl(getEndpoint()));
 
       if (!response.ok) {
         throw new Error('Failed to fetch agent prompts');
@@ -66,16 +58,7 @@ export const useAgentPrompts = (isAdminPanel: boolean = false) => {
 
   const createPrompt = async (promptData: Omit<AgentPrompt, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(getApiUrl('admin/agent-prompts/'), {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(promptData)
-      });
+      const response = await apiPost(getApiUrl('admin/agent-prompts/'), promptData);
 
       if (!response.ok) {
         throw new Error('Failed to create agent prompt');
@@ -106,14 +89,9 @@ export const useAgentPrompts = (isAdminPanel: boolean = false) => {
 
   const updatePrompt = async (promptId: number, promptData: Partial<AgentPrompt>) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(getApiUrl(`admin/agent-prompts/${promptId}/`), {
+      const response = await apiRequest(getApiUrl(`admin/agent-prompts/${promptId}/`), {
         method: 'PATCH',
-        headers: getAuthHeaders(token),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(promptData)
       });
 

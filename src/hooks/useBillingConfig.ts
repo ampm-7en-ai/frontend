@@ -1,6 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
+import { getApiUrl } from "@/utils/api-config";
+import { apiGet, apiRequest } from "@/utils/api-interceptor";
 import { useAuth } from "@/context/AuthContext";
 
 export interface BillingConfig {
@@ -33,16 +34,8 @@ export interface UpdateBillingConfigData {
 }
 
 async function fetchBillingConfig(): Promise<BillingConfig> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
   console.log('Fetching billing config from API...');
-  const response = await fetch(`${BASE_URL}admin/billing-config/`, {
-    method: 'GET',
-    headers: getAuthHeaders(token),
-  });
+  const response = await apiGet(getApiUrl('admin/billing-config/'));
 
   if (!response.ok) {
     console.error(`Billing config API error: ${response.status}`);
@@ -55,16 +48,11 @@ async function fetchBillingConfig(): Promise<BillingConfig> {
 }
 
 async function updateBillingConfig(configData: UpdateBillingConfigData): Promise<BillingConfig> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
   console.log('Updating billing config:', configData);
-  const response = await fetch(`${BASE_URL}admin/billing-config/`, {
+  const response = await apiRequest(getApiUrl('admin/billing-config/'), {
     method: 'PATCH',
-    headers: getAuthHeaders(token),
-    body: JSON.stringify(configData),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(configData)
   });
 
   if (!response.ok) {

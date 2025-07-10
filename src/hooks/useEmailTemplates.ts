@@ -1,6 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { getApiUrl } from '@/utils/api-config';
+import { apiGet, apiPut } from '@/utils/api-interceptor';
 
 interface EmailTemplate {
   id: number;
@@ -34,15 +35,7 @@ export const useEmailTemplateTypes = () => {
   return useQuery({
     queryKey: ['emailTemplateTypes'],
     queryFn: async (): Promise<EmailTemplateType[]> => {
-      const token = getAccessToken();
-      if (!token) throw new Error('No access token');
-
-      const response = await fetch(getApiUrl('admin/email-templates/'), {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await apiGet(getApiUrl('admin/email-templates/'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch email template types');
@@ -61,15 +54,7 @@ export const useEmailTemplate = (templateType: string | null) => {
     queryFn: async (): Promise<EmailTemplate> => {
       if (!templateType) throw new Error('Template type is required');
       
-      const token = getAccessToken();
-      if (!token) throw new Error('No access token');
-
-      const response = await fetch(getApiUrl(`admin/email-templates/${templateType}/`), {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await apiGet(getApiUrl(`admin/email-templates/${templateType}/`));
 
       if (!response.ok) {
         throw new Error('Failed to fetch email template');
@@ -88,17 +73,7 @@ export const useUpdateEmailTemplate = () => {
 
   return useMutation({
     mutationFn: async ({ templateType, payload }: { templateType: string; payload: UpdateEmailTemplatePayload }) => {
-      const token = getAccessToken();
-      if (!token) throw new Error('No access token');
-
-      const response = await fetch(getApiUrl(`admin/email-templates/${templateType}/`), {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await apiPut(getApiUrl(`admin/email-templates/${templateType}/`), payload);
 
       if (!response.ok) {
         throw new Error('Failed to update email template');

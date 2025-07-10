@@ -1,5 +1,7 @@
+
 import { useQuery } from "@tanstack/react-query";
-import { getApiUrl, API_ENDPOINTS, getAuthHeaders } from '@/utils/api-config';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { apiGet } from '@/utils/api-interceptor';
 import { useAuth } from "@/context/AuthContext";
 
 export interface AgentPerformanceSummary {
@@ -73,14 +75,7 @@ export interface AdminDashboardData {
 }
 
 async function fetchAdminDashboard(): Promise<AdminDashboardData> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-  const response = await fetch(getApiUrl(API_ENDPOINTS.DASHBOARD_OVERVIEW), {
-    method: 'GET',
-    headers: getAuthHeaders(token),
-  });
+  const response = await apiGet(getApiUrl(API_ENDPOINTS.DASHBOARD_OVERVIEW));
 
   if (!response.ok) {
     throw new Error('Failed to fetch admin dashboard');

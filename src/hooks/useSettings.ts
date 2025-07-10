@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
+import { getApiUrl } from "@/utils/api-config";
+import { apiGet } from "@/utils/api-interceptor";
 import { useAuth } from "@/context/AuthContext";
 
 export interface BusinessSettings {
@@ -23,21 +24,13 @@ export interface BusinessSettings {
   permissions: {
     can_manage_team: boolean;
     can_manage_payment: boolean;
-    can_manage_business_details?: boolean; // Added missing permission
+    can_manage_business_details?: boolean;
   };
 }
 
 async function fetchSettings(): Promise<BusinessSettings> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
   console.log('Fetching settings data from API...');
-  const response = await fetch(`${BASE_URL}settings/`, {
-    method: 'GET',
-    headers: getAuthHeaders(token),
-  });
+  const response = await apiGet(getApiUrl('settings/'));
 
   if (!response.ok) {
     console.error(`Settings API error: ${response.status}`);
@@ -50,7 +43,7 @@ async function fetchSettings(): Promise<BusinessSettings> {
 }
 
 export function useSettings() {
-  const { isAuthenticated, getToken } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['settings'],
@@ -58,6 +51,6 @@ export function useSettings() {
     staleTime: 60000, // 1 minute
     refetchOnWindowFocus: true,
     retry: 2,
-    enabled: isAuthenticated, // Only fetch if user is authenticated
+    enabled: isAuthenticated,
   });
 }

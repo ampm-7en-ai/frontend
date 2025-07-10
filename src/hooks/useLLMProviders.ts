@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
-import { useAuth } from '@/context/AuthContext';
+import { getApiUrl } from '@/utils/api-config';
+import { apiGet, apiRequest } from '@/utils/api-interceptor';
 
 export interface LLMProvider {
   id: number;
@@ -23,21 +23,13 @@ interface LLMProvidersResponse {
 
 export const useLLMProviders = () => {
   const { toast } = useToast();
-  const { getToken } = useAuth();
   const [providers, setProviders] = useState<LLMProvider[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProviders = async () => {
     try {
       setIsLoading(true);
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(getApiUrl('admin/provider-configs/'), {
-        headers: getAuthHeaders(token)
-      });
+      const response = await apiGet(getApiUrl('admin/provider-configs/'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch providers');
@@ -60,14 +52,9 @@ export const useLLMProviders = () => {
 
   const updateProvider = async (providerId: number, updateData: Partial<LLMProvider>) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(getApiUrl(`admin/provider-configs/${providerId}/`), {
+      const response = await apiRequest(getApiUrl(`admin/provider-configs/${providerId}/`), {
         method: 'PATCH',
-        headers: getAuthHeaders(token),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData)
       });
 

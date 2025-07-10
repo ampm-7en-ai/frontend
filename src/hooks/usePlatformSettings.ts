@@ -1,5 +1,7 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BASE_URL, getAuthHeaders } from "@/utils/api-config";
+import { getApiUrl } from "@/utils/api-config";
+import { apiGet, apiPut, apiRequest } from "@/utils/api-interceptor";
 import { useAuth } from "@/context/AuthContext";
 
 export interface PlatformSettings {
@@ -27,16 +29,8 @@ export interface UpdatePlatformSettingsData {
 }
 
 async function fetchPlatformSettings(): Promise<PlatformSettings> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
   console.log('Fetching platform settings from API...');
-  const response = await fetch(`${BASE_URL}admin/settings/`, {
-    method: 'GET',
-    headers: getAuthHeaders(token),
-  });
+  const response = await apiGet(getApiUrl('admin/settings/'));
 
   if (!response.ok) {
     console.error(`Platform settings API error: ${response.status}`);
@@ -49,17 +43,8 @@ async function fetchPlatformSettings(): Promise<PlatformSettings> {
 }
 
 async function updatePlatformSettings(settingsData: UpdatePlatformSettingsData): Promise<PlatformSettings> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
   console.log('Updating platform settings:', settingsData);
-  const response = await fetch(`${BASE_URL}admin/settings/`, {
-    method: 'PUT',
-    headers: getAuthHeaders(token),
-    body: JSON.stringify(settingsData),
-  });
+  const response = await apiPut(getApiUrl('admin/settings/'), settingsData);
 
   if (!response.ok) {
     console.error(`Update platform settings API error: ${response.status}`);
@@ -72,19 +57,10 @@ async function updatePlatformSettings(settingsData: UpdatePlatformSettingsData):
 }
 
 async function updateCustomizationSettings(formData: FormData): Promise<PlatformSettings> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
   console.log('Updating customization settings with form data');
-  const response = await fetch(`${BASE_URL}admin/settings/`, {
+  const response = await apiRequest(getApiUrl('admin/settings/'), {
     method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      // Note: Don't set Content-Type for FormData - browser will set it automatically
-    },
-    body: formData,
+    body: formData
   });
 
   if (!response.ok) {
@@ -140,7 +116,7 @@ export function useUpdateCustomizationSettings() {
       // Optionally refetch to ensure we have the latest data
       queryClient.invalidateQueries({ queryKey: ['platform-settings'] });
     },
-    onError: (error) => {
+    onError: (error) {
       console.error('Customization settings update failed:', error);
     },
   });

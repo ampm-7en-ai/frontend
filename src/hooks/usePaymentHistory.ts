@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { API_ENDPOINTS, BASE_URL, getAuthHeaders } from "@/utils/api-config";
+import { API_ENDPOINTS, getApiUrl } from "@/utils/api-config";
+import { apiGet } from "@/utils/api-interceptor";
 
 export interface PaymentHistory {
   plan_name: string;
@@ -13,16 +14,8 @@ export interface PaymentHistory {
 }
 
 async function fetchPaymentHistory(): Promise<PaymentHistory[]> {
-  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-
   console.log('Fetching payment history from API...');
-  const response = await fetch(`${BASE_URL}subscriptions/history/`, {
-    method: 'GET',
-    headers: getAuthHeaders(token),
-  });
+  const response = await apiGet(getApiUrl('subscriptions/history/'));
 
   if (!response.ok) {
     console.error(`Payment history API error: ${response.status}`);

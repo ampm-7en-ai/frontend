@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
-import { useAuth } from '@/context/AuthContext';
+import { getApiUrl } from '@/utils/api-config';
+import { apiGet, apiPost } from '@/utils/api-interceptor';
 
 export interface ApiKeyResponse {
   message: string;
@@ -32,16 +32,13 @@ export function useApiKeys() {
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { user } = useAuth();
 
   const checkApiKeyExists = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${BASE_URL}v1/keys/`, {
-        headers: getAuthHeaders(user?.accessToken || '')
-      });
+      const response = await apiGet(getApiUrl('v1/keys/'));
 
       if (!response.ok) {
         throw new Error('Failed to check API key existence');
@@ -61,10 +58,7 @@ export function useApiKeys() {
     setError(null);
     
     try {
-      const response = await fetch(`${BASE_URL}v1/keys/`, {
-        method: 'POST',
-        headers: getAuthHeaders(user?.accessToken || '')
-      });
+      const response = await apiPost(getApiUrl('v1/keys/'), {});
 
       if (!response.ok) {
         throw new Error('Failed to create API key');
@@ -86,10 +80,7 @@ export function useApiKeys() {
     setError(null);
     
     try {
-      const response = await fetch(`${BASE_URL}v1/keys/refresh/`, {
-        method: 'POST',
-        headers: getAuthHeaders(user?.accessToken || '')
-      });
+      const response = await apiPost(getApiUrl('v1/keys/refresh/'), {});
 
       if (!response.ok) {
         throw new Error('Failed to refresh API key');
@@ -106,10 +97,8 @@ export function useApiKeys() {
   };
 
   useEffect(() => {
-    if (user?.accessToken) {
-      checkApiKeyExists();
-    }
-  }, [user?.accessToken]);
+    checkApiKeyExists();
+  }, []);
 
   return {
     hasApiKey,

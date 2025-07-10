@@ -1,7 +1,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { getApiUrl, API_ENDPOINTS, getAuthHeaders } from '@/utils/api-config';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { apiGet } from '@/utils/api-interceptor';
 
 export interface Business {
   name: string;
@@ -11,7 +12,7 @@ export interface Business {
   admins: number;
   agents: number;
   created: string;
-  id?: string; // Adding ID for list keys
+  id?: string;
 }
 
 export interface BusinessResponse {
@@ -72,19 +73,12 @@ export interface Agent {
 
 // Hook for listing businesses
 export const useBusinesses = () => {
-  const { getToken } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['businesses'],
     queryFn: async (): Promise<Business[]> => {
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(getApiUrl(API_ENDPOINTS.ADMIN_BUSINESSES), {
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiGet(getApiUrl(API_ENDPOINTS.ADMIN_BUSINESSES));
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -99,13 +93,14 @@ export const useBusinesses = () => {
         id: business.id || `b${index + 1}`,
       }));
     },
+    enabled: isAuthenticated,
     refetchOnWindowFocus: false,
   });
 };
 
 // Hook for fetching business details
 export const useBusinessDetail = (businessId: string | undefined) => {
-  const { getToken } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['business', businessId],
@@ -114,14 +109,7 @@ export const useBusinessDetail = (businessId: string | undefined) => {
         throw new Error('Business ID is required');
       }
 
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(getApiUrl(`${API_ENDPOINTS.ADMIN_BUSINESSES}${businessId}/`), {
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiGet(getApiUrl(`${API_ENDPOINTS.ADMIN_BUSINESSES}${businessId}/`));
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -131,6 +119,6 @@ export const useBusinessDetail = (businessId: string | undefined) => {
       const data: BusinessDetailResponse = await response.json();
       return data.data;
     },
-    enabled: !!businessId && !!getToken(),
+    enabled: !!businessId && isAuthenticated,
   });
 };
