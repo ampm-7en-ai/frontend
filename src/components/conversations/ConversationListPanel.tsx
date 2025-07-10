@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
-import ConversationFilters from './ConversationFilters';
+import ConversationFiltersModern from './ConversationFiltersModern';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader } from 'lucide-react';
@@ -49,6 +49,9 @@ const ConversationListPanel = ({
   const previousSessionsRef = useRef<any[]>([]);
   // Keep track of initial load to avoid marking all sessions as unread on first load
   const initialLoadCompletedRef = useRef(false);
+  
+  // Add agent name filter state
+  const [agentNameFilter, setAgentNameFilter] = useState<string[]>([]);
   
   // Use our new WebSocket sessions hook
   const { 
@@ -140,6 +143,15 @@ const ConversationListPanel = ({
     previousSessionsRef.current = JSON.parse(JSON.stringify(sessions));
   }, [sessions, selectedConversation]);
   
+  // Get unique agent names from sessions
+  const availableAgents = React.useMemo(() => {
+    const agents = sessions
+      .map(session => session.agent)
+      .filter((agent, index, arr) => agent && arr.indexOf(agent) === index)
+      .sort();
+    return agents;
+  }, [sessions]);
+
   // Apply all filters with validation
   const filteredSessions = React.useMemo(() => {
     console.log(`Applying filters to ${sessions.length} sessions`);
@@ -167,6 +179,15 @@ const ConversationListPanel = ({
         return agentTypeFilter.includes(s.agentType);
       });
       console.log(`After agent type filter: ${result.length} sessions`);
+    }
+
+    // Apply agent name filter
+    if (agentNameFilter.length > 0) {
+      result = result.filter(s => {
+        if (!s || !s.agent) return false;
+        return agentNameFilter.includes(s.agent);
+      });
+      console.log(`After agent name filter: ${result.length} sessions`);
     }
     
     // Apply search filter
@@ -197,6 +218,7 @@ const ConversationListPanel = ({
     filterStatus, 
     channelFilter, 
     agentTypeFilter, 
+    agentNameFilter,
     searchQuery,
     readSessions,
     validateSessions
@@ -254,7 +276,7 @@ const ConversationListPanel = ({
   useEffect(() => {
     console.log('Filters changed, resetting display count');
     setDisplayCount(10);
-  }, [filterStatus, channelFilter, agentTypeFilter, searchQuery]);
+  }, [filterStatus, channelFilter, agentTypeFilter, agentNameFilter, searchQuery]);
   
   // Show error if WebSocket fails
   useEffect(() => {
@@ -368,13 +390,16 @@ const ConversationListPanel = ({
     <div className="flex flex-col h-full bg-white dark:bg-slate-900">
       {/* Filters */}
       <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700">
-        <ConversationFilters 
+        <ConversationFiltersModern 
           filterResolved={filterStatus}
           onFilterResolvedChange={setFilterStatus}
           channelFilter={channelFilter}
           setChannelFilter={setChannelFilter}
           agentTypeFilter={agentTypeFilter}
           setAgentTypeFilter={setAgentTypeFilter}
+          agentNameFilter={agentNameFilter}
+          setAgentNameFilter={setAgentNameFilter}
+          availableAgents={availableAgents}
         />
       </div>
       

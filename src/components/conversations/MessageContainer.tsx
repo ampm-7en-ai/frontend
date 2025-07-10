@@ -149,6 +149,7 @@ const MessageContainer = ({
                         selectedAgent={selectedAgent}
                         messageContainerRef={messageContainerRef}
                         isTyping={isTyping} 
+                        allMessages={validMessages}
                       />
                     ))
                 }

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -17,6 +18,9 @@ interface ConversationFiltersProps {
   setChannelFilter: (channels: string[]) => void;
   agentTypeFilter: string[];
   setAgentTypeFilter: (types: string[]) => void;
+  agentNameFilter: string[];
+  setAgentNameFilter: (agents: string[]) => void;
+  availableAgents: string[];
 }
 
 const ConversationFiltersModern = ({
@@ -25,7 +29,10 @@ const ConversationFiltersModern = ({
   channelFilter,
   setChannelFilter,
   agentTypeFilter,
-  setAgentTypeFilter
+  setAgentTypeFilter,
+  agentNameFilter,
+  setAgentNameFilter,
+  availableAgents
 }: ConversationFiltersProps) => {
   const statusTabs = [
     { id: 'all', label: 'All' },
@@ -66,16 +73,22 @@ const ConversationFiltersModern = ({
     }
   ];
 
+  const agentOptions = availableAgents.map(agent => ({
+    value: agent,
+    label: agent,
+    description: `Filter by ${agent}`
+  }));
+
   const agentTypeOptions = [
-    { value: 'ai', label: 'AI Agents', description: 'Automated AI responses' },
     { value: 'human', label: 'Human Agents', description: 'Human agent conversations' }
   ];
 
-  const hasActiveFilters = channelFilter.length > 0 || agentTypeFilter.length > 0;
+  const hasActiveFilters = channelFilter.length > 0 || agentTypeFilter.length > 0 || agentNameFilter.length > 0;
 
   const clearAllFilters = () => {
     setChannelFilter([]);
     setAgentTypeFilter([]);
+    setAgentNameFilter([]);
   };
 
   const handleChannelChange = (value: string) => {
@@ -101,8 +114,17 @@ const ConversationFiltersModern = ({
     }
   };
 
+  const handleAgentNameChange = (value: string) => {
+    const isSelected = agentNameFilter.includes(value);
+    if (isSelected) {
+      setAgentNameFilter(agentNameFilter.filter(id => id !== value));
+    } else {
+      setAgentNameFilter([...agentNameFilter, value]);
+    }
+  };
+
   const getActiveFiltersCount = () => {
-    return channelFilter.length + agentTypeFilter.length;
+    return channelFilter.length + agentTypeFilter.length + agentNameFilter.length;
   };
 
   return (
@@ -119,7 +141,7 @@ const ConversationFiltersModern = ({
           <ModernDropdown
             value=""
             onValueChange={() => {}}
-            options={channelOptions}
+            options={[...agentOptions, ...channelOptions]}
             placeholder=""
             className="h-8 w-8 p-0"
             align="end"
@@ -149,8 +171,19 @@ const ConversationFiltersModern = ({
                   <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
                 </div>
                 <Checkbox
-                  checked={channelFilter.includes(option.value) || (option.value === 'email' && channelFilter.includes('ticketing'))}
-                  onCheckedChange={(checked) => handleChannelChange(option.value)}
+                  checked={
+                    channelFilter.includes(option.value) || 
+                    (option.value === 'email' && channelFilter.includes('ticketing')) ||
+                    agentNameFilter.includes(option.value)
+                  }
+                  onCheckedChange={() => {
+                    // Check if it's an agent or channel
+                    if (availableAgents.includes(option.value)) {
+                      handleAgentNameChange(option.value);
+                    } else {
+                      handleChannelChange(option.value);
+                    }
+                  }}
                   className="rounded-md"
                 />
               </div>
@@ -173,6 +206,17 @@ const ConversationFiltersModern = ({
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
+            {agentNameFilter.map(agentName => (
+              <span key={agentName} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-green-50/80 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm">
+                {agentName}
+                <button
+                  onClick={() => handleAgentNameChange(agentName)}
+                  className="hover:bg-green-100/50 dark:hover:bg-green-800/30 rounded-full p-0.5 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
             {channelFilter.map(channelId => {
               const channel = channelOptions.find(c => c.value === channelId);
               const displayLabel = channelId === 'ticketing' && channelFilter.length === 1 ? 'Email' : channel?.label;
