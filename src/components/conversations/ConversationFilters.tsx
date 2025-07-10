@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -164,7 +163,7 @@ const ConversationFilters = ({
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-xl z-50 rounded-lg" align="end" side="right">
+            <PopoverContent className="w-80 p-0 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-gray-200/50 dark:border-slate-700/50 shadow-xl z-[9999] rounded-xl" align="end" side="right">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100">Filters</h4>
@@ -185,7 +184,7 @@ const ConversationFilters = ({
                   </h5>
                   <div className="space-y-3">
                     {channelOptions.map((option) => (
-                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group">
+                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100/50 dark:border-slate-700/50 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors group backdrop-blur-sm">
                         <label 
                           htmlFor={`channel-${option.id}`}
                           className="flex items-center gap-3 cursor-pointer flex-1"
@@ -215,7 +214,7 @@ const ConversationFilters = ({
                   </h5>
                   <div className="space-y-3">
                     {agentTypeOptions.map((option) => (
-                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group">
+                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100/50 dark:border-slate-700/50 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors group backdrop-blur-sm">
                         <label 
                           htmlFor={`agent-${option.id}`}
                           className="flex items-center gap-3 cursor-pointer flex-1"
@@ -247,12 +246,12 @@ const ConversationFilters = ({
                         {channelFilter.map(channelId => {
                           const channel = channelOptions.find(c => c.id === channelId);
                           return channel ? (
-                            <span key={channelId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                            <span key={channelId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-blue-50/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
                               <span className="scale-75">{channel.logo}</span>
                               {channel.label}
                               <button
                                 onClick={() => handleChannelChange(channelId, false)}
-                                className="hover:bg-blue-100 dark:hover:bg-blue-800/50 rounded-full p-0.5 transition-colors"
+                                className="hover:bg-blue-100/50 dark:hover:bg-blue-800/30 rounded-full p-0.5 transition-colors"
                               >
                                 <X className="w-3 h-3" />
                               </button>
@@ -262,12 +261,12 @@ const ConversationFilters = ({
                         {agentTypeFilter.map(typeId => {
                           const type = agentTypeOptions.find(t => t.id === typeId);
                           return type ? (
-                            <span key={typeId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            <span key={typeId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-slate-100/80 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
                               <span>{type.icon}</span>
                               {type.label}
                               <button
                                 onClick={() => handleAgentTypeChange(typeId, false)}
-                                className="hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full p-0.5 transition-colors"
+                                className="hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded-full p-0.5 transition-colors"
                               >
                                 <X className="w-3 h-3" />
                               </button>

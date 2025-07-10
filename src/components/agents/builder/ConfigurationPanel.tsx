@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -78,7 +77,7 @@ export const ConfigurationPanel = () => {
                   value={agentData.name}
                   onChange={(e) => updateAgentData({ name: e.target.value })}
                   placeholder="Enter agent name"
-                  className="h-8 text-sm"
+                  className="h-8 text-sm backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                 />
               </div>
               
@@ -90,19 +89,19 @@ export const ConfigurationPanel = () => {
                   onChange={(e) => updateAgentData({ description: e.target.value })}
                   placeholder="Describe your agent's purpose"
                   rows={2}
-                  className="text-sm resize-none"
+                  className="text-sm resize-none backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                 />
               </div>
               
               <div className="space-y-1">
                 <Label htmlFor="type" className="text-xs font-medium">Agent Type</Label>
                 <Select value={agentData.agentType} onValueChange={(value) => updateAgentData({ agentType: value })}>
-                  <SelectTrigger className="h-8 text-sm">
+                  <SelectTrigger variant="modern" className="h-8 text-sm">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent variant="modern">
                     {agentTypes.map((type) => (
-                      <SelectItem key={type} value={type} className="text-sm">{type}</SelectItem>
+                      <SelectItem key={type} value={type} variant="modern" className="text-sm">{type}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -133,7 +132,7 @@ export const ConfigurationPanel = () => {
                     <Input
                       value={agentData.primaryColor}
                       onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                      className="flex-1 text-xs font-mono h-7"
+                      className="flex-1 text-xs font-mono h-7 backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                     />
                   </div>
                 </div>
@@ -151,7 +150,7 @@ export const ConfigurationPanel = () => {
                     <Input
                       value={agentData.secondaryColor}
                       onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                      className="flex-1 text-xs font-mono h-7"
+                      className="flex-1 text-xs font-mono h-7 backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                     />
                   </div>
                 </div>
@@ -160,12 +159,12 @@ export const ConfigurationPanel = () => {
               <div className="space-y-1">
                 <Label htmlFor="fontFamily" className="text-xs font-medium">Font Family</Label>
                 <Select value={agentData.fontFamily} onValueChange={(value) => updateAgentData({ fontFamily: value })}>
-                  <SelectTrigger className="h-8 text-sm">
+                  <SelectTrigger variant="modern" className="h-8 text-sm">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent variant="modern">
                     {fontFamilies.map((font) => (
-                      <SelectItem key={font} value={font} className="text-sm">{font}</SelectItem>
+                      <SelectItem key={font} value={font} variant="modern" className="text-sm">{font}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -178,7 +177,7 @@ export const ConfigurationPanel = () => {
                   value={agentData.chatbotName}
                   onChange={(e) => updateAgentData({ chatbotName: e.target.value })}
                   placeholder="Assistant"
-                  className="h-8 text-sm"
+                  className="h-8 text-sm backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                 />
               </div>
               
@@ -190,7 +189,7 @@ export const ConfigurationPanel = () => {
                   onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
                   placeholder="Hello! How can I help you today?"
                   rows={2}
-                  className="text-sm resize-none"
+                  className="text-sm resize-none backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                 />
               </div>
               
@@ -201,7 +200,7 @@ export const ConfigurationPanel = () => {
                   value={agentData.buttonText}
                   onChange={(e) => updateAgentData({ buttonText: e.target.value })}
                   placeholder="Chat with us"
-                  className="h-8 text-sm"
+                  className="h-8 text-sm backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                 />
               </div>
             </AccordionContent>
@@ -227,7 +226,7 @@ export const ConfigurationPanel = () => {
                     value={suggestion}
                     onChange={(e) => handleSuggestionChange(index, e.target.value)}
                     placeholder={`Suggestion ${index + 1}`}
-                    className="flex-1 h-7 text-sm"
+                    className="flex-1 h-7 text-sm backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                   />
                   <Button
                     variant="ghost"
@@ -245,7 +244,7 @@ export const ConfigurationPanel = () => {
                   variant="outline"
                   size="sm"
                   onClick={addSuggestion}
-                  className="w-full h-7 text-xs hover:bg-blue-50 hover:border-blue-300"
+                  className="w-full h-7 text-xs hover:bg-blue-50 hover:border-blue-300 backdrop-blur-sm bg-white/70 border-gray-200/50 rounded-xl"
                 >
                   <Plus className="h-3 w-3 mr-1" />
                   Add Suggestion

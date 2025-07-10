@@ -54,12 +54,12 @@ export const AdvancedSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="model">AI Model</Label>
                 <Select value={agentData.model} onValueChange={(value) => updateAgentData({ model: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger variant="modern" size="lg">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent variant="modern">
                     {models.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
+                      <SelectItem key={model.id} value={model.id} variant="modern">
                         <div className="flex items-center gap-2">
                           <span>{model.label}</span>
                           <Badge variant="outline" className="text-xs">
@@ -122,7 +122,7 @@ export const AdvancedSettings = () => {
                   onChange={(e) => updateAgentData({ systemPrompt: e.target.value })}
                   placeholder="Define your agent's behavior and personality..."
                   rows={6}
-                  className="font-mono text-sm"
+                  className="font-mono text-sm backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-gray-200/50 dark:border-gray-700/50 rounded-xl"
                 />
                 <p className="text-xs text-gray-500">
                   These instructions define how your agent behaves and responds
@@ -152,7 +152,7 @@ export const AdvancedSettings = () => {
                         value={item}
                         onChange={(e) => handleGuidelineChange('dos', index, e.target.value)}
                         placeholder="Enter a guideline..."
-                        className="flex-1 border-green-200 focus:border-green-300"
+                        className="flex-1 border-green-200 focus:border-green-300 backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 rounded-xl"
                       />
                       <button
                         onClick={() => removeGuideline('dos', index)}
@@ -183,7 +183,7 @@ export const AdvancedSettings = () => {
                         value={item}
                         onChange={(e) => handleGuidelineChange('donts', index, e.target.value)}
                         placeholder="Enter what to avoid..."
-                        className="flex-1 border-red-200 focus:border-red-300"
+                        className="flex-1 border-red-200 focus:border-red-300 backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 rounded-xl"
                       />
                       <button
                         onClick={() => removeGuideline('donts', index)}
