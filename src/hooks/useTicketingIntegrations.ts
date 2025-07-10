@@ -83,7 +83,7 @@ export const useTicketingIntegrations = () => {
         return;
       }
 
-      const response = await fetch(getApiUrl('integrations/status/'), {
+      const response = await fetch(getApiUrl('integrations-status/'), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -94,18 +94,21 @@ export const useTicketingIntegrations = () => {
         throw new Error(`Failed to fetch integrations: ${response.status}`);
       }
 
-      const integrations = await response.json();
+      const result = await response.json();
+      
+      // Parse the new response structure
+      const integrations = result.data;
       
       // Filter for connected ticketing providers
-      const connectedTicketing = integrations
-        .filter((integration: any) => 
+      const connectedTicketing = Object.entries(integrations)
+        .filter(([_, integration]: [string, any]) => 
           integration.type === 'ticketing' && 
           integration.status === 'connected'
         )
-        .map((integration: any) => ({
-          id: integration.provider_id,
+        .map(([providerId, integration]: [string, any]) => ({
+          id: providerId,
           status: integration.status,
-          ...TICKETING_PROVIDERS[integration.provider_id]
+          ...TICKETING_PROVIDERS[providerId]
         }))
         .filter((provider: any) => provider.name); // Only include known providers
 
