@@ -73,52 +73,52 @@ export const useTicketingIntegrations = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchConnectedProviders = async () => {
-      try {
-        setIsLoading(true);
-        const token = getAccessToken();
-        
-        if (!token) {
-          setError('Authentication required');
-          return;
-        }
-
-        const response = await fetch(getApiUrl('integrations/status/'), {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch integrations: ${response.status}`);
-        }
-
-        const integrations = await response.json();
-        
-        // Filter for connected ticketing providers
-        const connectedTicketing = integrations
-          .filter((integration: any) => 
-            integration.type === 'ticketing' && 
-            integration.status === 'connected'
-          )
-          .map((integration: any) => ({
-            id: integration.provider_id,
-            status: integration.status,
-            ...TICKETING_PROVIDERS[integration.provider_id]
-          }))
-          .filter((provider: any) => provider.name); // Only include known providers
-
-        setConnectedProviders(connectedTicketing);
-      } catch (err) {
-        console.error('Error fetching ticketing integrations:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch integrations');
-      } finally {
-        setIsLoading(false);
+  const fetchConnectedProviders = async () => {
+    try {
+      setIsLoading(true);
+      const token = getAccessToken();
+      
+      if (!token) {
+        setError('Authentication required');
+        return;
       }
-    };
 
+      const response = await fetch(getApiUrl('integrations/status/'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch integrations: ${response.status}`);
+      }
+
+      const integrations = await response.json();
+      
+      // Filter for connected ticketing providers
+      const connectedTicketing = integrations
+        .filter((integration: any) => 
+          integration.type === 'ticketing' && 
+          integration.status === 'connected'
+        )
+        .map((integration: any) => ({
+          id: integration.provider_id,
+          status: integration.status,
+          ...TICKETING_PROVIDERS[integration.provider_id]
+        }))
+        .filter((provider: any) => provider.name); // Only include known providers
+
+      setConnectedProviders(connectedTicketing);
+    } catch (err) {
+      console.error('Error fetching ticketing integrations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch integrations');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchConnectedProviders();
   }, []);
 
