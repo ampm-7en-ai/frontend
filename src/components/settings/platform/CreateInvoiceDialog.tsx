@@ -116,13 +116,13 @@ export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
                 >
-                  <SelectTrigger id="status">
+                  <SelectTrigger id="status" variant="modern">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectContent variant="modern">
+                    <SelectItem value="paid" variant="modern">Paid</SelectItem>
+                    <SelectItem value="pending" variant="modern">Pending</SelectItem>
+                    <SelectItem value="overdue" variant="modern">Overdue</SelectItem>
                   </SelectContent>
                 </Select>
               )}

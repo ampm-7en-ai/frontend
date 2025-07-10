@@ -124,12 +124,12 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
           <div className="space-y-2">
             <Label htmlFor="provider_name">Provider Name *</Label>
             <Select value={formData.provider_name} onValueChange={handleProviderChange}>
-              <SelectTrigger>
+              <SelectTrigger variant="modern">
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent variant="modern">
                 {providerOptions.map((provider) => (
-                  <SelectItem key={provider.name} value={provider.name}>
+                  <SelectItem key={provider.name} value={provider.name} variant="modern">
                     {provider.name}
                   </SelectItem>
                 ))}
@@ -155,12 +155,12 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
               onValueChange={(value) => setFormData(prev => ({ ...prev, default_model: value }))}
               disabled={!selectedProvider}
             >
-              <SelectTrigger>
+              <SelectTrigger variant="modern">
                 <SelectValue placeholder="Select model" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent variant="modern">
                 {selectedProvider?.models.map((model) => (
-                  <SelectItem key={model} value={model}>
+                  <SelectItem key={model} value={model} variant="modern">
                     {model}
                   </SelectItem>
                 ))}

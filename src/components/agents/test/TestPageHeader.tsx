@@ -48,12 +48,12 @@ export const TestPageHeader = ({
               onValueChange={onAgentChange}
               disabled={isLoading}
             >
-              <SelectTrigger className="w-full sm:w-[280px]">
+              <SelectTrigger className="w-full sm:w-[280px]" variant="modern">
                 <SelectValue placeholder="Select agent" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent variant="modern">
                 {agents.map((agent: any) => (
-                  <SelectItem key={agent.id} value={agent.id}>
+                  <SelectItem key={agent.id} value={agent.id} variant="modern">
                     <div className="flex items-center">
                       {agent.avatarSrc ? (
                         <Avatar className="h-6 w-6 mr-2">

@@ -103,12 +103,12 @@ export const ModelComparisonCard = ({
       >
         <div className="flex items-center gap-2">
           <Select value={model} onValueChange={onModelChange}>
-            <SelectTrigger className="w-[190px] h-8">
+            <SelectTrigger className="w-[190px] h-8" variant="modern">
               <SelectValue placeholder={getModelDisplay(model)} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent variant="modern">
               {Object.entries(modelOptions).map(([key, model]) => (
-                <SelectItem key={key} value={key}>
+                <SelectItem key={key} value={key} variant="modern">
                   {model.name} ({model.provider})
                 </SelectItem>
               ))}
