@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -98,6 +97,11 @@ const ConversationDetail = () => {
     sessionId: conversationId || null,
     autoConnect: !!conversationId
   });
+
+  // Handle conversation update (for resolve functionality)
+  const handleConversationUpdate = (updatedConversation: any) => {
+    setConversation(updatedConversation);
+  };
   
   // Handle sending new message
   const handleSendMessage = (e: React.FormEvent) => {
@@ -428,49 +432,17 @@ const ConversationDetail = () => {
         
         <ResizablePanel defaultSize={50}>
           <Card className="h-full flex flex-col rounded-none border-x-0">
-            <CardHeader className="pb-3 border-b">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center">
-                      <CardTitle className="text-lg">{conversation?.customer}</CardTitle>
-                      <Badge variant="outline" className="ml-2 text-xs">#{conversationId}</Badge>
-                    </div>
-                    <CardDescription>{conversation?.email}</CardDescription>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setIsHandoffDialogOpen(true)}>
-                    <PhoneForwarded className="h-4 w-4 mr-1" />
-                    Handoff
-                  </Button>
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-4 mt-1 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  Started: {new Date(conversation?.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Tag className="h-3.5 w-3.5" />
-                  {conversation?.category}
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  {conversation?.messages?.length} messages
-                </div>
-                <div className="flex items-center gap-1">
-                  <Activity className="h-3.5 w-3.5" />
-                  {conversation?.handoffHistory?.length} handoffs
-                </div>
-              </div>
-            </CardHeader>
+            {conversation && (
+              <ConversationHeader
+                conversation={conversation}
+                selectedAgent={selectedAgent}
+                setSelectedAgent={setSelectedAgent}
+                onInfoClick={() => setIsContextPanelOpen(true)}
+                getStatusBadge={getStatusBadge}
+                messageCount={conversation?.messages?.length || 0}
+                onConversationUpdate={handleConversationUpdate}
+              />
+            )}
             <CardContent className="p-0 flex-grow overflow-y-auto">
               <div className="p-4 space-y-4">
                 {conversation?.messages?.map((message: any) => renderMessageItem(message))}

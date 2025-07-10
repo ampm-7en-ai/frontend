@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,7 @@ import FreshdeskIntegration from '@/components/integrations/FreshdeskIntegration
 import ZohoIntegration from '@/components/integrations/ZohoIntegration';
 import SalesforceIntegration from '@/components/integrations/SalesforceIntegration';
 import HubspotIntegration from '@/components/integrations/HubspotIntegration';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Star } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -37,6 +38,8 @@ const IntegrationsPage = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [integrationStatuses, setIntegrationStatuses] = useState<Record<string, IntegrationStatus>>({});
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(true);
+  const [defaultProvider, setDefaultProvider] = useState<string | null>(null);
+  const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Fetch integration statuses from API
@@ -80,6 +83,46 @@ const IntegrationsPage = () => {
     }
   };
 
+  const handleSetAsDefault = async (providerId: string) => {
+    setIsSettingDefault(providerId);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("No access token available");
+      }
+
+      const response = await fetch(getApiUrl('default-ticketing-provider/'), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          provider: providerId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to set default provider: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Default provider set:', result);
+
+      setDefaultProvider(providerId);
+      toast({
+        title: "Success",
+        description: result.message || "Default ticketing provider updated.",
+      });
+    } catch (error) {
+      console.error('Error setting default provider:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to set default provider. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSettingDefault(null);
+    }
+  };
+
   useEffect(() => {
     // Initialize Facebook SDK when the integrations page loads - only once
     const initFacebook = async () => {
@@ -114,6 +157,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/whatsapp.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.whatsapp || 'not_connected' as const,
       category: 'Messaging',
+      type: 'messaging'
     },
     {
       id: 'messenger',
@@ -122,6 +166,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/facebook.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.messenger || 'not_connected' as const,
       category: 'Messaging',
+      type: 'messaging'
     },
     {
       id: 'slack',
@@ -130,6 +175,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.slack || 'not_connected' as const,
       category: 'Communication',
+      type: 'communication'
     },
     {
       id: 'instagram',
@@ -138,6 +184,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/instagram.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.instagram || 'not_connected' as const,
       category: 'Social Media',
+      type: 'social'
     },
     {
       id: 'zapier',
@@ -146,6 +193,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/zapier.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.zapier || 'not_connected' as const,
       category: 'Automation',
+      type: 'automation'
     },
     {
       id: 'zendesk',
@@ -154,6 +202,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.zendesk || 'not_connected' as const,
       category: 'Support',
+      type: 'ticketing'
     },
     {
       id: 'freshdesk',
@@ -162,6 +211,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/freshworks.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.freshdesk || 'not_connected' as const,
       category: 'Support',
+      type: 'ticketing'
     },
     {
       id: 'zoho',
@@ -170,6 +220,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.zoho || 'not_connected' as const,
       category: 'Support',
+      type: 'ticketing'
     },
     {
       id: 'salesforce',
@@ -178,6 +229,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.salesforce || 'not_connected' as const,
       category: 'CRM & Support',
+      type: 'ticketing'
     },
     {
       id: 'hubspot',
@@ -186,6 +238,7 @@ const IntegrationsPage = () => {
       logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: integrationStatuses.hubspot || 'not_connected' as const,
       category: 'CRM & Support',
+      type: 'ticketing'
     },
   ];
 
@@ -238,6 +291,18 @@ const IntegrationsPage = () => {
         Not connected
       </Badge>
     );
+  };
+
+  const getDefaultBadge = (integrationId: string) => {
+    if (defaultProvider === integrationId) {
+      return (
+        <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 ml-2">
+          <Star className="h-3 w-3 mr-1 fill-current" />
+          Default
+        </Badge>
+      );
+    }
+    return null;
   };
 
   if (isLoadingStatuses) {
@@ -299,7 +364,10 @@ const IntegrationsPage = () => {
                             {integration?.description}
                           </p>
                         </div>
-                        {integration && getStatusBadge(integration.status)}
+                        <div className="flex items-center gap-2">
+                          {integration && getStatusBadge(integration.status)}
+                          {integration && getDefaultBadge(integration.id)}
+                        </div>
                       </>
                     );
                   })()}
@@ -350,13 +418,16 @@ const IntegrationsPage = () => {
                                   className="w-16 h-16 object-contain"
                                 />
                               </div>
-                              {getStatusBadge(integration.status)}
+                              <div className="flex items-center gap-2">
+                                {getStatusBadge(integration.status)}
+                                {getDefaultBadge(integration.id)}
+                              </div>
                             </div>
                             <CardTitle className="font-medium text-base text-slate-900 dark:text-slate-100 mb-2">
                               {integration.name}
                             </CardTitle>
                           </CardHeader>
-                          <CardContent className="pt-0">
+                          <CardContent className="pt-0 space-y-3">
                             <ModernButton 
                               variant="outline" 
                               className="w-full"
@@ -364,6 +435,17 @@ const IntegrationsPage = () => {
                             >
                               Configure Integration
                             </ModernButton>
+                            {integration.type === 'ticketing' && integration.status === 'connected' && defaultProvider !== integration.id && (
+                              <ModernButton 
+                                variant="outline" 
+                                className="w-full border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/20"
+                                onClick={() => handleSetAsDefault(integration.id)}
+                                disabled={isSettingDefault === integration.id}
+                                icon={Star}
+                              >
+                                {isSettingDefault === integration.id ? 'Setting...' : 'Set as Default'}
+                              </ModernButton>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
