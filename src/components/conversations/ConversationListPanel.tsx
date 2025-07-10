@@ -109,11 +109,11 @@ const ConversationListPanel = ({
   // Custom filter functions for array-based filters
   const filterSessionsByChannels = (channels: string[]) => {
     if (channels.length === 0) return sessions;
-    // Filter by source property for ticketing, and channel for others
+    // Filter by channel property for ticketing, and channel for others
     return sessions.filter(s => {
       return channels.some(channel => {
         if (channel === 'ticketing') {
-          return s.source === 'ticketing';
+          return s.channel === 'ticketing';
         }
         return s.channel === channel;
       });
@@ -139,7 +139,7 @@ const ConversationListPanel = ({
       result = result.filter(s => {
         return channelFilter.some(channel => {
           if (channel === 'ticketing') {
-            return s.source === 'ticketing';
+            return s.channel === 'ticketing';
           }
           return s.channel === channel;
         });
