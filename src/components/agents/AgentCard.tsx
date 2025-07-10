@@ -1,307 +1,199 @@
 
-import React, { useState } from 'react';
-import { CalendarClock, MessageSquare, ActivitySquare, Database, Globe, FileText, BookOpen, Plus, ChevronDown, ChevronUp, Brain } from 'lucide-react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import AgentActionsDropdown from './AgentActionsDropdown';
-import { Agent } from '@/hooks/useAgentFiltering';
-import { format } from 'date-fns';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import ModernButton from '@/components/dashboard/ModernButton';
-import { Settings, Play } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Bot, 
+  Brain, 
+  Play, 
+  Rocket, 
+  AlertTriangle, 
+  Check,
+  Calendar,
+  Star
+} from 'lucide-react';
+import KnowledgeSourceBadge from './KnowledgeSourceBadge';
+import DeploymentDialog from './DeploymentDialog';
+import AgentActionsDropdown from './AgentActionsDropdown';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 interface AgentCardProps {
-  agent: Agent;
+  agent: {
+    id: string;
+    name: string;
+    description: string;
+    conversations: number;
+    lastModified: string;
+    averageRating: number;
+    knowledgeSources: KnowledgeSource[];
+    model: string;
+    isDeployed: boolean;
+    status?: string;
+  };
   getModelBadgeColor: (model: string) => string;
-  getStatusBadgeColor: (status: string) => string;
+  getStatusBadgeColor?: (status: string) => string;
   onDelete?: (agentId: string) => void;
 }
 
 const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }: AgentCardProps) => {
-  const [isKnowledgeExpanded, setIsKnowledgeExpanded] = useState(false);
-  
-  // Format the date to be more readable (Dec 10, 2023)
-  const formattedDate = agent.lastModified ? 
-    format(new Date(agent.lastModified), 'MMM d, yyyy') : 
-    'Unknown date';
+  const [deploymentDialogOpen, setDeploymentDialogOpen] = React.useState(false);
 
-  const getKnowledgeIcon = (type: string) => {
-    switch (type) {
-      case 'document':
-      case 'pdf':
-        return <FileText className="h-3 w-3" />;
-      case 'database':
-        return <Database className="h-3 w-3" />;
-      case 'webpage':
-      case 'website':
-      case 'url':
-        return <Globe className="h-3 w-3" />;
-      default:
-        return <BookOpen className="h-3 w-3" />;
-    }
+  const openDeploymentDialog = () => {
+    setDeploymentDialogOpen(true);
   };
 
-  const getModelDisplayName = () => {
-    return agent.model === 'gpt4' ? 'GPT-4 (OpenAI)' :
-           agent.model === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
-           agent.model === 'claude' ? 'Claude 3 (Anthropic)' :
-           agent.model === 'gemini' ? 'Gemini Pro (Google)' :
-           agent.model === 'mistral' ? 'Mistral Large (Mistral AI)' :
-           agent.model === 'llama' ? 'Llama 2 (Meta AI)' :
-           agent.model;
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
-  const getModelStyles = () => {
-    const colorName = getModelBadgeColor(agent.model);
-    
-    switch (colorName) {
-      case 'indigo':
-        return 'text-indigo-600 dark:text-indigo-400';
-      case 'green':
-        return 'text-green-600 dark:text-green-400';
-      case 'purple':
-        return 'text-purple-600 dark:text-purple-400';
-      case 'blue':
-      default:
-        return 'text-blue-600 dark:text-blue-400';
-    }
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-3 w-3 ${
+          i < Math.floor(rating)
+            ? 'text-yellow-400 fill-yellow-400'
+            : 'text-gray-300'
+        }`}
+      />
+    ));
   };
 
-  const shouldUseCarousel = agent.knowledgeSources && agent.knowledgeSources.length > 4;
-  
-  const handleDuplicate = async (_agentId: string) => {
-    // Refresh the list after duplication
-    if (onDelete) {
-      onDelete(_agentId);
-    }
-  };
-  
   return (
-    <div className="w-full">
-      {/* Main Agent Card */}
-      <div className="bg-transparent rounded-3xl p-1 border-0 backdrop-blur-md shadow-none hover:shadow-xl transition-all duration-300">
-        <Card className="bg-white/60 dark:bg-slate-800/60 rounded-2xl border-0 shadow-none hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all duration-300 overflow-hidden backdrop-blur-sm">
-          <CardHeader className="p-6 pb-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-3">
-                  <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100 truncate">
-                    {agent.name}
-                  </CardTitle>
-                  {/* Status Badge */}
-                  {agent.status && (
-                    <div className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border backdrop-blur-sm ${getStatusBadgeColor(agent.status)}`}>
-                      <ActivitySquare className="h-3 w-3 mr-1.5" />
-                      {agent.status}
-                    </div>
-                  )}
-                </div>
-                <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm mb-4">
-                  {agent.description}
-                </CardDescription>
-              </div>
-              <div className="ml-4 flex-shrink-0">
-                <AgentActionsDropdown 
-                  agentId={agent.id} 
-                  agentName={agent.name}
-                  onDelete={onDelete}
-                  onDuplicate={handleDuplicate}
-                />
-              </div>
+    <>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 hover:shadow-lg transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+              <Bot className="h-5 w-5 text-white" />
             </div>
-          </CardHeader>
-          
-          <CardContent className="px-6 pt-0 pb-4">
-            {/* Single Row - Conversations, Last Updated, AI Model, Knowledge Trigger */}
-            <div className="flex items-center justify-between gap-6 mb-4">
-              {/* Left side - Metrics */}
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 rounded-lg flex items-center justify-center">
-                    <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      {agent.conversations?.toLocaleString() || '0'}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">Conversations</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/40 dark:to-green-800/40 rounded-lg flex items-center justify-center">
-                    <CalendarClock className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      {formattedDate}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">Last Updated</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/40 rounded-lg flex items-center justify-center">
-                    <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <div className={`text-sm font-bold ${getModelStyles()}`}>
-                      {getModelDisplayName()}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">AI Model</div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Right side - Knowledge Base Trigger */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
-                  {agent.knowledgeSources?.length || 0} sources
-                </span>
-                <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
-                  <CollapsibleTrigger asChild>
-                    <ModernButton variant="outline" size="sm" className="h-8 w-8 p-0" iconOnly>
-                      {isKnowledgeExpanded ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </ModernButton>
-                  </CollapsibleTrigger>
-                </Collapsible>
-              </div>
+            <div>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                {agent.name}
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                {agent.description}
+              </p>
             </div>
-          </CardContent>
+          </div>
+          <AgentActionsDropdown 
+            agentId={agent.id} 
+            agentName={agent.name}
+            onDelete={onDelete}
+          />
+        </div>
 
-          {/* Expanded Knowledge Base Section - Full Width */}
-          <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
-            <CollapsibleContent>
-              <div className="px-6 pb-4">
-                <div className="bg-slate-50/80 dark:bg-slate-700/80 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      Knowledge Base
-                    </h4>
-                    <Link 
-                      to={`/agents/${agent.id}/edit?tab=knowledge`}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium flex items-center gap-1"
-                    >
-                      <Plus className="h-3 w-3" />
-                      Manage
-                    </Link>
-                  </div>
-                  
-                  {agent.knowledgeSources && agent.knowledgeSources.length > 0 ? (
-                    shouldUseCarousel ? (
-                      <Carousel className="w-full">
-                        <CarouselContent className="-ml-2">
-                          {agent.knowledgeSources.map((source, index) => (
-                            <CarouselItem key={source.id} className="pl-2 basis-1/3 md:basis-1/6">
-                              <div className="h-full p-3 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 transition-colors">
-                                <div className="flex items-start gap-2">
-                                  <div className="text-slate-500 dark:text-slate-400 mt-0.5">
-                                    {getKnowledgeIcon(source.type)}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate mb-0.5">
-                                      {source.name}
-                                    </div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400 capitalize mb-1">
-                                      {source.type}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      {source.hasError && (
-                                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full" title="Has errors"></div>
-                                      )}
-                                      {source.hasIssue && (
-                                        <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" title="Has issues"></div>
-                                      )}
-                                      {!source.hasError && !source.hasIssue && (
-                                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full" title="Active"></div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="left-1 h-6 w-6" />
-                        <CarouselNext className="right-1 h-6 w-6" />
-                      </Carousel>
-                    ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        {agent.knowledgeSources.map((source, index) => (
-                          <div 
-                            key={source.id}
-                            className="p-3 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 transition-colors"
-                          >
-                            <div className="flex items-start gap-2">
-                              <div className="text-slate-500 dark:text-slate-400 mt-0.5">
-                                {getKnowledgeIcon(source.type)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate mb-0.5">
-                                  {source.name}
-                                </div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 capitalize mb-1">
-                                  {source.type}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  {source.hasError && (
-                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" title="Has errors"></div>
-                                  )}
-                                  {source.hasIssue && (
-                                    <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" title="Has issues"></div>
-                                  )}
-                                  {!source.hasError && !source.hasIssue && (
-                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" title="Active"></div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  ) : (
-                    <Link 
-                      to={`/agents/${agent.id}/edit?tab=knowledge`}
-                      className="flex items-center justify-center gap-2 p-4 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors group"
-                    >
-                      <Plus className="h-4 w-4 text-slate-400 group-hover:text-blue-500" />
-                      <span className="text-xs text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 font-medium">
-                        Add Knowledge Sources
-                      </span>
-                    </Link>
-                  )}
-                </div>
+        <div className="space-y-4">
+          {/* Model and Status */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className={getModelBadgeColor(agent.model)}>
+              <Brain className="h-3 w-3 mr-1" />
+              {agent.model}
+            </Badge>
+            {agent.isDeployed ? (
+              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
+                <Rocket className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
+                Draft
+              </Badge>
+            )}
+          </div>
+
+          {/* Knowledge Sources */}
+          {agent.knowledgeSources.length > 0 && (
+            <div>
+              <div className="flex items-center gap-1 mb-2">
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  Knowledge Sources
+                </span>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-          
-          
-        </Card>
+              <div className="flex flex-wrap gap-1">
+                {agent.knowledgeSources.slice(0, 3).map(source => (
+                  <KnowledgeSourceBadge key={source.id} source={source} />
+                ))}
+                {agent.knowledgeSources.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{agent.knowledgeSources.length - 3} more
+                  </Badge>
+                )}
+              </div>
+              {agent.knowledgeSources.some(source => source.hasError) && (
+                <div className="mt-2 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Needs retraining
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                {agent.conversations.toLocaleString()}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Conversations</div>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-1">
+                {renderStars(agent.averageRating)}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Rating</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center justify-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {formatDate(agent.lastModified)}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Modified</div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 pt-4">
+            <Button variant="outline" size="sm" className="flex-1" asChild>
+              <Link to={`/agents/${agent.id}/test`}>
+                <Play className="h-4 w-4 mr-1" />
+                Test
+              </Link>
+            </Button>
+            <Button 
+              variant={agent.isDeployed ? "secondary" : "default"} 
+              size="sm"
+              className="flex-1"
+              onClick={openDeploymentDialog}
+            >
+              {agent.isDeployed ? (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Deployed
+                </>
+              ) : (
+                <>
+                  <Rocket className="h-4 w-4 mr-1" />
+                  Deploy
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <DeploymentDialog 
+        open={deploymentDialogOpen} 
+        onOpenChange={setDeploymentDialogOpen} 
+        agent={{id: agent.id, name: agent.name}} 
+      />
+    </>
   );
 };
 
