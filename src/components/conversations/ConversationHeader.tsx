@@ -133,7 +133,7 @@ const ConversationHeader = ({
           </div>
         </div>
         
-        {!hideActionButtons && (
+        {
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
@@ -156,20 +156,8 @@ const ConversationHeader = ({
               <CheckCircle className="h-4 w-4 mr-1" />
               {isResolving ? 'Resolving...' : isResolved ? 'Resolved' : 'Resolve'}
             </Button>
-            <Button variant="ghost" size="sm" className="hover:bg-white/50 dark:hover:bg-slate-800/50">
-              <Phone className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="hover:bg-white/50 dark:hover:bg-slate-800/50">
-              <Video className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onInfoClick} className="hover:bg-white/50 dark:hover:bg-slate-800/50">
-              <Info className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="hover:bg-white/50 dark:hover:bg-slate-800/50">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
           </div>
-        )}
+        }
       </div>
 
       <CreateSupportTicketModal

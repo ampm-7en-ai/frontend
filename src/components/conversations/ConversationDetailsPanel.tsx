@@ -216,38 +216,7 @@ const ConversationDetailsPanel = ({
           </div>
         </section>
 
-        {/* Quick Actions */}
-        <section>
-          <div className="mb-2">
-            <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Quick Actions</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-              Available actions for this conversation
-            </p>
-          </div>
-          
-          <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-md flex items-center justify-center">
-                  <Phone className="h-3 w-3 text-white" />
-                </div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Available Actions</h3>
-              </div>
-            </div>
-
-            <div className="bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-sm rounded-md p-2 border border-blue-200/60 dark:border-blue-800/60">
-              <div className="flex items-center justify-center">
-                <button 
-                  onClick={() => setIsTicketModalOpen(true)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-xs font-medium py-1.5 px-3 rounded-md transition-colors duration-200 flex items-center justify-center gap-1.5"
-                >
-                  <Phone className="h-3 w-3" />
-                  Create Support Ticket
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        
       </div>
 
       {/* Support Ticket Modal */}
