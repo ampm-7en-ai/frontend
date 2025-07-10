@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -8,6 +7,7 @@ import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Cale
 import { cn } from '@/lib/utils';
 import HandoffHistory from './HandoffHistory';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
+import TicketInformation from './TicketInformation';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -96,6 +96,9 @@ const ConversationDetailsPanel = ({
   // Check if ticketing should be disabled (for human agents)
   const isTicketingDisabled = conversation?.agentType === 'human';
 
+  // Check if ticket information exists
+  const hasTicketInfo = conversation?.ticket_by && conversation?.ticket_id;
+
   if (!conversation) {
     return (
       <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-3 flex items-center justify-center">
@@ -135,6 +138,14 @@ const ConversationDetailsPanel = ({
       </div>
 
       <div className="p-3 space-y-3">
+        {/* Ticket Information Section - Show if ticket info exists */}
+        {hasTicketInfo && (
+          <TicketInformation
+            ticketBy={conversation.ticket_by}
+            ticketId={conversation.ticket_id}
+          />
+        )}
+
         {/* Current Agent Section */}
         <section>
           <div className="mb-2">

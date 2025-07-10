@@ -14,6 +14,7 @@ interface ConversationHeaderProps {
     status: string;
     channel?: string;
     agent?: string;
+    agentType?: string;
     // ... other properties
   };
   selectedAgent: string | null;
@@ -114,6 +115,7 @@ const ConversationHeader = ({
   };
 
   const isResolved = conversation.status === 'resolved' || conversation.status === 'completed';
+  const isHumanAgent = conversation.agentType === 'human';
 
   return (
     <>
@@ -135,14 +137,16 @@ const ConversationHeader = ({
         </div>
         
         <div className="flex items-center gap-2">
-          <ModernButton
-            variant="outline"
-            size="sm"
-            icon={TicketPlus}
-            onClick={() => setIsTicketModalOpen(true)}
-          >
-            Create Ticket
-          </ModernButton>
+          {!isHumanAgent && (
+            <ModernButton
+              variant="outline"
+              size="sm"
+              icon={TicketPlus}
+              onClick={() => setIsTicketModalOpen(true)}
+            >
+              Create Ticket
+            </ModernButton>
+          )}
           <ModernButton
             variant={isResolved ? "secondary" : "primary"}
             size="sm"
@@ -155,11 +159,13 @@ const ConversationHeader = ({
         </div>
       </div>
 
-      <CreateSupportTicketModal
-        open={isTicketModalOpen}
-        onOpenChange={setIsTicketModalOpen}
-        conversation={conversation}
-      />
+      {!isHumanAgent && (
+        <CreateSupportTicketModal
+          open={isTicketModalOpen}
+          onOpenChange={setIsTicketModalOpen}
+          conversation={conversation}
+        />
+      )}
     </>
   );
 };
