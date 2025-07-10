@@ -1,15 +1,15 @@
 
 import React from 'react';
-import { Filter, Search, X } from 'lucide-react';
+import { Filter, X } from 'lucide-react';
 import { 
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface ConversationFiltersDrawerProps {
   open: boolean;
@@ -36,8 +36,6 @@ const ConversationFiltersDrawer = ({
   availableAgents,
   trigger
 }: ConversationFiltersDrawerProps) => {
-  const [agentSearchQuery, setAgentSearchQuery] = React.useState('');
-
   const channelOptions = [
     { 
       value: 'whatsapp', 
@@ -55,11 +53,6 @@ const ConversationFiltersDrawer = ({
       logo: 'https://upload.wikimedia.org/wikipedia/commons/8/88/Globe_icon.svg' 
     },
     { 
-      value: 'ticketing', 
-      label: 'Ticket', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Ticket_icon.svg' 
-    },
-    { 
       value: 'slack', 
       label: 'Slack', 
       logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg' 
@@ -71,9 +64,10 @@ const ConversationFiltersDrawer = ({
     }
   ];
 
-  const filteredAgents = availableAgents.filter(agent =>
-    agent.toLowerCase().includes(agentSearchQuery.toLowerCase())
-  );
+  const agentOptions = availableAgents.map(agent => ({
+    value: agent,
+    label: agent
+  }));
 
   const handleChannelChange = (value: string) => {
     const isSelected = channelFilter.includes(value);
@@ -89,11 +83,15 @@ const ConversationFiltersDrawer = ({
   };
 
   const handleAgentNameChange = (value: string) => {
-    const isSelected = agentNameFilter.includes(value);
-    if (isSelected) {
-      setAgentNameFilter(agentNameFilter.filter(id => id !== value));
+    if (value === '') {
+      setAgentNameFilter([]);
     } else {
-      setAgentNameFilter([...agentNameFilter, value]);
+      const isSelected = agentNameFilter.includes(value);
+      if (isSelected) {
+        setAgentNameFilter(agentNameFilter.filter(id => id !== value));
+      } else {
+        setAgentNameFilter([...agentNameFilter, value]);
+      }
     }
   };
 
@@ -110,7 +108,6 @@ const ConversationFiltersDrawer = ({
     setChannelFilter([]);
     setAgentTypeFilter([]);
     setAgentNameFilter([]);
-    setAgentSearchQuery('');
   };
 
   return (
@@ -139,113 +136,85 @@ const ConversationFiltersDrawer = ({
             </button>
           </div>
 
-          <div className="space-y-4 max-h-72 overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              {/* Agent Name Column */}
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Agent Name
-                  </Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      placeholder="Search agents..."
-                      value={agentSearchQuery}
-                      onChange={(e) => setAgentSearchQuery(e.target.value)}
-                      className="pl-10 bg-white/60 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm h-8 text-xs"
-                    />
-                  </div>
-                </div>
+          <div className="space-y-6 max-h-96 overflow-y-auto">
+            
+            {/* Agent Name Section */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Agent Name
+              </Label>
+              <ModernDropdown
+                value={agentNameFilter.length > 0 ? agentNameFilter[0] : ''}
+                onValueChange={handleAgentNameChange}
+                options={[
+                  { value: '', label: 'All agents' },
+                  ...agentOptions
+                ]}
+                placeholder="Select agent..."
+                className="bg-white/60 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm h-8 text-xs"
+              />
+            </div>
 
-                <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {filteredAgents.length > 0 ? (
-                    filteredAgents.map((agent) => (
-                      <div key={agent} className="flex items-center space-x-2 p-1 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                        <Checkbox
-                          id={`agent-${agent}`}
-                          checked={agentNameFilter.includes(agent)}
-                          onCheckedChange={() => handleAgentNameChange(agent)}
-                          className="rounded-md"
-                        />
-                        <Label 
-                          htmlFor={`agent-${agent}`}
-                          className="text-xs text-slate-700 dark:text-slate-300 cursor-pointer flex-1"
-                        >
-                          {agent}
-                        </Label>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                      No agents found
-                    </p>
-                  )}
-                </div>
-              </div>
+            <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
 
-              <Separator orientation="vertical" className="hidden md:block" />
-
-              {/* Channel Column */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Channels
-                </Label>
-                <div className="space-y-1">
-                  {channelOptions.map((channel) => (
-                    <div key={channel.value} className="flex items-center space-x-2 p-1 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                      <Checkbox
-                        id={`channel-${channel.value}`}
-                        checked={
-                          channelFilter.includes(channel.value) || 
-                          (channel.value === 'email' && channelFilter.includes('ticketing'))
-                        }
-                        onCheckedChange={() => handleChannelChange(channel.value)}
-                        className="rounded-md"
-                      />
-                      <Label 
-                        htmlFor={`channel-${channel.value}`}
-                        className="text-xs text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-2"
-                      >
-                        <img 
-                          src={channel.logo} 
-                          alt={channel.label}
-                          className="w-4 h-4 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                        {channel.label}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Separator orientation="vertical" className="hidden md:block" />
-
-              {/* Agent Type Column */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Agent Type
-                </Label>
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2 p-1 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            {/* Channel Section */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Channels
+              </Label>
+              <div className="space-y-2">
+                {channelOptions.map((channel) => (
+                  <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <Checkbox
-                      id="agent-type-human"
-                      checked={agentTypeFilter.includes('human')}
-                      onCheckedChange={() => handleAgentTypeChange('human')}
+                      id={`channel-${channel.value}`}
+                      checked={
+                        channelFilter.includes(channel.value) || 
+                        (channel.value === 'email' && channelFilter.includes('ticketing'))
+                      }
+                      onCheckedChange={() => handleChannelChange(channel.value)}
                       className="rounded-md"
                     />
                     <Label 
-                      htmlFor="agent-type-human"
-                      className="text-xs text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-2"
+                      htmlFor={`channel-${channel.value}`}
+                      className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
                     >
-                      <span className="text-sm">👤</span>
-                      Human Agents
+                      <img 
+                        src={channel.logo} 
+                        alt={channel.label}
+                        className="w-5 h-5 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      {channel.label}
                     </Label>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
+
+            {/* Agent Type Section */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Agent Type
+              </Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  <Checkbox
+                    id="agent-type-human"
+                    checked={agentTypeFilter.includes('human')}
+                    onCheckedChange={() => handleAgentTypeChange('human')}
+                    className="rounded-md"
+                  />
+                  <Label 
+                    htmlFor="agent-type-human"
+                    className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
+                  >
+                    <span className="text-lg">👤</span>
+                    Human Agents
+                  </Label>
                 </div>
               </div>
             </div>
@@ -254,7 +223,7 @@ const ConversationFiltersDrawer = ({
             <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
               <button
                 onClick={clearAllFilters}
-                className="w-full px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-100/60 dark:bg-slate-800/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors backdrop-blur-sm"
+                className="w-full px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-100/60 dark:bg-slate-800/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors backdrop-blur-sm"
               >
                 Clear All Filters
               </button>
