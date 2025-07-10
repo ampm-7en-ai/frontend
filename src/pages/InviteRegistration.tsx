@@ -136,16 +136,20 @@ const InviteRegistration = () => {
         description: "Your account has been created successfully.",
       });
       
-      // Fix: Add the missing permissions property
+      // Fix: Use the correct property names that match AuthData interface
       await login(values.username, values.password, {
-        accessToken: data.data.access,
-        refreshToken: null,
-        userId: Number(data.data.user_id),
-        email: data.data.userData.email,
-        role: data.data.userData.user_role,
-        isVerified: true,
-        teamRole: data.data.userData.team_role,
-        permissions: data.data.userData.permissions || {} // Add the missing permissions property
+        access: data.data.access,
+        refresh: data.data.refresh || null,
+        user_id: Number(data.data.user_id),
+        userData: {
+          username: data.data.userData.username,
+          email: data.data.userData.email,
+          avatar: data.data.userData.avatar,
+          team_role: data.data.userData.team_role,
+          user_role: data.data.userData.user_role,
+          permissions: data.data.userData.permissions || {},
+          is_verified: true
+        }
       });
       
       if (data.user_role === 'superadmin') {

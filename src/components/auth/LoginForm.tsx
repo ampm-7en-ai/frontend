@@ -100,14 +100,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
               
               await login(data.data.userData.username || "Google User", "", {
-                accessToken: data.data.access,
-                refreshToken: data.refresh || null,
-                userId: data.data.user_id,
-                role: userRole,
-                teamRole: data.data.userData.team_role || null,
-                email: data.data.userData.email || "google_user@example.com",
-                isVerified: true,
-                permissions: data.data.userData.permissions || {}
+                access: data.data.access,
+                refresh: data.refresh || null,
+                user_id: data.data.user_id,
+                userData: {
+                  username: data.data.userData.username,
+                  email: data.data.userData.email || "google_user@example.com",
+                  avatar: data.data.userData.avatar,
+                  team_role: data.data.userData.team_role || null,
+                  user_role: userRole,
+                  permissions: data.data.userData.permissions || {},
+                  is_verified: true
+                }
               });
               
               toast({
@@ -222,14 +226,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
         
         await login(data.data.userData.username, values.password, {
-          accessToken: data.data.access,
-          refreshToken: data.refresh || null,
-          userId: data.data.user_id,
-          email: data.data.userData.email || values.username,
-          role: userRole,
-          teamRole: data.data.userData.team_role || null,
-          isVerified: true,
-          permissions: data.data.userData.permissions || {}
+          access: data.data.access,
+          refresh: data.data.refresh || null,
+          user_id: data.data.user_id,
+          userData: {
+            username: data.data.userData.username,
+            email: data.data.userData.email || values.username,
+            avatar: data.data.userData.avatar,
+            team_role: data.data.userData.team_role || null,
+            user_role: userRole,
+            permissions: data.data.userData.permissions || {},
+            is_verified: true
+          }
         });
         
         toast({
