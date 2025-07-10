@@ -272,27 +272,7 @@ const CreateSupportTicketModal = ({
           </div>
         </div>
         
-        {conversation && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Auto-populated:</strong> This ticket will include context from the current conversation with {conversation.customer}.
-              </div>
-            </div>
-          </div>
-        )}
-
-        {selectedProviderData && (
-          <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <Ticket className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                <strong>Provider:</strong> Ticket will be created in {selectedProviderData.name}
-              </div>
-            </div>
-          </div>
-        )}
+        
       </div>
     </ModernModal>
   );
