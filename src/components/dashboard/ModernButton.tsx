@@ -40,15 +40,36 @@ const ModernButton = React.forwardRef<HTMLButtonElement, ModernButtonProps>(({
   };
   
   const sizeClasses = {
-    sm: iconOnly ? "px-2 py-1.5 text-sm rounded-xl" : "px-3 py-1.5 text-sm rounded-xl",
+    sm: iconOnly ? "p-1.5 text-sm rounded-xl" : "px-3 py-1.5 text-sm rounded-xl",
     md: "px-4 py-2 text-sm rounded-xl",
     lg: "px-6 py-3 text-base rounded-2xl"
   };
 
-  // Check if this is an icon-only button (has p-0 and square dimensions)
-  const isIconOnly = className.includes('p-0') && (className.includes('w-8') && className.includes('h-8') || className.includes('w-10') && className.includes('h-10'));
-  const iconClasses = isIconOnly ? "w-5 h-5" : "w-4 h-4 mr-2";
+  // Enhanced icon-only detection
+  const isDetectedIconOnly = iconOnly || 
+    (className.includes('p-0') && (className.includes('w-8') && className.includes('h-8') || className.includes('w-10') && className.includes('h-10'))) ||
+    (!children && Icon);
 
+  // Improved icon sizing based on button size and icon-only status
+  const getIconClasses = () => {
+    if (isDetectedIconOnly) {
+      switch (size) {
+        case 'sm':
+          return "h-4 w-4"; // Better proportion for small icon-only buttons
+        case 'md':
+          return "h-5 w-5";
+        case 'lg':
+          return "h-6 w-6";
+        default:
+          return "h-4 w-4";
+      }
+    } else {
+      // Icon with text - use smaller icons with margin
+      return size === 'lg' ? "w-5 h-5 mr-2" : "w-4 h-4 mr-2";
+    }
+  };
+
+  const iconClasses = getIconClasses();
   const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
   // When using asChild, we need to clone the child and add our props to it
