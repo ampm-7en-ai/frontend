@@ -6,9 +6,9 @@ export interface Agent {
   id: string;
   name: string;
   description: string;
-  conversations?: number;
-  lastModified?: string;
-  averageRating?: number;
+  conversations: number;
+  lastModified: string;
+  averageRating: number;
   knowledgeSources: KnowledgeSource[];
   model: string;
   isDeployed: boolean;
