@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,8 +63,8 @@ const LLMProvidersSettings = () => {
     retry: 3
   });
 
-  const createProviderMutation = useMutation(
-    async (newProvider: Omit<LLMProvider, 'id'>) => {
+  const createProviderMutation = useMutation({
+    mutationFn: async (newProvider: Omit<LLMProvider, 'id'>) => {
       const token = getToken();
       if (!token) {
         throw new Error('Authentication required');
@@ -81,27 +82,25 @@ const LLMProvidersSettings = () => {
 
       return response.json();
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['llmProviders']);
-        toast({
-          title: "Success",
-          description: "Provider configuration created successfully",
-          variant: "default"
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Error",
-          description: error?.message || "Failed to create provider configuration",
-          variant: "destructive"
-        });
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['llmProviders'] });
+      toast({
+        title: "Success",
+        description: "Provider configuration created successfully",
+        variant: "default"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to create provider configuration",
+        variant: "destructive"
+      });
     }
-  );
+  });
 
-  const updateProviderMutation = useMutation(
-    async ({ providerId, updateData }: { providerId: number, updateData: Partial<LLMProvider> }) => {
+  const updateProviderMutation = useMutation({
+    mutationFn: async ({ providerId, updateData }: { providerId: number, updateData: Partial<LLMProvider> }) => {
       const token = getToken();
       if (!token) {
         throw new Error('Authentication required');
@@ -119,27 +118,25 @@ const LLMProvidersSettings = () => {
 
       return response.json();
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['llmProviders']);
-        toast({
-          title: "Success",
-          description: "Provider configuration updated successfully",
-          variant: "default"
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Error",
-          description: error?.message || "Failed to update provider configuration",
-          variant: "destructive"
-        });
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['llmProviders'] });
+      toast({
+        title: "Success",
+        description: "Provider configuration updated successfully",
+        variant: "default"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update provider configuration",
+        variant: "destructive"
+      });
     }
-  );
+  });
 
-  const deleteProviderMutation = useMutation(
-    async (providerId: number) => {
+  const deleteProviderMutation = useMutation({
+    mutationFn: async (providerId: number) => {
       const token = getToken();
       if (!token) {
         throw new Error('Authentication required');
@@ -156,24 +153,22 @@ const LLMProvidersSettings = () => {
 
       return response.json();
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['llmProviders']);
-        toast({
-          title: "Success",
-          description: "Provider configuration deleted successfully",
-          variant: "default"
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Error",
-          description: error?.message || "Failed to delete provider configuration",
-          variant: "destructive"
-        });
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['llmProviders'] });
+      toast({
+        title: "Success",
+        description: "Provider configuration deleted successfully",
+        variant: "default"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete provider configuration",
+        variant: "destructive"
+      });
     }
-  );
+  });
 
   const handleAddProvider = () => {
     setIsAddProviderOpen(true);
@@ -208,6 +203,10 @@ const LLMProvidersSettings = () => {
       title: "API Key Copied",
       description: "API key copied to clipboard",
     });
+  };
+
+  const handleProviderUpdate = async (providerId: number, updateData: Partial<LLMProvider>) => {
+    await updateProviderMutation.mutateAsync({ providerId, updateData });
   };
 
   if (isLoading) {
@@ -276,7 +275,7 @@ const LLMProvidersSettings = () => {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleCopyApiKey(provider.api_key)}>
+                      <Button variant="ghost" size="sm" onClick={() => handleCopyApiKey(provider.api_key || '')}>
                         <Copy className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleEditProvider(provider)}>
@@ -304,7 +303,7 @@ const LLMProvidersSettings = () => {
         isOpen={isEditProviderOpen}
         onClose={handleCloseEditProvider}
         provider={selectedProvider}
-        onProviderUpdated={updateProviderMutation.mutateAsync}
+        onProviderUpdated={handleProviderUpdate}
       />
 
       <ConfirmDialog
