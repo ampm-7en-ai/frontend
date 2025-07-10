@@ -62,7 +62,40 @@ const ConversationListPanel = ({
     filterSessionsByAgentType,
     filterSessionsBySearch
   } = useChatSessions();
-  
+
+  // Helper function to validate sessions and ensure unique IDs
+  const validateSessions = React.useCallback((sessionsToValidate: any[]) => {
+    if (!Array.isArray(sessionsToValidate)) {
+      console.warn('Invalid sessions array:', sessionsToValidate);
+      return [];
+    }
+    
+    const validSessions = sessionsToValidate.filter((session, index) => {
+      if (!session || !session.id) {
+        console.warn(`Session at index ${index} is invalid:`, session);
+        return false;
+      }
+      return true;
+    });
+    
+    // Check for duplicates in the filtered sessions
+    const seenIds = new Set();
+    const uniqueSessions = validSessions.filter(session => {
+      if (seenIds.has(session.id)) {
+        console.warn(`Duplicate session ID in filter results: ${session.id}`);
+        return false;
+      }
+      seenIds.add(session.id);
+      return true;
+    });
+    
+    if (uniqueSessions.length !== validSessions.length) {
+      console.warn(`Removed ${validSessions.length - uniqueSessions.length} duplicate sessions from filter results`);
+    }
+    
+    return uniqueSessions;
+  }, []);
+
   // Initialize readSessions with all current sessions on first load
   useEffect(() => {
     if (sessions.length > 0 && !initialLoadCompletedRef.current) {
@@ -75,6 +108,7 @@ const ConversationListPanel = ({
       setReadSessions(initialReadSessions);
       previousSessionsRef.current = [...sessions];
       initialLoadCompletedRef.current = true;
+      console.log(`Initialized ${initialReadSessions.length} read sessions`);
     }
   }, [sessions]);
   
@@ -106,35 +140,18 @@ const ConversationListPanel = ({
     previousSessionsRef.current = JSON.parse(JSON.stringify(sessions));
   }, [sessions, selectedConversation]);
   
-  // Custom filter functions for array-based filters
-  const filterSessionsByChannels = (channels: string[]) => {
-    if (channels.length === 0) return sessions;
-    // Filter by channel property for ticketing, and channel for others
-    return sessions.filter(s => {
-      return channels.some(channel => {
-        if (channel === 'ticketing') {
-          return s.channel === 'ticketing';
-        }
-        return s.channel === channel;
-      });
-    });
-  };
-  
-  const filterSessionsByAgentTypes = (types: string[]) => {
-    if (types.length === 0) return sessions;
-    return sessions.filter(s => types.includes(s.agentType));
-  };
-  
-  // Apply all filters
+  // Apply all filters with validation
   const filteredSessions = React.useMemo(() => {
+    console.log(`Applying filters to ${sessions.length} sessions`);
     let result = sessions;
     
     // Apply status filter
     if (filterStatus !== 'all') {
       result = filterSessionsByStatus(filterStatus);
+      console.log(`After status filter: ${result.length} sessions`);
     }
     
-    // Apply channel filter (array-based) - now includes ticketing filter
+    // Apply channel filter (array-based)
     if (channelFilter.length > 0) {
       result = result.filter(s => {
         return channelFilter.some(channel => {
@@ -144,23 +161,32 @@ const ConversationListPanel = ({
           return s.channel === channel;
         });
       });
+      console.log(`After channel filter: ${result.length} sessions`);
     }
     
     // Apply agent type filter (array-based)
     if (agentTypeFilter.length > 0) {
       result = result.filter(s => agentTypeFilter.includes(s.agentType));
+      console.log(`After agent type filter: ${result.length} sessions`);
     }
     
     // Apply search filter
     if (searchQuery) {
       result = filterSessionsBySearch(searchQuery);
+      console.log(`After search filter: ${result.length} sessions`);
     }
     
+    // Validate the final result to ensure no duplicates
+    const validatedResult = validateSessions(result);
+    
     // Mark sessions as unread if they're not in the readSessions array
-    return result.map(session => ({
+    const finalResult = validatedResult.map(session => ({
       ...session,
       isUnread: !readSessions.some(rs => rs.id === session.id)
     }));
+    
+    console.log(`Final filtered sessions: ${finalResult.length}`);
+    return finalResult;
   }, [
     sessions, 
     filterStatus, 
@@ -169,7 +195,8 @@ const ConversationListPanel = ({
     searchQuery,
     readSessions,
     filterSessionsByStatus,
-    filterSessionsBySearch
+    filterSessionsBySearch,
+    validateSessions
   ]);
   
   const visibleSessions = filteredSessions.slice(0, displayCount);
@@ -298,15 +325,25 @@ const ConversationListPanel = ({
 
     return (
       <>
-        {visibleSessions.map((session) => (
-          <div key={session.id} className='px-2 my-1'>
-            <ConversationCard 
-              conversation={session}
-              isSelected={selectedConversation === session.id}
-              onClick={() => handleConversationClick(session.id)}
-            />
-          </div>
-        ))}
+        {visibleSessions.map((session, index) => {
+          // Additional validation to ensure unique keys
+          const uniqueKey = `${session.id}-${index}`;
+          
+          if (!session || !session.id) {
+            console.warn(`Invalid session at index ${index}:`, session);
+            return null;
+          }
+          
+          return (
+            <div key={uniqueKey} className='px-2 my-1'>
+              <ConversationCard 
+                conversation={session}
+                isSelected={selectedConversation === session.id}
+                onClick={() => handleConversationClick(session.id)}
+              />
+            </div>
+          );
+        })}
         
         {/* Load more indicator */}
         {hasMore && (
