@@ -45,7 +45,7 @@ const ConversationHeader = ({
     if (isDefault) {
       return (
         <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs">
-          {channel?.charAt(0).toUpperCase() + channel?.slice(1)} • Default
+          {channel?.charAt(0).toUpperCase() + channel?.slice(1)}
         </Badge>
       );
     }
@@ -61,7 +61,7 @@ const ConversationHeader = ({
     
     return (
       <Badge className={`text-xs border ${channelStyles[channel as keyof typeof channelStyles] || 'bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800'}`}>
-        {channel?.charAt(0).toUpperCase() + channel?.slice(1)} • Connected
+        {channel?.charAt(0).toUpperCase() + channel?.slice(1)}
       </Badge>
     );
   };
@@ -119,7 +119,7 @@ const ConversationHeader = ({
     <>
       <div className="flex items-center justify-between p-4 border-b border-gray-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 rounded-lg">
+          <Avatar className="w-11 h-11 rounded-2xl">
             <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-300 font-medium rounded-lg">
               {conversation.customer?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
@@ -130,15 +130,6 @@ const ConversationHeader = ({
               <h3 className="font-semibold text-gray-900 dark:text-slate-100">{conversation.customer}</h3>
               {getStatusBadge(conversation.status)}
               {conversation.channel && getChannelBadge(conversation.channel)}
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-slate-400">
-              <span>{messageCount} messages</span>
-              {conversation.agent && (
-                <span>Assigned to {conversation.agent}</span>
-              )}
-              {selectedAgent && (
-                <span className="text-blue-600 dark:text-blue-400">Viewing {selectedAgent} messages</span>
-              )}
             </div>
           </div>
         </div>

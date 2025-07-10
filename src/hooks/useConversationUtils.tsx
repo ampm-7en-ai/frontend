@@ -12,13 +12,13 @@ export const useConversationUtils = () => {
       case 'active':
         return <Badge className="bg-green-500">Active</Badge>;
       case 'pending':
-        return <Badge className="bg-amber-500">Pending</Badge>;
+        return <Badge className="bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800">Pending</Badge>;
       case 'resolved':
-        return <Badge className="bg-green-100 text-green-500 text-[10px] hover:bg-green-200">Resolved</Badge>;
+        return <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800">Resolved</Badge>;
       case 'closed':
         return <Badge className="bg-gray-500">Closed</Badge>;
       case 'unresolved':
-        return <Badge className="bg-red-100 text-red-500 text-[10px] hover:bg-red-200">Unresolved</Badge>;
+        return <Badge className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800">Unresolved</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
