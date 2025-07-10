@@ -40,7 +40,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
     
     if (!refreshToken) return null;
     
-    const response = await fetch(getApiUrl('users/token/refresh/'), {
+    const response = await fetch(getApiUrl('token/refresh'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
