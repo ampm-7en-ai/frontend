@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +23,10 @@ type IntegrationStatus = 'connected' | 'not_connected' | 'loading';
 interface IntegrationStatusResponse {
   message: string;
   data: {
-    [key: string]: string;
+    [key: string]: {
+      status: string;
+      type: string;
+    };
   };
   status: string;
 }
@@ -47,7 +49,7 @@ const IntegrationsPage = () => {
         return;
       }
 
-      const response = await fetch(getApiUrl('integrations-status'), {
+      const response = await fetch(getApiUrl('integrations-status/'), {
         method: 'GET',
         headers: getAuthHeaders(token),
       });
@@ -61,8 +63,8 @@ const IntegrationsPage = () => {
 
       // Convert API response to our status format
       const statusMap: Record<string, IntegrationStatus> = {};
-      Object.entries(result.data).forEach(([key, value]) => {
-        statusMap[key] = value as IntegrationStatus;
+      Object.entries(result.data).forEach(([key, integration]) => {
+        statusMap[key] = integration.status as IntegrationStatus;
       });
 
       setIntegrationStatuses(statusMap);
