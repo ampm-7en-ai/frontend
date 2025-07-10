@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -377,14 +378,14 @@ const AgentSettings = () => {
                   <div className="space-y-2 pt-2">
                     <Label htmlFor="default-model">Default LLM Model</Label>
                     <Select defaultValue="gpt-4">
-                      <SelectTrigger id="default-model">
+                      <SelectTrigger id="default-model" variant="modern">
                         <SelectValue placeholder="Select model" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                        <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
-                        <SelectItem value="claude-2">Claude 2</SelectItem>
-                        <SelectItem value="llama-70b">LLaMA 70B</SelectItem>
+                      <SelectContent variant="modern">
+                        <SelectItem value="gpt-4" variant="modern">GPT-4</SelectItem>
+                        <SelectItem value="gpt-3.5" variant="modern">GPT-3.5 Turbo</SelectItem>
+                        <SelectItem value="claude-2" variant="modern">Claude 2</SelectItem>
+                        <SelectItem value="llama-70b" variant="modern">LLaMA 70B</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -448,14 +449,14 @@ const AgentSettings = () => {
                   Model
                 </Label>
                 <Select defaultValue={selectedAgent.model}>
-                  <SelectTrigger id="agent-model" className="col-span-3">
+                  <SelectTrigger id="agent-model" className="col-span-3" variant="modern">
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="GPT-4">GPT-4</SelectItem>
-                    <SelectItem value="GPT-3.5">GPT-3.5 Turbo</SelectItem>
-                    <SelectItem value="Claude-2">Claude 2</SelectItem>
-                    <SelectItem value="LLaMA-70B">LLaMA 70B</SelectItem>
+                  <SelectContent variant="modern">
+                    <SelectItem value="GPT-4" variant="modern">GPT-4</SelectItem>
+                    <SelectItem value="GPT-3.5" variant="modern">GPT-3.5 Turbo</SelectItem>
+                    <SelectItem value="Claude-2" variant="modern">Claude 2</SelectItem>
+                    <SelectItem value="LLaMA-70B" variant="modern">LLaMA 70B</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

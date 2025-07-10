@@ -381,11 +381,11 @@ const TeamManagementSection = () => {
                     value={field.value?.toString()}
                   >
                     <FormControl>
-                      <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11">
+                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11">
                         <SelectValue placeholder="Can view" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent variant="modern">
                       {loadingRoles ? (
                         <div className="flex justify-center items-center py-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
@@ -393,12 +393,12 @@ const TeamManagementSection = () => {
                         </div>
                       ) : availableRoles.length > 0 ? (
                         availableRoles.map((role) => (
-                          <SelectItem key={role.id} value={role.id.toString()}>
+                          <SelectItem key={role.id} value={role.id.toString()} variant="modern">
                             {role.name}
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="no-roles" disabled>No roles available</SelectItem>
+                        <SelectItem value="no-roles" disabled variant="modern">No roles available</SelectItem>
                       )}
                     </SelectContent>
                   </Select>

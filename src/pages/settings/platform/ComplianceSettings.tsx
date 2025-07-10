@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -110,14 +109,14 @@ const ComplianceSettings = () => {
                 <div className="space-y-2">
                   <Label htmlFor="dataStorage">Data Storage Location</Label>
                   <Select defaultValue="eu">
-                    <SelectTrigger id="dataStorage">
+                    <SelectTrigger id="dataStorage" variant="modern">
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="eu">European Union (EU)</SelectItem>
-                      <SelectItem value="us">United States (US)</SelectItem>
-                      <SelectItem value="ap">Asia Pacific (AP)</SelectItem>
-                      <SelectItem value="ca">Canada (CA)</SelectItem>
+                    <SelectContent variant="modern">
+                      <SelectItem value="eu" variant="modern">European Union (EU)</SelectItem>
+                      <SelectItem value="us" variant="modern">United States (US)</SelectItem>
+                      <SelectItem value="ap" variant="modern">Asia Pacific (AP)</SelectItem>
+                      <SelectItem value="ca" variant="modern">Canada (CA)</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">Primary storage location for user data</p>
@@ -134,13 +133,13 @@ const ComplianceSettings = () => {
                 <div className="space-y-2">
                   <Label htmlFor="backupSchedule">Backup Schedule</Label>
                   <Select defaultValue="daily">
-                    <SelectTrigger id="backupSchedule">
+                    <SelectTrigger id="backupSchedule" variant="modern">
                       <SelectValue placeholder="Select schedule" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hourly">Hourly</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectContent variant="modern">
+                      <SelectItem value="hourly" variant="modern">Hourly</SelectItem>
+                      <SelectItem value="daily" variant="modern">Daily</SelectItem>
+                      <SelectItem value="weekly" variant="modern">Weekly</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

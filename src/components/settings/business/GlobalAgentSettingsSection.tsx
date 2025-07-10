@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Edit, Save, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -127,16 +128,16 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
+                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
                         <SelectValue placeholder="Select model" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
-                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</SelectItem>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                        <SelectItem value="mistral-large-latest">Mistral Large (Mistral AI)</SelectItem>
-                        <SelectItem value="mistral-medium-latest">Mistral Medium (Mistral AI)</SelectItem>
-                        <SelectItem value="mistral-small-latest">Mistral Small (Mistral AI)</SelectItem>
+                      <SelectContent variant="modern">
+                        <SelectItem value="gpt-4o" variant="modern">GPT-4o (OpenAI)</SelectItem>
+                        <SelectItem value="gpt-4-turbo" variant="modern">GPT-4 Turbo (OpenAI)</SelectItem>
+                        <SelectItem value="gpt-3.5-turbo" variant="modern">GPT-3.5 Turbo (OpenAI)</SelectItem>
+                        <SelectItem value="mistral-large-latest" variant="modern">Mistral Large (Mistral AI)</SelectItem>
+                        <SelectItem value="mistral-medium-latest" variant="modern">Mistral Medium (Mistral AI)</SelectItem>
+                        <SelectItem value="mistral-small-latest" variant="modern">Mistral Small (Mistral AI)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -153,14 +154,14 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                       value={field.value?.toString() || ""}
                       onValueChange={(value) => field.onChange(Number(value))}
                     >
-                      <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
+                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
                         <SelectValue placeholder="Select context length" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="4000">4,000 tokens</SelectItem>
-                        <SelectItem value="8000">8,000 tokens</SelectItem>
-                        <SelectItem value="16000">16,000 tokens</SelectItem>
-                        <SelectItem value="32000">32,000 tokens</SelectItem>
+                      <SelectContent variant="modern">
+                        <SelectItem value="4000" variant="modern">4,000 tokens</SelectItem>
+                        <SelectItem value="8000" variant="modern">8,000 tokens</SelectItem>
+                        <SelectItem value="16000" variant="modern">16,000 tokens</SelectItem>
+                        <SelectItem value="32000" variant="modern">32,000 tokens</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
