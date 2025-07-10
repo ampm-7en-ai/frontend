@@ -81,18 +81,20 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
                 <ModernButton 
                   variant="ghost" 
                   size="sm"
-                  className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-300 rounded-lg"
+                  className="h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
                   onClick={() => window.open(shareableLink, '_blank')}
+                  iconOnly
                 >
-                  <ExternalLink className="h-6 w-6" />
+                  <ExternalLink className="h-6 w-6 text-slate-500 dark:text-slate-400" />
                 </ModernButton>
                 <ModernButton 
                   variant="ghost" 
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
                   onClick={() => handleCopy(shareableLink, 'link', "Link copied to clipboard")}
+                  iconOnly
                 >
-                  {copied === 'link' ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                  {copied === 'link' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
                 </ModernButton>
               </div>
             </Card>
@@ -126,10 +128,11 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               <ModernButton 
                 variant="ghost" 
                 size="sm"
-                className="absolute right-2 top-2 h-8 w-8 p-0"
+                className="absolute right-2 top-2 h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
                 onClick={() => handleCopy(iframeCode, 'iframe', "Iframe code copied to clipboard")}
+                iconOnly
               >
-                {copied === 'iframe' ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                {copied === 'iframe' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
               </ModernButton>
             </Card>
             
@@ -162,10 +165,11 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               <ModernButton 
                 variant="ghost" 
                 size="sm"
-                className="absolute right-2 top-2 h-8 w-8 p-0"
+                className="absolute right-2 top-2 h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
                 onClick={() => handleCopy(embedScript, 'script', "Script code copied to clipboard")}
+                iconOnly
               >
-                {copied === 'script' ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                {copied === 'script' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
               </ModernButton>
             </Card>
             
