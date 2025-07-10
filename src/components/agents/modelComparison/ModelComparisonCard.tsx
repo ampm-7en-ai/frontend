@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Bot, Sliders, Save, WifiOff } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger } from '@/components/ui/popover';
 import { Message, ChatConfig } from './types';
@@ -93,11 +93,6 @@ export const ModelComparisonCard = ({
     return `#${Math.round(newR).toString(16).padStart(2, '0')}${Math.round(newG).toString(16).padStart(2, '0')}${Math.round(newB).toString(16).padStart(2, '0')}`;
   };
 
-  const modelDropdownOptions = Object.entries(modelOptions).map(([key, model]) => ({
-    value: key,
-    label: `${model.name} (${model.provider})`,
-  }));
-
   return (
     <Card className="flex flex-col h-[650px] overflow-hidden">
       <CardHeader 
@@ -107,12 +102,18 @@ export const ModelComparisonCard = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <ModernDropdown
-            value={model}
-            onValueChange={onModelChange}
-            options={modelDropdownOptions}
-            className="w-[190px]"
-          />
+          <Select value={model} onValueChange={onModelChange}>
+            <SelectTrigger className="w-[190px] h-8" variant="modern">
+              <SelectValue placeholder={getModelDisplay(model)} />
+            </SelectTrigger>
+            <SelectContent variant="modern">
+              {Object.entries(modelOptions).map(([key, model]) => (
+                <SelectItem key={key} value={key} variant="modern">
+                  {model.name} ({model.provider})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
           <Popover>
             <PopoverTrigger asChild>

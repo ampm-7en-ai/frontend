@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bot, Search, Plus } from 'lucide-react';
 import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';

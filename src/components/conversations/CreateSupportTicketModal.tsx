@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
 import { Ticket, AlertCircle } from 'lucide-react';
@@ -22,12 +22,6 @@ interface CreateSupportTicketModalProps {
   onOpenChange: (open: boolean) => void;
   conversation?: any;
 }
-
-const priorityOptions = [
-  { value: 'LOW', label: 'Low' },
-  { value: 'MEDIUM', label: 'Medium' },
-  { value: 'HIGH', label: 'High' },
-];
 
 const CreateSupportTicketModal = ({
   open,
@@ -150,12 +144,16 @@ const CreateSupportTicketModal = ({
           
           <div className="space-y-2">
             <Label htmlFor="priority">Priority</Label>
-            <ModernDropdown
-              value={priority}
-              onValueChange={setPriority}
-              options={priorityOptions}
-              disabled={isCreating}
-            />
+            <Select value={priority} onValueChange={setPriority} disabled={isCreating}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LOW">Low</SelectItem>
+                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="HIGH">High</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="space-y-2">

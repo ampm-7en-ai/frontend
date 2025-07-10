@@ -37,7 +37,13 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 const domainExperts = [
   {
@@ -124,21 +130,6 @@ const UserList = () => {
     return matchesSearch && matchesBusiness && matchesStatus;
   });
 
-  const businessOptions = [
-    { value: 'all', label: 'All Businesses' },
-    { value: 'b1', label: 'Acme Corp' },
-    { value: 'b2', label: 'Globex Industries' },
-    { value: 'b3', label: 'Initech Solutions' },
-    { value: 'b4', label: 'Soylent Corp' }
-  ];
-
-  const statusOptions = [
-    { value: 'all', label: 'All Status' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'pending', label: 'Pending' }
-  ];
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -169,24 +160,39 @@ const UserList = () => {
               
               <div className="p-2">
                 <Label htmlFor="business-filter">Business</Label>
-                <ModernDropdown
+                <Select
                   value={selectedBusiness}
                   onValueChange={setSelectedBusiness}
-                  options={businessOptions}
-                  placeholder="All Businesses"
-                  className="mt-1"
-                />
+                >
+                  <SelectTrigger variant="modern" id="business-filter" className="mt-1">
+                    <SelectValue placeholder="All Businesses" />
+                  </SelectTrigger>
+                  <SelectContent variant="modern">
+                    <SelectItem variant="modern" value="all">All Businesses</SelectItem>
+                    <SelectItem variant="modern" value="b1">Acme Corp</SelectItem>
+                    <SelectItem variant="modern" value="b2">Globex Industries</SelectItem>
+                    <SelectItem variant="modern" value="b3">Initech Solutions</SelectItem>
+                    <SelectItem variant="modern" value="b4">Soylent Corp</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="p-2">
                 <Label htmlFor="status-filter">Status</Label>
-                <ModernDropdown
+                <Select
                   value={selectedStatus}
                   onValueChange={setSelectedStatus}
-                  options={statusOptions}
-                  placeholder="All Status"
-                  className="mt-1"
-                />
+                >
+                  <SelectTrigger variant="modern" id="status-filter" className="mt-1">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent variant="modern">
+                    <SelectItem variant="modern" value="all">All Status</SelectItem>
+                    <SelectItem variant="modern" value="active">Active</SelectItem>
+                    <SelectItem variant="modern" value="inactive">Inactive</SelectItem>
+                    <SelectItem variant="modern" value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>

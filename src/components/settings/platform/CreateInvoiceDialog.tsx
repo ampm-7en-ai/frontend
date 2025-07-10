@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm, Controller } from 'react-hook-form';
 
 interface CreateInvoiceDialogProps {
@@ -26,12 +26,6 @@ interface InvoiceInput {
   status: 'paid' | 'pending' | 'overdue';
   date: string;
 }
-
-const statusOptions = [
-  { value: 'paid', label: 'Paid' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'overdue', label: 'Overdue' },
-];
 
 export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({
   open,
@@ -118,12 +112,19 @@ export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({
               name="status"
               control={control}
               render={({ field }) => (
-                <ModernDropdown
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  options={statusOptions}
-                  placeholder="Select status"
-                />
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger id="status" variant="modern">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent variant="modern">
+                    <SelectItem value="paid" variant="modern">Paid</SelectItem>
+                    <SelectItem value="pending" variant="modern">Pending</SelectItem>
+                    <SelectItem value="overdue" variant="modern">Overdue</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
             />
           </div>

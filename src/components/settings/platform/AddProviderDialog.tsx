@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
@@ -27,23 +27,19 @@ interface ProviderFormData {
 
 const providerOptions = [
   { 
-    value: 'OpenAI', 
-    label: 'OpenAI',
+    name: 'OpenAI', 
     models: ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo'] 
   },
   { 
-    value: 'Anthropic', 
-    label: 'Anthropic',
+    name: 'Anthropic', 
     models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'] 
   },
   { 
-    value: 'Google AI', 
-    label: 'Google AI',
+    name: 'Google AI', 
     models: ['gemini-pro', 'gemini-ultra'] 
   },
   { 
-    value: 'Mistral AI', 
-    label: 'Mistral AI',
+    name: 'Mistral AI', 
     models: ['mistral-large', 'mistral-medium', 'mistral-small'] 
   }
 ];
@@ -60,11 +56,7 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
     status: 'active'
   });
 
-  const selectedProvider = providerOptions.find(p => p.value === formData.provider_name);
-  const modelOptions = selectedProvider?.models.map(model => ({
-    value: model,
-    label: model,
-  })) || [];
+  const selectedProvider = providerOptions.find(p => p.name === formData.provider_name);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,12 +147,18 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="provider_name">Provider Name *</Label>
-            <ModernDropdown
-              value={formData.provider_name}
-              onValueChange={handleProviderChange}
-              options={providerOptions}
-              placeholder="Select provider"
-            />
+            <Select value={formData.provider_name} onValueChange={handleProviderChange}>
+              <SelectTrigger variant="modern">
+                <SelectValue placeholder="Select provider" />
+              </SelectTrigger>
+              <SelectContent variant="modern">
+                {providerOptions.map((provider) => (
+                  <SelectItem key={provider.name} value={provider.name} variant="modern">
+                    {provider.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -176,13 +174,22 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
 
           <div className="space-y-2">
             <Label htmlFor="default_model">Default Model *</Label>
-            <ModernDropdown
-              value={formData.default_model}
+            <Select 
+              value={formData.default_model} 
               onValueChange={(value) => setFormData(prev => ({ ...prev, default_model: value }))}
-              options={modelOptions}
-              placeholder="Select model"
               disabled={!selectedProvider}
-            />
+            >
+              <SelectTrigger variant="modern">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent variant="modern">
+                {selectedProvider?.models.map((model) => (
+                  <SelectItem key={model} value={model} variant="modern">
+                    {model}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center space-x-2">

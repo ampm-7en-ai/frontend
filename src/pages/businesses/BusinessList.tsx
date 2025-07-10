@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -15,14 +14,6 @@ import { toast } from '@/components/ui/use-toast';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useBusinesses } from '@/hooks/useBusinesses';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const statusFilterOptions = [
-  { value: 'all', label: 'All Status' },
-  { value: 'active', label: 'Active' },
-  { value: 'trial', label: 'Trial' },
-  { value: 'inactive', label: 'Inactive' },
-  { value: 'none', label: 'None' },
-];
 
 const BusinessList = () => {
   const [isAddBusinessOpen, setIsAddBusinessOpen] = useState(false);
@@ -72,18 +63,22 @@ const BusinessList = () => {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         </div>
         <div className="flex gap-2">
-          <ModernDropdown
-            value={statusFilter}
+          <Select 
+            value={statusFilter} 
             onValueChange={setStatusFilter}
-            options={statusFilterOptions}
-            className="w-36"
-            trigger={
-              <Button variant="outline" className="w-36">
-                <Filter className="h-4 w-4 mr-2" />
-                {statusFilterOptions.find(opt => opt.value === statusFilter)?.label || 'Filter'}
-              </Button>
-            }
-          />
+          >
+            <SelectTrigger variant="modern" className="w-36">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent variant="modern">
+              <SelectItem variant="modern" value="all">All Status</SelectItem>
+              <SelectItem variant="modern" value="active">Active</SelectItem>
+              <SelectItem variant="modern" value="trial">Trial</SelectItem>
+              <SelectItem variant="modern" value="inactive">Inactive</SelectItem>
+              <SelectItem variant="modern" value="none">None</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       

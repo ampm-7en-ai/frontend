@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -13,10 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 const models = [
-  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', description: 'Popular choice for most use cases' },
-  { value: 'gpt-4', label: 'GPT-4', description: 'Advanced reasoning and complex tasks' },
-  { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet', description: 'New model with enhanced capabilities' },
-  { value: 'claude-3-haiku', label: 'Claude 3 Haiku', description: 'Fast and efficient responses' },
+  { id: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', badge: 'Popular' },
+  { id: 'gpt-4', label: 'GPT-4', badge: 'Advanced' },
+  { id: 'claude-3-sonnet', label: 'Claude 3 Sonnet', badge: 'New' },
+  { id: 'claude-3-haiku', label: 'Claude 3 Haiku', badge: 'Fast' }
 ];
 
 export const AdvancedSettings = () => {
@@ -53,28 +53,23 @@ export const AdvancedSettings = () => {
             <AccordionContent className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label htmlFor="model">AI Model</Label>
-                <ModernDropdown
-                  value={agentData.model}
-                  onValueChange={(value) => updateAgentData({ model: value })}
-                  options={models}
-                  renderOption={(option) => (
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col">
-                        <span>{option.label}</span>
-                        {option.description && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {option.description}
-                          </span>
-                        )}
-                      </div>
-                      <Badge variant="outline" className="text-xs ml-auto">
-                        {option.value.includes('gpt-4') ? 'Advanced' : 
-                         option.value.includes('gpt-3.5') ? 'Popular' :
-                         option.value.includes('sonnet') ? 'New' : 'Fast'}
-                      </Badge>
-                    </div>
-                  )}
-                />
+                <Select value={agentData.model} onValueChange={(value) => updateAgentData({ model: value })}>
+                  <SelectTrigger variant="modern" size="lg">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent variant="modern">
+                    {models.map((model) => (
+                      <SelectItem key={model.id} value={model.id} variant="modern">
+                        <div className="flex items-center gap-2">
+                          <span>{model.label}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {model.badge}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">

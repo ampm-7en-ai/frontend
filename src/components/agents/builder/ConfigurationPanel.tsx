@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
@@ -28,9 +27,6 @@ const fontFamilies = [
   'Lato',
   'Montserrat'
 ];
-
-const agentTypeOptions = agentTypes.map(type => ({ value: type, label: type }));
-const fontFamilyOptions = fontFamilies.map(font => ({ value: font, label: font }));
 
 export const ConfigurationPanel = () => {
   const { state, updateAgentData } = useBuilder();
@@ -99,13 +95,16 @@ export const ConfigurationPanel = () => {
               
               <div className="space-y-1">
                 <Label htmlFor="type" className="text-xs font-medium">Agent Type</Label>
-                <ModernDropdown
-                  value={agentData.agentType}
-                  onValueChange={(value) => updateAgentData({ agentType: value })}
-                  options={agentTypeOptions}
-                  placeholder="Select agent type"
-                  className="h-8 text-sm"
-                />
+                <Select value={agentData.agentType} onValueChange={(value) => updateAgentData({ agentType: value })}>
+                  <SelectTrigger variant="modern" className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent variant="modern">
+                    {agentTypes.map((type) => (
+                      <SelectItem key={type} value={type} variant="modern" className="text-sm">{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -159,13 +158,16 @@ export const ConfigurationPanel = () => {
               
               <div className="space-y-1">
                 <Label htmlFor="fontFamily" className="text-xs font-medium">Font Family</Label>
-                <ModernDropdown
-                  value={agentData.fontFamily}
-                  onValueChange={(value) => updateAgentData({ fontFamily: value })}
-                  options={fontFamilyOptions}
-                  placeholder="Select font family"
-                  className="h-8 text-sm"
-                />
+                <Select value={agentData.fontFamily} onValueChange={(value) => updateAgentData({ fontFamily: value })}>
+                  <SelectTrigger variant="modern" className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent variant="modern">
+                    {fontFamilies.map((font) => (
+                      <SelectItem key={font} value={font} variant="modern" className="text-sm">{font}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-1">

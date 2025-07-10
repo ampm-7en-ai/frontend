@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ArrowRight, Bot, User, Info, Smile, Clock, Tag, CreditCard, AlertTriangle } from 'lucide-react';
 import HandoffHistory from './HandoffHistory';
 import { useToast } from '@/hooks/use-toast';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface ConversationSidebarProps {
   open: boolean;
@@ -24,21 +23,6 @@ interface ConversationSidebarProps {
   onHandoffClick: (handoff: any) => void;
   getSatisfactionIndicator: (satisfaction: string) => React.ReactNode;
 }
-
-const handoffDestinationOptions = [
-  { value: 'Sales Team', label: 'Sales Team' },
-  { value: 'Support Team', label: 'Support Team' },
-  { value: 'Technical Team', label: 'Technical Team' },
-  { value: 'John Doe (Agent)', label: 'John Doe (Agent)' },
-  { value: 'Jane Smith (Agent)', label: 'Jane Smith (Agent)' },
-];
-
-const handoffReasonOptions = [
-  { value: 'Need specialized knowledge', label: 'Need specialized knowledge' },
-  { value: 'Customer request', label: 'Customer request' },
-  { value: 'Technical escalation', label: 'Technical escalation' },
-  { value: 'Follow-up required', label: 'Follow-up required' },
-];
 
 const ConversationSidebar = ({
   open,
@@ -226,20 +210,31 @@ const ConversationSidebar = ({
             
             <div className="space-y-2">
               <div className="text-xs text-muted-foreground">Transfer to</div>
-              <ModernDropdown
+              <select 
+                className="w-full text-sm border rounded p-1.5"
                 value={handoffDestination}
-                onValueChange={setHandoffDestination}
-                options={handoffDestinationOptions}
-                placeholder="Select a destination"
-              />
+                onChange={(e) => setHandoffDestination(e.target.value)}
+              >
+                <option value="">Select a destination</option>
+                <option value="Sales Team">Sales Team</option>
+                <option value="Support Team">Support Team</option>
+                <option value="Technical Team">Technical Team</option>
+                <option value="John Doe (Agent)">John Doe (Agent)</option>
+                <option value="Jane Smith (Agent)">Jane Smith (Agent)</option>
+              </select>
               
               <div className="text-xs text-muted-foreground mt-2">Reason</div>
-              <ModernDropdown
+              <select 
+                className="w-full text-sm border rounded p-1.5"
                 value={handoffReason}
-                onValueChange={setHandoffReason}
-                options={handoffReasonOptions}
-                placeholder="Select a reason"
-              />
+                onChange={(e) => setHandoffReason(e.target.value)}
+              >
+                <option value="">Select a reason</option>
+                <option value="Need specialized knowledge">Need specialized knowledge</option>
+                <option value="Customer request">Customer request</option>
+                <option value="Technical escalation">Technical escalation</option>
+                <option value="Follow-up required">Follow-up required</option>
+              </select>
               
               <Button 
                 className="w-full mt-2"
