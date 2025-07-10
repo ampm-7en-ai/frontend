@@ -1,7 +1,6 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
-import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload } from 'lucide-react';
+import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload, RotateCcw } from 'lucide-react';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,6 +20,42 @@ export const GuidelinesPanel = () => {
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
+  
+  // State for tracking original agent data and customizations
+  const [originalAgentType, setOriginalAgentType] = useState<string>('');
+  const [originalSystemPrompt, setOriginalSystemPrompt] = useState<string>('');
+  const [isSystemPromptCustomized, setIsSystemPromptCustomized] = useState(false);
+
+  // Initialize original values when agent data is loaded
+  useEffect(() => {
+    if (agentData.agentType && !originalAgentType) {
+      setOriginalAgentType(agentData.agentType);
+    }
+    if (agentData.systemPrompt && !originalSystemPrompt) {
+      setOriginalSystemPrompt(agentData.systemPrompt);
+    }
+  }, [agentData.agentType, agentData.systemPrompt, originalAgentType, originalSystemPrompt]);
+
+  // Track system prompt customizations
+  const handleSystemPromptChange = (value: string) => {
+    updateAgentData({ systemPrompt: value });
+    
+    // Mark as customized if it differs from the original
+    if (value !== originalSystemPrompt) {
+      setIsSystemPromptCustomized(true);
+    } else {
+      setIsSystemPromptCustomized(false);
+    }
+  };
+
+  // Load template prompt for current agent type
+  const loadTemplatePrompt = () => {
+    const matchingPrompt = prompts.find(p => p.agent_type === agentData.agentType);
+    if (matchingPrompt) {
+      updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
+      setIsSystemPromptCustomized(false);
+    }
+  };
 
   const fontOptions = [
     { value: 'Inter', label: 'Inter' },
@@ -81,15 +116,25 @@ export const GuidelinesPanel = () => {
     }
   };
 
-  // Handle agent type change and update system prompt
+  // Enhanced agent type change with smart system prompt handling
   const handleAgentTypeChange = (agentType: string) => {
     updateAgentData({ agentType });
     
-    // Find matching prompt from API data
-    const matchingPrompt = prompts.find(p => p.agent_type === agentType);
-    if (matchingPrompt) {
-      updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
+    // Only update system prompt if:
+    // 1. This is a different agent type from the original AND user hasn't customized the prompt, OR
+    // 2. This is a new agent (no original system prompt)
+    const isDifferentFromOriginal = agentType !== originalAgentType;
+    const hasNoOriginalPrompt = !originalSystemPrompt;
+    
+    if ((isDifferentFromOriginal && !isSystemPromptCustomized) || hasNoOriginalPrompt) {
+      // Find matching prompt from API data
+      const matchingPrompt = prompts.find(p => p.agent_type === agentType);
+      if (matchingPrompt) {
+        updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
+        setIsSystemPromptCustomized(false);
+      }
     }
+    // If user has customized the prompt, preserve it when switching agent types
   };
 
   const addGuideline = (type: 'dos' | 'donts') => {
@@ -325,8 +370,7 @@ export const GuidelinesPanel = () => {
               </AccordionContent>
             </AccordionItem>
 
-
-            {/* Behavior Guidelines */}
+            {/* Enhanced Behavior Guidelines with smart system prompt management */}
             <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -352,27 +396,46 @@ export const GuidelinesPanel = () => {
                     </div>
                   </div>
 
-                  {/* System Prompt */}
+                  {/* Enhanced System Prompt with customization tracking */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
-                      <SystemPromptModal
-                        value={agentData.systemPrompt}
-                        onChange={(value) => updateAgentData({ systemPrompt: value })}
-                        trigger={
-                          <ModernButton
-                            variant="ghost"
-                            size="sm"
-                            icon={Expand}
-                            iconOnly
-                            className="h-8 w-8 p-0 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          />
-                        }
-                      />
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
+                        {isSystemPromptCustomized && (
+                          <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
+                            Customized
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ModernButton
+                          variant="ghost"
+                          size="sm"
+                          icon={RotateCcw}
+                          onClick={loadTemplatePrompt}
+                          className="h-8 px-3 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs"
+                          disabled={promptsLoading}
+                        >
+                          Use Template
+                        </ModernButton>
+                        <SystemPromptModal
+                          value={agentData.systemPrompt}
+                          onChange={handleSystemPromptChange}
+                          trigger={
+                            <ModernButton
+                              variant="ghost"
+                              size="sm"
+                              icon={Expand}
+                              iconOnly
+                              className="h-8 w-8 p-0 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            />
+                          }
+                        />
+                      </div>
                     </div>
                     <Textarea
                       value={agentData.systemPrompt}
-                      onChange={(e) => updateAgentData({ systemPrompt: e.target.value })}
+                      onChange={(e) => handleSystemPromptChange(e.target.value)}
                       placeholder="Define how your agent behaves..."
                       className="min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-orange-500 dark:focus:border-orange-400"
                     />
