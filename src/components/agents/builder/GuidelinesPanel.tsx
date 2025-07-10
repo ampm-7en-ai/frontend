@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { SystemPromptModal } from './SystemPromptModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Toggle } from '@/components/ui/toggle';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
@@ -21,77 +22,88 @@ export const GuidelinesPanel = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   
-  // Enhanced state tracking for system prompt management
-  const [originalAgentType, setOriginalAgentType] = useState<string>('');
-  const [originalSystemPrompt, setOriginalSystemPrompt] = useState<string>('');
-  const [hasUserCustomizedPrompt, setHasUserCustomizedPrompt] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  // Simplified state management for system prompt handling
+  const [isTemplateMode, setIsTemplateMode] = useState(false);
+  const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
 
-  // Initialize original values and track customizations
+  // Initialize user prompts storage on first load
   useEffect(() => {
-    if (agentData.agentType && agentData.systemPrompt && !initialLoadComplete) {
-      setOriginalAgentType(agentData.agentType);
-      setOriginalSystemPrompt(agentData.systemPrompt);
-      setHasUserCustomizedPrompt(false);
-      setInitialLoadComplete(true);
-      console.log('Initial load - Agent Type:', agentData.agentType, 'System Prompt set');
+    if (agentData.agentType && agentData.systemPrompt && !userPromptsByType[agentData.agentType]) {
+      setUserPromptsByType(prev => ({
+        ...prev,
+        [agentData.agentType]: agentData.systemPrompt
+      }));
     }
-  }, [agentData.agentType, agentData.systemPrompt, initialLoadComplete]);
+  }, [agentData.agentType, agentData.systemPrompt]);
 
-  // Track when user manually changes system prompt
-  const handleSystemPromptChange = (value: string) => {
-    updateAgentData({ systemPrompt: value });
-    
-    // Mark as customized if it differs from the original loaded prompt
-    if (value !== originalSystemPrompt) {
-      setHasUserCustomizedPrompt(true);
-      console.log('System prompt customized by user');
-    } else {
-      setHasUserCustomizedPrompt(false);
-    }
-  };
-
-  // Load template prompt for current agent type (explicit user action)
-  const loadTemplatePrompt = () => {
+  // Get current template for the selected agent type
+  const getCurrentTemplate = () => {
     const matchingPrompt = prompts.find(p => p.agent_type === agentData.agentType);
-    if (matchingPrompt) {
-      updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
-      setHasUserCustomizedPrompt(false);
-      console.log('Template prompt loaded for agent type:', agentData.agentType);
+    return matchingPrompt?.system_prompt || '';
+  };
+
+  // Get the content to display in the textarea
+  const getDisplayedPrompt = () => {
+    if (isTemplateMode) {
+      return getCurrentTemplate();
+    }
+    return userPromptsByType[agentData.agentType] || agentData.systemPrompt || '';
+  };
+
+  // Handle system prompt changes (only when not in template mode)
+  const handleSystemPromptChange = (value: string) => {
+    if (!isTemplateMode) {
+      // Update the actual agent data
+      updateAgentData({ systemPrompt: value });
+      
+      // Store user's custom content per agent type
+      setUserPromptsByType(prev => ({
+        ...prev,
+        [agentData.agentType]: value
+      }));
     }
   };
 
-  // Enhanced agent type change with smart system prompt preservation
+  // Handle agent type changes - restore user's previous content or keep blank
   const handleAgentTypeChange = (agentType: string) => {
-    console.log('Agent type changing to:', agentType, 'Has user customization:', hasUserCustomizedPrompt);
+    console.log('Agent type changing to:', agentType);
     
     updateAgentData({ agentType });
     
-    // Smart system prompt handling:
-    // 1. If user has customized the prompt, preserve it (don't auto-load template)
-    // 2. If returning to original agent type, restore original prompt if no customization
-    // 3. Only auto-load template for genuinely new agent types without customization
+    // Turn off template mode when switching agent types
+    setIsTemplateMode(false);
     
-    if (hasUserCustomizedPrompt) {
-      // User has customized the prompt - preserve it across agent type changes
-      console.log('Preserving user-customized system prompt');
-      return;
+    // Restore user's previously written content for this agent type, or keep blank
+    const previousUserContent = userPromptsByType[agentType] || '';
+    updateAgentData({ systemPrompt: previousUserContent });
+  };
+
+  // Handle template toggle
+  const handleTemplateToggle = (pressed: boolean) => {
+    setIsTemplateMode(pressed);
+    
+    if (pressed) {
+      // Switching to template mode - show template content but don't save it
+      console.log('Switching to template mode');
+    } else {
+      // Switching back to user mode - restore user's content
+      const userContent = userPromptsByType[agentData.agentType] || '';
+      updateAgentData({ systemPrompt: userContent });
+      console.log('Switching back to user mode');
     }
-    
-    if (agentType === originalAgentType && originalSystemPrompt) {
-      // Returning to original agent type - restore original prompt
-      console.log('Returning to original agent type, restoring original prompt');
-      updateAgentData({ systemPrompt: originalSystemPrompt });
-      return;
-    }
-    
-    if (agentType !== originalAgentType) {
-      // Switching to a different agent type - load template only if no customization
-      const matchingPrompt = prompts.find(p => p.agent_type === agentType);
-      if (matchingPrompt) {
-        console.log('Loading template for new agent type:', agentType);
-        updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
-      }
+  };
+
+  // Copy template to user's custom prompt
+  const copyTemplateToCustom = () => {
+    const templateContent = getCurrentTemplate();
+    if (templateContent) {
+      updateAgentData({ systemPrompt: templateContent });
+      setUserPromptsByType(prev => ({
+        ...prev,
+        [agentData.agentType]: templateContent
+      }));
+      setIsTemplateMode(false);
+      console.log('Template copied to custom prompt');
     }
   };
 
@@ -387,7 +399,7 @@ export const GuidelinesPanel = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Enhanced Behavior Guidelines with improved system prompt preservation */}
+            {/* Simplified Behavior Guidelines with new system prompt management */}
             <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -413,30 +425,38 @@ export const GuidelinesPanel = () => {
                     </div>
                   </div>
 
-                  {/* Enhanced System Prompt with improved customization tracking */}
+                  {/* Simplified System Prompt with template toggle */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
-                        {hasUserCustomizedPrompt && (
+                        {isTemplateMode && (
                           <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-                            Customized
+                            Template Preview
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <ModernButton
-                          variant="ghost"
-                          size="sm"
-                          icon={RotateCcw}
-                          onClick={loadTemplatePrompt}
-                          className="h-8 px-3 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs"
-                          disabled={promptsLoading}
+                        <Toggle
+                          pressed={isTemplateMode}
+                          onPressedChange={handleTemplateToggle}
+                          disabled={promptsLoading || !getCurrentTemplate()}
+                          className="h-8 px-3 rounded-lg text-xs data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 dark:data-[state=on]:bg-blue-900/30 dark:data-[state=on]:text-blue-400"
                         >
-                          Use Template
-                        </ModernButton>
+                          {isTemplateMode ? 'Hide Template' : 'Show Template'}
+                        </Toggle>
+                        {isTemplateMode && (
+                          <ModernButton
+                            variant="ghost"
+                            size="sm"
+                            onClick={copyTemplateToCustom}
+                            className="h-8 px-3 rounded-lg text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
+                            Copy to Custom
+                          </ModernButton>
+                        )}
                         <SystemPromptModal
-                          value={agentData.systemPrompt}
+                          value={getDisplayedPrompt()}
                           onChange={handleSystemPromptChange}
                           trigger={
                             <ModernButton
@@ -451,11 +471,17 @@ export const GuidelinesPanel = () => {
                       </div>
                     </div>
                     <Textarea
-                      value={agentData.systemPrompt}
+                      value={getDisplayedPrompt()}
                       onChange={(e) => handleSystemPromptChange(e.target.value)}
                       placeholder="Define how your agent behaves..."
                       className="min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-orange-500 dark:focus:border-orange-400"
+                      readOnly={isTemplateMode}
                     />
+                    {isTemplateMode && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Template preview is read-only. Toggle off to edit your custom prompt or click "Copy to Custom" to use this template as your starting point.
+                      </p>
+                    )}
                   </div>
 
                   <div>
