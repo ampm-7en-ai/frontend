@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Filter, X } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -27,7 +26,7 @@ const ConversationFiltersModern = ({
   setAgentNameFilter,
   availableAgents
 }: ConversationFiltersProps) => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const statusTabs = [
     { id: 'all', label: 'All' },
@@ -98,22 +97,34 @@ const ConversationFiltersModern = ({
         />
         
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(true)}
-            className={`relative inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300 ${
-              hasActiveFilters 
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800' 
-                : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            {hasActiveFilters && (
-              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
-                {getActiveFiltersCount()}
-              </span>
-            )}
-          </button>
+          <ConversationFiltersDrawer
+            open={dropdownOpen}
+            onOpenChange={setDropdownOpen}
+            channelFilter={channelFilter}
+            setChannelFilter={setChannelFilter}
+            agentTypeFilter={agentTypeFilter}
+            setAgentTypeFilter={setAgentTypeFilter}
+            agentNameFilter={agentNameFilter}
+            setAgentNameFilter={setAgentNameFilter}
+            availableAgents={availableAgents}
+            trigger={
+              <button
+                type="button"
+                className={`relative inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300 ${
+                  hasActiveFilters 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800' 
+                    : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Filter className="w-4 h-4" />
+                {hasActiveFilters && (
+                  <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                    {getActiveFiltersCount()}
+                  </span>
+                )}
+              </button>
+            }
+          />
         </div>
       </div>
 
@@ -171,18 +182,6 @@ const ConversationFiltersModern = ({
           </div>
         </div>
       )}
-
-      <ConversationFiltersDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        channelFilter={channelFilter}
-        setChannelFilter={setChannelFilter}
-        agentTypeFilter={agentTypeFilter}
-        setAgentTypeFilter={setAgentTypeFilter}
-        agentNameFilter={agentNameFilter}
-        setAgentNameFilter={setAgentNameFilter}
-        availableAgents={availableAgents}
-      />
     </div>
   );
 };
