@@ -13,18 +13,19 @@ import { Button } from '@/components/ui/button';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { SystemPromptModal } from './SystemPromptModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
-import { Toggle } from '@/components/ui/toggle';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
-  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   
-  // Simplified state management for system prompt handling
-  const [isTemplateMode, setIsTemplateMode] = useState(false);
+  // Store user's custom prompts per agent type
   const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
+  
+  // Modal states
+  const [showSystemPromptModal, setShowSystemPromptModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   // Initialize user prompts storage on first load
   useEffect(() => {
@@ -42,68 +43,35 @@ export const GuidelinesPanel = () => {
     return matchingPrompt?.system_prompt || '';
   };
 
-  // Get the content to display in the textarea
-  const getDisplayedPrompt = () => {
-    if (isTemplateMode) {
-      return getCurrentTemplate();
-    }
-    return userPromptsByType[agentData.agentType] || agentData.systemPrompt || '';
-  };
-
-  // Handle system prompt changes (only when not in template mode)
+  // Handle system prompt changes
   const handleSystemPromptChange = (value: string) => {
-    if (!isTemplateMode) {
-      // Update the actual agent data
-      updateAgentData({ systemPrompt: value });
-      
-      // Store user's custom content per agent type
-      setUserPromptsByType(prev => ({
-        ...prev,
-        [agentData.agentType]: value
-      }));
-    }
+    updateAgentData({ systemPrompt: value });
+    
+    // Store user's custom content per agent type
+    setUserPromptsByType(prev => ({
+      ...prev,
+      [agentData.agentType]: value
+    }));
   };
 
-  // Handle agent type changes - restore user's previous content or keep blank
+  // Handle agent type changes - restore user's content or keep blank
   const handleAgentTypeChange = (agentType: string) => {
     console.log('Agent type changing to:', agentType);
     
     updateAgentData({ agentType });
-    
-    // Turn off template mode when switching agent types
-    setIsTemplateMode(false);
     
     // Restore user's previously written content for this agent type, or keep blank
     const previousUserContent = userPromptsByType[agentType] || '';
     updateAgentData({ systemPrompt: previousUserContent });
   };
 
-  // Handle template toggle
-  const handleTemplateToggle = (pressed: boolean) => {
-    setIsTemplateMode(pressed);
-    
-    if (pressed) {
-      // Switching to template mode - show template content but don't save it
-      console.log('Switching to template mode');
-    } else {
-      // Switching back to user mode - restore user's content
-      const userContent = userPromptsByType[agentData.agentType] || '';
-      updateAgentData({ systemPrompt: userContent });
-      console.log('Switching back to user mode');
-    }
-  };
-
-  // Copy template to user's custom prompt
-  const copyTemplateToCustom = () => {
+  // Handle template usage - replace current prompt with template
+  const handleUseTemplate = () => {
     const templateContent = getCurrentTemplate();
     if (templateContent) {
-      updateAgentData({ systemPrompt: templateContent });
-      setUserPromptsByType(prev => ({
-        ...prev,
-        [agentData.agentType]: templateContent
-      }));
-      setIsTemplateMode(false);
-      console.log('Template copied to custom prompt');
+      handleSystemPromptChange(templateContent);
+      setShowTemplateModal(false);
+      console.log('Template applied to custom prompt');
     }
   };
 
@@ -399,7 +367,7 @@ export const GuidelinesPanel = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Simplified Behavior Guidelines with new system prompt management */}
+            {/* Simplified Behavior Guidelines */}
             <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -425,39 +393,25 @@ export const GuidelinesPanel = () => {
                     </div>
                   </div>
 
-                  {/* Simplified System Prompt with template toggle */}
+                  {/* Simplified System Prompt */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
                       <div className="flex items-center gap-2">
-                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
-                        {isTemplateMode && (
-                          <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-                            Template Preview
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Toggle
-                          pressed={isTemplateMode}
-                          onPressedChange={handleTemplateToggle}
+                        <ModernButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowTemplateModal(true)}
                           disabled={promptsLoading || !getCurrentTemplate()}
-                          className="h-8 px-3 rounded-lg text-xs data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 dark:data-[state=on]:bg-blue-900/30 dark:data-[state=on]:text-blue-400"
+                          className="h-8 px-3 rounded-lg text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         >
-                          {isTemplateMode ? 'Hide Template' : 'Show Template'}
-                        </Toggle>
-                        {isTemplateMode && (
-                          <ModernButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={copyTemplateToCustom}
-                            className="h-8 px-3 rounded-lg text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                          >
-                            Copy to Custom
-                          </ModernButton>
-                        )}
+                          Show Template
+                        </ModernButton>
                         <SystemPromptModal
-                          value={getDisplayedPrompt()}
+                          value={agentData.systemPrompt || ''}
                           onChange={handleSystemPromptChange}
+                          open={showSystemPromptModal}
+                          onOpenChange={setShowSystemPromptModal}
                           trigger={
                             <ModernButton
                               variant="ghost"
@@ -471,17 +425,11 @@ export const GuidelinesPanel = () => {
                       </div>
                     </div>
                     <Textarea
-                      value={getDisplayedPrompt()}
+                      value={agentData.systemPrompt || ''}
                       onChange={(e) => handleSystemPromptChange(e.target.value)}
                       placeholder="Define how your agent behaves..."
                       className="min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-orange-500 dark:focus:border-orange-400"
-                      readOnly={isTemplateMode}
                     />
-                    {isTemplateMode && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Template preview is read-only. Toggle off to edit your custom prompt or click "Copy to Custom" to use this template as your starting point.
-                      </p>
-                    )}
                   </div>
 
                   <div>
@@ -749,6 +697,17 @@ export const GuidelinesPanel = () => {
           </Accordion>
         </div>
       </ScrollArea>
+
+      {/* Template Modal */}
+      <SystemPromptModal
+        value={getCurrentTemplate()}
+        onChange={() => {}} // Read-only for template
+        open={showTemplateModal}
+        onOpenChange={setShowTemplateModal}
+        trigger={null}
+        isTemplate={true}
+        onUseTemplate={handleUseTemplate}
+      />
     </div>
   );
 };
