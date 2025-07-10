@@ -14,7 +14,6 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface SubscriptionPlan {
   id: number;
@@ -123,7 +122,7 @@ export const PricingModal = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-8">
-            <LoadingSpinner size="lg" text="Loading plans..." />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         </DialogContent>
       </Dialog>
@@ -182,7 +181,7 @@ export const PricingModal = () => {
                 >
                   {isLoadingCheckout ? (
                     <>
-                      <LoadingSpinner size="sm" className="!mb-0 mr-2" />
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                       Processing...
                     </>
                   ) : isCurrent ? (

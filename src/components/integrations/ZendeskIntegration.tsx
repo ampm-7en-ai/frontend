@@ -10,7 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Settings, AlertCircle, Copy, ExternalLink } from 'lucide-react';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ZendeskIntegration {
   id: string;
@@ -145,7 +144,7 @@ const ZendeskIntegration = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
-        <LoadingSpinner size="lg" text="Checking Zendesk integration..." />
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -272,14 +271,7 @@ const ZendeskIntegration = () => {
               onClick={handleUpdateIntegration}
               disabled={isUpdating || !updateForm.domain || !updateForm.email || !updateForm.api_key}
             >
-              {isUpdating ? (
-                <>
-                  <LoadingSpinner size="sm" className="!mb-0 mr-2" />
-                  Updating...
-                </>
-              ) : (
-                "Update Integration"
-              )}
+              {isUpdating ? "Updating..." : "Update Integration"}
             </Button>
           </DialogFooter>
         </DialogContent>

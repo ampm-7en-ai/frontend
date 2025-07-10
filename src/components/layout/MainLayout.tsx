@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Sidebar } from './Sidebar';
+import Sidebar from './Sidebar';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,17 +23,13 @@ export type MainLayoutProps = {
 };
 
 export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
   const { notifications, markAllAsRead, markAsRead } = useNotifications();
   
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
+    setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -43,11 +39,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
 
   return (
     <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={closeSidebar}
-        userRole={user?.role}
-      />
+      <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Floating Notifications */}
         {/* <div className="absolute top-4 right-4 z-50">

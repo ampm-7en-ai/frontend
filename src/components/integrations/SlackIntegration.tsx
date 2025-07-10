@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Slack, AlertCircle, Check } from 'lucide-react';
+import { Slack, AlertCircle, Check, Loader } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
 import { authenticateSlack, fetchSlackChannels, connectSlackChannel, disconnectSlackChannel, checkSlackStatus } from '@/utils/slackSDK';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface SlackChannel {
   id: string;
@@ -200,7 +198,7 @@ const SlackIntegration: React.FC = () => {
               >
                 {isConnecting ? (
                   <>
-                    <LoadingSpinner size="sm" className="!mb-0 mr-2" />
+                    <Loader className="h-4 w-4 animate-spin mr-2" />
                     Disconnecting...
                   </>
                 ) : (
@@ -271,7 +269,7 @@ const SlackIntegration: React.FC = () => {
               >
                 {isConnecting ? (
                   <>
-                    <LoadingSpinner size="sm" className="!mb-0 mr-2" />
+                    <Loader className="h-4 w-4 animate-spin mr-2" />
                     Connecting...
                   </>
                 ) : (
@@ -289,7 +287,7 @@ const SlackIntegration: React.FC = () => {
               >
                 {isConnecting ? (
                   <>
-                    <LoadingSpinner size="sm" className="!mb-0 mr-2" />
+                    <Loader className="h-4 w-4 animate-spin" />
                     Connecting...
                   </>
                 ) : (

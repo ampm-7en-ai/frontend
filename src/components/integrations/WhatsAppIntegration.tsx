@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { QrCode, Check, AlertCircle, Phone } from 'lucide-react';
+import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -268,12 +267,12 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
               >
                 {isConnecting ? (
                   <>
-                    <LoadingSpinner size="sm" className="!mb-0 mr-2" />
+                    <Loader className="h-4 w-4 animate-spin" />
                     Connecting...
                   </>
                 ) : isFacebookLoading ? (
                   <>
-                    <LoadingSpinner size="sm" className="!mb-0 mr-2" />
+                    <Loader className="h-4 w-4 animate-spin" />
                     Loading...
                   </>
                 ) : (
