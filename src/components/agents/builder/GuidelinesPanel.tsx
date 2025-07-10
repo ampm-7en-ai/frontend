@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
 import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload } from 'lucide-react';
@@ -34,6 +35,7 @@ export const GuidelinesPanel = () => {
     { value: 'Poppins', label: 'Poppins' }
   ];
 
+  // Updated to match GlobalAgentSettingsSection
   const maxTokensOptions = [
     { value: '4000', label: '4,000 tokens' },
     { value: '8000', label: '8,000 tokens' },
@@ -46,11 +48,14 @@ export const GuidelinesPanel = () => {
     { value: 'bottom-left', label: 'Bottom Left' }
   ];
 
+  // Updated to match GlobalAgentSettingsSection exactly
   const modelOptions = [
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-    { value: 'gpt-4', label: 'GPT-4' },
-    { value: 'claude-3-haiku', label: 'Claude 3 Haiku' },
-    { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' }
+    { value: 'gpt-4o', label: 'GPT-4o (OpenAI)' },
+    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (OpenAI)' },
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (OpenAI)' },
+    { value: 'mistral-large-latest', label: 'Mistral Large (Mistral AI)' },
+    { value: 'mistral-medium-latest', label: 'Mistral Medium (Mistral AI)' },
+    { value: 'mistral-small-latest', label: 'Mistral Small (Mistral AI)' }
   ];
 
   // Generate dynamic agent type options from API data
@@ -458,7 +463,7 @@ export const GuidelinesPanel = () => {
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
                     <div className="mt-1.5">
                       <ModernDropdown
-                        value={agentData.model || 'gpt-3.5-turbo'}
+                        value={agentData.model || 'gpt-4-turbo'}
                         onValueChange={(value) => updateAgentData({ model: value })}
                         options={modelOptions}
                         placeholder="Select model"
@@ -482,7 +487,7 @@ export const GuidelinesPanel = () => {
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Max Tokens</Label>
                     <div className="mt-1.5">
                       <ModernDropdown
-                        value={agentData.maxTokens?.toString() || '4000'}
+                        value={agentData.maxTokens?.toString() || '8000'}
                         onValueChange={(value) => updateAgentData({ maxTokens: parseInt(value) })}
                         options={maxTokensOptions}
                         placeholder="Select max tokens"
