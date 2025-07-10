@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { toast } from "@/hooks/use-toast";
 import { updateSettings } from "@/utils/api-config";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +28,14 @@ const globalSettingsSchema = z.object({
   defaultTemperature: z.coerce.number().min(0, "Must be >= 0").max(1, "Must be <= 1"),
 });
 type GlobalSettingsFormValues = z.infer<typeof globalSettingsSchema>;
+
+const modelOptions = [
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+  { value: 'gpt-4', label: 'GPT-4' },
+  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+  { value: 'claude-3-opus', label: 'Claude 3 Opus' },
+  { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' },
+];
 
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
@@ -124,77 +132,67 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Default Response Model</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
-                        <SelectValue placeholder="Select model" />
-                      </SelectTrigger>
-                      <SelectContent variant="modern">
-                        <SelectItem value="gpt-4o" variant="modern">GPT-4o (OpenAI)</SelectItem>
-                        <SelectItem value="gpt-4-turbo" variant="modern">GPT-4 Turbo (OpenAI)</SelectItem>
-                        <SelectItem value="gpt-3.5-turbo" variant="modern">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                        <SelectItem value="mistral-large-latest" variant="modern">Mistral Large (Mistral AI)</SelectItem>
-                        <SelectItem value="mistral-medium-latest" variant="modern">Mistral Medium (Mistral AI)</SelectItem>
-                        <SelectItem value="mistral-small-latest" variant="modern">Mistral Small (Mistral AI)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <ModernDropdown
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={modelOptions}
+                        placeholder="Select model"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={globalSettingsForm.control}
                 name="maxContextLength"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Maximum Context Length</FormLabel>
-                    <Select
-                      value={field.value?.toString() || ""}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                    >
-                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
-                        <SelectValue placeholder="Select context length" />
-                      </SelectTrigger>
-                      <SelectContent variant="modern">
-                        <SelectItem value="4000" variant="modern">4,000 tokens</SelectItem>
-                        <SelectItem value="8000" variant="modern">8,000 tokens</SelectItem>
-                        <SelectItem value="16000" variant="modern">16,000 tokens</SelectItem>
-                        <SelectItem value="32000" variant="modern">32,000 tokens</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Max Context Length (tokens)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="8000"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={globalSettingsForm.control}
                 name="defaultTemperature"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Default Temperature</FormLabel>
-                    <div className="flex items-center gap-4">
-                      <FormControl>
-                        <Input 
-                          type="number"
-                          min={0}
-                          max={1}
-                          step={0.1}
-                          {...field}
-                          className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
-                        />
-                      </FormControl>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        Lower values produce more deterministic responses, higher values produce more creative ones.
-                      </span>
-                    </div>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="1"
+                        placeholder="0.7"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end pt-4">
-                <ModernButton type="submit" variant="primary" icon={Save}>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <ModernButton
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditingGlobalSettings(false)}
+                >
+                  Cancel
+                </ModernButton>
+                <ModernButton type="submit" icon={Save}>
                   Save Settings
                 </ModernButton>
               </div>
@@ -203,25 +201,23 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
-                <p className="text-slate-600 dark:text-slate-400">
-                  {globalSettingsForm.getValues().defaultModel === 'gpt-4o' ? 'GPT-4o (OpenAI)' :
-                   globalSettingsForm.getValues().defaultModel === 'gpt-4-turbo' ? 'GPT-4 Turbo (OpenAI)' :
-                   globalSettingsForm.getValues().defaultModel === 'gpt-3.5-turbo' ? 'GPT-3.5 Turbo (OpenAI)' :
-                   globalSettingsForm.getValues().defaultModel === 'mistral-large-latest' ? 'Mistral Large (Mistral AI)' :
-                   globalSettingsForm.getValues().defaultModel === 'mistral-medium-latest' ? 'Mistral Medium (Mistral AI)' :
-                   globalSettingsForm.getValues().defaultModel === 'mistral-small-latest' ? 'Mistral Small (Mistral AI)' :
-                   globalSettingsForm.getValues().defaultModel}
+              <div className="space-y-1">
+                <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Default Model</Label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {globalSettingsForm.getValues('defaultModel') || 'Not set'}
                 </p>
               </div>
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Maximum Context Length</h4>
-                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
+              <div className="space-y-1">
+                <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Max Context Length</Label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {globalSettingsForm.getValues('maxContextLength')} tokens
+                </p>
               </div>
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
-                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().defaultTemperature}</p>
+              <div className="space-y-1">
+                <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Default Temperature</Label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {globalSettingsForm.getValues('defaultTemperature')}
+                </p>
               </div>
             </div>
           </div>

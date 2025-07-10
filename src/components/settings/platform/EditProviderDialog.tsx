@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
 import { LLMProvider } from '@/hooks/useLLMProviders';
@@ -27,19 +27,23 @@ interface ProviderFormData {
 
 const providerOptions = [
   { 
-    name: 'OpenAI', 
+    value: 'OpenAI', 
+    label: 'OpenAI',
     models: ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo'] 
   },
   { 
-    name: 'Anthropic', 
+    value: 'Anthropic', 
+    label: 'Anthropic',
     models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'] 
   },
   { 
-    name: 'Google AI', 
+    value: 'Google AI', 
+    label: 'Google AI',
     models: ['gemini-pro', 'gemini-ultra'] 
   },
   { 
-    name: 'Mistral AI', 
+    value: 'Mistral AI', 
+    label: 'Mistral AI',
     models: ['mistral-large', 'mistral-medium', 'mistral-small'] 
   }
 ];
@@ -67,7 +71,11 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
     }
   }, [provider]);
 
-  const selectedProvider = providerOptions.find(p => p.name === formData.provider_name);
+  const selectedProvider = providerOptions.find(p => p.value === formData.provider_name);
+  const modelOptions = selectedProvider?.models.map(model => ({
+    value: model,
+    label: model,
+  })) || [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,18 +131,12 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="provider_name">Provider Name *</Label>
-            <Select value={formData.provider_name} onValueChange={handleProviderChange}>
-              <SelectTrigger variant="modern">
-                <SelectValue placeholder="Select provider" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                {providerOptions.map((provider) => (
-                  <SelectItem key={provider.name} value={provider.name} variant="modern">
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ModernDropdown
+              value={formData.provider_name}
+              onValueChange={handleProviderChange}
+              options={providerOptions}
+              placeholder="Select provider"
+            />
           </div>
 
           <div className="space-y-2">
@@ -150,22 +152,13 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
 
           <div className="space-y-2">
             <Label htmlFor="default_model">Default Model *</Label>
-            <Select 
-              value={formData.default_model} 
+            <ModernDropdown
+              value={formData.default_model}
               onValueChange={(value) => setFormData(prev => ({ ...prev, default_model: value }))}
+              options={modelOptions}
+              placeholder="Select model"
               disabled={!selectedProvider}
-            >
-              <SelectTrigger variant="modern">
-                <SelectValue placeholder="Select model" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                {selectedProvider?.models.map((model) => (
-                  <SelectItem key={model} value={model} variant="modern">
-                    {model}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </div>
 
           <div className="flex items-center space-x-2">

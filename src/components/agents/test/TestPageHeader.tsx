@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Book } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Bot } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -27,6 +27,12 @@ export const TestPageHeader = ({
   agents,
   isLoading
 }: TestPageHeaderProps) => {
+  const agentOptions = agents.map((agent: any) => ({
+    value: agent.id,
+    label: agent.name,
+    description: `${agent.status || 'Draft'} • ${agent.model || 'GPT-3.5'}`
+  }));
+
   return (
     <div className="flex flex-col gap-4 mb-6">
       <div className="flex justify-center mb-2">
@@ -43,32 +49,34 @@ export const TestPageHeader = ({
               <LoadingSpinner size="sm" text="Loading agents..." />
             </div>
           ) : (
-            <Select 
-              value={selectedAgentId} 
+            <ModernDropdown
+              value={selectedAgentId}
               onValueChange={onAgentChange}
+              options={agentOptions}
+              placeholder="Select agent"
+              className="w-full sm:w-[280px]"
               disabled={isLoading}
-            >
-              <SelectTrigger className="w-full sm:w-[280px]" variant="modern">
-                <SelectValue placeholder="Select agent" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                {agents.map((agent: any) => (
-                  <SelectItem key={agent.id} value={agent.id} variant="modern">
-                    <div className="flex items-center">
-                      {agent.avatarSrc ? (
-                        <Avatar className="h-6 w-6 mr-2">
-                          <AvatarImage src={agent.avatarSrc} alt={agent.name} />
-                          <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <Bot className="mr-2 h-4 w-4 text-primary" />
-                      )}
-                      {agent.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              renderOption={(option) => (
+                <div className="flex items-center">
+                  {agents.find(a => a.id === option.value)?.avatarSrc ? (
+                    <Avatar className="h-6 w-6 mr-2">
+                      <AvatarImage src={agents.find(a => a.id === option.value)?.avatarSrc} alt={option.label} />
+                      <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <Bot className="mr-2 h-4 w-4 text-primary" />
+                  )}
+                  <div className="flex flex-col">
+                    <span>{option.label}</span>
+                    {option.description && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {option.description}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            />
           )}
         </div>
         

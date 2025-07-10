@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 const dummyData = [
   { date: 'Jan', conversations: 400, resolutions: 240 },
@@ -21,6 +22,12 @@ const dummyData = [
   { date: 'Jul', conversations: 400, resolutions: 380 },
 ];
 
+const timeRangeOptions = [
+  { value: '7days', label: 'Last 7 days' },
+  { value: '30days', label: 'Last 30 days' },
+  { value: '90days', label: 'Last 90 days' },
+];
+
 type ActivityChartProps = {
   className?: string;
   data?: typeof dummyData;
@@ -28,16 +35,19 @@ type ActivityChartProps = {
 };
 
 export function ActivityChart({ className, data = dummyData, title = "Agent Activity" }: ActivityChartProps) {
+  const [timeRange, setTimeRange] = React.useState('7days');
+
   return (
     <div className={`card ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">{title}</h3>
         <div className="flex gap-2">
-          <select className="text-sm border border-medium-gray/30 rounded-md p-1">
-            <option>Last 7 days</option>
-            <option>Last 30 days</option>
-            <option>Last 90 days</option>
-          </select>
+          <ModernDropdown
+            value={timeRange}
+            onValueChange={setTimeRange}
+            options={timeRangeOptions}
+            className="w-32"
+          />
         </div>
       </div>
       <div className="h-64">
