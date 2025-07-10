@@ -45,6 +45,7 @@ const IntegrationsPage = () => {
   // Fetch integration statuses from API
   const fetchIntegrationStatuses = async () => {
     try {
+      setIsLoadingStatuses(true);
       const token = getAccessToken();
       if (!token) {
         console.error("No access token available");
@@ -296,12 +297,32 @@ const IntegrationsPage = () => {
   const getDefaultBadge = (integrationId: string) => {
     if (defaultProvider === integrationId) {
       return (
-        <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 ml-2">
+        <Badge 
+          variant="outline" 
+          className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 cursor-pointer"
+          onClick={() => handleSetAsDefault(integrationId)}
+        >
           <Star className="h-3 w-3 mr-1 fill-current" />
           Default
         </Badge>
       );
     }
+    
+    // For connected ticketing providers that are not default, show clickable badge
+    if (integrationId !== defaultProvider) {
+      return (
+        <Badge 
+          variant="outline" 
+          className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30"
+          onClick={() => handleSetAsDefault(integrationId)}
+          disabled={isSettingDefault === integrationId}
+        >
+          <Star className="h-3 w-3 mr-1" />
+          {isSettingDefault === integrationId ? 'Setting...' : 'Set as Default'}
+        </Badge>
+      );
+    }
+    
     return null;
   };
 
@@ -364,9 +385,9 @@ const IntegrationsPage = () => {
                             {integration?.description}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-2">
                           {integration && getStatusBadge(integration.status)}
-                          {integration && getDefaultBadge(integration.id)}
+                          {integration && integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
                         </div>
                       </>
                     );
@@ -418,9 +439,9 @@ const IntegrationsPage = () => {
                                   className="w-16 h-16 object-contain"
                                 />
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-col gap-2">
                                 {getStatusBadge(integration.status)}
-                                {getDefaultBadge(integration.id)}
+                                {integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
                               </div>
                             </div>
                             <CardTitle className="font-medium text-base text-slate-900 dark:text-slate-100 mb-2">
@@ -435,17 +456,6 @@ const IntegrationsPage = () => {
                             >
                               Configure Integration
                             </ModernButton>
-                            {integration.type === 'ticketing' && integration.status === 'connected' && defaultProvider !== integration.id && (
-                              <ModernButton 
-                                variant="outline" 
-                                className="w-full border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/20"
-                                onClick={() => handleSetAsDefault(integration.id)}
-                                disabled={isSettingDefault === integration.id}
-                                icon={Star}
-                              >
-                                {isSettingDefault === integration.id ? 'Setting...' : 'Set as Default'}
-                              </ModernButton>
-                            )}
                           </CardContent>
                         </Card>
                       ))}
