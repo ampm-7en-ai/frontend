@@ -81,10 +81,10 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
                 <ModernButton 
                   variant="ghost" 
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-300 rounded-lg"
                   onClick={() => window.open(shareableLink, '_blank')}
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="h-6 w-6" />
                 </ModernButton>
                 <ModernButton 
                   variant="ghost" 

@@ -295,8 +295,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       
       toast({
-        title: "Agent Deployed Successfully",
-        description: `${state.agentData.name} has been deployed and is ready to use.`,
+        title: "Agent Configuration Saved Successfully.",
+        description: `${state.agentData.name} has been saved and is ready to use.`,
         variant: "default"
       });
 

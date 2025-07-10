@@ -227,6 +227,57 @@ export const GuidelinesPanel = () => {
               </AccordionContent>
             </AccordionItem>
 
+            {/* Model Settings */}
+            <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+              <AccordionTrigger className="py-3 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                    <Zap className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium">Model Settings</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
+                    <div className="mt-1.5">
+                      <ModernDropdown
+                        value={agentData.model || 'gpt-4-turbo'}
+                        onValueChange={(value) => updateAgentData({ model: value })}
+                        options={modelOptions}
+                        placeholder="Select model"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Temperature: {agentData.temperature}</Label>
+                    <Slider
+                      value={[agentData.temperature]}
+                      onValueChange={(value) => updateAgentData({ temperature: value[0] })}
+                      max={1}
+                      min={0}
+                      step={0.1}
+                      className="mt-3"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Max Tokens</Label>
+                    <div className="mt-1.5">
+                      <ModernDropdown
+                        value={agentData.maxTokens?.toString() || '8000'}
+                        onValueChange={(value) => updateAgentData({ maxTokens: parseInt(value) })}
+                        options={maxTokensOptions}
+                        placeholder="Select max tokens"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
             {/* Appearance */}
             <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
@@ -495,57 +546,6 @@ export const GuidelinesPanel = () => {
                       >
                         Add Don't
                       </ModernButton>
-                    </div>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Model Settings */}
-            <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
-              <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                    <Zap className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Model Settings</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
-                    <div className="mt-1.5">
-                      <ModernDropdown
-                        value={agentData.model || 'gpt-4-turbo'}
-                        onValueChange={(value) => updateAgentData({ model: value })}
-                        options={modelOptions}
-                        placeholder="Select model"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Temperature: {agentData.temperature}</Label>
-                    <Slider
-                      value={[agentData.temperature]}
-                      onValueChange={(value) => updateAgentData({ temperature: value[0] })}
-                      max={1}
-                      min={0}
-                      step={0.1}
-                      className="mt-3"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Max Tokens</Label>
-                    <div className="mt-1.5">
-                      <ModernDropdown
-                        value={agentData.maxTokens?.toString() || '8000'}
-                        onValueChange={(value) => updateAgentData({ maxTokens: parseInt(value) })}
-                        options={maxTokensOptions}
-                        placeholder="Select max tokens"
-                      />
                     </div>
                   </div>
                 </div>
