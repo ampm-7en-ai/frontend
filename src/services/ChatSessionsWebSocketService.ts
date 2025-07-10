@@ -15,6 +15,7 @@ export interface ChatSessionData {
   handoffCount: number;
   topic: string[];
   channel: string;
+  source?: string;
   agentType?: "human" | "ai" | null;
 }
 
