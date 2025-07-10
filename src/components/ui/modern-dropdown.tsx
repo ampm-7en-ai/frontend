@@ -14,6 +14,7 @@ interface ModernDropdownOption {
   value: string;
   label: string;
   description?: string;
+  logo?: string;
 }
 
 interface ModernDropdownProps {
@@ -76,13 +77,25 @@ export const ModernDropdown = ({
               renderOption(option)
             ) : (
               <div className="flex items-center justify-between w-full">
-                <div className="flex flex-col">
-                  <span>{option.label}</span>
-                  {option.description && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {option.description}
-                    </span>
+                <div className="flex items-center gap-3">
+                  {option.logo && (
+                    <img 
+                      src={option.logo} 
+                      alt={`${option.label} logo`}
+                      className="w-5 h-5 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
                   )}
+                  <div className="flex flex-col">
+                    <span>{option.label}</span>
+                    {option.description && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {option.description}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {option.value === value && (
                   <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
