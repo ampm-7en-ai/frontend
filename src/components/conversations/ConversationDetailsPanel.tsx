@@ -125,15 +125,6 @@ const ConversationDetailsPanel = ({
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Additional Information</h1>
             <p className="text-sm text-slate-600 dark:text-slate-400">Conversation details and metadata</p>
           </div>
-          {!isTicketingDisabled && (
-            <button
-              onClick={() => setIsTicketModalOpen(true)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors border border-blue-200/50 dark:border-blue-800/50"
-            >
-              <Plus className="h-3 w-3" />
-              Create Ticket
-            </button>
-          )}
         </div>
       </div>
 
@@ -149,10 +140,7 @@ const ConversationDetailsPanel = ({
         {/* Current Agent Section */}
         <section>
           <div className="mb-2">
-            <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Information</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-              Agent currently assigned to this conversation
-            </p>
+            <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Information</h2>
           </div>
           
           <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
@@ -166,15 +154,15 @@ const ConversationDetailsPanel = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6 bg-blue-600">
-                <AvatarFallback className="text-white text-[10px] font-medium">
+              <Avatar className="h-6 w-6 bg-blue-600 dark:bg-gray-700">
+                <AvatarFallback className="text-gray-500 text-[10px] font-medium">
                   {assignedAgent.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-xs font-medium text-slate-900 dark:text-slate-100">{assignedAgent}</p>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400">
-                  {assignedAgent === 'AI Assistant' ? 'Available 24/7' : 'Human Agent'}
+                <p className="text-[12px] text-slate-600 dark:text-slate-400">
+                  AI Agent
                 </p>
               </div>
             </div>
@@ -184,10 +172,7 @@ const ConversationDetailsPanel = ({
         {/* Customer Information */}
         <section>
           <div className="mb-2">
-            <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Information</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-              Details about the customer in this conversation
-            </p>
+            <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Information</h2>
           </div>
           
           <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
@@ -233,10 +218,7 @@ const ConversationDetailsPanel = ({
         {hasSatisfactionData && (
           <section>
             <div className="mb-2">
-              <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Sentiment</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-                Current customer satisfaction level
-              </p>
+              <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Sentiment</h2>
             </div>
             
             <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
@@ -263,10 +245,7 @@ const ConversationDetailsPanel = ({
         {handoffData.handoffs.length > 0 && (
           <section>
             <div className="mb-2">
-              <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Handoffs</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-                History of agent transfers for this conversation
-              </p>
+              <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Handoffs</h2>
             </div>
             
             <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">

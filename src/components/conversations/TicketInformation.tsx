@@ -49,10 +49,7 @@ const TicketInformation = ({ ticketBy, ticketId }: TicketInformationProps) => {
   return (
     <section>
       <div className="mb-2">
-        <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Ticket Information</h2>
-        <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-          Support ticket details and provider information
-        </p>
+        <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Ticket Information</h2>
       </div>
       
       <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
@@ -66,13 +63,13 @@ const TicketInformation = ({ ticketBy, ticketId }: TicketInformationProps) => {
         </div>
 
         <div className="space-y-3">
-          <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50">
-            <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-1 flex items-center gap-1.5 text-xs">
+          <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50 pyb-2">
+            <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-0 flex items-center gap-1.5 text-xs">
               {logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt={`${ticketBy} logo`} 
-                  className="h-3 w-3 rounded-sm"
+                  className="h-6 w-6 rounded-lg"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
@@ -80,9 +77,9 @@ const TicketInformation = ({ ticketBy, ticketId }: TicketInformationProps) => {
               ) : (
                 <ExternalLink className="h-2.5 w-2.5" />
               )}
-              Provider
+              <p className="text-slate-600 dark:text-slate-400 text-xs capitalize">{ticketBy}</p>
             </h4>
-            <p className="text-slate-600 dark:text-slate-400 text-xs capitalize">{ticketBy}</p>
+            
           </div>
           
           <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50">
