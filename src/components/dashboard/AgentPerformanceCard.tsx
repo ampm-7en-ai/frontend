@@ -5,13 +5,7 @@ import { Users, Clock, Star, TrendingUp, TrendingDown, Bot, Heart } from 'lucide
 import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface AgentPerformanceCardProps {
   agentPerformanceComparison: AgentPerformanceComparison[];

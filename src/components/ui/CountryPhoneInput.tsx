@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import countryData from "./countryData";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { ModernDropdown } from "@/components/ui/modern-dropdown";
 import { ChevronDown } from "lucide-react";
 
 interface Country {
@@ -63,31 +63,56 @@ const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
     onChange(selectedCountry.dial_code + num);
   }
 
+  // Convert country data to dropdown options
+  const countryOptions = countryData.map(country => ({
+    value: country.code,
+    label: country.name,
+    description: `+${country.dial_code.replace("+", "")}`,
+  }));
+
+  // Custom render for country options
+  const renderCountryOption = (option: any) => (
+    <div className="flex items-center justify-between w-full">
+      <div className="flex items-center gap-2">
+        <span style={{
+          background: `url(${countryData.find(c => c.code === option.value)?.flag}) no-repeat center center`,
+          backgroundSize: '100% 100%',
+          display: 'inline-block',
+          width: '20px',
+          height: '15px'
+        }}></span>
+        <span>{option.label}</span>
+      </div>
+      <span className="text-muted-foreground text-xs">+{countryData.find(c => c.code === option.value)?.dial_code.replace("+", "")}</span>
+    </div>
+  );
+
+  // Custom trigger for country dropdown
+  const countryTrigger = (
+    <div className={`flex items-center gap-2 px-3 py-2 h-10 rounded-md border bg-background text-sm ${error ? "border-red-500" : "border-input"} ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} min-w-32`}>
+      <span style={{
+        background: `url(${selectedCountry.flag}) no-repeat center center`,
+        backgroundSize: '100% 100%',
+        display: 'inline-block',
+        width: '20px',
+        height: '20px'
+      }}></span>
+      <span className="text-sm">+{selectedCountry.dial_code.replace("+", "")}</span>
+      <ChevronDown className="h-4 w-4 ml-auto opacity-50" />
+    </div>
+  );
+
   return (
     <div className="flex items-center gap-2">
-      <Select
+      <ModernDropdown
         value={selectedCountry.code}
         onValueChange={handleCountryChange}
+        options={countryOptions}
+        trigger={countryTrigger}
+        renderOption={renderCountryOption}
         disabled={disabled}
-      >
-        <SelectTrigger className={`w-32 ${error ? "border-red-500" : ""}`}>
-          <span style={{display:'flex'}}>
-            <span className="text-xl" style={{background:`url(${selectedCountry.flag}) no-repeat center center`,backgroundSize: '100% 100%',display:'inline-block',width:'20px',height:'20px'}}></span>
-            <span className="text-sm">+{selectedCountry.dial_code.replace("+", "")}</span>
-          </span>
-        </SelectTrigger>
-        <SelectContent>
-          {countryData.map((c) => (
-            <SelectItem key={c.code} value={c.code}>
-              <span className="flex items-center gap-2">
-                <span style={{background:`url(${c.flag}) no-repeat center center`,backgroundSize: '100% 100%',display:'inline-block',width:'20px',height:'15px'}}></span>
-                <span>{c.name}</span>
-                <span className="ml-auto text-muted-foreground text-xs">+{c.dial_code.replace("+", "")}</span>
-              </span>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        className="w-auto"
+      />
       <input
         type="tel"
         value={localNumber}

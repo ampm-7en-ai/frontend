@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { BarChart2, Building, Calendar, CreditCard, Download, MessageSquare, TrendingUp, Users } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -23,6 +23,14 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+
+const timeframeOptions = [
+  { value: '7days', label: 'Last 7 days' },
+  { value: '30days', label: 'Last 30 days' },
+  { value: '90days', label: 'Last 90 days' },
+  { value: 'year', label: 'Last year' },
+  { value: 'custom', label: 'Custom range' }
+];
 
 const PlatformAnalytics = () => {
   const { user } = useAuth();
@@ -92,18 +100,13 @@ const PlatformAnalytics = () => {
           <p className="text-muted-foreground">Review platform-wide statistics and performance metrics.</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          <Select defaultValue="30days">
-            <SelectTrigger variant="modern" className="w-[160px]">
-              <SelectValue placeholder="Select timeframe" />
-            </SelectTrigger>
-            <SelectContent variant="modern">
-              <SelectItem variant="modern" value="7days">Last 7 days</SelectItem>
-              <SelectItem variant="modern" value="30days">Last 30 days</SelectItem>
-              <SelectItem variant="modern" value="90days">Last 90 days</SelectItem>
-              <SelectItem variant="modern" value="year">Last year</SelectItem>
-              <SelectItem variant="modern" value="custom">Custom range</SelectItem>
-            </SelectContent>
-          </Select>
+          <ModernDropdown
+            value="30days"
+            onValueChange={(value) => console.log('Selected timeframe:', value)}
+            options={timeframeOptions}
+            placeholder="Select timeframe"
+            className="w-[160px]"
+          />
           <Button variant="outline" className="gap-1">
             <Download className="h-4 w-4" />
             Export
@@ -429,7 +432,7 @@ const PlatformAnalytics = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-xl font-bold">$270</div>
-                    <div className="text-xs text-green-600">↑ 2.3% MoM</div>
+                    <div className="text-xs text-green-600">↑ 4.2%</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -437,8 +440,8 @@ const PlatformAnalytics = () => {
                     <CardTitle className="text-sm font-medium">Churn Rate</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-xl font-bold">2.1%</div>
-                    <div className="text-xs text-green-600">↓ 0.4% vs prev.</div>
+                    <div className="text-xl font-bold">2.4%</div>
+                    <div className="text-xs text-red-600">↓ 0.3%</div>
                   </CardContent>
                 </Card>
               </div>
@@ -450,7 +453,7 @@ const PlatformAnalytics = () => {
                       data={revenueBreakdownData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
+                      labelLine={false}
                       outerRadius={120}
                       fill="#8884d8"
                       dataKey="value"
@@ -460,7 +463,7 @@ const PlatformAnalytics = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`${value}%`, 'Revenue']} />
+                    <Tooltip formatter={(value) => [`${value}%`, 'Revenue Share']} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
