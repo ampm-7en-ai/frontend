@@ -70,7 +70,7 @@ export const FloatingToastProvider: React.FC<{ children: ReactNode }> = ({ child
   return (
     <FloatingToastContext.Provider value={{ showToast, hideToast, updateToast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 space-y-2">
+      <div className="fixed bottom-4 right-4 z-[9999] space-y-2">
         {toasts.map((toast) => (
           <FloatingToast
             key={toast.id}

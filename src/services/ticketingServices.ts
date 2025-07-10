@@ -6,6 +6,7 @@ export interface TicketData {
   content: string;
   priority: string;
   conversation?: any;
+  session_id?: string;
 }
 
 export interface TicketResponse {
@@ -15,23 +16,45 @@ export interface TicketResponse {
   message: string;
 }
 
-export const createHubSpotTicket = async (ticketData: TicketData): Promise<TicketResponse> => {
+// Main ticket creation function using the new endpoint
+export const createTicket = async (providerId: string, ticketData: TicketData): Promise<TicketResponse> => {
   const token = getAccessToken();
   if (!token) {
     throw new Error("Authentication required");
   }
 
+  // Convert priority string to number for the API
+  let priorityNumber = 2; // default to medium
+  switch (ticketData.priority.toLowerCase()) {
+    case 'low':
+    case '1':
+      priorityNumber = 1;
+      break;
+    case 'medium':
+    case 'normal':
+    case '2':
+      priorityNumber = 2;
+      break;
+    case 'high':
+    case '3':
+      priorityNumber = 3;
+      break;
+    case 'urgent':
+    case 'critical':
+    case '4':
+      priorityNumber = 4;
+      break;
+  }
+
   const payload = {
-    ticket_data: {
-      properties: {
-        subject: ticketData.subject,
-        content: ticketData.content,
-        hs_ticket_priority: ticketData.priority
-      }
-    }
+    session_id: ticketData.conversation?.id || ticketData.session_id,
+    subject: ticketData.subject,
+    description: ticketData.content,
+    priority: priorityNumber,
+    provider: providerId
   };
 
-  const response = await fetch(getApiUrl('hubspot/ticket/create/'), {
+  const response = await fetch(getApiUrl('chat/tickets/create/'), {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -41,7 +64,7 @@ export const createHubSpotTicket = async (ticketData: TicketData): Promise<Ticke
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to create HubSpot ticket: ${response.status}`);
+    throw new Error(`Failed to create ticket: ${response.status}`);
   }
 
   const result = await response.json();
@@ -49,192 +72,30 @@ export const createHubSpotTicket = async (ticketData: TicketData): Promise<Ticke
   if (result.status === 'success') {
     return {
       success: true,
-      ticketId: result.data.ticket_id,
-      message: `HubSpot ticket #${result.data.ticket_id} created successfully`
+      message: result.message
     };
   } else {
-    throw new Error(result.message || 'Failed to create HubSpot ticket');
+    throw new Error(result.message || 'Failed to create ticket');
   }
+};
+
+// Legacy functions kept for backwards compatibility but now use the main createTicket function
+export const createHubSpotTicket = async (ticketData: TicketData): Promise<TicketResponse> => {
+  return createTicket('hubspot', ticketData);
 };
 
 export const createZendeskTicket = async (ticketData: TicketData): Promise<TicketResponse> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-
-  const payload = {
-    ticket: {
-      subject: ticketData.subject,
-      comment: {
-        body: ticketData.content
-      },
-      priority: ticketData.priority,
-      type: 'question'
-    }
-  };
-
-  const response = await fetch(getApiUrl('zendesk/ticket/create/'), {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create Zendesk ticket: ${response.status}`);
-  }
-
-  const result = await response.json();
-  
-  if (result.success) {
-    return {
-      success: true,
-      ticketId: result.ticket.id,
-      ticketUrl: result.ticket.url,
-      message: `Zendesk ticket #${result.ticket.id} created successfully`
-    };
-  } else {
-    throw new Error(result.message || 'Failed to create Zendesk ticket');
-  }
+  return createTicket('zendesk', ticketData);
 };
 
 export const createFreshdeskTicket = async (ticketData: TicketData): Promise<TicketResponse> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-
-  const payload = {
-    subject: ticketData.subject,
-    description: ticketData.content,
-    priority: parseInt(ticketData.priority),
-    status: 2, // Open
-    type: 'Question'
-  };
-
-  const response = await fetch(getApiUrl('freshdesk/ticket/create/'), {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create Freshdesk ticket: ${response.status}`);
-  }
-
-  const result = await response.json();
-  
-  if (result.id) {
-    return {
-      success: true,
-      ticketId: result.id.toString(),
-      message: `Freshdesk ticket #${result.id} created successfully`
-    };
-  } else {
-    throw new Error('Failed to create Freshdesk ticket');
-  }
+  return createTicket('freshdesk', ticketData);
 };
 
 export const createZohoTicket = async (ticketData: TicketData): Promise<TicketResponse> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-
-  const payload = {
-    subject: ticketData.subject,
-    description: ticketData.content,
-    priority: ticketData.priority,
-    status: 'Open',
-    channel: 'Web'
-  };
-
-  const response = await fetch(getApiUrl('zoho/ticket/create/'), {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create Zoho ticket: ${response.status}`);
-  }
-
-  const result = await response.json();
-  
-  if (result.id) {
-    return {
-      success: true,
-      ticketId: result.ticketNumber,
-      message: `Zoho Desk ticket #${result.ticketNumber} created successfully`
-    };
-  } else {
-    throw new Error('Failed to create Zoho ticket');
-  }
+  return createTicket('zoho', ticketData);
 };
 
 export const createSalesforceTicket = async (ticketData: TicketData): Promise<TicketResponse> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error("Authentication required");
-  }
-
-  const payload = {
-    Subject: ticketData.subject,
-    Description: ticketData.content,
-    Priority: ticketData.priority,
-    Status: 'New',
-    Origin: 'Web'
-  };
-
-  const response = await fetch(getApiUrl('salesforce/case/create/'), {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create Salesforce case: ${response.status}`);
-  }
-
-  const result = await response.json();
-  
-  if (result.id) {
-    return {
-      success: true,
-      ticketId: result.CaseNumber,
-      message: `Salesforce case #${result.CaseNumber} created successfully`
-    };
-  } else {
-    throw new Error('Failed to create Salesforce case');
-  }
-};
-
-// Main ticket creation dispatcher
-export const createTicket = async (providerId: string, ticketData: TicketData): Promise<TicketResponse> => {
-  switch (providerId) {
-    case 'hubspot':
-      return createHubSpotTicket(ticketData);
-    case 'zendesk':
-      return createZendeskTicket(ticketData);
-    case 'freshdesk':
-      return createFreshdeskTicket(ticketData);
-    case 'zoho':
-      return createZohoTicket(ticketData);
-    case 'salesforce':
-      return createSalesforceTicket(ticketData);
-    default:
-      throw new Error(`Unsupported ticketing provider: ${providerId}`);
-  }
+  return createTicket('salesforce', ticketData);
 };

@@ -39,7 +39,7 @@ export const FloatingToast: React.FC<FloatingToastProps> = ({
   return (
     <div
       className={cn(
-        "fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border p-3 shadow-lg backdrop-blur-sm transition-all duration-300 ease-out animate-in slide-in-from-right-2",
+        "fixed bottom-4 right-4 z-[9999] max-w-sm rounded-lg border p-3 shadow-lg backdrop-blur-sm transition-all duration-300 ease-out animate-in slide-in-from-right-2",
         variantStyles[variant]
       )}
     >
