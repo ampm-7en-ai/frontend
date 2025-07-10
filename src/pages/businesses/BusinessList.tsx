@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,16 +67,16 @@ const BusinessList = () => {
             value={statusFilter} 
             onValueChange={setStatusFilter}
           >
-            <SelectTrigger className="w-36">
+            <SelectTrigger variant="modern" className="w-36">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="trial">Trial</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="none">None</SelectItem>
+            <SelectContent variant="modern">
+              <SelectItem variant="modern" value="all">All Status</SelectItem>
+              <SelectItem variant="modern" value="active">Active</SelectItem>
+              <SelectItem variant="modern" value="trial">Trial</SelectItem>
+              <SelectItem variant="modern" value="inactive">Inactive</SelectItem>
+              <SelectItem variant="modern" value="none">None</SelectItem>
             </SelectContent>
           </Select>
         </div>

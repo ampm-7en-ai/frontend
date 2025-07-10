@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -127,7 +126,6 @@ const UserDetail = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* User Profile Card - Left Column */}
           <Card className="md:col-span-1">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2">
@@ -182,7 +180,6 @@ const UserDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Main Content - Right Column */}
           <div className="md:col-span-2">
             <Tabs defaultValue="details">
               <TabsList className="mb-4">
@@ -223,13 +220,13 @@ const UserDetail = () => {
                       <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
                         <Select defaultValue={user.status.toLowerCase()}>
-                          <SelectTrigger>
+                          <SelectTrigger variant="modern">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
+                          <SelectContent variant="modern">
+                            <SelectItem variant="modern" value="active">Active</SelectItem>
+                            <SelectItem variant="modern" value="inactive">Inactive</SelectItem>
+                            <SelectItem variant="modern" value="pending">Pending</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -255,13 +252,13 @@ const UserDetail = () => {
                       <div>
                         <Label htmlFor="role">User Role</Label>
                         <Select defaultValue={user.role.toLowerCase()}>
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger variant="modern" className="w-full">
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="editor">Editor</SelectItem>
-                            <SelectItem value="viewer">Viewer</SelectItem>
+                          <SelectContent variant="modern">
+                            <SelectItem variant="modern" value="admin">Admin</SelectItem>
+                            <SelectItem variant="modern" value="editor">Editor</SelectItem>
+                            <SelectItem variant="modern" value="viewer">Viewer</SelectItem>
                           </SelectContent>
                         </Select>
                         <p className="text-sm text-gray-500 mt-1">Roles determine default permissions for the user</p>
@@ -358,7 +355,6 @@ const UserDetail = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {/* Sample activity logs */}
                       <div className="border-l-2 border-gray-200 pl-4 ml-2 py-1">
                         <p className="text-sm font-medium">Logged in successfully</p>
                         <p className="text-xs text-gray-500">Today at 10:23 AM • IP: 192.168.1.1</p>

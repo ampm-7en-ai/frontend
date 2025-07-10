@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Search, 
@@ -165,15 +164,15 @@ const UserList = () => {
                   value={selectedBusiness}
                   onValueChange={setSelectedBusiness}
                 >
-                  <SelectTrigger id="business-filter" className="mt-1">
+                  <SelectTrigger variant="modern" id="business-filter" className="mt-1">
                     <SelectValue placeholder="All Businesses" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Businesses</SelectItem>
-                    <SelectItem value="b1">Acme Corp</SelectItem>
-                    <SelectItem value="b2">Globex Industries</SelectItem>
-                    <SelectItem value="b3">Initech Solutions</SelectItem>
-                    <SelectItem value="b4">Soylent Corp</SelectItem>
+                  <SelectContent variant="modern">
+                    <SelectItem variant="modern" value="all">All Businesses</SelectItem>
+                    <SelectItem variant="modern" value="b1">Acme Corp</SelectItem>
+                    <SelectItem variant="modern" value="b2">Globex Industries</SelectItem>
+                    <SelectItem variant="modern" value="b3">Initech Solutions</SelectItem>
+                    <SelectItem variant="modern" value="b4">Soylent Corp</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -184,14 +183,14 @@ const UserList = () => {
                   value={selectedStatus}
                   onValueChange={setSelectedStatus}
                 >
-                  <SelectTrigger id="status-filter" className="mt-1">
+                  <SelectTrigger variant="modern" id="status-filter" className="mt-1">
                     <SelectValue placeholder="All Status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
+                  <SelectContent variant="modern">
+                    <SelectItem variant="modern" value="all">All Status</SelectItem>
+                    <SelectItem variant="modern" value="active">Active</SelectItem>
+                    <SelectItem variant="modern" value="inactive">Inactive</SelectItem>
+                    <SelectItem variant="modern" value="pending">Pending</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
