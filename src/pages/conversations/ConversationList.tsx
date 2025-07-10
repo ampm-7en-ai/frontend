@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -42,7 +43,6 @@ const ConversationList = () => {
   // Find the active conversation
   const activeConversation = sessions.find(c => c.id === selectedConversation) || null;
   const isDesktop = windowWidth >= 1024;
-  const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 
   const handleHandoffClick = (handoff: any) => {
     setSelectedAgent(handoff.from);
@@ -63,58 +63,75 @@ const ConversationList = () => {
 
   if (isDesktop) {
     return (
-      <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-            <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-r border-gray-200/60 dark:border-slate-700/60 shadow-sm">
-              <ConversationListPanel 
-                filterStatus={filterStatus}
-                setFilterStatus={setFilterStatus}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                selectedConversation={selectedConversation}
-                setSelectedConversation={handleConversationSelect}
-                channelFilter={channelFilter}
-                setChannelFilter={setChannelFilter}
-                agentTypeFilter={agentTypeFilter}
-                setAgentTypeFilter={setAgentTypeFilter}
-              />
+      <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-50/90 via-white to-blue-50/30 dark:from-slate-950/90 dark:via-slate-900 dark:to-slate-800/30">
+        {/* Modern Header Bar */}
+        <div className="h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 flex items-center px-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+              </svg>
             </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle className="bg-gray-200/40 dark:bg-slate-700/40 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors backdrop-blur-sm" />
-          
-          <ResizablePanel defaultSize={50}>
-            <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
-              <MessageContainer 
-                conversation={activeConversation}
-                selectedAgent={selectedAgent}
-                setSelectedAgent={setSelectedAgent}
-                onInfoClick={() => setSidebarOpen(true)}
-                getStatusBadge={getStatusBadge}
-                onSendMessage={(message) => {
-                  toast({
-                    title: "Message sent",
-                    description: "Your message has been sent to the customer.",
-                  });
-                }}
-              />
+            <div>
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Conversations</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Manage customer conversations and support tickets</p>
             </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle className="bg-gray-200/40 dark:bg-slate-700/40 hover:bg-gray-300/60 dark:hover:bg-slate-600/60 transition-colors backdrop-blur-sm" />
-          
-          <ResizablePanel defaultSize={30}>
-            <div className="border-l border-gray-200/60 dark:border-slate-700/60 h-full overflow-y-auto bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-sm">
-              <ConversationDetailsPanel 
-                conversation={activeConversation}
-                selectedAgent={selectedAgent}
-                onHandoffClick={handleHandoffClick}
-                getSatisfactionIndicator={getSatisfactionIndicator}
-              />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          </div>
+        </div>
+
+        <div className="h-[calc(100vh-3.5rem)]">
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+              <div className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-r border-slate-200/40 dark:border-slate-800/40 shadow-sm">
+                <ConversationListPanel 
+                  filterStatus={filterStatus}
+                  setFilterStatus={setFilterStatus}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  selectedConversation={selectedConversation}
+                  setSelectedConversation={handleConversationSelect}
+                  channelFilter={channelFilter}
+                  setChannelFilter={setChannelFilter}
+                  agentTypeFilter={agentTypeFilter}
+                  setAgentTypeFilter={setAgentTypeFilter}
+                />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle className="bg-slate-200/40 dark:bg-slate-700/40 hover:bg-slate-300/60 dark:hover:bg-slate-600/60 transition-colors backdrop-blur-sm w-1" />
+            
+            <ResizablePanel defaultSize={50}>
+              <div className="h-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
+                <MessageContainer 
+                  conversation={activeConversation}
+                  selectedAgent={selectedAgent}
+                  setSelectedAgent={setSelectedAgent}
+                  onInfoClick={() => setSidebarOpen(true)}
+                  getStatusBadge={getStatusBadge}
+                  onSendMessage={(message) => {
+                    toast({
+                      title: "Message sent",
+                      description: "Your message has been sent to the customer.",
+                    });
+                  }}
+                />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle className="bg-slate-200/40 dark:bg-slate-700/40 hover:bg-slate-300/60 dark:hover:bg-slate-600/60 transition-colors backdrop-blur-sm w-1" />
+            
+            <ResizablePanel defaultSize={30}>
+              <div className="border-l border-slate-200/40 dark:border-slate-800/40 h-full overflow-y-auto bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm">
+                <ConversationDetailsPanel 
+                  conversation={activeConversation}
+                  selectedAgent={selectedAgent}
+                  onHandoffClick={handleHandoffClick}
+                  getSatisfactionIndicator={getSatisfactionIndicator}
+                />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
         
         <style dangerouslySetInnerHTML={{ __html: `
           main {
@@ -128,9 +145,24 @@ const ConversationList = () => {
 
   // Mobile/Tablet layout
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-slate-900/80 dark:to-slate-800/50">
-      <div className="flex h-full">
-        <div className="w-72 border-r border-gray-200/60 dark:border-slate-700/60 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-sm">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-50/90 via-white to-blue-50/30 dark:from-slate-950/90 dark:via-slate-900 dark:to-slate-800/30">
+      {/* Modern Mobile Header */}
+      <div className="h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 flex items-center px-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Conversations</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Customer support</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex h-[calc(100vh-3.5rem)]">
+        <div className="w-80 border-r border-slate-200/40 dark:border-slate-800/40 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-sm">
           <ConversationListPanel 
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
@@ -145,7 +177,7 @@ const ConversationList = () => {
           />
         </div>
         
-        <div className="flex-1 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
+        <div className="flex-1 flex flex-col h-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
           <MessageContainer 
             conversation={activeConversation}
             selectedAgent={selectedAgent}

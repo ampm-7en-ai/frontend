@@ -3,9 +3,10 @@ import ConversationCard from './ConversationCard';
 import ConversationFilters from './ConversationFilters';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader } from 'lucide-react';
+import { Loader, RefreshCw } from 'lucide-react';
 import { useChatSessions } from '@/hooks/useChatSessions';
 import { useToast } from "@/hooks/use-toast";
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface ConversationListPanelProps {
   filterStatus: string;
@@ -250,14 +251,14 @@ const ConversationListPanel = ({
       return Array(5).fill(0).map((_, index) => (
         <div key={`skeleton-${index}`} className="p-3">
           <div className="flex items-start gap-3">
-            <Skeleton className="h-9 w-9 rounded-none bg-gray-200 dark:bg-slate-700" />
+            <Skeleton className="h-9 w-9 rounded-lg bg-slate-200/80 dark:bg-slate-700/80" />
             <div className="flex-1">
-              <Skeleton className="h-4 w-24 mb-2 bg-gray-200 dark:bg-slate-700" />
-              <Skeleton className="h-3 w-32 mb-3 bg-gray-200 dark:bg-slate-700" />
-              <Skeleton className="h-3 w-40 bg-gray-200 dark:bg-slate-700" />
+              <Skeleton className="h-4 w-24 mb-2 bg-slate-200/80 dark:bg-slate-700/80 rounded-md" />
+              <Skeleton className="h-3 w-32 mb-3 bg-slate-200/80 dark:bg-slate-700/80 rounded-md" />
+              <Skeleton className="h-3 w-40 bg-slate-200/80 dark:bg-slate-700/80 rounded-md" />
               <div className="flex gap-2 mt-2">
-                <Skeleton className="h-4 w-12 bg-gray-200 dark:bg-slate-700" />
-                <Skeleton className="h-4 w-12 bg-gray-200 dark:bg-slate-700" />
+                <Skeleton className="h-4 w-12 bg-slate-200/80 dark:bg-slate-700/80 rounded-full" />
+                <Skeleton className="h-4 w-12 bg-slate-200/80 dark:bg-slate-700/80 rounded-full" />
               </div>
             </div>
           </div>
@@ -268,15 +269,24 @@ const ConversationListPanel = ({
     if (filteredSessions.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
-          <div className="text-gray-400 dark:text-slate-500 mb-3">
-            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+            <svg className="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
-          <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">No conversations found</h3>
-          <p className="text-xs text-gray-500 dark:text-slate-400">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">No conversations found</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-48">
             Try adjusting your filters or refreshing to see conversations.
           </p>
+          <ModernButton
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            icon={RefreshCw}
+            className="text-xs"
+          >
+            Refresh
+          </ModernButton>
         </div>
       );
     }
@@ -299,8 +309,10 @@ const ConversationListPanel = ({
             ref={loadMoreRef} 
             className="flex justify-center items-center p-4"
           >
-            <Loader className="h-4 w-4 animate-spin text-gray-400 dark:text-slate-500" />
-            <span className="ml-2 text-xs text-gray-500 dark:text-slate-400">Loading more...</span>
+            <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+              <Loader className="h-4 w-4 animate-spin" />
+              <span className="text-xs">Loading more...</span>
+            </div>
           </div>
         )}
       </>
@@ -308,9 +320,25 @@ const ConversationListPanel = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
-      {/* Filters */}
-      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700">
+    <div className="flex flex-col h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+      {/* Modern Header */}
+      <div className="flex-shrink-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-b border-slate-200/40 dark:border-slate-800/40 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Conversations</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {filteredSessions.length} conversation{filteredSessions.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <ModernButton
+            onClick={handleRefresh}
+            variant="ghost"
+            size="sm"
+            icon={RefreshCw}
+            className="w-8 h-8 p-0"
+          />
+        </div>
+        
         <ConversationFilters 
           filterResolved={filterStatus}
           onFilterResolvedChange={setFilterStatus}
