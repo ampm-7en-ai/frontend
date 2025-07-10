@@ -1,18 +1,11 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { ModernModal } from '@/components/ui/modern-modal';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import { Ticket, AlertCircle, Loader2 } from 'lucide-react';
 import { useTicketingIntegrations } from '@/hooks/useTicketingIntegrations';
@@ -146,73 +139,101 @@ const CreateSupportTicketModal = ({
 
   if (isLoadingProviders) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span>Loading ticketing providers...</span>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ModernModal 
+        open={open} 
+        onOpenChange={onOpenChange}
+        title="Loading..."
+        size="md"
+      >
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span>Loading ticketing providers...</span>
+        </div>
+      </ModernModal>
     );
   }
 
   if (providersError || !hasConnectedProviders) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-orange-600" />
-              No Connected Providers
-            </DialogTitle>
-            <DialogDescription>
-              {providersError 
-                ? `Error loading providers: ${providersError}`
-                : "No ticketing providers are currently connected. Please connect a provider first."
-              }
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ModernModal 
+        open={open} 
+        onOpenChange={onOpenChange}
+        title="No Connected Providers"
+        size="md"
+        footer={
+          <ModernButton onClick={() => onOpenChange(false)}>
+            Close
+          </ModernButton>
+        }
+      >
+        <div className="flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            {providersError 
+              ? `Error loading providers: ${providersError}`
+              : "No ticketing providers are currently connected. Please connect a provider first."
+            }
+          </div>
+        </div>
+      </ModernModal>
     );
   }
 
+  // Prepare dropdown options
+  const providerOptions = connectedProviders.map(provider => ({
+    value: provider.id,
+    label: provider.name,
+    description: `${provider.type} provider`
+  }));
+
+  const priorityOptions = selectedProviderData?.capabilities.priorities.map(p => ({
+    value: p,
+    label: p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
+  })) || [];
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Ticket className="h-5 w-5 text-orange-600" />
-            Create Support Ticket
-          </DialogTitle>
-          <DialogDescription>
-            Create a new support ticket using your connected ticketing provider.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4 py-4">
+    <ModernModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Create Support Ticket"
+      description="Create a new support ticket using your connected ticketing provider."
+      size="lg"
+      footer={
+        <div className="flex gap-3">
+          <ModernButton 
+            variant="outline" 
+            onClick={handleCancel} 
+            disabled={isCreating}
+          >
+            Cancel
+          </ModernButton>
+          <ModernButton 
+            variant="primary"
+            onClick={handleCreateTicket} 
+            disabled={isCreating || !selectedProvider}
+            icon={isCreating ? Loader2 : undefined}
+          >
+            {isCreating ? "Creating..." : "Create Ticket"}
+          </ModernButton>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Ticket className="h-5 w-5 text-orange-600" />
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Ticket Details</span>
+        </div>
+
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="provider">Ticketing Provider *</Label>
-            <Select value={selectedProvider} onValueChange={setSelectedProvider} disabled={isCreating}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a ticketing provider" />
-              </SelectTrigger>
-              <SelectContent>
-                {connectedProviders.map((provider) => (
-                  <SelectItem key={provider.id} value={provider.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{provider.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ModernDropdown
+              value={selectedProvider}
+              onValueChange={setSelectedProvider}
+              options={providerOptions}
+              placeholder="Select a ticketing provider"
+              disabled={isCreating}
+            />
           </div>
 
           <div className="space-y-2">
@@ -223,23 +244,19 @@ const CreateSupportTicketModal = ({
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               disabled={isCreating}
+              className="rounded-xl"
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="priority">Priority *</Label>
-            <Select value={priority} onValueChange={setPriority} disabled={isCreating || !selectedProviderData}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent>
-                {selectedProviderData?.capabilities.priorities.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ModernDropdown
+              value={priority}
+              onValueChange={setPriority}
+              options={priorityOptions}
+              placeholder="Select priority"
+              disabled={isCreating || !selectedProviderData}
+            />
           </div>
           
           <div className="space-y-2">
@@ -249,51 +266,35 @@ const CreateSupportTicketModal = ({
               placeholder="Describe the issue or request..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="min-h-[120px] resize-none"
+              className="min-h-[120px] resize-none rounded-xl"
               disabled={isCreating}
             />
           </div>
-          
-          {conversation && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Auto-populated:</strong> This ticket will include context from the current conversation with {conversation.customer}.
-                </div>
-              </div>
-            </div>
-          )}
-
-          {selectedProviderData && (
-            <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <Ticket className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Provider:</strong> Ticket will be created in {selectedProviderData.name}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         
-        <DialogFooter>
-          <Button variant="outline" onClick={handleCancel} disabled={isCreating}>
-            Cancel
-          </Button>
-          <Button onClick={handleCreateTicket} disabled={isCreating || !selectedProvider}>
-            {isCreating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Creating...
-              </>
-            ) : (
-              "Create Ticket"
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        {conversation && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Auto-populated:</strong> This ticket will include context from the current conversation with {conversation.customer}.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedProviderData && (
+          <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <Ticket className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                <strong>Provider:</strong> Ticket will be created in {selectedProviderData.name}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </ModernModal>
   );
 };
 
