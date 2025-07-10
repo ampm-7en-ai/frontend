@@ -21,39 +21,77 @@ export const GuidelinesPanel = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   
-  // State for tracking original agent data and customizations
+  // Enhanced state tracking for system prompt management
   const [originalAgentType, setOriginalAgentType] = useState<string>('');
   const [originalSystemPrompt, setOriginalSystemPrompt] = useState<string>('');
-  const [isSystemPromptCustomized, setIsSystemPromptCustomized] = useState(false);
+  const [hasUserCustomizedPrompt, setHasUserCustomizedPrompt] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  // Initialize original values when agent data is loaded
+  // Initialize original values and track customizations
   useEffect(() => {
-    if (agentData.agentType && !originalAgentType) {
+    if (agentData.agentType && agentData.systemPrompt && !initialLoadComplete) {
       setOriginalAgentType(agentData.agentType);
-    }
-    if (agentData.systemPrompt && !originalSystemPrompt) {
       setOriginalSystemPrompt(agentData.systemPrompt);
+      setHasUserCustomizedPrompt(false);
+      setInitialLoadComplete(true);
+      console.log('Initial load - Agent Type:', agentData.agentType, 'System Prompt set');
     }
-  }, [agentData.agentType, agentData.systemPrompt, originalAgentType, originalSystemPrompt]);
+  }, [agentData.agentType, agentData.systemPrompt, initialLoadComplete]);
 
-  // Track system prompt customizations
+  // Track when user manually changes system prompt
   const handleSystemPromptChange = (value: string) => {
     updateAgentData({ systemPrompt: value });
     
-    // Mark as customized if it differs from the original
+    // Mark as customized if it differs from the original loaded prompt
     if (value !== originalSystemPrompt) {
-      setIsSystemPromptCustomized(true);
+      setHasUserCustomizedPrompt(true);
+      console.log('System prompt customized by user');
     } else {
-      setIsSystemPromptCustomized(false);
+      setHasUserCustomizedPrompt(false);
     }
   };
 
-  // Load template prompt for current agent type
+  // Load template prompt for current agent type (explicit user action)
   const loadTemplatePrompt = () => {
     const matchingPrompt = prompts.find(p => p.agent_type === agentData.agentType);
     if (matchingPrompt) {
       updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
-      setIsSystemPromptCustomized(false);
+      setHasUserCustomizedPrompt(false);
+      console.log('Template prompt loaded for agent type:', agentData.agentType);
+    }
+  };
+
+  // Enhanced agent type change with smart system prompt preservation
+  const handleAgentTypeChange = (agentType: string) => {
+    console.log('Agent type changing to:', agentType, 'Has user customization:', hasUserCustomizedPrompt);
+    
+    updateAgentData({ agentType });
+    
+    // Smart system prompt handling:
+    // 1. If user has customized the prompt, preserve it (don't auto-load template)
+    // 2. If returning to original agent type, restore original prompt if no customization
+    // 3. Only auto-load template for genuinely new agent types without customization
+    
+    if (hasUserCustomizedPrompt) {
+      // User has customized the prompt - preserve it across agent type changes
+      console.log('Preserving user-customized system prompt');
+      return;
+    }
+    
+    if (agentType === originalAgentType && originalSystemPrompt) {
+      // Returning to original agent type - restore original prompt
+      console.log('Returning to original agent type, restoring original prompt');
+      updateAgentData({ systemPrompt: originalSystemPrompt });
+      return;
+    }
+    
+    if (agentType !== originalAgentType) {
+      // Switching to a different agent type - load template only if no customization
+      const matchingPrompt = prompts.find(p => p.agent_type === agentType);
+      if (matchingPrompt) {
+        console.log('Loading template for new agent type:', agentType);
+        updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
+      }
     }
   };
 
@@ -114,27 +152,6 @@ export const GuidelinesPanel = () => {
       const imageUrl = URL.createObjectURL(file);
       updateAgentData({ avatar: imageUrl });
     }
-  };
-
-  // Enhanced agent type change with smart system prompt handling
-  const handleAgentTypeChange = (agentType: string) => {
-    updateAgentData({ agentType });
-    
-    // Only update system prompt if:
-    // 1. This is a different agent type from the original AND user hasn't customized the prompt, OR
-    // 2. This is a new agent (no original system prompt)
-    const isDifferentFromOriginal = agentType !== originalAgentType;
-    const hasNoOriginalPrompt = !originalSystemPrompt;
-    
-    if ((isDifferentFromOriginal && !isSystemPromptCustomized) || hasNoOriginalPrompt) {
-      // Find matching prompt from API data
-      const matchingPrompt = prompts.find(p => p.agent_type === agentType);
-      if (matchingPrompt) {
-        updateAgentData({ systemPrompt: matchingPrompt.system_prompt });
-        setIsSystemPromptCustomized(false);
-      }
-    }
-    // If user has customized the prompt, preserve it when switching agent types
   };
 
   const addGuideline = (type: 'dos' | 'donts') => {
@@ -370,7 +387,7 @@ export const GuidelinesPanel = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Enhanced Behavior Guidelines with smart system prompt management */}
+            {/* Enhanced Behavior Guidelines with improved system prompt preservation */}
             <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -396,12 +413,12 @@ export const GuidelinesPanel = () => {
                     </div>
                   </div>
 
-                  {/* Enhanced System Prompt with customization tracking */}
+                  {/* Enhanced System Prompt with improved customization tracking */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
-                        {isSystemPromptCustomized && (
+                        {hasUserCustomizedPrompt && (
                           <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
                             Customized
                           </span>
