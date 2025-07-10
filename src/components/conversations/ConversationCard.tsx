@@ -37,8 +37,8 @@ const ConversationCard = ({
 }: ConversationCardProps) => {
   // Get channel icon with brand-appropriate colors and modern circular design
   const getChannelIcon = () => {
-    const iconClass = "h-4 w-4";
-    const containerClass = "w-8 h-8 flex items-center justify-center rounded-full transition-colors";
+    const iconClass = "h-5 w-5";
+    const containerClass = "w-11 h-11 flex items-center justify-center rounded-2xl transition-colors";
     
     switch (conversation.channel?.toLowerCase()) {
       case 'email':
@@ -114,12 +114,12 @@ const ConversationCard = ({
       className={cn(
         "hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200 cursor-pointer border-0 shadow-none rounded-xl bg-transparent",
         isSelected 
-          ? "bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-800 shadow-sm" 
+          ? "bg-gray-50 dark:bg-slate-700/50 ring-1 ring-gray-200 dark:ring-gray-800 shadow-sm" 
           : "hover:shadow-sm"
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-4 pb-1">
         <div className="flex items-start gap-3">
           {getChannelIcon()}
           

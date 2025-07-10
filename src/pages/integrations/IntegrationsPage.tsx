@@ -158,7 +158,7 @@ const IntegrationsPage = () => {
 
     // Fetch integration statuses - single consolidated request
     fetchIntegrationStatuses();
-  }, [toast, initialLoadComplete]);
+  }, [toast]);
 
   const integrations = [
     {
@@ -322,7 +322,7 @@ const IntegrationsPage = () => {
       return (
         <Badge 
           variant="outline" 
-          className={`text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 ${
+          className={`text-gray-600 border-gray-200 bg-gray-50 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/30 ${
             isSettingDefault === integrationId ? 'opacity-50 cursor-not-allowed' : ''
           }`}
           onClick={() => {
@@ -453,7 +453,7 @@ const IntegrationsPage = () => {
                                   className="w-16 h-16 object-contain"
                                 />
                               </div>
-                              <div className="flex flex-col gap-2">
+                              <div className="flex flex-col gap-2 items-end">
                                 {getStatusBadge(integration.status)}
                                 {integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
                               </div>
