@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -22,6 +23,8 @@ import { AgentHandoffNotification } from '@/components/conversations/AgentHandof
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useChatSessions } from '@/hooks/useChatSessions';
 import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
+import ConversationHeader from '@/components/conversations/ConversationHeader';
+import { useConversationUtils } from '@/hooks/useConversationUtils';
 
 // Define interface for message to include optional type property
 interface Message {
@@ -55,7 +58,11 @@ const ConversationDetail = () => {
   const [includeAttachments, setIncludeAttachments] = useState(true);
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [isContextPanelOpen, setIsContextPanelOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Use conversation utils for badges
+  const { getStatusBadge } = useConversationUtils();
   
   // Use the WebSocket hook for chat sessions to get session details
   const { 

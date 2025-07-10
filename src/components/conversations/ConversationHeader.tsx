@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Info, Phone, Video, MoreHorizontal, CheckCircle, TicketPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
-import { CreateSupportTicketModal } from './CreateSupportTicketModal';
+import CreateSupportTicketModal from './CreateSupportTicketModal';
 
 interface ConversationHeaderProps {
   conversation: {
@@ -174,9 +173,9 @@ const ConversationHeader = ({
       </div>
 
       <CreateSupportTicketModal
-        isOpen={isTicketModalOpen}
-        onClose={() => setIsTicketModalOpen(false)}
-        sessionId={conversation.id}
+        open={isTicketModalOpen}
+        onOpenChange={setIsTicketModalOpen}
+        conversation={conversation}
       />
     </>
   );
