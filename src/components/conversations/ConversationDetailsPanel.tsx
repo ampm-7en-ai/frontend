@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,47 @@ const ConversationDetailsPanel = ({
   getSatisfactionIndicator 
 }: ConversationDetailsPanelProps) => {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+
+  // Extract real handoff data from messages
+  const handoffData = useMemo(() => {
+    if (!conversation?.messages) return { handoffs: [], currentAgent: 'AI Assistant' };
+
+    const agents = new Set<string>();
+    const handoffs: any[] = [];
+    let previousAgent = 'AI Assistant';
+    
+    // Add initial AI agent
+    agents.add('AI Assistant');
+
+    // Go through messages to find agent changes
+    conversation.messages.forEach((message: any, index: number) => {
+      const currentAgent = message.agent || (message.sender === 'user' ? null : 'AI Assistant');
+      
+      if (currentAgent && currentAgent !== previousAgent) {
+        agents.add(currentAgent);
+        
+        handoffs.push({
+          id: `handoff_${index}`,
+          from: previousAgent,
+          to: currentAgent,
+          timestamp: message.timestamp || new Date().toISOString(),
+          reason: `Agent change detected in message flow`
+        });
+        
+        previousAgent = currentAgent;
+      }
+    });
+
+    // Get the current agent (last agent from messages or default)
+    const lastMessage = conversation.messages[conversation.messages.length - 1];
+    const currentAgent = lastMessage?.agent || conversation.agent || 'AI Assistant';
+
+    return { 
+      handoffs, 
+      currentAgent,
+      allAgents: Array.from(agents)
+    };
+  }, [conversation?.messages, conversation?.agent]);
 
   const getSentimentEmoji = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
@@ -58,24 +100,6 @@ const ConversationDetailsPanel = ({
     );
   }
 
-  // Mock handoff data - in a real app this would come from the conversation data
-  const mockHandoffs = [
-    {
-      id: '1',
-      from: 'AI Assistant',
-      to: 'Sarah Johnson',
-      timestamp: '2:30 PM',
-      reason: 'Customer requested human agent'
-    },
-    {
-      id: '2', 
-      from: 'Sarah Johnson',
-      to: 'Mike Chen',
-      timestamp: '3:15 PM',
-      reason: 'Technical expertise needed'
-    }
-  ];
-
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
       <div className="p-3 space-y-3">
@@ -101,12 +125,14 @@ const ConversationDetailsPanel = ({
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6 bg-blue-600">
                 <AvatarFallback className="text-white text-[10px] font-medium">
-                  AI
+                  {handoffData.currentAgent.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-slate-100">AI Assistant</p>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400">Available 24/7</p>
+                <p className="text-xs font-medium text-slate-900 dark:text-slate-100">{handoffData.currentAgent}</p>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400">
+                  {handoffData.currentAgent === 'AI Assistant' ? 'Available 24/7' : 'Human Agent'}
+                </p>
               </div>
             </div>
           </div>
@@ -190,33 +216,59 @@ const ConversationDetailsPanel = ({
           </section>
         )}
 
-        {/* Handoff History */}
-        <section>
-          <div className="mb-2">
-            <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Handoffs</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-              History of agent transfers for this conversation
-            </p>
-          </div>
-          
-          <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 bg-gradient-to-br from-amber-500 to-amber-600 rounded-md flex items-center justify-center">
-                  <MessageSquare className="h-3 w-3 text-white" />
+        {/* Handoff History - Only show if there are handoffs */}
+        {handoffData.handoffs.length > 0 && (
+          <section>
+            <div className="mb-2">
+              <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Handoffs</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
+                History of agent transfers for this conversation
+              </p>
+            </div>
+            
+            <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-gradient-to-br from-amber-500 to-amber-600 rounded-md flex items-center justify-center">
+                    <MessageSquare className="h-3 w-3 text-white" />
+                  </div>
+                  <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Handoff Timeline</h3>
                 </div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Handoff Timeline</h3>
+              </div>
+
+              <HandoffHistory 
+                handoffs={handoffData.handoffs}
+                onHandoffClick={onHandoffClick}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* All Agents Section */}
+        {handoffData.allAgents.length > 1 && (
+          <section>
+            <div className="mb-2">
+              <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">All Agents</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
+                Agents involved in this conversation
+              </p>
+            </div>
+            
+            <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+              <div className="flex flex-wrap gap-1">
+                {handoffData.allAgents.map((agent, index) => (
+                  <Badge 
+                    key={index}
+                    variant={agent === handoffData.currentAgent ? "default" : "outline"}
+                    className="text-xs"
+                  >
+                    {agent}
+                  </Badge>
+                ))}
               </div>
             </div>
-
-            <HandoffHistory 
-              handoffs={mockHandoffs}
-              onHandoffClick={onHandoffClick}
-            />
-          </div>
-        </section>
-
-        
+          </section>
+        )}
       </div>
 
       {/* Support Ticket Modal */}

@@ -40,6 +40,16 @@ const ConversationHeader = ({
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
   const getChannelBadge = (channel: string) => {
+    const isDefault = channel === 'website'; // You can adjust this logic based on your needs
+    
+    if (isDefault) {
+      return (
+        <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs">
+          {channel?.charAt(0).toUpperCase() + channel?.slice(1)} • Default
+        </Badge>
+      );
+    }
+    
     const channelStyles = {
       whatsapp: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
       email: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
@@ -51,7 +61,7 @@ const ConversationHeader = ({
     
     return (
       <Badge className={`text-xs border ${channelStyles[channel as keyof typeof channelStyles] || 'bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800'}`}>
-        {channel?.charAt(0).toUpperCase() + channel?.slice(1)}
+        {channel?.charAt(0).toUpperCase() + channel?.slice(1)} • Connected
       </Badge>
     );
   };
