@@ -313,9 +313,14 @@ const IntegrationsPage = () => {
       return (
         <Badge 
           variant="outline" 
-          className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30"
-          onClick={() => handleSetAsDefault(integrationId)}
-          disabled={isSettingDefault === integrationId}
+          className={`text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 ${
+            isSettingDefault === integrationId ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          onClick={() => {
+            if (isSettingDefault !== integrationId) {
+              handleSetAsDefault(integrationId);
+            }
+          }}
         >
           <Star className="h-3 w-3 mr-1" />
           {isSettingDefault === integrationId ? 'Setting...' : 'Set as Default'}
