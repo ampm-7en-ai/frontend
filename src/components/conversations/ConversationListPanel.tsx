@@ -109,7 +109,15 @@ const ConversationListPanel = ({
   // Custom filter functions for array-based filters
   const filterSessionsByChannels = (channels: string[]) => {
     if (channels.length === 0) return sessions;
-    return sessions.filter(s => channels.includes(s.channel));
+    // Filter by source property for ticketing, and channel for others
+    return sessions.filter(s => {
+      return channels.some(channel => {
+        if (channel === 'ticketing') {
+          return s.source === 'ticketing';
+        }
+        return s.channel === channel;
+      });
+    });
   };
   
   const filterSessionsByAgentTypes = (types: string[]) => {
@@ -126,9 +134,16 @@ const ConversationListPanel = ({
       result = filterSessionsByStatus(filterStatus);
     }
     
-    // Apply channel filter (array-based)
+    // Apply channel filter (array-based) - now includes ticketing filter
     if (channelFilter.length > 0) {
-      result = result.filter(s => channelFilter.includes(s.channel));
+      result = result.filter(s => {
+        return channelFilter.some(channel => {
+          if (channel === 'ticketing') {
+            return s.source === 'ticketing';
+          }
+          return s.channel === channel;
+        });
+      });
     }
     
     // Apply agent type filter (array-based)

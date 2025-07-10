@@ -51,9 +51,9 @@ const ConversationFiltersModern = ({
       description: 'Website chat widget'
     },
     { 
-      value: 'phone', 
-      label: 'Phone',
-      description: 'Phone call transcripts'
+      value: 'ticketing', 
+      label: 'Ticket',
+      description: 'Support ticket conversations'
     },
     { 
       value: 'slack', 

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -59,16 +58,18 @@ const ConversationDetailsPanel = ({
       }
     });
 
-    // Get the current agent (last agent from messages or default)
-    const lastMessage = conversation.messages[conversation.messages.length - 1];
-    const currentAgent = lastMessage?.agent || conversation.agent || 'AI Assistant';
+    // Get the current agent from the conversation object or last message
+    const currentAgent = conversation.agent || conversation.assignedAgent || handoffData?.currentAgent || 'AI Assistant';
+    if (currentAgent) {
+      agents.add(currentAgent);
+    }
 
     return { 
       handoffs, 
       currentAgent,
       allAgents: Array.from(agents)
     };
-  }, [conversation?.messages, conversation?.agent]);
+  }, [conversation?.messages, conversation?.agent, conversation?.assignedAgent]);
 
   const getSentimentEmoji = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
@@ -105,15 +106,18 @@ const ConversationDetailsPanel = ({
     );
   }
 
+  // Get the real assigned agent from conversation data
+  const assignedAgent = conversation.agent || conversation.assignedAgent || handoffData.currentAgent;
+
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
       <div className="p-3 space-y-3">
         {/* Current Agent Section */}
         <section>
           <div className="mb-2">
-            <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Current Agent</h2>
+            <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Information</h2>
             <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-              Agent currently handling this conversation
+              Agent currently assigned to this conversation
             </p>
           </div>
           
@@ -123,20 +127,20 @@ const ConversationDetailsPanel = ({
                 <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
                   <User className="h-3 w-3 text-white" />
                 </div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Agent Information</h3>
+                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Assigned Agent</h3>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6 bg-blue-600">
                 <AvatarFallback className="text-white text-[10px] font-medium">
-                  {handoffData.currentAgent.charAt(0).toUpperCase()}
+                  {assignedAgent.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-slate-100">{handoffData.currentAgent}</p>
+                <p className="text-xs font-medium text-slate-900 dark:text-slate-100">{assignedAgent}</p>
                 <p className="text-[10px] text-slate-600 dark:text-slate-400">
-                  {handoffData.currentAgent === 'AI Assistant' ? 'Available 24/7' : 'Human Agent'}
+                  {assignedAgent === 'AI Assistant' ? 'Available 24/7' : 'Human Agent'}
                 </p>
               </div>
             </div>
