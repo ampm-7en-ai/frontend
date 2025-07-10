@@ -214,7 +214,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                   <FormControl>
                     <Input 
                       placeholder="Your Business Name" 
-                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                      variant="modern"
+                      size="lg"
+                      className="pl-10 pr-4"
                       {...field} 
                     />
                   </FormControl>
@@ -236,7 +238,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                     <FormControl>
                       <Input 
                         placeholder="username" 
-                        className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                        variant="modern"
+                        size="lg"
+                        className="pl-10 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -258,7 +262,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                       <Input 
                         type="email" 
                         placeholder="email@example.com" 
-                        className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                        variant="modern"
+                        size="lg"
+                        className="pl-10 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -282,7 +288,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                       <Input 
                         type={showSignupPassword ? "text" : "password"} 
                         placeholder="••••••••" 
-                        className="h-11 pl-10 pr-12 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                        variant="modern"
+                        size="lg"
+                        className="pl-10 pr-12"
                         {...field} 
                       />
                     </FormControl>
@@ -310,7 +318,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                     <FormControl>
                       <Input 
                         placeholder="+1234567890" 
-                        className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                        variant="modern"
+                        size="lg"
+                        className="pl-10 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -332,7 +342,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                   <FormControl>
                     <Input 
                       placeholder="www.example.com" 
-                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                      variant="modern"
+                      size="lg"
+                      className="pl-10 pr-4"
                       {...field} 
                     />
                   </FormControl>
@@ -353,7 +365,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                   <FormControl>
                     <Input 
                       placeholder="Business Address" 
-                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                      variant="modern"
+                      size="lg"
+                      className="pl-10 pr-4"
                       {...field} 
                     />
                   </FormControl>

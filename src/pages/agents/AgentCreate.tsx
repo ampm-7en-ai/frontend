@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -124,6 +125,8 @@ const AgentCreate = () => {
               <Input 
                 id="agent-name" 
                 placeholder="e.g., Customer Support Assistant" 
+                variant="modern"
+                size="lg"
                 value={agentName}
                 onChange={handleAgentNameChange}
                 className={nameError ? "border-destructive" : ""}

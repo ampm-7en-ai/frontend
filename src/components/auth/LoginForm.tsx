@@ -333,7 +333,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   <FormControl>
                     <Input 
                       placeholder="Enter your username" 
-                      className="h-11 pl-10 pr-4 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                      variant="modern"
+                      size="lg"
+                      className="pl-10 pr-4"
                       {...field}
                     />
                   </FormControl>
@@ -367,7 +369,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                     <Input 
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password" 
-                      className="h-11 pl-10 pr-12 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-lg" 
+                      variant="modern"
+                      size="lg"
+                      className="pl-10 pr-12"
                       {...field}
                     />
                   </FormControl>
