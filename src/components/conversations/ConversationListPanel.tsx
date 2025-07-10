@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
-import ConversationFiltersModern from './ConversationFiltersModern';
+import ConversationFilters from './ConversationFilters';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader } from 'lucide-react';
@@ -95,17 +95,6 @@ const ConversationListPanel = ({
     
     return uniqueSessions;
   }, []);
-
-  // Get available agents from sessions
-  const availableAgents = React.useMemo(() => {
-    const agents = new Set<string>();
-    sessions.forEach(session => {
-      if (session.agent && session.agent.trim() !== '') {
-        agents.add(session.agent);
-      }
-    });
-    return Array.from(agents).sort();
-  }, [sessions]);
 
   // Initialize readSessions with all current sessions on first load
   useEffect(() => {
@@ -379,16 +368,13 @@ const ConversationListPanel = ({
     <div className="flex flex-col h-full bg-white dark:bg-slate-900">
       {/* Filters */}
       <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700">
-        <ConversationFiltersModern 
+        <ConversationFilters 
           filterResolved={filterStatus}
           onFilterResolvedChange={setFilterStatus}
           channelFilter={channelFilter}
           setChannelFilter={setChannelFilter}
           agentTypeFilter={agentTypeFilter}
           setAgentTypeFilter={setAgentTypeFilter}
-          agentNameFilter="all"
-          setAgentNameFilter={() => {}}
-          availableAgents={availableAgents}
         />
       </div>
       

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -18,9 +17,6 @@ interface ConversationFiltersProps {
   setChannelFilter: (channels: string[]) => void;
   agentTypeFilter: string[];
   setAgentTypeFilter: (types: string[]) => void;
-  agentNameFilter: string;
-  setAgentNameFilter: (agent: string) => void;
-  availableAgents: string[];
 }
 
 const ConversationFiltersModern = ({
@@ -29,10 +25,7 @@ const ConversationFiltersModern = ({
   channelFilter,
   setChannelFilter,
   agentTypeFilter,
-  setAgentTypeFilter,
-  agentNameFilter,
-  setAgentNameFilter,
-  availableAgents
+  setAgentTypeFilter
 }: ConversationFiltersProps) => {
   const statusTabs = [
     { id: 'all', label: 'All' },

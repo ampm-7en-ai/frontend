@@ -146,7 +146,6 @@ const MessageContainer = ({
                       <MessageList 
                         key={message.id}
                         message={message}
-                        messages={validMessages}
                         selectedAgent={selectedAgent}
                         messageContainerRef={messageContainerRef}
                         isTyping={isTyping} 

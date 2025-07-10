@@ -12,60 +12,28 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import MessageRevisionModal from './MessageRevisionModal';
 
 interface MessageProps {
   message: any;
   selectedAgent: string | null;
   messageContainerRef: React.RefObject<HTMLDivElement>;
   isTyping?: boolean;
-  messages?: any[]; // All messages to find the previous question
 }
 
 const MessageList = ({ 
   message, 
   selectedAgent,
   messageContainerRef,
-  isTyping,
-  messages = []
+  isTyping 
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);
-  const [revisionModalOpen, setRevisionModalOpen] = useState(false);
 
   const handleCopy = () => {
     if (typeof message.content === 'string') {
       navigator.clipboard.writeText(message.content);
       toast.success("Message copied to clipboard");
     }
-  };
-
-  const handleReviseClick = () => {
-    setRevisionModalOpen(true);
-  };
-
-  const handleRevise = async (revisedAnswer: string) => {
-    // Here you would typically make an API call to save the revision
-    console.log('Revising message:', message.id, 'with new content:', revisedAnswer);
-    // For now, just simulate success
-    return Promise.resolve();
-  };
-
-  // Find the previous user message (question) for this bot response
-  const getPreviousUserMessage = () => {
-    if (message.sender !== 'bot' || !messages.length) return '';
-    
-    const currentIndex = messages.findIndex(msg => msg.id === message.id);
-    if (currentIndex <= 0) return '';
-    
-    // Look backwards for the most recent user message
-    for (let i = currentIndex - 1; i >= 0; i--) {
-      if (messages[i].sender === 'user') {
-        return messages[i].content || '';
-      }
-    }
-    
-    return '';
   };
 
   // Handle system messages
@@ -115,192 +83,180 @@ const MessageList = ({
   const userMessageStyle = "bg-primary text-primary-foreground dark:bg-blue-600 dark:text-white";
   
   return (
-    <>
-      <div 
-        key={message.id} 
-        id={`message-${message.id}`}
-        className={`mb-4 ${message.sender === 'user' ? 'flex justify-end' : 'flex justify-start'} px-1`}
-      >
-        {message.sender === 'bot' && (
-          <Avatar className={cn(
-            "h-8 w-8 mr-3 mt-0.5 flex-shrink-0",
-            isHighlighted ? "bg-primary ring-2 ring-primary/30" : "bg-slate-700 dark:bg-slate-600"
+    <div 
+      key={message.id} 
+      id={`message-${message.id}`}
+      className={`mb-4 ${message.sender === 'user' ? 'flex justify-end' : 'flex justify-start'} px-1`}
+    >
+      {message.sender === 'bot' && (
+        <Avatar className={cn(
+          "h-8 w-8 mr-3 mt-0.5 flex-shrink-0",
+          isHighlighted ? "bg-primary ring-2 ring-primary/30" : "bg-slate-700 dark:bg-slate-600"
+        )}>
+          <AvatarFallback>
+            <Bot className="h-4 w-4 text-white" />
+          </AvatarFallback>
+        </Avatar>
+      )}
+      
+      <div className={cn(
+        "flex flex-col max-w-[75%] min-w-0",
+        message.sender === 'user' ? "items-end" : "items-start"
+      )}>
+        {message.sender === 'bot' && message.agent && (
+          <div className={cn(
+            "text-xs font-medium mb-1 ml-1",
+            isHighlighted ? "text-primary dark:text-primary-foreground" : "text-muted-foreground"
           )}>
-            <AvatarFallback>
-              <Bot className="h-4 w-4 text-white" />
-            </AvatarFallback>
-          </Avatar>
+            {message.agent}
+          </div>
         )}
         
-        <div className={cn(
-          "flex flex-col max-w-[75%] min-w-0",
-          message.sender === 'user' ? "items-end" : "items-start"
-        )}>
-          {message.sender === 'bot' && message.agent && (
-            <div className={cn(
-              "text-xs font-medium mb-1 ml-1",
-              isHighlighted ? "text-primary dark:text-primary-foreground" : "text-muted-foreground"
-            )}>
-              {message.agent}
+        {message.sender === 'user' ? (
+          <div 
+            className={cn(
+              "p-3 transition-all shadow-sm max-w-full",
+              "rounded-2xl rounded-tr-sm",
+              userMessageStyle
+            )}
+          >
+            <div className="prose-sm max-w-none break-words text-white dark:text-white">
+              {typeof message.content === 'string' && (
+                <ReactMarkdown 
+                  components={{
+                    p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
+                    ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
+                    ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1">{children}</li>
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              )}
             </div>
-          )}
-          
-          {message.sender === 'user' ? (
+            <div className="text-xs mt-2 opacity-70 text-right">
+              {message.timestamp}
+            </div>
+          </div>
+        ) : (
+          <div 
+            className="flex flex-col group relative max-w-full"
+            onMouseEnter={() => setShowControls(true)}
+            onMouseLeave={() => setShowControls(false)}
+          >
             <div 
               className={cn(
-                "p-3 transition-all shadow-sm max-w-full",
-                "rounded-2xl rounded-tr-sm",
-                userMessageStyle
+                "p-3 transition-all max-w-full",
+                "rounded-2xl rounded-tl-sm bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-sm",
+                "border border-slate-200/60 dark:border-slate-700/60 shadow-sm"
               )}
             >
-              <div className="prose-sm max-w-none break-words text-white dark:text-white">
+              <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
                 {typeof message.content === 'string' && (
-                  <ReactMarkdown 
+                  <ReactMarkdown
                     components={{
                       p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
                       ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
                       ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
-                      li: ({ children }) => <li className="mb-1">{children}</li>
+                      li: ({ children }) => <li className="mb-1">{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>
                     }}
                   >
                     {message.content}
                   </ReactMarkdown>
                 )}
               </div>
-              <div className="text-xs mt-2 opacity-70 text-right">
+              <div className="text-xs mt-2 text-slate-500 dark:text-slate-400">
                 {message.timestamp}
               </div>
             </div>
-          ) : (
+            
+            {/* Action buttons at bottom of message - visible on hover */}
             <div 
-              className="flex flex-col group relative max-w-full"
-              onMouseEnter={() => setShowControls(true)}
-              onMouseLeave={() => setShowControls(false)}
+              className={cn(
+                "flex items-center gap-1 mt-1.5 ml-1",
+                showControls ? "opacity-100" : "opacity-0",
+                "transition-opacity duration-150"
+              )}
             >
-              <div 
-                className={cn(
-                  "p-3 transition-all max-w-full",
-                  "rounded-2xl rounded-tl-sm bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-sm",
-                  "border border-slate-200/60 dark:border-slate-700/60 shadow-sm"
-                )}
-              >
-                <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
-                  {typeof message.content === 'string' && (
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
-                        ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
-                        ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
-                        li: ({ children }) => <li className="mb-1">{children}</li>,
-                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                        em: ({ children }) => <em className="italic">{children}</em>
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  )}
-                </div>
-                <div className="text-xs mt-2 text-slate-500 dark:text-slate-400">
-                  {message.timestamp}
-                </div>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={handleCopy} 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                      <Copy className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Copy response</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               
-              {/* Action buttons at bottom of message - visible on hover */}
-              <div 
-                className={cn(
-                  "flex items-center gap-1 mt-1.5 ml-1",
-                  showControls ? "opacity-100" : "opacity-0",
-                  "transition-opacity duration-150"
-                )}
-              >
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        onClick={handleCopy} 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <Copy className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Copy response</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        onClick={handleReviseClick}
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <RotateCcw className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Revise</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <ThumbsUp className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Mark as helpful</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <ThumbsDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Mark as unhelpful</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                      <RotateCcw className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Revise</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                      <ThumbsUp className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mark as helpful</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                      <ThumbsDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mark as unhelpful</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-          )}
-        </div>
-        
-        {message.sender === 'user' && (
-          <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-purple-500 dark:bg-purple-600 p-[1px] flex-shrink-0">
-            <AvatarFallback>
-              <User className="h-4 w-4 text-white" />
-            </AvatarFallback>
-          </Avatar>
+          </div>
         )}
       </div>
-
-      {/* Message Revision Modal */}
-      <MessageRevisionModal
-        open={revisionModalOpen}
-        onOpenChange={setRevisionModalOpen}
-        question={getPreviousUserMessage()}
-        answer={typeof message.content === 'string' ? message.content : ''}
-        onRevise={handleRevise}
-      />
-    </>
+      
+      {message.sender === 'user' && (
+        <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-purple-500 dark:bg-purple-600 p-[1px] flex-shrink-0">
+          <AvatarFallback>
+            <User className="h-4 w-4 text-white" />
+          </AvatarFallback>
+        </Avatar>
+      )}
+    </div>
   );
 };
 
