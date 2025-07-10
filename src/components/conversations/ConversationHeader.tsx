@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { Info, Phone, Video, MoreHorizontal, CheckCircle, TicketPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -133,31 +133,25 @@ const ConversationHeader = ({
           </div>
         </div>
         
-        {
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setIsTicketModalOpen(true)}
-              className="hover:bg-white/50 dark:hover:bg-slate-800/50"
-            >
-              <TicketPlus className="h-4 w-4 mr-1" />
-              Create Ticket
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleResolveConversation}
-              disabled={isResolving || isResolved}
-              className={`hover:bg-white/50 dark:hover:bg-slate-800/50 ${
-                isResolved ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              <CheckCircle className="h-4 w-4 mr-1" />
-              {isResolving ? 'Resolving...' : isResolved ? 'Resolved' : 'Resolve'}
-            </Button>
-          </div>
-        }
+        <div className="flex items-center gap-2">
+          <ModernButton
+            variant="outline"
+            size="sm"
+            icon={TicketPlus}
+            onClick={() => setIsTicketModalOpen(true)}
+          >
+            Create Ticket
+          </ModernButton>
+          <ModernButton
+            variant={isResolved ? "secondary" : "primary"}
+            size="sm"
+            icon={CheckCircle}
+            onClick={handleResolveConversation}
+            disabled={isResolving || isResolved}
+          >
+            {isResolving ? 'Resolving...' : isResolved ? 'Resolved' : 'Resolve'}
+          </ModernButton>
+        </div>
       </div>
 
       <CreateSupportTicketModal

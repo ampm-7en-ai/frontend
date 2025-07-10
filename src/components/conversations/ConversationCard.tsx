@@ -35,59 +35,49 @@ const ConversationCard = ({
   isSelected, 
   onClick
 }: ConversationCardProps) => {
-  // Get avatar background color based on the first letter
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      "bg-blue-500", "bg-emerald-500", "bg-purple-500", 
-      "bg-amber-500", "bg-rose-500", "bg-indigo-500"
-    ];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
-  };
-  
-  // Get channel icon with brand-appropriate colors
+  // Get channel icon with brand-appropriate colors and modern circular design
   const getChannelIcon = () => {
-    const iconClass = "h-5 w-5";
-    const containerClass = "w-full h-full flex items-center justify-center rounded-lg border transition-colors";
+    const iconClass = "h-4 w-4";
+    const containerClass = "w-8 h-8 flex items-center justify-center rounded-full transition-colors";
     
     switch (conversation.channel?.toLowerCase()) {
       case 'email':
         return (
-          <div className={cn(containerClass, "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800")}>
+          <div className={cn(containerClass, "bg-blue-100 dark:bg-blue-900/30")}>
             <Mail className={cn(iconClass, "text-blue-600 dark:text-blue-400")} strokeWidth={2} />
           </div>
         );
       case 'phone':
         return (
-          <div className={cn(containerClass, "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700")}>
+          <div className={cn(containerClass, "bg-slate-100 dark:bg-slate-800")}>
             <Phone className={cn(iconClass, "text-slate-600 dark:text-slate-400")} strokeWidth={2} />
           </div>
         );
       case 'slack':
         return (
-          <div className={cn(containerClass, "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800")}>
+          <div className={cn(containerClass, "bg-purple-100 dark:bg-purple-900/30")}>
             <Slack className={cn(iconClass, "text-purple-600 dark:text-purple-400")} strokeWidth={2} />
           </div>
         );
       case 'instagram':
         return (
-          <div className={cn(containerClass, "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800")}>
-            <Instagram className={cn(iconClass, "text-pink-600 dark:text-pink-400")} strokeWidth={2} />
+          <div className={cn(containerClass, "bg-gradient-to-br from-pink-500 to-violet-500")}>
+            <Instagram className={cn(iconClass, "text-white")} strokeWidth={2} />
           </div>
         );
       case 'website':
         return (
-          <div className={cn(containerClass, "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800")}>
+          <div className={cn(containerClass, "bg-green-100 dark:bg-green-900/30")}>
             <Globe className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
           </div>
         );
       case 'whatsapp':
       default:
         return (
-          <div className={cn(containerClass, "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 relative")}>
+          <div className={cn(containerClass, "bg-green-100 dark:bg-green-900/30 relative")}>
             <MessageSquare className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
             {conversation.agentType && (
-              <span className='absolute -bottom-1 -right-1 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
+              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
                 {conversation.agentType === 'ai' ? 'AI' : 'H'}
               </span>
             )}
@@ -131,9 +121,7 @@ const ConversationCard = ({
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10 rounded-none overflow-hidden shadow-sm">
-            {getChannelIcon()}
-          </Avatar>
+          {getChannelIcon()}
           
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start mb-1">
@@ -159,7 +147,7 @@ const ConversationCard = ({
             </div>
             
             <p className={cn(
-              "text-xs mt-1 line-clamp-2 leading-relaxed",
+              "text-xs truncate leading-relaxed",
               conversation.isUnread ? "font-medium text-gray-700 dark:text-slate-300" : "text-gray-500 dark:text-slate-400"
             )}>
               {conversation.lastMessage}
