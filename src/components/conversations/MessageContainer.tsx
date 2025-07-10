@@ -1,8 +1,8 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import MessageList from './MessageList';
 import ConversationHeader from './ConversationHeader';
 import ConversationEmptyState from './ConversationEmptyState';
-import MessageInput from './MessageInput';
 import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -96,15 +96,11 @@ const MessageContainer = ({
   ) || [];
 
   if (!conversation) {
-    return (
-      <div className="h-full bg-gradient-to-br from-slate-50/90 via-white to-blue-50/30 dark:from-slate-950/90 dark:via-slate-900 dark:to-slate-800/30">
-        <ConversationEmptyState />
-      </div>
-    );
+    return <ConversationEmptyState />;
   }
 
   return (
-    <div className="flex flex-col h-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
+    <div className="flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
       <ConversationHeader 
         conversation={conversation}
         selectedAgent={selectedAgent}
@@ -115,8 +111,10 @@ const MessageContainer = ({
         hideActionButtons={true}
       />
       
-      <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50/80 to-white/80 dark:from-slate-900/80 dark:to-slate-800/80"> 
-        <ScrollArea className="h-full">
+      <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50/80 to-slate-100/80 dark:from-slate-900/80 dark:to-slate-800/80"> 
+        <ScrollArea 
+          className="h-full"
+        >
           <div className="p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
               {isLoading || validMessages.length === 0 ? (
@@ -125,17 +123,17 @@ const MessageContainer = ({
                   {[1, 2, 3, 4].map((i) => (
                     i % 2 == 0 ? (
                       <div key={i} className="flex items-start gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full bg-slate-200/60 dark:bg-slate-700/60" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-slate-200/60 dark:bg-slate-700/60" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
                         </div>
                       </div>
                     ) : (
                       <div key={i} className="flex items-start gap-3 justify-end">
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-slate-200/60 dark:bg-slate-700/60" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
                         </div>
-                        <Skeleton className="h-8 w-8 rounded-full bg-slate-200/60 dark:bg-slate-700/60" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
                       </div>
                     )
                   ))}
@@ -161,9 +159,6 @@ const MessageContainer = ({
           </div>
         </ScrollArea>
       </div>
-      
-      {/* Modern Message Input */}
-      <MessageInput onSendMessage={handleSendMessage} />
     </div>
   );
 };
