@@ -147,32 +147,37 @@ const ConversationListPanel = ({
     
     // Apply status filter
     if (filterStatus !== 'all') {
-      result = filterSessionsByStatus(filterStatus);
+      result = result.filter(s => s && s.status === filterStatus);
       console.log(`After status filter: ${result.length} sessions`);
     }
     
     // Apply channel filter (array-based)
     if (channelFilter.length > 0) {
       result = result.filter(s => {
-        return channelFilter.some(channel => {
-          if (channel === 'ticketing') {
-            return s.channel === 'ticketing';
-          }
-          return s.channel === channel;
-        });
+        if (!s || !s.channel) return false;
+        return channelFilter.includes(s.channel);
       });
       console.log(`After channel filter: ${result.length} sessions`);
     }
     
     // Apply agent type filter (array-based)
     if (agentTypeFilter.length > 0) {
-      result = result.filter(s => agentTypeFilter.includes(s.agentType));
+      result = result.filter(s => {
+        if (!s || !s.agentType) return false;
+        return agentTypeFilter.includes(s.agentType);
+      });
       console.log(`After agent type filter: ${result.length} sessions`);
     }
     
     // Apply search filter
     if (searchQuery) {
-      result = filterSessionsBySearch(searchQuery);
+      result = result.filter(s => 
+        s && (
+          s.customer?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+          s.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (s.email && s.email.toLowerCase().includes(searchQuery.toLowerCase()))
+        )
+      );
       console.log(`After search filter: ${result.length} sessions`);
     }
     
@@ -194,8 +199,6 @@ const ConversationListPanel = ({
     agentTypeFilter, 
     searchQuery,
     readSessions,
-    filterSessionsByStatus,
-    filterSessionsBySearch,
     validateSessions
   ]);
   
@@ -231,6 +234,7 @@ const ConversationListPanel = ({
       (entries) => {
         const [entry] = entries;
         if (entry.isIntersecting && !isLoadingState) {
+          console.log(`Loading more sessions: current display count ${displayCount}, filtered total ${filteredSessions.length}`);
           setDisplayCount(prev => prev + 10);
         }
       },
@@ -244,10 +248,11 @@ const ConversationListPanel = ({
         observer.unobserve(currentRef);
       }
     };
-  }, [hasMore, isLoadingState, filteredSessions.length]);
+  }, [hasMore, isLoadingState, filteredSessions.length, displayCount]);
 
   // Reset display count when filters change
   useEffect(() => {
+    console.log('Filters changed, resetting display count');
     setDisplayCount(10);
   }, [filterStatus, channelFilter, agentTypeFilter, searchQuery]);
   

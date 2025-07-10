@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -43,7 +42,7 @@ const ConversationFiltersModern = ({
     { 
       value: 'email', 
       label: 'Email',
-      description: 'Email conversations'
+      description: 'Ticketing system conversations'
     },
     { 
       value: 'website', 
@@ -84,7 +83,12 @@ const ConversationFiltersModern = ({
     if (isSelected) {
       setChannelFilter(channelFilter.filter(id => id !== value));
     } else {
-      setChannelFilter([...channelFilter, value]);
+      // Special handling for email - when email is selected, only show ticketing
+      if (value === 'email') {
+        setChannelFilter(['ticketing']);
+      } else {
+        setChannelFilter([...channelFilter, value]);
+      }
     }
   };
 
@@ -145,7 +149,7 @@ const ConversationFiltersModern = ({
                   <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
                 </div>
                 <Checkbox
-                  checked={channelFilter.includes(option.value)}
+                  checked={channelFilter.includes(option.value) || (option.value === 'email' && channelFilter.includes('ticketing'))}
                   onCheckedChange={(checked) => handleChannelChange(option.value)}
                   className="rounded-md"
                 />
@@ -171,9 +175,10 @@ const ConversationFiltersModern = ({
           <div className="flex flex-wrap gap-2">
             {channelFilter.map(channelId => {
               const channel = channelOptions.find(c => c.value === channelId);
+              const displayLabel = channelId === 'ticketing' && channelFilter.length === 1 ? 'Email' : channel?.label;
               return channel ? (
                 <span key={channelId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-blue-50/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
-                  {channel.label}
+                  {displayLabel}
                   <button
                     onClick={() => handleChannelChange(channelId)}
                     className="hover:bg-blue-100/50 dark:hover:bg-blue-800/30 rounded-full p-0.5 transition-colors"

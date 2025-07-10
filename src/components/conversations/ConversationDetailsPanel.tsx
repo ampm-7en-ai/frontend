@@ -1,9 +1,10 @@
+
 import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Calendar, Tag } from 'lucide-react';
+import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Calendar, Tag, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import HandoffHistory from './HandoffHistory';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
@@ -91,6 +92,9 @@ const ConversationDetailsPanel = ({
 
   // Check if satisfaction data exists and is not empty
   const hasSatisfactionData = conversation?.satisfaction && conversation.satisfaction.trim() !== '';
+  
+  // Check if ticketing should be disabled (for human agents)
+  const isTicketingDisabled = conversation?.agentType === 'human';
 
   if (!conversation) {
     return (
@@ -111,6 +115,25 @@ const ConversationDetailsPanel = ({
 
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Additional Information</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Conversation details and metadata</p>
+          </div>
+          {!isTicketingDisabled && (
+            <button
+              onClick={() => setIsTicketModalOpen(true)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors border border-blue-200/50 dark:border-blue-800/50"
+            >
+              <Plus className="h-3 w-3" />
+              Create Ticket
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="p-3 space-y-3">
         {/* Current Agent Section */}
         <section>
