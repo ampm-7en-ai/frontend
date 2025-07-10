@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,13 +20,16 @@ import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
 type IntegrationStatus = 'connected' | 'not_connected' | 'loading';
 
+interface IntegrationStatusData {
+  status: string;
+  type: string;
+  is_default?: boolean;
+}
+
 interface IntegrationStatusResponse {
   message: string;
   data: {
-    [key: string]: {
-      status: string;
-      type: string;
-    };
+    [key: string]: IntegrationStatusData;
   };
   status: string;
 }
@@ -42,7 +44,7 @@ const IntegrationsPage = () => {
   const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Fetch integration statuses from API
+  // Fetch integration statuses from API - consolidated into single request
   const fetchIntegrationStatuses = async () => {
     try {
       setIsLoadingStatuses(true);
@@ -65,13 +67,21 @@ const IntegrationsPage = () => {
       const result: IntegrationStatusResponse = await response.json();
       console.log('Integration statuses fetched:', result);
 
-      // Convert API response to our status format
+      // Convert API response to our status format and handle default provider
       const statusMap: Record<string, IntegrationStatus> = {};
+      let currentDefaultProvider: string | null = null;
+
       Object.entries(result.data).forEach(([key, integration]) => {
         statusMap[key] = integration.status as IntegrationStatus;
+        
+        // Check if this integration is marked as default
+        if (integration.is_default && integration.type === 'ticketing' && integration.status === 'connected') {
+          currentDefaultProvider = key;
+        }
       });
 
       setIntegrationStatuses(statusMap);
+      setDefaultProvider(currentDefaultProvider);
     } catch (error) {
       console.error('Error fetching integration statuses:', error);
       toast({
@@ -146,7 +156,7 @@ const IntegrationsPage = () => {
       initFacebook();
     }
 
-    // Fetch integration statuses
+    // Fetch integration statuses - single consolidated request
     fetchIntegrationStatuses();
   }, [toast, initialLoadComplete]);
 
@@ -243,7 +253,6 @@ const IntegrationsPage = () => {
     },
   ];
 
-  // Group integrations by category
   const groupedIntegrations = integrations.reduce((acc, integration) => {
     if (!acc[integration.category]) {
       acc[integration.category] = [];

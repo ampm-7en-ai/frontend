@@ -7,6 +7,7 @@ export interface TicketingProvider {
   name: string;
   type: string;
   status: string;
+  isDefault?: boolean;
   logo?: string;
   capabilities: {
     priorities: string[];
@@ -15,7 +16,7 @@ export interface TicketingProvider {
   };
 }
 
-const TICKETING_PROVIDERS: Record<string, Omit<TicketingProvider, 'id' | 'status'>> = {
+const TICKETING_PROVIDERS: Record<string, Omit<TicketingProvider, 'id' | 'status' | 'isDefault'>> = {
   hubspot: {
     name: 'HubSpot',
     type: 'ticketing',
@@ -96,10 +97,10 @@ export const useTicketingIntegrations = () => {
 
       const result = await response.json();
       
-      // Parse the new response structure
+      // Parse the response structure
       const integrations = result.data;
       
-      // Filter for connected ticketing providers
+      // Filter for connected ticketing providers and include is_default property
       const connectedTicketing = Object.entries(integrations)
         .filter(([_, integration]: [string, any]) => 
           integration.type === 'ticketing' && 
@@ -108,6 +109,7 @@ export const useTicketingIntegrations = () => {
         .map(([providerId, integration]: [string, any]) => ({
           id: providerId,
           status: integration.status,
+          isDefault: integration.is_default || false,
           ...TICKETING_PROVIDERS[providerId]
         }))
         .filter((provider: any) => provider.name); // Only include known providers
