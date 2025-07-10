@@ -265,8 +265,6 @@ export const ConfigurationPanel = () => {
             <AccordionContent className="px-3 pb-3">
               <KnowledgeTrainingStatus
                 agentId={agentData.name || 'preview-agent'}
-                agentName={agentData.name || 'New Agent'}
-                preloadedKnowledgeSources={[]}
               />
             </AccordionContent>
           </AccordionItem>

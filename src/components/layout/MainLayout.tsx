@@ -23,13 +23,17 @@ export type MainLayoutProps = {
 };
 
 export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
   const { notifications, markAllAsRead, markAsRead } = useNotifications();
   
   const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -39,7 +43,11 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
 
   return (
     <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full">
-      <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={closeSidebar}
+        userRole={user?.role}
+      />
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Floating Notifications */}
         {/* <div className="absolute top-4 right-4 z-50">

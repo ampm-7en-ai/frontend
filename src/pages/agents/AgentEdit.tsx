@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,8 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { TestPageLayout } from '@/components/layout/TestPageLayout';
 import AgentKnowledgeContainer from '@/components/agents/knowledge/AgentKnowledgeContainer';
 import { KnowledgeTrainingStatus } from '@/components/agents/knowledge/KnowledgeTrainingStatus';
-import { GuidelinesSection } from '@/components/agents/edit/GuidelinesSection';
-import { EnhancedKnowledgeSourceList } from '@/components/agents/builder/EnhancedKnowledgeSourceList';
+import GuidelinesSection from '@/components/agents/edit/GuidelinesSection';
+import EnhancedKnowledgeSourceList from '@/components/agents/builder/EnhancedKnowledgeSourceList';
 
 // Mock data for demonstration
 const mockAgent = {
@@ -166,7 +167,7 @@ const AgentEdit = () => {
   return (
     <>
       {isTestPage ? (
-        <TestPageLayout agent={agent}>
+        <TestPageLayout>
           <Outlet />
         </TestPageLayout>
       ) : (
