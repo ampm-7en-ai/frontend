@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -228,12 +229,12 @@ const LLMProvidersSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="agentType">Agent Type</Label>
                 <Select value={selectedAgentType} onValueChange={handleAgentTypeChange}>
-                  <SelectTrigger id="agentType">
+                  <SelectTrigger id="agentType" variant="modern">
                     <SelectValue placeholder="Select agent type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent variant="modern">
                     {availableAgentTypes.map((agentType) => (
-                      <SelectItem key={agentType} value={agentType}>
+                      <SelectItem key={agentType} value={agentType} variant="modern">
                         {agentType}
                       </SelectItem>
                     ))}
@@ -363,14 +364,14 @@ const LLMProvidersSettings = () => {
             {/* Time Period Selector */}
             <div className="flex justify-end">
               <Select defaultValue="30d">
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px]" variant="modern">
                   <SelectValue placeholder="Select period" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                  <SelectItem value="90d">Last 90 days</SelectItem>
-                  <SelectItem value="custom">Custom Range</SelectItem>
+                <SelectContent variant="modern">
+                  <SelectItem value="7d" variant="modern">Last 7 days</SelectItem>
+                  <SelectItem value="30d" variant="modern">Last 30 days</SelectItem>
+                  <SelectItem value="90d" variant="modern">Last 90 days</SelectItem>
+                  <SelectItem value="custom" variant="modern">Custom Range</SelectItem>
                 </SelectContent>
               </Select>
             </div>
