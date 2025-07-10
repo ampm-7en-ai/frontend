@@ -110,16 +110,46 @@ export const apiRequest = async (
     }
   }
   
-  // Prepare headers
-  const headers = authRequired && accessToken ? getAuthHeaders(accessToken) : options.headers || {};
+  // Prepare headers - handle FormData specially
+  let headers: HeadersInit = {};
+  
+  if (authRequired && accessToken) {
+    // For FormData, only add Authorization header, let browser set Content-Type
+    if (options.body instanceof FormData) {
+      headers = {
+        'Authorization': `Bearer ${accessToken}`
+      };
+    } else {
+      // For regular requests, use full auth headers
+      headers = getAuthHeaders(accessToken);
+    }
+  } else if (!(options.body instanceof FormData)) {
+    // For non-auth requests that aren't FormData, set basic headers
+    headers = options.headers || {};
+  }
+  
+  // Merge with any additional headers from options, but don't override Content-Type for FormData
+  if (options.headers) {
+    if (options.body instanceof FormData) {
+      // For FormData, only merge non-Content-Type headers
+      Object.entries(options.headers).forEach(([key, value]) => {
+        if (key.toLowerCase() !== 'content-type') {
+          (headers as Record<string, string>)[key] = value as string;
+        }
+      });
+    } else {
+      // For regular requests, merge all headers
+      headers = {
+        ...headers,
+        ...options.headers
+      };
+    }
+  }
   
   // Make the request
   const response = await fetch(url, {
     ...options,
-    headers: {
-      ...headers,
-      ...options.headers
-    }
+    headers
   });
   
   // Handle 401 responses
@@ -134,13 +164,35 @@ export const apiRequest = async (
       
       if (newToken) {
         // Retry the original request with new token
-        const retryHeaders = getAuthHeaders(newToken);
+        let retryHeaders: HeadersInit = {};
+        
+        if (options.body instanceof FormData) {
+          retryHeaders = {
+            'Authorization': `Bearer ${newToken}`
+          };
+        } else {
+          retryHeaders = getAuthHeaders(newToken);
+        }
+        
+        // Merge retry headers properly
+        if (options.headers) {
+          if (options.body instanceof FormData) {
+            Object.entries(options.headers).forEach(([key, value]) => {
+              if (key.toLowerCase() !== 'content-type') {
+                (retryHeaders as Record<string, string>)[key] = value as string;
+              }
+            });
+          } else {
+            retryHeaders = {
+              ...retryHeaders,
+              ...options.headers
+            };
+          }
+        }
+        
         const retryResponse = await fetch(url, {
           ...options,
-          headers: {
-            ...retryHeaders,
-            ...options.headers
-          }
+          headers: retryHeaders
         });
         
         // If still 401 after refresh, trigger logout
