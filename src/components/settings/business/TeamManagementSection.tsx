@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -376,32 +376,19 @@ const TeamManagementSection = () => {
               name="team_role_id"
               render={({ field }) => (
                 <FormItem className="min-w-[160px]">
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11">
-                        <SelectValue placeholder="Can view" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent variant="modern">
-                      {loadingRoles ? (
-                        <div className="flex justify-center items-center py-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                          <span className="ml-2 text-sm">Loading roles...</span>
-                        </div>
-                      ) : availableRoles.length > 0 ? (
-                        availableRoles.map((role) => (
-                          <SelectItem key={role.id} value={role.id.toString()} variant="modern">
-                            {role.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-roles" disabled variant="modern">No roles available</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <ModernDropdown
+                      value={field.value?.toString() || ""}
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      options={loadingRoles ? [] : availableRoles.length > 0 ? availableRoles.map(role => ({
+                        value: role.id.toString(),
+                        label: role.name
+                      })) : [{ value: "no-roles", label: "No roles available" }]}
+                      placeholder="Can view"
+                      disabled={loadingRoles || availableRoles.length === 0}
+                      className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

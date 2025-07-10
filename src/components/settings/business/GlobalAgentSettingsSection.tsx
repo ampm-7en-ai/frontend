@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { toast } from "@/hooks/use-toast";
 import { updateSettings } from "@/utils/api-config";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -124,22 +124,22 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Default Response Model</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
-                        <SelectValue placeholder="Select model" />
-                      </SelectTrigger>
-                      <SelectContent variant="modern">
-                        <SelectItem value="gpt-4o" variant="modern">GPT-4o (OpenAI)</SelectItem>
-                        <SelectItem value="gpt-4-turbo" variant="modern">GPT-4 Turbo (OpenAI)</SelectItem>
-                        <SelectItem value="gpt-3.5-turbo" variant="modern">GPT-3.5 Turbo (OpenAI)</SelectItem>
-                        <SelectItem value="mistral-large-latest" variant="modern">Mistral Large (Mistral AI)</SelectItem>
-                        <SelectItem value="mistral-medium-latest" variant="modern">Mistral Medium (Mistral AI)</SelectItem>
-                        <SelectItem value="mistral-small-latest" variant="modern">Mistral Small (Mistral AI)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <ModernDropdown
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={[
+                          { value: "gpt-4o", label: "GPT-4o (OpenAI)" },
+                          { value: "gpt-4-turbo", label: "GPT-4 Turbo (OpenAI)" },
+                          { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo (OpenAI)" },
+                          { value: "mistral-large-latest", label: "Mistral Large (Mistral AI)" },
+                          { value: "mistral-medium-latest", label: "Mistral Medium (Mistral AI)" },
+                          { value: "mistral-small-latest", label: "Mistral Small (Mistral AI)" }
+                        ]}
+                        placeholder="Select model"
+                        className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -150,20 +150,20 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Maximum Context Length</FormLabel>
-                    <Select
-                      value={field.value?.toString() || ""}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                    >
-                      <SelectTrigger variant="modern" className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl">
-                        <SelectValue placeholder="Select context length" />
-                      </SelectTrigger>
-                      <SelectContent variant="modern">
-                        <SelectItem value="4000" variant="modern">4,000 tokens</SelectItem>
-                        <SelectItem value="8000" variant="modern">8,000 tokens</SelectItem>
-                        <SelectItem value="16000" variant="modern">16,000 tokens</SelectItem>
-                        <SelectItem value="32000" variant="modern">32,000 tokens</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <ModernDropdown
+                        value={field.value?.toString() || ""}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        options={[
+                          { value: "4000", label: "4,000 tokens" },
+                          { value: "8000", label: "8,000 tokens" },
+                          { value: "16000", label: "16,000 tokens" },
+                          { value: "32000", label: "32,000 tokens" }
+                        ]}
+                        placeholder="Select context length"
+                        className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
