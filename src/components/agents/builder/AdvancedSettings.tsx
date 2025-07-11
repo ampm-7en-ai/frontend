@@ -16,7 +16,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 export const AdvancedSettings = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
-  const { activeModelOptions, isLoading: isLoadingModels } = useAIModels();
+  const { allModelOptions, isLoading: isLoadingModels } = useAIModels();
 
   const handleGuidelineChange = (type: 'dos' | 'donts', index: number, value: string) => {
     const newGuidelines = { ...agentData.guidelines };
@@ -59,13 +59,10 @@ export const AdvancedSettings = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent variant="modern">
-                      {activeModelOptions.map((option) => (
+                      {allModelOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value} variant="modern">
                           <div className="flex items-center gap-2">
                             <span>{option.label}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {option.isActive ? 'Active' : 'Inactive'}
-                            </Badge>
                           </div>
                         </SelectItem>
                       ))}

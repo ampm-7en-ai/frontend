@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,15 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
-import { LLMProvider } from '@/hooks/useLLMProviders';
+import { SuperAdminLLMProvider } from '@/hooks/useLLMProviders';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getDefaultModelName } from '@/utils/modelUtils';
 
 interface EditProviderDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  provider: LLMProvider | null;
-  onProviderUpdated: (providerId: number, updateData: Partial<LLMProvider>) => Promise<any>;
+  provider: SuperAdminLLMProvider | null;
+  onProviderUpdated: (providerId: number, updateData: Partial<SuperAdminLLMProvider>) => Promise<any>;
 }
 
 interface ProviderFormData {

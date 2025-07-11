@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
 import { apiGet, apiRequest } from '@/utils/api-interceptor';
-import { LLMProvider, ModelObject } from './useLLMProviders';
+import { SuperAdminLLMProvider, ModelObject } from './useLLMProviders';
 
 interface SuperAdminProvidersResponse {
   message: string;
-  data: LLMProvider[];
+  data: SuperAdminLLMProvider[];
   status: string;
 }
 
 export const useSuperAdminLLMProviders = () => {
   const { toast } = useToast();
-  const [providers, setProviders] = useState<LLMProvider[]>([]);
+  const [providers, setProviders] = useState<SuperAdminLLMProvider[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProviders = async () => {
@@ -43,7 +43,7 @@ export const useSuperAdminLLMProviders = () => {
     }
   };
 
-  const updateProvider = async (providerId: number, updateData: Partial<LLMProvider>) => {
+  const updateProvider = async (providerId: number, updateData: Partial<SuperAdminLLMProvider>) => {
     try {
       const response = await apiRequest(getApiUrl(`admin/provider-configs/${providerId}/`), {
         method: 'PATCH',

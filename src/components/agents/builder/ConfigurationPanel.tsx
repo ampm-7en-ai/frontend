@@ -16,7 +16,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const agentTypes = [
   'Customer Support',
-  'Sales Assistant',
+  'Sales Assistant', 
   'Technical Support',
   'HR Assistant',
   'General Assistant'
@@ -34,7 +34,7 @@ export const ConfigurationPanel = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
   const [isDeploymentOpen, setIsDeploymentOpen] = useState(false);
-  const { activeModelOptions, isLoading: isLoadingModels } = useAIModels();
+  const { allModelOptions, isLoading: isLoadingModels } = useAIModels();
 
   const handleSuggestionChange = (index: number, value: string) => {
     const newSuggestions = [...agentData.suggestions];
@@ -123,7 +123,7 @@ export const ConfigurationPanel = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent variant="modern">
-                      {activeModelOptions.map((option) => (
+                      {allModelOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value} variant="modern" className="text-sm">
                           {option.label}
                         </SelectItem>

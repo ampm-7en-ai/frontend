@@ -4,11 +4,33 @@ import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
 import { apiGet } from '@/utils/api-interceptor';
 
-// Simplified provider structure for non-admin endpoints
+// Non-admin simplified provider structure
 export interface LLMProvider {
   provider_name: string;
   models: string[];
   default_model: string | null;
+}
+
+// Superadmin provider structure (for backward compatibility)
+export interface SuperAdminLLMProvider extends LLMProvider {
+  id: number;
+  api_key?: string;
+  _api_key?: string;
+  is_active: boolean;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
+  models: ModelObject[] | string[];
+  default_model: ModelObject | string | null;
+}
+
+// Model object structure for superadmin
+export interface ModelObject {
+  id: number;
+  name: string;
+  provider_config?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface LLMProvidersResponse {

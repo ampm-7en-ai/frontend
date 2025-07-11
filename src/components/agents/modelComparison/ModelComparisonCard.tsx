@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { Bot, Sliders, Save, WifiOff } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
@@ -53,7 +52,7 @@ export const ModelComparisonCard = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   
-  const { activeModelOptions, isLoading: isLoadingModels } = useAIModels();
+  const { allModelOptions, isLoading: isLoadingModels } = useAIModels();
   
   // Store a reference to the scroll viewport when the ScrollArea is mounted
   useEffect(() => {
@@ -78,7 +77,7 @@ export const ModelComparisonCard = ({
 
   const getModelDisplay = (modelKey: string) => {
     // Use dynamic model options first, fallback to legacy static options
-    const dynamicOption = activeModelOptions.find(option => option.value === modelKey);
+    const dynamicOption = allModelOptions.find(option => option.value === modelKey);
     if (dynamicOption) {
       return dynamicOption.label;
     }
@@ -123,7 +122,7 @@ export const ModelComparisonCard = ({
                   <span className="ml-2 text-sm">Loading models...</span>
                 </div>
               ) : (
-                activeModelOptions.map((option) => (
+                allModelOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value} variant="modern">
                     {option.label}
                   </SelectItem>

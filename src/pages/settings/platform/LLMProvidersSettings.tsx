@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ import EditProviderDialog from '@/components/settings/platform/EditProviderDialo
 import AddAgentPromptDialog from '@/components/settings/platform/AddAgentPromptDialog';
 import AddModelDialog from '@/components/settings/platform/AddModelDialog';
 import { useSuperAdminLLMProviders } from '@/hooks/useSuperAdminLLMProviders';
-import { LLMProvider } from '@/hooks/useLLMProviders';
+import { SuperAdminLLMProvider, ModelObject } from '@/hooks/useLLMProviders';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -21,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const LLMProvidersSettings = () => {
   const [isAddProviderDialogOpen, setIsAddProviderDialogOpen] = useState(false);
   const [isEditProviderDialogOpen, setIsEditProviderDialogOpen] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<LLMProvider | null>(null);
+  const [editingProvider, setEditingProvider] = useState<SuperAdminLLMProvider | null>(null);
   const [isAddPromptDialogOpen, setIsAddPromptDialogOpen] = useState(false);
   const [isAddModelDialogOpen, setIsAddModelDialogOpen] = useState(false);
   const [selectedProviderId, setSelectedProviderId] = useState<number>(0);
@@ -78,7 +77,7 @@ const LLMProvidersSettings = () => {
     }
   };
 
-  const handleEditProvider = (provider: LLMProvider) => {
+  const handleEditProvider = (provider: SuperAdminLLMProvider) => {
     setEditingProvider(provider);
     setIsEditProviderDialogOpen(true);
   };
@@ -147,20 +146,20 @@ const LLMProvidersSettings = () => {
     }
   };
 
-  const getDefaultModelId = (provider: LLMProvider): number | null => {
+  const getDefaultModelId = (provider: SuperAdminLLMProvider): number | null => {
     if (!provider.default_model) return null;
     
     // If default_model is an object, return its id
-    if (typeof provider.default_model === 'object' && 'id' in provider.default_model) {
+    if (typeof provider.default_model === 'object' && provider.default_model && 'id' in provider.default_model) {
       return provider.default_model.id;
     }
     
     // If default_model is a string, find the matching model in the models array
     if (typeof provider.default_model === 'string' && Array.isArray(provider.models)) {
       const matchingModel = provider.models.find(model => 
-        typeof model === 'object' && 'name' in model && model.name === provider.default_model
+        typeof model === 'object' && model && 'name' in model && model.name === provider.default_model
       );
-      return matchingModel && typeof matchingModel === 'object' && 'id' in matchingModel ? matchingModel.id : null;
+      return matchingModel && typeof matchingModel === 'object' && matchingModel && 'id' in matchingModel ? matchingModel.id : null;
     }
     
     return null;
@@ -275,7 +274,7 @@ const LLMProvidersSettings = () => {
                                     </div>
                                   </div>
                                   <div className="flex items-center space-x-2">
-                                    {!isDefault && typeof model === 'object' && 'id' in model && (
+                                    {!isDefault && typeof model === 'object' && model && 'id' in model && (
                                       <Button
                                         size="sm"
                                         variant="ghost"
@@ -285,7 +284,7 @@ const LLMProvidersSettings = () => {
                                         <Star className="h-3 w-3" />
                                       </Button>
                                     )}
-                                    {typeof model === 'object' && 'id' in model && (
+                                    {typeof model === 'object' && model && 'id' in model && (
                                       <Button
                                         size="sm"
                                         variant="ghost"
