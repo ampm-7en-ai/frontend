@@ -1,9 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
 import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload, RotateCcw } from 'lucide-react';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { useAIModels } from '@/hooks/useAIModels';
-import { useGlobalSettings } from '@/hooks/useGlobalSettings';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,6 @@ export const GuidelinesPanel = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels();
-  const { data: globalSettings, isLoading: globalSettingsLoading } = useGlobalSettings();
   
   // Store user's custom prompts per agent type
   const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
@@ -33,8 +32,11 @@ export const GuidelinesPanel = () => {
   const [showSystemPromptModal, setShowSystemPromptModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
 
+  // Get global default model from agent data settings
+  const globalDefaultModel = agentData.settings?.response_model;
+  
   // Check if current model is using global default
-  const isUsingGlobalDefault = agentData.model === globalSettings?.response_model || (!agentData.model && globalSettings?.response_model);
+  const isUsingGlobalDefault = agentData.model === globalDefaultModel || (!agentData.model && globalDefaultModel);
 
   // Initialize user prompts storage on first load
   useEffect(() => {
@@ -48,10 +50,10 @@ export const GuidelinesPanel = () => {
 
   // Initialize model with global default if not set
   useEffect(() => {
-    if (globalSettings?.response_model && !agentData.model) {
-      updateAgentData({ model: globalSettings.response_model });
+    if (globalDefaultModel && !agentData.model) {
+      updateAgentData({ model: globalDefaultModel });
     }
-  }, [globalSettings?.response_model, agentData.model]);
+  }, [globalDefaultModel, agentData.model]);
 
   // Get current template for the selected agent type
   const getCurrentTemplate = () => {
@@ -98,8 +100,8 @@ export const GuidelinesPanel = () => {
 
   // Reset to global default
   const handleResetToGlobalDefault = () => {
-    if (globalSettings?.response_model) {
-      updateAgentData({ model: globalSettings.response_model });
+    if (globalDefaultModel) {
+      updateAgentData({ model: globalDefaultModel });
     }
   };
 
@@ -265,7 +267,7 @@ export const GuidelinesPanel = () => {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
-                      {globalSettings && !isUsingGlobalDefault && (
+                      {globalDefaultModel && !isUsingGlobalDefault && (
                         <ModernButton
                           variant="ghost"
                           size="sm"
@@ -278,19 +280,19 @@ export const GuidelinesPanel = () => {
                       )}
                     </div>
                     
-                    {globalSettingsLoading || modelsLoading ? (
+                    {modelsLoading ? (
                       <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                         <LoadingSpinner size="sm" />
                         <span className="text-sm text-gray-500">Loading models...</span>
                       </div>
                     ) : (
                       <>
-                        {globalSettings && (
+                        {globalDefaultModel && (
                           <div className="mb-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
                             <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
                               <Settings className="h-4 w-4" />
                               <span>
-                                Global Default: {modelOptionsForDropdown.find(m => m.value === globalSettings.response_model)?.label || globalSettings.response_model}
+                                Global Default: {modelOptionsForDropdown.find(m => m.value === globalDefaultModel)?.label || globalDefaultModel}
                               </span>
                             </div>
                           </div>
@@ -298,7 +300,7 @@ export const GuidelinesPanel = () => {
                         
                         <div className="mt-1.5">
                           <ModernDropdown
-                            value={agentData.model || globalSettings?.response_model || 'gpt-4-turbo'}
+                            value={agentData.model || globalDefaultModel || 'gpt-4-turbo'}
                             onValueChange={handleModelChange}
                             options={modelOptionsForDropdown}
                             placeholder="Select model"
