@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
 import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload, RotateCcw } from 'lucide-react';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
+import { useAIModels } from '@/hooks/useAIModels';
+import { useGlobalSettings } from '@/hooks/useGlobalSettings';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -13,12 +15,16 @@ import { Button } from '@/components/ui/button';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { SystemPromptModal } from './SystemPromptModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
+  const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels();
+  const { data: globalSettings, isLoading: globalSettingsLoading } = useGlobalSettings();
   
   // Store user's custom prompts per agent type
   const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
@@ -26,6 +32,9 @@ export const GuidelinesPanel = () => {
   // Modal states
   const [showSystemPromptModal, setShowSystemPromptModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+
+  // Check if current model is using global default
+  const isUsingGlobalDefault = agentData.model === globalSettings?.response_model || (!agentData.model && globalSettings?.response_model);
 
   // Initialize user prompts storage on first load
   useEffect(() => {
@@ -36,6 +45,13 @@ export const GuidelinesPanel = () => {
       }));
     }
   }, [agentData.agentType, agentData.systemPrompt]);
+
+  // Initialize model with global default if not set
+  useEffect(() => {
+    if (globalSettings?.response_model && !agentData.model) {
+      updateAgentData({ model: globalSettings.response_model });
+    }
+  }, [globalSettings?.response_model, agentData.model]);
 
   // Get current template for the selected agent type
   const getCurrentTemplate = () => {
@@ -75,6 +91,18 @@ export const GuidelinesPanel = () => {
     }
   };
 
+  // Handle model change
+  const handleModelChange = (value: string) => {
+    updateAgentData({ model: value });
+  };
+
+  // Reset to global default
+  const handleResetToGlobalDefault = () => {
+    if (globalSettings?.response_model) {
+      updateAgentData({ model: globalSettings.response_model });
+    }
+  };
+
   const fontOptions = [
     { value: 'Inter', label: 'Inter' },
     { value: 'Arial', label: 'Arial' },
@@ -99,16 +127,6 @@ export const GuidelinesPanel = () => {
   const positionOptions = [
     { value: 'bottom-right', label: 'Bottom Right' },
     { value: 'bottom-left', label: 'Bottom Left' }
-  ];
-
-  // Updated to match GlobalAgentSettingsSection exactly
-  const modelOptions = [
-    { value: 'gpt-4o', label: 'GPT-4o (OpenAI)' },
-    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (OpenAI)' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (OpenAI)' },
-    { value: 'mistral-large-latest', label: 'Mistral Large (Mistral AI)' },
-    { value: 'mistral-medium-latest', label: 'Mistral Medium (Mistral AI)' },
-    { value: 'mistral-small-latest', label: 'Mistral Small (Mistral AI)' }
   ];
 
   // Generate dynamic agent type options from API data
@@ -235,20 +253,59 @@ export const GuidelinesPanel = () => {
                     <Zap className="h-4 w-4 text-white" />
                   </div>
                   <span className="text-sm font-medium">Model Settings</span>
+                  {isUsingGlobalDefault && (
+                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-700">
+                      Global Default
+                    </Badge>
+                  )}
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-4">
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
-                    <div className="mt-1.5">
-                      <ModernDropdown
-                        value={agentData.model || 'gpt-4-turbo'}
-                        onValueChange={(value) => updateAgentData({ model: value })}
-                        options={modelOptions}
-                        placeholder="Select model"
-                      />
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
+                      {globalSettings && !isUsingGlobalDefault && (
+                        <ModernButton
+                          variant="ghost"
+                          size="sm"
+                          icon={RotateCcw}
+                          onClick={handleResetToGlobalDefault}
+                          className="h-8 px-3 rounded-lg text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        >
+                          Use Global Default
+                        </ModernButton>
+                      )}
                     </div>
+                    
+                    {globalSettingsLoading || modelsLoading ? (
+                      <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                        <LoadingSpinner size="sm" />
+                        <span className="text-sm text-gray-500">Loading models...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {globalSettings && (
+                          <div className="mb-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+                            <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+                              <Settings className="h-4 w-4" />
+                              <span>
+                                Global Default: {modelOptionsForDropdown.find(m => m.value === globalSettings.response_model)?.label || globalSettings.response_model}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="mt-1.5">
+                          <ModernDropdown
+                            value={agentData.model || globalSettings?.response_model || 'gpt-4-turbo'}
+                            onValueChange={handleModelChange}
+                            options={modelOptionsForDropdown}
+                            placeholder="Select model"
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div>
