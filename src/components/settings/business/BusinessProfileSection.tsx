@@ -9,9 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { updateSettings } from "@/utils/api-config";
-import PhoneInputField from "@/components/ui/PhoneInputField";
-import CountryPhoneInput from "@/components/ui/CountryPhoneInput";
+import { ModernDropdown } from "@/components/ui/modern-dropdown";
 import ModernButton from '@/components/dashboard/ModernButton';
+import countryData from "@/components/ui/countryData";
 
 const profileFormSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
@@ -39,11 +39,51 @@ interface BusinessProfileSectionProps {
 
 const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(() => {
+    if (initialData.adminPhone && initialData.adminPhone.startsWith("+")) {
+      const match = countryData.find(c => initialData.adminPhone.startsWith(c.dial_code));
+      return match ? match.code : "US";
+    }
+    return "US";
+  });
+  const [localNumber, setLocalNumber] = useState(() => {
+    if (initialData.adminPhone && initialData.adminPhone.startsWith("+")) {
+      const match = countryData.find(c => initialData.adminPhone.startsWith(c.dial_code));
+      return match ? initialData.adminPhone.slice(match.dial_code.length) : initialData.adminPhone;
+    }
+    return initialData.adminPhone || "";
+  });
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: initialData,
   });
+
+  const countryOptions = countryData.map(country => ({
+    value: country.code,
+    label: `${country.name} ${country.dial_code}`,
+    description: country.dial_code,
+    logo: country.flag
+  }));
+
+  const handleCountryChange = (countryCode: string) => {
+    const country = countryData.find(c => c.code === countryCode);
+    if (country) {
+      setSelectedCountry(countryCode);
+      const fullPhone = country.dial_code + localNumber;
+      profileForm.setValue('adminPhone', fullPhone);
+    }
+  };
+
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const num = e.target.value.replace(/^0+/, "");
+    setLocalNumber(num);
+    const country = countryData.find(c => c.code === selectedCountry);
+    if (country) {
+      const fullPhone = country.dial_code + num;
+      profileForm.setValue('adminPhone', fullPhone);
+    }
+  };
 
   const onProfileSubmit = async (data: ProfileFormValues) => {
     try {
@@ -122,7 +162,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                       <Input 
                         placeholder="Your Business Name" 
                         {...field} 
-                        className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                        variant="modern"
                       />
                     </FormControl>
                     <FormMessage />
@@ -140,7 +180,8 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                         placeholder="admin@example.com" 
                         {...field} 
                         disabled 
-                        className="bg-slate-100/80 dark:bg-slate-700/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                        variant="modern"
+                        className="opacity-60"
                       />
                     </FormControl>
                     <FormMessage />
@@ -157,7 +198,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                       <Input 
                         placeholder="https://" 
                         {...field} 
-                        className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                        variant="modern"
                       />
                     </FormControl>
                     <FormMessage />
@@ -171,12 +212,35 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <CountryPhoneInput
-                        value={field.value || ""}
-                        onChange={(val: string) => field.onChange(val)}
-                        error={!!fieldState.error}
-                        placeholder="Enter phone number"
-                      />
+                      <div className="flex gap-2">
+                        <ModernDropdown
+                          value={selectedCountry}
+                          onValueChange={handleCountryChange}
+                          options={countryOptions}
+                          placeholder="Select country"
+                          className="w-48"
+                          renderOption={(option) => (
+                            <div className="flex items-center gap-3 w-full">
+                              <div 
+                                className="w-5 h-4 bg-center bg-cover rounded-sm" 
+                                style={{ backgroundImage: `url(${option.logo})` }}
+                              />
+                              <div className="flex flex-col flex-1">
+                                <span className="text-sm">{option.label}</span>
+                              </div>
+                            </div>
+                          )}
+                        />
+                        <Input
+                          type="tel"
+                          value={localNumber}
+                          onChange={handlePhoneNumberChange}
+                          placeholder="Phone number"
+                          variant="modern"
+                          className={`flex-1 ${fieldState.error ? "border-red-500" : ""}`}
+                          maxLength={15}
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
