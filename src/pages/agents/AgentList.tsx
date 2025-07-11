@@ -158,7 +158,7 @@ const AgentList = () => {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
-          name: `New Agent ${Date.now()}`,
+          name: `Untitled Agent`,
           description: 'A new AI agent ready to be configured.',
         })
       });

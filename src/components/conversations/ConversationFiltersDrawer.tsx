@@ -132,9 +132,9 @@ const ConversationFiltersDrawer = ({
             </div>
             <button 
               onClick={() => onOpenChange(false)}
-              className="rounded-full p-2 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm opacity-70 hover:opacity-100 transition-all"
+              className="rounded-full p-2 bg-white/50 dark:bg-slate-600/50 backdrop-blur-sm opacity-70 hover:opacity-100 transition-all"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 dark:text-gray-400" />
             </button>
           </div>
 
