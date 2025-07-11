@@ -74,7 +74,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
       // Update form values with response data if present
       if (res.data && res.data.global_agent_settings) {
         globalSettingsForm.reset({
-          defaultModel: "gpt-4-turbo",
+          defaultModel: res.data.global_agent_settings.response_model || "gpt-4-turbo",
           maxContextLength: res.data.global_agent_settings.token_length || 8000,
           defaultTemperature: res.data.global_agent_settings.temperature ?? 0.7,
         });

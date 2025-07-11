@@ -255,11 +255,7 @@ export const GuidelinesPanel = () => {
                     <Zap className="h-4 w-4 text-white" />
                   </div>
                   <span className="text-sm font-medium">Model Settings</span>
-                  {isUsingGlobalDefault && (
-                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-700">
-                      Global Default
-                    </Badge>
-                  )}
+                  
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-4">
@@ -267,17 +263,6 @@ export const GuidelinesPanel = () => {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
-                      {globalDefaultModel && !isUsingGlobalDefault && (
-                        <ModernButton
-                          variant="ghost"
-                          size="sm"
-                          icon={RotateCcw}
-                          onClick={handleResetToGlobalDefault}
-                          className="h-8 px-3 rounded-lg text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        >
-                          Use Global Default
-                        </ModernButton>
-                      )}
                     </div>
                     
                     {modelsLoading ? (
@@ -287,16 +272,7 @@ export const GuidelinesPanel = () => {
                       </div>
                     ) : (
                       <>
-                        {globalDefaultModel && (
-                          <div className="mb-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-                            <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
-                              <Settings className="h-4 w-4" />
-                              <span>
-                                Global Default: {modelOptionsForDropdown.find(m => m.value === globalDefaultModel)?.label || globalDefaultModel}
-                              </span>
-                            </div>
-                          </div>
-                        )}
+                        
                         
                         <div className="mt-1.5">
                           <ModernDropdown
