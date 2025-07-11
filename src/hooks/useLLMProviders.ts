@@ -4,12 +4,20 @@ import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
 import { apiGet, apiRequest } from '@/utils/api-interceptor';
 
+export interface LLMProviderModel {
+  id: number;
+  provider_config: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface LLMProvider {
   id: number;
   provider_name: string;
-  models: string[]; // Add models array
-  default_model: string | null; // Add default_model
-  api_key?: string;
+  models: LLMProviderModel[]; // Change to array of model objects
+  default_model: string | null;
+  _api_key?: string | null;
   is_active: boolean;
   status: string;
   created_at: string;
@@ -30,13 +38,14 @@ export const useLLMProviders = () => {
   const fetchProviders = async () => {
     try {
       setIsLoading(true);
-      const response = await apiGet(getApiUrl('settings/provider-configs/'));
+      const response = await apiGet(getApiUrl('admin/provider-configs/'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch providers');
       }
 
       const data: LLMProvidersResponse = await response.json();
+      console.log('useLLMProviders - Raw API response:', data);
       setProviders(data.data);
     } catch (error) {
       console.error('Error fetching providers:', error);
