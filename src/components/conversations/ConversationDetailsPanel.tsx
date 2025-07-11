@@ -1,9 +1,11 @@
+
 import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Calendar, Tag, Plus } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Calendar, Tag, Plus, Ticket, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import HandoffHistory from './HandoffHistory';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
@@ -117,7 +119,7 @@ const ConversationDetailsPanel = ({
   const assignedAgent = conversation.agent || conversation.assignedAgent || handoffData.currentAgent;
 
   return (
-    <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
+    <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
       {/* Header */}
       <div className="p-4 border-b border-gray-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
         <div className="flex items-center justify-between">
@@ -128,83 +130,95 @@ const ConversationDetailsPanel = ({
         </div>
       </div>
 
-      <div className="p-3 space-y-3">
-        {/* Ticket Information Section - Show if ticket info exists */}
-        {hasTicketInfo && (
-          <TicketInformation
-            ticketBy={conversation.ticket_by}
-            ticketId={conversation.ticket_id}
-          />
-        )}
-
-        {/* Current Agent Section */}
-        <section>
-          <div className="mb-2">
-            <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Information</h2>
-          </div>
-          
-          <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
-                  <User className="h-3 w-3 text-white" />
+      <ScrollArea className="h-[calc(100%-80px)]">
+        <div className="p-4 space-y-4">
+          {/* Ticket Information Section - Show if ticket info exists */}
+          {hasTicketInfo && (
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
+                  <Ticket className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Assigned Agent</h3>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Ticket Information</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Support ticket details</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
+                    <ExternalLink className="h-3 w-3" />
+                    Provider
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm capitalize">{conversation.ticket_by}</p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Ticket ID</h4>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">{conversation.ticket_id}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Agent Information Section */}
+          <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                <User className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Agent Information</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Current assigned agent</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6 bg-blue-600 dark:bg-gray-700">
-                <AvatarFallback className="text-gray-500 text-[10px] font-medium">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8 bg-blue-600 dark:bg-gray-700">
+                <AvatarFallback className="text-white text-sm font-medium">
                   {assignedAgent.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-slate-100">{assignedAgent}</p>
-                <p className="text-[12px] text-slate-600 dark:text-slate-400">
-                  AI Agent
-                </p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{assignedAgent}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">AI Agent</p>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Customer Information */}
-        <section>
-          <div className="mb-2">
-            <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Information</h2>
-          </div>
-          
-          <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-md flex items-center justify-center">
-                  <User className="h-3 w-3 text-white" />
-                </div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Customer Details</h3>
+          {/* Customer Information */}
+          <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                <User className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Information</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Customer details and contact info</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-0.5 text-xs">Full Name</h4>
-                <p className="text-slate-600 dark:text-slate-400 text-xs">{conversation.customer || "Visitor"}</p>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Full Name</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{conversation.customer || "Visitor"}</p>
               </div>
               
               {conversation.email && (
-                <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50">
-                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-0.5 flex items-center gap-1.5 text-xs">
-                    <Mail className="h-2.5 w-2.5" />
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
+                    <Mail className="h-3 w-3" />
                     Email
                   </h4>
-                  <p className="text-slate-600 dark:text-slate-400 text-xs">{conversation.email}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">{conversation.email}</p>
                 </div>
               )}
               
               {hasSatisfactionData && (
-                <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-2 border border-slate-200/50 dark:border-slate-600/50">
-                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-0.5 flex items-center gap-1.5 text-xs">
-                    <Star className="h-2.5 w-2.5" />
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
+                    <Star className="h-3 w-3" />
                     Satisfaction
                   </h4>
                   <div>{getSatisfactionIndicator(conversation.satisfaction)}</div>
@@ -212,49 +226,39 @@ const ConversationDetailsPanel = ({
               )}
             </div>
           </div>
-        </section>
 
-        {/* Customer Sentiment - Only show if satisfaction data exists */}
-        {hasSatisfactionData && (
-          <section>
-            <div className="mb-2">
-              <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Customer Sentiment</h2>
-            </div>
-            
-            <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-md flex items-center justify-center">
-                    <TrendingUp className="h-3 w-3 text-white" />
-                  </div>
-                  <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Current Sentiment</h3>
+          {/* Customer Sentiment - Only show if satisfaction data exists */}
+          {hasSatisfactionData && (
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                  <TrendingUp className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Sentiment</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Current emotional state</p>
                 </div>
               </div>
 
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-md p-3 border border-slate-200/50 dark:border-slate-600/50 text-center">
-                <div className="text-2xl mb-2">{getSentimentEmoji(conversation.satisfaction)}</div>
-                <p className="text-xs font-medium text-slate-900 dark:text-slate-100 capitalize">
+              <div className="text-center py-4">
+                <div className="text-3xl mb-2">{getSentimentEmoji(conversation.satisfaction)}</div>
+                <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                   {conversation.satisfaction}
                 </p>
               </div>
             </div>
-          </section>
-        )}
+          )}
 
-        {/* Handoff History - Only show if there are handoffs */}
-        {handoffData.handoffs.length > 0 && (
-          <section>
-            <div className="mb-2">
-              <h2 className="text-md font-semibold mb-0.5 text-slate-900 dark:text-slate-100">Agent Handoffs</h2>
-            </div>
-            
-            <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 bg-gradient-to-br from-amber-500 to-amber-600 rounded-md flex items-center justify-center">
-                    <MessageSquare className="h-3 w-3 text-white" />
-                  </div>
-                  <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Handoff Timeline</h3>
+          {/* Handoff History - Only show if there are handoffs */}
+          {handoffData.handoffs.length > 0 && (
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600">
+                  <MessageSquare className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Agent Handoffs</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Handoff timeline and history</p>
                 </div>
               </div>
 
@@ -263,35 +267,36 @@ const ConversationDetailsPanel = ({
                 onHandoffClick={onHandoffClick}
               />
             </div>
-          </section>
-        )}
+          )}
 
-        {/* All Agents Section */}
-        {handoffData.allAgents.length > 1 && (
-          <section>
-            <div className="mb-2">
-              <h2 className="text-sm font-semibold mb-0.5 text-slate-900 dark:text-slate-100">All Agents</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-[10px] leading-relaxed">
-                Agents involved in this conversation
-              </p>
-            </div>
-            
-            <div className="bg-white/50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-              <div className="flex flex-wrap gap-1">
+          {/* All Agents Section */}
+          {handoffData.allAgents.length > 1 && (
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600">
+                  <Tag className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">All Agents</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Agents involved in this conversation</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
                 {handoffData.allAgents.map((agent, index) => (
                   <Badge 
                     key={index}
                     variant={agent === handoffData.currentAgent ? "default" : "outline"}
-                    className="text-xs"
+                    className="text-sm"
                   >
                     {agent}
                   </Badge>
                 ))}
               </div>
             </div>
-          </section>
-        )}
-      </div>
+          )}
+        </div>
+      </ScrollArea>
 
       {/* Support Ticket Modal */}
       <CreateSupportTicketModal
