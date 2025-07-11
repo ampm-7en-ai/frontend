@@ -29,7 +29,7 @@ export const useLLMProviders = () => {
   const fetchProviders = async () => {
     try {
       setIsLoading(true);
-      const response = await apiGet(getApiUrl('admin/provider-configs/'));
+      const response = await apiGet(getApiUrl('settings/provider-configs/'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch providers');

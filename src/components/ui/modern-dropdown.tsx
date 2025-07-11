@@ -111,25 +111,25 @@ export const ModernDropdown = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         className={cn(
-          "w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999]",
+          "w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999] pb-3",
           searchable && "p-0"
         )}
         sideOffset={4}
         align={align}
       >
-        {searchable && showSearch && (
-          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-8 text-sm border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                autoFocus
-              />
-            </div>
-          </div>
+        {searchable && showSearch && (<></>
+          // <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+          //   <div className="relative">
+          //     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          //     <Input
+          //       placeholder={searchPlaceholder}
+          //       value={searchQuery}
+          //       onChange={(e) => setSearchQuery(e.target.value)}
+          //       className="pl-9 h-8 text-sm border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          //       autoFocus
+          //     />
+          //   </div>
+          // </div>
         )}
         
         <div 
