@@ -1,15 +1,15 @@
-
 import React, { useState } from 'react';
-import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key, Trash2 } from 'lucide-react';
+import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { usePricingModal } from '@/hooks/usePricingModal';
 import { useApiKeys } from '@/hooks/useApiKeys';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernModal } from '@/components/ui/modern-modal';
+import { ModernInput } from '@/components/ui/modern-input';
 
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
@@ -18,6 +18,7 @@ const ApiKeysSection = () => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [currentApiKey, setCurrentApiKey] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   // Simulate paid plan status - in real app this would come from user data
   const isPaidPlan = true; // Change to false to show the upgrade prompt
@@ -65,6 +66,8 @@ const ApiKeysSection = () => {
 
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
     toast({
       title: "Copied!",
       description: "API key copied to clipboard",
@@ -75,6 +78,7 @@ const ApiKeysSection = () => {
     setIsApiKeyDialogOpen(false);
     setCurrentApiKey(null);
     setShowApiKey(false);
+    setCopied(false);
   };
 
   const formatApiKey = (key: string) => {
@@ -247,57 +251,93 @@ const ApiKeysSection = () => {
         </div>
       </div>
 
-      <Dialog open={isApiKeyDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Your API Key</DialogTitle>
-            <DialogDescription>
-              Copy your API key and store it securely. This key will not be shown again after you close this dialog.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-md">
-              <p className="text-sm font-medium">Important Security Notice</p>
-              <p className="text-xs mt-1">
-                This API key will not be stored or displayed again. Please copy and save it in a secure location immediately.
-              </p>
+      <ModernModal
+        open={isApiKeyDialogOpen}
+        onOpenChange={handleCloseDialog}
+        title="API Key Generated"
+        description="Your new API key has been generated successfully. Save it securely as it won't be shown again."
+        size="lg"
+        className="max-w-2xl"
+      >
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-800/30 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Key className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">New API Key Created</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                  This key provides full access to your 7en.ai account. Store it securely and never share it publicly.
+                </p>
+              </div>
             </div>
-            
-            {currentApiKey && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">API Key</label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type={showApiKey ? 'text' : 'password'}
-                    value={currentApiKey}
-                    readOnly
-                    className="font-mono text-sm"
-                  />
+          </div>
+          
+          {currentApiKey && (
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-foreground">Your API Key</label>
+              <div className="relative">
+                <ModernInput
+                  type={showApiKey ? 'text' : 'password'}
+                  value={currentApiKey}
+                  readOnly
+                  className="font-mono text-sm pr-20 bg-muted/50"
+                  variant="glass"
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                   <Button
-                    variant="outline"
-                    size="icon"
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-background/80"
                     onClick={() => setShowApiKey(!showApiKey)}
                   >
                     {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                   <Button
-                    variant="outline"
-                    size="icon"
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-background/80"
                     onClick={() => handleCopyKey(currentApiKey)}
                   >
-                    <Copy className="h-4 w-4" />
+                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-            )}
+              <p className="text-xs text-muted-foreground">
+                Click the eye icon to reveal the key, or the copy icon to copy it to your clipboard.
+              </p>
+            </div>
+          )}
+
+          <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/30 rounded-xl p-4">
+            <div className="flex gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Security Best Practices</p>
+                <ul className="text-xs text-amber-700 dark:text-amber-300 mt-2 space-y-1">
+                  <li>• Store your API key in environment variables, not in your code</li>
+                  <li>• Never commit API keys to version control systems</li>
+                  <li>• Rotate your keys regularly for enhanced security</li>
+                  <li>• Monitor usage in your dashboard to detect unauthorized access</li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <DialogFooter>
-            <Button onClick={handleCloseDialog}>
-              I've Saved My API Key
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-6 border-t border-border/50">
+          <Button
+            variant="outline"
+            onClick={handleCloseDialog}
+            className="px-6"
+          >
+            I've Saved My Key
+          </Button>
+        </div>
+      </ModernModal>
     </section>
   );
 };
