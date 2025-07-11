@@ -131,9 +131,9 @@ export const ModernDropdown = ({
         <ScrollArea 
           className={cn(
             searchable ? "p-1" : "",
-            "w-full"
+            "w-full overflow-y-auto"
           )}
-          style={{ height: maxHeight }}
+          style={{ maxHeight }}
           hideScrollbar={true}
         >
           <div className="space-y-0.5">
