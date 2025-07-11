@@ -138,27 +138,7 @@ const ConversationFiltersDrawer = ({
             </button>
           </div>
 
-          <ScrollArea className="h-[500px] pr-4" style={{ 
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgb(148 163 184) transparent'
-          }}>
-            <style jsx>{`
-              .scroll-area-viewport::-webkit-scrollbar {
-                width: 8px;
-              }
-              .scroll-area-viewport::-webkit-scrollbar-track {
-                background: transparent;
-                border-radius: 4px;
-              }
-              .scroll-area-viewport::-webkit-scrollbar-thumb {
-                background: rgb(148 163 184 / 0.5);
-                border-radius: 4px;
-                transition: background 0.2s ease;
-              }
-              .scroll-area-viewport::-webkit-scrollbar-thumb:hover {
-                background: rgb(148 163 184 / 0.8);
-              }
-            `}</style>
+          <ScrollArea className="h-[500px] pr-4 [&>[data-radix-scroll-area-viewport]]:scrollbar-thin [&>[data-radix-scroll-area-viewport]]:scrollbar-track-transparent [&>[data-radix-scroll-area-viewport]]:scrollbar-thumb-slate-400/50 [&>[data-radix-scroll-area-viewport]]:hover:scrollbar-thumb-slate-400/80">
             <div className="space-y-6">
               
               {/* Agent Name Section */}
