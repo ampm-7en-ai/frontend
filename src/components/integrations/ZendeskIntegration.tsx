@@ -1,281 +1,320 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Settings, AlertCircle, Copy, ExternalLink } from 'lucide-react';
-import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
-import { useAuth } from '@/context/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Headphones, ExternalLink, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { getAccessToken, getApiUrl } from '@/utils/api-config';
 
-interface ZendeskIntegration {
-  id: string;
-  team: number;
-  provider: string;
-  domain: string;
-  email: string;
-  webhook_path: string;
-  webhook_url: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ZendeskResponse {
-  message: string;
-  data: {
-    has_zendesk_integrated: boolean;
-    integration?: ZendeskIntegration;
-  };
-  status: string;
-  permissions: string[];
+interface ZendeskStatus {
+  is_connected: boolean;
+  subdomain?: string;
 }
 
 const ZendeskIntegration = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [integration, setIntegration] = useState<ZendeskIntegration | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [updateForm, setUpdateForm] = useState({
-    domain: '',
-    email: '',
-    api_key: ''
-  });
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [zendeskStatus, setZendeskStatus] = useState<ZendeskStatus | null>(null);
+  const [subdomain, setSubdomain] = useState('');
+  const [email, setEmail] = useState('');
+  const [apiToken, setApiToken] = useState('');
   const { toast } = useToast();
-  const { user } = useAuth();
 
-  const checkZendeskIntegration = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${BASE_URL}ticketing/zendesk-integrations/`, {
-        headers: getAuthHeaders(user?.accessToken || '')
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to check Zendesk integration');
-      }
-
-      const data: ZendeskResponse = await response.json();
-      setIsConnected(data.data.has_zendesk_integrated);
-      if (data.data.integration) {
-        setIntegration(data.data.integration);
-      }
-    } catch (error) {
-      console.error('Error checking Zendesk integration:', error);
-      toast({
-        title: "Error",
-        description: "Failed to check Zendesk integration status",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdateIntegration = async () => {
-    if (!integration) return;
-
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`${BASE_URL}ticketing/zendesk-integrations/${integration.id}/`, {
-        method: 'PUT',
-        headers: getAuthHeaders(user?.accessToken || ''),
-        body: JSON.stringify(updateForm)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update Zendesk integration');
-      }
-
-      const data: ZendeskResponse = await response.json();
-      if (data.data.integration) {
-        setIntegration(data.data.integration);
-      }
-      
-      toast({
-        title: "Success",
-        description: "Zendesk integration updated successfully",
-      });
-      
-      setIsUpdateDialogOpen(false);
-      setUpdateForm({ domain: '', email: '', api_key: '' });
-    } catch (error) {
-      console.error('Error updating Zendesk integration:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update Zendesk integration",
-        variant: "destructive"
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleCopyWebhook = () => {
-    if (integration?.webhook_url) {
-      navigator.clipboard.writeText(integration.webhook_url);
-      toast({
-        title: "Copied!",
-        description: "Webhook URL copied to clipboard",
-      });
-    }
-  };
-
-  const openUpdateDialog = () => {
-    if (integration) {
-      setUpdateForm({
-        domain: integration.domain,
-        email: integration.email,
-        api_key: ''
-      });
-    }
-    setIsUpdateDialogOpen(true);
-  };
-
+  // Check Zendesk connection status on component mount
   useEffect(() => {
-    if (user?.accessToken) {
-      checkZendeskIntegration();
+    checkZendeskStatus();
+  }, []);
+
+  const checkZendeskStatus = async () => {
+    setIsCheckingStatus(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(getApiUrl('zendesk/status/'), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to check Zendesk status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setZendeskStatus(result.data);
+      }
+    } catch (error) {
+      console.error('Error checking Zendesk status:', error);
+    } finally {
+      setIsCheckingStatus(false);
     }
-  }, [user?.accessToken]);
+  };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const handleConnect = async () => {
+    if (!subdomain || !email || !apiToken) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  if (!isConnected || !integration) {
-    return (
-      <div className="text-center py-8">
-        <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-semibold mb-2">Zendesk Not Connected</h3>
-        <p className="text-muted-foreground mb-4">
-          Connect your Zendesk account to enable automated ticket management and customer support integration.
-        </p>
-        <Button variant="outline" disabled>
-          <ExternalLink className="h-4 w-4 mr-2" />
-          Connect Zendesk
-        </Button>
-        <p className="text-sm text-muted-foreground mt-2">
-          Contact support to set up your Zendesk integration.
-        </p>
-      </div>
-    );
-  }
+    setIsConnecting(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(getApiUrl('zendesk/connect/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subdomain,
+          email,
+          api_token: apiToken,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to connect Zendesk: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setZendeskStatus({ is_connected: true, subdomain });
+        toast({
+          title: "Successfully Connected",
+          description: "Zendesk has been connected successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error connecting Zendesk:', error);
+      toast({
+        title: "Connection Failed",
+        description: "Unable to connect to Zendesk. Please check your credentials.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleUnlink = async () => {
+    setIsUnlinking(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(getApiUrl('zendesk/unlink/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to unlink Zendesk: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setZendeskStatus({ is_connected: false });
+        toast({
+          title: "Successfully Unlinked",
+          description: "Zendesk integration has been disconnected.",
+        });
+      }
+    } catch (error) {
+      console.error('Error unlinking Zendesk:', error);
+      toast({
+        title: "Unlink Failed",
+        description: "Unable to disconnect Zendesk integration.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUnlinking(false);
+    }
+  };
+
+  const isConnected = zendeskStatus?.is_connected || false;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold">Zendesk Connected</h3>
-          <Badge variant="outline" className="bg-green-100 text-green-800">
-            Active
-          </Badge>
+      <div className="flex items-start gap-4">
+        <div className="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <Headphones className="h-8 w-8 text-white" />
         </div>
-        <Button variant="outline" onClick={openUpdateDialog}>
-          <Settings className="h-4 w-4 mr-2" />
-          Update Settings
-        </Button>
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Connect Zendesk</h3>
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+            Integrate with Zendesk to automate ticket management and enhance your customer support workflows.
+          </p>
+        </div>
+        {isCheckingStatus ? (
+          <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50">
+            Checking...
+          </Badge>
+        ) : (
+          <Badge 
+            variant={isConnected ? "success" : "outline"} 
+            className={isConnected 
+              ? "text-green-800 border-green-200 bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400" 
+              : "text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50"
+            }
+          >
+            {isConnected ? (
+              <>
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Connected
+              </>
+            ) : (
+              <>
+                <AlertCircle className="h-3 w-3 mr-1" />
+                Not Connected
+              </>
+            )}
+          </Badge>
+        )}
       </div>
 
-      <div className="grid gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Integration Details</CardTitle>
+      {isConnected && zendeskStatus && (
+        <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-200/50 dark:border-green-800/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Connection Details
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium">Domain</Label>
-              <div className="flex items-center gap-2 mt-1">
-                <Input value={integration.domain} readOnly className="bg-gray-50" />
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => window.open(`https://${integration.domain}`, '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
+          <CardContent className="space-y-2">
+            {zendeskStatus.subdomain && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-green-800 dark:text-green-200">Subdomain:</span>
+                <span className="text-sm text-green-700 dark:text-green-300">{zendeskStatus.subdomain}.zendesk.com</span>
               </div>
-            </div>
-            
-            <div>
-              <Label className="text-sm font-medium">Email</Label>
-              <Input value={integration.email} readOnly className="bg-gray-50 mt-1" />
-            </div>
-            
-            <div>
-              <Label className="text-sm font-medium">Webhook URL</Label>
-              <div className="flex items-center gap-2 mt-1">
-                <Input value={integration.webhook_url} readOnly className="bg-gray-50" />
-                <Button variant="outline" size="icon" onClick={handleCopyWebhook}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Use this webhook URL in your Zendesk settings to receive notifications.
-              </p>
-            </div>
+            )}
           </CardContent>
         </Card>
-      </div>
+      )}
 
-      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Zendesk Integration</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="domain">Zendesk Domain</Label>
-              <Input
-                id="domain"
-                placeholder="your-company.zendesk.com"
-                value={updateForm.domain}
-                onChange={(e) => setUpdateForm(prev => ({ ...prev, domain: e.target.value }))}
-              />
+      <Card className="bg-slate-50/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-600/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Shield className="h-5 w-5 text-green-600" />
+            Integration Management
+          </CardTitle>
+          <CardDescription>
+            {isConnected 
+              ? "Your Zendesk integration is active and ready to use." 
+              : "Connect your Zendesk account to enable ticket automation."
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!isConnected && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="zendesk-subdomain">Zendesk Subdomain</Label>
+                <Input
+                  id="zendesk-subdomain"
+                  placeholder="yourcompany"
+                  value={subdomain}
+                  onChange={(e) => setSubdomain(e.target.value)}
+                  variant="modern"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Your Zendesk subdomain (e.g., if your URL is yourcompany.zendesk.com, enter "yourcompany")
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="zendesk-email">Email Address</Label>
+                <Input
+                  id="zendesk-email"
+                  type="email"
+                  placeholder="your.email@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  variant="modern"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="zendesk-token">API Token</Label>
+                <Input
+                  id="zendesk-token"
+                  type="password"
+                  placeholder="Enter your Zendesk API token"
+                  value={apiToken}
+                  onChange={(e) => setApiToken(e.target.value)}
+                  variant="modern"
+                />
+              </div>
             </div>
-            
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@company.com"
-                value={updateForm.email}
-                onChange={(e) => setUpdateForm(prev => ({ ...prev, email: e.target.value }))}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="api_key">API Key</Label>
-              <Input
-                id="api_key"
-                type="password"
-                placeholder="Enter your Zendesk API key"
-                value={updateForm.api_key}
-                onChange={(e) => setUpdateForm(prev => ({ ...prev, api_key: e.target.value }))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleUpdateIntegration}
-              disabled={isUpdating || !updateForm.domain || !updateForm.email || !updateForm.api_key}
+          )}
+
+          <div className="flex gap-3 pt-4">
+            {isConnected ? (
+              <ModernButton 
+                onClick={handleUnlink}
+                disabled={isUnlinking}
+                variant="outline"
+                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+              >
+                {isUnlinking ? "Unlinking..." : "Unlink Zendesk"}
+              </ModernButton>
+            ) : (
+              <ModernButton 
+                onClick={handleConnect}
+                disabled={isConnecting}
+                variant="gradient"
+              >
+                {isConnecting ? "Connecting..." : "Connect Zendesk"}
+              </ModernButton>
+            )}
+            <ModernButton 
+              variant="outline" 
+              onClick={() => window.open('https://developer.zendesk.com/api-reference/', '_blank')}
+              icon={ExternalLink}
             >
-              {isUpdating ? "Updating..." : "Update Integration"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              API Documentation
+            </ModernButton>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-200/50 dark:border-green-800/50">
+        <CardHeader>
+          <CardTitle className="text-lg text-green-900 dark:text-green-100">Zendesk Features</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm text-green-800 dark:text-green-200">
+            <li>• Automated ticket creation and assignment</li>
+            <li>• Multi-channel support integration</li>
+            <li>• Customer satisfaction surveys</li>
+            <li>• Knowledge base and FAQ integration</li>
+            <li>• Agent collaboration tools</li>
+            <li>• Comprehensive reporting and analytics</li>
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   );
 };
