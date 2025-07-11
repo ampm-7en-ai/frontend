@@ -166,11 +166,8 @@ export const getSourceMetadataInfo = (source: { type: string, metadata: any }): 
   return result;
 };
 
-// Import and re-export the API interceptor functions
+// Import the new API interceptor
 import { apiRequest, apiGet, apiPost, apiPut, apiDelete } from './api-interceptor';
-
-// Export the API interceptor functions
-export { apiRequest, apiGet, apiPost, apiPut, apiDelete };
 
 // Function to fetch agent details (including knowledge bases) - Updated to use interceptor
 export const fetchAgentDetails = async (agentId: string): Promise<any> => {
