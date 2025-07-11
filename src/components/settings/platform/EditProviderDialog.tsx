@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -59,10 +60,11 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
     if (provider) {
       setFormData({
         provider_name: provider.provider_name,
-        api_key: provider.api_key || provider._api_key || '',
+        api_key: typeof provider.api_key === 'string' ? provider.api_key : 
+                 (provider._api_key ? '' : ''), // Convert boolean to empty string if needed
         default_model: getDefaultModelName(provider) || '',
-        is_active: provider.is_active,
-        status: provider.status
+        is_active: provider.is_active ?? true,
+        status: provider.status ?? 'active'
       });
     }
   }, [provider]);
