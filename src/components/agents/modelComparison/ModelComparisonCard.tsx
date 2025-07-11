@@ -12,6 +12,7 @@ import { ModelConfigPopover } from './ModelConfigPopover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useAIModels } from '@/hooks/useAIModels';
 
 interface ModelComparisonCardProps {
   index: number;
@@ -24,7 +25,7 @@ interface ModelComparisonCardProps {
   onOpenSystemPrompt: () => void;
   onUpdateConfig: (field: keyof ChatConfig, value: any) => void;
   onSaveConfig?: () => void;
-  modelOptions: Record<string, { name: string; provider: string }>;
+  modelOptions?: Record<string, { name: string; provider: string }>; // Make optional for backward compatibility
   primaryColor: string;
   avatarSrc?: string;
   isConnected?: boolean;
@@ -42,7 +43,7 @@ export const ModelComparisonCard = ({
   onOpenSystemPrompt,
   onUpdateConfig,
   onSaveConfig,
-  modelOptions,
+  modelOptions, // Legacy prop for backward compatibility
   primaryColor,
   avatarSrc,
   isConnected = true,
@@ -51,6 +52,8 @@ export const ModelComparisonCard = ({
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  
+  const { activeModelOptions, isLoading: isLoadingModels } = useAIModels();
   
   // Store a reference to the scroll viewport when the ScrollArea is mounted
   useEffect(() => {
@@ -74,7 +77,14 @@ export const ModelComparisonCard = ({
   }, [messages]);
 
   const getModelDisplay = (modelKey: string) => {
-    return modelOptions[modelKey]?.name || modelKey;
+    // Use dynamic model options first, fallback to legacy static options
+    const dynamicOption = activeModelOptions.find(option => option.value === modelKey);
+    if (dynamicOption) {
+      return dynamicOption.label;
+    }
+    
+    // Fallback to legacy modelOptions prop
+    return modelOptions?.[modelKey]?.name || modelKey;
   };
 
   const adjustColor = (color: string, amount: number): string => {
@@ -107,11 +117,18 @@ export const ModelComparisonCard = ({
               <SelectValue placeholder={getModelDisplay(model)} />
             </SelectTrigger>
             <SelectContent variant="modern">
-              {Object.entries(modelOptions).map(([key, model]) => (
-                <SelectItem key={key} value={key} variant="modern">
-                  {model.name} ({model.provider})
-                </SelectItem>
-              ))}
+              {isLoadingModels ? (
+                <div className="flex items-center justify-center p-2">
+                  <LoadingSpinner size="sm" />
+                  <span className="ml-2 text-sm">Loading models...</span>
+                </div>
+              ) : (
+                activeModelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value} variant="modern">
+                    {option.label}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
           

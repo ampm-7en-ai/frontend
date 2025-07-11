@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, X, Plus, Palette, MessageSquare, Brain, Settings } from 'lucide-react';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
+import { useAIModels } from '@/hooks/useAIModels';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const agentTypes = [
   'Customer Support',
@@ -32,6 +34,7 @@ export const ConfigurationPanel = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
   const [isDeploymentOpen, setIsDeploymentOpen] = useState(false);
+  const { activeModelOptions, isLoading: isLoadingModels } = useAIModels();
 
   const handleSuggestionChange = (index: number, value: string) => {
     const newSuggestions = [...agentData.suggestions];
@@ -105,6 +108,29 @@ export const ConfigurationPanel = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="model" className="text-xs font-medium">AI Model</Label>
+                {isLoadingModels ? (
+                  <div className="flex items-center gap-2 p-2">
+                    <LoadingSpinner size="sm" />
+                    <span className="text-xs text-gray-500">Loading models...</span>
+                  </div>
+                ) : (
+                  <Select value={agentData.model} onValueChange={(value) => updateAgentData({ model: value })}>
+                    <SelectTrigger variant="modern" className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent variant="modern">
+                      {activeModelOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} variant="modern" className="text-sm">
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>

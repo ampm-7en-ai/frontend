@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Edit, Save, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +12,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import ModernButton from '@/components/dashboard/ModernButton';
+import { useAIModels } from '@/hooks/useAIModels';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface GlobalAgentSettingsProps {
   initialSettings?: {
@@ -31,6 +32,7 @@ type GlobalSettingsFormValues = z.infer<typeof globalSettingsSchema>;
 
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
+  const { modelOptionsForDropdown, isLoading: isLoadingModels } = useAIModels();
 
   const globalSettingsForm = useForm<GlobalSettingsFormValues>({
     resolver: zodResolver(globalSettingsSchema),
@@ -125,20 +127,20 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                   <FormItem>
                     <FormLabel>Default Response Model</FormLabel>
                     <FormControl>
-                      <ModernDropdown
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        options={[
-                          { value: "gpt-4o", label: "GPT-4o (OpenAI)" },
-                          { value: "gpt-4-turbo", label: "GPT-4 Turbo (OpenAI)" },
-                          { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo (OpenAI)" },
-                          { value: "mistral-large-latest", label: "Mistral Large (Mistral AI)" },
-                          { value: "mistral-medium-latest", label: "Mistral Medium (Mistral AI)" },
-                          { value: "mistral-small-latest", label: "Mistral Small (Mistral AI)" }
-                        ]}
-                        placeholder="Select model"
-                        className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
-                      />
+                      {isLoadingModels ? (
+                        <div className="flex items-center gap-2 p-2">
+                          <LoadingSpinner size="sm" />
+                          <span className="text-sm text-gray-500">Loading models...</span>
+                        </div>
+                      ) : (
+                        <ModernDropdown
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          options={modelOptionsForDropdown}
+                          placeholder="Select model"
+                          className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                        />
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -206,13 +208,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
               <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
                 <p className="text-slate-600 dark:text-slate-400">
-                  {globalSettingsForm.getValues().defaultModel === 'gpt-4o' ? 'GPT-4o (OpenAI)' :
-                   globalSettingsForm.getValues().defaultModel === 'gpt-4-turbo' ? 'GPT-4 Turbo (OpenAI)' :
-                   globalSettingsForm.getValues().defaultModel === 'gpt-3.5-turbo' ? 'GPT-3.5 Turbo (OpenAI)' :
-                   globalSettingsForm.getValues().defaultModel === 'mistral-large-latest' ? 'Mistral Large (Mistral AI)' :
-                   globalSettingsForm.getValues().defaultModel === 'mistral-medium-latest' ? 'Mistral Medium (Mistral AI)' :
-                   globalSettingsForm.getValues().defaultModel === 'mistral-small-latest' ? 'Mistral Small (Mistral AI)' :
-                   globalSettingsForm.getValues().defaultModel}
+                  {modelOptionsForDropdown.find(option => option.value === globalSettingsForm.getValues().defaultModel)?.label || globalSettingsForm.getValues().defaultModel}
                 </p>
               </div>
               <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">

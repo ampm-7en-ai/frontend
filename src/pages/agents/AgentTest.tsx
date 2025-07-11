@@ -8,7 +8,7 @@ import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 import { TestPageHeader } from '@/components/agents/test/TestPageHeader';
-import { MODELS, getModelDisplay } from '@/constants/modelOptions';
+import { getModelDisplay } from '@/constants/modelOptions';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 
@@ -95,7 +95,6 @@ const AgentTest = () => {
                 onOpenSystemPrompt={() => handleSystemPromptEdit(index)}
                 onUpdateConfig={(field, value) => handleUpdateChatConfig(index, field, value)}
                 onSaveConfig={() => handleSaveConfig(index)}
-                modelOptions={MODELS}
                 primaryColor={primaryColor}
                 avatarSrc={agent?.avatarSrc}
                 isConnected={modelConnections[index]}

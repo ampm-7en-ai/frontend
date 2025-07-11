@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useBuilder } from './BuilderContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,17 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-
-const models = [
-  { id: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', badge: 'Popular' },
-  { id: 'gpt-4', label: 'GPT-4', badge: 'Advanced' },
-  { id: 'claude-3-sonnet', label: 'Claude 3 Sonnet', badge: 'New' },
-  { id: 'claude-3-haiku', label: 'Claude 3 Haiku', badge: 'Fast' }
-];
+import { useAIModels } from '@/hooks/useAIModels';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export const AdvancedSettings = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData } = state;
+  const { activeModelOptions, isLoading: isLoadingModels } = useAIModels();
 
   const handleGuidelineChange = (type: 'dos' | 'donts', index: number, value: string) => {
     const newGuidelines = { ...agentData.guidelines };
@@ -53,23 +48,30 @@ export const AdvancedSettings = () => {
             <AccordionContent className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label htmlFor="model">AI Model</Label>
-                <Select value={agentData.model} onValueChange={(value) => updateAgentData({ model: value })}>
-                  <SelectTrigger variant="modern" size="lg">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent variant="modern">
-                    {models.map((model) => (
-                      <SelectItem key={model.id} value={model.id} variant="modern">
-                        <div className="flex items-center gap-2">
-                          <span>{model.label}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {model.badge}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isLoadingModels ? (
+                  <div className="flex items-center gap-2 p-2">
+                    <LoadingSpinner size="sm" />
+                    <span className="text-sm text-gray-500">Loading models...</span>
+                  </div>
+                ) : (
+                  <Select value={agentData.model} onValueChange={(value) => updateAgentData({ model: value })}>
+                    <SelectTrigger variant="modern" size="lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent variant="modern">
+                      {activeModelOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} variant="modern">
+                          <div className="flex items-center gap-2">
+                            <span>{option.label}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {option.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               
               <div className="space-y-2">
