@@ -36,11 +36,11 @@ const ConversationFiltersModern = ({
 
   const channelOptions = [
     { value: 'whatsapp', label: 'WhatsApp' },
-    { value: 'email', label: 'Email' },
-    { value: 'website', label: 'Website' },
     { value: 'ticketing', label: 'Ticket' },
+    { value: 'website', label: 'Website' },
     { value: 'slack', label: 'Slack' },
-    { value: 'instagram', label: 'Instagram' }
+    { value: 'instagram', label: 'Instagram' },
+    { value: 'messenger', label: 'Messenger' }
   ];
 
   const hasActiveFilters = channelFilter.length > 0 || agentTypeFilter.length > 0 || agentNameFilter.length > 0;
@@ -56,11 +56,7 @@ const ConversationFiltersModern = ({
     if (isSelected) {
       setChannelFilter(channelFilter.filter(id => id !== value));
     } else {
-      if (value === 'email') {
-        setChannelFilter(['ticketing']);
-      } else {
-        setChannelFilter([...channelFilter, value]);
-      }
+      setChannelFilter([...channelFilter, value]);
     }
   };
 
@@ -155,10 +151,9 @@ const ConversationFiltersModern = ({
             ))}
             {channelFilter.map(channelId => {
               const channel = channelOptions.find(c => c.value === channelId);
-              const displayLabel = channelId === 'ticketing' && channelFilter.length === 1 ? 'Email' : channel?.label;
               return channel ? (
                 <span key={channelId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-blue-50/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
-                  {displayLabel}
+                  {channel.label}
                   <button
                     onClick={() => handleChannelChange(channelId)}
                     className="hover:bg-blue-100/50 dark:hover:bg-blue-800/30 rounded-full p-0.5 transition-colors"

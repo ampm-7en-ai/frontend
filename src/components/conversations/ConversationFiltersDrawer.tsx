@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ConversationFiltersDrawerProps {
   open: boolean;
@@ -43,9 +44,9 @@ const ConversationFiltersDrawer = ({
       logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg' 
     },
     { 
-      value: 'email', 
-      label: 'Email', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg' 
+      value: 'ticketing', 
+      label: 'Ticket', 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Ticket_icon.svg' 
     },
     { 
       value: 'website', 
@@ -61,6 +62,11 @@ const ConversationFiltersDrawer = ({
       value: 'instagram', 
       label: 'Instagram', 
       logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png' 
+    },
+    { 
+      value: 'messenger', 
+      label: 'Messenger', 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/b/be/Facebook_Messenger_logo_2020.svg' 
     }
   ];
 
@@ -74,11 +80,7 @@ const ConversationFiltersDrawer = ({
     if (isSelected) {
       setChannelFilter(channelFilter.filter(id => id !== value));
     } else {
-      if (value === 'email') {
-        setChannelFilter(['ticketing']);
-      } else {
-        setChannelFilter([...channelFilter, value]);
-      }
+      setChannelFilter([...channelFilter, value]);
     }
   };
 
@@ -136,99 +138,120 @@ const ConversationFiltersDrawer = ({
             </button>
           </div>
 
-          <div className="space-y-6 max-h-96 overflow-y-auto">
-            
-            {/* Agent Name Section */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Agent Name
-              </Label>
-              <ModernDropdown
-                value={agentNameFilter.length > 0 ? agentNameFilter[0] : ''}
-                onValueChange={handleAgentNameChange}
-                options={[
-                  { value: '', label: 'All agents' },
-                  ...agentOptions
-                ]}
-                placeholder="Select agent..."
-                className="bg-white/60 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm h-8 text-xs"
-              />
-            </div>
+          <ScrollArea className="h-[500px] pr-4" style={{ 
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgb(148 163 184) transparent'
+          }}>
+            <style jsx>{`
+              .scroll-area-viewport::-webkit-scrollbar {
+                width: 8px;
+              }
+              .scroll-area-viewport::-webkit-scrollbar-track {
+                background: transparent;
+                border-radius: 4px;
+              }
+              .scroll-area-viewport::-webkit-scrollbar-thumb {
+                background: rgb(148 163 184 / 0.5);
+                border-radius: 4px;
+                transition: background 0.2s ease;
+              }
+              .scroll-area-viewport::-webkit-scrollbar-thumb:hover {
+                background: rgb(148 163 184 / 0.8);
+              }
+            `}</style>
+            <div className="space-y-6">
+              
+              {/* Agent Name Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Agent Name
+                </Label>
+                <ModernDropdown
+                  value={agentNameFilter.length > 0 ? agentNameFilter[0] : ''}
+                  onValueChange={handleAgentNameChange}
+                  options={[
+                    { value: '', label: 'All agents' },
+                    ...agentOptions
+                  ]}
+                  placeholder="Select agent..."
+                  className="bg-white/60 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm h-8 text-xs"
+                />
+              </div>
 
-            <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
+              <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
 
-            {/* Channel Section */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Channels
-              </Label>
-              <div className="space-y-2">
-                {channelOptions.map((channel) => (
-                  <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+              {/* Channel Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Channels
+                </Label>
+                <div className="space-y-2">
+                  {channelOptions.map((channel) => (
+                    <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                      <Checkbox
+                        id={`channel-${channel.value}`}
+                        checked={channelFilter.includes(channel.value)}
+                        onCheckedChange={() => handleChannelChange(channel.value)}
+                        className="rounded-md"
+                      />
+                      <Label 
+                        htmlFor={`channel-${channel.value}`}
+                        className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
+                      >
+                        <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                          <img 
+                            src={channel.logo} 
+                            alt={channel.label}
+                            className="w-4 h-4 object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                        {channel.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
+
+              {/* Agent Type Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Agent Type
+                </Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <Checkbox
-                      id={`channel-${channel.value}`}
-                      checked={
-                        channelFilter.includes(channel.value) || 
-                        (channel.value === 'email' && channelFilter.includes('ticketing'))
-                      }
-                      onCheckedChange={() => handleChannelChange(channel.value)}
+                      id="agent-type-human"
+                      checked={agentTypeFilter.includes('human')}
+                      onCheckedChange={() => handleAgentTypeChange('human')}
                       className="rounded-md"
                     />
                     <Label 
-                      htmlFor={`channel-${channel.value}`}
+                      htmlFor="agent-type-human"
                       className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
                     >
-                      <img 
-                        src={channel.logo} 
-                        alt={channel.label}
-                        className="w-5 h-5 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                      {channel.label}
+                      <span className="text-lg">👤</span>
+                      Human Agents
                     </Label>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
-
-            {/* Agent Type Section */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Agent Type
-              </Label>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                  <Checkbox
-                    id="agent-type-human"
-                    checked={agentTypeFilter.includes('human')}
-                    onCheckedChange={() => handleAgentTypeChange('human')}
-                    className="rounded-md"
-                  />
-                  <Label 
-                    htmlFor="agent-type-human"
-                    className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
-                  >
-                    <span className="text-lg">👤</span>
-                    Human Agents
-                  </Label>
                 </div>
               </div>
-            </div>
 
-            {/* Clear All Button */}
-            <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
-              <button
-                onClick={clearAllFilters}
-                className="w-full px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-100/60 dark:bg-slate-800/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors backdrop-blur-sm"
-              >
-                Clear All Filters
-              </button>
+              {/* Clear All Button */}
+              <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
+                <button
+                  onClick={clearAllFilters}
+                  className="w-full px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-100/60 dark:bg-slate-800/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors backdrop-blur-sm"
+                >
+                  Clear All Filters
+                </button>
+              </div>
             </div>
-          </div>
+          </ScrollArea>
         </div>
       </PopoverContent>
     </Popover>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe } from 'lucide-react';
@@ -38,16 +37,16 @@ const ConversationCard = ({
   // Channel logo mapping
   const channelLogos = {
     'whatsapp': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
-    'email': 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg',
-    'website': 'https://upload.wikimedia.org/wikipedia/commons/8/88/Globe_icon.svg',
     'ticketing': 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Ticket_icon.svg',
+    'website': 'https://upload.wikimedia.org/wikipedia/commons/8/88/Globe_icon.svg',
     'slack': 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg',
-    'instagram': 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png'
+    'instagram': 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+    'messenger': 'https://upload.wikimedia.org/wikipedia/commons/b/be/Facebook_Messenger_logo_2020.svg'
   };
 
   // Get channel icon with brand-appropriate colors and modern circular design
   const getChannelIcon = () => {
-    const containerClass = "w-11 h-11 flex items-center justify-center rounded-2xl transition-colors";
+    const containerClass = "w-11 h-11 flex items-center justify-center rounded-2xl transition-colors relative";
     const channel = conversation.channel?.toLowerCase();
     const logoUrl = channelLogos[channel];
     
@@ -84,10 +83,10 @@ const ConversationCard = ({
     const iconClass = "h-5 w-5";
     
     switch (conversation.channel?.toLowerCase()) {
-      case 'email':
-        const mailIcon = document.createElement('div');
-        mailIcon.innerHTML = `<svg class="${iconClass} text-blue-600 dark:text-blue-400" stroke-width="2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 8v11a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8m18 0-9 5L3 8m18 0V5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v3"></path></svg>`;
-        return mailIcon;
+      case 'ticketing':
+        const ticketIcon = document.createElement('div');
+        ticketIcon.innerHTML = `<svg class="${iconClass} text-blue-600 dark:text-blue-400" stroke-width="2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 8v11a3 3 0 0 1-3 3H6a3 3 0 0 1-3 3V8m18 0-9 5L3 8m18 0V5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v3"></path></svg>`;
+        return ticketIcon;
       case 'phone':
         const phoneIcon = document.createElement('div');
         phoneIcon.innerHTML = `<svg class="${iconClass} text-slate-600 dark:text-slate-400" stroke-width="2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
@@ -104,7 +103,7 @@ const ConversationCard = ({
     const containerClass = "w-11 h-11 flex items-center justify-center rounded-2xl transition-colors relative";
     
     switch (conversation.channel?.toLowerCase()) {
-      case 'email':
+      case 'ticketing':
         return (
           <div className={cn(containerClass, "bg-blue-100 dark:bg-blue-900/30")}>
             <Mail className={cn(iconClass, "text-blue-600 dark:text-blue-400")} strokeWidth={2} />
@@ -132,6 +131,12 @@ const ConversationCard = ({
         return (
           <div className={cn(containerClass, "bg-green-100 dark:bg-green-900/30")}>
             <Globe className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
+          </div>
+        );
+      case 'messenger':
+        return (
+          <div className={cn(containerClass, "bg-blue-100 dark:bg-blue-900/30")}>
+            <MessageSquare className={cn(iconClass, "text-blue-600 dark:text-blue-400")} strokeWidth={2} />
           </div>
         );
       case 'whatsapp':
