@@ -11,9 +11,19 @@ export interface LLMProvider {
   default_model: string | null;
 }
 
-// Superadmin provider structure (for backward compatibility)
-export interface SuperAdminLLMProvider extends LLMProvider {
+// Model object structure for superadmin
+export interface ModelObject {
   id: number;
+  name: string;
+  provider_config?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Superadmin provider structure (completely separate from LLMProvider)
+export interface SuperAdminLLMProvider {
+  id: number;
+  provider_name: string;
   api_key?: string;
   _api_key?: string;
   is_active: boolean;
@@ -22,15 +32,6 @@ export interface SuperAdminLLMProvider extends LLMProvider {
   updated_at?: string;
   models: ModelObject[] | string[];
   default_model: ModelObject | string | null;
-}
-
-// Model object structure for superadmin
-export interface ModelObject {
-  id: number;
-  name: string;
-  provider_config?: number;
-  created_at?: string;
-  updated_at?: string;
 }
 
 interface LLMProvidersResponse {

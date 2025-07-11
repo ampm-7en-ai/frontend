@@ -9,7 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
 import { SuperAdminLLMProvider } from '@/hooks/useLLMProviders';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { getDefaultModelName } from '@/utils/modelUtils';
 
 interface EditProviderDialogProps {
   isOpen: boolean;
@@ -45,6 +44,23 @@ const providerOptions = [
   }
 ];
 
+// Utility function to get default model name from SuperAdminLLMProvider
+const getSuperAdminDefaultModelName = (provider: SuperAdminLLMProvider): string => {
+  if (!provider.default_model) return '';
+  
+  // If default_model is an object, return its name
+  if (typeof provider.default_model === 'object' && provider.default_model && 'name' in provider.default_model) {
+    return provider.default_model.name;
+  }
+  
+  // If default_model is a string, return it directly
+  if (typeof provider.default_model === 'string') {
+    return provider.default_model;
+  }
+  
+  return '';
+};
+
 const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: EditProviderDialogProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +77,7 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
       setFormData({
         provider_name: provider.provider_name,
         api_key: provider.api_key || provider._api_key || '',
-        default_model: getDefaultModelName(provider) || '',
+        default_model: getSuperAdminDefaultModelName(provider),
         is_active: provider.is_active,
         status: provider.status
       });
