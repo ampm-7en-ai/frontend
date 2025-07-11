@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +25,7 @@ interface AgentFormData {
   suggestions: string[];
   avatar?: string;
   avatarUrl?: string;
+  avatarType?: 'default' | 'predefined' | 'custom';
   guidelines: {
     dos: string[];
     donts: string[];
@@ -84,6 +86,7 @@ const defaultAgentData: AgentFormData = {
     'What features do you offer?', 
     'Tell me about your pricing'
   ],
+  avatarType: 'default',
   guidelines: {
     dos: ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
     donts: ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
@@ -130,6 +133,16 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       knowledge_sources: kb.knowledge_sources || [],
       metadata: kb.metadata || {}
     }));
+  };
+
+  // Helper function to convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
   // Fetch agent data when ID is present
@@ -179,9 +192,10 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           welcomeMessage: agentData.appearance?.welcomeMessage || 'Hello! How can I help you today?',
           buttonText: agentData.appearance?.buttonText || 'Chat with us',
           position: agentData.appearance?.position || 'bottom-right',
-          suggestions: agentData.appearance?.suggestions || ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
-          avatar: agentData.appearance?.avatarSrc,
-          avatarUrl: agentData.appearance?.avatarSrc,
+          suggestions: agentData.behavior?.suggestions || agentData.appearance?.suggestions || ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
+          avatar: agentData.appearance?.avatar?.src,
+          avatarUrl: agentData.appearance?.avatar?.src,
+          avatarType: agentData.appearance?.avatar?.type || 'default',
           guidelines: {
             dos: agentData.behavior?.guidelines?.dos || ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
             donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
@@ -260,16 +274,19 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           throw new Error('No authentication token available');
         }
 
+        // Prepare avatar data
+        let avatarData = {
+          type: state.agentData.avatarType || 'default',
+          src: ''
+        };
+
+        if (state.agentData.avatarType === 'custom' && state.agentData.avatar) {
+          avatarData.src = state.agentData.avatar;
+        }
+
         const updatePayload = {
           name: state.agentData.name,
           description: state.agentData.description,
-          agentType: state.agentData.agentType,
-          systemPrompt: state.agentData.systemPrompt,
-          settings: {
-            temperature: state.agentData.temperature,
-            token_length: state.agentData.maxTokens.toString(),
-            response_model: state.agentData.model
-          },
           appearance: {
             primaryColor: state.agentData.primaryColor,
             secondaryColor: state.agentData.secondaryColor,
@@ -278,12 +295,23 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             welcomeMessage: state.agentData.welcomeMessage,
             buttonText: state.agentData.buttonText,
             position: state.agentData.position,
-            suggestions: state.agentData.suggestions,
-            avatarSrc: state.agentData.avatarUrl
+            avatar: avatarData
           },
           behavior: {
+            showOnMobile: true,
+            collectVisitorData: true,
+            autoShowAfter: 30,
+            suggestions: state.agentData.suggestions,
             guidelines: state.agentData.guidelines
-          }
+          },
+          model: {
+            selectedModel: state.agentData.model,
+            temperature: state.agentData.temperature,
+            maxResponseLength: state.agentData.maxTokens
+          },
+          agentType: state.agentData.agentType,
+          systemPrompt: state.agentData.systemPrompt,
+          knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id)
         };
 
         console.log('Update payload:', updatePayload);

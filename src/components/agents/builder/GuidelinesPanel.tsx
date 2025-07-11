@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
 import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload, RotateCcw } from 'lucide-react';
@@ -145,13 +144,33 @@ export const GuidelinesPanel = () => {
         { value: 'customer-support', label: 'Customer support agent', description: 'Helps with customer inquiries' }
       ];
 
-  // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Enhanced image upload handler with base64 conversion
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      updateAgentData({ avatar: imageUrl });
+      try {
+        // Convert file to base64
+        const base64String = await fileToBase64(file);
+        
+        updateAgentData({ 
+          avatar: base64String,
+          avatarUrl: base64String,
+          avatarType: 'custom'
+        });
+      } catch (error) {
+        console.error('Error converting image to base64:', error);
+      }
     }
+  };
+
+  // Helper function to convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
   const addGuideline = (type: 'dos' | 'donts') => {
@@ -399,10 +418,10 @@ export const GuidelinesPanel = () => {
                    <div>
                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Avatar Image</Label>
                      <div className="mt-1.5 space-y-3">
-                       {agentData.avatar && (
+                       {(agentData.avatar || agentData.avatarUrl) && (
                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
                            <img 
-                             src={agentData.avatar} 
+                             src={agentData.avatar || agentData.avatarUrl} 
                              alt="Avatar preview" 
                              className="w-full h-full object-cover"
                            />
@@ -425,11 +444,11 @@ export const GuidelinesPanel = () => {
                            <Upload className="h-4 w-4" />
                            Upload Image
                          </Button>
-                         {agentData.avatar && (
+                         {(agentData.avatar || agentData.avatarUrl) && (
                            <Button
                              type="button"
                              variant="outline"
-                             onClick={() => updateAgentData({ avatar: '' })}
+                             onClick={() => updateAgentData({ avatar: '', avatarUrl: '', avatarType: 'default' })}
                              className="h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
                            >
                              Remove
