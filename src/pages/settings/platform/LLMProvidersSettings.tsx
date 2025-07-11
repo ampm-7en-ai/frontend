@@ -6,10 +6,11 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
-import { Plus, Loader2, Settings, Trash2, Edit } from 'lucide-react';
+import { Plus, Loader2, Settings, Trash2, Edit, Star, StarOff } from 'lucide-react';
 import AddProviderDialog from '@/components/settings/platform/AddProviderDialog';
 import EditProviderDialog from '@/components/settings/platform/EditProviderDialog';
 import AddAgentPromptDialog from '@/components/settings/platform/AddAgentPromptDialog';
+import AddModelDialog from '@/components/settings/platform/AddModelDialog';
 import { useSuperAdminLLMProviders } from '@/hooks/useSuperAdminLLMProviders';
 import { LLMProvider } from '@/hooks/useLLMProviders';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
@@ -22,12 +23,17 @@ const LLMProvidersSettings = () => {
   const [isEditProviderDialogOpen, setIsEditProviderDialogOpen] = useState(false);
   const [editingProvider, setEditingProvider] = useState<LLMProvider | null>(null);
   const [isAddPromptDialogOpen, setIsAddPromptDialogOpen] = useState(false);
+  const [isAddModelDialogOpen, setIsAddModelDialogOpen] = useState(false);
+  const [selectedProviderId, setSelectedProviderId] = useState<number>(0);
+  const [selectedProviderName, setSelectedProviderName] = useState<string>('');
+  
+  // Agent prompts state
   const [selectedAgentType, setSelectedAgentType] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [enableFallback, setEnableFallback] = useState(true);
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   
-  const { providers, isLoading, refetch, updateProvider } = useSuperAdminLLMProviders();
+  const { providers, isLoading, refetch, updateProvider, addModel, deleteModel, setDefaultModel, deleteProvider } = useSuperAdminLLMProviders();
   const { prompts, isLoading: isLoadingPrompts, createPrompt, updatePrompt } = useAgentPrompts();
 
   // Get unique agent types from the prompts
@@ -83,18 +89,37 @@ const LLMProvidersSettings = () => {
   };
 
   const handleDeleteProvider = async (providerId: number) => {
-    // TODO: Implement provider deletion
-    console.log('Delete provider:', providerId);
+    if (confirm('Are you sure you want to delete this provider? This action cannot be undone.')) {
+      try {
+        await deleteProvider(providerId);
+      } catch (error) {
+        // Error handling is done in the hook
+      }
+    }
   };
 
-  const handleAddModel = (providerId: number) => {
-    // TODO: Implement model addition
-    console.log('Add model to provider:', providerId);
+  const handleAddModel = (providerId: number, providerName: string) => {
+    setSelectedProviderId(providerId);
+    setSelectedProviderName(providerName);
+    setIsAddModelDialogOpen(true);
   };
 
-  const handleDeleteModel = (providerId: number, modelId: number) => {
-    // TODO: Implement model deletion
-    console.log('Delete model:', modelId, 'from provider:', providerId);
+  const handleDeleteModel = async (modelId: number) => {
+    if (confirm('Are you sure you want to delete this model? This action cannot be undone.')) {
+      try {
+        await deleteModel(modelId);
+      } catch (error) {
+        // Error handling is done in the hook
+      }
+    }
+  };
+
+  const handleSetDefaultModel = async (providerId: number, modelId: number) => {
+    try {
+      await setDefaultModel(providerId, modelId);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
 
   const handleSaveConfiguration = async () => {
@@ -120,6 +145,25 @@ const LLMProvidersSettings = () => {
     } finally {
       setIsSavingPrompt(false);
     }
+  };
+
+  const getDefaultModelId = (provider: LLMProvider): number | null => {
+    if (!provider.default_model) return null;
+    
+    // If default_model is an object, return its id
+    if (typeof provider.default_model === 'object' && 'id' in provider.default_model) {
+      return provider.default_model.id;
+    }
+    
+    // If default_model is a string, find the matching model in the models array
+    if (typeof provider.default_model === 'string' && Array.isArray(provider.models)) {
+      const matchingModel = provider.models.find(model => 
+        typeof model === 'object' && 'name' in model && model.name === provider.default_model
+      );
+      return matchingModel && typeof matchingModel === 'object' && 'id' in matchingModel ? matchingModel.id : null;
+    }
+    
+    return null;
   };
 
   return (
@@ -203,7 +247,7 @@ const LLMProvidersSettings = () => {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleAddModel(provider.id)}
+                            onClick={() => handleAddModel(provider.id, provider.provider_name)}
                           >
                             <Plus className="mr-1 h-3 w-3" />
                             Add Model
@@ -212,28 +256,49 @@ const LLMProvidersSettings = () => {
                         
                         {provider.models && provider.models.length > 0 ? (
                           <div className="space-y-2">
-                            {provider.models.map((model) => (
-                              <div key={model.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                  <div>
-                                    <div className="font-medium">{model.name}</div>
-                                    {provider.default_model && 
-                                     ((typeof provider.default_model === 'string' && provider.default_model === model.name) ||
-                                      (typeof provider.default_model === 'object' && provider.default_model.id === model.id)) && (
-                                      <Badge variant="outline" className="text-xs mt-1">Default</Badge>
+                            {provider.models.map((model) => {
+                              const modelObj = typeof model === 'string' 
+                                ? { id: 0, name: model } 
+                                : model;
+                              const defaultModelId = getDefaultModelId(provider);
+                              const isDefault = defaultModelId === modelObj.id || 
+                                               (typeof provider.default_model === 'string' && provider.default_model === modelObj.name);
+                              
+                              return (
+                                <div key={modelObj.id || modelObj.name} className="flex items-center justify-between p-3 border rounded-lg">
+                                  <div className="flex items-center space-x-3">
+                                    <div>
+                                      <div className="font-medium">{modelObj.name}</div>
+                                      {isDefault && (
+                                        <Badge variant="outline" className="text-xs mt-1">Default</Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    {!isDefault && typeof model === 'object' && 'id' in model && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleSetDefaultModel(provider.id, model.id)}
+                                        className="text-yellow-600 hover:text-yellow-700"
+                                      >
+                                        <Star className="h-3 w-3" />
+                                      </Button>
+                                    )}
+                                    {typeof model === 'object' && 'id' in model && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteModel(model.id)}
+                                        className="text-destructive hover:text-destructive"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
                                     )}
                                   </div>
                                 </div>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDeleteModel(provider.id, model.id)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
@@ -366,6 +431,15 @@ const LLMProvidersSettings = () => {
         onClose={handleCloseEditDialog}
         provider={editingProvider}
         onProviderUpdated={updateProvider}
+      />
+
+      {/* Add Model Dialog */}
+      <AddModelDialog
+        isOpen={isAddModelDialogOpen}
+        onClose={() => setIsAddModelDialogOpen(false)}
+        onModelAdded={addModel}
+        providerId={selectedProviderId}
+        providerName={selectedProviderName}
       />
 
       {/* Add Agent Prompt Dialog */}
