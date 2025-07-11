@@ -2,28 +2,31 @@
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
-import { apiGet } from '@/utils/api-interceptor';
+import { apiGet, apiRequest } from '@/utils/api-interceptor';
 
+// Model object structure from admin endpoint
 export interface ModelObject {
   id: number;
+  provider_config: number;
   name: string;
-  display_name?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface LLMProvider {
-  id?: number; // Optional for non-superadmin endpoints
+  id: number;
   provider_name: string;
-  models: string[] | ModelObject[];
-  default_model: string | null | ModelObject;
-  is_active?: boolean; // Optional for non-superadmin endpoints
-  status?: string;
-  _api_key?: boolean;
-  api_key?: string;
-  created_at?: string;
-  updated_at?: string;
+  models: string[] | ModelObject[]; // Support both endpoint structures
+  default_model: string | null | ModelObject; // Support both endpoint structures
+  _api_key?: string | null; // Updated to match admin endpoint
+  api_key?: string; // Keep for backward compatibility
+  is_active: boolean;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
-interface ProvidersResponse {
+interface LLMProvidersResponse {
   message: string;
   data: LLMProvider[];
   status: string;
@@ -37,17 +40,13 @@ export const useLLMProviders = () => {
   const fetchProviders = async () => {
     try {
       setIsLoading(true);
-      console.log('Fetching providers from provider-configs/');
-      
-      const response = await apiGet(getApiUrl('provider-configs/'));
+      const response = await apiGet(getApiUrl('settings/provider-configs/'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch providers');
       }
 
-      const data: ProvidersResponse = await response.json();
-      console.log('Providers response:', data);
-      
+      const data: LLMProvidersResponse = await response.json();
       setProviders(data.data);
     } catch (error) {
       console.error('Error fetching providers:', error);
@@ -62,6 +61,45 @@ export const useLLMProviders = () => {
     }
   };
 
+  const updateProvider = async (providerId: number, updateData: Partial<LLMProvider>) => {
+    try {
+      const response = await apiRequest(getApiUrl(`admin/provider-configs/${providerId}/`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update provider');
+      }
+
+      const data = await response.json();
+      
+      // Update the provider in the list
+      setProviders(prev => 
+        prev.map(provider => 
+          provider.id === providerId ? { ...provider, ...data.data } : provider
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: data.message || "Provider updated successfully",
+        variant: "default"
+      });
+
+      return data.data;
+    } catch (error) {
+      console.error('Error updating provider:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update provider",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchProviders();
   }, []);
@@ -69,6 +107,7 @@ export const useLLMProviders = () => {
   return {
     providers,
     isLoading,
-    refetch: fetchProviders
+    refetch: fetchProviders,
+    updateProvider
   };
 };

@@ -23,11 +23,8 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'gpt-4-turbo': 'GPT-4 Turbo',
   'gpt-3.5-turbo': 'GPT-3.5 Turbo',
   'mistral-large-latest': 'Mistral Large',
-  'mistral-large': 'Mistral Large',
   'mistral-medium-latest': 'Mistral Medium',
-  'mistral-medium': 'Mistral Medium',
   'mistral-small-latest': 'Mistral Small',
-  'mistral-small': 'Mistral Small',
   'gemini-pro': 'Gemini Pro',
   'gemini-pro-vision': 'Gemini Pro Vision',
   'claude-3-opus': 'Claude 3 Opus',
@@ -39,12 +36,12 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
 const extractModelNames = (models: string[] | ModelObject[]): string[] => {
   if (!models || models.length === 0) return [];
   
-  // If it's an array of strings (non-superadmin endpoint)
+  // If it's an array of strings (endpoint 2)
   if (typeof models[0] === 'string') {
     return models as string[];
   }
   
-  // If it's an array of model objects (superadmin endpoint)
+  // If it's an array of model objects (endpoint 1)
   return (models as ModelObject[]).map(model => model.name);
 };
 
@@ -52,12 +49,12 @@ const extractModelNames = (models: string[] | ModelObject[]): string[] => {
 const extractDefaultModelName = (defaultModel: string | null | ModelObject): string | null => {
   if (!defaultModel) return null;
   
-  // If it's a string (non-superadmin endpoint)
+  // If it's a string (endpoint 2)
   if (typeof defaultModel === 'string') {
     return defaultModel;
   }
   
-  // If it's a model object (superadmin endpoint)
+  // If it's a model object (endpoint 1)
   if (typeof defaultModel === 'object' && 'name' in defaultModel) {
     return defaultModel.name;
   }
@@ -68,7 +65,7 @@ const extractDefaultModelName = (defaultModel: string | null | ModelObject): str
 export const transformProvidersToModelOptions = (providers: LLMProvider[]): ModelOption[] => {
   const modelOptions: ModelOption[] = [];
 
-  providers.forEach((provider, index) => {
+  providers.forEach(provider => {
     // Extract model names from both endpoint structures
     const providerModels = extractModelNames(provider.models);
     
@@ -77,10 +74,8 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
         value: modelKey,
         label: `${MODEL_DISPLAY_NAMES[modelKey] || modelKey} (${provider.provider_name})`,
         provider: provider.provider_name,
-        // Use index as providerId for non-superadmin endpoints that don't have id
-        providerId: provider.id || index,
-        // Assume active if not specified (for non-superadmin endpoints)
-        isActive: provider.is_active !== undefined ? provider.is_active : true
+        providerId: provider.id,
+        isActive: provider.is_active
       });
     });
   });
