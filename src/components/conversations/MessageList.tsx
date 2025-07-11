@@ -311,9 +311,9 @@ const MessageList = ({
         </div>
         
         {message.sender === 'user' && (
-          <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-purple-500 dark:bg-purple-600 p-[1px] flex-shrink-0">
-            <AvatarFallback>
-              <User className="h-4 w-4 text-white" />
+          <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-slate-300 dark:bg-slate-600 p-[1px]">
+            <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
+              <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
         )}

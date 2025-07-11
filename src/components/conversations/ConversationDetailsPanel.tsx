@@ -118,6 +118,21 @@ const ConversationDetailsPanel = ({
   // Get the real assigned agent from conversation data
   const assignedAgent = conversation.agent || conversation.assignedAgent || handoffData.currentAgent;
 
+  //logo
+  const getTicketLogo = (provider: string) => {
+    const logos = {
+      hubspot: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      zendesk: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      freshdesk: 'https://img.logo.dev/freshworks.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      jira: 'https://img.logo.dev/atlassian.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      servicenow: 'https://img.logo.dev/servicenow.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
+    };
+    
+    return logos[provider.toLowerCase() as keyof typeof logos] || null;
+  };
+
+  const logoUrl = getTicketLogo(conversation.ticket_by);
+
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
       {/* Header */}
@@ -133,10 +148,25 @@ const ConversationDetailsPanel = ({
         <div className="p-4 space-y-4">
           {/* Ticket Information Section - Show if ticket info exists */}
           {hasTicketInfo && (
+            
             <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-red-600">
-                  <Ticket className="h-4 w-4 text-white" />
+                <div className={`${logoUrl ? "p-0" : "p-2"} rounded-xl bg-gradient-to-br from-red-500 to-red-600`}>
+                  {
+                    logoUrl ? (
+                      <img 
+                      src={logoUrl} 
+                      alt={`${conversation.ticket_by} logo`} 
+                      className="h-8 w-8 rounded-xl"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    ) : (
+                    <Ticket className="h-4 w-4 text-white" />
+                  )
+                  }
+                  
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">Ticket Information</h3>
@@ -156,8 +186,14 @@ const ConversationDetailsPanel = ({
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Ticket ID</h4>
                   <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">{conversation.ticket_id}</p>
                 </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Priority</h4>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">{conversation.priority}</p>
+                </div>
               </div>
             </div>
+
           )}
 
           {/* Agent Information Section */}
@@ -172,8 +208,8 @@ const ConversationDetailsPanel = ({
             </div>
 
             <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8 bg-blue-600 dark:bg-gray-700">
-                <AvatarFallback className="text-white text-sm font-medium">
+              <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
+                <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
                   {assignedAgent.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>

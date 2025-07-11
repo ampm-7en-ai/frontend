@@ -136,7 +136,7 @@ const TeamManagementSection = () => {
       const formattedMembers: Member[] = inviteData.data.map((invite: any) => ({
         id: invite.id.toString(),
         email: invite.email,
-        role: invite.role,
+        role: invite.team_role,
         status: invite.used ? 'active' : 'pending',
         name: invite.email, // replace with name after api is done
         created_at: invite.created_at || new Date().toISOString(),
@@ -384,7 +384,7 @@ const TeamManagementSection = () => {
                         value: role.id.toString(),
                         label: role.name
                       })) : [{ value: "no-roles", label: "No roles available" }]}
-                      placeholder="Can view"
+                      placeholder="Select Role"
                       disabled={loadingRoles || availableRoles.length === 0}
                       className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11"
                     />

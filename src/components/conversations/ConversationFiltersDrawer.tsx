@@ -167,7 +167,7 @@ const ConversationFiltersDrawer = ({
                 </Label>
                 <div className="space-y-2">
                   {channelOptions.map((channel) => (
-                    <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/30 dark:hover:bg-slate-800/30 backdrop-blur-sm transition-colors">
+                    <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600/30 backdrop-blur-sm transition-colors">
                       <Checkbox
                         id={`channel-${channel.value}`}
                         checked={channelFilter.includes(channel.value)}
@@ -207,7 +207,7 @@ const ConversationFiltersDrawer = ({
                   Agent Type
                 </Label>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/30 dark:hover:bg-slate-800/30 backdrop-blur-sm transition-colors">
+                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600/30 backdrop-blur-sm transition-colors">
                     <Checkbox
                       id="agent-type-human"
                       checked={agentTypeFilter.includes('human')}

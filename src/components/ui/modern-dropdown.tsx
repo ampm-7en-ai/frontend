@@ -50,7 +50,7 @@ export const ModernDropdown = ({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 px-3 py-2 h-10",
+              "w-full justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal text-gray-900 hover:text-gray-950 dark:text-gray-100 px-3 py-2 h-10",
               className
             )}
           >
