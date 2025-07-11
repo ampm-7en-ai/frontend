@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -13,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -394,13 +394,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             </div>
           )}
           
-          <Button 
+          <ModernButton 
             type="submit" 
-            className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+            variant="primary"
+            size="lg"
+            className="w-full h-11"
             disabled={isLoggingIn}
           >
             {isLoggingIn ? "Signing in..." : "Sign in"}
-          </Button>
+          </ModernButton>
         </form>
       </Form>
       
@@ -412,9 +414,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       </div>
       
       <div className="space-y-3">
-        <Button 
+        <ModernButton 
           variant="outline" 
-          className="w-full h-11 border-gray-200 hover:bg-gray-50 transition-colors rounded-lg"
+          size="lg"
+          className="w-full h-11"
           onClick={handleGoogleLogin}
           disabled={isGoogleLoading}
         >
@@ -425,17 +428,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335" />
           </svg>
           {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
-        </Button>
+        </ModernButton>
         
-        <Button 
+        <ModernButton 
           variant="outline" 
-          className="w-full h-11 border-gray-200 hover:bg-gray-50 transition-colors rounded-lg"
+          size="lg"
+          className="w-full h-11"
         >
           <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 2L3 7v11h4v-6h6v6h4V7l-7-5z"/>
           </svg>
           Sign in with SSO
-        </Button>
+        </ModernButton>
       </div>
 
       <ForgotPasswordDialog 

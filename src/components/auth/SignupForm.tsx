@@ -4,12 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Globe, Building, Phone, MapPin, User, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const signupSchema = z.object({
   business_name: z.string().min(1, "Business name is required"),
@@ -391,13 +391,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             </p>
           </div>
           
-          <Button 
+          <ModernButton 
             type="submit" 
-            className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors" 
+            variant="primary"
+            size="lg"
+            className="w-full h-11"
             disabled={isLoading}
           >
             {isLoading ? "Creating Account..." : "Create Account"}
-          </Button>
+          </ModernButton>
         </form>
       </Form>
     </div>
