@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,16 +20,24 @@ const ApiKeysSection = () => {
   const [currentApiKey, setCurrentApiKey] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [apiKeyData, setApiKeyData] = useState<any>(null);
   
   // Simulate paid plan status - in real app this would come from user data
   const isPaidPlan = true; // Change to false to show the upgrade prompt
   
-  const { hasApiKey, isLoading, createApiKey, refreshApiKey, error } = useApiKeys();
+  const { hasApiKey, isLoading, createApiKey, refreshApiKey, error, checkApiKeyExists } = useApiKeys();
 
   const handleCreateKey = async () => {
     try {
       const newKey = await createApiKey();
       setCurrentApiKey(newKey);
+      setApiKeyData({
+        id: Date.now(),
+        key: newKey,
+        created_at: new Date().toISOString(),
+        last_used_at: null,
+        is_active: true
+      });
       setIsApiKeyDialogOpen(true);
       toast({
         title: "Success",
@@ -48,6 +57,13 @@ const ApiKeysSection = () => {
     try {
       const newKey = await refreshApiKey();
       setCurrentApiKey(newKey);
+      setApiKeyData({
+        id: Date.now(),
+        key: newKey,
+        created_at: new Date().toISOString(),
+        last_used_at: apiKeyData?.last_used_at || null,
+        is_active: true
+      });
       setIsApiKeyDialogOpen(true);
       toast({
         title: "Success",
@@ -68,10 +84,6 @@ const ApiKeysSection = () => {
     navigator.clipboard.writeText(key);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast({
-      title: "Copied!",
-      description: "API key copied to clipboard",
-    });
   };
 
   const handleCloseDialog = () => {
@@ -83,7 +95,17 @@ const ApiKeysSection = () => {
 
   const formatApiKey = (key: string) => {
     if (!key) return '';
-    return `${key.substring(0, 8)}...${key.substring(key.length - 8)}`;
+    return `7en_${key.substring(4, 12)}...${key.substring(key.length - 8)}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (!isPaidPlan) {
@@ -132,15 +154,15 @@ const ApiKeysSection = () => {
             </div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">API Keys</h3>
           </div>
-          {hasApiKey ? (
+          {hasApiKey || apiKeyData ? (
             <ModernButton 
               variant="outline"
               size="sm"
               onClick={handleRefreshKey}
               disabled={isLoading || isRefreshing}
-              icon={RefreshCw}
-              className={isRefreshing ? "animate-spin" : ""}
+              className="flex items-center gap-2"
             >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Refreshing...' : 'Refresh Key'}
             </ModernButton>
           ) : (
@@ -164,7 +186,7 @@ const ApiKeysSection = () => {
           <div className="bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
             <p>Failed to load API key information. Please try again.</p>
           </div>
-        ) : hasApiKey ? (
+        ) : (hasApiKey || apiKeyData) ? (
           <div className="space-y-4">
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
               <Table>
@@ -189,7 +211,7 @@ const ApiKeysSection = () => {
                     <TableCell>
                       <div className="flex items-center gap-2 font-mono text-sm">
                         <span className="text-slate-600 dark:text-slate-400">
-                          7en_••••••••••••••••
+                          {apiKeyData ? formatApiKey(apiKeyData.key) : '7en_••••••••••••••••'}
                         </span>
                       </div>
                     </TableCell>
@@ -199,17 +221,17 @@ const ApiKeysSection = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-slate-600 dark:text-slate-400">
-                      Just now
+                      {apiKeyData ? formatDate(apiKeyData.created_at) : 'Just now'}
                     </TableCell>
                     <TableCell className="text-slate-600 dark:text-slate-400">
-                      Never
+                      {apiKeyData?.last_used_at ? formatDate(apiKeyData.last_used_at) : 'Never'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleCopyKey('sample-key-for-demo')}
+                          onClick={() => handleCopyKey(apiKeyData?.key || 'sample-key-for-demo')}
                           className="h-8 w-8 p-0"
                         >
                           <Copy className="h-4 w-4" />
