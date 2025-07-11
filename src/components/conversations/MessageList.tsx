@@ -177,8 +177,8 @@ const MessageList = ({
               <div 
                 className={cn(
                   "p-3 transition-all max-w-full",
-                  "rounded-2xl rounded-tl-sm bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-sm",
-                  "border border-slate-200/60 dark:border-slate-700/60 shadow-sm"
+                  "rounded-2xl rounded-tl-sm bg-white dark:bg-slate-800/90 backdrop-blur-sm",
+                  "border border-slate-200/60 dark:border-slate-700/60 shadow-none"
                 )}
               >
                 <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">

@@ -125,7 +125,6 @@ const ConversationDetailsPanel = ({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Additional Information</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Conversation details and metadata</p>
           </div>
         </div>
       </div>
@@ -141,7 +140,6 @@ const ConversationDetailsPanel = ({
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">Ticket Information</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Support ticket details</p>
                 </div>
               </div>
               
@@ -169,8 +167,7 @@ const ConversationDetailsPanel = ({
                 <User className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Agent Information</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Current assigned agent</p>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Current Agent Info</h3>
               </div>
             </div>
 
@@ -195,7 +192,6 @@ const ConversationDetailsPanel = ({
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Information</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Customer details and contact info</p>
               </div>
             </div>
 
@@ -236,7 +232,6 @@ const ConversationDetailsPanel = ({
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Sentiment</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Current emotional state</p>
                 </div>
               </div>
 
@@ -258,7 +253,6 @@ const ConversationDetailsPanel = ({
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">Agent Handoffs</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Handoff timeline and history</p>
                 </div>
               </div>
 
@@ -278,7 +272,6 @@ const ConversationDetailsPanel = ({
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">All Agents</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Agents involved in this conversation</p>
                 </div>
               </div>
               
