@@ -1,90 +1,24 @@
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Send, Paperclip, Smile } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import ModernButton from '@/components/dashboard/ModernButton';
+import React from 'react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface MessageInputProps {
-  onSendMessage: (message: string) => void;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
 }
 
-const MessageInput = ({ onSendMessage }: MessageInputProps) => {
-  const [newMessage, setNewMessage] = useState('');
-  const { toast } = useToast();
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    
-    onSendMessage(newMessage);
-    
-    toast({
-      title: "Message sent",
-      description: "Your message has been sent to the customer.",
-    });
-    
-    setNewMessage('');
-  };
-
+const MessageInput = ({ value, onChange, onKeyDown, placeholder = "Type your message..." }: MessageInputProps) => {
   return (
-    <div className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-gray-200/80 dark:border-slate-700/80">
-      <form onSubmit={handleSendMessage}>
-        <div className="flex items-end gap-3">
-          {/* Message Input */}
-          <div className="flex-1 relative">
-            <div className="flex items-center gap-2 bg-gray-50/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 dark:border-slate-600/80 p-3 focus-within:ring-2 focus-within:ring-blue-500/50 dark:focus-within:ring-blue-400/50 focus-within:border-transparent transition-all">
-              <Input
-                placeholder="Type your message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="flex-1 border-0 bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500 dark:placeholder:text-slate-400 resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage(e);
-                  }
-                }}
-              />
-              
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1">
-                <ModernButton
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  icon={Paperclip}
-                  className="p-0 w-8 h-8 hover:bg-gray-200/60 dark:hover:bg-slate-700/60"
-                >
-                  {/* Empty children for icon-only button */}
-                </ModernButton>
-                <ModernButton
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  icon={Smile}
-                  className="p-0 w-8 h-8 hover:bg-gray-200/60 dark:hover:bg-slate-700/60"
-                >
-                  {/* Empty children for icon-only button */}
-                </ModernButton>
-              </div>
-            </div>
-          </div>
-          
-          {/* Send Button */}
-          <ModernButton
-            type="submit"
-            disabled={!newMessage.trim()}
-            variant={newMessage.trim() ? "primary" : "outline"}
-            size="sm"
-            icon={Send}
-            className="p-0 w-10 h-10 rounded-full shadow-lg disabled:shadow-none transition-all duration-200"
-          >
-            {/* Empty children for icon-only button */}
-          </ModernButton>
-        </div>
-      </form>
-    </div>
+    <Textarea
+      value={value}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+      rows={1}
+    />
   );
 };
 

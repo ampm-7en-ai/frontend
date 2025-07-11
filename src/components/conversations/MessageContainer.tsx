@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,6 +21,11 @@ interface Message {
   content: string;
   timestamp: string;
   isAgent?: boolean;
+  agent?: string;
+  type?: string;
+  from?: string;
+  to?: string;
+  reason?: string;
 }
 
 interface Conversation {
@@ -111,7 +117,10 @@ const MessageContainer = ({
       <div className="relative flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-4">
-            <MessageList conversation={conversation} selectedAgent={selectedAgent} />
+            <MessageList 
+              conversation={conversation} 
+              selectedAgent={selectedAgent}
+            />
             <div ref={messagesEndRef} /> {/* Invisible element to mark the bottom */}
           </div>
         </ScrollArea>

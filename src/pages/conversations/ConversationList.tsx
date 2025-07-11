@@ -13,6 +13,36 @@ import MessageContainer from '@/components/conversations/MessageContainer';
 import ConversationDetailsPanel from '@/components/conversations/ConversationDetailsPanel';
 import ConversationSidebar from '@/components/conversations/ConversationSidebar';
 
+// Define the Conversation interface to match what MessageContainer expects
+interface Conversation {
+  id: string;
+  customer: string;
+  messages: Array<{
+    id: string;
+    sender: string;
+    content: string;
+    timestamp: string;
+    isAgent?: boolean;
+    agent?: string;
+    type?: string;
+    from?: string;
+    to?: string;
+    reason?: string;
+  }>;
+  email?: string | null;
+  lastMessage?: string;
+  time?: string;
+  status?: string;
+  agent?: string;
+  satisfaction?: string;
+  priority?: string;
+  duration?: string;
+  handoffCount?: number;
+  topic?: string[];
+  channel?: string;
+  agentType?: "human" | "ai" | null;
+}
+
 const ConversationList = () => {
   const { user } = useAuth();
   const { showToast } = useFloatingToast();
@@ -41,8 +71,13 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Find the active conversation
-  const activeConversation = sessions.find(c => c.id === selectedConversation) || null;
+  // Transform sessions to conversations format and find the active conversation
+  const conversations: Conversation[] = sessions.map(session => ({
+    ...session,
+    messages: session.messages || [] // Ensure messages array exists
+  }));
+
+  const activeConversation = conversations.find(c => c.id === selectedConversation) || null;
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 
