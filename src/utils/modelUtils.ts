@@ -1,5 +1,5 @@
 
-import { LLMProvider, LLMProviderModel } from '@/hooks/useLLMProviders';
+import { LLMProvider } from '@/hooks/useLLMProviders';
 
 export interface ModelOption {
   value: string;
@@ -36,9 +36,8 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
   const modelOptions: ModelOption[] = [];
 
   providers.forEach(provider => {
-    // Extract model names from the model objects array
-    const providerModels = provider.models?.map(model => model.name) || [];
-    console.log(`transformProvidersToModelOptions - ${provider.provider_name} models:`, providerModels);
+    // Use the models array directly from the API response
+    const providerModels = provider.models || [];
     
     providerModels.forEach(modelKey => {
       modelOptions.push({
@@ -51,7 +50,6 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
     });
   });
 
-  console.log('transformProvidersToModelOptions - All model options:', modelOptions);
   return modelOptions;
 };
 
@@ -65,7 +63,7 @@ export const getModelDisplay = (modelKey: string): string => {
 
 export const getModelProvider = (modelKey: string, providers: LLMProvider[]): string => {
   for (const provider of providers) {
-    const providerModels = provider.models?.map(model => model.name) || [];
+    const providerModels = provider.models || [];
     if (providerModels.includes(modelKey)) {
       return provider.provider_name;
     }

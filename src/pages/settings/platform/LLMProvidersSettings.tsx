@@ -150,12 +150,7 @@ const LLMProvidersSettings = () => {
                       <div className="flex justify-between items-center mb-4">
                         <div>
                           <h3 className="font-medium">{provider.provider_name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {provider.default_model || 'No default model set'}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {provider.models?.length || 0} models available
-                          </p>
+                          <p className="text-sm text-muted-foreground">{provider.default_model}</p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -172,23 +167,13 @@ const LLMProvidersSettings = () => {
                           <Label>API Key</Label>
                           <Input 
                             type="password" 
-                            value={provider._api_key ? "sk-•••••••••••••••••••••••••••••••••••••" : "Not configured"} 
+                            value="sk-•••••••••••••••••••••••••••••••••••••" 
                             readOnly 
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Available Models</Label>
-                          <div className="flex flex-wrap gap-1">
-                            {provider.models && provider.models.length > 0 ? (
-                              provider.models.map((model) => (
-                                <Badge key={model.id} variant="outline" className="text-xs">
-                                  {model.name}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-sm text-muted-foreground">No models configured</span>
-                            )}
-                          </div>
+                          <Label>Default Model</Label>
+                          <Input value={provider.default_model} readOnly />
                         </div>
                         <div className="flex justify-end space-x-2">
                           <Button 

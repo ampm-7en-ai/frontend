@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -42,7 +43,6 @@ import IntegrationsPage from './pages/integrations/IntegrationsPage';
 import ChatPreview from './pages/preview/ChatPreview';
 import SearchAssistant from './pages/chat/SearchAssistant';
 import PaymentHistory from './pages/settings/business/PaymentHistory';
-import Index from './pages/Index';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,20 +59,11 @@ const ProtectedRoutes = () => {
   const { user, needsVerification, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   
-  console.log('ProtectedRoutes - Auth state:', { 
-    isAuthenticated, 
-    isLoading, 
-    user: user ? { role: user.role, isVerified: user.isVerified } : null,
-    needsVerification,
-    currentPath: location.pathname 
-  });
-  
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
   
   if (!isAuthenticated || !user) {
-    console.log('ProtectedRoutes - Not authenticated, redirecting to login');
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
   
@@ -84,14 +75,13 @@ const ProtectedRoutes = () => {
         </Routes>
       );
     }
-    console.log('ProtectedRoutes - Needs verification, redirecting to verify');
     return <Navigate to="/verify" replace />;
   }
   
   return (
     <Routes>
       <Route path="/" element={<MainLayout />}>
-        <Route index element={<Index />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={
           user.role === 'SUPERADMIN' ? <SuperAdminDashboard /> : <AdminDashboard />
         } />
@@ -224,8 +214,6 @@ const ProtectedRoutes = () => {
 };
 
 function App() {
-  console.log('App component rendering');
-  
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
