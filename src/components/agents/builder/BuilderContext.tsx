@@ -35,6 +35,11 @@ interface AgentFormData {
     aiToAiHandoff?: boolean;
     multilingualSupport?: boolean;
   };
+  settings?: {
+    temperature?: number;
+    token_length?: string | number;
+    response_model?: string;
+  };
   knowledgeSources: KnowledgeSource[];
 }
 
@@ -82,6 +87,11 @@ const defaultAgentData: AgentFormData = {
   guidelines: {
     dos: ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
     donts: ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
+  },
+  settings: {
+    temperature: 0.7,
+    token_length: 1000,
+    response_model: 'gpt-3.5-turbo'
   },
   knowledgeSources: []
 };
@@ -175,6 +185,11 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           guidelines: {
             dos: agentData.behavior?.guidelines?.dos || ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
             donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
+          },
+          settings: {
+            temperature: agentData.settings?.temperature || 0.7,
+            token_length: agentData.settings?.token_length || 1000,
+            response_model: agentData.settings?.response_model || 'gpt-3.5-turbo'
           },
           knowledgeSources: formatKnowledgeSources(agentData.knowledge_bases || agentData.knowledgeSources || [])
         };
