@@ -4,10 +4,26 @@ import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
 import { apiGet, apiRequest } from '@/utils/api-interceptor';
 
+// Model object structure from admin endpoint
+export interface ModelObject {
+  id: number;
+  provider_config: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface LLMProvider {
+  id: number;
   provider_name: string;
-  models: string[];
-  default_model: string;
+  models: string[] | ModelObject[]; // Support both endpoint structures
+  default_model: string | null | ModelObject; // Support both endpoint structures
+  _api_key?: string | null; // Updated to match admin endpoint
+  api_key?: string; // Keep for backward compatibility
+  is_active: boolean;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface LLMProvidersResponse {
@@ -31,7 +47,6 @@ export const useLLMProviders = () => {
       }
 
       const data: LLMProvidersResponse = await response.json();
-      console.log('Provider configs response:', data);
       setProviders(data.data);
     } catch (error) {
       console.error('Error fetching providers:', error);
@@ -46,6 +61,45 @@ export const useLLMProviders = () => {
     }
   };
 
+  const updateProvider = async (providerId: number, updateData: Partial<LLMProvider>) => {
+    try {
+      const response = await apiRequest(getApiUrl(`admin/provider-configs/${providerId}/`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update provider');
+      }
+
+      const data = await response.json();
+      
+      // Update the provider in the list
+      setProviders(prev => 
+        prev.map(provider => 
+          provider.id === providerId ? { ...provider, ...data.data } : provider
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: data.message || "Provider updated successfully",
+        variant: "default"
+      });
+
+      return data.data;
+    } catch (error) {
+      console.error('Error updating provider:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update provider",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchProviders();
   }, []);
@@ -53,6 +107,7 @@ export const useLLMProviders = () => {
   return {
     providers,
     isLoading,
-    refetch: fetchProviders
+    refetch: fetchProviders,
+    updateProvider
   };
 };

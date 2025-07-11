@@ -1,11 +1,19 @@
 
-import { LLMProvider } from '@/hooks/useLLMProviders';
+import { LLMProvider, ModelObject } from '@/hooks/useLLMProviders';
 
 export interface ModelOption {
   value: string;
   label: string;
   provider: string;
+  providerId: number;
   isActive: boolean;
+}
+
+export interface ProviderModelMap {
+  'OpenAI': string[];
+  'Mistral AI': string[];
+  'Google AI': string[];
+  'Anthropic': string[];
 }
 
 // Model display names - fallback for when API doesn't provide display names
@@ -14,9 +22,9 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'gpt-4': 'GPT-4',
   'gpt-4-turbo': 'GPT-4 Turbo',
   'gpt-3.5-turbo': 'GPT-3.5 Turbo',
-  'mistral-large': 'Mistral Large',
-  'mistral-medium': 'Mistral Medium',
-  'mistral-small': 'Mistral Small',
+  'mistral-large-latest': 'Mistral Large',
+  'mistral-medium-latest': 'Mistral Medium',
+  'mistral-small-latest': 'Mistral Small',
   'gemini-pro': 'Gemini Pro',
   'gemini-pro-vision': 'Gemini Pro Vision',
   'claude-3-opus': 'Claude 3 Opus',
@@ -24,16 +32,50 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'claude-3-haiku': 'Claude 3 Haiku'
 };
 
+// Helper function to extract model names from different structures
+const extractModelNames = (models: string[] | ModelObject[]): string[] => {
+  if (!models || models.length === 0) return [];
+  
+  // If it's an array of strings (endpoint 2)
+  if (typeof models[0] === 'string') {
+    return models as string[];
+  }
+  
+  // If it's an array of model objects (endpoint 1)
+  return (models as ModelObject[]).map(model => model.name);
+};
+
+// Helper function to extract default model name
+const extractDefaultModelName = (defaultModel: string | null | ModelObject): string | null => {
+  if (!defaultModel) return null;
+  
+  // If it's a string (endpoint 2)
+  if (typeof defaultModel === 'string') {
+    return defaultModel;
+  }
+  
+  // If it's a model object (endpoint 1)
+  if (typeof defaultModel === 'object' && 'name' in defaultModel) {
+    return defaultModel.name;
+  }
+  
+  return null;
+};
+
 export const transformProvidersToModelOptions = (providers: LLMProvider[]): ModelOption[] => {
   const modelOptions: ModelOption[] = [];
 
   providers.forEach(provider => {
-    provider.models.forEach(modelKey => {
+    // Extract model names from both endpoint structures
+    const providerModels = extractModelNames(provider.models);
+    
+    providerModels.forEach(modelKey => {
       modelOptions.push({
         value: modelKey,
         label: `${MODEL_DISPLAY_NAMES[modelKey] || modelKey} (${provider.provider_name})`,
         provider: provider.provider_name,
-        isActive: true // All models from API are considered active
+        providerId: provider.id,
+        isActive: provider.is_active
       });
     });
   });
@@ -42,7 +84,7 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
 };
 
 export const getActiveModelOptions = (providers: LLMProvider[]): ModelOption[] => {
-  return transformProvidersToModelOptions(providers);
+  return transformProvidersToModelOptions(providers).filter(option => option.isActive);
 };
 
 export const getModelDisplay = (modelKey: string): string => {
@@ -51,18 +93,23 @@ export const getModelDisplay = (modelKey: string): string => {
 
 export const getModelProvider = (modelKey: string, providers: LLMProvider[]): string => {
   for (const provider of providers) {
-    if (provider.models.includes(modelKey)) {
+    const providerModels = extractModelNames(provider.models);
+    if (providerModels.includes(modelKey)) {
       return provider.provider_name;
     }
   }
   return 'Unknown';
 };
 
+export const getDefaultModelName = (provider: LLMProvider): string | null => {
+  return extractDefaultModelName(provider.default_model);
+};
+
 // Fallback model options when API fails
 export const getFallbackModelOptions = (): ModelOption[] => {
   return [
-    { value: 'gpt-4o', label: 'GPT-4o (OpenAI)', provider: 'OpenAI', isActive: true },
-    { value: 'gpt-4', label: 'GPT-4 (OpenAI)', provider: 'OpenAI', isActive: true },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (OpenAI)', provider: 'OpenAI', isActive: true }
+    { value: 'gpt-4o', label: 'GPT-4o (OpenAI)', provider: 'OpenAI', providerId: 0, isActive: true },
+    { value: 'gpt-4', label: 'GPT-4 (OpenAI)', provider: 'OpenAI', providerId: 0, isActive: true },
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (OpenAI)', provider: 'OpenAI', providerId: 0, isActive: true }
   ];
 };
