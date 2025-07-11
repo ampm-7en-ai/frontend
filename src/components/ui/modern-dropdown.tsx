@@ -131,57 +131,59 @@ export const ModernDropdown = ({
         <ScrollArea 
           className={cn(
             searchable ? "p-1" : "",
-            `max-h-[${maxHeight}]`
+            "w-full"
           )}
-          style={{ maxHeight }}
+          style={{ height: maxHeight }}
           hideScrollbar={true}
         >
-          {filteredOptions.length > 0 ? (
-            filteredOptions.map((option) => (
-              <DropdownMenuItem
-                key={option.value}
-                onClick={() => handleSelect(option.value)}
-                className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5 focus:bg-gray-100 dark:focus:bg-gray-700"
-                asChild={!!renderOption}
-              >
-                {renderOption ? (
-                  renderOption(option)
-                ) : (
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-3">
-                      {option.logo && (
-                        <img 
-                          src={option.logo} 
-                          alt={`${option.label} logo`}
-                          className="w-5 h-5 object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      )}
-                      <div className="flex flex-col">
-                        <span>{option.label}</span>
-                        {option.description && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {option.description}
-                          </span>
+          <div className="space-y-0.5">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => handleSelect(option.value)}
+                  className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5 focus:bg-gray-100 dark:focus:bg-gray-700"
+                  asChild={!!renderOption}
+                >
+                  {renderOption ? (
+                    renderOption(option)
+                  ) : (
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3">
+                        {option.logo && (
+                          <img 
+                            src={option.logo} 
+                            alt={`${option.label} logo`}
+                            className="w-5 h-5 object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
                         )}
+                        <div className="flex flex-col">
+                          <span>{option.label}</span>
+                          {option.description && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {option.description}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {option.value === value && (
+                        <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      )}
                     </div>
-                    {option.value === value && (
-                      <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    )}
-                  </div>
-                )}
-              </DropdownMenuItem>
-            ))
-          ) : (
-            searchable && searchQuery && (
-              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
-                No results found
-              </div>
-            )
-          )}
+                  )}
+                </DropdownMenuItem>
+              ))
+            ) : (
+              searchable && searchQuery && (
+                <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                  No results found
+                </div>
+              )
+            )}
+          </div>
         </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
