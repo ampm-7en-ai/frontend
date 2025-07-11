@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
-import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key } from 'lucide-react';
+import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { usePricingModal } from '@/hooks/usePricingModal';
 import { useApiKeys } from '@/hooks/useApiKeys';
@@ -73,6 +75,11 @@ const ApiKeysSection = () => {
     setIsApiKeyDialogOpen(false);
     setCurrentApiKey(null);
     setShowApiKey(false);
+  };
+
+  const formatApiKey = (key: string) => {
+    if (!key) return '';
+    return `${key.substring(0, 8)}...${key.substring(key.length - 8)}`;
   };
 
   if (!isPaidPlan) {
@@ -154,14 +161,70 @@ const ApiKeysSection = () => {
             <p>Failed to load API key information. Please try again.</p>
           </div>
         ) : hasApiKey ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <KeyRound className="h-8 w-8 text-green-600 dark:text-green-400" />
+          <div className="space-y-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Key</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Last Used</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <KeyRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        Default API Key
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 font-mono text-sm">
+                        <span className="text-slate-600 dark:text-slate-400">
+                          7en_••••••••••••••••
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Active
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-slate-600 dark:text-slate-400">
+                      Just now
+                    </TableCell>
+                    <TableCell className="text-slate-600 dark:text-slate-400">
+                      Never
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopyKey('sample-key-for-demo')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRefreshKey}
+                          disabled={isRefreshing}
+                          className="h-8 w-8 p-0"
+                        >
+                          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
-            <p className="font-semibold text-green-800 dark:text-green-400 mb-2">API Key Active</p>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Your API key is ready to use. Click "Refresh Key" to generate a new one.
-            </p>
           </div>
         ) : (
           <div className="text-center py-8">
