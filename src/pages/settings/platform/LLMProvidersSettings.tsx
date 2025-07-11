@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,8 +14,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import AddProviderDialog from '@/components/settings/platform/AddProviderDialog';
 import EditProviderDialog from '@/components/settings/platform/EditProviderDialog';
 import AddAgentPromptDialog from '@/components/settings/platform/AddAgentPromptDialog';
-import { useLLMProviders, LLMProvider } from '@/hooks/useLLMProviders';
+import { useSuperAdminLLMProviders } from '@/hooks/useSuperAdminLLMProviders';
+import { LLMProvider } from '@/hooks/useLLMProviders';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
+import { getDefaultModelName } from '@/utils/modelUtils';
 
 const LLMProvidersSettings = () => {
   const [selectedAgentType, setSelectedAgentType] = useState('');
@@ -30,7 +31,7 @@ const LLMProvidersSettings = () => {
   const [enableFallback, setEnableFallback] = useState(true);
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   
-  const { providers, isLoading, refetch, updateProvider } = useLLMProviders();
+  const { providers, isLoading, refetch, updateProvider } = useSuperAdminLLMProviders();
   const { prompts, isLoading: isLoadingPrompts, createPrompt, updatePrompt } = useAgentPrompts();
 
   // Get unique agent types from the prompts
@@ -150,7 +151,9 @@ const LLMProvidersSettings = () => {
                       <div className="flex justify-between items-center mb-4">
                         <div>
                           <h3 className="font-medium">{provider.provider_name}</h3>
-                          <p className="text-sm text-muted-foreground">{provider.default_model}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {getDefaultModelName(provider) || 'No default model'}
+                          </p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -167,13 +170,13 @@ const LLMProvidersSettings = () => {
                           <Label>API Key</Label>
                           <Input 
                             type="password" 
-                            value="sk-•••••••••••••••••••••••••••••••••••••" 
+                            value={provider._api_key ? "sk-•••••••••••••••••••••••••••••••••••••" : "Not configured"} 
                             readOnly 
                           />
                         </div>
                         <div className="space-y-2">
                           <Label>Default Model</Label>
-                          <Input value={provider.default_model} readOnly />
+                          <Input value={getDefaultModelName(provider) || 'Not set'} readOnly />
                         </div>
                         <div className="flex justify-end space-x-2">
                           <Button 

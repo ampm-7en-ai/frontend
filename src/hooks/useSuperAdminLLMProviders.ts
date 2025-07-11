@@ -3,36 +3,15 @@ import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
 import { apiGet, apiRequest } from '@/utils/api-interceptor';
+import { LLMProvider, ModelObject } from './useLLMProviders';
 
-// Model object structure from admin endpoint
-export interface ModelObject {
-  id: number;
-  provider_config: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface LLMProvider {
-  id: number;
-  provider_name: string;
-  models: string[] | ModelObject[]; // Support both endpoint structures
-  default_model: string | null | ModelObject; // Support both endpoint structures
-  _api_key?: string | null; // Updated to match admin endpoint
-  api_key?: string; // Keep for backward compatibility
-  is_active: boolean;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface LLMProvidersResponse {
+interface SuperAdminProvidersResponse {
   message: string;
   data: LLMProvider[];
   status: string;
 }
 
-export const useLLMProviders = () => {
+export const useSuperAdminLLMProviders = () => {
   const { toast } = useToast();
   const [providers, setProviders] = useState<LLMProvider[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,16 +19,20 @@ export const useLLMProviders = () => {
   const fetchProviders = async () => {
     try {
       setIsLoading(true);
-      const response = await apiGet(getApiUrl('settings/provider-configs/'));
+      console.log('Fetching superadmin providers from admin/provider-configs/');
+      
+      const response = await apiGet(getApiUrl('admin/provider-configs/'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch providers');
       }
 
-      const data: LLMProvidersResponse = await response.json();
+      const data: SuperAdminProvidersResponse = await response.json();
+      console.log('Superadmin providers response:', data);
+      
       setProviders(data.data);
     } catch (error) {
-      console.error('Error fetching providers:', error);
+      console.error('Error fetching superadmin providers:', error);
       toast({
         title: "Error",
         description: "Failed to load LLM providers",

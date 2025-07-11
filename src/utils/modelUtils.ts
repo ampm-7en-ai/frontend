@@ -1,5 +1,5 @@
 
-import { LLMProvider } from '@/hooks/useLLMProviders';
+import { LLMProvider, ModelObject } from '@/hooks/useLLMProviders';
 
 export interface ModelOption {
   value: string;
@@ -32,12 +32,42 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'claude-3-haiku': 'Claude 3 Haiku'
 };
 
+// Helper function to extract model names from different structures
+const extractModelNames = (models: string[] | ModelObject[]): string[] => {
+  if (!models || models.length === 0) return [];
+  
+  // If it's an array of strings (endpoint 2)
+  if (typeof models[0] === 'string') {
+    return models as string[];
+  }
+  
+  // If it's an array of model objects (endpoint 1)
+  return (models as ModelObject[]).map(model => model.name);
+};
+
+// Helper function to extract default model name
+const extractDefaultModelName = (defaultModel: string | null | ModelObject): string | null => {
+  if (!defaultModel) return null;
+  
+  // If it's a string (endpoint 2)
+  if (typeof defaultModel === 'string') {
+    return defaultModel;
+  }
+  
+  // If it's a model object (endpoint 1)
+  if (typeof defaultModel === 'object' && 'name' in defaultModel) {
+    return defaultModel.name;
+  }
+  
+  return null;
+};
+
 export const transformProvidersToModelOptions = (providers: LLMProvider[]): ModelOption[] => {
   const modelOptions: ModelOption[] = [];
 
   providers.forEach(provider => {
-    // Use the models array directly from the API response
-    const providerModels = provider.models || [];
+    // Extract model names from both endpoint structures
+    const providerModels = extractModelNames(provider.models);
     
     providerModels.forEach(modelKey => {
       modelOptions.push({
@@ -63,12 +93,16 @@ export const getModelDisplay = (modelKey: string): string => {
 
 export const getModelProvider = (modelKey: string, providers: LLMProvider[]): string => {
   for (const provider of providers) {
-    const providerModels = provider.models || [];
+    const providerModels = extractModelNames(provider.models);
     if (providerModels.includes(modelKey)) {
       return provider.provider_name;
     }
   }
   return 'Unknown';
+};
+
+export const getDefaultModelName = (provider: LLMProvider): string | null => {
+  return extractDefaultModelName(provider.default_model);
 };
 
 // Fallback model options when API fails
