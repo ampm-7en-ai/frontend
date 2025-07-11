@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -57,13 +56,14 @@ const ApiKeysSection = () => {
     try {
       const newKey = await refreshApiKey();
       setCurrentApiKey(newKey);
-      setApiKeyData({
+      setApiKeyData(prev => ({
+        ...prev,
         id: Date.now(),
         key: newKey,
         created_at: new Date().toISOString(),
-        last_used_at: apiKeyData?.last_used_at || null,
+        last_used_at: prev?.last_used_at || null,
         is_active: true
-      });
+      }));
       setIsApiKeyDialogOpen(true);
       toast({
         title: "Success",
@@ -228,23 +228,22 @@ const ApiKeysSection = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
+                        <ModernButton
                           variant="ghost"
                           size="sm"
                           onClick={() => handleCopyKey(apiKeyData?.key || 'sample-key-for-demo')}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
+                          icon={Copy}
+                          iconOnly
+                        />
+                        <ModernButton
                           variant="ghost"
                           size="sm"
                           onClick={handleRefreshKey}
                           disabled={isRefreshing}
-                          className="h-8 w-8 p-0"
-                        >
-                          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        </Button>
+                          icon={RefreshCw}
+                          iconOnly
+                          className={isRefreshing ? '[&_svg]:animate-spin' : ''}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -308,24 +307,21 @@ const ApiKeysSection = () => {
                   variant="glass"
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                  <Button
-                    type="button"
+                  <ModernButton
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-background/80"
                     onClick={() => setShowApiKey(!showApiKey)}
-                  >
-                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    type="button"
+                    icon={showApiKey ? EyeOff : Eye}
+                    iconOnly
+                  />
+                  <ModernButton
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-background/80"
                     onClick={() => handleCopyKey(currentApiKey)}
-                  >
-                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                  </Button>
+                    icon={copied ? Check : Copy}
+                    iconOnly
+                    className={copied ? 'text-green-500' : ''}
+                  />
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -351,13 +347,13 @@ const ApiKeysSection = () => {
         </div>
 
         <div className="flex justify-end gap-3 pt-6 border-t border-border/50">
-          <Button
+          <ModernButton
             variant="outline"
             onClick={handleCloseDialog}
             className="px-6"
           >
             I've Saved My Key
-          </Button>
+          </ModernButton>
         </div>
       </ModernModal>
     </section>
