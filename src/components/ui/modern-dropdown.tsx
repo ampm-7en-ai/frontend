@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ModernDropdownOption {
   value: string;
@@ -91,7 +92,13 @@ export const ModernDropdown = ({
               className
             )}
           >
-            <span className="truncate">
+            <span className="truncate flex items-center gap-2">
+              {selectedOption?.logo && (
+                <div 
+                  className="w-5 h-4 bg-center bg-cover rounded-sm flex-shrink-0" 
+                  style={{ backgroundImage: `url(${selectedOption.logo})` }}
+                />
+              )}
               {selectedOption ? selectedOption.label : placeholder}
             </span>
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -121,13 +128,13 @@ export const ModernDropdown = ({
           </div>
         )}
         
-        <div 
+        <ScrollArea 
           className={cn(
-            "overflow-y-auto",
             searchable ? "p-1" : "",
             `max-h-[${maxHeight}]`
           )}
           style={{ maxHeight }}
+          hideScrollbar={true}
         >
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
@@ -175,7 +182,7 @@ export const ModernDropdown = ({
               </div>
             )
           )}
-        </div>
+        </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
   );
