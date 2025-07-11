@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface MessageRevisionModalProps {
   open: boolean;
@@ -47,12 +49,12 @@ const MessageRevisionModal = ({
       size="2xl"
       footer={
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleCancel}>
+          <ModernButton variant="outline" onClick={handleCancel}>
             Cancel
-          </Button>
-          <Button onClick={handleRevise}>
+          </ModernButton>
+          <ModernButton variant="primary" onClick={handleRevise}>
             Save Revision
-          </Button>
+          </ModernButton>
         </div>
       }
     >
@@ -78,7 +80,7 @@ const MessageRevisionModal = ({
             id="revised-answer"
             value={revisedAnswer}
             onChange={(e) => setRevisedAnswer(e.target.value)}
-            className="min-h-[200px] resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"
+            className="min-h-[200px] resize-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 rounded-xl focus:border-blue-500/50 dark:focus:border-blue-400/50 focus:ring-blue-500/40 dark:focus:ring-blue-400/40 transition-all duration-200"
             placeholder="Enter the revised answer..."
           />
           <p className="text-xs text-slate-500 dark:text-slate-400">

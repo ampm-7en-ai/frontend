@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Copy, Check, ExternalLink, Ticket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface TicketInformationProps {
   ticketBy: string;
@@ -90,20 +90,18 @@ const TicketInformation = ({ ticketBy, ticketId }: TicketInformationProps) => {
               <Input
                 value={ticketId}
                 readOnly
-                className="text-xs h-7 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"
+                variant="modern"
+                size="sm"
+                className="text-xs h-7"
               />
-              <Button
+              <ModernButton
                 size="sm"
                 variant="outline"
                 onClick={handleCopy}
                 className="h-7 w-7 p-0 flex-shrink-0"
-              >
-                {copied ? (
-                  <Check className="h-3 w-3 text-green-600" />
-                ) : (
-                  <Copy className="h-3 w-3" />
-                )}
-              </Button>
+                iconOnly
+                icon={copied ? Check : Copy}
+              />
             </div>
           </div>
         </div>
