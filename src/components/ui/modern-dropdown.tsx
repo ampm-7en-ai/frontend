@@ -94,9 +94,13 @@ export const ModernDropdown = ({
           >
             <span className="truncate flex items-center gap-2">
               {selectedOption?.logo && (
-                <div 
-                  className="w-5 h-4 bg-center bg-cover rounded-sm flex-shrink-0" 
-                  style={{ backgroundImage: `url(${selectedOption.logo})` }}
+                <img 
+                  src={selectedOption.logo} 
+                  alt={`${selectedOption.label} flag`}
+                  className="w-5 h-4 object-cover rounded-sm flex-shrink-0"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
               )}
               {selectedOption ? selectedOption.label : placeholder}
@@ -128,13 +132,18 @@ export const ModernDropdown = ({
           </div>
         )}
         
-        <ScrollArea 
+        <div 
           className={cn(
             searchable ? "p-1" : "",
-            "w-full overflow-y-auto"
+            "w-full overflow-y-auto",
+            // Custom scrollbar styles
+            "[&::-webkit-scrollbar]:w-2",
+            "[&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:dark:bg-gray-800",
+            "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:dark:bg-gray-600",
+            "[&::-webkit-scrollbar-thumb]:rounded-full",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-thumb:hover]:dark:bg-gray-500"
           )}
           style={{ maxHeight }}
-          hideScrollbar={true}
         >
           <div className="space-y-0.5">
             {filteredOptions.length > 0 ? (
@@ -184,7 +193,7 @@ export const ModernDropdown = ({
               )
             )}
           </div>
-        </ScrollArea>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
