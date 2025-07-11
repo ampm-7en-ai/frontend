@@ -32,7 +32,7 @@ type GlobalSettingsFormValues = z.infer<typeof globalSettingsSchema>;
 
 const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProps) => {
   const [isEditingGlobalSettings, setIsEditingGlobalSettings] = useState(false);
-  const { modelOptionsForDropdown, isLoading: isLoadingModels } = useAIModels();
+  const { modelOptionsForDropdown, isLoading: isLoadingModels, activeModelOptions } = useAIModels();
 
   const globalSettingsForm = useForm<GlobalSettingsFormValues>({
     resolver: zodResolver(globalSettingsSchema),
@@ -74,7 +74,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
       // Update form values with response data if present
       if (res.data && res.data.global_agent_settings) {
         globalSettingsForm.reset({
-          defaultModel: "gpt-4-turbo",
+          defaultModel: res.data.global_agent_settings.response_model || "gpt-4-turbo",
           maxContextLength: res.data.global_agent_settings.token_length || 8000,
           defaultTemperature: res.data.global_agent_settings.temperature ?? 0.7,
         });
@@ -88,6 +88,11 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         variant: "destructive",
       });
     }
+  };
+
+  const getCurrentModelLabel = (modelValue: string) => {
+    const modelOption = activeModelOptions.find(option => option.value === modelValue);
+    return modelOption?.label || modelValue;
   };
 
   return (
@@ -208,7 +213,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
               <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
                 <p className="text-slate-600 dark:text-slate-400">
-                  {modelOptionsForDropdown.find(option => option.value === globalSettingsForm.getValues().defaultModel)?.label || globalSettingsForm.getValues().defaultModel}
+                  {getCurrentModelLabel(globalSettingsForm.getValues().defaultModel)}
                 </p>
               </div>
               <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
