@@ -7,8 +7,9 @@ import { apiGet, apiRequest } from '@/utils/api-interceptor';
 export interface LLMProvider {
   id: number;
   provider_name: string;
+  models: string[]; // Add models array
+  default_model: string | null; // Add default_model
   api_key?: string;
-  default_model: string;
   is_active: boolean;
   status: string;
   created_at: string;

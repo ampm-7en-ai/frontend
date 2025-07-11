@@ -16,17 +16,10 @@ export interface ProviderModelMap {
   'Anthropic': string[];
 }
 
-// Default model mappings for each provider
-const PROVIDER_MODELS: ProviderModelMap = {
-  'OpenAI': ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-  'Mistral AI': ['mistral-large-latest', 'mistral-medium-latest', 'mistral-small-latest'],
-  'Google AI': ['gemini-pro', 'gemini-pro-vision'],
-  'Anthropic': ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
-};
-
-// Model display names
+// Model display names - fallback for when API doesn't provide display names
 const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'gpt-4o': 'GPT-4o',
+  'gpt-4': 'GPT-4',
   'gpt-4-turbo': 'GPT-4 Turbo',
   'gpt-3.5-turbo': 'GPT-3.5 Turbo',
   'mistral-large-latest': 'Mistral Large',
@@ -43,7 +36,8 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
   const modelOptions: ModelOption[] = [];
 
   providers.forEach(provider => {
-    const providerModels = PROVIDER_MODELS[provider.provider_name as keyof ProviderModelMap] || [];
+    // Use the models array directly from the API response
+    const providerModels = provider.models || [];
     
     providerModels.forEach(modelKey => {
       modelOptions.push({
@@ -69,7 +63,7 @@ export const getModelDisplay = (modelKey: string): string => {
 
 export const getModelProvider = (modelKey: string, providers: LLMProvider[]): string => {
   for (const provider of providers) {
-    const providerModels = PROVIDER_MODELS[provider.provider_name as keyof ProviderModelMap] || [];
+    const providerModels = provider.models || [];
     if (providerModels.includes(modelKey)) {
       return provider.provider_name;
     }
@@ -81,7 +75,7 @@ export const getModelProvider = (modelKey: string, providers: LLMProvider[]): st
 export const getFallbackModelOptions = (): ModelOption[] => {
   return [
     { value: 'gpt-4o', label: 'GPT-4o (OpenAI)', provider: 'OpenAI', providerId: 0, isActive: true },
-    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (OpenAI)', provider: 'OpenAI', providerId: 0, isActive: true },
+    { value: 'gpt-4', label: 'GPT-4 (OpenAI)', provider: 'OpenAI', providerId: 0, isActive: true },
     { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (OpenAI)', provider: 'OpenAI', providerId: 0, isActive: true }
   ];
 };
