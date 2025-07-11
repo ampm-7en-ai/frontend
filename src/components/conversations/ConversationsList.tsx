@@ -14,7 +14,7 @@ import {
   X 
 } from 'lucide-react';
 import HandoffHistory from './HandoffHistory';
-import { useFloatingToast } from '@/context/FloatingToastContext';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import ConversationSidebar from './ConversationSidebar';
 
@@ -48,7 +48,7 @@ interface Conversation {
 }
 
 const ConversationsList = () => {
-  const { showToast } = useFloatingToast();
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -206,10 +206,9 @@ const ConversationsList = () => {
   const handleHandoffClick = (handoff: Handoff) => {
     setSelectedAgent(handoff.from);
     
-    showToast({
+    toast({
       title: `Viewing messages from ${handoff.from}`,
       description: "Navigation to full conversation view required to see complete history.",
-      variant: "success"
     });
   };
 
@@ -227,10 +226,9 @@ const ConversationsList = () => {
     
     setSelectedConversation(updatedConversation);
     
-    showToast({
+    toast({
       title: "Handoff successful",
       description: `Conversation transferred to ${handoff.to}`,
-      variant: "success"
     });
   };
 

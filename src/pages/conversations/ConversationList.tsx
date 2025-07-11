@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { useFloatingToast } from '@/context/FloatingToastContext';
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useConversationUtils } from '@/hooks/useConversationUtils';
@@ -13,39 +13,9 @@ import MessageContainer from '@/components/conversations/MessageContainer';
 import ConversationDetailsPanel from '@/components/conversations/ConversationDetailsPanel';
 import ConversationSidebar from '@/components/conversations/ConversationSidebar';
 
-// Define the Conversation interface to match what MessageContainer expects
-interface Conversation {
-  id: string;
-  customer: string;
-  messages: Array<{
-    id: string;
-    sender: string;
-    content: string;
-    timestamp: string;
-    isAgent?: boolean;
-    agent?: string;
-    type?: string;
-    from?: string;
-    to?: string;
-    reason?: string;
-  }>;
-  email?: string | null;
-  lastMessage?: string;
-  time?: string;
-  status?: string;
-  agent?: string;
-  satisfaction?: string;
-  priority?: string;
-  duration?: string;
-  handoffCount?: number;
-  topic?: string[];
-  channel?: string;
-  agentType?: "human" | "ai" | null;
-}
-
 const ConversationList = () => {
   const { user } = useAuth();
-  const { showToast } = useFloatingToast();
+  const { toast } = useToast();
   const isMobile = useIsMobile();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
@@ -71,23 +41,17 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Transform sessions to conversations format and find the active conversation
-  const conversations: Conversation[] = sessions.map(session => ({
-    ...session,
-    messages: session.messages || [] // Ensure messages array exists
-  }));
-
-  const activeConversation = conversations.find(c => c.id === selectedConversation) || null;
+  // Find the active conversation
+  const activeConversation = sessions.find(c => c.id === selectedConversation) || null;
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 
   const handleHandoffClick = (handoff: any) => {
     setSelectedAgent(handoff.from);
     
-    showToast({
+    toast({
       title: `Viewing messages from ${handoff.from}`,
       description: `Scrolled to conversation segment with ${handoff.from}`,
-      variant: "success"
     });
   };
 
@@ -141,10 +105,9 @@ const ConversationList = () => {
                 onInfoClick={() => setSidebarOpen(true)}
                 getStatusBadge={getStatusBadge}
                 onSendMessage={(message) => {
-                  showToast({
+                  toast({
                     title: "Message sent",
                     description: "Your message has been sent to the customer.",
-                    variant: "success"
                   });
                 }}
               />
@@ -204,10 +167,9 @@ const ConversationList = () => {
             onInfoClick={() => setSidebarOpen(true)}
             getStatusBadge={getStatusBadge}
             onSendMessage={(message) => {
-              showToast({
+              toast({
                 title: "Message sent",
                 description: "Your message has been sent to the customer.",
-                variant: "success"
               });
             }}
           />
