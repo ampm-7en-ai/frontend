@@ -59,8 +59,8 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
     if (provider) {
       setFormData({
         provider_name: provider.provider_name,
-        api_key: provider.api_key || '',
-        default_model: provider.default_model,
+        api_key: provider._api_key || '',
+        default_model: provider.default_model || '',
         is_active: provider.is_active,
         status: provider.status
       });
