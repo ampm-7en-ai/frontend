@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { fetchFromApi } from '@/utils/api-config';
+import { apiGet, getApiUrl } from '@/utils/api-config';
 
 export interface ModelObject {
   id: number;
@@ -23,11 +23,17 @@ export interface LLMProvider {
 const fetchProviders = async (): Promise<LLMProvider[]> => {
   try {
     console.log('Fetching LLM providers...');
-    const response = await fetchFromApi('/provider-configs/');
+    const response = await apiGet(getApiUrl('provider-configs/'));
     console.log('LLM Providers API Response:', response);
     
-    if (response && response.data) {
-      return response.data;
+    if (!response.ok) {
+      throw new Error('Failed to fetch providers');
+    }
+    
+    const data = await response.json();
+    
+    if (data && data.data) {
+      return data.data;
     }
     
     throw new Error('Invalid response format');

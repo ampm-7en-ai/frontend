@@ -59,10 +59,10 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
     if (provider) {
       setFormData({
         provider_name: provider.provider_name,
-        api_key: provider.api_key || provider._api_key || '',
+        api_key: (typeof provider._api_key === 'string' ? provider._api_key : '') || '',
         default_model: getDefaultModelName(provider) || '',
-        is_active: provider.is_active,
-        status: provider.status
+        is_active: provider.is_active ?? true,
+        status: provider.is_active ? 'active' : 'inactive'
       });
     }
   }, [provider]);

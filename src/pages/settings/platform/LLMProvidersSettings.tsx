@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -70,8 +69,7 @@ const LLMProvidersSettings = () => {
   const handleProviderToggle = async (providerId: number, isActive: boolean) => {
     try {
       await updateProvider(providerId, {
-        is_active: isActive,
-        status: isActive ? 'active' : 'inactive'
+        is_active: isActive
       });
     } catch (error) {
       // Error handling is done in the hook
