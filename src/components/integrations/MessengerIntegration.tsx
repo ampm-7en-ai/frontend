@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, Check, MessageSquare } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
+import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
+import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 
 const MessengerIntegration = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -34,123 +37,138 @@ const MessengerIntegration = () => {
   
   return (
     <div className="space-y-6">
+      <div className="flex items-start gap-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
+          <MessageSquare className="h-8 w-8 text-white" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-foreground mb-2">Connect Facebook Messenger</h3>
+          <p className="text-muted-foreground leading-relaxed">
+            Connect your Facebook Page to enable automated responses via Facebook Messenger.
+          </p>
+        </div>
+        <ModernStatusBadge 
+          status={isConnected ? 'connected' : 'disconnected'}
+        >
+          {isConnected ? 'Connected' : 'Not Connected'}
+        </ModernStatusBadge>
+      </div>
+
       {isConnected ? (
         <>
-          <div className="bg-green-50 border border-green-100 rounded-md p-4 flex items-center gap-3">
-            <div className="bg-green-100 p-1.5 rounded-full">
-              <Check className="h-5 w-5 text-green-600" />
-            </div>
-            <span className="text-green-700">Connected to your Facebook Page.</span>
-          </div>
+          <ModernAlert variant="success">
+            <ModernAlertDescription>
+              Connected to your Facebook Page. Your bot is now active and ready to respond to messages.
+            </ModernAlertDescription>
+          </ModernAlert>
           
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium text-lg mb-2">Your Facebook Messenger Integration</h3>
-              <p className="text-muted-foreground">
-                Your bot is linked to the Facebook Page: <span className="font-medium">Company Page</span><br />
-                Connected at: <span className="font-medium">{new Date().toLocaleDateString()}</span>
-              </p>
-            </div>
-            
-            <div className="space-y-2 mt-6">
-              <h4 className="font-medium">Integration Details</h4>
-              <div className="border rounded-md p-4 bg-white">
-                <ul className="space-y-2">
-                  <li className="flex justify-between">
-                    <span className="text-muted-foreground">Page ID:</span>
-                    <span className="font-medium">123456789012345</span>
+          <ModernCard variant="glass">
+            <ModernCardHeader>
+              <ModernCardTitle className="text-lg">Connection Details</ModernCardTitle>
+            </ModernCardHeader>
+            <ModernCardContent className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-muted-foreground">Page Name:</span>
+                <span className="text-sm font-medium text-foreground">Company Page</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-muted-foreground">Page ID:</span>
+                <span className="text-sm font-medium text-foreground">123456789012345</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-muted-foreground">Connected:</span>
+                <span className="text-sm font-medium text-foreground">{new Date().toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                <ModernStatusBadge status="connected" className="text-xs">
+                  Active
+                </ModernStatusBadge>
+              </div>
+              
+              <div className="pt-4 border-t border-border/50">
+                <ModernButton 
+                  variant="outline" 
+                  onClick={handleDisconnect}
+                  className="border-destructive/20 text-destructive hover:bg-destructive/10"
+                >
+                  Disconnect Page
+                </ModernButton>
+              </div>
+            </ModernCardContent>
+          </ModernCard>
+        </>
+      ) : (
+        <ModernCard variant="glass">
+          <ModernCardHeader>
+            <ModernCardTitle className="flex items-center gap-3">
+              <MessageSquare className="h-6 w-6 text-primary" />
+              Connect Facebook Page
+            </ModernCardTitle>
+            <ModernCardDescription>
+              Enable automated customer conversations on Facebook Messenger.
+            </ModernCardDescription>
+          </ModernCardHeader>
+          
+          <ModernCardContent className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-foreground mb-3">Integration Benefits</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Automate customer conversations on Messenger</span>
                   </li>
-                  <li className="flex justify-between">
-                    <span className="text-muted-foreground">Connection status:</span>
-                    <span className="text-green-600 font-medium">Active</span>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Provide 24/7 customer support</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Handoff complex inquiries to human agents</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Track customer engagement metrics</span>
                   </li>
                 </ul>
               </div>
               
-              <p className="text-sm text-muted-foreground mt-4">
-                To unlink your Facebook Page from 7en.ai, click this button:
-              </p>
-              <Button 
-                variant="destructive" 
-                onClick={handleDisconnect}
-                size="sm"
-              >
-                Unlink Page
-              </Button>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-100 shadow-sm">
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <MessageSquare className="h-8 w-8 text-blue-600" />
-              <h3 className="text-xl font-bold text-blue-800">Connect your Facebook Page</h3>
-            </div>
-            <p className="text-blue-800">
-              Connect your Facebook Page to enable automated responses via Facebook Messenger.
-            </p>
-          </div>
-          
-          <div className="space-y-4 mb-6">
-            <div className="bg-white rounded p-4 border border-blue-100">
-              <h4 className="font-medium text-blue-800 mb-2">Integration Benefits:</h4>
-              <ul className="space-y-2 text-blue-700">
-                <li className="flex gap-2 items-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                  <span>Automate customer conversations on Messenger</span>
-                </li>
-                <li className="flex gap-2 items-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                  <span>Provide 24/7 customer support</span>
-                </li>
-                <li className="flex gap-2 items-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                  <span>Handoff complex inquiries to human agents</span>
-                </li>
-                <li className="flex gap-2 items-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                  <span>Track customer engagement metrics</span>
-                </li>
-              </ul>
+              <div>
+                <h4 className="font-medium text-foreground mb-3">Prerequisites</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
+                    <span>You must have admin access to a Facebook Page</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
+                    <span>Your Facebook Page must have messaging enabled</span>
+                  </li>
+                </ul>
+              </div>
             </div>
             
-            <div className="bg-white rounded p-4 border border-blue-100">
-              <h4 className="font-medium text-blue-800 mb-2">Prerequisites:</h4>
-              <ul className="space-y-2 text-blue-700">
-                <li className="flex gap-2 items-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                  <span>You must have admin access to a Facebook Page</span>
-                </li>
-                <li className="flex gap-2 items-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                  <span>Your Facebook Page must have messaging enabled</span>
-                </li>
-              </ul>
+            <div className="pt-2">
+              <ModernButton 
+                onClick={handleConnect} 
+                disabled={isConnecting}
+                variant="gradient"
+                className="w-full sm:w-auto"
+                icon={isConnecting ? undefined : MessageSquare}
+              >
+                {isConnecting ? (
+                  <>
+                    <LoadingSpinner size="sm" className="!mb-0" />
+                    Connecting...
+                  </>
+                ) : (
+                  'Connect Facebook Page'
+                )}
+              </ModernButton>
             </div>
-          </div>
-          
-          <div className="text-center">
-            <Button 
-              onClick={handleConnect} 
-              disabled={isConnecting}
-              size="lg"
-              className="gap-2 bg-indigo-600 hover:bg-indigo-700 flex items-center"
-            >
-              {isConnecting ? (
-                <>
-                  <LoadingSpinner size="sm" className="!mb-0" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <MessageSquare className="h-5 w-5" />
-                  Connect Facebook Page
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
+          </ModernCardContent>
+        </ModernCard>
       )}
     </div>
   );
