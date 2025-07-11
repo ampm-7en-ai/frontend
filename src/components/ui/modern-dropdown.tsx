@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ChevronDown, Check, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface ModernDropdownOption {
   value: string;
@@ -27,6 +28,10 @@ interface ModernDropdownProps {
   trigger?: React.ReactNode;
   renderOption?: (option: ModernDropdownOption) => React.ReactNode;
   align?: 'start' | 'center' | 'end';
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  maxHeight?: string;
+  showSearch?: boolean;
 }
 
 export const ModernDropdown = ({ 
@@ -38,12 +43,44 @@ export const ModernDropdown = ({
   disabled = false,
   trigger,
   renderOption,
-  align = 'start'
+  align = 'start',
+  searchable = false,
+  searchPlaceholder = "Search...",
+  maxHeight = "300px",
+  showSearch = true
 }: ModernDropdownProps) => {
   const selectedOption = options.find(option => option.value === value);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchQuery.trim()) {
+      return options;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return options.filter(option => 
+      option.label.toLowerCase().includes(query) ||
+      option.value.toLowerCase().includes(query) ||
+      option.description?.toLowerCase().includes(query)
+    );
+  }, [options, searchQuery, searchable]);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      setSearchQuery("");
+    }
+  };
+
+  const handleSelect = (optionValue: string) => {
+    onValueChange(optionValue);
+    setIsOpen(false);
+    setSearchQuery("");
+  };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         {trigger || (
           <Button
@@ -62,48 +99,83 @@ export const ModernDropdown = ({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent 
-        className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999]" 
+        className={cn(
+          "w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999]",
+          searchable && "p-0"
+        )}
         sideOffset={4}
         align={align}
       >
-        {options.map((option) => (
-          <DropdownMenuItem
-            key={option.value}
-            onClick={() => onValueChange(option.value)}
-            className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5 focus:bg-gray-100 dark:focus:bg-gray-700"
-            asChild={!!renderOption}
-          >
-            {renderOption ? (
-              renderOption(option)
-            ) : (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  {option.logo && (
-                    <img 
-                      src={option.logo} 
-                      alt={`${option.label} logo`}
-                      className="w-5 h-5 object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <div className="flex flex-col">
-                    <span>{option.label}</span>
-                    {option.description && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {option.description}
-                      </span>
+        {searchable && showSearch && (
+          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-8 text-sm border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
+              />
+            </div>
+          </div>
+        )}
+        
+        <div 
+          className={cn(
+            "overflow-y-auto",
+            searchable ? "p-1" : "",
+            `max-h-[${maxHeight}]`
+          )}
+          style={{ maxHeight }}
+        >
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((option) => (
+              <DropdownMenuItem
+                key={option.value}
+                onClick={() => handleSelect(option.value)}
+                className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5 focus:bg-gray-100 dark:focus:bg-gray-700"
+                asChild={!!renderOption}
+              >
+                {renderOption ? (
+                  renderOption(option)
+                ) : (
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      {option.logo && (
+                        <img 
+                          src={option.logo} 
+                          alt={`${option.label} logo`}
+                          className="w-5 h-5 object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <div className="flex flex-col">
+                        <span>{option.label}</span>
+                        {option.description && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {option.description}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {option.value === value && (
+                      <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     )}
                   </div>
-                </div>
-                {option.value === value && (
-                  <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 )}
+              </DropdownMenuItem>
+            ))
+          ) : (
+            searchable && searchQuery && (
+              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                No results found
               </div>
-            )}
-          </DropdownMenuItem>
-        ))}
+            )
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

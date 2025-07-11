@@ -219,14 +219,17 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                           options={countryOptions}
                           placeholder="Select country"
                           className="w-48"
+                          searchable={true}
+                          searchPlaceholder="Search countries..."
+                          maxHeight="250px"
                           renderOption={(option) => (
                             <div className="flex items-center gap-3 w-full">
                               <div 
-                                className="w-5 h-4 bg-center bg-cover rounded-sm" 
+                                className="w-5 h-4 bg-center bg-cover rounded-sm flex-shrink-0" 
                                 style={{ backgroundImage: `url(${option.logo})` }}
                               />
-                              <div className="flex flex-col flex-1">
-                                <span className="text-sm">{option.label}</span>
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <span className="text-sm truncate">{option.label}</span>
                               </div>
                             </div>
                           )}
