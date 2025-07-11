@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
 import { LLMProvider } from '@/hooks/useLLMProviders';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { getDefaultModelName } from '@/utils/modelUtils';
 
 interface EditProviderDialogProps {
   isOpen: boolean;
@@ -59,8 +59,8 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
     if (provider) {
       setFormData({
         provider_name: provider.provider_name,
-        api_key: provider.api_key || '',
-        default_model: provider.default_model,
+        api_key: provider.api_key || provider._api_key || '',
+        default_model: getDefaultModelName(provider) || '',
         is_active: provider.is_active,
         status: provider.status
       });
