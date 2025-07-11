@@ -179,7 +179,7 @@ const LLMProvidersSettings = () => {
                         <div className="space-y-2">
                           <Label>Available Models</Label>
                           <div className="flex flex-wrap gap-1">
-                            {provider.models?.length > 0 ? (
+                            {provider.models && provider.models.length > 0 ? (
                               provider.models.map((model) => (
                                 <Badge key={model.id} variant="outline" className="text-xs">
                                   {model.name}
