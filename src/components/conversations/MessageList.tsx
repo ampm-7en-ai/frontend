@@ -11,7 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip";
-import { toast } from "sonner";
+import { useFloatingToast } from '@/context/FloatingToastContext';
 import MessageRevisionModal from './MessageRevisionModal';
 
 interface MessageProps {
@@ -32,11 +32,16 @@ const MessageList = ({
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
+  const [feedback, setFeedback] = useState<'helpful' | 'unhelpful' | null>(null);
+  const { showToast } = useFloatingToast();
 
   const handleCopy = () => {
     if (typeof message.content === 'string') {
       navigator.clipboard.writeText(message.content);
-      toast.success("Message copied to clipboard");
+      showToast({
+        title: "Message copied to clipboard",
+        variant: "success"
+      });
     }
   };
 
@@ -47,7 +52,20 @@ const MessageList = ({
   const handleRevisionSave = (revisedAnswer: string) => {
     // Here you would typically send the revised answer to your backend
     console.log('Revised answer:', revisedAnswer);
-    toast.success("Answer revised successfully");
+    showToast({
+      title: "Answer revised successfully",
+      variant: "success"
+    });
+  };
+
+  const handleFeedback = (type: 'helpful' | 'unhelpful') => {
+    setFeedback(type);
+    showToast({
+      title: "Thanks for your feedback",
+      description: `Message marked as ${type}`,
+      variant: "success",
+      duration: 3000
+    });
   };
 
   const getPreviousUserMessage = () => {
@@ -248,10 +266,16 @@ const MessageList = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
+                        onClick={() => handleFeedback('helpful')}
                         size="icon" 
                         variant="ghost" 
                         className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <ThumbsUp className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                        <ThumbsUp className={cn(
+                          "h-4 w-4",
+                          feedback === 'helpful' 
+                            ? "text-green-600 fill-green-600" 
+                            : "text-slate-500 dark:text-slate-400"
+                        )} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -264,10 +288,16 @@ const MessageList = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
+                        onClick={() => handleFeedback('unhelpful')}
                         size="icon" 
                         variant="ghost" 
                         className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <ThumbsDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                        <ThumbsDown className={cn(
+                          "h-4 w-4",
+                          feedback === 'unhelpful' 
+                            ? "text-red-600 fill-red-600" 
+                            : "text-slate-500 dark:text-slate-400"
+                        )} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>

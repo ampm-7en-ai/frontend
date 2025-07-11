@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Copy, Check, ExternalLink, Ticket } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Copy, Check, ExternalLink } from 'lucide-react';
+import { useFloatingToast } from '@/context/FloatingToastContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 
 interface TicketInformationProps {
@@ -12,33 +12,34 @@ interface TicketInformationProps {
 
 const TicketInformation = ({ ticketBy, ticketId }: TicketInformationProps) => {
   const [copied, setCopied] = useState(false);
-  const { toast } = useToast();
+  const { showToast } = useFloatingToast();
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(ticketId);
       setCopied(true);
-      toast({
+      showToast({
         title: "Copied!",
         description: "Ticket ID copied to clipboard",
+        variant: "success"
       });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast({
+      showToast({
         title: "Error",
         description: "Failed to copy ticket ID",
-        variant: "destructive"
+        variant: "error"
       });
     }
   };
 
   const getTicketLogo = (provider: string) => {
     const logos = {
-      hubspot: 'https://www.hubspot.com/hubfs/HubSpot_Logos/HubSpot-Inversed-Favicon.png',
-      zendesk: 'https://d1eipm3vz40hy0.cloudfront.net/images/AMER/zendesk-logo.png',
-      freshdesk: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/Freshworks_logo.png',
-      jira: 'https://wac-cdn.atlassian.com/dam/jcr:8f27f14d-1382-4107-9247-f2e5f7f5b8b3/favicon-32x32.png',
-      servicenow: 'https://logos-world.net/wp-content/uploads/2021/02/ServiceNow-Logo.png'
+      hubspot: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      zendesk: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      freshdesk: 'https://img.logo.dev/freshworks.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      jira: 'https://img.logo.dev/atlassian.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      servicenow: 'https://img.logo.dev/servicenow.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
     };
     
     return logos[provider.toLowerCase() as keyof typeof logos] || null;
@@ -56,7 +57,18 @@ const TicketInformation = ({ ticketBy, ticketId }: TicketInformationProps) => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
-              <Ticket className="h-3 w-3 text-white" />
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={`${ticketBy} logo`} 
+                  className="h-4 w-4 rounded-sm"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <ExternalLink className="h-3 w-3 text-white" />
+              )}
             </div>
             <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">Support Ticket</h3>
           </div>
