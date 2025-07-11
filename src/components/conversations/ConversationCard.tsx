@@ -37,8 +37,6 @@ const ConversationCard = ({
   // Channel logo mapping
   const channelLogos = {
     'whatsapp': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
-    'ticketing': 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Ticket_icon.svg',
-    'website': 'https://upload.wikimedia.org/wikipedia/commons/8/88/Globe_icon.svg',
     'slack': 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg',
     'instagram': 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
     'messenger': 'https://upload.wikimedia.org/wikipedia/commons/b/be/Facebook_Messenger_logo_2020.svg'
@@ -105,44 +103,41 @@ const ConversationCard = ({
     switch (conversation.channel?.toLowerCase()) {
       case 'ticketing':
         return (
-          <div className={cn(containerClass, "bg-blue-100 dark:bg-blue-900/30")}>
+          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700")}>
             <Mail className={cn(iconClass, "text-blue-600 dark:text-blue-400")} strokeWidth={2} />
+            {conversation.agentType && (
+              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
+                {conversation.agentType === 'ai' ? 'AI' : 'H'}
+              </span>
+            )}
           </div>
         );
       case 'phone':
         return (
-          <div className={cn(containerClass, "bg-slate-100 dark:bg-slate-800")}>
+          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700")}>
             <Phone className={cn(iconClass, "text-slate-600 dark:text-slate-400")} strokeWidth={2} />
-          </div>
-        );
-      case 'slack':
-        return (
-          <div className={cn(containerClass, "bg-purple-100 dark:bg-purple-900/30")}>
-            <Slack className={cn(iconClass, "text-purple-600 dark:text-purple-400")} strokeWidth={2} />
-          </div>
-        );
-      case 'instagram':
-        return (
-          <div className={cn(containerClass, "bg-gradient-to-br from-pink-500 to-violet-500")}>
-            <Instagram className={cn(iconClass, "text-white")} strokeWidth={2} />
+            {conversation.agentType && (
+              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
+                {conversation.agentType === 'ai' ? 'AI' : 'H'}
+              </span>
+            )}
           </div>
         );
       case 'website':
         return (
-          <div className={cn(containerClass, "bg-green-100 dark:bg-green-900/30")}>
+          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700")}>
             <Globe className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
-          </div>
-        );
-      case 'messenger':
-        return (
-          <div className={cn(containerClass, "bg-blue-100 dark:bg-blue-900/30")}>
-            <MessageSquare className={cn(iconClass, "text-blue-600 dark:text-blue-400")} strokeWidth={2} />
+            {conversation.agentType && (
+              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
+                {conversation.agentType === 'ai' ? 'AI' : 'H'}
+              </span>
+            )}
           </div>
         );
       case 'whatsapp':
       default:
         return (
-          <div className={cn(containerClass, "bg-green-100 dark:bg-green-900/30 relative")}>
+          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 relative")}>
             <MessageSquare className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
             {conversation.agentType && (
               <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>

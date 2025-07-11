@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Mail, Globe } from 'lucide-react';
 import { 
   Popover,
   PopoverContent,
@@ -46,12 +46,12 @@ const ConversationFiltersDrawer = ({
     { 
       value: 'ticketing', 
       label: 'Ticket', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Ticket_icon.svg' 
+      icon: Mail
     },
     { 
       value: 'website', 
       label: 'Website', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/8/88/Globe_icon.svg' 
+      icon: Globe
     },
     { 
       value: 'slack', 
@@ -118,7 +118,7 @@ const ConversationFiltersDrawer = ({
         {trigger}
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-2xl rounded-2xl"
+        className="w-80 p-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/30 dark:border-slate-700/30 shadow-2xl rounded-2xl"
         align="end"
         sideOffset={8}
       >
@@ -132,7 +132,7 @@ const ConversationFiltersDrawer = ({
             </div>
             <button 
               onClick={() => onOpenChange(false)}
-              className="rounded-full p-2 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm opacity-70 hover:opacity-100 transition-all"
+              className="rounded-full p-2 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm opacity-70 hover:opacity-100 transition-all"
             >
               <X className="h-4 w-4" />
             </button>
@@ -167,7 +167,7 @@ const ConversationFiltersDrawer = ({
                 </Label>
                 <div className="space-y-2">
                   {channelOptions.map((channel) => (
-                    <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/30 dark:hover:bg-slate-800/30 backdrop-blur-sm transition-colors">
                       <Checkbox
                         id={`channel-${channel.value}`}
                         checked={channelFilter.includes(channel.value)}
@@ -178,15 +178,19 @@ const ConversationFiltersDrawer = ({
                         htmlFor={`channel-${channel.value}`}
                         className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
                       >
-                        <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                          <img 
-                            src={channel.logo} 
-                            alt={channel.label}
-                            className="w-4 h-4 object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
+                        <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/60 dark:bg-slate-800/60 border border-gray-200/50 dark:border-slate-700/50 backdrop-blur-sm">
+                          {channel.logo ? (
+                            <img 
+                              src={channel.logo} 
+                              alt={channel.label}
+                              className="w-4 h-4 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : channel.icon ? (
+                            <channel.icon className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                          ) : null}
                         </div>
                         {channel.label}
                       </Label>
@@ -203,7 +207,7 @@ const ConversationFiltersDrawer = ({
                   Agent Type
                 </Label>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/30 dark:hover:bg-slate-800/30 backdrop-blur-sm transition-colors">
                     <Checkbox
                       id="agent-type-human"
                       checked={agentTypeFilter.includes('human')}
@@ -225,7 +229,7 @@ const ConversationFiltersDrawer = ({
               <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
                 <button
                   onClick={clearAllFilters}
-                  className="w-full px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-100/60 dark:bg-slate-800/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors backdrop-blur-sm"
+                  className="w-full px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors backdrop-blur-sm border border-slate-200/30 dark:border-slate-700/30"
                 >
                   Clear All Filters
                 </button>
