@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { useToast } from "@/hooks/use-toast";
+import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useConversationUtils } from '@/hooks/useConversationUtils';
@@ -15,7 +15,7 @@ import ConversationSidebar from '@/components/conversations/ConversationSidebar'
 
 const ConversationList = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { showToast } = useFloatingToast();
   const isMobile = useIsMobile();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
   
@@ -49,9 +49,10 @@ const ConversationList = () => {
   const handleHandoffClick = (handoff: any) => {
     setSelectedAgent(handoff.from);
     
-    toast({
+    showToast({
       title: `Viewing messages from ${handoff.from}`,
       description: `Scrolled to conversation segment with ${handoff.from}`,
+      variant: "success"
     });
   };
 
@@ -105,9 +106,10 @@ const ConversationList = () => {
                 onInfoClick={() => setSidebarOpen(true)}
                 getStatusBadge={getStatusBadge}
                 onSendMessage={(message) => {
-                  toast({
+                  showToast({
                     title: "Message sent",
                     description: "Your message has been sent to the customer.",
+                    variant: "success"
                   });
                 }}
               />
@@ -167,9 +169,10 @@ const ConversationList = () => {
             onInfoClick={() => setSidebarOpen(true)}
             getStatusBadge={getStatusBadge}
             onSendMessage={(message) => {
-              toast({
+              showToast({
                 title: "Message sent",
                 description: "Your message has been sent to the customer.",
+                variant: "success"
               });
             }}
           />

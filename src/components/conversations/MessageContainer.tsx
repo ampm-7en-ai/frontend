@@ -1,26 +1,40 @@
-
-import React, { useRef, useEffect, useState } from 'react';
-import MessageList from './MessageList';
-import ConversationHeader from './ConversationHeader';
-import ConversationEmptyState from './ConversationEmptyState';
-import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader } from 'lucide-react';
+import { Info, Send, Plus, MoreVertical } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import MessageList from './MessageList';
+import MessageInput from './MessageInput';
+import { useFloatingToast } from '@/context/FloatingToastContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import CreateSupportTicketModal from './CreateSupportTicketModal';
+
+interface Message {
+  id: string;
+  sender: string;
+  content: string;
+  timestamp: string;
+  isAgent?: boolean;
+}
+
+interface Conversation {
+  id: string;
+  customer: string;
+  messages: Message[];
+}
 
 interface MessageContainerProps {
-  conversation: {
-    id: string;
-    customer: string;
-    status: string;
-    // ... other properties
-  } | null;
+  conversation: Conversation | null;
   selectedAgent: string | null;
   setSelectedAgent: (agent: string | null) => void;
   onInfoClick: () => void;
   getStatusBadge: (status: string) => React.ReactNode;
-  onSendMessage: (message: string) => void;
-  isTyping?: boolean; // New prop to show typing indicator
+  onSendMessage?: (message: string) => void;
 }
 
 const MessageContainer = ({
@@ -29,137 +43,116 @@ const MessageContainer = ({
   setSelectedAgent,
   onInfoClick,
   getStatusBadge,
-  onSendMessage,
-  isTyping: externalIsTyping
+  onSendMessage
 }: MessageContainerProps) => {
-  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useFloatingToast();
+  const [message, setMessage] = useState('');
+  const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Use conversation ID as key to force WebSocket hook to reinitialize when conversation changes
-  const conversationId = conversation?.id || null;
-  
-  // Use our WebSocket hook to fetch messages for the selected conversation
-  const { 
-    messages, 
-    isTyping: wsIsTyping,
-    isConnected,
-    sendMessage
-  } = useChatMessagesWebSocket({
-    sessionId: conversationId,
-    autoConnect: !!conversationId
-  });
-  
-  // Effect to scroll to agent messages when selectedAgent changes
-  useEffect(() => {
-    if (selectedAgent && messageContainerRef.current && messages) {
-      // Find the first message from the selected agent
-      const firstAgentMessage = messages.find(
-        (msg: any) => msg.sender === 'bot' && msg.agent === selectedAgent
-      );
-      
-      if (firstAgentMessage) {
-        // Find the corresponding element
-        const element = document.getElementById(`message-${firstAgentMessage.id}`);
-        if (element) {
-          // Scroll to the element with a small offset
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100); // Small delay to ensure the DOM is ready
-        }
-      }
-    }
-  }, [selectedAgent, messages]);
 
-  // Effect to scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current && !selectedAgent) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages?.length, selectedAgent]);
+    // Scroll to bottom on component mount and when messages change
+    scrollToBottom();
+  }, [conversation?.messages]);
 
-  // Handle sending messages through the WebSocket
-  const handleSendMessage = (content: string) => {
-    sendMessage(content);
-    onSendMessage(content);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Determine if there are messages loading
-  const isLoading = conversation && messages.length === 0 && !isConnected;
+  const handleSendMessage = () => {
+    if (!message.trim() || !conversation) return;
+    
+    // Add your message sending logic here
+    console.log('Sending message:', message);
+    
+    onSendMessage?.(message);
+    setMessage('');
+    
+    // Scroll to bottom after sending
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
 
-  // Use either the external isTyping prop or the one from the WebSocket
-  const isTyping = externalIsTyping !== undefined ? externalIsTyping : wsIsTyping;
+  const handleCreateTicket = () => {
+    setIsCreateTicketOpen(true);
+  };
 
-  // Filter out any empty/blank messages
-  const validMessages = messages?.filter(msg => 
-    msg && msg.content && msg.content.trim() !== '' && 
-    typeof msg.content === 'string'
-  ) || [];
-
-  if (!conversation) {
-    return <ConversationEmptyState />;
-  }
+  const handleTicketCreated = (ticketData: any) => {
+    showToast({
+      title: "Support ticket created",
+      description: `Ticket #${ticketData.id} has been created successfully.`,
+      variant: "success"
+    });
+    setIsCreateTicketOpen(false);
+  };
 
   return (
-    <div className="flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
-      <ConversationHeader 
-        conversation={conversation}
-        selectedAgent={selectedAgent}
-        setSelectedAgent={setSelectedAgent}
-        onInfoClick={onInfoClick}
-        getStatusBadge={getStatusBadge}
-        messageCount={validMessages?.filter(m => m.sender !== "system").length}
-        hideActionButtons={true}
-      />
-      
-      <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50/80 to-slate-100/80 dark:from-slate-900/80 dark:to-slate-800/80"> 
-        <ScrollArea 
-          className="h-full"
-        >
-          <div className="p-4 md:p-6">
-            <div className="max-w-4xl mx-auto">
-              {isLoading || validMessages.length === 0 ? (
-                // Show loading skeletons while messages are loading
-                <div className="space-y-6">
-                  {[1, 2, 3, 4].map((i) => (
-                    i % 2 == 0 ? (
-                      <div key={i} className="flex items-start gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
-                        <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div key={i} className="flex items-start gap-3 justify-end">
-                        <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
-                        </div>
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
-                      </div>
-                    )
-                  ))}
-                </div>
-              ) : (
-                // Render actual messages
-                <div className="space-y-6" ref={messageContainerRef}>
-                {  
-                    validMessages.map((message: any) => (
-                      <MessageList 
-                        key={message.id}
-                        message={message}
-                        selectedAgent={selectedAgent}
-                        messageContainerRef={messageContainerRef}
-                        isTyping={isTyping} 
-                        allMessages={validMessages}
-                      />
-                    ))
-                }
-                  <div ref={messagesEndRef} className="h-4" />
-                </div>
-              )}
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarFallback>{conversation?.customer[0]}</AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{conversation?.customer}</div>
+            <div className="text-sm text-muted-foreground">
+              {getStatusBadge(conversation?.id || '')}
             </div>
+          </div>
+        </div>
+        <div>
+          <Button variant="ghost" size="icon" onClick={onInfoClick}>
+            <Info className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="relative flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4">
+            <MessageList conversation={conversation} selectedAgent={selectedAgent} />
+            <div ref={messagesEndRef} /> {/* Invisible element to mark the bottom */}
           </div>
         </ScrollArea>
       </div>
+
+      <div className="p-4 border-t">
+        <div className="flex items-center gap-2">
+          <MessageInput
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button onClick={handleSendMessage} disabled={!message.trim()}>
+            <Send className="h-4 w-4 mr-2" />
+            Send
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleCreateTicket}>
+                Create Support Ticket
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <CreateSupportTicketModal
+        open={isCreateTicketOpen}
+        onOpenChange={setIsCreateTicketOpen}
+        onCreate={handleTicketCreated}
+      />
     </div>
   );
 };
