@@ -375,6 +375,18 @@ const ZohoIntegration = () => {
     logo: contact.photoURL || undefined
   }));
 
+  // Get display values from status or fallback to "Not configured"
+  const getDisplayValue = (value: string | undefined, fallback: string = "Not configured") => {
+    return value && value.trim() !== '' ? value : fallback;
+  };
+
+  // Find organization name by ID
+  const getOrganizationName = (orgId: string | undefined) => {
+    if (!orgId) return "Not configured";
+    const org = organizations.find(o => o.id === orgId);
+    return org ? org.companyName : `Organization ID: ${orgId}`;
+  };
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -418,7 +430,7 @@ const ZohoIntegration = () => {
                 <h4 className="font-medium text-slate-900 dark:text-slate-100">Organization</h4>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                ID: {zohoStatus.org_id || 'Not configured'}
+                {getOrganizationName(zohoStatus.org_id)}
               </p>
             </div>
 
@@ -428,17 +440,17 @@ const ZohoIntegration = () => {
                 <h4 className="font-medium text-slate-900 dark:text-slate-100">Department</h4>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {zohoStatus.department_name || 'Not configured'}
+                {getDisplayValue(zohoStatus.department_name)}
               </p>
             </div>
 
             <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
               <div className="flex items-center gap-3 mb-2">
                 <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Contact</h4>
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Primary Contact</h4>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {zohoStatus.contact_name || 'Not configured'}
+                {getDisplayValue(zohoStatus.contact_name)}
               </p>
               {zohoStatus.contact_email && (
                 <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
@@ -451,7 +463,7 @@ const ZohoIntegration = () => {
           {/* Edit Configuration Form */}
           {isEditingConfig && organizations.length > 0 && (
             <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">Organization</Label>
                   <ModernDropdown
