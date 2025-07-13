@@ -18,31 +18,13 @@ import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { useIntegrations } from '@/hooks/useIntegrations';
 import { ModernModal } from '@/components/ui/modern-modal';
-
-type IntegrationStatus = 'connected' | 'not_connected' | 'loading';
-
-interface IntegrationStatusData {
-  status: string;
-  type: string;
-  is_default?: boolean;
-}
-
-interface IntegrationStatusResponse {
-  message: string;
-  data: {
-    [key: string]: IntegrationStatusData;
-  };
-  status: string;
-}
 
 const IntegrationsPage = () => {
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
   const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const [integrationStatuses, setIntegrationStatuses] = useState<Record<string, IntegrationStatus>>({});
-  const [isLoadingStatuses, setIsLoadingStatuses] = useState(true);
-  const [defaultProvider, setDefaultProvider] = useState<string | null>(null);
   const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
   const [isConnectingGoogleDrive, setIsConnectingGoogleDrive] = useState(false);
   const [isDisconnectingGoogleDrive, setIsDisconnectingGoogleDrive] = useState(false);
@@ -50,52 +32,17 @@ const IntegrationsPage = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { toast } = useToast();
 
-  const fetchIntegrationStatuses = async () => {
-    try {
-      setIsLoadingStatuses(true);
-      const token = getAccessToken();
-      if (!token) {
-        console.error("No access token available");
-        setIsLoadingStatuses(false);
-        return;
-      }
-
-      const response = await fetch(getApiUrl('integrations-status/'), {
-        method: 'GET',
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch integration statuses: ${response.status}`);
-      }
-
-      const result: IntegrationStatusResponse = await response.json();
-      console.log('Integration statuses fetched:', result);
-
-      const statusMap: Record<string, IntegrationStatus> = {};
-      let currentDefaultProvider: string | null = null;
-
-      Object.entries(result.data).forEach(([key, integration]) => {
-        statusMap[key] = integration.status as IntegrationStatus;
-        
-        if (integration.is_default && integration.type === 'ticketing' && integration.status === 'connected') {
-          currentDefaultProvider = key;
-        }
-      });
-
-      setIntegrationStatuses(statusMap);
-      setDefaultProvider(currentDefaultProvider);
-    } catch (error) {
-      console.error('Error fetching integration statuses:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch integration statuses. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingStatuses(false);
-    }
-  };
+  // Use the centralized integration store
+  const {
+    integrations,
+    isLoading: isLoadingStatuses,
+    error,
+    getIntegrationStatus,
+    updateIntegrationStatus,
+    setDefaultProvider: updateDefaultProvider,
+    defaultProvider,
+    forceRefresh
+  } = useIntegrations();
 
   const handleSetAsDefault = async (providerId: string) => {
     setIsSettingDefault(providerId);
@@ -120,7 +67,9 @@ const IntegrationsPage = () => {
       const result = await response.json();
       console.log('Default provider set:', result);
 
-      setDefaultProvider(providerId);
+      // Update the store
+      updateDefaultProvider(providerId);
+      
       toast({
         title: "Success",
         description: result.message || "Default ticketing provider updated.",
@@ -169,7 +118,7 @@ const IntegrationsPage = () => {
         
         // Refresh integration statuses after a delay to check if connection was successful
         setTimeout(() => {
-          fetchIntegrationStatuses();
+          forceRefresh();
         }, 3000);
       } else {
         throw new Error('No auth URL received');
@@ -206,10 +155,8 @@ const IntegrationsPage = () => {
       const result = await response.json();
       console.log('Google Drive disconnect response:', result);
 
-      setIntegrationStatuses(prev => ({
-        ...prev,
-        google_drive: 'not_connected'
-      }));
+      // Update the store
+      updateIntegrationStatus('google_drive', 'not_connected');
 
       toast({
         title: "Success",
@@ -230,7 +177,7 @@ const IntegrationsPage = () => {
   const handleAuthModalClose = () => {
     setShowAuthModal(false);
     setGoogleAuthUrl(null);
-    fetchIntegrationStatuses();
+    forceRefresh();
   };
 
   useEffect(() => {
@@ -253,17 +200,15 @@ const IntegrationsPage = () => {
     if (!initialLoadComplete) {
       initFacebook();
     }
-
-    fetchIntegrationStatuses();
   }, [toast]);
 
-  const integrations = [
+  const integrationsList = [
     {
       id: 'whatsapp',
       name: 'WhatsApp Business',
       description: 'Connect your AI Agent with WhatsApp Business API to reach your customers where they are.',
       logo: 'https://img.logo.dev/whatsapp.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.whatsapp || 'not_connected' as const,
+      status: getIntegrationStatus('whatsapp'),
       category: 'Messaging',
       type: 'messaging'
     },
@@ -272,7 +217,7 @@ const IntegrationsPage = () => {
       name: 'Facebook Messenger',
       description: 'Connect your AI Agent with Facebook Messenger to automate customer conversations.',
       logo: 'https://img.logo.dev/facebook.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.messenger || 'not_connected' as const,
+      status: getIntegrationStatus('messenger'),
       category: 'Messaging',
       type: 'messaging'
     },
@@ -281,7 +226,7 @@ const IntegrationsPage = () => {
       name: 'Slack',
       description: 'Connect your AI Agent with Slack to engage with your team and customers.',
       logo: 'https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.slack || 'not_connected' as const,
+      status: getIntegrationStatus('slack'),
       category: 'Communication',
       type: 'communication'
     },
@@ -290,7 +235,7 @@ const IntegrationsPage = () => {
       name: 'Instagram',
       description: 'Connect your AI Agent with Instagram to respond to DMs automatically.',
       logo: 'https://img.logo.dev/instagram.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.instagram || 'not_connected' as const,
+      status: getIntegrationStatus('instagram'),
       category: 'Social Media',
       type: 'social'
     },
@@ -299,7 +244,7 @@ const IntegrationsPage = () => {
       name: 'Zapier',
       description: 'Connect your AI Agent with thousands of apps through Zapier automation.',
       logo: 'https://img.logo.dev/zapier.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.zapier || 'not_connected' as const,
+      status: getIntegrationStatus('zapier'),
       category: 'Automation',
       type: 'automation'
     },
@@ -308,7 +253,7 @@ const IntegrationsPage = () => {
       name: 'Zendesk',
       description: 'Connect your AI Agent with Zendesk to automate ticket management and customer support.',
       logo: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.zendesk || 'not_connected' as const,
+      status: getIntegrationStatus('zendesk'),
       category: 'Support',
       type: 'ticketing'
     },
@@ -317,7 +262,7 @@ const IntegrationsPage = () => {
       name: 'Freshdesk',
       description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
       logo: 'https://img.logo.dev/freshworks.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.freshdesk || 'not_connected' as const,
+      status: getIntegrationStatus('freshdesk'),
       category: 'Support',
       type: 'ticketing'
     },
@@ -326,7 +271,7 @@ const IntegrationsPage = () => {
       name: 'Zoho Desk',
       description: 'Connect your AI Agent with Zoho Desk to streamline customer support and ticket handling.',
       logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.zoho || 'not_connected' as const,
+      status: getIntegrationStatus('zoho'),
       category: 'Support',
       type: 'ticketing'
     },
@@ -335,7 +280,7 @@ const IntegrationsPage = () => {
       name: 'Salesforce Service Cloud',
       description: 'Connect your AI Agent with Salesforce to enhance customer service and case management.',
       logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.salesforce || 'not_connected' as const,
+      status: getIntegrationStatus('salesforce'),
       category: 'CRM & Support',
       type: 'ticketing'
     },
@@ -344,7 +289,7 @@ const IntegrationsPage = () => {
       name: 'HubSpot Service Hub',
       description: 'Connect your AI Agent with HubSpot to automate customer support and ticketing workflows.',
       logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.hubspot || 'not_connected' as const,
+      status: getIntegrationStatus('hubspot'),
       category: 'CRM & Support',
       type: 'ticketing'
     },
@@ -353,19 +298,19 @@ const IntegrationsPage = () => {
       name: 'Google Drive',
       description: 'Connect your AI Agent with Google Drive to access and manage your documents and files.',
       logo: 'https://img.logo.dev/googledrive.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: integrationStatuses.google_drive || 'not_connected' as const,
+      status: getIntegrationStatus('google_drive'),
       category: 'Storage',
       type: 'storage'
     },
   ];
 
-  const groupedIntegrations = integrations.reduce((acc, integration) => {
+  const groupedIntegrations = integrationsList.reduce((acc, integration) => {
     if (!acc[integration.category]) {
       acc[integration.category] = [];
     }
     acc[integration.category].push(integration);
     return acc;
-  }, {} as Record<string, typeof integrations>);
+  }, {} as Record<string, typeof integrationsList>);
 
   const renderIntegrationComponent = (integrationId: string) => {
     switch (integrationId) {
@@ -396,7 +341,7 @@ const IntegrationsPage = () => {
     }
   };
 
-  const getStatusBadge = (status: IntegrationStatus) => {
+  const getStatusBadge = (status: string) => {
     if (status === 'connected') {
       return (
         <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
@@ -509,7 +454,7 @@ const IntegrationsPage = () => {
               <div className="border-b border-slate-200 dark:border-slate-700 p-6">
                 <div className="flex items-center gap-4">
                   {(() => {
-                    const integration = integrations.find(i => i.id === selectedIntegration);
+                    const integration = integrationsList.find(i => i.id === selectedIntegration);
                     return (
                       <>
                         <div 

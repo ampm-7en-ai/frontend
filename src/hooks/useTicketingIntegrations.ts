@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from 'react';
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { useIntegrations } from './useIntegrations';
 
 export interface TicketingProvider {
   id: string;
@@ -70,73 +69,28 @@ const TICKETING_PROVIDERS: Record<string, Omit<TicketingProvider, 'id' | 'status
 };
 
 export const useTicketingIntegrations = () => {
-  const [connectedProviders, setConnectedProviders] = useState<TicketingProvider[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    connectedTicketingProviders, 
+    isLoading, 
+    error, 
+    forceRefresh 
+  } = useIntegrations();
 
-  const fetchConnectedProviders = async () => {
-    try {
-      setIsLoading(true);
-      const token = getAccessToken();
-      
-      if (!token) {
-        setError('Authentication required');
-        return;
-      }
-
-      const response = await fetch(getApiUrl('integrations-status/'), {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch integrations: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      // Parse the response structure
-      const integrations = result.data;
-      
-      // Filter for connected ticketing providers and include is_default property
-      const connectedTicketing = Object.entries(integrations)
-        .filter(([_, integration]: [string, any]) => 
-          integration.type === 'ticketing' && 
-          integration.status === 'connected'
-        )
-        .map(([providerId, integration]: [string, any]) => ({
-          id: providerId,
-          status: integration.status,
-          isDefault: integration.is_default || false,
-          ...TICKETING_PROVIDERS[providerId]
-        }))
-        .filter((provider: any) => provider.name); // Only include known providers
-
-      setConnectedProviders(connectedTicketing);
-    } catch (err) {
-      console.error('Error fetching ticketing integrations:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch integrations');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchConnectedProviders();
-  }, []);
-
-  const refreshIntegrations = () => {
-    setError(null);
-    fetchConnectedProviders();
-  };
+  // Transform the data to match the old interface
+  const connectedProviders: TicketingProvider[] = connectedTicketingProviders
+    .map(provider => ({
+      id: provider.id,
+      status: provider.status,
+      isDefault: provider.isDefault || false,
+      ...TICKETING_PROVIDERS[provider.id]
+    }))
+    .filter((provider: any) => provider.name); // Only include known providers
 
   return {
     connectedProviders,
     isLoading,
     error,
-    refreshIntegrations,
+    refreshIntegrations: forceRefresh,
     hasConnectedProviders: connectedProviders.length > 0
   };
 };
