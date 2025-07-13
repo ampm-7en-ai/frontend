@@ -19,9 +19,6 @@ const ZohoIntegration = () => {
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [zohoStatus, setZohoStatus] = useState<ZohoStatus | null>(null);
-  const [domain, setDomain] = useState('');
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
   const { toast } = useToast();
 
   // Check Zoho connection status on component mount
@@ -61,15 +58,6 @@ const ZohoIntegration = () => {
   };
 
   const handleConnect = async () => {
-    if (!domain || !clientId || !clientSecret) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsConnecting(true);
     try {
       const token = getAccessToken();
@@ -77,36 +65,42 @@ const ZohoIntegration = () => {
         throw new Error("Authentication required");
       }
 
-      const response = await fetch(getApiUrl('zoho/connect/'), {
-        method: 'POST',
+      const response = await fetch(getApiUrl('zoho/auth/'), {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          domain,
-          client_id: clientId,
-          client_secret: clientSecret,
-        }),
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to connect Zoho: ${response.status}`);
+        throw new Error(`Failed to get Zoho auth URL: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result.status === 'success') {
-        setZohoStatus({ is_connected: true, domain });
+      console.log('Zoho auth URL response:', result);
+
+      if (result.status === 'success' && result.data?.auth_url) {
+        // Open auth URL in new browser window
+        window.open(result.data.auth_url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+        
         toast({
-          title: "Successfully Connected",
-          description: "Zoho Desk has been connected successfully.",
+          title: "Authentication Started",
+          description: "Please complete the authentication in the new window that opened.",
         });
+        
+        // Refresh status after a delay to check if connection was successful
+        setTimeout(() => {
+          checkZohoStatus();
+        }, 3000);
+      } else {
+        throw new Error('No auth URL received');
       }
     } catch (error) {
-      console.error('Error connecting Zoho:', error);
+      console.error('Error getting Zoho auth URL:', error);
       toast({
         title: "Connection Failed",
-        description: "Unable to connect to Zoho Desk. Please check your credentials.",
+        description: error instanceof Error ? error.message : "Failed to initiate Zoho Desk connection. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -228,47 +222,6 @@ const ZohoIntegration = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isConnected && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="zoho-domain">Zoho Domain</Label>
-                <Input
-                  id="zoho-domain"
-                  placeholder="yourcompany.desk.zoho.com"
-                  value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
-                  variant="modern"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Your Zoho Desk domain (e.g., yourcompany.desk.zoho.com)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="zoho-client-id">Client ID</Label>
-                <Input
-                  id="zoho-client-id"
-                  placeholder="Enter your Zoho app's client ID"
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                  variant="modern"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="zoho-client-secret">Client Secret</Label>
-                <Input
-                  id="zoho-client-secret"
-                  type="password"
-                  placeholder="Enter your Zoho app's client secret"
-                  value={clientSecret}
-                  onChange={(e) => setClientSecret(e.target.value)}
-                  variant="modern"
-                />
-              </div>
-            </div>
-          )}
-
           <div className="flex gap-3 pt-4">
             {isConnected ? (
               <ModernButton 
