@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, ExternalLink, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Building2, ExternalLink, Shield, CheckCircle, AlertCircle, Users, Phone, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
 
@@ -14,17 +16,60 @@ interface ZohoStatus {
   domain?: string;
 }
 
+interface ZohoOrganization {
+  id: string;
+  companyName: string;
+  logoURL: string;
+  portalURL: string;
+}
+
+interface ZohoDepartment {
+  id: string;
+  name: string;
+}
+
+interface ZohoContact {
+  id: string;
+  firstName: string | null;
+  lastName: string;
+  email: string;
+  photoURL: string | null;
+  webUrl: string;
+}
+
 const ZohoIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [zohoStatus, setZohoStatus] = useState<ZohoStatus | null>(null);
+  const [organizations, setOrganizations] = useState<ZohoOrganization[]>([]);
+  const [departments, setDepartments] = useState<ZohoDepartment[]>([]);
+  const [contacts, setContacts] = useState<ZohoContact[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
+  const [selectedContactId, setSelectedContactId] = useState<string>('');
   const { toast } = useToast();
 
   // Check Zoho connection status on component mount
   useEffect(() => {
     checkZohoStatus();
   }, []);
+
+  // Fetch organizations when connected
+  useEffect(() => {
+    if (zohoStatus?.is_connected) {
+      fetchOrganizations();
+    }
+  }, [zohoStatus]);
+
+  // Fetch departments and contacts when organization is selected
+  useEffect(() => {
+    if (selectedOrgId) {
+      fetchDepartments(selectedOrgId);
+      fetchContacts(selectedOrgId);
+    }
+  }, [selectedOrgId]);
 
   const checkZohoStatus = async () => {
     setIsCheckingStatus(true);
@@ -54,6 +99,160 @@ const ZohoIntegration = () => {
       console.error('Error checking Zoho status:', error);
     } finally {
       setIsCheckingStatus(false);
+    }
+  };
+
+  const fetchOrganizations = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) return;
+
+      const response = await fetch(getApiUrl('zoho/orgs/'), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch organizations: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setOrganizations(result.data.data.map((org: any) => ({
+          id: org.id.toString(),
+          companyName: org.companyName,
+          logoURL: org.logoURL,
+          portalURL: org.portalURL
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+    }
+  };
+
+  const fetchDepartments = async (orgId: string) => {
+    try {
+      const token = getAccessToken();
+      if (!token) return;
+
+      const response = await fetch(getApiUrl(`zoho/departments/?org_id=${orgId}`), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch departments: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setDepartments(result.data.data.map((dept: any) => ({
+          id: dept.id,
+          name: dept.name
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
+
+  const fetchContacts = async (orgId: string) => {
+    try {
+      const token = getAccessToken();
+      if (!token) return;
+
+      const response = await fetch(getApiUrl(`zoho/contacts/?org_id=${orgId}`), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch contacts: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setContacts(result.data.data.map((contact: any) => ({
+          id: contact.id,
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          email: contact.email,
+          photoURL: contact.photoURL,
+          webUrl: contact.webUrl
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+    }
+  };
+
+  const handleSaveConfiguration = async () => {
+    if (!selectedDepartmentId || !selectedContactId) {
+      toast({
+        title: "Missing Selection",
+        description: "Please select both a department and a contact.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSavingConfig(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const selectedDepartment = departments.find(d => d.id === selectedDepartmentId);
+      const selectedContact = contacts.find(c => c.id === selectedContactId);
+
+      const payload = {
+        department_id: selectedDepartmentId,
+        department_name: selectedDepartment?.name || '',
+        contact_id: selectedContactId,
+        contact_email: selectedContact?.email || '',
+        contact_name: `${selectedContact?.firstName || ''} ${selectedContact?.lastName || ''}`.trim(),
+        location: "us"
+      };
+
+      const response = await fetch(getApiUrl('zoho/update-config/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save configuration: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        toast({
+          title: "Configuration Saved",
+          description: "Zoho Desk configuration has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving configuration:', error);
+      toast({
+        title: "Save Failed",
+        description: error instanceof Error ? error.message : "Failed to save configuration.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingConfig(false);
     }
   };
 
@@ -149,6 +348,7 @@ const ZohoIntegration = () => {
   };
 
   const isConnected = zohoStatus?.is_connected || false;
+  const selectedOrg = organizations.find(org => org.id === selectedOrgId);
 
   return (
     <div className="space-y-6">
@@ -189,19 +389,128 @@ const ZohoIntegration = () => {
         )}
       </div>
 
-      {isConnected && zohoStatus && (
+      {isConnected && organizations.length > 0 && (
         <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-200/50 dark:border-green-800/50">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
               <CheckCircle className="h-5 w-5 text-green-600" />
-              Connection Details
+              Configuration
             </CardTitle>
+            <CardDescription>
+              Select your organization, department, and contact to configure Zoho Desk integration.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {zohoStatus.domain && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">Domain:</span>
-                <span className="text-sm text-green-700 dark:text-green-300">{zohoStatus.domain}</span>
+          <CardContent className="space-y-6">
+            {/* Organization Selection */}
+            <div className="space-y-3">
+              <Label>Organization</Label>
+              <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      <div className="flex items-center gap-3">
+                        <img src={org.logoURL} alt={org.companyName} className="w-6 h-6 rounded" />
+                        <span>{org.companyName}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {selectedOrg && (
+                <div className="flex items-center gap-2 mt-2">
+                  <ModernButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(selectedOrg.portalURL, '_blank')}
+                    icon={ExternalLink}
+                  >
+                    Open Portal
+                  </ModernButton>
+                </div>
+              )}
+            </div>
+
+            {/* Department Selection */}
+            {departments.length > 0 && (
+              <div className="space-y-3">
+                <Label>Department</Label>
+                <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Contact Selection */}
+            {contacts.length > 0 && (
+              <div className="space-y-3">
+                <Label>Contact</Label>
+                <Select value={selectedContactId} onValueChange={setSelectedContactId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a contact" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contacts.map((contact) => (
+                      <SelectItem key={contact.id} value={contact.id}>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-6 h-6">
+                            <AvatarImage src={contact.photoURL || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {(contact.firstName?.[0] || '') + (contact.lastName?.[0] || '')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span>{`${contact.firstName || ''} ${contact.lastName || ''}`.trim()}</span>
+                            <span className="text-xs text-muted-foreground">{contact.email}</span>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {selectedContactId && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <ModernButton
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const selectedContact = contacts.find(c => c.id === selectedContactId);
+                        if (selectedContact?.webUrl) {
+                          window.open(selectedContact.webUrl, '_blank');
+                        }
+                      }}
+                      icon={ExternalLink}
+                    >
+                      View Profile
+                    </ModernButton>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Save Configuration Button */}
+            {selectedDepartmentId && selectedContactId && (
+              <div className="pt-4">
+                <ModernButton
+                  onClick={handleSaveConfiguration}
+                  disabled={isSavingConfig}
+                  variant="gradient"
+                >
+                  {isSavingConfig ? "Saving..." : "Save Configuration"}
+                </ModernButton>
               </div>
             )}
           </CardContent>
