@@ -432,44 +432,55 @@ const IntegrationsPage = () => {
                   </div>
                   
                   <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                       {categoryIntegrations.map((integration) => (
-                        <Card key={integration.id} className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-none">
-                          <CardHeader className="pb-4">
-                            <div className="flex items-start justify-between mb-4">
+                        <Card key={integration.id} className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-none hover:shadow-sm transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                              {/* Logo on the left */}
                               <div 
-                                className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow"
+                                className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm flex-shrink-0"
                                 style={{
                                   padding: '0',
                                   height: 'auto',
                                   width: 'auto',
-                                  borderRadius: '14px',
+                                  borderRadius: '12px',
                                   overflow: 'hidden'
                                 }}
                               >
                                 <img 
                                   src={integration.logo} 
                                   alt={integration.name}
-                                  className="w-16 h-16 object-contain"
+                                  className="w-12 h-12 object-contain"
                                 />
                               </div>
-                              <div className="flex flex-col gap-2 items-end">
-                                {getStatusBadge(integration.status)}
-                                {integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
+                              
+                              {/* Content on the right */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100 truncate">
+                                    {integration.name}
+                                  </h3>
+                                  <div className="flex flex-col gap-1 items-end ml-2 flex-shrink-0">
+                                    {getStatusBadge(integration.status)}
+                                    {integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
+                                  </div>
+                                </div>
+                                
+                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3 line-clamp-2">
+                                  {integration.description}
+                                </p>
+                                
+                                <ModernButton 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="w-full sm:w-auto"
+                                  onClick={() => setSelectedIntegration(integration.id)}
+                                >
+                                  Configure Integration
+                                </ModernButton>
                               </div>
                             </div>
-                            <CardTitle className="font-medium text-base text-slate-900 dark:text-slate-100 mb-2">
-                              {integration.name}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="pt-0 space-y-3">
-                            <ModernButton 
-                              variant="outline" 
-                              className="w-full"
-                              onClick={() => setSelectedIntegration(integration.id)}
-                            >
-                              Configure Integration
-                            </ModernButton>
                           </CardContent>
                         </Card>
                       ))}
