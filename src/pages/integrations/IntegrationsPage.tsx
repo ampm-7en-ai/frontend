@@ -158,8 +158,19 @@ const IntegrationsPage = () => {
       console.log('Google auth URL response:', result);
 
       if (result.auth_url) {
-        setGoogleAuthUrl(result.auth_url);
-        setShowAuthModal(true);
+        // Open auth URL in new browser window
+        window.open(result.auth_url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+        
+        // Show success message
+        toast({
+          title: "Authentication Started",
+          description: "Please complete the authentication in the new window that opened.",
+        });
+        
+        // Refresh integration statuses after a delay to check if connection was successful
+        setTimeout(() => {
+          fetchIntegrationStatuses();
+        }, 3000);
       } else {
         throw new Error('No auth URL received');
       }
