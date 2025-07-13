@@ -27,6 +27,7 @@ import {
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useIntegrations } from '@/hooks/useIntegrations';
+import { fetchGoogleDriveFiles } from '@/utils/api-config';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -56,6 +57,15 @@ interface ValidationErrors {
   thirdParty?: string;
 }
 
+interface GoogleDriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  webViewLink: string;
+  createdTime: string;
+  modifiedTime: string;
+}
+
 const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -74,6 +84,8 @@ const KnowledgeUpload = () => {
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [isDragOver, setIsDragOver] = useState(false);
+  const [googleDriveFiles, setGoogleDriveFiles] = useState<GoogleDriveFile[]>([]);
+  const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
 
   // Use centralized integration management
   const { getIntegrationsByType, getIntegrationStatus } = useIntegrations();
@@ -174,6 +186,40 @@ const KnowledgeUpload = () => {
     setSelectedFiles([]);
     setValidationErrors({});
   }, [sourceType]);
+
+  const fetchGoogleDriveData = async () => {
+    setIsLoadingGoogleDriveFiles(true);
+    try {
+      const response = await fetchGoogleDriveFiles();
+      setGoogleDriveFiles(response.files || []);
+      
+      // Auto-select some files (you can modify this logic)
+      const autoSelectedFiles = response.files
+        ?.filter((file: GoogleDriveFile) => 
+          file.mimeType !== 'application/vnd.google-apps.folder' && // Exclude folders
+          (file.mimeType.includes('document') || 
+           file.mimeType.includes('spreadsheet') ||
+           file.mimeType.includes('pdf'))
+        )
+        .slice(0, 5) // Take first 5 files
+        .map((file: GoogleDriveFile) => file.name) || [];
+      
+      setSelectedFiles(autoSelectedFiles);
+      
+      if (autoSelectedFiles.length > 0) {
+        setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
+      }
+    } catch (error) {
+      console.error('Error fetching Google Drive files:', error);
+      showToast({
+        title: "Error",
+        description: "Failed to fetch Google Drive files. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setIsLoadingGoogleDriveFiles(false);
+    }
+  };
 
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
@@ -368,49 +414,56 @@ const KnowledgeUpload = () => {
     setSelectedProvider(provider);
     setIsConnecting(true);
 
-    setTimeout(() => {
+    if (provider === 'googleDrive') {
+      // Fetch real Google Drive files
+      fetchGoogleDriveData();
       setIsConnecting(false);
-
+      
       toast({
         title: "Connected Successfully",
-        description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
+        description: "Connected to Google Drive. Loading your files...",
         variant: "success"
       });
+    } else {
+      // Keep existing mock data for other providers
+      setTimeout(() => {
+        setIsConnecting(false);
 
-      if (provider === 'googleDrive') {
-        setSelectedFiles([
-          'Recent Documents/Quarterly Report Q1 2023.pdf',
-          'My Drive/Product Roadmap.docx',
-          'Shared with me/Customer Feedback.xlsx'
-        ]);
-      } else if (provider === 'slack') {
-        setSelectedFiles([
-          'sales-team channel history',
-          'product-updates channel history',
-          'customer-support channel history'
-        ]);
-      } else if (provider === 'notion') {
-        setSelectedFiles([
-          'Company Wiki',
-          'Product Documentation',
-          'Meeting Notes'
-        ]);
-      } else if (provider === 'dropbox') {
-        setSelectedFiles([
-          'Marketing Assets/Brand Guidelines.pdf',
-          'Research/Market Analysis 2023.docx',
-          'Presentations/Investor Deck.pptx'
-        ]);
-      } else if (provider === 'github') {
-        setSelectedFiles([
-          'Documentation/README.md',
-          'Documentation/API_REFERENCE.md',
-          'Documentation/CONTRIBUTING.md'
-        ]);
-      }
+        toast({
+          title: "Connected Successfully",
+          description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
+          variant: "success"
+        });
 
-      setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
-    }, 1500);
+        if (provider === 'slack') {
+          setSelectedFiles([
+            'sales-team channel history',
+            'product-updates channel history',
+            'customer-support channel history'
+          ]);
+        } else if (provider === 'notion') {
+          setSelectedFiles([
+            'Company Wiki',
+            'Product Documentation',
+            'Meeting Notes'
+          ]);
+        } else if (provider === 'dropbox') {
+          setSelectedFiles([
+            'Marketing Assets/Brand Guidelines.pdf',
+            'Research/Market Analysis 2023.docx',
+            'Presentations/Investor Deck.pptx'
+          ]);
+        } else if (provider === 'github') {
+          setSelectedFiles([
+            'Documentation/README.md',
+            'Documentation/API_REFERENCE.md',
+            'Documentation/CONTRIBUTING.md'
+          ]);
+        }
+
+        setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
+      }, 1500);
+    }
   };
 
   const handleRemoveSelectedFile = (index: number) => {
@@ -482,6 +535,29 @@ const KnowledgeUpload = () => {
         }
       }
     }
+  };
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType.includes('spreadsheet')) {
+      return <Table className="h-4 w-4 text-green-600 dark:text-green-400" />;
+    } else if (mimeType.includes('document')) {
+      return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+    } else if (mimeType.includes('pdf')) {
+      return <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />;
+    } else if (mimeType.includes('folder')) {
+      return <FileText className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />;
+    }
+    return <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
+  };
+
+  const toggleFileSelection = (fileName: string) => {
+    setSelectedFiles(prev => {
+      if (prev.includes(fileName)) {
+        return prev.filter(f => f !== fileName);
+      } else {
+        return [...prev, fileName];
+      }
+    });
   };
 
   const renderSourceTypeContent = () => {
@@ -701,6 +777,7 @@ const KnowledgeUpload = () => {
                     onClick={() => {
                       setSelectedProvider(null);
                       setSelectedFiles([]);
+                      setGoogleDriveFiles([]);
                     }}
                     type="button"
                   >
@@ -710,19 +787,23 @@ const KnowledgeUpload = () => {
                 
                 <Separator className="bg-slate-200 dark:bg-slate-700" />
                 
-                {isConnecting ? (
+                {isConnecting || isLoadingGoogleDriveFiles ? (
                   <div className="py-12 flex flex-col items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400 mb-4"></div>
-                    <p className="text-center font-medium text-slate-700 dark:text-slate-300">Importing from {thirdPartyProviders[selectedProvider].name}...</p>
+                    <p className="text-center font-medium text-slate-700 dark:text-slate-300">
+                      {selectedProvider === 'googleDrive' ? 'Loading files from Google Drive...' : `Importing from ${thirdPartyProviders[selectedProvider].name}...`}
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Imported Content ({selectedFiles.length})</Label>
+                      <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {selectedProvider === 'googleDrive' ? 'Google Drive Files' : 'Imported Content'} ({selectedFiles.length} selected)
+                      </Label>
                       <ModernButton 
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleQuickConnect(selectedProvider)}
+                        onClick={() => selectedProvider === 'googleDrive' ? fetchGoogleDriveData() : handleQuickConnect(selectedProvider)}
                         type="button"
                       >
                         Refresh
@@ -733,7 +814,41 @@ const KnowledgeUpload = () => {
                       <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.thirdParty}</p>
                     )}
                     
-                    {selectedFiles.length > 0 ? (
+                    {selectedProvider === 'googleDrive' && googleDriveFiles.length > 0 ? (
+                      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl max-h-[400px] overflow-y-auto transition-colors duration-200">
+                        {googleDriveFiles
+                          .filter(file => file.mimeType !== 'application/vnd.google-apps.folder')
+                          .map((file, index) => (
+                            <div key={file.id} className={`flex items-center justify-between p-4 ${index > 0 ? 'border-t border-slate-100 dark:border-slate-700' : ''}`}>
+                              <div className="flex items-center gap-3 flex-1">
+                                <Checkbox
+                                  id={`file-${file.id}`}
+                                  checked={selectedFiles.includes(file.name)}
+                                  onCheckedChange={() => toggleFileSelection(file.name)}
+                                />
+                                <div className="w-8 h-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg flex items-center justify-center transition-colors duration-200">
+                                  {getFileIcon(file.mimeType)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{file.name}</p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Modified: {new Date(file.modifiedTime).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <ModernButton
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(file.webViewLink, '_blank')}
+                                type="button"
+                                className="ml-2"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </ModernButton>
+                            </div>
+                          ))}
+                      </div>
+                    ) : selectedProvider !== 'googleDrive' && selectedFiles.length > 0 ? (
                       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-700 max-h-[300px] overflow-y-auto transition-colors duration-200">
                         {selectedFiles.map((file, index) => (
                           <div key={index} className="flex items-center justify-between p-4">
@@ -758,14 +873,16 @@ const KnowledgeUpload = () => {
                     ) : (
                       <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/20 transition-colors duration-200">
                         <FileText className="h-8 w-8 text-slate-400 dark:text-slate-500 mb-3" />
-                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">No files imported yet</p>
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                          {selectedProvider === 'googleDrive' ? 'No files found' : 'No files imported yet'}
+                        </p>
                         <ModernButton 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleQuickConnect(selectedProvider)}
+                          onClick={() => selectedProvider === 'googleDrive' ? fetchGoogleDriveData() : handleQuickConnect(selectedProvider)}
                           type="button"
                         >
-                          Import Files
+                          {selectedProvider === 'googleDrive' ? 'Refresh Files' : 'Import Files'}
                         </ModernButton>
                       </div>
                     )}

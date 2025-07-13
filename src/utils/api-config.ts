@@ -175,6 +175,18 @@ export const getSourceMetadataInfo = (source: { type: string, metadata: any }): 
 // Import the new API interceptor
 import { apiRequest, apiGet, apiPost, apiPut, apiDelete } from './api-interceptor';
 
+// Function to fetch Google Drive files - Updated to use interceptor
+export const fetchGoogleDriveFiles = async (): Promise<any> => {
+  const response = await apiGet(`${BASE_URL}drive/files/`);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    throw new Error(errorData.message || `Failed to fetch Google Drive files: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
 // Function to fetch agent details (including knowledge bases) - Updated to use interceptor
 export const fetchAgentDetails = async (agentId: string): Promise<any> => {
   console.log(`Starting fetchAgentDetails for agentId: ${agentId}`);
