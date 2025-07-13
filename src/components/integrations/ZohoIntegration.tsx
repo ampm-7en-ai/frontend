@@ -3,14 +3,17 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Building2, ExternalLink, Shield, CheckCircle, Settings, Zap, Edit, Save } from 'lucide-react';
+import { Building2, ExternalLink, Shield, CheckCircle, Settings, Edit, Save, User, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
 
 interface ZohoStatus {
   is_connected: boolean;
-  domain?: string;
+  org_id?: string;
+  department_name?: string;
+  contact_email?: string;
+  contact_name?: string;
+  location?: string;
 }
 
 interface ZohoOrganization {
@@ -92,6 +95,10 @@ const ZohoIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setZohoStatus(result.data);
+        // If connected, fetch organizations for potential reconfiguration
+        if (result.data.is_connected) {
+          fetchOrganizations();
+        }
       }
     } catch (error) {
       console.error('Error checking Zoho status:', error);
@@ -242,6 +249,8 @@ const ZohoIntegration = () => {
           description: "Zoho Desk configuration has been updated successfully.",
         });
         setIsEditingConfig(false);
+        // Refresh status to show updated configuration
+        checkZohoStatus();
       }
     } catch (error) {
       console.error('Error saving configuration:', error);
@@ -345,7 +354,6 @@ const ZohoIntegration = () => {
   };
 
   const isConnected = zohoStatus?.is_connected || false;
-  const selectedOrg = organizations.find(org => org.id === selectedOrgId);
 
   const organizationOptions = organizations.map(org => ({
     value: org.id,
@@ -370,7 +378,7 @@ const ZohoIntegration = () => {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="mb-8 pl-2">
+      <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
           <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Zoho Desk Integration</h2>
           {isCheckingStatus ? (
@@ -388,62 +396,92 @@ const ZohoIntegration = () => {
         </p>
       </div>
 
-      {/* Configuration Section */}
-      {isConnected && organizations.length > 0 && (
-        <section className="p-8">
-          <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Configuration Settings</h3>
+      {/* Current Configuration Cards */}
+      {isConnected && zohoStatus && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current Configuration</h3>
+            <ModernButton
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingConfig(!isEditingConfig)}
+              icon={Edit}
+            >
+              {isEditingConfig ? 'Cancel' : 'Edit Settings'}
+            </ModernButton>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Organization</h4>
               </div>
-              <ModernButton
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditingConfig(!isEditingConfig)}
-                icon={isEditingConfig ? undefined : Edit}
-              >
-                {isEditingConfig ? 'Cancel' : 'Edit'}
-              </ModernButton>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                ID: {zohoStatus.org_id || 'Not configured'}
+              </p>
             </div>
 
-            {isEditingConfig ? (
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Department</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {zohoStatus.department_name || 'Not configured'}
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Contact</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {zohoStatus.contact_name || 'Not configured'}
+              </p>
+              {zohoStatus.contact_email && (
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                  {zohoStatus.contact_email}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Edit Configuration Form */}
+          {isEditingConfig && organizations.length > 0 && (
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
               <div className="space-y-4">
                 <div>
-                  <Label className="text-base font-medium mb-3 block">Organization</Label>
+                  <Label className="text-sm font-medium mb-2 block">Organization</Label>
                   <ModernDropdown
                     value={selectedOrgId}
                     onValueChange={setSelectedOrgId}
                     options={organizationOptions}
                     placeholder="Select your organization..."
-                    className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
                   />
                 </div>
 
                 {departments.length > 0 && (
                   <div>
-                    <Label className="text-base font-medium mb-3 block">Department</Label>
+                    <Label className="text-sm font-medium mb-2 block">Department</Label>
                     <ModernDropdown
                       value={selectedDepartmentId}
                       onValueChange={setSelectedDepartmentId}
                       options={departmentOptions}
                       placeholder="Select department..."
-                      className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
                     />
                   </div>
                 )}
 
                 {contacts.length > 0 && (
                   <div>
-                    <Label className="text-base font-medium mb-3 block">Primary Contact</Label>
+                    <Label className="text-sm font-medium mb-2 block">Primary Contact</Label>
                     <ModernDropdown
                       value={selectedContactId}
                       onValueChange={setSelectedContactId}
                       options={contactOptions}
                       placeholder="Select primary contact..."
-                      className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
                     />
                   </div>
                 )}
@@ -455,110 +493,83 @@ const ZohoIntegration = () => {
                       disabled={isSavingConfig}
                       variant="primary" 
                       icon={Save}
+                      size="sm"
                     >
-                      {isSavingConfig ? "Saving..." : "Save Settings"}
+                      {isSavingConfig ? "Saving..." : "Save Configuration"}
                     </ModernButton>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Organization</h4>
-                    <p className="text-slate-600 dark:text-slate-400">
-                      {selectedOrg?.companyName || 'Not selected'}
-                    </p>
-                  </div>
-                  <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Department</h4>
-                    <p className="text-slate-600 dark:text-slate-400">
-                      {departments.find(d => d.id === selectedDepartmentId)?.name || 'Not selected'}
-                    </p>
-                  </div>
-                  <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Primary Contact</h4>
-                    <p className="text-slate-600 dark:text-slate-400">
-                      {contacts.find(c => c.id === selectedContactId)?.email || 'Not selected'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Connection Management */}
-      <section className="p-8">
-        <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-              <Shield className="h-5 w-5 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
-          </div>
-          <p className="text-slate-600 dark:text-slate-400 mb-6">
-            {isConnected 
-              ? "Your Zoho Desk integration is active and ready to streamline your support workflow." 
-              : "Connect your Zoho Desk account to enable automated ticket management and customer support features."
-            }
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            {isConnected ? (
-              <ModernButton 
-                onClick={handleUnlink}
-                disabled={isUnlinking}
-                variant="outline"
-                className="border-destructive/50 text-destructive hover:bg-destructive/10"
-              >
-                {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
-              </ModernButton>
-            ) : (
-              <ModernButton 
-                onClick={handleConnect}
-                disabled={isConnecting}
-                variant="gradient"
-                size="lg"
-              >
-                {isConnecting ? "Connecting..." : "Connect Zoho Desk"}
-              </ModernButton>
-            )}
-            <ModernButton 
-              variant="outline" 
-              onClick={() => window.open('https://desk.zoho.com/DeskAPIDocument', '_blank')}
-              icon={ExternalLink}
-            >
-              View Documentation
-            </ModernButton>
-          </div>
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
         </div>
-      </section>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          {isConnected 
+            ? "Your Zoho Desk integration is active and ready to streamline your support workflow." 
+            : "Connect your Zoho Desk account to enable automated ticket management and customer support features."
+          }
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isConnected ? (
+            <ModernButton 
+              onClick={handleUnlink}
+              disabled={isUnlinking}
+              variant="outline"
+              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+              size="sm"
+            >
+              {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
+            </ModernButton>
+          ) : (
+            <ModernButton 
+              onClick={handleConnect}
+              disabled={isConnecting}
+              variant="primary"
+            >
+              {isConnecting ? "Connecting..." : "Connect Zoho Desk"}
+            </ModernButton>
+          )}
+          <ModernButton 
+            variant="outline" 
+            onClick={() => window.open('https://desk.zoho.com/DeskAPIDocument', '_blank')}
+            icon={ExternalLink}
+            size="sm"
+          >
+            View Documentation
+          </ModernButton>
+        </div>
+      </div>
 
       {/* Features Overview */}
-      <section className="p-8">
-        <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Zoho Desk Capabilities</h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-6">
-            Powerful features to enhance your customer support operations
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              "Multi-channel ticket management",
-              "Automated workflow and routing", 
-              "Customer portal and self-service",
-              "SLA management and escalation",
-              "Team collaboration and notes",
-              "Advanced reporting and analytics"
-            ].map((feature, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-800/30">
-                <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{feature}</span>
-              </div>
-            ))}
-          </div>
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Zoho Desk Capabilities</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Powerful features to enhance your customer support operations
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            "Multi-channel ticket management",
+            "Automated workflow and routing", 
+            "Customer portal and self-service",
+            "SLA management and escalation",
+            "Team collaboration and notes",
+            "Advanced reporting and analytics"
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+            </div>
+          ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 };
