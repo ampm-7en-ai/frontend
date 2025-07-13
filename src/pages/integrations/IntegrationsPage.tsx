@@ -261,7 +261,7 @@ const IntegrationsPage = () => {
       id: 'freshdesk',
       name: 'Freshdesk',
       description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
-      logo: 'https://img.logo.dev/freshworks.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      logo: 'https://img.logo.dev/freshdesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('freshdesk'),
       category: 'Support',
       type: 'ticketing'
@@ -297,7 +297,7 @@ const IntegrationsPage = () => {
       id: 'google_drive',
       name: 'Google Drive',
       description: 'Connect your AI Agent with Google Drive to access and manage your documents and files.',
-      logo: 'https://img.logo.dev/googledrive.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      logo: 'https://img.logo.dev/google.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('google_drive'),
       category: 'Storage',
       type: 'storage'
