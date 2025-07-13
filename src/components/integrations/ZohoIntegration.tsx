@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardDescription, ModernCardContent } from '@/components/ui/modern-card';
-import { ModernInput } from '@/components/ui/modern-input';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Building2, ExternalLink, Shield, CheckCircle, AlertCircle, Users, Phone, Mail, Settings, Zap } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Building2, ExternalLink, Shield, CheckCircle, AlertCircle, Users, Phone, Mail, Settings, Zap, ChevronDown } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
 
@@ -350,6 +351,27 @@ const ZohoIntegration = () => {
   const isConnected = zohoStatus?.is_connected || false;
   const selectedOrg = organizations.find(org => org.id === selectedOrgId);
 
+  // Transform data for modern dropdown
+  const organizationOptions = organizations.map(org => ({
+    value: org.id,
+    label: org.companyName,
+    logo: org.logoURL,
+    description: `Portal: ${org.portalURL.split('/').pop()}`
+  }));
+
+  const departmentOptions = departments.map(dept => ({
+    value: dept.id,
+    label: dept.name,
+    description: `Department ID: ${dept.id}`
+  }));
+
+  const contactOptions = contacts.map(contact => ({
+    value: contact.id,
+    label: `${contact.firstName || ''} ${contact.lastName || ''}`.trim(),
+    description: contact.email,
+    logo: contact.photoURL || undefined
+  }));
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -388,134 +410,137 @@ const ZohoIntegration = () => {
               Configure your Zoho Desk integration by selecting your organization, department, and primary contact.
             </ModernCardDescription>
           </ModernCardHeader>
-          <ModernCardContent className="space-y-8">
-            {/* Organization Selection */}
-            <div className="space-y-4">
-              <Label className="text-base font-medium">Organization</Label>
-              <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Choose your organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      <div className="flex items-center gap-3 py-1">
-                        <img 
-                          src={org.logoURL} 
-                          alt={org.companyName} 
-                          className="w-8 h-8 rounded-lg object-cover"
-                        />
-                        <span className="font-medium">{org.companyName}</span>
+          <ModernCardContent>
+            <Accordion type="single" collapsible defaultValue="organization" className="space-y-4">
+              {/* Organization Selection */}
+              <AccordionItem value="organization" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    <span className="font-medium">Organization Selection</span>
+                    {selectedOrg && (
+                      <span className="text-sm text-muted-foreground">
+                        Selected: {selectedOrg.companyName}
+                      </span>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4 space-y-4">
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Choose Organization</Label>
+                    <ModernDropdown
+                      value={selectedOrgId}
+                      onValueChange={setSelectedOrgId}
+                      options={organizationOptions}
+                      placeholder="Select your organization..."
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  {selectedOrg && (
+                    <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-xl border">
+                      <img 
+                        src={selectedOrg.logoURL} 
+                        alt={selectedOrg.companyName} 
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground">{selectedOrg.companyName}</p>
+                        <p className="text-sm text-muted-foreground">Selected Organization</p>
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {selectedOrg && (
-                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-xl">
-                  <img 
-                    src={selectedOrg.logoURL} 
-                    alt={selectedOrg.companyName} 
-                    className="w-10 h-10 rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium">{selectedOrg.companyName}</p>
-                    <p className="text-sm text-muted-foreground">Selected Organization</p>
-                  </div>
-                  <ModernButton
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(selectedOrg.portalURL, '_blank')}
-                    icon={ExternalLink}
-                  >
-                    Open Portal
-                  </ModernButton>
-                </div>
+                      <ModernButton
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(selectedOrg.portalURL, '_blank')}
+                        icon={ExternalLink}
+                      >
+                        Open Portal
+                      </ModernButton>
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Department Selection */}
+              {departments.length > 0 && (
+                <AccordionItem value="department" className="border rounded-lg px-4">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <Users className="h-5 w-5 text-primary" />
+                      <span className="font-medium">Department Selection</span>
+                      {selectedDepartmentId && (
+                        <span className="text-sm text-muted-foreground">
+                          Selected: {departments.find(d => d.id === selectedDepartmentId)?.name}
+                        </span>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 space-y-4">
+                    <div className="space-y-3">
+                      <Label className="text-base font-medium">Choose Department</Label>
+                      <ModernDropdown
+                        value={selectedDepartmentId}
+                        onValueChange={setSelectedDepartmentId}
+                        options={departmentOptions}
+                        placeholder="Select department..."
+                        className="w-full"
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               )}
-            </div>
 
-            {/* Department Selection */}
-            {departments.length > 0 && (
-              <div className="space-y-4">
-                <Label className="text-base font-medium flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Department
-                </Label>
-                <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        <div className="flex items-center gap-2 py-1">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
-                          <span>{dept.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Contact Selection */}
-            {contacts.length > 0 && (
-              <div className="space-y-4">
-                <Label className="text-base font-medium flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Primary Contact
-                </Label>
-                <Select value={selectedContactId} onValueChange={setSelectedContactId}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Select primary contact" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contacts.map((contact) => (
-                      <SelectItem key={contact.id} value={contact.id}>
-                        <div className="flex items-center gap-3 py-1">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src={contact.photoURL || undefined} />
-                            <AvatarFallback className="text-xs font-medium">
-                              {(contact.firstName?.[0] || '') + (contact.lastName?.[0] || '')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">
-                              {`${contact.firstName || ''} ${contact.lastName || ''}`.trim()}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{contact.email}</p>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {selectedContactId && (
-                  <div className="flex justify-end">
-                    <ModernButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const selectedContact = contacts.find(c => c.id === selectedContactId);
-                        if (selectedContact?.webUrl) {
-                          window.open(selectedContact.webUrl, '_blank');
-                        }
-                      }}
-                      icon={ExternalLink}
-                    >
-                      View Contact Profile
-                    </ModernButton>
-                  </div>
-                )}
-              </div>
-            )}
+              {/* Contact Selection */}
+              {contacts.length > 0 && (
+                <AccordionItem value="contact" className="border rounded-lg px-4">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-primary" />
+                      <span className="font-medium">Primary Contact</span>
+                      {selectedContactId && (
+                        <span className="text-sm text-muted-foreground">
+                          Selected: {contacts.find(c => c.id === selectedContactId)?.email}
+                        </span>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 space-y-4">
+                    <div className="space-y-3">
+                      <Label className="text-base font-medium">Choose Primary Contact</Label>
+                      <ModernDropdown
+                        value={selectedContactId}
+                        onValueChange={setSelectedContactId}
+                        options={contactOptions}
+                        placeholder="Select primary contact..."
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    {selectedContactId && (
+                      <div className="flex justify-end">
+                        <ModernButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const selectedContact = contacts.find(c => c.id === selectedContactId);
+                            if (selectedContact?.webUrl) {
+                              window.open(selectedContact.webUrl, '_blank');
+                            }
+                          }}
+                          icon={ExternalLink}
+                        >
+                          View Contact Profile
+                        </ModernButton>
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+            </Accordion>
 
             {/* Save Configuration */}
             {selectedDepartmentId && selectedContactId && (
-              <div className="pt-4 border-t">
+              <div className="pt-6 border-t mt-6">
                 <ModernButton
                   onClick={handleSaveConfiguration}
                   disabled={isSavingConfig}
