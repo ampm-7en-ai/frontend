@@ -12,11 +12,13 @@ import FreshdeskIntegration from '@/components/integrations/FreshdeskIntegration
 import ZohoIntegration from '@/components/integrations/ZohoIntegration';
 import SalesforceIntegration from '@/components/integrations/SalesforceIntegration';
 import HubspotIntegration from '@/components/integrations/HubspotIntegration';
+import GoogleDriveIntegration from '@/components/integrations/GoogleDriveIntegration';
 import { ArrowLeft, Star } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { ModernModal } from '@/components/ui/modern-modal';
 
 type IntegrationStatus = 'connected' | 'not_connected' | 'loading';
 
@@ -42,9 +44,12 @@ const IntegrationsPage = () => {
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(true);
   const [defaultProvider, setDefaultProvider] = useState<string | null>(null);
   const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
+  const [isConnectingGoogleDrive, setIsConnectingGoogleDrive] = useState(false);
+  const [isDisconnectingGoogleDrive, setIsDisconnectingGoogleDrive] = useState(false);
+  const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { toast } = useToast();
 
-  // Fetch integration statuses from API - consolidated into single request
   const fetchIntegrationStatuses = async () => {
     try {
       setIsLoadingStatuses(true);
@@ -67,14 +72,12 @@ const IntegrationsPage = () => {
       const result: IntegrationStatusResponse = await response.json();
       console.log('Integration statuses fetched:', result);
 
-      // Convert API response to our status format and handle default provider
       const statusMap: Record<string, IntegrationStatus> = {};
       let currentDefaultProvider: string | null = null;
 
       Object.entries(result.data).forEach(([key, integration]) => {
         statusMap[key] = integration.status as IntegrationStatus;
         
-        // Check if this integration is marked as default
         if (integration.is_default && integration.type === 'ticketing' && integration.status === 'connected') {
           currentDefaultProvider = key;
         }
@@ -134,8 +137,92 @@ const IntegrationsPage = () => {
     }
   };
 
+  const handleGoogleDriveConnect = async () => {
+    setIsConnectingGoogleDrive(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("No access token available");
+      }
+
+      const response = await fetch(getApiUrl('auth/google/url/'), {
+        method: 'GET',
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get Google auth URL: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Google auth URL response:', result);
+
+      if (result.auth_url) {
+        setGoogleAuthUrl(result.auth_url);
+        setShowAuthModal(true);
+      } else {
+        throw new Error('No auth URL received');
+      }
+    } catch (error) {
+      console.error('Error getting Google auth URL:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to initiate Google Drive connection. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsConnectingGoogleDrive(false);
+    }
+  };
+
+  const handleGoogleDriveDisconnect = async () => {
+    setIsDisconnectingGoogleDrive(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("No access token available");
+      }
+
+      const response = await fetch(getApiUrl('drive/unlink/'), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to disconnect Google Drive: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Google Drive disconnect response:', result);
+
+      setIntegrationStatuses(prev => ({
+        ...prev,
+        google_drive: 'not_connected'
+      }));
+
+      toast({
+        title: "Success",
+        description: result.message || "Google Drive disconnected successfully.",
+      });
+    } catch (error) {
+      console.error('Error disconnecting Google Drive:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to disconnect Google Drive. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDisconnectingGoogleDrive(false);
+    }
+  };
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
+    setGoogleAuthUrl(null);
+    fetchIntegrationStatuses();
+  };
+
   useEffect(() => {
-    // Initialize Facebook SDK when the integrations page loads - only once
     const initFacebook = async () => {
       try {
         await initFacebookSDK();
@@ -156,7 +243,6 @@ const IntegrationsPage = () => {
       initFacebook();
     }
 
-    // Fetch integration statuses - single consolidated request
     fetchIntegrationStatuses();
   }, [toast]);
 
@@ -251,6 +337,15 @@ const IntegrationsPage = () => {
       category: 'CRM & Support',
       type: 'ticketing'
     },
+    {
+      id: 'google_drive',
+      name: 'Google Drive',
+      description: 'Connect your AI Agent with Google Drive to access and manage your documents and files.',
+      logo: 'https://img.logo.dev/googledrive.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      status: integrationStatuses.google_drive || 'not_connected' as const,
+      category: 'Storage',
+      type: 'storage'
+    },
   ];
 
   const groupedIntegrations = integrations.reduce((acc, integration) => {
@@ -283,6 +378,8 @@ const IntegrationsPage = () => {
         return <SalesforceIntegration />;
       case 'hubspot':
         return <HubspotIntegration />;
+      case 'google_drive':
+        return <GoogleDriveIntegration />;
       default:
         return null;
     }
@@ -317,7 +414,6 @@ const IntegrationsPage = () => {
       );
     }
     
-    // For connected ticketing providers that are not default, show clickable badge
     if (integrationId !== defaultProvider) {
       return (
         <Badge 
@@ -338,6 +434,36 @@ const IntegrationsPage = () => {
     }
     
     return null;
+  };
+
+  const getConnectButton = (integration: any) => {
+    if (integration.id === 'google_drive') {
+      const isConnected = integration.status === 'connected';
+      const isLoading = isConnected ? isDisconnectingGoogleDrive : isConnectingGoogleDrive;
+      
+      return (
+        <ModernButton 
+          variant="outline" 
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={isConnected ? handleGoogleDriveDisconnect : handleGoogleDriveConnect}
+          disabled={isLoading}
+        >
+          {isLoading ? (isConnected ? 'Disconnecting...' : 'Connecting...') : (isConnected ? 'Disconnect' : 'Connect')}
+        </ModernButton>
+      );
+    }
+    
+    return (
+      <ModernButton 
+        variant="outline" 
+        size="sm"
+        className="w-full sm:w-auto"
+        onClick={() => setSelectedIntegration(integration.id)}
+      >
+        Configure Integration
+      </ModernButton>
+    );
   };
 
   if (isLoadingStatuses) {
@@ -428,6 +554,7 @@ const IntegrationsPage = () => {
                       {category === 'Automation' && 'Connect with automation tools to create powerful workflows.'}
                       {category === 'Support' && 'Integrate with customer support platforms to enhance your helpdesk operations.'}
                       {category === 'CRM & Support' && 'Connect with CRM and enterprise support platforms for comprehensive customer management.'}
+                      {category === 'Storage' && 'Connect with cloud storage platforms to access and manage your files and documents.'}
                     </p>
                   </div>
                   
@@ -437,7 +564,6 @@ const IntegrationsPage = () => {
                         <Card key={integration.id} className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-none hover:shadow-sm transition-shadow">
                           <CardContent className="p-4">
                             <div className="flex items-center gap-4">
-                              {/* Logo on the left */}
                               <div 
                                 className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm flex-shrink-0"
                                 style={{
@@ -455,7 +581,6 @@ const IntegrationsPage = () => {
                                 />
                               </div>
                               
-                              {/* Content on the right */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-2">
                                   <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100 truncate">
@@ -471,14 +596,7 @@ const IntegrationsPage = () => {
                                   {integration.description}
                                 </p>
                                 
-                                <ModernButton 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="w-full sm:w-auto"
-                                  onClick={() => setSelectedIntegration(integration.id)}
-                                >
-                                  Configure Integration
-                                </ModernButton>
+                                {getConnectButton(integration)}
                               </div>
                             </div>
                           </CardContent>
@@ -492,6 +610,36 @@ const IntegrationsPage = () => {
           </div>
         )}
       </div>
+
+      <ModernModal
+        open={showAuthModal}
+        onOpenChange={handleAuthModalClose}
+        title="Connect Google Drive"
+        description="Complete the authentication process in the window below to connect your Google Drive account."
+        size="4xl"
+        fixedFooter
+        footer={
+          <ModernButton 
+            variant="outline" 
+            onClick={handleAuthModalClose}
+          >
+            Close
+          </ModernButton>
+        }
+      >
+        <div className="w-full h-[600px] border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+          {googleAuthUrl && (
+            <iframe
+              src={googleAuthUrl}
+              className="w-full h-full"
+              title="Google Drive Authentication"
+              onLoad={() => {
+                console.log('Google auth iframe loaded');
+              }}
+            />
+          )}
+        </div>
+      </ModernModal>
     </div>
   );
 };

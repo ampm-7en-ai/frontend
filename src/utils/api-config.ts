@@ -38,10 +38,16 @@ export const API_ENDPOINTS = {
   // Admin endpoints
   ADMIN_BUSINESSES: "admin/businesses/",
 
-  //Super Admin endpoints
+  // Super Admin endpoints
   GET_INVOICE: "subscriptions/invoices/",
   GET_SUBSCRIPTION: "subscriptions/",
-  GET_CURRENT_SUBSCRIPTION: "subscriptions/current/"
+  GET_CURRENT_SUBSCRIPTION: "subscriptions/current/",
+
+  // Integration endpoints
+  INTEGRATIONS_STATUS: "integrations-status/",
+  DEFAULT_TICKETING_PROVIDER: "default-ticketing-provider/",
+  GOOGLE_AUTH_URL: "auth/google/url/",
+  GOOGLE_DRIVE_UNLINK: "drive/unlink/"
 };
 
 // Function to get knowledge base endpoint with optional agent ID
