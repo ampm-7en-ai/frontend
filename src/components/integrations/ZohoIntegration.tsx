@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Input } from '@/components/ui/input';
+import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardDescription, ModernCardContent } from '@/components/ui/modern-card';
+import { ModernInput } from '@/components/ui/modern-input';
+import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
+import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, ExternalLink, Shield, CheckCircle, AlertCircle, Users, Phone, Mail } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Building2, ExternalLink, Shield, CheckCircle, AlertCircle, Users, Phone, Mail, Settings, Zap } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
 
@@ -351,69 +351,61 @@ const ZohoIntegration = () => {
   const selectedOrg = organizations.find(org => org.id === selectedOrgId);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Building2 className="h-8 w-8 text-white" />
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="flex items-start gap-6">
+        <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center shadow-lg shadow-red-500/25">
+          <Building2 className="h-10 w-10 text-white" />
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Connect Zoho Desk</h3>
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-            Integrate with Zoho Desk to streamline customer support and automate ticket management workflows.
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-foreground">Zoho Desk Integration</h1>
+            {isCheckingStatus ? (
+              <ModernStatusBadge status="loading">
+                Checking...
+              </ModernStatusBadge>
+            ) : (
+              <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
+                {isConnected ? "Connected" : "Not Connected"}
+              </ModernStatusBadge>
+            )}
+          </div>
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Integrate with Zoho Desk to streamline customer support and automate ticket management workflows across your organization.
           </p>
         </div>
-        {isCheckingStatus ? (
-          <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50">
-            Checking...
-          </Badge>
-        ) : (
-          <Badge 
-            variant={isConnected ? "success" : "outline"} 
-            className={isConnected 
-              ? "text-green-800 border-green-200 bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400" 
-              : "text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50"
-            }
-          >
-            {isConnected ? (
-              <>
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Connected
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-3 w-3 mr-1" />
-                Not Connected
-              </>
-            )}
-          </Badge>
-        )}
       </div>
 
+      {/* Configuration Section - Only show when connected */}
       {isConnected && organizations.length > 0 && (
-        <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-200/50 dark:border-green-800/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Configuration
-            </CardTitle>
-            <CardDescription>
-              Select your organization, department, and contact to configure Zoho Desk integration.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <ModernCard variant="glass" className="border-primary/20">
+          <ModernCardHeader>
+            <ModernCardTitle className="flex items-center gap-3">
+              <Settings className="h-6 w-6 text-primary" />
+              Configuration Settings
+            </ModernCardTitle>
+            <ModernCardDescription>
+              Configure your Zoho Desk integration by selecting your organization, department, and primary contact.
+            </ModernCardDescription>
+          </ModernCardHeader>
+          <ModernCardContent className="space-y-8">
             {/* Organization Selection */}
-            <div className="space-y-3">
-              <Label>Organization</Label>
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Organization</Label>
               <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an organization" />
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Choose your organization" />
                 </SelectTrigger>
                 <SelectContent>
                   {organizations.map((org) => (
                     <SelectItem key={org.id} value={org.id}>
-                      <div className="flex items-center gap-3">
-                        <img src={org.logoURL} alt={org.companyName} className="w-6 h-6 rounded" />
-                        <span>{org.companyName}</span>
+                      <div className="flex items-center gap-3 py-1">
+                        <img 
+                          src={org.logoURL} 
+                          alt={org.companyName} 
+                          className="w-8 h-8 rounded-lg object-cover"
+                        />
+                        <span className="font-medium">{org.companyName}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -421,7 +413,16 @@ const ZohoIntegration = () => {
               </Select>
               
               {selectedOrg && (
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-xl">
+                  <img 
+                    src={selectedOrg.logoURL} 
+                    alt={selectedOrg.companyName} 
+                    className="w-10 h-10 rounded-lg"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium">{selectedOrg.companyName}</p>
+                    <p className="text-sm text-muted-foreground">Selected Organization</p>
+                  </div>
                   <ModernButton
                     variant="outline"
                     size="sm"
@@ -436,16 +437,22 @@ const ZohoIntegration = () => {
 
             {/* Department Selection */}
             {departments.length > 0 && (
-              <div className="space-y-3">
-                <Label>Department</Label>
+              <div className="space-y-4">
+                <Label className="text-base font-medium flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Department
+                </Label>
                 <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a department" />
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
                     {departments.map((dept) => (
                       <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
+                        <div className="flex items-center gap-2 py-1">
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          <span>{dept.name}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -455,25 +462,30 @@ const ZohoIntegration = () => {
 
             {/* Contact Selection */}
             {contacts.length > 0 && (
-              <div className="space-y-3">
-                <Label>Contact</Label>
+              <div className="space-y-4">
+                <Label className="text-base font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Primary Contact
+                </Label>
                 <Select value={selectedContactId} onValueChange={setSelectedContactId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a contact" />
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select primary contact" />
                   </SelectTrigger>
                   <SelectContent>
                     {contacts.map((contact) => (
                       <SelectItem key={contact.id} value={contact.id}>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-6 h-6">
+                        <div className="flex items-center gap-3 py-1">
+                          <Avatar className="w-8 h-8">
                             <AvatarImage src={contact.photoURL || undefined} />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-xs font-medium">
                               {(contact.firstName?.[0] || '') + (contact.lastName?.[0] || '')}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex flex-col">
-                            <span>{`${contact.firstName || ''} ${contact.lastName || ''}`.trim()}</span>
-                            <span className="text-xs text-muted-foreground">{contact.email}</span>
+                          <div>
+                            <p className="font-medium">
+                              {`${contact.firstName || ''} ${contact.lastName || ''}`.trim()}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{contact.email}</p>
                           </div>
                         </div>
                       </SelectItem>
@@ -482,9 +494,9 @@ const ZohoIntegration = () => {
                 </Select>
                 
                 {selectedContactId && (
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex justify-end">
                     <ModernButton
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         const selectedContact = contacts.find(c => c.id === selectedContactId);
@@ -494,58 +506,63 @@ const ZohoIntegration = () => {
                       }}
                       icon={ExternalLink}
                     >
-                      View Profile
+                      View Contact Profile
                     </ModernButton>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Save Configuration Button */}
+            {/* Save Configuration */}
             {selectedDepartmentId && selectedContactId && (
-              <div className="pt-4">
+              <div className="pt-4 border-t">
                 <ModernButton
                   onClick={handleSaveConfiguration}
                   disabled={isSavingConfig}
                   variant="gradient"
+                  size="lg"
+                  icon={Zap}
+                  className="w-full"
                 >
-                  {isSavingConfig ? "Saving..." : "Save Configuration"}
+                  {isSavingConfig ? "Saving Configuration..." : "Save Configuration"}
                 </ModernButton>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </ModernCardContent>
+        </ModernCard>
       )}
 
-      <Card className="bg-slate-50/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-600/50">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Shield className="h-5 w-5 text-red-600" />
-            Integration Management
-          </CardTitle>
-          <CardDescription>
+      {/* Connection Management */}
+      <ModernCard variant="elevated">
+        <ModernCardHeader>
+          <ModernCardTitle className="flex items-center gap-3">
+            <Shield className="h-6 w-6 text-primary" />
+            Connection Management
+          </ModernCardTitle>
+          <ModernCardDescription>
             {isConnected 
-              ? "Your Zoho Desk integration is active and ready to use." 
-              : "Connect your Zoho Desk account to enable ticket automation."
+              ? "Your Zoho Desk integration is active and ready to streamline your support workflow." 
+              : "Connect your Zoho Desk account to enable automated ticket management and customer support features."
             }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-3 pt-4">
+          </ModernCardDescription>
+        </ModernCardHeader>
+        <ModernCardContent className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-4">
             {isConnected ? (
               <ModernButton 
                 onClick={handleUnlink}
                 disabled={isUnlinking}
                 variant="outline"
-                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                className="border-destructive/50 text-destructive hover:bg-destructive/10"
               >
-                {isUnlinking ? "Unlinking..." : "Unlink Zoho Desk"}
+                {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
               </ModernButton>
             ) : (
               <ModernButton 
                 onClick={handleConnect}
                 disabled={isConnecting}
                 variant="gradient"
+                size="lg"
               >
                 {isConnecting ? "Connecting..." : "Connect Zoho Desk"}
               </ModernButton>
@@ -555,27 +572,38 @@ const ZohoIntegration = () => {
               onClick={() => window.open('https://desk.zoho.com/DeskAPIDocument', '_blank')}
               icon={ExternalLink}
             >
-              API Documentation
+              View Documentation
             </ModernButton>
           </div>
-        </CardContent>
-      </Card>
+        </ModernCardContent>
+      </ModernCard>
 
-      <Card className="bg-red-50/50 dark:bg-red-900/10 border-red-200/50 dark:border-red-800/50">
-        <CardHeader>
-          <CardTitle className="text-lg text-red-900 dark:text-red-100">Zoho Desk Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-red-800 dark:text-red-200">
-            <li>• Multi-channel ticket management</li>
-            <li>• Automated workflow and routing</li>
-            <li>• Customer portal and self-service</li>
-            <li>• SLA management and escalation</li>
-            <li>• Team collaboration and notes</li>
-            <li>• Advanced reporting and analytics</li>
-          </ul>
-        </CardContent>
-      </Card>
+      {/* Features Overview */}
+      <ModernCard>
+        <ModernCardHeader>
+          <ModernCardTitle>Zoho Desk Capabilities</ModernCardTitle>
+          <ModernCardDescription>
+            Powerful features to enhance your customer support operations
+          </ModernCardDescription>
+        </ModernCardHeader>
+        <ModernCardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              "Multi-channel ticket management",
+              "Automated workflow and routing", 
+              "Customer portal and self-service",
+              "SLA management and escalation",
+              "Team collaboration and notes",
+              "Advanced reporting and analytics"
+            ].map((feature, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="text-sm font-medium">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </ModernCardContent>
+      </ModernCard>
     </div>
   );
 };
