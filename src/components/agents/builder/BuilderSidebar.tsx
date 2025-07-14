@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X } from 'lucide-react';
-import { ImportSourcesDialog } from '@/components/agents/knowledge/ImportSourcesDialog';
+import ImportSourcesDialog from '@/components/agents/knowledge/ImportSourcesDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';

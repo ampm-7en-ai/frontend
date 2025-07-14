@@ -11,10 +11,14 @@ import { knowledgeApi } from '@/utils/api-config';
 interface KnowledgeSourceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  sources?: any[]; // Make this optional for backward compatibility
+  initialSourceId?: number | null;
+  agentId?: string;
   onSourceCreated?: () => void;
+  onSourceDelete?: (sourceId: number) => void;
 }
 
-const KnowledgeSourceModal = ({ open, onOpenChange, onSourceCreated }: KnowledgeSourceModalProps) => {
+const KnowledgeSourceModal = ({ open, onOpenChange, sources, initialSourceId, agentId, onSourceCreated, onSourceDelete }: KnowledgeSourceModalProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
