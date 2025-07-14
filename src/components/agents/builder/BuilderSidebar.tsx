@@ -282,19 +282,49 @@ export const BuilderSidebar = () => {
     });
 
     try {
+      // Extract knowledge source IDs from all selected sources
       const knowledgeSourceIds = agentData.knowledgeSources
         .flatMap(kb => kb.knowledge_sources || [])
         .filter(source => source.is_selected !== false)
         .map(s => typeof s.id === 'number' ? s.id : parseInt(s.id.toString()))
         .filter(id => !isNaN(id));
 
-      const websiteUrls = agentData.knowledgeSources
-        .filter(kb => kb.type === "website")
-        .flatMap(kb => kb.knowledge_sources || [])
-        .filter(source => source.is_selected !== false)
-        .flatMap(s => s.metadata?.sub_urls?.children || [])
-        .filter(su => su.is_selected !== false)
-        .map(url => url.url);
+      // Extract URLs from website sources - Fixed logic
+      const websiteUrls: string[] = [];
+      
+      agentData.knowledgeSources.forEach(kb => {
+        if (kb.type === "website" && kb.knowledge_sources) {
+          kb.knowledge_sources.forEach(source => {
+            if (source.is_selected !== false) {
+              // Add main URL if it exists
+              if (source.url) {
+                websiteUrls.push(source.url);
+              }
+              
+              // Add sub URLs from metadata
+              if (source.metadata?.sub_urls?.children) {
+                source.metadata.sub_urls.children.forEach(subUrl => {
+                  if (subUrl.is_selected !== false && subUrl.url) {
+                    websiteUrls.push(subUrl.url);
+                  }
+                });
+              }
+              
+              // Also check for sub_urls directly in source
+              if (source.sub_urls?.children) {
+                source.sub_urls.children.forEach(subUrl => {
+                  if (subUrl.is_selected !== false && subUrl.url) {
+                    websiteUrls.push(subUrl.url);
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+
+      console.log('Extracted knowledge source IDs:', knowledgeSourceIds);
+      console.log('Extracted website URLs:', websiteUrls);
 
       const success = await AgentTrainingService.trainAgent(
         agentData.id.toString(), 
