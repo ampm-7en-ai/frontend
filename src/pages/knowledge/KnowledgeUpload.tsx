@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { createKnowledgeBase } from '@/utils/api-config';
+import { createKnowledgeBase, BASE_URL } from '@/utils/api-config';
 import { storeNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -350,7 +350,7 @@ const KnowledgeUpload = () => {
             : selectedFiles
         };
 
-        response = await fetch('/api/knowledgebase/', {
+        response = await fetch(`${BASE_URL}knowledgebase/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
