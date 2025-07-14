@@ -335,51 +335,79 @@ const KnowledgeUpload = () => {
     });
 
     try {
-      const formData = new FormData();
+      let response;
+      
+      if (sourceType === 'thirdParty') {
+        // For third-party integrations, use JSON payload structure
+        const payload = {
+          name: documentName || `New ${selectedProvider || 'Integration'} Source`,
+          type: "third_party",
+          source: selectedProvider === 'googleDrive' ? 'google_drive' : selectedProvider,
+          file_ids: selectedProvider === 'googleDrive' 
+            ? googleDriveFiles
+                .filter(file => selectedFiles.includes(file.name))
+                .map(file => file.id)
+            : selectedFiles
+        };
 
-      const name = documentName || `New ${sourceType.charAt(0).toUpperCase() + sourceType.slice(1)} Source`;
-      formData.append('name', name);
-
-      let metadataObj = {};
-
-      switch (sourceType) {
-        case 'url':
-          formData.append('type', 'website');
-          formData.append('store_links_only', 'true');
-          if (url) {
-            metadataObj = { website: url };
-            if (importAllPages) {
-              metadataObj = { ...metadataObj, crawl_more: "true" };
-            }
-          }
-          break;
-        case 'document':
-          formData.append('type', 'docs');
-          break;
-        case 'csv':
-          formData.append('type', 'csv');
-          break;
-        case 'plainText':
-          formData.append('type', 'plain_text');
-          if (plainText) {
-            metadataObj = { text_content: plainText };
-          }
-          break;
-        case 'thirdParty':
-          formData.append('type', 'thirdparty');
-          formData.append('provider', selectedProvider || '');
-          break;
-      }
-
-      formData.append('metadata', JSON.stringify(metadataObj));
-
-      if (sourceType === 'document' || sourceType === 'csv') {
-        files.forEach(file => {
-          formData.append('files', file);
+        response = await fetch('/api/knowledge/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user?.accessToken}`
+          },
+          body: JSON.stringify(payload)
         });
-      }
 
-      const response = await createKnowledgeBase(formData);
+        if (!response.ok) {
+          throw new Error('Failed to create knowledge base');
+        }
+
+        response = await response.json();
+      } else {
+        // For other source types, use FormData as before
+        const formData = new FormData();
+
+        const name = documentName || `New ${sourceType.charAt(0).toUpperCase() + sourceType.slice(1)} Source`;
+        formData.append('name', name);
+
+        let metadataObj = {};
+
+        switch (sourceType) {
+          case 'url':
+            formData.append('type', 'website');
+            formData.append('store_links_only', 'true');
+            if (url) {
+              metadataObj = { website: url };
+              if (importAllPages) {
+                metadataObj = { ...metadataObj, crawl_more: "true" };
+              }
+            }
+            break;
+          case 'document':
+            formData.append('type', 'docs');
+            break;
+          case 'csv':
+            formData.append('type', 'csv');
+            break;
+          case 'plainText':
+            formData.append('type', 'plain_text');
+            if (plainText) {
+              metadataObj = { text_content: plainText };
+            }
+            break;
+        }
+
+        formData.append('metadata', JSON.stringify(metadataObj));
+
+        if (sourceType === 'document' || sourceType === 'csv') {
+          files.forEach(file => {
+            formData.append('files', file);
+          });
+        }
+
+        response = await createKnowledgeBase(formData);
+      }
 
       if (response) {
         storeNewKnowledgeBase(response.data);
