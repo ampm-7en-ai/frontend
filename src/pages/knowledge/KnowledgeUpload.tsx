@@ -684,7 +684,7 @@ const KnowledgeUpload = () => {
               onDrop={handleDrop}
             >
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 transition-colors duration-200">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 dark:text-gray-600 rounded-2xl flex items-center justify-center mb-4 transition-colors duration-200">
                   {sourceConfigs[sourceType].icon}
                 </div>
                 <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Drop your files here</h3>

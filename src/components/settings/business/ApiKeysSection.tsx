@@ -191,7 +191,7 @@ const ApiKeysSection = () => {
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <TableHead>Name</TableHead>
                     <TableHead>Key</TableHead>
                     <TableHead>Status</TableHead>
@@ -201,7 +201,7 @@ const ApiKeysSection = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
+                  <TableRow className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <KeyRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />

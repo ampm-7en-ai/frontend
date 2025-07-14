@@ -235,7 +235,7 @@ const CreateSupportTicketModal = ({
               placeholder="Select a ticketing provider"
               disabled={isCreating}
               renderOption={(option) => (
-                <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {option.logo && (
                       <img 

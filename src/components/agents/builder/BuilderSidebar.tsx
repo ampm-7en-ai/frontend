@@ -61,7 +61,7 @@ const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: {
         <Button
           variant="ghost"
           size="sm"
-          className="h-5 w-5 p-0 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          className="h-5 w-5 p-0 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300 transition-colors"
           onClick={onToggle}
         >
           {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}

@@ -482,7 +482,7 @@ export const ChatboxPreview = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
-              className="pr-12 text-sm border-2 pl-4 focus-visible:ring-offset-0"
+              className="pr-12 text-sm border-2 pl-4 focus-visible:ring-offset-0 dark:bg-white"
               style={{ 
                 borderColor: `${primaryColor}30`,
                 minHeight: "46px",

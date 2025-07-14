@@ -355,8 +355,8 @@ const KnowledgeBaseCard = ({
                 </Button>
               )}
               
-              <CollapsibleTrigger className="h-7 w-7 rounded-md inline-flex items-center justify-center hover:bg-gray-200">
-                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              <CollapsibleTrigger className="h-7 w-7 rounded-md inline-flex items-center justify-center">
+                {isOpen ? <ChevronDown className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300" /> : <ChevronRight className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300" />}
               </CollapsibleTrigger>
             </div>
           </div>

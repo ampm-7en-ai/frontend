@@ -237,7 +237,7 @@ export const GuidelinesPanel = () => {
                       value={agentData.name}
                       onChange={(e) => updateAgentData({ name: e.target.value })}
                       placeholder="Enter agent name"
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700"
                     />
                   </div>
                   
@@ -248,7 +248,7 @@ export const GuidelinesPanel = () => {
                       value={agentData.chatbotName}
                       onChange={(e) => updateAgentData({ chatbotName: e.target.value })}
                       placeholder="Enter chatbot name"
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700"
                     />
                   </div>
                   
@@ -259,7 +259,7 @@ export const GuidelinesPanel = () => {
                       value={agentData.description}
                       onChange={(e) => updateAgentData({ description: e.target.value })}
                       placeholder="Describe your agent's purpose"
-                      className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+                      className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700"
                     />
                   </div>
                 </div>
@@ -357,7 +357,7 @@ export const GuidelinesPanel = () => {
                       <Input
                         value={agentData.primaryColor}
                         onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700"
                       />
                     </div>
                   </div>
@@ -375,7 +375,7 @@ export const GuidelinesPanel = () => {
                       <Input
                         value={agentData.secondaryColor}
                         onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700"
                       />
                     </div>
                   </div>
@@ -411,7 +411,7 @@ export const GuidelinesPanel = () => {
                        value={agentData.buttonText}
                        onChange={(e) => updateAgentData({ buttonText: e.target.value })}
                        placeholder="Leave empty for icon-only button"
-                       className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                       className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700"
                      />
                    </div>
                    
@@ -465,7 +465,7 @@ export const GuidelinesPanel = () => {
                        value={agentData.welcomeMessage}
                        onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
                        placeholder="Enter welcome message"
-                       className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                       className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700"
                      />
                    </div>
                 </div>
@@ -533,7 +533,7 @@ export const GuidelinesPanel = () => {
                       value={agentData.systemPrompt || ''}
                       onChange={(e) => handleSystemPromptChange(e.target.value)}
                       placeholder="Define how your agent behaves..."
-                      className="min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700 focus:border-orange-500 dark:focus:border-orange-400"
+                      className="min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700"
                     />
                   </div>
 
@@ -546,7 +546,7 @@ export const GuidelinesPanel = () => {
                             value={guideline}
                             onChange={(e) => updateGuideline('dos', index, e.target.value)}
                             placeholder="Enter a do guideline"
-                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400"
+                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700"
                           />
                           <ModernButton
                             variant="ghost"
@@ -579,7 +579,7 @@ export const GuidelinesPanel = () => {
                             value={guideline}
                             onChange={(e) => updateGuideline('donts', index, e.target.value)}
                             placeholder="Enter a don't guideline"
-                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-red-500 dark:focus:border-red-400"
+                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700"
                           />
                           <ModernButton
                             variant="ghost"
@@ -724,7 +724,7 @@ export const GuidelinesPanel = () => {
                         value={suggestion}
                         onChange={(e) => updateSuggestion(index, e.target.value)}
                         placeholder="Enter a suggestion"
-                        className="h-10 rounded-xl border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400"
+                        className="h-10 rounded-xl border-gray-200 dark:border-gray-700"
                       />
                       <ModernButton
                         variant="ghost"
