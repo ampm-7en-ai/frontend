@@ -6,7 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft, AlertTriangle, CheckCircle, Info, Eye } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft, AlertTriangle, CheckCircle, Info, Eye, Import, X, Presentation } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase, addFileToKnowledgeBase } from '@/utils/api-config';
+import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase, addFileToKnowledgeBase, fetchGoogleDriveFiles } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Breadcrumb,
@@ -46,6 +49,13 @@ const KnowledgeBase = () => {
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
   const [hasProcessedLocalStorage, setHasProcessedLocalStorage] = useState(false);
+  
+  // Import modal state
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [googleDriveFiles, setGoogleDriveFiles] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const sortOptions = [
     { value: 'name-asc', label: 'Name A-Z', description: 'Sort by name ascending' },
@@ -652,6 +662,124 @@ const KnowledgeBase = () => {
     }
   };
 
+  // Google Drive file import functionality
+  const fetchGoogleDriveData = async () => {
+    setIsLoadingGoogleDriveFiles(true);
+    try {
+      const response = await fetchGoogleDriveFiles();
+      setGoogleDriveFiles(response.files || []);
+    } catch (error) {
+      console.error('Error fetching Google Drive files:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch Google Drive files. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingGoogleDriveFiles(false);
+    }
+  };
+
+  // Toggle file selection
+  const toggleFileSelection = (fileId) => {
+    setSelectedFiles(prev => 
+      prev.includes(fileId) 
+        ? prev.filter(id => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
+
+  // Handle import from Google Drive
+  const handleImportFiles = async () => {
+    if (!selectedKnowledgeBase || selectedFiles.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select files to import",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const response = await fetch(`${BASE_URL}knowledgesource/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.accessToken}`
+        },
+        body: JSON.stringify({
+          knowledge_base: selectedKnowledgeBase.id,
+          google_drive_file_ids: selectedFiles
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to import files');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Success",
+        description: `Successfully imported ${result.data?.length || selectedFiles.length} files`,
+        variant: "success"
+      });
+
+      // Reset state
+      setIsImportModalOpen(false);
+      setSelectedFiles([]);
+      setGoogleDriveFiles([]);
+      
+      // Refresh data
+      await refetch();
+      
+      if (data) {
+        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
+        if (updatedKnowledgeBase) {
+          setSelectedKnowledgeBase(updatedKnowledgeBase);
+        }
+      }
+    } catch (error) {
+      console.error("Error importing files:", error);
+      toast({
+        title: "Import failed",
+        description: error.message || "There was an error importing the files. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Open import modal
+  const handleOpenImportModal = () => {
+    setIsImportModalOpen(true);
+    fetchGoogleDriveData();
+  };
+
+  // Get file icon for Google Drive files
+  const getGoogleDriveFileIcon = (mimeType) => {
+    if (mimeType.includes('spreadsheet') || mimeType.includes('sheet')) {
+      return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
+    } else if (mimeType.includes('document') || mimeType.includes('doc')) {
+      return <FileText className="h-4 w-4 text-blue-600" />;
+    } else if (mimeType.includes('presentation')) {
+      return <Presentation className="h-4 w-4 text-orange-600" />;
+    } else if (mimeType.includes('pdf')) {
+      return <FileText className="h-4 w-4 text-red-600" />;
+    }
+    return <File className="h-4 w-4 text-gray-600" />;
+  };
+
+  // Check if file is already imported
+  const isFileAlreadyImported = (fileId) => {
+    if (!selectedKnowledgeBase?.knowledge_sources) return false;
+    return selectedKnowledgeBase.knowledge_sources.some(
+      source => source.metadata?.id === fileId
+    );
+  };
+
   const renderMainView = () => {
     console.log('Rendering main view, isLoading:', isLoading, 'filteredDocuments:', filteredDocuments.length);
     
@@ -951,19 +1079,148 @@ const KnowledgeBase = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <ModernButton 
-                variant="gradient"
-                icon={Upload}
-                className="relative overflow-hidden"
-              >
-                <input 
-                  type="file" 
-                  className="cursor-pointer absolute inset-0 opacity-0" 
-                  accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
-                  onChange={handleFileUpload}
-                />
-                Upload File
-              </ModernButton>
+              {sourceType === 'third_party' ? (
+                <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+                  <DialogTrigger asChild>
+                    <ModernButton 
+                      variant="gradient"
+                      icon={Import}
+                      onClick={handleOpenImportModal}
+                    >
+                      Import Files
+                    </ModernButton>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Import from Google Drive</DialogTitle>
+                      <DialogDescription>
+                        Select files from your Google Drive to import into this knowledge base.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    {isLoadingGoogleDriveFiles ? (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400 mb-4"></div>
+                        <p className="text-center font-medium text-slate-700 dark:text-slate-300">
+                          Loading files from Google Drive...
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Google Drive Files ({selectedFiles.length} selected)
+                          </Label>
+                          <ModernButton 
+                            variant="outline" 
+                            size="sm"
+                            onClick={fetchGoogleDriveData}
+                            type="button"
+                          >
+                            Refresh
+                          </ModernButton>
+                        </div>
+                        
+                        {googleDriveFiles.length > 0 ? (
+                          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl max-h-[400px] overflow-y-auto">
+                            {googleDriveFiles
+                              .filter(file => file.mimeType !== 'application/vnd.google-apps.folder')
+                              .map((file, index) => {
+                                const isAlreadyImported = isFileAlreadyImported(file.id);
+                                const isSelected = selectedFiles.includes(file.id);
+                                
+                                return (
+                                  <div key={file.id} className={`flex items-center justify-between p-4 ${index > 0 ? 'border-t border-slate-100 dark:border-slate-700' : ''} ${isAlreadyImported ? 'opacity-50' : ''}`}>
+                                    <div className="flex items-center gap-3 flex-1">
+                                      <Checkbox
+                                        id={`file-${file.id}`}
+                                        checked={isSelected}
+                                        disabled={isAlreadyImported}
+                                        onCheckedChange={() => !isAlreadyImported && toggleFileSelection(file.id)}
+                                      />
+                                      <div className="w-8 h-8 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
+                                        {getGoogleDriveFileIcon(file.mimeType)}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                                          {file.name}
+                                          {isAlreadyImported && (
+                                            <span className="ml-2 text-xs text-green-600 dark:text-green-400">(Already imported)</span>
+                                          )}
+                                        </p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                          Modified: {new Date(file.modifiedTime).toLocaleDateString()}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <ModernButton
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => window.open(file.webViewLink, '_blank')}
+                                      type="button"
+                                      className="ml-2"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </ModernButton>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/20">
+                            <FileText className="h-8 w-8 text-slate-400 dark:text-slate-500 mb-3" />
+                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                              No files found
+                            </p>
+                            <ModernButton 
+                              variant="outline" 
+                              size="sm"
+                              onClick={fetchGoogleDriveData}
+                              type="button"
+                            >
+                              Refresh Files
+                            </ModernButton>
+                          </div>
+                        )}
+                        
+                        {googleDriveFiles.length > 0 && (
+                          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <ModernButton 
+                              variant="outline"
+                              onClick={() => setIsImportModalOpen(false)}
+                              disabled={isImporting}
+                            >
+                              Cancel
+                            </ModernButton>
+                            <ModernButton 
+                              variant="gradient"
+                              onClick={handleImportFiles}
+                              disabled={selectedFiles.length === 0 || isImporting}
+                              className="min-w-[120px]"
+                            >
+                              {isImporting ? 'Importing...' : `Import ${selectedFiles.length} files`}
+                            </ModernButton>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <ModernButton 
+                  variant="gradient"
+                  icon={Upload}
+                  className="relative overflow-hidden"
+                >
+                  <input 
+                    type="file" 
+                    className="cursor-pointer absolute inset-0 opacity-0" 
+                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
+                    onChange={handleFileUpload}
+                  />
+                  Upload File
+                </ModernButton>
+              )}
             </div>
           </div>
         </div>
@@ -978,19 +1235,29 @@ const KnowledgeBase = () => {
             <p className="text-slate-500 dark:text-slate-400 mb-4 text-center">
               Add some files to this knowledge source to get started
             </p>
-            <ModernButton 
-              variant="gradient"
-              icon={Upload}
-              className="relative overflow-hidden"
-            >
-              <input 
-                type="file" 
-                className="cursor-pointer absolute inset-0 opacity-0" 
-                accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
-                onChange={handleFileUpload}
-              />
-              Upload File
-            </ModernButton>
+            {sourceType === 'third_party' ? (
+              <ModernButton 
+                variant="gradient"
+                icon={Import}
+                onClick={handleOpenImportModal}
+              >
+                Import Files
+              </ModernButton>
+            ) : (
+              <ModernButton 
+                variant="gradient"
+                icon={Upload}
+                className="relative overflow-hidden"
+              >
+                <input 
+                  type="file" 
+                  className="cursor-pointer absolute inset-0 opacity-0" 
+                  accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
+                  onChange={handleFileUpload}
+                />
+                Upload File
+              </ModernButton>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
