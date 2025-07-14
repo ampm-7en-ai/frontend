@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getApiUrl, API_ENDPOINTS, getAuthHeaders } from '@/utils/api-config';
+import { authApi } from '@/utils/api-config';
 
 // Schema for the forgot password form
 const forgotPasswordSchema = z.object({
@@ -49,16 +49,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
     setErrorMessage(null);
     
     try {
-      const response = await fetch(getApiUrl(API_ENDPOINTS.FORGOT_PASSWORD), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: values.email,
-        }),
-      });
-      
+      const response = await authApi.forgotPassword(values.email);
       const data = await response.json();
       
       if (response.ok && data.status === 'success') {

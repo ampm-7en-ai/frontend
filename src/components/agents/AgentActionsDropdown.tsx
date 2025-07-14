@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Copy, Trash2, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
+import { agentApi } from '@/utils/api-config';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import {
@@ -35,21 +35,8 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
     if (deleting) return;
     setDeleting(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        toast({
-          title: "Not authenticated",
-          description: "Please log in to delete agents.",
-          variant: 'destructive'
-        });
-        setDeleting(false);
-        return;
-      }
-      const endpoint = getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`);
-      const response = await fetch(endpoint, {
-        method: 'DELETE',
-        headers: getAuthHeaders(token),
-      });
+      const response = await agentApi.delete(agentId);
+      
       if (!response.ok) {
         let detail;
         try {
@@ -58,11 +45,13 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
         } catch { /* ignore */ }
         throw new Error(detail || response.statusText || 'Failed to delete agent');
       }
+      
       toast({
         title: "Agent deleted",
         description: "The agent has been successfully deleted.",
         variant: "default"
       });
+      
       if (onDelete) {
         onDelete(agentId);
       }
@@ -82,21 +71,8 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
     if (duplicating) return;
     setDuplicating(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        toast({
-          title: "Not authenticated",
-          description: "Please log in to duplicate agents.",
-          variant: 'destructive'
-        });
-        setDuplicating(false);
-        return;
-      }
-      const endpoint = getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/duplicate/`);
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-      });
+      const response = await agentApi.duplicate(agentId);
+      
       if (!response.ok) {
         let detail;
         try {
@@ -105,11 +81,13 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
         } catch { /* ignore */ }
         throw new Error(detail || response.statusText || 'Failed to duplicate agent');
       }
+      
       toast({
         title: "Agent duplicated",
         description: `A copy of "${agentName}" has been created successfully.`,
         variant: "default"
       });
+      
       if (onDuplicate) {
         onDuplicate(agentId);
       }

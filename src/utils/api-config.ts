@@ -351,6 +351,21 @@ export const agentApi = {
     return response;
   },
 
+  delete: async (agentId: string) => {
+    const response = await apiDelete(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`));
+    return response;
+  },
+
+  duplicate: async (agentId: string) => {
+    const response = await apiPost(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/duplicate/`), {});
+    return response;
+  },
+
+  retrain: async (agentId: string) => {
+    const response = await apiPost(getApiUrl(`agents/${agentId}/retrain/`), {});
+    return response;
+  },
+
   addKnowledgeSources: async (agentId: string, knowledgeSources: number[], selectedKnowledgeSources: string[]) => {
     const response = await apiPost(getApiUrl(`agents/${agentId}/add-knowledge-sources/`), {
       knowledgeSources,

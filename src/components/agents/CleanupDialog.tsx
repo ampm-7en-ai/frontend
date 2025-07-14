@@ -5,7 +5,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import KnowledgeSourceBadge from './KnowledgeSourceBadge';
 import { useToast } from "@/hooks/use-toast";
-import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { agentApi } from '@/utils/api-config';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { NotificationTypes } from '@/types/notification';
@@ -38,15 +38,7 @@ const CleanupDialog = ({
     setIsLoading(true);
     setNoValidSources(false);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(`${BASE_URL}agents/${agentId}/retrain/`, {
-        method: "POST",
-        headers: getAuthHeaders(token)
-      });
+      const response = await agentApi.retrain(agentId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -81,9 +73,7 @@ const CleanupDialog = ({
     try {
       setIsLoading(true);
       
-      const response = await fetch(`${BASE_URL}agents/${agentId}/`, {
-        headers: getAuthHeaders(getAccessToken() || '')
-      });
+      const response = await agentApi.getById(agentId);
 
       if (!response.ok) {
         throw new Error("Failed to fetch agent details");
