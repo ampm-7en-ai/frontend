@@ -3,11 +3,9 @@ import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building, ExternalLink, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { Building, ExternalLink, Shield, CheckCircle, Settings, Edit, Save, User, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
-import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { integrationApi } from '@/utils/api-config';
 
@@ -121,103 +119,96 @@ const HubspotIntegration = () => {
 
   const isConnected = hubspotStatus?.is_connected || false;
 
+  // Get display values from status or fallback to "Not configured"
+  const getDisplayValue = (value: string | undefined, fallback: string = "Not configured") => {
+    return value && value.trim() !== '' ? value : fallback;
+  };
+
+  // Show loading state while checking status
+  if (isCheckingStatus) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" text="Checking HubSpot status..." />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Building className="h-8 w-8 text-white" />
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">HubSpot CRM Integration</h2>
+          {isCheckingStatus ? (
+            <ModernStatusBadge status="loading">
+              Checking...
+            </ModernStatusBadge>
+          ) : (
+            <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
+              {isConnected ? "Connected" : "Not Connected"}
+            </ModernStatusBadge>
+          )}
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-foreground mb-2">Connect HubSpot CRM</h3>
-          <p className="text-muted-foreground leading-relaxed">
-            Integrate with HubSpot CRM to sync customer data and enhance your sales and marketing workflows.
-          </p>
-        </div>
-        {isCheckingStatus ? (
-          <ModernStatusBadge status="loading">
-            <LoadingSpinner size="sm" className="!mb-0 h-3 w-3" />
-            Checking...
-          </ModernStatusBadge>
-        ) : (
-          <ModernStatusBadge status={isConnected ? 'connected' : 'disconnected'}>
-            {isConnected ? 'Connected' : 'Not Connected'}
-          </ModernStatusBadge>
-        )}
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Integrate with HubSpot CRM to sync customer data and enhance your sales and marketing workflows.
+        </p>
       </div>
 
-      {isConnected ? (
-        <>
-          <ModernAlert variant="success">
-            <ModernAlertDescription>
-              Connected to your HubSpot CRM. Integration is now active and ready to sync customer data.
-            </ModernAlertDescription>
-          </ModernAlert>
-          
-          <ModernCard variant="glass">
-            <ModernCardHeader>
-              <ModernCardTitle className="text-lg">Connection Details</ModernCardTitle>
-            </ModernCardHeader>
-            <ModernCardContent className="space-y-3">
-              {hubspotStatus?.account_name && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-muted-foreground">Account Name:</span>
-                  <span className="text-sm font-medium text-foreground">{hubspotStatus.account_name}</span>
-                </div>
+      {/* Current Configuration Cards */}
+      {isConnected && hubspotStatus && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current Configuration</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Building className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Account</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {getDisplayValue(hubspotStatus.account_name)}
+              </p>
+              {hubspotStatus.hub_id && (
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                  Hub ID: {hubspotStatus.hub_id}
+                </p>
               )}
-              {hubspotStatus?.hub_id && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-muted-foreground">Hub ID:</span>
-                  <span className="text-sm font-medium text-foreground">{hubspotStatus.hub_id}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Connected:</span>
-                <span className="text-sm font-medium text-foreground">{new Date().toLocaleDateString()}</span>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Status</h4>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Status:</span>
-                <ModernStatusBadge status="connected" className="text-xs">
-                  Active
-                </ModernStatusBadge>
-              </div>
-              
-              <div className="pt-4 border-t border-border/50">
-                <ModernButton 
-                  variant="outline" 
-                  onClick={handleUnlink}
-                  disabled={isUnlinking}
-                  className="border-destructive/20 text-destructive hover:bg-destructive/10"
-                >
-                  {isUnlinking ? (
-                    <>
-                      <LoadingSpinner size="sm" className="!mb-0" />
-                      Disconnecting...
-                    </>
-                  ) : (
-                    'Disconnect Integration'
-                  )}
-                </ModernButton>
-              </div>
-            </ModernCardContent>
-          </ModernCard>
-        </>
-      ) : (
-        <ModernCard variant="glass">
-          <ModernCardHeader>
-            <ModernCardTitle className="flex items-center gap-3">
-              <Building className="h-6 w-6 text-primary" />
-              Connect HubSpot CRM
-            </ModernCardTitle>
-            <ModernCardDescription>
-              Integrate with HubSpot CRM to sync customer data and enhance sales workflows.
-            </ModernCardDescription>
-          </ModernCardHeader>
-          
-          <ModernCardContent className="space-y-6">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Connected on {new Date().toLocaleDateString()}
+              </p>
+              <ModernStatusBadge status="connected" className="text-xs mt-2">
+                Active
+              </ModernStatusBadge>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Connection Setup */}
+      {!isConnected && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Building className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connect HubSpot CRM</h3>
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Integrate with HubSpot CRM to sync customer data and enhance sales workflows.
+          </p>
+
+          <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium text-foreground mb-3">Integration Benefits</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-3">Integration Benefits</h4>
+                <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                   <li className="flex gap-2 items-center">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
                     <span>Automatic contact and lead synchronization</span>
@@ -246,8 +237,8 @@ const HubspotIntegration = () => {
               </div>
               
               <div>
-                <h4 className="font-medium text-foreground mb-3">Prerequisites</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-3">Prerequisites</h4>
+                <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                   <li className="flex gap-2 items-center">
                     <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
                     <span>You need a HubSpot account with CRM access</span>
@@ -262,16 +253,16 @@ const HubspotIntegration = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="hubspot-token">Private App Access Token</Label>
+                <Label htmlFor="hubspot-token" className="text-sm font-medium">Private App Access Token</Label>
                 <Input
                   id="hubspot-token"
                   type="password"
                   placeholder="pat-na1-..."
                   value={accessToken}
                   onChange={(e) => setAccessToken(e.target.value)}
-                  variant="modern"
+                  className="font-mono"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500 dark:text-slate-500">
                   Get this from your HubSpot private app settings
                 </p>
               </div>
@@ -281,30 +272,87 @@ const HubspotIntegration = () => {
               <ModernButton 
                 onClick={handleConnect}
                 disabled={isConnecting}
-                variant="gradient"
-                className="w-full sm:w-auto"
-                icon={isConnecting ? undefined : Building}
+                variant="primary"
               >
-                {isConnecting ? (
-                  <>
-                    <LoadingSpinner size="sm" className="!mb-0" />
-                    Connecting...
-                  </>
-                ) : (
-                  'Connect HubSpot'
-                )}
+                {isConnecting ? "Connecting..." : "Connect HubSpot"}
               </ModernButton>
               <ModernButton 
                 variant="outline" 
                 onClick={() => window.open('https://developers.hubspot.com/docs/api/private-apps', '_blank')}
-                icon={ExternalLink}
               >
+                <ExternalLink className="h-4 w-4 mr-2" />
                 Setup Guide
               </ModernButton>
             </div>
-          </ModernCardContent>
-        </ModernCard>
+          </div>
+        </div>
       )}
+
+      {/* Connection Management */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
+        </div>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          {isConnected 
+            ? "Your HubSpot CRM integration is active and ready to sync customer data." 
+            : "Connect your HubSpot account to enable automated customer data synchronization and enhanced sales workflows."
+          }
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isConnected ? (
+            <ModernButton 
+              onClick={handleUnlink}
+              disabled={isUnlinking}
+              variant="outline"
+              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+              size="sm"
+            >
+              {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
+            </ModernButton>
+          ) : (
+            <ModernButton 
+              onClick={handleConnect}
+              disabled={isConnecting || !accessToken}
+              variant="primary"
+            >
+              {isConnecting ? "Connecting..." : "Connect HubSpot"}
+            </ModernButton>
+          )}
+          <ModernButton 
+            variant="outline" 
+            onClick={() => window.open('https://developers.hubspot.com/docs/api/private-apps', '_blank')}
+            size="sm"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            View Documentation
+          </ModernButton>
+        </div>
+      </div>
+
+      {/* Features Overview */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">HubSpot CRM Capabilities</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Powerful features to enhance your sales and marketing operations
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            "Contact and lead management",
+            "Sales pipeline tracking", 
+            "Deal and opportunity management",
+            "Marketing automation workflows",
+            "Email marketing campaigns",
+            "Advanced analytics and reporting"
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
