@@ -15,6 +15,7 @@ interface FreshdeskIntegration {
   provider: string;
   domain: string;
   email?: string;
+  webhook_secret: string;
   webhook_path: string;
   webhook_url: string;
   created_at: string;
@@ -22,7 +23,7 @@ interface FreshdeskIntegration {
 }
 
 interface FreshdeskStatus {
-  has_freshdesk_integrated: boolean;
+  has_freshdesk_integrated?: boolean;
   integration?: FreshdeskIntegration;
 }
 
@@ -51,10 +52,22 @@ const FreshdeskIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success') {
-        setFreshdeskStatus(result.data);
+        // Handle array response - use first integration if available
+        if (Array.isArray(result.data) && result.data.length > 0) {
+          const integration = result.data[0];
+          setFreshdeskStatus({
+            has_freshdesk_integrated: true,
+            integration: integration
+          });
+          // Pre-populate fields with existing data
+          setDomain(integration.domain || '');
+        } else {
+          setFreshdeskStatus({ has_freshdesk_integrated: false });
+        }
       }
     } catch (error) {
       console.error('Error checking Freshdesk status:', error);
+      setFreshdeskStatus({ has_freshdesk_integrated: false });
     } finally {
       setIsCheckingStatus(false);
     }
@@ -118,6 +131,8 @@ const FreshdeskIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setFreshdeskStatus({ has_freshdesk_integrated: false });
+        setDomain('');
+        setApiKey('');
         toast({
           title: "Successfully Unlinked",
           description: "Freshdesk integration has been disconnected.",
@@ -218,35 +233,33 @@ const FreshdeskIntegration = () => {
           }
         </p>
 
-        {!isConnected && (
-          <div className="space-y-4 mb-6">
-            <div className="space-y-2">
-              <Label htmlFor="freshdesk-domain">Freshdesk Domain</Label>
-              <ModernInput
-                id="freshdesk-domain"
-                placeholder="yourcompany.freshdesk.com"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                variant="modern"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Your full Freshdesk domain (e.g., yourcompany.freshdesk.com)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="freshdesk-api-key">API Key</Label>
-              <ModernInput
-                id="freshdesk-api-key"
-                type="password"
-                placeholder="Enter your Freshdesk API key"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                variant="modern"
-              />
-            </div>
+        <div className="space-y-4 mb-6">
+          <div className="space-y-2">
+            <Label htmlFor="freshdesk-domain">Freshdesk Domain</Label>
+            <ModernInput
+              id="freshdesk-domain"
+              placeholder="yourcompany.freshdesk.com"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              variant="modern"
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Your full Freshdesk domain (e.g., yourcompany.freshdesk.com)
+            </p>
           </div>
-        )}
+
+          <div className="space-y-2">
+            <Label htmlFor="freshdesk-api-key">API Key</Label>
+            <ModernInput
+              id="freshdesk-api-key"
+              type="password"
+              placeholder="Enter your Freshdesk API key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              variant="modern"
+            />
+          </div>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           {isConnected ? (

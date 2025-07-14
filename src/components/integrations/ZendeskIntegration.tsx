@@ -4,14 +4,26 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Headphones, ExternalLink, Shield, CheckCircle, Building2 } from 'lucide-react';
+import { Headphones, ExternalLink, Shield, CheckCircle, Building2, Globe, Link, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
+interface ZendeskIntegration {
+  id: string;
+  team: number;
+  provider: string;
+  domain: string;
+  email: string;
+  webhook_path: string;
+  webhook_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface ZendeskStatus {
-  is_connected: boolean;
-  subdomain?: string;
+  has_zendesk_integrated?: boolean;
+  integration?: ZendeskIntegration;
 }
 
 const ZendeskIntegration = () => {
@@ -19,9 +31,9 @@ const ZendeskIntegration = () => {
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [zendeskStatus, setZendeskStatus] = useState<ZendeskStatus | null>(null);
-  const [subdomain, setSubdomain] = useState('');
+  const [domain, setDomain] = useState('');
   const [email, setEmail] = useState('');
-  const [apiToken, setApiToken] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const { toast } = useToast();
 
   // Check Zendesk connection status on component mount
@@ -41,16 +53,22 @@ const ZendeskIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setZendeskStatus(result.data);
+        // Pre-populate fields if integration exists
+        if (result.data.has_zendesk_integrated && result.data.integration) {
+          setDomain(result.data.integration.domain || '');
+          setEmail(result.data.integration.email || '');
+        }
       }
     } catch (error) {
       console.error('Error checking Zendesk status:', error);
+      setZendeskStatus({ has_zendesk_integrated: false });
     } finally {
       setIsCheckingStatus(false);
     }
   };
 
   const handleConnect = async () => {
-    if (!subdomain || !email || !apiToken) {
+    if (!domain || !email || !apiKey) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -62,9 +80,9 @@ const ZendeskIntegration = () => {
     setIsConnecting(true);
     try {
       const response = await integrationApi.zendesk.connect({
-        subdomain,
+        domain,
         email,
-        api_token: apiToken,
+        api_key: apiKey,
       });
 
       if (!response.ok) {
@@ -73,7 +91,11 @@ const ZendeskIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success') {
-        setZendeskStatus({ is_connected: true, subdomain });
+        setZendeskStatus({ 
+          has_zendesk_integrated: true, 
+          integration: result.data 
+        });
+        setApiKey(''); // Clear sensitive data
         toast({
           title: "Successfully Connected",
           description: "Zendesk has been connected successfully.",
@@ -102,7 +124,10 @@ const ZendeskIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success') {
-        setZendeskStatus({ is_connected: false });
+        setZendeskStatus({ has_zendesk_integrated: false });
+        setDomain('');
+        setEmail('');
+        setApiKey('');
         toast({
           title: "Successfully Unlinked",
           description: "Zendesk integration has been disconnected.",
@@ -120,7 +145,7 @@ const ZendeskIntegration = () => {
     }
   };
 
-  const isConnected = zendeskStatus?.is_connected || false;
+  const isConnected = zendeskStatus?.has_zendesk_integrated || false;
 
   // Show loading state while checking status
   if (isCheckingStatus) {
@@ -147,18 +172,55 @@ const ZendeskIntegration = () => {
       </div>
 
       {/* Current Configuration Cards */}
-      {isConnected && zendeskStatus && (
+      {isConnected && zendeskStatus?.integration && (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
 
-          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-            <div className="flex items-center gap-3 mb-2">
-              <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-              <h4 className="font-medium text-slate-900 dark:text-slate-100">Subdomain</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Domain</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {zendeskStatus.integration.domain}
+              </p>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {zendeskStatus.subdomain ? `${zendeskStatus.subdomain}.zendesk.com` : "Not configured"}
-            </p>
+
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Mail className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Email</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {zendeskStatus.integration.email}
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600 md:col-span-2">
+              <div className="flex items-center gap-3 mb-2">
+                <Link className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Webhook URL</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400 break-all">
+                {zendeskStatus.integration.webhook_url}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-start gap-3">
+              <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Webhook Configuration</h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                  To complete the integration, configure this webhook URL in your Zendesk admin panel.
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  Go to Admin → Extensions → Webhooks and add the URL above to receive ticket events.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -176,47 +238,45 @@ const ZendeskIntegration = () => {
           }
         </p>
 
-        {!isConnected && (
-          <div className="space-y-4 mb-6">
-            <div className="space-y-2">
-              <Label htmlFor="zendesk-subdomain">Zendesk Subdomain</Label>
-              <ModernInput
-                id="zendesk-subdomain"
-                placeholder="yourcompany"
-                value={subdomain}
-                onChange={(e) => setSubdomain(e.target.value)}
-                variant="modern"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Your Zendesk subdomain (e.g., if your URL is yourcompany.zendesk.com, enter "yourcompany")
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="zendesk-email">Email Address</Label>
-              <ModernInput
-                id="zendesk-email"
-                type="email"
-                placeholder="your.email@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                variant="modern"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="zendesk-token">API Token</Label>
-              <ModernInput
-                id="zendesk-token"
-                type="password"
-                placeholder="Enter your Zendesk API token"
-                value={apiToken}
-                onChange={(e) => setApiToken(e.target.value)}
-                variant="modern"
-              />
-            </div>
+        <div className="space-y-4 mb-6">
+          <div className="space-y-2">
+            <Label htmlFor="zendesk-domain">Zendesk Domain</Label>
+            <ModernInput
+              id="zendesk-domain"
+              placeholder="yourcompany.zendesk.com"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              variant="modern"
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Your full Zendesk domain (e.g., yourcompany.zendesk.com)
+            </p>
           </div>
-        )}
+
+          <div className="space-y-2">
+            <Label htmlFor="zendesk-email">Email Address</Label>
+            <ModernInput
+              id="zendesk-email"
+              type="email"
+              placeholder="your.email@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              variant="modern"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="zendesk-api-key">API Key</Label>
+            <ModernInput
+              id="zendesk-api-key"
+              type="password"
+              placeholder="Enter your Zendesk API key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              variant="modern"
+            />
+          </div>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           {isConnected ? (

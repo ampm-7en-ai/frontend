@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -298,8 +299,14 @@ export const integrationApi = {
 
   // Zendesk specific
   zendesk: {
-    getStatus: () => integrationApi.getStatus('zendesk'),
-    connect: (data: any) => integrationApi.connect('zendesk', data),
+    getStatus: async () => {
+      const response = await apiGet(getApiUrl('ticketing/zendesk-integrations/'));
+      return response;
+    },
+    connect: async (data: any) => {
+      const response = await apiPost(getApiUrl('ticketing/zendesk-integrations/'), data);
+      return response;
+    },
     unlink: () => integrationApi.unlink('zendesk')
   },
 
