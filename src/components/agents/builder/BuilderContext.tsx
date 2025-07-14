@@ -279,7 +279,12 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             collectVisitorData: true,
             autoShowAfter: 30,
             suggestions: state.agentData.suggestions,
-            guidelines: state.agentData.guidelines
+            guidelines: state.agentData.guidelines,
+            conversationMemory: state.agentData.behavior?.conversationMemory,
+            continuousLearning: state.agentData.behavior?.continuousLearning,
+            expertHandoff: state.agentData.behavior?.expertHandoff,
+            aiToAiHandoff: state.agentData.behavior?.aiToAiHandoff,
+            multilingualSupport: state.agentData.behavior?.multilingualSupport
           },
           model: {
             selectedModel: state.agentData.model,
