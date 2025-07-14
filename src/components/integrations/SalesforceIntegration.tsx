@@ -1,8 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Cloud, ExternalLink, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { Cloud, ExternalLink } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
@@ -18,11 +17,8 @@ interface SalesforceStatus {
 const SalesforceIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
-  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [salesforceStatus, setSalesforceStatus] = useState<SalesforceStatus | null>(null);
-  const [instanceUrl, setInstanceUrl] = useState('');
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
   const { toast } = useToast();
 
   // Check Salesforce connection status on component mount
@@ -51,40 +47,39 @@ const SalesforceIntegration = () => {
   };
 
   const handleConnect = async () => {
-    if (!instanceUrl || !clientId || !clientSecret) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsConnecting(true);
     try {
-      const response = await integrationApi.salesforce.connect({
-        instance_url: instanceUrl,
-        client_id: clientId,
-        client_secret: clientSecret,
-      });
+      const response = await integrationApi.salesforce.getAuthUrl();
 
       if (!response.ok) {
-        throw new Error(`Failed to connect Salesforce: ${response.status}`);
+        throw new Error(`Failed to get Salesforce auth URL: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result.status === 'success') {
-        setSalesforceStatus({ is_connected: true, instance_url: instanceUrl });
+      console.log('Salesforce auth URL response:', result);
+
+      if (result.data?.auth_url) {
+        // Open auth URL in new browser window
+        window.open(result.data.auth_url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+        
+        // Show success message
         toast({
-          title: "Successfully Connected",
-          description: "Salesforce Service Cloud has been connected.",
+          title: "Authentication Started",
+          description: "Please complete the authentication in the new window that opened.",
         });
+        
+        // Refresh status after a delay to check if connection was successful
+        setTimeout(() => {
+          checkSalesforceStatus();
+        }, 3000);
+      } else {
+        throw new Error('No auth URL received');
       }
     } catch (error) {
-      console.error('Error connecting Salesforce:', error);
+      console.error('Error getting Salesforce auth URL:', error);
       toast({
         title: "Connection Failed",
-        description: "Unable to connect to Salesforce. Please check your credentials.",
+        description: error instanceof Error ? error.message : "Failed to initiate Salesforce connection. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -92,8 +87,8 @@ const SalesforceIntegration = () => {
     }
   };
 
-  const handleUnlink = async () => {
-    setIsUnlinking(true);
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true);
     try {
       const response = await integrationApi.salesforce.unlink();
 
@@ -102,22 +97,22 @@ const SalesforceIntegration = () => {
       }
 
       const result = await response.json();
-      if (result.status === 'success') {
-        setSalesforceStatus({ is_connected: false });
-        toast({
-          title: "Successfully Unlinked",
-          description: "Salesforce integration has been disconnected.",
-        });
-      }
+      console.log('Salesforce disconnect response:', result);
+
+      setSalesforceStatus({ is_connected: false });
+      toast({
+        title: "Successfully Disconnected",
+        description: result.message || "Salesforce integration has been disconnected.",
+      });
     } catch (error) {
       console.error('Error unlinking Salesforce:', error);
       toast({
-        title: "Unlink Failed",
-        description: "Unable to disconnect Salesforce integration.",
+        title: "Disconnect Failed",
+        description: error instanceof Error ? error.message : "Unable to disconnect Salesforce integration.",
         variant: "destructive"
       });
     } finally {
-      setIsUnlinking(false);
+      setIsDisconnecting(false);
     }
   };
 
@@ -180,11 +175,11 @@ const SalesforceIntegration = () => {
               <div className="pt-4 border-t border-border/50">
                 <ModernButton 
                   variant="outline" 
-                  onClick={handleUnlink}
-                  disabled={isUnlinking}
-                  className="border-destructive/20 text-destructive hover:bg-destructive/10"
+                  onClick={handleDisconnect}
+                  disabled={isDisconnecting}
+                  className="border-destructive/20 text-destructive hover:bg-destructive/10 w-full sm:w-auto"
                 >
-                  {isUnlinking ? (
+                  {isDisconnecting ? (
                     <>
                       <LoadingSpinner size="sm" className="!mb-0" />
                       Disconnecting...
@@ -253,45 +248,6 @@ const SalesforceIntegration = () => {
                     <span>Connected app must be configured with proper OAuth settings</span>
                   </li>
                 </ul>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="sf-instance-url">Instance URL</Label>
-                <Input
-                  id="sf-instance-url"
-                  placeholder="https://yourinstance.salesforce.com"
-                  value={instanceUrl}
-                  onChange={(e) => setInstanceUrl(e.target.value)}
-                  variant="modern"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Your Salesforce instance URL (e.g., https://yourcompany.salesforce.com)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sf-client-id">Consumer Key (Client ID)</Label>
-                <Input
-                  id="sf-client-id"
-                  placeholder="Enter your connected app's consumer key"
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                  variant="modern"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sf-client-secret">Consumer Secret (Client Secret)</Label>
-                <Input
-                  id="sf-client-secret"
-                  type="password"
-                  placeholder="Enter your connected app's consumer secret"
-                  value={clientSecret}
-                  onChange={(e) => setClientSecret(e.target.value)}
-                  variant="modern"
-                />
               </div>
             </div>
             

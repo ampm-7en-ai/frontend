@@ -262,7 +262,11 @@ export const integrationApi = {
   salesforce: {
     getStatus: () => integrationApi.getStatus('salesforce'),
     connect: (data: any) => integrationApi.connect('salesforce', data),
-    unlink: () => integrationApi.unlink('salesforce')
+    unlink: () => integrationApi.unlink('salesforce'),
+    getAuthUrl: async () => {
+      const response = await apiGet(getApiUrl('salesforce/auth/'));
+      return response;
+    }
   },
 
   // Zoho specific
