@@ -61,7 +61,6 @@ const KnowledgeBase = () => {
     { value: 'csv', label: 'Spreadsheets' },
     { value: 'plain_text', label: 'Plain Text' },
     { value: 'third_party', label: 'Third Party' },
-    { value: 'thirdparty', label: 'Third Party' },
   ];
 
   // ... keep existing code (fetchKnowledgeBases, useQuery, useEffects, and helper functions) the same until the renderMainView function
@@ -296,7 +295,7 @@ const KnowledgeBase = () => {
   // ... keep existing code (helper functions) the same until renderMainView
 
   const canShowNestedView = (sourceType) => {
-    return sourceType !== 'website' && sourceType !== 'plain_text' && sourceType !== 'third_party';
+    return sourceType !== 'website' && sourceType !== 'plain_text';
   };
 
   const renderSourceIcon = (doc) => {
