@@ -37,22 +37,7 @@ const MessengerIntegration = () => {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
-          <MessageSquare className="h-8 w-8 text-white" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-foreground mb-2">Connect Facebook Messenger</h3>
-          <p className="text-muted-foreground leading-relaxed">
-            Connect your Facebook Page to enable automated responses via Facebook Messenger.
-          </p>
-        </div>
-        <ModernStatusBadge 
-          status={isConnected ? 'connected' : 'disconnected'}
-        >
-          {isConnected ? 'Connected' : 'Not Connected'}
-        </ModernStatusBadge>
-      </div>
+      
 
       {isConnected ? (
         <>

@@ -163,18 +163,7 @@ const FreshdeskIntegration = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-2">
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Freshdesk Integration</h2>
-          <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
-            {isConnected ? "Connected" : "Not Connected"}
-          </ModernStatusBadge>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-          Integrate with Freshdesk to automate ticket management and enhance customer support operations.
-        </p>
-      </div>
+      
 
       {/* Current Configuration Cards */}
       {isConnected && freshdeskStatus?.integration && (
@@ -233,33 +222,7 @@ const FreshdeskIntegration = () => {
           }
         </p>
 
-        <div className="space-y-4 mb-6">
-          <div className="space-y-2">
-            <Label htmlFor="freshdesk-domain">Freshdesk Domain</Label>
-            <ModernInput
-              id="freshdesk-domain"
-              placeholder="yourcompany.freshdesk.com"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-              variant="modern"
-            />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Your full Freshdesk domain (e.g., yourcompany.freshdesk.com)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="freshdesk-api-key">API Key</Label>
-            <ModernInput
-              id="freshdesk-api-key"
-              type="password"
-              placeholder="Enter your Freshdesk API key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              variant="modern"
-            />
-          </div>
-        </div>
+        
 
         <div className="flex flex-col sm:flex-row gap-3">
           {isConnected ? (

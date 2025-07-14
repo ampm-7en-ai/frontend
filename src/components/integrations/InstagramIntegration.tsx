@@ -37,22 +37,7 @@ const InstagramIntegration = () => {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Instagram className="h-8 w-8 text-white" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-foreground mb-2">Connect Instagram Business Account</h3>
-          <p className="text-muted-foreground leading-relaxed">
-            Connect your Instagram Business account to respond to customer DMs automatically.
-          </p>
-        </div>
-        <ModernStatusBadge 
-          status={isConnected ? 'connected' : 'disconnected'}
-        >
-          {isConnected ? 'Connected' : 'Not Connected'}
-        </ModernStatusBadge>
-      </div>
+      
 
       {isConnected ? (
         <>

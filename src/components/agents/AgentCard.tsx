@@ -200,7 +200,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                       Knowledge Base
                     </h4>
                     <Link 
-                      to={`/agents/${agent.id}/edit?tab=knowledge`}
+                      to={`/agents/builder/${agent.id}`}
                       className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium flex items-center gap-1"
                     >
                       <Plus className="h-3 w-3" />

@@ -164,22 +164,7 @@ const SlackIntegration: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Slack className="h-8 w-8 text-white" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-foreground mb-2">Connect Slack Workspace</h3>
-          <p className="text-muted-foreground leading-relaxed">
-            Connect your Slack workspace to enable automated responses and team notifications.
-          </p>
-        </div>
-        <ModernStatusBadge 
-          status={isConnected ? 'connected' : 'disconnected'}
-        >
-          {isConnected ? 'Connected' : 'Not Connected'}
-        </ModernStatusBadge>
-      </div>
+      
 
       {error && (
         <ModernAlert variant="destructive">

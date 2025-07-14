@@ -59,18 +59,7 @@ const ZapierIntegration = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-2">
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Zapier Integration</h2>
-          <ModernStatusBadge status="disconnected">
-            Not Connected
-          </ModernStatusBadge>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-          Connect your AI Agent with thousands of apps through Zapier automation and create powerful workflows.
-        </p>
-      </div>
+      
 
       {/* Configuration Section */}
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">

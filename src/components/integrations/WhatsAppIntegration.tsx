@@ -152,18 +152,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
   
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-2">
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">WhatsApp Business Integration</h2>
-          <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
-            {isConnected ? "Connected" : "Not Connected"}
-          </ModernStatusBadge>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-          Connect your WhatsApp Business API to enable automated responses via WhatsApp messaging.
-        </p>
-      </div>
+      
 
       {/* Current Configuration Cards */}
       {isConnected && (
