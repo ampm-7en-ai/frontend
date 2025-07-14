@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,9 +13,20 @@ interface ImportSourcesDialogProps {
   onOpenChange: (open: boolean) => void;
   agentId?: string;
   onSourcesAdded?: () => void;
+  externalSources?: any[];
+  currentSources?: any[];
+  onImport?: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => Promise<void>;
 }
 
-const ImportSourcesDialog = ({ open, onOpenChange, agentId, onSourcesAdded }: ImportSourcesDialogProps) => {
+const ImportSourcesDialog = ({ 
+  open, 
+  onOpenChange, 
+  agentId, 
+  onSourcesAdded,
+  externalSources,
+  currentSources,
+  onImport
+}: ImportSourcesDialogProps) => {
   const { toast } = useToast();
   const [availableSources, setAvailableSources] = useState([]);
   const [selectedSources, setSelectedSources] = useState<number[]>([]);
@@ -22,6 +34,12 @@ const ImportSourcesDialog = ({ open, onOpenChange, agentId, onSourcesAdded }: Im
   const [isImporting, setIsImporting] = useState(false);
 
   const fetchAvailableSources = async () => {
+    // If externalSources are provided, use them instead of fetching
+    if (externalSources && externalSources.length > 0) {
+      setAvailableSources(externalSources);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await knowledgeApi.getAll();
@@ -46,6 +64,26 @@ const ImportSourcesDialog = ({ open, onOpenChange, agentId, onSourcesAdded }: Im
 
   const handleImportSources = async () => {
     if (!agentId || selectedSources.length === 0) return;
+    
+    // If custom onImport handler is provided, use it
+    if (onImport) {
+      try {
+        setIsImporting(true);
+        await onImport(selectedSources, {}, {});
+        onOpenChange(false);
+        setSelectedSources([]);
+      } catch (error) {
+        console.error('Error importing sources:', error);
+        toast({
+          title: "Error",
+          description: "Failed to import knowledge sources. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsImporting(false);
+      }
+      return;
+    }
     
     try {
       setIsImporting(true);
@@ -78,7 +116,7 @@ const ImportSourcesDialog = ({ open, onOpenChange, agentId, onSourcesAdded }: Im
     if (open) {
       fetchAvailableSources();
     }
-  }, [open]);
+  }, [open, externalSources]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
