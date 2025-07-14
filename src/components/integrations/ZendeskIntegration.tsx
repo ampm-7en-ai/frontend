@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Headphones, ExternalLink, Shield, CheckCircle, AlertCircle, Building2, User, Mail } from 'lucide-react';
+import { Headphones, ExternalLink, Shield, CheckCircle, Building2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ZendeskStatus {
@@ -31,19 +32,8 @@ const ZendeskIntegration = () => {
   const checkZendeskStatus = async () => {
     setIsCheckingStatus(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('zendesk/status/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const response = await integrationApi.zendesk.getStatus();
+      
       if (!response.ok) {
         throw new Error(`Failed to check Zendesk status: ${response.status}`);
       }
@@ -71,22 +61,10 @@ const ZendeskIntegration = () => {
 
     setIsConnecting(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('zendesk/connect/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          subdomain,
-          email,
-          api_token: apiToken,
-        }),
+      const response = await integrationApi.zendesk.connect({
+        subdomain,
+        email,
+        api_token: apiToken,
       });
 
       if (!response.ok) {
@@ -116,18 +94,7 @@ const ZendeskIntegration = () => {
   const handleUnlink = async () => {
     setIsUnlinking(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('zendesk/unlink/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.zendesk.unlink();
 
       if (!response.ok) {
         throw new Error(`Failed to unlink Zendesk: ${response.status}`);

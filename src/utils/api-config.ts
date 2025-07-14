@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -175,28 +176,258 @@ export const getSourceMetadataInfo = (source: { type: string, metadata: any }): 
 // Import the new API interceptor
 import { apiRequest, apiGet, apiPost, apiPut, apiDelete } from './api-interceptor';
 
-// Function to fetch Google Drive files - Updated to use interceptor
+// =============================================================================
+// CENTRALIZED API FUNCTIONS - All API calls should use these functions
+// =============================================================================
+
+// Authentication API functions
+export const authApi = {
+  login: async (username: string, password: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.LOGIN), {
+      username,
+      password
+    }, false); // No auth required for login
+    return response;
+  },
+
+  register: async (userData: any) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.REGISTER), userData, false);
+    return response;
+  },
+
+  verifyOtp: async (otp: string, email: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.VERIFY_OTP), {
+      otp,
+      email
+    }, false);
+    return response;
+  },
+
+  resendOtp: async (email: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.RESEND_OTP), {
+      email
+    }, false);
+    return response;
+  },
+
+  forgotPassword: async (email: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.FORGOT_PASSWORD), {
+      email
+    }, false);
+    return response;
+  },
+
+  resetPassword: async (token: string, email: string, newPassword: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.RESET_PASSWORD), {
+      token,
+      email,
+      new_password: newPassword
+    }, false);
+    return response;
+  }
+};
+
+// Integration API functions
+export const integrationApi = {
+  getStatus: async (integration: string) => {
+    const response = await apiGet(getApiUrl(`${integration}/status/`));
+    return response;
+  },
+
+  connect: async (integration: string, data: any) => {
+    const response = await apiPost(getApiUrl(`${integration}/connect/`), data);
+    return response;
+  },
+
+  unlink: async (integration: string) => {
+    const response = await apiPost(getApiUrl(`${integration}/unlink/`), {});
+    return response;
+  },
+
+  // HubSpot specific
+  hubspot: {
+    getStatus: () => integrationApi.getStatus('hubspot'),
+    connect: (data: any) => integrationApi.connect('hubspot', data),
+    unlink: () => integrationApi.unlink('hubspot')
+  },
+
+  // Salesforce specific
+  salesforce: {
+    getStatus: () => integrationApi.getStatus('salesforce'),
+    connect: (data: any) => integrationApi.connect('salesforce', data),
+    unlink: () => integrationApi.unlink('salesforce')
+  },
+
+  // Zoho specific
+  zoho: {
+    getStatus: () => integrationApi.getStatus('zoho'),
+    connect: (data: any) => integrationApi.connect('zoho', data),
+    unlink: () => integrationApi.unlink('zoho')
+  },
+
+  // Zendesk specific
+  zendesk: {
+    getStatus: () => integrationApi.getStatus('zendesk'),
+    connect: (data: any) => integrationApi.connect('zendesk', data),
+    unlink: () => integrationApi.unlink('zendesk')
+  },
+
+  // Freshdesk specific
+  freshdesk: {
+    getStatus: () => integrationApi.getStatus('freshdesk'),
+    connect: (data: any) => integrationApi.connect('freshdesk', data),
+    unlink: () => integrationApi.unlink('freshdesk')
+  },
+
+  // Google Drive specific
+  googleDrive: {
+    getFiles: async () => {
+      const response = await apiGet(getApiUrl('drive/files/'));
+      return response;
+    },
+    unlink: () => integrationApi.unlink('drive')
+  }
+};
+
+// Agent API functions
+export const agentApi = {
+  getAll: async () => {
+    const response = await apiGet(getApiUrl(API_ENDPOINTS.AGENTS));
+    return response;
+  },
+
+  getById: async (agentId: string) => {
+    const response = await apiGet(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`));
+    return response;
+  },
+
+  create: async (name: string, description: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.AGENTS), {
+      name,
+      description
+    });
+    return response;
+  },
+
+  update: async (agentId: string, agentData: any) => {
+    // Handle custom avatar conversion if needed
+    const payload = JSON.parse(JSON.stringify(agentData));
+    
+    // Convert File to data URL if needed
+    if (agentData.customAvatarFile && payload.appearance?.avatar?.type === 'custom') {
+      try {
+        const dataURL = await fileToDataURL(agentData.customAvatarFile);
+        payload.appearance.avatar.src = dataURL;
+      } catch (error) {
+        console.error('Error converting file to data URL:', error);
+        throw new Error('Failed to process avatar file');
+      }
+    }
+    
+    // Remove non-API properties
+    delete payload.customAvatarFile;
+    
+    const response = await apiPut(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`), payload);
+    return response;
+  },
+
+  addKnowledgeSources: async (agentId: string, knowledgeSources: number[], selectedKnowledgeSources: string[]) => {
+    const response = await apiPost(getApiUrl(`agents/${agentId}/add-knowledge-sources/`), {
+      knowledgeSources,
+      selected_knowledge_sources: selectedKnowledgeSources
+    });
+    return response;
+  }
+};
+
+// Knowledge Base API functions
+export const knowledgeApi = {
+  getAll: async (agentId?: string) => {
+    const endpoint = getKnowledgeBaseEndpoint(agentId);
+    const response = await apiGet(getApiUrl(endpoint));
+    return response;
+  },
+
+  getById: async (sourceId: number) => {
+    const response = await apiGet(getApiUrl(`${API_ENDPOINTS.KNOWLEDGEBASE}${sourceId}/`));
+    return response;
+  },
+
+  create: async (formData: FormData) => {
+    const response = await apiRequest(getApiUrl(API_ENDPOINTS.KNOWLEDGEBASE), {
+      method: 'POST',
+      body: formData
+    });
+    return response;
+  },
+
+  delete: async (knowledgeBaseId: number) => {
+    const response = await apiDelete(getApiUrl(`${API_ENDPOINTS.KNOWLEDGEBASE}${knowledgeBaseId}/`));
+    return response;
+  },
+
+  deleteSource: async (sourceId: number) => {
+    const response = await apiDelete(getApiUrl(`knowledgesource/${sourceId}/`));
+    return response;
+  },
+
+  addFile: async (knowledgeBaseId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('knowledge_base', knowledgeBaseId.toString());
+    formData.append('file', file);
+    
+    const response = await apiRequest(getApiUrl('knowledgesource/'), {
+      method: 'POST',
+      body: formData
+    });
+    return response;
+  }
+};
+
+// Settings API functions
+export const settingsApi = {
+  update: async (payload: any) => {
+    const response = await apiRequest(getApiUrl('settings/'), {
+      method: "PATCH",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return response;
+  }
+};
+
+// =============================================================================
+// LEGACY FUNCTIONS - Kept for backwards compatibility, now use interceptor
+// =============================================================================
+
+// Function to convert a File to a base64 data URL (including prefix)
+const fileToDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const dataURL = reader.result as string;
+      resolve(dataURL);
+    };
+    reader.onerror = error => reject(error);
+  });
+};
+
+// Legacy functions - now use the centralized API functions above
 export const fetchGoogleDriveFiles = async (): Promise<any> => {
-  const response = await apiGet(`${BASE_URL}drive/files/`);
-  
+  const response = await integrationApi.googleDrive.getFiles();
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
     throw new Error(errorData.message || `Failed to fetch Google Drive files: ${response.status}`);
   }
-  
   return response.json();
 };
 
-// Function to fetch agent details (including knowledge bases) - Updated to use interceptor
 export const fetchAgentDetails = async (agentId: string): Promise<any> => {
   console.log(`Starting fetchAgentDetails for agentId: ${agentId}`);
   
-  const url = `${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`;
-  console.log(`Fetching agent details from URL: ${url}`);
-  
   try {
-    const response = await apiGet(url);
-    
+    const response = await agentApi.getById(agentId);
     console.log(`Agent details response status: ${response.status}`);
     
     if (!response.ok) {
@@ -223,9 +454,8 @@ export const fetchAgentDetails = async (agentId: string): Promise<any> => {
   }
 };
 
-// Function to fetch knowledge source details - Updated to use interceptor
 export const fetchKnowledgeSourceDetails = async (sourceId: number): Promise<any> => {
-  const response = await apiGet(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${sourceId}/`);
+  const response = await knowledgeApi.getById(sourceId);
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -235,10 +465,8 @@ export const fetchKnowledgeSourceDetails = async (sourceId: number): Promise<any
   return response.json();
 };
 
-// Function to fetch external knowledge sources for an agent - Updated to use interceptor
 export const fetchExternalKnowledgeSources = async (agentId?: string): Promise<any> => {
-  const endpoint = getKnowledgeBaseEndpoint(agentId);
-  const response = await apiGet(`${BASE_URL}${endpoint}`);
+  const response = await knowledgeApi.getAll(agentId);
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -248,15 +476,10 @@ export const fetchExternalKnowledgeSources = async (agentId?: string): Promise<a
   return response.json();
 };
 
-// Function to create a new agent - Updated to use interceptor
 export const createAgent = async (name: string, description: string): Promise<any> => {
   console.log('Creating agent with data:', { name, description });
   
-  const response = await apiPost(`${BASE_URL}${API_ENDPOINTS.AGENTS}`, {
-    name,
-    description,
-  });
-  
+  const response = await agentApi.create(name, description);
   console.log('Create agent response status:', response.status);
   
   if (!response.ok) {
@@ -268,12 +491,8 @@ export const createAgent = async (name: string, description: string): Promise<an
   return response.json();
 };
 
-// Function to create a new knowledge base - Updated to use interceptor
 export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
-  const response = await apiRequest(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}`, {
-    method: 'POST',
-    body: formData
-  });
+  const response = await knowledgeApi.create(formData);
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -283,70 +502,11 @@ export const createKnowledgeBase = async (formData: FormData): Promise<any> => {
   return response.json();
 };
 
-// Function to convert a File to a base64 data URL (including prefix)
-const fileToDataURL = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      // Keep the complete data URL with the prefix
-      const dataURL = reader.result as string;
-      resolve(dataURL);
-    };
-    reader.onerror = error => reject(error);
-  });
-};
-
-// Function to update an agent - Updated to use interceptor
 export const updateAgent = async (agentId: string, agentData: any): Promise<any> => {
   console.log('Updating agent with ID:', agentId);
   console.log('Agent data:', agentData);
   
-  // Create a deep clone of the payload to avoid modifying the original
-  const payload = JSON.parse(JSON.stringify(agentData));
-  
-  // Handle custom avatar, first check if there's a File object passed separately
-  if (agentData.customAvatarFile && payload.appearance?.avatar?.type === 'custom') {
-    try {
-      // Convert the file to a complete data URL with the prefix
-      const dataURL = await fileToDataURL(agentData.customAvatarFile);
-      
-      // Update the avatar src in the payload
-      payload.appearance.avatar.src = dataURL;
-      
-      console.log('Converted avatar file to complete data URL for JSON payload');
-    } catch (error) {
-      console.error('Error converting file to data URL:', error);
-      throw new Error('Failed to process avatar file');
-    }
-  } 
-  // If the avatar src is a blob URL, we need to convert it to a base64 data URL
-  else if (payload.appearance?.avatar?.src && payload.appearance.avatar.src.startsWith('blob:')) {
-    try {
-      // Fetch the blob URL and convert it to a base64 data URL
-      const response = await fetch(payload.appearance.avatar.src);
-      const blob = await response.blob();
-      const dataURL = await fileToDataURL(new File([blob], 'avatar', { type: blob.type }));
-      
-      // Update the avatar src in the payload with the complete data URL
-      payload.appearance.avatar.src = dataURL;
-      
-      console.log('Converted blob URL to base64 data URL for JSON payload');
-    } catch (error) {
-      console.error('Error converting blob URL to data URL:', error);
-      // Keep the original src if conversion fails
-      console.log('Keeping original src due to conversion error');
-    }
-  }
-  
-  // Remove any non-API properties from the payload
-  delete payload.customAvatarFile;
-  
-  console.log('Sending JSON payload:', payload);
-  
-  // Send the entire payload as JSON using interceptor
-  const response = await apiPut(`${BASE_URL}${API_ENDPOINTS.AGENTS}${agentId}/`, payload);
-  
+  const response = await agentApi.update(agentId, agentData);
   console.log('Update agent response status:', response.status);
   
   if (!response.ok) {
@@ -358,10 +518,9 @@ export const updateAgent = async (agentId: string, agentData: any): Promise<any>
   return response.json();
 };
 
-// Function to delete a knowledge source - Updated to use interceptor
 export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> => {
   try {
-    const response = await apiDelete(getApiUrl(`knowledgesource/${sourceId}/`));
+    const response = await knowledgeApi.deleteSource(sourceId);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -375,10 +534,9 @@ export const deleteKnowledgeSource = async (sourceId: number): Promise<boolean> 
   }
 };
 
-// Function to delete an entire knowledge base - Updated to use interceptor
 export const deleteKnowledgeBase = async (knowledgeBaseId: number): Promise<boolean> => {
   try {
-    const response = await apiDelete(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}${knowledgeBaseId}/`);
+    const response = await knowledgeApi.delete(knowledgeBaseId);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -392,17 +550,9 @@ export const deleteKnowledgeBase = async (knowledgeBaseId: number): Promise<bool
   }
 };
 
-// Function to add a new file to existing knowledge base - Updated to use interceptor
 export const addFileToKnowledgeBase = async (knowledgeBaseId: number, file: File): Promise<any> => {
   try {
-    const formData = new FormData();
-    formData.append('knowledge_base', knowledgeBaseId.toString());
-    formData.append('file', file);
-    
-    const response = await apiRequest(getApiUrl('knowledgesource/'), {
-      method: 'POST',
-      body: formData
-    });
+    const response = await knowledgeApi.addFile(knowledgeBaseId, file);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -416,13 +566,9 @@ export const addFileToKnowledgeBase = async (knowledgeBaseId: number, file: File
   }
 };
 
-// Function to add knowledge sources to an agent - Updated to use interceptor
 export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSources: number[], selectedKnowledgeSources: string[]): Promise<any> => {
   try {
-    const response = await apiPost(getApiUrl(`agents/${agentId}/add-knowledge-sources/`), {
-      knowledgeSources,
-      selected_knowledge_sources: selectedKnowledgeSources
-    });
+    const response = await agentApi.addKnowledgeSources(agentId, knowledgeSources, selectedKnowledgeSources);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
@@ -436,18 +582,12 @@ export const addKnowledgeSourcesToAgent = async (agentId: string, knowledgeSourc
   }
 };
 
-// Function to get the role endpoint for a specific role ID
 export const getRoleEndpoint = (roleId: number): string => {
   return `${API_ENDPOINTS.USER_ROLE}/${roleId}/`;
 };
 
-// PATCH settings API call - Updated to use interceptor
 export const updateSettings = async (payload: any): Promise<any> => {
-  const response = await apiRequest(`${BASE_URL}settings/`, {
-    method: "PATCH",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  const response = await settingsApi.update(payload);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));

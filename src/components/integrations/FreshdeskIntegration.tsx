@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Zap, ExternalLink, Shield, CheckCircle, AlertCircle, Building2 } from 'lucide-react';
+import { Zap, ExternalLink, Shield, CheckCircle, Building2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface FreshdeskStatus {
@@ -30,19 +31,8 @@ const FreshdeskIntegration = () => {
   const checkFreshdeskStatus = async () => {
     setIsCheckingStatus(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('freshdesk/status/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const response = await integrationApi.freshdesk.getStatus();
+      
       if (!response.ok) {
         throw new Error(`Failed to check Freshdesk status: ${response.status}`);
       }
@@ -70,21 +60,9 @@ const FreshdeskIntegration = () => {
 
     setIsConnecting(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('freshdesk/connect/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          domain,
-          api_key: apiKey,
-        }),
+      const response = await integrationApi.freshdesk.connect({
+        domain,
+        api_key: apiKey,
       });
 
       if (!response.ok) {
@@ -114,18 +92,7 @@ const FreshdeskIntegration = () => {
   const handleUnlink = async () => {
     setIsUnlinking(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('freshdesk/unlink/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.freshdesk.unlink();
 
       if (!response.ok) {
         throw new Error(`Failed to unlink Freshdesk: ${response.status}`);

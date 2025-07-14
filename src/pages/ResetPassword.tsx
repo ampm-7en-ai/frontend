@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { authApi } from '@/utils/api-config';
 
 const resetPasswordSchema = z.object({
   newPassword: z.string().min(8, "Password must be at least 8 characters"),
@@ -59,18 +60,7 @@ const ResetPassword = () => {
     setErrorMessage(null);
     
     try {
-      const response = await fetch(getApiUrl(API_ENDPOINTS.RESET_PASSWORD), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          email,
-          new_password: values.newPassword,
-        }),
-      });
-      
+      const response = await authApi.resetPassword(token, email, values.newPassword);
       const data = await response.json();
       
       if (response.ok && data.status === 'success') {

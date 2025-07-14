@@ -1,7 +1,7 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getApiUrl, getAuthHeaders, isUserVerified } from '@/utils/api-config';
-import { permission } from 'process';
+import { getApiUrl, getAuthHeaders, isUserVerified, authApi } from '@/utils/api-config';
 
 // Define user role types
 export type UserRole = 'USER' | 'SUPERADMIN';
@@ -113,6 +113,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       window.removeEventListener('token-expired', handleTokenExpirationEvent);
     };
   }, []);
+
+  // Proactive token checking - check every 5 minutes
+  useEffect(() => {
+    if (!isAuthenticated || !user?.accessToken) return;
+
+    const checkTokenExpiration = () => {
+      const user = localStorage.getItem('user');
+      if (!user) return;
+
+      try {
+        const userData = JSON.parse(user);
+        const token = userData.accessToken;
+        
+        if (!token) return;
+
+        // Decode JWT to check expiration
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const decoded = JSON.parse(jsonPayload);
+        if (!decoded || !decoded.exp) return;
+        
+        const currentTime = Math.floor(Date.now() / 1000);
+        const expirationTime = decoded.exp;
+        const timeUntilExpiration = expirationTime - currentTime;
+        
+        // If token expires in less than 10 minutes, trigger a refresh
+        if (timeUntilExpiration < 600) {
+          console.log('Token will expire soon, triggering proactive refresh');
+          // The api-interceptor will handle the actual refresh when the next API call is made
+          // Or we could trigger a refresh immediately if needed
+        }
+      } catch (error) {
+        console.error('Error checking token expiration:', error);
+      }
+    };
+
+    // Check immediately and then every 5 minutes
+    checkTokenExpiration();
+    const interval = setInterval(checkTokenExpiration, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, user?.accessToken]);
 
   // Check if user is already logged in on mount
   useEffect(() => {
@@ -226,7 +272,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           refreshToken: 'mock-refresh-token',
           isVerified: true,
           teamRole: 'owner',
-          permission: {} // Adding missing teamRole property
+          permission: {}
         };
         setUser(superAdminUser);
         setIsAuthenticated(true);
@@ -244,7 +290,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           refreshToken: 'mock-refresh-token',
           isVerified: true,
           teamRole: 'admin',
-          permission: {} // Adding missing teamRole property
+          permission: {}
         };
         setUser(adminUser);
         setIsAuthenticated(true);
