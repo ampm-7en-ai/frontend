@@ -429,7 +429,6 @@ const KnowledgeTrainingStatus = ({
           currentSources={formatExternalSources(agentKnowledgeBases || [])}
           onImport={importSelectedSources}
           agentId={agentId}
-          preventMultipleCalls={true}
           isLoading={isLoadingAvailableKnowledgeBases}
         />
       </CardContent>
