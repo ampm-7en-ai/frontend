@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeSource, UrlNode } from './types';
-import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown, ArrowUp, ExternalLink } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, FileText, Globe, FileSpreadsheet, File, FolderOpen, X, Search, Filter, ArrowUpDown, ArrowUp, ExternalLink, FileImage, FileVideo, FileAudio, Archive, Code } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatFileSizeToMB, addKnowledgeSourcesToAgent, BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -28,6 +29,23 @@ interface ImportSourcesDialogProps {
   isLoading?: boolean;
 }
 
+// Helper function to get icon based on mimeType
+const getIconForMimeType = (mimeType: string) => {
+  if (!mimeType) return File;
+  
+  if (mimeType.startsWith('image/')) return FileImage;
+  if (mimeType.startsWith('video/')) return FileVideo;
+  if (mimeType.startsWith('audio/')) return FileAudio;
+  if (mimeType.includes('pdf')) return FileText;
+  if (mimeType.includes('document') || mimeType.includes('doc')) return FileText;
+  if (mimeType.includes('spreadsheet') || mimeType.includes('sheet')) return FileSpreadsheet;
+  if (mimeType.includes('zip') || mimeType.includes('archive')) return Archive;
+  if (mimeType.includes('text/plain')) return File;
+  if (mimeType.includes('json') || mimeType.includes('javascript') || mimeType.includes('html')) return Code;
+  
+  return File;
+};
+
 // Hook to fetch knowledge bases from correct endpoint
 const useKnowledgeBases = (agentId?: string) => {
   return useQuery({
@@ -38,7 +56,7 @@ const useKnowledgeBases = (agentId?: string) => {
         throw new Error('No authentication token available');
       }
 
-      // Use the correct endpoint with status filters
+      // Use the correct endpoint with status filters - include third_party types
       const url = `${BASE_URL}knowledgebase/?status=active&status=issues${agentId ? `&agent_id=${agentId}` : ''}`;
       console.log('Fetching knowledge bases from:', url);
       
@@ -66,7 +84,8 @@ const useKnowledgeBases = (agentId?: string) => {
         linkBroken: false,
         knowledge_sources: kb.knowledge_sources || [],
         metadata: kb.metadata || {},
-        chunks: kb.chunks
+        chunks: kb.chunks,
+        source: kb.source // Include source field for third_party types
       }));
 
       return knowledgeBases;
@@ -189,7 +208,7 @@ export const ImportSourcesDialog = ({
             }));
           }
         }
-      } else if (hasNestedFiles(selectedKnowledgeBase)) {
+      } else if (hasNestedFiles(selectedKnowledgeBase) || hasThirdPartyFiles(selectedKnowledgeBase)) {
         const sourceId = selectedKnowledgeBase.id;
         if (!selectedFiles[sourceId]) {
           setSelectedFiles(prev => ({
@@ -265,7 +284,8 @@ export const ImportSourcesDialog = ({
       docx: { count: 0, label: 'DOCX', icon: <FileText className="h-4 w-4 text-blue-600" /> },
       website: { count: 0, label: 'Websites', icon: <Globe className="h-4 w-4 text-green-600" /> },
       csv: { count: 0, label: 'Spreadsheets', icon: <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> },
-      plain_text: { count: 0, label: 'Plain Text', icon: <File className="h-4 w-4 text-purple-600" /> }
+      plain_text: { count: 0, label: 'Plain Text', icon: <File className="h-4 w-4 text-purple-600" /> },
+      third_party: { count: 0, label: 'Third Party', icon: <FolderOpen className="h-4 w-4 text-orange-600" /> }
     };
     
     if (Array.isArray(externalSources)) {
@@ -310,6 +330,12 @@ export const ImportSourcesDialog = ({
   
   const hasNestedFiles = (source: KnowledgeSource) => {
     return (source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
+           source.knowledge_sources && 
+           source.knowledge_sources.length > 0;
+  };
+
+  const hasThirdPartyFiles = (source: KnowledgeSource) => {
+    return source.type === 'third_party' && 
            source.knowledge_sources && 
            source.knowledge_sources.length > 0;
   };
@@ -587,6 +613,15 @@ export const ImportSourcesDialog = ({
               }
             });
           }
+        } else if (source?.type === 'third_party') {
+          // For third party, use selected file IDs
+          const fileSet = selectedFiles[sourceId];
+          if (fileSet && fileSet instanceof Set && fileSet.size > 0) {
+            // File IDs are already added above, no need to add source ID
+          } else {
+            // If no specific files selected, add the source ID
+            allSelectedIds.push(sourceId.toString());
+          }
         }
       });
 
@@ -852,6 +887,107 @@ export const ImportSourcesDialog = ({
     );
   };
 
+  const renderThirdPartyFiles = (source: KnowledgeSource) => {
+    if (!source.knowledge_sources || source.knowledge_sources.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center text-center px-4 py-6">
+          <FolderOpen className="h-10 w-10 text-slate-500 dark:text-slate-400 mb-2" />
+          <p className="text-slate-600 dark:text-slate-400 text-sm">No files found in this source</p>
+        </div>
+      );
+    }
+
+    const allSelected = areAllFilesSelected(source.id, source.knowledge_sources);
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+          <Checkbox 
+            id={`select-all-third-party-files-${source.id}`}
+            className="mr-2"
+            checked={allSelected}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                selectAllFiles(source.id, source.knowledge_sources || []);
+              } else {
+                unselectAllFiles(source.id);
+              }
+            }}
+          />
+          <label 
+            htmlFor={`select-all-third-party-files-${source.id}`}
+            className="text-sm font-medium text-slate-900 dark:text-slate-100"
+          >
+            Select All Files
+          </label>
+        </div>
+
+        <div className="space-y-2">
+          {source.knowledge_sources.map((file, index) => {
+            const IconComponent = getIconForMimeType(file.metadata?.mimeType || '');
+            
+            return (
+              <div
+                key={`third-party-file-${file.id || index}`}
+                className={cn(
+                  "flex items-center hover:bg-slate-50 dark:hover:bg-slate-800 rounded px-2 py-2 transition-colors",
+                  isFileSelected(source.id, String(file.id)) && "bg-slate-50 dark:bg-slate-800"
+                )}
+              >
+                <Checkbox
+                  id={`third-party-file-${source.id}-${String(file.id)}`}
+                  className="mr-2"
+                  checked={isFileSelected(source.id, String(file.id))}
+                  onCheckedChange={() => toggleFileSelection(source.id, file.id)}
+                />
+                
+                <div className="flex items-center mr-2">
+                  <IconComponent className="h-4 w-4 text-blue-600" />
+                </div>
+                
+                <div className="flex flex-col flex-1">
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100 mr-2">
+                      {file.title || file.metadata?.name || `File ${index + 1}`}
+                    </span>
+                    {file.metadata?.webViewLink && (
+                      <a 
+                        href={file.metadata.webViewLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-wrap text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {file.metadata?.size && (
+                      <span className="mr-3">
+                        Size: {formatFileSizeToMB(parseInt(file.metadata.size))}
+                      </span>
+                    )}
+                    
+                    {file.metadata?.mimeType && (
+                      <span className="mr-3">Type: {file.metadata.mimeType}</span>
+                    )}
+                    
+                    {file.metadata?.modifiedTime && (
+                      <span>
+                        Modified: {new Date(file.metadata.modifiedTime).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderWebsiteFilterControls = () => {
     if (!selectedKnowledgeBase || !hasUrlStructure(selectedKnowledgeBase)) return null;
     
@@ -951,7 +1087,7 @@ export const ImportSourcesDialog = ({
                     </p>
                   )}
                   
-                  {(source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs') && 
+                  {(source.type === 'csv' || source.type === 'pdf' || source.type === 'docx' || source.type === 'docs' || source.type === 'third_party') && 
                     fileCount > 0 && (
                     <p className="text-[10px] text-slate-500 dark:text-slate-400">
                       {fileCount} {fileCount === 1 ? 'file' : 'files'} selected
@@ -1118,6 +1254,11 @@ export const ImportSourcesDialog = ({
                               <div>
                                 <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100">
                                   {source.name}
+                                  {source.type === 'third_party' && source.source && (
+                                    <Badge variant="outline" className="ml-2 text-xs bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800">
+                                      {source.source}
+                                    </Badge>
+                                  )}
                                   {isSourceAlreadyImported(source.id) && (
                                     <Badge variant="outline" className="ml-2 text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                                       <CheckCircle className="h-3 w-3 mr-1" />
@@ -1128,7 +1269,7 @@ export const ImportSourcesDialog = ({
                                 
                                 <div className="flex flex-wrap text-xs text-slate-500 dark:text-slate-400 mt-1">
                                   <span className="mr-3">
-                                    Type: {source.type === 'website' ? 'Website' : source.type?.toUpperCase()}
+                                    Type: {source.type === 'website' ? 'Website' : source.type === 'third_party' ? 'Third Party' : source.type?.toUpperCase()}
                                   </span>
                                   
                                   {source.chunks !== undefined && (
@@ -1151,7 +1292,7 @@ export const ImportSourcesDialog = ({
                             </div>
                             
                             <div className="flex items-center">
-                              {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source))) ? (
+                              {(source.type !== 'plain_text' && (hasUrlStructure(source) || hasNestedFiles(source) || hasThirdPartyFiles(source))) ? (
                                 <ChevronRight className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                               ) : (
                                 <Checkbox
@@ -1192,6 +1333,11 @@ export const ImportSourcesDialog = ({
                           <h3 className="text-lg font-medium flex items-center text-slate-900 dark:text-slate-100">
                             {renderSourceIcon(selectedKnowledgeBase.type)}
                             <span className="ml-2">{selectedKnowledgeBase.name}</span>
+                            {selectedKnowledgeBase.type === 'third_party' && selectedKnowledgeBase.source && (
+                              <Badge variant="outline" className="ml-2 text-xs bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800">
+                                {selectedKnowledgeBase.source}
+                              </Badge>
+                            )}
                           </h3>
                         </div>
                         
@@ -1208,6 +1354,13 @@ export const ImportSourcesDialog = ({
                             <div className="border border-slate-200 dark:border-slate-700 rounded-md p-3 bg-white dark:bg-slate-800">
                               <h4 className="font-medium text-sm mb-3 text-slate-900 dark:text-slate-100">Files</h4>
                               {renderNestedFiles(selectedKnowledgeBase)}
+                            </div>
+                          ) : hasThirdPartyFiles(selectedKnowledgeBase) ? (
+                            <div className="border border-slate-200 dark:border-slate-700 rounded-md p-3 bg-white dark:bg-slate-800">
+                              <h4 className="font-medium text-sm mb-3 text-slate-900 dark:text-slate-100">
+                                {selectedKnowledgeBase.source ? `${selectedKnowledgeBase.source} Files` : 'Third Party Files'}
+                              </h4>
+                              {renderThirdPartyFiles(selectedKnowledgeBase)}
                             </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center h-[350px] text-center px-4">
