@@ -107,6 +107,19 @@ export interface KnowledgeSourceItem {
   };
   owner?: number;
   sub_knowledge_sources?: KnowledgeSourceItem[];
+  sub_urls?: {
+    key: string;
+    url: string;
+    is_selected: boolean;
+    chars?: number;
+    children: Array<{
+      key: string;
+      url: string;
+      is_selected: boolean;
+      chars?: number;
+      children: any[];
+    }>;
+  };
 }
 
 export interface SubUrlItem {

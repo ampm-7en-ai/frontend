@@ -310,7 +310,7 @@ export const BuilderSidebar = () => {
                 });
               }
               
-              // Also check for sub_urls directly in source
+              // Also check for sub_urls directly in source (now properly typed)
               if (source.sub_urls?.children) {
                 source.sub_urls.children.forEach(subUrl => {
                   if (subUrl.is_selected !== false && subUrl.url) {
