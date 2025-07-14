@@ -4,14 +4,26 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Zap, ExternalLink, Shield, CheckCircle, Building2 } from 'lucide-react';
+import { Zap, ExternalLink, Shield, CheckCircle, Building2, Globe, Link } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
+interface FreshdeskIntegration {
+  id: string;
+  team: number;
+  provider: string;
+  domain: string;
+  email?: string;
+  webhook_path: string;
+  webhook_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface FreshdeskStatus {
-  is_connected: boolean;
-  domain?: string;
+  has_freshdesk_integrated: boolean;
+  integration?: FreshdeskIntegration;
 }
 
 const FreshdeskIntegration = () => {
@@ -61,7 +73,7 @@ const FreshdeskIntegration = () => {
     setIsConnecting(true);
     try {
       const response = await integrationApi.freshdesk.connect({
-        domain,
+        domain: domain,
         api_key: apiKey,
       });
 
@@ -71,7 +83,12 @@ const FreshdeskIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success') {
-        setFreshdeskStatus({ is_connected: true, domain });
+        setFreshdeskStatus({
+          has_freshdesk_integrated: true,
+          integration: result.data
+        });
+        setDomain('');
+        setApiKey('');
         toast({
           title: "Successfully Connected",
           description: "Freshdesk has been connected successfully.",
@@ -100,7 +117,7 @@ const FreshdeskIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success') {
-        setFreshdeskStatus({ is_connected: false });
+        setFreshdeskStatus({ has_freshdesk_integrated: false });
         toast({
           title: "Successfully Unlinked",
           description: "Freshdesk integration has been disconnected.",
@@ -118,7 +135,7 @@ const FreshdeskIntegration = () => {
     }
   };
 
-  const isConnected = freshdeskStatus?.is_connected || false;
+  const isConnected = freshdeskStatus?.has_freshdesk_integrated || false;
 
   // Show loading state while checking status
   if (isCheckingStatus) {
@@ -145,18 +162,45 @@ const FreshdeskIntegration = () => {
       </div>
 
       {/* Current Configuration Cards */}
-      {isConnected && freshdeskStatus && (
+      {isConnected && freshdeskStatus?.integration && (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
 
-          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-            <div className="flex items-center gap-3 mb-2">
-              <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-              <h4 className="font-medium text-slate-900 dark:text-slate-100">Domain</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Domain</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {freshdeskStatus.integration.domain}
+              </p>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {freshdeskStatus.domain ? `${freshdeskStatus.domain}.freshdesk.com` : "Not configured"}
-            </p>
+
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Link className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Webhook URL</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400 break-all">
+                {freshdeskStatus.integration.webhook_url}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-start gap-3">
+              <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Webhook Configuration</h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                  To complete the integration, configure this webhook URL in your Freshdesk admin panel.
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  Go to Admin → Automations → Webhooks and add the URL above to receive ticket events.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -180,13 +224,13 @@ const FreshdeskIntegration = () => {
               <Label htmlFor="freshdesk-domain">Freshdesk Domain</Label>
               <ModernInput
                 id="freshdesk-domain"
-                placeholder="yourcompany"
+                placeholder="yourcompany.freshdesk.com"
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
                 variant="modern"
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Your Freshdesk domain (e.g., if your URL is yourcompany.freshdesk.com, enter "yourcompany")
+                Your full Freshdesk domain (e.g., yourcompany.freshdesk.com)
               </p>
             </div>
 

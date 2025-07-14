@@ -305,8 +305,14 @@ export const integrationApi = {
 
   // Freshdesk specific
   freshdesk: {
-    getStatus: () => integrationApi.getStatus('freshdesk'),
-    connect: (data: any) => integrationApi.connect('freshdesk', data),
+    getStatus: async () => {
+      const response = await apiGet(getApiUrl('ticketing/freshdesk-integrations/'));
+      return response;
+    },
+    connect: async (data: any) => {
+      const response = await apiPost(getApiUrl('ticketing/freshdesk-integrations/'), data);
+      return response;
+    },
     unlink: () => integrationApi.unlink('freshdesk')
   },
 
