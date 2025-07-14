@@ -176,7 +176,7 @@ const KnowledgeTrainingStatus = ({
     triggerRefresh();
   };
 
-  const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
+  const importSelectedSources = async (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
     if (!availableKnowledgeBases && !cachedKnowledgeBases.current.length) {
       toast({
         title: "Cannot import sources",
