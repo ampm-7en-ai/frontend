@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft, AlertTriangle, CheckCircle, Info, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,6 +60,7 @@ const KnowledgeBase = () => {
     { value: 'website', label: 'Websites' },
     { value: 'csv', label: 'Spreadsheets' },
     { value: 'plain_text', label: 'Plain Text' },
+    { value: 'third_party', label: 'Third Party' },
     { value: 'thirdparty', label: 'Third Party' },
   ];
 
@@ -295,7 +296,7 @@ const KnowledgeBase = () => {
   // ... keep existing code (helper functions) the same until renderMainView
 
   const canShowNestedView = (sourceType) => {
-    return sourceType !== 'website' && sourceType !== 'plain_text';
+    return sourceType !== 'website' && sourceType !== 'plain_text' && sourceType !== 'third_party';
   };
 
   const renderSourceIcon = (doc) => {
@@ -308,6 +309,9 @@ const KnowledgeBase = () => {
         return <FileSpreadsheet className="h-4 w-4 text-white" />;
       case 'plain_text':
         return <File className="h-4 w-4 text-white" />;
+      case 'third_party':
+        // Use the Google logo for google_drive source
+        return <img src="https://img.logo.dev/google.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Google Drive" className="h-4 w-4" />;
       case 'thirdparty':
         if (doc.provider === 'googleDrive') {
           return (
@@ -343,6 +347,8 @@ const KnowledgeBase = () => {
         return 'bg-gradient-to-br from-emerald-500 to-emerald-600';
       case 'plain_text':
         return 'bg-gradient-to-br from-purple-500 to-purple-600';
+      case 'third_party':
+        return 'bg-white'; // White background for Google logo
       case 'thirdparty':
         switch (doc.provider) {
           case 'googleDrive':
@@ -597,6 +603,63 @@ const KnowledgeBase = () => {
     }
     
     return source.metadata.no_of_pages || "N/A";
+  };
+
+  // Get icon for third-party files based on mimeType
+  const getFileIcon = (source, sourceType) => {
+    if (sourceType === 'third_party' && source.metadata?.mimeType) {
+      const mimeType = source.metadata.mimeType.toLowerCase();
+      
+      if (mimeType.includes('spreadsheet') || mimeType.includes('sheet')) {
+        return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
+      } else if (mimeType.includes('document') || mimeType.includes('doc')) {
+        return <FileText className="h-4 w-4 text-blue-600" />;
+      } else if (mimeType.includes('presentation')) {
+        return <FileText className="h-4 w-4 text-orange-600" />;
+      } else if (mimeType.includes('pdf')) {
+        return <FileText className="h-4 w-4 text-red-600" />;
+      }
+      return <File className="h-4 w-4 text-gray-600" />;
+    }
+    
+    // Default file icon based on source type
+    return renderSourceIcon({sourceType: sourceType});
+  };
+
+  // Get background for file icons
+  const getFileIconBackground = (source, sourceType) => {
+    if (sourceType === 'third_party') {
+      return 'bg-white border border-gray-200'; // White background with border for third-party files
+    }
+    
+    return getIconBackground({sourceType: sourceType});
+  };
+
+  // Get file size from metadata for third-party files
+  const getFileSizeFromMetadata = (source) => {
+    if (source.metadata?.size) {
+      const sizeInBytes = parseInt(source.metadata.size, 10);
+      return formatFileSizeToMB(sizeInBytes);
+    }
+    
+    return formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size || 0);
+  };
+
+  // Handle viewing third-party files
+  const handleViewFile = (source) => {
+    if (source.metadata?.webViewLink) {
+      window.open(source.metadata.webViewLink, '_blank');
+      toast({
+        title: "Opening file",
+        description: `Opening ${source.title || 'file'} in new tab`,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "No preview link available for this file",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderMainView = () => {
@@ -950,8 +1013,8 @@ const KnowledgeBase = () => {
                   <div className="flex items-center justify-between">
                     {/* Left side - File info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`p-1.5 rounded-xl ${getIconBackground({sourceType: sourceType})}`}>
-                        {renderSourceIcon({sourceType: sourceType})}
+                      <div className={`p-1.5 rounded-xl ${getFileIconBackground(source, sourceType)}`}>
+                        {getFileIcon(source, sourceType)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate mb-1">
@@ -959,7 +1022,7 @@ const KnowledgeBase = () => {
                         </h3>
                         <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                           <span className="font-medium">
-                            {formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size)}
+                            {getFileSizeFromMetadata(source)}
                           </span>
                           <span className="font-medium">
                             {getContentMeasure(source)}
@@ -976,15 +1039,27 @@ const KnowledgeBase = () => {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ModernButton 
-                          iconOnly
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDownloadFile(source)}
-                          className="w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700"
-                        >
-                          <Download className="h-4 w-4" />
-                        </ModernButton>
+                        {sourceType === 'third_party' ? (
+                          <ModernButton 
+                            iconOnly
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewFile(source)}
+                            className="w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </ModernButton>
+                        ) : (
+                          <ModernButton 
+                            iconOnly
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDownloadFile(source)}
+                            className="w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          >
+                            <Download className="h-4 w-4" />
+                          </ModernButton>
+                        )}
                         <ModernButton 
                           iconOnly
                           variant="outline" 
