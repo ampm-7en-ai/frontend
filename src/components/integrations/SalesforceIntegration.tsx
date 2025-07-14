@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
 import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { integrationApi } from '@/utils/api-config';
 
 interface SalesforceStatus {
   is_connected: boolean;
@@ -34,18 +33,7 @@ const SalesforceIntegration = () => {
   const checkSalesforceStatus = async () => {
     setIsCheckingStatus(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('salesforce/status/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.salesforce.getStatus();
 
       if (!response.ok) {
         throw new Error(`Failed to check Salesforce status: ${response.status}`);
@@ -74,22 +62,10 @@ const SalesforceIntegration = () => {
 
     setIsConnecting(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('salesforce/connect/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          instance_url: instanceUrl,
-          client_id: clientId,
-          client_secret: clientSecret,
-        }),
+      const response = await integrationApi.salesforce.connect({
+        instance_url: instanceUrl,
+        client_id: clientId,
+        client_secret: clientSecret,
       });
 
       if (!response.ok) {
@@ -119,18 +95,7 @@ const SalesforceIntegration = () => {
   const handleUnlink = async () => {
     setIsUnlinking(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('salesforce/unlink/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.salesforce.unlink();
 
       if (!response.ok) {
         throw new Error(`Failed to unlink Salesforce: ${response.status}`);

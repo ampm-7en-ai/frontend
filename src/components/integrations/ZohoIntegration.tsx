@@ -5,7 +5,7 @@ import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
 import { Building2, ExternalLink, Shield, CheckCircle, Settings, Edit, Save, User, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ZohoStatus {
@@ -76,18 +76,7 @@ const ZohoIntegration = () => {
   const checkZohoStatus = async () => {
     setIsCheckingStatus(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('zoho/status/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.zoho.getStatus();
 
       if (!response.ok) {
         throw new Error(`Failed to check Zoho status: ${response.status}`);
@@ -110,16 +99,7 @@ const ZohoIntegration = () => {
 
   const fetchOrganizations = async () => {
     try {
-      const token = getAccessToken();
-      if (!token) return;
-
-      const response = await fetch(getApiUrl('zoho/orgs/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.zoho.getOrganizations();
 
       if (!response.ok) {
         throw new Error(`Failed to fetch organizations: ${response.status}`);
@@ -141,16 +121,7 @@ const ZohoIntegration = () => {
 
   const fetchDepartments = async (orgId: string) => {
     try {
-      const token = getAccessToken();
-      if (!token) return;
-
-      const response = await fetch(getApiUrl(`zoho/departments/?org_id=${orgId}`), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.zoho.getDepartments(orgId);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch departments: ${response.status}`);
@@ -170,16 +141,7 @@ const ZohoIntegration = () => {
 
   const fetchContacts = async (orgId: string) => {
     try {
-      const token = getAccessToken();
-      if (!token) return;
-
-      const response = await fetch(getApiUrl(`zoho/contacts/?org_id=${orgId}`), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.zoho.getContacts(orgId);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch contacts: ${response.status}`);
@@ -213,11 +175,6 @@ const ZohoIntegration = () => {
 
     setIsSavingConfig(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
       const selectedDepartment = departments.find(d => d.id === selectedDepartmentId);
       const selectedContact = contacts.find(c => c.id === selectedContactId);
 
@@ -230,14 +187,7 @@ const ZohoIntegration = () => {
         location: "us"
       };
 
-      const response = await fetch(getApiUrl('zoho/update-config/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await integrationApi.zoho.updateConfig(payload);
 
       if (!response.ok) {
         throw new Error(`Failed to save configuration: ${response.status}`);
@@ -268,18 +218,7 @@ const ZohoIntegration = () => {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('zoho/auth/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.zoho.getAuthUrl();
 
       if (!response.ok) {
         throw new Error(`Failed to get Zoho auth URL: ${response.status}`);
@@ -317,18 +256,7 @@ const ZohoIntegration = () => {
   const handleUnlink = async () => {
     setIsUnlinking(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('zoho/unlink/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.zoho.unlink();
 
       if (!response.ok) {
         throw new Error(`Failed to unlink Zoho: ${response.status}`);

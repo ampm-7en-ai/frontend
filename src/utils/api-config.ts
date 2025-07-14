@@ -262,7 +262,27 @@ export const integrationApi = {
   zoho: {
     getStatus: () => integrationApi.getStatus('zoho'),
     connect: (data: any) => integrationApi.connect('zoho', data),
-    unlink: () => integrationApi.unlink('zoho')
+    unlink: () => integrationApi.unlink('zoho'),
+    getAuthUrl: async () => {
+      const response = await apiGet(getApiUrl('zoho/auth/'));
+      return response;
+    },
+    getOrganizations: async () => {
+      const response = await apiGet(getApiUrl('zoho/orgs/'));
+      return response;
+    },
+    getDepartments: async (orgId: string) => {
+      const response = await apiGet(getApiUrl(`zoho/departments/?org_id=${orgId}`));
+      return response;
+    },
+    getContacts: async (orgId: string) => {
+      const response = await apiGet(getApiUrl(`zoho/contacts/?org_id=${orgId}`));
+      return response;
+    },
+    updateConfig: async (payload: any) => {
+      const response = await apiPost(getApiUrl('zoho/update-config/'), payload);
+      return response;
+    }
   },
 
   // Zendesk specific

@@ -1,77 +1,39 @@
 
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
-import { Users, ExternalLink, Shield, CheckCircle, AlertCircle, Settings, Building2, Save } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Building, ExternalLink, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
+import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
+import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
+import { integrationApi } from '@/utils/api-config';
 
-interface HubSpotStatus {
+interface HubspotStatus {
   is_connected: boolean;
-  pipeline_label?: string;
-  stage_label?: string;
-}
-
-interface Pipeline {
-  pipelineId: string;
-  label: string;
-  stages: Stage[];
-}
-
-interface Stage {
-  stageId: string;
-  label: string;
-}
-
-interface PipelineConfig {
-  pipelineId: string;
-  pipelineLabel: string;
-  stageId: string;
-  stageLabel: string;
+  account_name?: string;
+  hub_id?: string;
 }
 
 const HubspotIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
-  const [isFetchingPipelines, setIsFetchingPipelines] = useState(false);
-  const [isSavingConfig, setIsSavingConfig] = useState(false);
-  const [hubspotStatus, setHubspotStatus] = useState<HubSpotStatus | null>(null);
-  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
-  const [selectedPipelineId, setSelectedPipelineId] = useState<string>('');
-  const [selectedStageId, setSelectedStageId] = useState<string>('');
-  const [currentConfig, setCurrentConfig] = useState<PipelineConfig | null>(null);
+  const [hubspotStatus, setHubspotStatus] = useState<HubspotStatus | null>(null);
+  const [accessToken, setAccessToken] = useState('');
   const { toast } = useToast();
 
   // Check HubSpot connection status on component mount
   useEffect(() => {
-    checkHubSpotStatus();
+    checkHubspotStatus();
   }, []);
 
-  // Fetch pipelines when connected
-  useEffect(() => {
-    if (hubspotStatus?.is_connected) {
-      fetchPipelines();
-    }
-  }, [hubspotStatus?.is_connected]);
-
-  const checkHubSpotStatus = async () => {
+  const checkHubspotStatus = async () => {
     setIsCheckingStatus(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('hubspot/status/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.hubspot.getStatus();
 
       if (!response.ok) {
         throw new Error(`Failed to check HubSpot status: ${response.status}`);
@@ -83,157 +45,44 @@ const HubspotIntegration = () => {
       }
     } catch (error) {
       console.error('Error checking HubSpot status:', error);
-      toast({
-        title: "Status Check Failed",
-        description: "Unable to check HubSpot connection status.",
-        variant: "destructive"
-      });
     } finally {
       setIsCheckingStatus(false);
     }
   };
 
-  const fetchPipelines = async () => {
-    setIsFetchingPipelines(true);
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('hubspot/pipelines/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch pipelines: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.status === 'success') {
-        setPipelines(result.data.pipelines);
-        if (result.data.selected) {
-          setCurrentConfig(result.data.selected);
-          setSelectedPipelineId(result.data.selected.pipelineId);
-          setSelectedStageId(result.data.selected.stageId);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching pipelines:', error);
+  const handleConnect = async () => {
+    if (!accessToken) {
       toast({
-        title: "Failed to Load Pipelines",
-        description: "Unable to fetch HubSpot pipelines.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsFetchingPipelines(false);
-    }
-  };
-
-  const saveConfiguration = async () => {
-    if (!selectedPipelineId || !selectedStageId) {
-      toast({
-        title: "Invalid Selection",
-        description: "Please select both pipeline and stage.",
+        title: "Missing Access Token",
+        description: "Please enter your HubSpot private app access token.",
         variant: "destructive"
       });
       return;
     }
 
-    setIsSavingConfig(true);
+    setIsConnecting(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('hubspot/pipelines/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pipelineId: selectedPipelineId,
-          stageId: selectedStageId
-        })
+      const response = await integrationApi.hubspot.connect({
+        access_token: accessToken
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to save configuration: ${response.status}`);
+        throw new Error(`Failed to connect HubSpot: ${response.status}`);
       }
 
       const result = await response.json();
       if (result.status === 'success') {
-        setCurrentConfig(result.data);
+        setHubspotStatus({ is_connected: true, ...result.data });
         toast({
-          title: "Configuration Saved",
-          description: "HubSpot pipeline configuration updated successfully.",
+          title: "Successfully Connected",
+          description: "HubSpot CRM has been connected.",
         });
       }
     } catch (error) {
-      console.error('Error saving configuration:', error);
+      console.error('Error connecting HubSpot:', error);
       toast({
-        title: "Save Failed",
-        description: "Unable to save HubSpot configuration.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSavingConfig(false);
-    }
-  };
-
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('hubspot/auth/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get auth URL: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.status === 'success' && result.data.auth_url) {
-        const popup = window.open(
-          result.data.auth_url,
-          'hubspot-auth',
-          'width=600,height=700,scrollbars=yes,resizable=yes'
-        );
-
-        const checkClosed = setInterval(() => {
-          if (popup?.closed) {
-            clearInterval(checkClosed);
-            setTimeout(() => {
-              checkHubSpotStatus();
-            }, 1000);
-          }
-        }, 1000);
-
-        toast({
-          title: "Authentication Started",
-          description: "Please complete the authentication in the popup window.",
-        });
-      }
-    } catch (error) {
-      console.error('Error initiating HubSpot auth:', error);
-      toast({
-        title: "Authentication Failed",
-        description: "Unable to start HubSpot authentication.",
+        title: "Connection Failed",
+        description: "Unable to connect to HubSpot. Please check your access token.",
         variant: "destructive"
       });
     } finally {
@@ -244,18 +93,7 @@ const HubspotIntegration = () => {
   const handleUnlink = async () => {
     setIsUnlinking(true);
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
-
-      const response = await fetch(getApiUrl('hubspot/unlink/'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await integrationApi.hubspot.unlink();
 
       if (!response.ok) {
         throw new Error(`Failed to unlink HubSpot: ${response.status}`);
@@ -264,10 +102,6 @@ const HubspotIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setHubspotStatus({ is_connected: false });
-        setPipelines([]);
-        setCurrentConfig(null);
-        setSelectedPipelineId('');
-        setSelectedStageId('');
         toast({
           title: "Successfully Unlinked",
           description: "HubSpot integration has been disconnected.",
@@ -287,197 +121,190 @@ const HubspotIntegration = () => {
 
   const isConnected = hubspotStatus?.is_connected || false;
 
-  // Show loading state while checking status
-  if (isCheckingStatus) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="lg" text="Checking HubSpot status..." />
-      </div>
-    );
-  }
-
-  // Get pipeline options for dropdown
-  const pipelineOptions = pipelines.map(pipeline => ({
-    value: pipeline.pipelineId,
-    label: pipeline.label
-  }));
-
-  // Get stage options for selected pipeline
-  const selectedPipeline = pipelines.find(p => p.pipelineId === selectedPipelineId);
-  const stageOptions = selectedPipeline ? selectedPipeline.stages.map(stage => ({
-    value: stage.stageId,
-    label: stage.label
-  })) : [];
-
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-2">
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">HubSpot Service Hub Integration</h2>
-          <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
-            {isConnected ? "Connected" : "Not Connected"}
-          </ModernStatusBadge>
+    <div className="space-y-6">
+      <div className="flex items-start gap-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <Building className="h-8 w-8 text-white" />
         </div>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-          Integrate with HubSpot Service Hub to automate customer support workflows and enhance your ticketing system.
-        </p>
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-foreground mb-2">Connect HubSpot CRM</h3>
+          <p className="text-muted-foreground leading-relaxed">
+            Integrate with HubSpot CRM to sync customer data and enhance your sales and marketing workflows.
+          </p>
+        </div>
+        {isCheckingStatus ? (
+          <ModernStatusBadge status="loading">
+            <LoadingSpinner size="sm" className="!mb-0 h-3 w-3" />
+            Checking...
+          </ModernStatusBadge>
+        ) : (
+          <ModernStatusBadge status={isConnected ? 'connected' : 'disconnected'}>
+            {isConnected ? 'Connected' : 'Not Connected'}
+          </ModernStatusBadge>
+        )}
       </div>
 
-      {/* Current Configuration Cards */}
-      {isConnected && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
-
-          {isFetchingPipelines ? (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner size="md" text="Loading pipelines..." />
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Pipeline</h4>
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {currentConfig?.pipelineLabel || "Not configured"}
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Stage</h4>
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {currentConfig?.stageLabel || "Not configured"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Configuration Form */}
-              {pipelines.length > 0 && (
-                <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600">
-                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-4">Update Configuration</h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        Select Pipeline
-                      </label>
-                      <ModernDropdown
-                        value={selectedPipelineId}
-                        onValueChange={(value) => {
-                          setSelectedPipelineId(value);
-                          setSelectedStageId(''); // Reset stage when pipeline changes
-                        }}
-                        options={pipelineOptions}
-                        placeholder="Choose pipeline..."
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        Select Stage
-                      </label>
-                      <ModernDropdown
-                        value={selectedStageId}
-                        onValueChange={setSelectedStageId}
-                        options={stageOptions}
-                        placeholder="Choose stage..."
-                        className="w-full"
-                        disabled={!selectedPipelineId}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-4">
-                    <ModernButton
-                      onClick={saveConfiguration}
-                      disabled={!selectedPipelineId || !selectedStageId || isSavingConfig}
-                      variant="primary"
-                      icon={Save}
-                      size="sm"
-                    >
-                      {isSavingConfig ? "Saving..." : "Save Configuration"}
-                    </ModernButton>
-                  </div>
+      {isConnected ? (
+        <>
+          <ModernAlert variant="success">
+            <ModernAlertDescription>
+              Connected to your HubSpot CRM. Integration is now active and ready to sync customer data.
+            </ModernAlertDescription>
+          </ModernAlert>
+          
+          <ModernCard variant="glass">
+            <ModernCardHeader>
+              <ModernCardTitle className="text-lg">Connection Details</ModernCardTitle>
+            </ModernCardHeader>
+            <ModernCardContent className="space-y-3">
+              {hubspotStatus?.account_name && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Account Name:</span>
+                  <span className="text-sm font-medium text-foreground">{hubspotStatus.account_name}</span>
                 </div>
               )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Connection Management */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
-          {isConnected 
-            ? "Your HubSpot integration is active and ready to streamline your support workflow." 
-            : "Connect your HubSpot account to enable automated ticket management and customer support features."
-          }
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          {isConnected ? (
-            <ModernButton 
-              onClick={handleUnlink}
-              disabled={isUnlinking}
-              variant="outline"
-              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-              size="sm"
-            >
-              {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
-            </ModernButton>
-          ) : (
-            <ModernButton 
-              onClick={handleConnect}
-              disabled={isConnecting}
-              variant="primary"
-              icon={Users}
-            >
-              {isConnecting ? "Connecting..." : "Connect HubSpot"}
-            </ModernButton>
-          )}
-          <ModernButton 
-            variant="outline" 
-            onClick={() => window.open('https://developers.hubspot.com/docs/api/crm/tickets', '_blank')}
-            icon={ExternalLink}
-            size="sm"
-          >
-            View Documentation
-          </ModernButton>
-        </div>
-      </div>
-
-      {/* Features Overview */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">HubSpot Service Hub Capabilities</h3>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
-          Powerful features to enhance your customer support operations
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {[
-            "Automated ticket creation and routing",
-            "Customer timeline and interaction history", 
-            "Help desk and knowledge base integration",
-            "Customer feedback and satisfaction surveys",
-            "Team collaboration and internal notes",
-            "Reporting and performance analytics"
-          ].map((feature, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+              {hubspotStatus?.hub_id && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Hub ID:</span>
+                  <span className="text-sm font-medium text-foreground">{hubspotStatus.hub_id}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-muted-foreground">Connected:</span>
+                <span className="text-sm font-medium text-foreground">{new Date().toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                <ModernStatusBadge status="connected" className="text-xs">
+                  Active
+                </ModernStatusBadge>
+              </div>
+              
+              <div className="pt-4 border-t border-border/50">
+                <ModernButton 
+                  variant="outline" 
+                  onClick={handleUnlink}
+                  disabled={isUnlinking}
+                  className="border-destructive/20 text-destructive hover:bg-destructive/10"
+                >
+                  {isUnlinking ? (
+                    <>
+                      <LoadingSpinner size="sm" className="!mb-0" />
+                      Disconnecting...
+                    </>
+                  ) : (
+                    'Disconnect Integration'
+                  )}
+                </ModernButton>
+              </div>
+            </ModernCardContent>
+          </ModernCard>
+        </>
+      ) : (
+        <ModernCard variant="glass">
+          <ModernCardHeader>
+            <ModernCardTitle className="flex items-center gap-3">
+              <Building className="h-6 w-6 text-primary" />
+              Connect HubSpot CRM
+            </ModernCardTitle>
+            <ModernCardDescription>
+              Integrate with HubSpot CRM to sync customer data and enhance sales workflows.
+            </ModernCardDescription>
+          </ModernCardHeader>
+          
+          <ModernCardContent className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-foreground mb-3">Integration Benefits</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Automatic contact and lead synchronization</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Sales pipeline and deal tracking</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Marketing automation workflows</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Customer interaction history</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Advanced reporting and analytics</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Email marketing integration</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-foreground mb-3">Prerequisites</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
+                    <span>You need a HubSpot account with CRM access</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
+                    <span>A private app must be created with proper scopes</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="hubspot-token">Private App Access Token</Label>
+                <Input
+                  id="hubspot-token"
+                  type="password"
+                  placeholder="pat-na1-..."
+                  value={accessToken}
+                  onChange={(e) => setAccessToken(e.target.value)}
+                  variant="modern"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Get this from your HubSpot private app settings
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 pt-2">
+              <ModernButton 
+                onClick={handleConnect}
+                disabled={isConnecting}
+                variant="gradient"
+                className="w-full sm:w-auto"
+                icon={isConnecting ? undefined : Building}
+              >
+                {isConnecting ? (
+                  <>
+                    <LoadingSpinner size="sm" className="!mb-0" />
+                    Connecting...
+                  </>
+                ) : (
+                  'Connect HubSpot'
+                )}
+              </ModernButton>
+              <ModernButton 
+                variant="outline" 
+                onClick={() => window.open('https://developers.hubspot.com/docs/api/private-apps', '_blank')}
+                icon={ExternalLink}
+              >
+                Setup Guide
+              </ModernButton>
+            </div>
+          </ModernCardContent>
+        </ModernCard>
+      )}
     </div>
   );
 };
