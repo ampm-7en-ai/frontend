@@ -235,22 +235,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         </div>
         
         {/* Search Bar */}
-        {!isCollapsed && (
-          <div className="p-4">
-            <div className="relative">
-              {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
-              <Input
-                placeholder="Search Ctrl+K"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-9 bg-gray-50 dark:bg-gray-800 border-0 focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-600 text-sm dark:text-gray-200 dark:placeholder-gray-400"
-              /> */}
-              <ModernButton
-              variant="secondary"
-              className="w-full"
-              icon={Plus}>Create Agent</ModernButton>
-            </div>
-          </div>
+        {!isCollapsed && (<></>
+          // <div className="p-4">
+          //   <div className="relative">
+          //     {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+          //     <Input
+          //       placeholder="Search Ctrl+K"
+          //       value={searchQuery}
+          //       onChange={(e) => setSearchQuery(e.target.value)}
+          //       className="pl-10 h-9 bg-gray-50 dark:bg-gray-800 border-0 focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-600 text-sm dark:text-gray-200 dark:placeholder-gray-400"
+          //     /> */}
+          //     <ModernButton
+          //     variant="secondary"
+          //     className="w-full"
+          //     icon={Plus}>Create Agent</ModernButton>
+          //   </div>
+          // </div>
         )}
         
         {/* Navigation */}
