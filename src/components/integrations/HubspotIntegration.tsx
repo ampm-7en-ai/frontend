@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
-import { Users, ExternalLink, Shield, CheckCircle, AlertCircle, Settings, Building2 } from 'lucide-react';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Users, ExternalLink, Shield, CheckCircle, AlertCircle, Settings, Building2, Save } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -12,17 +14,48 @@ interface HubSpotStatus {
   stage_label?: string;
 }
 
+interface Pipeline {
+  pipelineId: string;
+  label: string;
+  stages: Stage[];
+}
+
+interface Stage {
+  stageId: string;
+  label: string;
+}
+
+interface PipelineConfig {
+  pipelineId: string;
+  pipelineLabel: string;
+  stageId: string;
+  stageLabel: string;
+}
+
 const HubspotIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isFetchingPipelines, setIsFetchingPipelines] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [hubspotStatus, setHubspotStatus] = useState<HubSpotStatus | null>(null);
+  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string>('');
+  const [selectedStageId, setSelectedStageId] = useState<string>('');
+  const [currentConfig, setCurrentConfig] = useState<PipelineConfig | null>(null);
   const { toast } = useToast();
 
   // Check HubSpot connection status on component mount
   useEffect(() => {
     checkHubSpotStatus();
   }, []);
+
+  // Fetch pipelines when connected
+  useEffect(() => {
+    if (hubspotStatus?.is_connected) {
+      fetchPipelines();
+    }
+  }, [hubspotStatus?.is_connected]);
 
   const checkHubSpotStatus = async () => {
     setIsCheckingStatus(true);
@@ -57,6 +90,100 @@ const HubspotIntegration = () => {
       });
     } finally {
       setIsCheckingStatus(false);
+    }
+  };
+
+  const fetchPipelines = async () => {
+    setIsFetchingPipelines(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(getApiUrl('hubspot/pipelines/'), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch pipelines: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setPipelines(result.data.pipelines);
+        if (result.data.selected) {
+          setCurrentConfig(result.data.selected);
+          setSelectedPipelineId(result.data.selected.pipelineId);
+          setSelectedStageId(result.data.selected.stageId);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching pipelines:', error);
+      toast({
+        title: "Failed to Load Pipelines",
+        description: "Unable to fetch HubSpot pipelines.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsFetchingPipelines(false);
+    }
+  };
+
+  const saveConfiguration = async () => {
+    if (!selectedPipelineId || !selectedStageId) {
+      toast({
+        title: "Invalid Selection",
+        description: "Please select both pipeline and stage.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSavingConfig(true);
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(getApiUrl('hubspot/pipelines/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pipelineId: selectedPipelineId,
+          stageId: selectedStageId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save configuration: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setCurrentConfig(result.data);
+        toast({
+          title: "Configuration Saved",
+          description: "HubSpot pipeline configuration updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving configuration:', error);
+      toast({
+        title: "Save Failed",
+        description: "Unable to save HubSpot configuration.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingConfig(false);
     }
   };
 
@@ -137,6 +264,10 @@ const HubspotIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setHubspotStatus({ is_connected: false });
+        setPipelines([]);
+        setCurrentConfig(null);
+        setSelectedPipelineId('');
+        setSelectedStageId('');
         toast({
           title: "Successfully Unlinked",
           description: "HubSpot integration has been disconnected.",
@@ -165,6 +296,19 @@ const HubspotIntegration = () => {
     );
   }
 
+  // Get pipeline options for dropdown
+  const pipelineOptions = pipelines.map(pipeline => ({
+    value: pipeline.pipelineId,
+    label: pipeline.label
+  }));
+
+  // Get stage options for selected pipeline
+  const selectedPipeline = pipelines.find(p => p.pipelineId === selectedPipelineId);
+  const stageOptions = selectedPipeline ? selectedPipeline.stages.map(stage => ({
+    value: stage.stageId,
+    label: stage.label
+  })) : [];
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -181,31 +325,90 @@ const HubspotIntegration = () => {
       </div>
 
       {/* Current Configuration Cards */}
-      {isConnected && hubspotStatus && (
+      {isConnected && (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-              <div className="flex items-center gap-3 mb-2">
-                <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Pipeline</h4>
-              </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {hubspotStatus.pipeline_label || "Not configured"}
-              </p>
+          {isFetchingPipelines ? (
+            <div className="flex items-center justify-center py-8">
+              <LoadingSpinner size="md" text="Loading pipelines..." />
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Pipeline</h4>
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {currentConfig?.pipelineLabel || "Not configured"}
+                  </p>
+                </div>
 
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-              <div className="flex items-center gap-3 mb-2">
-                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Stage</h4>
+                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Stage</h4>
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {currentConfig?.stageLabel || "Not configured"}
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {hubspotStatus.stage_label || "Not configured"}
-              </p>
-            </div>
-          </div>
+
+              {/* Configuration Form */}
+              {pipelines.length > 0 && (
+                <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-4">Update Configuration</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Select Pipeline
+                      </label>
+                      <ModernDropdown
+                        value={selectedPipelineId}
+                        onValueChange={(value) => {
+                          setSelectedPipelineId(value);
+                          setSelectedStageId(''); // Reset stage when pipeline changes
+                        }}
+                        options={pipelineOptions}
+                        placeholder="Choose pipeline..."
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Select Stage
+                      </label>
+                      <ModernDropdown
+                        value={selectedStageId}
+                        onValueChange={setSelectedStageId}
+                        options={stageOptions}
+                        placeholder="Choose stage..."
+                        className="w-full"
+                        disabled={!selectedPipelineId}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <ModernButton
+                      onClick={saveConfiguration}
+                      disabled={!selectedPipelineId || !selectedStageId || isSavingConfig}
+                      variant="primary"
+                      icon={Save}
+                      size="sm"
+                    >
+                      {isSavingConfig ? "Saving..." : "Save Configuration"}
+                    </ModernButton>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
