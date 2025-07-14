@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Input } from '@/components/ui/input';
+import { ModernInput } from '@/components/ui/modern-input';
+import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Zap, ExternalLink, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { Zap, ExternalLink, Shield, CheckCircle, AlertCircle, Building2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface FreshdeskStatus {
   is_connected: boolean;
@@ -154,153 +153,144 @@ const FreshdeskIntegration = () => {
 
   const isConnected = freshdeskStatus?.is_connected || false;
 
+  // Show loading state while checking status
+  if (isCheckingStatus) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" text="Checking Freshdesk status..." />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Zap className="h-8 w-8 text-white" />
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Freshdesk Integration</h2>
+          <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
+            {isConnected ? "Connected" : "Not Connected"}
+          </ModernStatusBadge>
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Connect Freshdesk</h3>
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-            Integrate with Freshdesk to automate ticket management and enhance customer support operations.
-          </p>
-        </div>
-        {isCheckingStatus ? (
-          <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50">
-            Checking...
-          </Badge>
-        ) : (
-          <Badge 
-            variant={isConnected ? "success" : "outline"} 
-            className={isConnected 
-              ? "text-green-800 border-green-200 bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400" 
-              : "text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50"
-            }
-          >
-            {isConnected ? (
-              <>
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Connected
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-3 w-3 mr-1" />
-                Not Connected
-              </>
-            )}
-          </Badge>
-        )}
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Integrate with Freshdesk to automate ticket management and enhance customer support operations.
+        </p>
       </div>
 
+      {/* Current Configuration Cards */}
       {isConnected && freshdeskStatus && (
-        <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-200/50 dark:border-green-800/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Connection Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {freshdeskStatus.domain && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">Domain:</span>
-                <span className="text-sm text-green-700 dark:text-green-300">{freshdeskStatus.domain}.freshdesk.com</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
+
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="flex items-center gap-3 mb-2">
+              <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+              <h4 className="font-medium text-slate-900 dark:text-slate-100">Domain</h4>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {freshdeskStatus.domain ? `${freshdeskStatus.domain}.freshdesk.com` : "Not configured"}
+            </p>
+          </div>
+        </div>
       )}
 
-      <Card className="bg-slate-50/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-600/50">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-600" />
-            Integration Management
-          </CardTitle>
-          <CardDescription>
-            {isConnected 
-              ? "Your Freshdesk integration is active and ready to use." 
-              : "Connect your Freshdesk account to enable ticket automation."
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!isConnected && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="freshdesk-domain">Freshdesk Domain</Label>
-                <Input
-                  id="freshdesk-domain"
-                  placeholder="yourcompany"
-                  value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
-                  variant="modern"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Your Freshdesk domain (e.g., if your URL is yourcompany.freshdesk.com, enter "yourcompany")
-                </p>
-              </div>
+      {/* Connection Management */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
+        </div>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          {isConnected 
+            ? "Your Freshdesk integration is active and ready to streamline your support workflow." 
+            : "Connect your Freshdesk account to enable automated ticket management and customer support features."
+          }
+        </p>
 
-              <div className="space-y-2">
-                <Label htmlFor="freshdesk-api-key">API Key</Label>
-                <Input
-                  id="freshdesk-api-key"
-                  type="password"
-                  placeholder="Enter your Freshdesk API key"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  variant="modern"
-                />
-              </div>
+        {!isConnected && (
+          <div className="space-y-4 mb-6">
+            <div className="space-y-2">
+              <Label htmlFor="freshdesk-domain">Freshdesk Domain</Label>
+              <ModernInput
+                id="freshdesk-domain"
+                placeholder="yourcompany"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                variant="modern"
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Your Freshdesk domain (e.g., if your URL is yourcompany.freshdesk.com, enter "yourcompany")
+              </p>
             </div>
-          )}
 
-          <div className="flex gap-3 pt-4">
-            {isConnected ? (
-              <ModernButton 
-                onClick={handleUnlink}
-                disabled={isUnlinking}
-                variant="outline"
-                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-              >
-                {isUnlinking ? "Unlinking..." : "Unlink Freshdesk"}
-              </ModernButton>
-            ) : (
-              <ModernButton 
-                onClick={handleConnect}
-                disabled={isConnecting}
-                variant="gradient"
-              >
-                {isConnecting ? "Connecting..." : "Connect Freshdesk"}
-              </ModernButton>
-            )}
-            <ModernButton 
-              variant="outline" 
-              onClick={() => window.open('https://developers.freshdesk.com/api/', '_blank')}
-              icon={ExternalLink}
-            >
-              API Documentation
-            </ModernButton>
+            <div className="space-y-2">
+              <Label htmlFor="freshdesk-api-key">API Key</Label>
+              <ModernInput
+                id="freshdesk-api-key"
+                type="password"
+                placeholder="Enter your Freshdesk API key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                variant="modern"
+              />
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      <Card className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-200/50 dark:border-blue-800/50">
-        <CardHeader>
-          <CardTitle className="text-lg text-blue-900 dark:text-blue-100">Freshdesk Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-            <li>• Omnichannel ticket management</li>
-            <li>• Automated workflows and SLA management</li>
-            <li>• Customer self-service portal</li>
-            <li>• Team collaboration and internal notes</li>
-            <li>• Advanced reporting and analytics</li>
-            <li>• Integration with third-party tools</li>
-          </ul>
-        </CardContent>
-      </Card>
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isConnected ? (
+            <ModernButton 
+              onClick={handleUnlink}
+              disabled={isUnlinking}
+              variant="outline"
+              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+              size="sm"
+            >
+              {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
+            </ModernButton>
+          ) : (
+            <ModernButton 
+              onClick={handleConnect}
+              disabled={isConnecting}
+              variant="primary"
+              icon={Zap}
+            >
+              {isConnecting ? "Connecting..." : "Connect Freshdesk"}
+            </ModernButton>
+          )}
+          <ModernButton 
+            variant="outline" 
+            onClick={() => window.open('https://developers.freshdesk.com/api/', '_blank')}
+            icon={ExternalLink}
+            size="sm"
+          >
+            View Documentation
+          </ModernButton>
+        </div>
+      </div>
+
+      {/* Features Overview */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Freshdesk Capabilities</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Powerful features to enhance your customer support operations
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            "Omnichannel ticket management",
+            "Automated workflows and SLA management", 
+            "Customer self-service portal",
+            "Team collaboration and internal notes",
+            "Advanced reporting and analytics",
+            "Integration with third-party tools"
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

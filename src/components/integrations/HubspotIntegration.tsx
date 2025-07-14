@@ -1,13 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Users, ExternalLink, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
+import { Users, ExternalLink, Shield, CheckCircle, AlertCircle, Settings, Building2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface HubSpotStatus {
   is_connected: boolean;
@@ -85,18 +82,15 @@ const HubspotIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success' && result.data.auth_url) {
-        // Open auth URL in a new popup window
         const popup = window.open(
           result.data.auth_url,
           'hubspot-auth',
           'width=600,height=700,scrollbars=yes,resizable=yes'
         );
 
-        // Listen for the popup to close (indicating auth completion)
         const checkClosed = setInterval(() => {
           if (popup?.closed) {
             clearInterval(checkClosed);
-            // Recheck status after auth window closes
             setTimeout(() => {
               checkHubSpotStatus();
             }, 1000);
@@ -162,129 +156,125 @@ const HubspotIntegration = () => {
 
   const isConnected = hubspotStatus?.is_connected || false;
 
+  // Show loading state while checking status
+  if (isCheckingStatus) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" text="Checking HubSpot status..." />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Users className="h-8 w-8 text-white" />
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">HubSpot Service Hub Integration</h2>
+          <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
+            {isConnected ? "Connected" : "Not Connected"}
+          </ModernStatusBadge>
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Connect HubSpot Service Hub</h3>
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-            Integrate with HubSpot Service Hub to automate customer support workflows and enhance your ticketing system.
-          </p>
-        </div>
-        {isCheckingStatus ? (
-          <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50">
-            Checking...
-          </Badge>
-        ) : (
-          <Badge 
-            variant={isConnected ? "success" : "outline"} 
-            className={isConnected 
-              ? "text-green-800 border-green-200 bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400" 
-              : "text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50"
-            }
-          >
-            {isConnected ? (
-              <>
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Connected
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-3 w-3 mr-1" />
-                Not Connected
-              </>
-            )}
-          </Badge>
-        )}
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Integrate with HubSpot Service Hub to automate customer support workflows and enhance your ticketing system.
+        </p>
       </div>
 
+      {/* Current Configuration Cards */}
       {isConnected && hubspotStatus && (
-        <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-200/50 dark:border-green-800/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Connection Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {hubspotStatus.pipeline_label && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">Pipeline:</span>
-                <span className="text-sm text-green-700 dark:text-green-300">{hubspotStatus.pipeline_label}</span>
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Pipeline</h4>
               </div>
-            )}
-            {hubspotStatus.stage_label && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">Stage:</span>
-                <span className="text-sm text-green-700 dark:text-green-300">{hubspotStatus.stage_label}</span>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {hubspotStatus.pipeline_label || "Not configured"}
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Stage</h4>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {hubspotStatus.stage_label || "Not configured"}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
-      <Card className="bg-slate-50/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-600/50">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Shield className="h-5 w-5 text-orange-600" />
-            Integration Management
-          </CardTitle>
-          <CardDescription>
-            {isConnected 
-              ? "Your HubSpot integration is active and ready to use." 
-              : "Connect your HubSpot account to enable seamless integration."
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-3 pt-4">
-            {isConnected ? (
-              <Button 
-                onClick={handleUnlink}
-                disabled={isUnlinking}
-                variant="destructive"
-              >
-                {isUnlinking ? "Unlinking..." : "Unlink HubSpot"}
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleConnect}
-                disabled={isConnecting}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
-              >
-                {isConnecting ? "Connecting..." : "Connect HubSpot"}
-              </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={() => window.open('https://developers.hubspot.com/docs/api/crm/tickets', '_blank')}
-              className="gap-2"
+      {/* Connection Management */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
+        </div>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          {isConnected 
+            ? "Your HubSpot integration is active and ready to streamline your support workflow." 
+            : "Connect your HubSpot account to enable automated ticket management and customer support features."
+          }
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isConnected ? (
+            <ModernButton 
+              onClick={handleUnlink}
+              disabled={isUnlinking}
+              variant="outline"
+              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+              size="sm"
             >
-              <ExternalLink className="h-4 w-4" />
-              API Documentation
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
+            </ModernButton>
+          ) : (
+            <ModernButton 
+              onClick={handleConnect}
+              disabled={isConnecting}
+              variant="primary"
+              icon={Users}
+            >
+              {isConnecting ? "Connecting..." : "Connect HubSpot"}
+            </ModernButton>
+          )}
+          <ModernButton 
+            variant="outline" 
+            onClick={() => window.open('https://developers.hubspot.com/docs/api/crm/tickets', '_blank')}
+            icon={ExternalLink}
+            size="sm"
+          >
+            View Documentation
+          </ModernButton>
+        </div>
+      </div>
 
-      <Card className="bg-orange-50/50 dark:bg-orange-900/10 border-orange-200/50 dark:border-orange-800/50">
-        <CardHeader>
-          <CardTitle className="text-lg text-orange-900 dark:text-orange-100">Service Hub Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-orange-800 dark:text-orange-200">
-            <li>• Automated ticket creation and routing</li>
-            <li>• Customer timeline and interaction history</li>
-            <li>• Help desk and knowledge base integration</li>
-            <li>• Customer feedback and satisfaction surveys</li>
-            <li>• Team collaboration and internal notes</li>
-            <li>• Reporting and performance analytics</li>
-          </ul>
-        </CardContent>
-      </Card>
+      {/* Features Overview */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">HubSpot Service Hub Capabilities</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Powerful features to enhance your customer support operations
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            "Automated ticket creation and routing",
+            "Customer timeline and interaction history", 
+            "Help desk and knowledge base integration",
+            "Customer feedback and satisfaction surveys",
+            "Team collaboration and internal notes",
+            "Reporting and performance analytics"
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

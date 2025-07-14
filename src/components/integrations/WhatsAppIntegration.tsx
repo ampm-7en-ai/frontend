@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader, QrCode, Check, AlertCircle, Phone } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
+import { Phone, ExternalLink, Shield, CheckCircle, AlertCircle, QrCode, User } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { 
   initFacebookSDK, 
   loginWithFacebook, 
@@ -11,7 +12,6 @@ import {
   checkWhatsAppStatus
 } from '@/utils/facebookSDK';
 import { clearCacheEntry } from '@/utils/cacheUtils';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -144,148 +144,158 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
   
   if (isInitialLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <LoadingSpinner size="lg" text="Loading WhatsApp Integration..." />
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" text="Checking WhatsApp status..." />
       </div>
     );
   }
   
   return (
-    <div className="space-y-6">
-      {isConnected ? (
-        <>
-          <div className="bg-green-50 border border-green-100 rounded-md p-4 flex items-center gap-3">
-            <div className="bg-green-100 p-1.5 rounded-full">
-              <Check className="h-5 w-5 text-green-600" />
-            </div>
-            <span className="text-green-700">Connected to your WhatsApp Business phone number.</span>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium text-lg mb-2">Your WhatsApp AI Agent</h3>
-              <p className="text-muted-foreground">
-                Your Agent is linked to your WhatsApp Business with phone number <strong>{phoneDisplay}</strong><br />
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              
-              {
-                qrCodeImageUrl !== '' && (
-                  <>
-                    <h4 className="font-medium">Scan the QR below to chat with your Agent on WhatsApp:</h4>
-                    <div className="border rounded-md p-4 bg-white w-fit">
-                      <img 
-                        src={qrCodeImageUrl} 
-                        alt="WhatsApp QR Code" 
-                        className="max-w-[250px]"
-                      />
-                    </div>
-                  </>
-                )
-              }
-              <p className="text-sm text-muted-foreground mt-2">
-                To unlink your WhatsApp Business phone number from 7en.ai, click this button:
-              </p>
-              <Button 
-                variant="destructive" 
-                onClick={handleDisconnect}
-                size="sm"
-              >
-                Unlink
-              </Button>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <Alert variant="default" className="bg-blue-50 border-blue-100">
-            <AlertCircle className="h-4 w-4 text-blue-500" />
-            <AlertDescription className="text-blue-700">
-              Connect your WhatsApp Business API to enable automated responses via WhatsApp.
-            </AlertDescription>
-          </Alert>
-          
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-lg border border-green-100 shadow-sm">
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-green-500 p-2 rounded-full">
-                  <QrCode className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-green-800">Connect WhatsApp Business</h3>
-              </div>
-              <p className="text-green-800">
-                Connect your WhatsApp Business account to enable automated responses to your customers.
-              </p>
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              <div className="bg-white rounded p-4 border border-green-100">
-                <h4 className="font-medium text-green-800 mb-2">Integration Benefits:</h4>
-                <ul className="space-y-2 text-green-700">
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                    <span>Engage customers on their preferred messaging platform</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                    <span>Automate responses to common customer questions</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                    <span>Provide 24/7 automated customer support</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                    <span>Transfer complex queries to human agents when needed</span>
-                  </li>
-                </ul>
-              </div>
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">WhatsApp Business Integration</h2>
+          <ModernStatusBadge status={isConnected ? "connected" : "disconnected"}>
+            {isConnected ? "Connected" : "Not Connected"}
+          </ModernStatusBadge>
+        </div>
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Connect your WhatsApp Business API to enable automated responses via WhatsApp messaging.
+        </p>
+      </div>
 
-              <div className="bg-white rounded p-4 border border-green-100">
-                <h4 className="font-medium text-green-800 mb-2">What You'll Need:</h4>
-                <ul className="space-y-2 text-green-700">
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                    <span>A Facebook Business Account</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                    <span>A WhatsApp Business Phone Number</span>
-                  </li>
-                </ul>
+      {/* Current Configuration Cards */}
+      {isConnected && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <Phone className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Phone Number</h4>
               </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {phoneDisplay || "Not configured"}
+              </p>
             </div>
-            
-            <div className="text-center">
-              <Button 
-                onClick={handleConnectFacebook} 
-                disabled={isConnecting || isFacebookLoading}
-                size="lg"
-                className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-              >
-                {isConnecting ? (
-                  <>
-                    <Loader className="h-4 w-4 animate-spin" />
-                    Connecting...
-                  </>
-                ) : isFacebookLoading ? (
-                  <>
-                    <Loader className="h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Phone className="h-5 w-5" />
-                    Connect WhatsApp Business
-                  </>
-                )}
-              </Button>
+
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 mb-2">
+                <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Status</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Active & Ready
+              </p>
             </div>
           </div>
-        </>
+
+          {qrCodeImageUrl && (
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+              <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-4">QR Code for Testing</h4>
+              <div className="bg-white p-4 rounded-lg border border-slate-200 dark:border-slate-600 w-fit">
+                <img 
+                  src={qrCodeImageUrl} 
+                  alt="WhatsApp QR Code" 
+                  className="max-w-[250px]"
+                />
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                Scan this QR code to start a conversation with your AI agent
+              </p>
+            </div>
+          )}
+        </div>
       )}
+
+      {/* Connection Management */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
+        </div>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          {isConnected 
+            ? "Your WhatsApp Business integration is active and ready to handle customer conversations." 
+            : "Connect your WhatsApp Business account to enable automated customer messaging and support."
+          }
+        </p>
+
+        {!isConnected && (
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Prerequisites</h4>
+            <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+              <li className="flex gap-2 items-center">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                <span>A Facebook Business Account</span>
+              </li>
+              <li className="flex gap-2 items-center">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                <span>A WhatsApp Business Phone Number</span>
+              </li>
+            </ul>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isConnected ? (
+            <ModernButton 
+              onClick={handleDisconnect}
+              variant="outline"
+              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+              size="sm"
+            >
+              Disconnect Integration
+            </ModernButton>
+          ) : (
+            <ModernButton 
+              onClick={handleConnectFacebook}
+              disabled={isConnecting || isFacebookLoading}
+              variant="primary"
+              icon={isConnecting ? undefined : Phone}
+            >
+              {isConnecting ? (
+                <>
+                  <LoadingSpinner size="sm" className="!mb-0" />
+                  Connecting...
+                </>
+              ) : isFacebookLoading ? (
+                <>
+                  <LoadingSpinner size="sm" className="!mb-0" />
+                  Loading...
+                </>
+              ) : (
+                'Connect WhatsApp Business'
+              )}
+            </ModernButton>
+          )}
+        </div>
+      </div>
+
+      {/* Features Overview */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">WhatsApp Business Capabilities</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Powerful messaging features to enhance customer engagement
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            "Automated customer conversations",
+            "24/7 customer support availability", 
+            "Rich media message support",
+            "Seamless handoff to human agents",
+            "Message templates and quick replies",
+            "Customer engagement tracking"
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
