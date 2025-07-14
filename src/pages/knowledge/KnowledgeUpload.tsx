@@ -350,7 +350,7 @@ const KnowledgeUpload = () => {
             : selectedFiles
         };
 
-        response = await fetch('/api/knowledge/', {
+        response = await fetch('/api/knowledgebase/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
