@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
-import { Zap, ExternalLink, CheckCircle } from 'lucide-react';
+import { Zap, ExternalLink, CheckCircle, Shield } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernInput } from '@/components/ui/modern-input';
