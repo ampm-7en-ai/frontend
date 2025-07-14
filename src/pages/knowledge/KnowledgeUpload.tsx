@@ -350,7 +350,7 @@ const KnowledgeUpload = () => {
             : selectedFiles
         };
 
-        response = await fetch(`${BASE_URL}knowledgebase/`, {
+        const apiResponse = await fetch(`${BASE_URL}knowledgebase/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -359,11 +359,27 @@ const KnowledgeUpload = () => {
           body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to create knowledge base');
+        if (!apiResponse.ok) {
+          let errorMessage = 'Failed to create knowledge base';
+          
+          try {
+            const errorData = await apiResponse.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = errorData.error;
+            } else if (errorData.detail) {
+              errorMessage = errorData.detail;
+            }
+          } catch (parseError) {
+            console.error('Error parsing error response:', parseError);
+            errorMessage = `HTTP ${apiResponse.status}: ${apiResponse.statusText}`;
+          }
+          
+          throw new Error(errorMessage);
         }
 
-        response = await response.json();
+        response = await apiResponse.json();
       } else {
         // For other source types, use FormData as before
         const formData = new FormData();
@@ -406,7 +422,29 @@ const KnowledgeUpload = () => {
           });
         }
 
-        response = await createKnowledgeBase(formData);
+        try {
+          response = await createKnowledgeBase(formData);
+        } catch (apiError: any) {
+          let errorMessage = 'Failed to add knowledge source';
+          
+          // Check if the error has response data
+          if (apiError.response && apiError.response.data) {
+            const errorData = apiError.response.data;
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = errorData.error;
+            } else if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else if (typeof errorData === 'string') {
+              errorMessage = errorData;
+            }
+          } else if (apiError.message) {
+            errorMessage = apiError.message;
+          }
+          
+          throw new Error(errorMessage);
+        }
       }
 
       if (response) {
@@ -429,9 +467,11 @@ const KnowledgeUpload = () => {
         errorMessage = error.message;
       }
 
+      console.error('Knowledge source upload error:', error);
+
       hideToast(loadingToastId);
       showToast({
-        title: "Error",
+        title: "Upload Failed",
         description: errorMessage,
         variant: "error"
       });
