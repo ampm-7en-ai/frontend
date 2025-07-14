@@ -157,7 +157,7 @@ const MessengerIntegration = () => {
                 className="w-full sm:w-auto"
                 icon={isConnecting ? undefined : MessageSquare}
               >
-                {isConnecting ? (
+                {isConnected ? (
                   <>
                     <LoadingSpinner size="sm" className="!mb-0" />
                     Connecting...
