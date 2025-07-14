@@ -247,7 +247,15 @@ export const integrationApi = {
   hubspot: {
     getStatus: () => integrationApi.getStatus('hubspot'),
     connect: (data: any) => integrationApi.connect('hubspot', data),
-    unlink: () => integrationApi.unlink('hubspot')
+    unlink: () => integrationApi.unlink('hubspot'),
+    getPipelines: async () => {
+      const response = await apiGet(getApiUrl('hubspot/pipelines/'));
+      return response;
+    },
+    updatePipeline: async (data: { pipelineId: string; stageId: string }) => {
+      const response = await apiPost(getApiUrl('hubspot/pipelines/'), data);
+      return response;
+    }
   },
 
   // Salesforce specific
