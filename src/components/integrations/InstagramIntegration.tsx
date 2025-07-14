@@ -135,6 +135,14 @@ const InstagramIntegration = () => {
                     <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
                     <span>Track engagement from Instagram conversations</span>
                   </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Support for rich media and story mentions</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Automated comment responses and moderation</span>
+                  </li>
                 </ul>
               </div>
               

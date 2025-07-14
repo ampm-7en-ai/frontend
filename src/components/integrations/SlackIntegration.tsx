@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Slack, AlertCircle, Check, Loader } from 'lucide-react';
+import { Slack, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
@@ -272,6 +272,14 @@ const SlackIntegration: React.FC = () => {
                   <li className="flex gap-2 items-center">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
                     <span>Automate routine customer interactions</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Team collaboration on customer issues</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Real-time alerts and escalation workflows</span>
                   </li>
                 </ul>
               </div>

@@ -131,6 +131,14 @@ const MessengerIntegration = () => {
                     <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
                     <span>Track customer engagement metrics</span>
                   </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Rich media support for images and videos</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <span>Personalized messaging based on user data</span>
+                  </li>
                 </ul>
               </div>
               
@@ -157,7 +165,7 @@ const MessengerIntegration = () => {
                 className="w-full sm:w-auto"
                 icon={isConnecting ? undefined : MessageSquare}
               >
-                {isConnected ? (
+                {isConnecting ? (
                   <>
                     <LoadingSpinner size="sm" className="!mb-0" />
                     Connecting...
