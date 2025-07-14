@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Building2, ExternalLink, Shield, CheckCircle, Settings, Edit, Save, User, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ZohoStatus {
   is_connected: boolean;
@@ -386,6 +387,15 @@ const ZohoIntegration = () => {
     const org = organizations.find(o => o.id === orgId);
     return org ? org.companyName : `Organization ID: ${orgId}`;
   };
+
+  // Show loading state while checking status
+  if (isCheckingStatus) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" text="Checking Zoho Desk status..." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

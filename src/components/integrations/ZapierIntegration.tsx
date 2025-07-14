@@ -1,11 +1,10 @@
 
 import React, { useState } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Zap } from 'lucide-react';
+import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
+import { Zap, ExternalLink, CheckCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
-import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { ModernInput } from '@/components/ui/modern-input';
 import { Label } from '@/components/ui/label';
 
@@ -59,91 +58,114 @@ const ZapierIntegration = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-          <Zap className="h-8 w-8 text-white" />
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Zapier Integration</h2>
+          <ModernStatusBadge status="disconnected">
+            Not Connected
+          </ModernStatusBadge>
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-foreground mb-2">Connect Zapier</h3>
-          <p className="text-muted-foreground leading-relaxed">
-            Connect 7en.ai to thousands of apps with Zapier webhooks and automate your workflows.
-          </p>
-        </div>
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Connect your AI Agent with thousands of apps through Zapier automation and create powerful workflows.
+        </p>
       </div>
 
-      <ModernAlert variant="info">
-        <ModernAlertDescription>
-          Connect 7en.ai to thousands of apps with Zapier webhooks. Create powerful automations that trigger when specific events occur in your chatbot conversations.
-        </ModernAlertDescription>
-      </ModernAlert>
-      
-      <ModernCard variant="glass">
-        <ModernCardHeader>
-          <ModernCardTitle className="flex items-center gap-3">
-            <Zap className="h-6 w-6 text-primary" />
-            Getting Started with Zapier
-          </ModernCardTitle>
-          <ModernCardDescription>
-            Follow these simple steps to connect your Zapier workflow.
-          </ModernCardDescription>
-        </ModernCardHeader>
+      {/* Configuration Section */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Webhook Configuration</h3>
         
-        <ModernCardContent className="space-y-6">
-          <div className="space-y-4">
-            <h4 className="font-medium text-foreground">Setup Instructions</h4>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">1</div>
-                <span>Create a Zap in Zapier with a Webhook trigger</span>
-              </div>
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">2</div>
-                <span>Copy the webhook URL from Zapier</span>
-              </div>
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">3</div>
-                <span>Paste it below and test the connection</span>
-              </div>
-            </div>
+        <form onSubmit={handleTrigger} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="webhook-url" className="font-medium text-slate-900 dark:text-slate-100">
+              Zapier Webhook URL
+            </Label>
+            <ModernInput 
+              id="webhook-url"
+              placeholder="https://hooks.zapier.com/hooks/catch/..."
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+              variant="modern"
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Enter your Zapier webhook URL to test the connection
+            </p>
           </div>
           
-          <form onSubmit={handleTrigger} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="webhook-url" className="font-medium text-foreground">
-                Zapier Webhook URL
-              </Label>
-              <ModernInput 
-                id="webhook-url"
-                placeholder="https://hooks.zapier.com/hooks/catch/..."
-                value={webhookUrl}
-                onChange={(e) => setWebhookUrl(e.target.value)}
-                variant="modern"
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter your Zapier webhook URL to test the connection
-              </p>
+          <ModernButton 
+            type="submit" 
+            disabled={isLoading}
+            variant="primary"
+            size="sm"
+            icon={isLoading ? undefined : Zap}
+          >
+            {isLoading ? (
+              <>
+                <LoadingSpinner size="sm" className="!mb-0 mr-2" />
+                Testing Connection...
+              </>
+            ) : (
+              'Test Webhook'
+            )}
+          </ModernButton>
+        </form>
+      </div>
+
+      {/* Setup Instructions */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Setup Instructions</h3>
+        </div>
+        
+        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400 mb-6">
+          <div className="flex gap-3">
+            <div className="flex-shrink-0 w-6 h-6 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-xs font-medium">1</div>
+            <span>Create a Zap in Zapier with a Webhook trigger</span>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-shrink-0 w-6 h-6 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-xs font-medium">2</div>
+            <span>Copy the webhook URL from Zapier</span>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-shrink-0 w-6 h-6 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-xs font-medium">3</div>
+            <span>Paste it above and test the connection</span>
+          </div>
+        </div>
+
+        <ModernButton 
+          variant="outline" 
+          onClick={() => window.open('https://zapier.com/apps/webhook', '_blank')}
+          icon={ExternalLink}
+          size="sm"
+        >
+          View Zapier Documentation
+        </ModernButton>
+      </div>
+
+      {/* Features Overview */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Zapier Capabilities</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Powerful automation features to connect your AI agent with thousands of apps
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            "Connect to 5000+ apps and services",
+            "Automated workflow triggers", 
+            "Multi-step automation sequences",
+            "Custom data transformation",
+            "Real-time event processing",
+            "Advanced filtering and logic"
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
             </div>
-            
-            <ModernButton 
-              type="submit" 
-              disabled={isLoading}
-              variant="gradient"
-              className="w-full sm:w-auto"
-              icon={isLoading ? undefined : Zap}
-            >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" className="!mb-0" />
-                  Testing Connection...
-                </>
-              ) : (
-                'Test Webhook'
-              )}
-            </ModernButton>
-          </form>
-        </ModernCardContent>
-      </ModernCard>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
