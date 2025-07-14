@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeSource, UrlNode } from './types';
@@ -965,7 +964,7 @@ export const ImportSourcesDialog = ({
                   <div className="flex flex-wrap text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {file.metadata?.size && (
                       <span className="mr-3">
-                        Size: {formatFileSizeToMB(parseInt(file.metadata.size))}
+                        Size: {formatFileSizeToMB(typeof file.metadata.size === 'string' ? parseInt(file.metadata.size) : file.metadata.size)}
                       </span>
                     )}
                     

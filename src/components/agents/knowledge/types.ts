@@ -1,4 +1,3 @@
-
 export interface KnowledgeSource {
   id: number;
   name: string;
@@ -43,6 +42,11 @@ export interface KnowledgeSource {
     };
     size?: string | number;
     created_at?: string;
+    // Third party specific metadata
+    mimeType?: string;
+    name?: string;
+    webViewLink?: string;
+    modifiedTime?: string;
   };
   icon?: string;
   knowledge_sources?: KnowledgeSourceItem[];
@@ -60,6 +64,7 @@ export interface KnowledgeSource {
   file?: string | null;
   chunks?: number;
   description?: string;
+  source?: string; // For third_party type sources like 'google_drive'
 }
 
 export interface AgentReference {
@@ -92,6 +97,13 @@ export interface KnowledgeSourceItem {
     no_of_chars?: number;
     upload_date?: string;
     last_fetched?: string;
+    // Third party specific metadata
+    mimeType?: string;
+    name?: string;
+    webViewLink?: string;
+    modifiedTime?: string;
+    createdTime?: string;
+    id?: string;
   };
   owner?: number;
   sub_knowledge_sources?: KnowledgeSourceItem[];
