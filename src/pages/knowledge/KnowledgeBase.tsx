@@ -349,15 +349,6 @@ const KnowledgeBase = () => {
         return 'bg-gradient-to-br from-purple-500 to-purple-600';
       case 'third_party':
         return 'bg-white'; // White background for Google logo
-      case 'thirdparty':
-        switch (doc.provider) {
-          case 'googleDrive':
-            return 'bg-gradient-to-br from-blue-500 to-blue-600';
-          case 'slack':
-            return 'bg-gradient-to-br from-pink-500 to-pink-600';
-          default:
-            return 'bg-gradient-to-br from-gray-500 to-gray-600';
-        }
       default:
         return 'bg-gradient-to-br from-gray-500 to-gray-600';
     }
