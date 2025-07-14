@@ -182,6 +182,13 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             dos: agentData.behavior?.guidelines?.dos || ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
             donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
           },
+          behavior: {
+            conversationMemory: agentData.behavior?.conversationMemory || false,
+            continuousLearning: agentData.behavior?.continuousLearning || false,
+            expertHandoff: agentData.behavior?.expertHandoff || false,
+            aiToAiHandoff: agentData.behavior?.aiToAiHandoff || false,
+            multilingualSupport: agentData.behavior?.multilingualSupport || false
+          },
           settings: {
             temperature: agentData.model?.temperature || 0.7,
             token_length: agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
