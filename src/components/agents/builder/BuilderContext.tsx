@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -156,15 +157,15 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         
         console.log('Fetched agent data:', agentData);
 
-        // Map API response to our form structure
+        // Map API response to our form structure - Fix model configuration mapping
         const mappedData: AgentFormData = {
           id: agentData.id || id,
           name: agentData.name || 'Untitled Agent',
           description: agentData.description || 'A helpful AI assistant created with our builder.',
           agentType: agentData.agentType || 'Customer Support',
-          model: agentData.settings?.response_model || agentData.model?.selectedModel || 'gpt-3.5-turbo',
-          temperature: agentData.settings?.temperature || agentData.model?.temperature || 0.7,
-          maxTokens: parseInt(agentData.settings?.token_length) || agentData.model?.maxResponseLength || 1000,
+          model: agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo',
+          temperature: agentData.model?.temperature || 0.7,
+          maxTokens: agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
           systemPrompt: agentData.systemPrompt || 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
           primaryColor: agentData.appearance?.primaryColor || '#3b82f6',
           secondaryColor: agentData.appearance?.secondaryColor || '#ffffff',
@@ -182,9 +183,9 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
           },
           settings: {
-            temperature: agentData.settings?.temperature || 0.7,
-            token_length: agentData.settings?.token_length || 1000,
-            response_model: agentData.settings?.response_model || 'gpt-3.5-turbo'
+            temperature: agentData.model?.temperature || 0.7,
+            token_length: agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
+            response_model: agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
           },
           knowledgeSources: formatKnowledgeSources(agentData.knowledge_bases || agentData.knowledgeSources || [])
         };
