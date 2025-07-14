@@ -1,82 +1,116 @@
 
 import React from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/hooks/useSettings';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import UsageSection from '@/components/settings/business/UsageSection';
+import ConnectedAccountsSection from '@/components/settings/business/ConnectedAccountsSection';
+import ApiKeysSection from '@/components/settings/business/ApiKeysSection';
+import BusinessProfileSection from '@/components/settings/business/BusinessProfileSection';
+import TeamManagementSection from '@/components/settings/business/TeamManagementSection';
+import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAgentSettingsSection';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { PricingModal } from '@/components/settings/PricingModal';
+import { CurrentPlanCard } from '@/components/settings/business/CurrentPlanCard';
+import { PaymentStatusBanner } from '@/components/settings/PaymentStatusBanner';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const BusinessSettings = () => {
-  const { settings, updateSettings, isLoading, error } = useSettings();
-  const { toast } = useToast();
+  const { data: settingsData, isLoading, error } = useSettings();
+  const { theme } = useAppTheme();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="container mx-auto py-12 flex justify-center items-center h-64">
+          <LoadingSpinner size="lg" text="Loading settings..." />
+        </div>
+      </div>
+    );
+  }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    
-    const payload = {
-      business_name: formData.get('business_name') as string,
-      business_address: formData.get('business_address') as string,
-    };
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="container mx-auto py-12 max-w-4xl">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-sm">
+            <p className="font-medium">Error loading settings</p>
+            <p className="text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-    try {
-      await updateSettings(payload);
-      toast({
-        title: "Settings updated",
-        description: "Your business settings have been saved successfully.",
-      });
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update settings. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
+  const initialProfileData = {
+    businessName: settingsData?.business_details?.business_name || '',
+    adminEmail: settingsData?.business_details?.email || '',
+    adminPhone: settingsData?.business_details?.phone_number || '',
+    adminWebsite: settingsData?.business_details?.website || '',
+    // Default to true if can_manage_business_details is undefined
+    isAllowed: settingsData?.permissions?.can_manage_business_details !== undefined 
+      ? settingsData?.permissions?.can_manage_business_details 
+      : true
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Business Settings</CardTitle>
-        <CardDescription>
-          Manage your business settings.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <Label htmlFor="business_name">Business Name</Label>
-            <Input
-              id="business_name"
-              name="business_name"
-              defaultValue={settings?.business_name || ""}
-              placeholder="Enter your business name"
-              required
-            />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="container mx-auto py-8 px-4 max-w-5xl">
+        
+        {/* Payment Status Banner */}
+        <div className="mb-8">
+          <PaymentStatusBanner />
+        </div>
+
+        {/* Current Plan Card */}
+        <div className="mb-8 px-8">
+          <CurrentPlanCard />
+        </div>
+
+        {/* Settings Sections */}
+        <div className="space-y-8">
+          {/* Usage Section */}
+          <div className="rounded-2xl overflow-hidden">
+            <UsageSection usageMetrics={settingsData?.usage_metrics || {
+              websites_crawled: 0,
+              tokens_used: 0,
+              credits_used: 0
+            }}/>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="business_address">Business Address</Label>
-            <Input
-              id="business_address"
-              name="business_address"
-              defaultValue={settings?.business_address || ""}
-              placeholder="Enter your business address"
-              required
-            />
+
+          {/* Connected Accounts Section */}
+          <div className="rounded-2xl overflow-hidden">
+            <ConnectedAccountsSection />
           </div>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Settings"}
-          </Button>
-        </form>
-        {error && (
-          <div className="text-red-500">
-            Error: {error}
+
+          {/* API Keys Section */}
+          <div className="rounded-2xl overflow-hidden">
+            <ApiKeysSection />
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* Business Profile Section */}
+          <div className="rounded-2xl overflow-hidden">
+            <BusinessProfileSection initialData={initialProfileData} />
+          </div>
+
+          {/* Team Management Section */}
+          {settingsData?.permissions.can_manage_team && (
+            <div className="rounded-2xl overflow-hidden">
+              <TeamManagementSection />
+            </div>
+          )}
+
+          {/* Global Agent Settings Section */}
+          <div className="rounded-2xl overflow-hidden">
+            <GlobalAgentSettingsSection initialSettings={settingsData?.global_agent_settings || {
+              response_model: "default_model",
+              token_length: 512,
+              temperature: 0.7
+            }}/>
+          </div>
+        </div>
+        
+        <PricingModal />
+      </div>
+    </div>
   );
 };
 

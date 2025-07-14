@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ApiKnowledgeBase } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -29,12 +30,10 @@ import KnowledgeSourceBadge, { KnowledgeSourceBadgeProps } from '@/components/ag
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface KnowledgeSourceListProps {
-  knowledgeBases?: ApiKnowledgeBase[];
-  sources?: any[]; // Add this for backward compatibility
+  knowledgeBases: ApiKnowledgeBase[];
   isLoading?: boolean;
   agentId?: string;
   onKnowledgeBaseRemoved?: (knowledgeBaseId: number) => void;
-  onRemoveSource?: (sourceId: number) => Promise<void>; // Add this for backward compatibility
 }
 
 const getIconForType = (type: string) => {
@@ -496,26 +495,20 @@ const KnowledgeBaseCard = ({
 
 const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({ 
   knowledgeBases,
-  sources,
   isLoading = false,
   agentId,
-  onKnowledgeBaseRemoved,
-  onRemoveSource
+  onKnowledgeBaseRemoved
 }) => {
-  const actualSources = knowledgeBases || sources || [];
-  const [localKnowledgeBases, setLocalKnowledgeBases] = useState(actualSources);
+  const [localKnowledgeBases, setLocalKnowledgeBases] = useState(knowledgeBases);
 
   useEffect(() => {
-    setLocalKnowledgeBases(actualSources);
-  }, [knowledgeBases, sources]);
+    setLocalKnowledgeBases(knowledgeBases);
+  }, [knowledgeBases]);
 
   const handleKnowledgeBaseRemoved = (id: number) => {
     setLocalKnowledgeBases(prev => prev.filter(kb => kb.id !== id));
     if (onKnowledgeBaseRemoved) {
       onKnowledgeBaseRemoved(id);
-    }
-    if (onRemoveSource) {
-      onRemoveSource(id);
     }
   };
   
@@ -559,3 +552,4 @@ const KnowledgeSourceList: React.FC<KnowledgeSourceListProps> = ({
 };
 
 export default KnowledgeSourceList;
+

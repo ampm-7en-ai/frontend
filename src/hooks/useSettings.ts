@@ -1,63 +1,56 @@
 
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { settingsApi } from '@/utils/api-config';
+import { useQuery } from "@tanstack/react-query";
+import { getApiUrl } from "@/utils/api-config";
+import { apiGet } from "@/utils/api-interceptor";
+import { useAuth } from "@/context/AuthContext";
 
-interface Settings {
-  business_name?: string;
-  business_email?: string;
-  business_phone?: string;
-  business_address?: string;
-  // Add other settings properties as needed
-  [key: string]: any;
+export interface BusinessSettings {
+  business_details: {
+    business_name: string | null;
+    email: string | null;
+    phone_number: string | null;
+    website: string | null;
+  };
+  global_agent_settings: {
+    response_model: string;
+    token_length: number;
+    temperature: number;
+  };
+  usage_metrics: {
+    websites_crawled: number;
+    tokens_used: number;
+    credits_used: number;
+  };
+  permissions: {
+    can_manage_team: boolean;
+    can_manage_payment: boolean;
+    can_manage_business_details?: boolean;
+  };
 }
 
-export const useSettings = () => {
-  const [settings, setSettings] = useState<Settings>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+async function fetchSettings(): Promise<BusinessSettings> {
+  console.log('Fetching settings data from API...');
+  const response = await apiGet(getApiUrl('settings/'));
 
-  const updateSettings = async (payload: Partial<Settings>) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await settingsApi.update(payload);
-      
-      if (!response.ok) {
-        throw new Error('Failed to update settings');
-      }
-      
-      const data = await response.json();
-      setSettings(prev => ({ ...prev, ...data }));
-      
-      toast({
-        title: "Success",
-        description: "Settings updated successfully.",
-      });
-      
-      return data;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update settings';
-      setError(errorMessage);
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (!response.ok) {
+    console.error(`Settings API error: ${response.status}`);
+    throw new Error('Failed to fetch settings');
+  }
 
-  return {
-    settings,
-    updateSettings,
-    isLoading,
-    error
-  };
-};
+  const data = await response.json();
+  console.log('Settings data received:', data);
+  return data.data;
+}
+
+export function useSettings() {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ['settings'],
+    queryFn: fetchSettings,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: true,
+    retry: 2,
+    enabled: isAuthenticated,
+  });
+}

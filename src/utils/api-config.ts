@@ -179,9 +179,6 @@ import { apiRequest, apiGet, apiPost, apiPut, apiDelete } from './api-intercepto
 // CENTRALIZED API FUNCTIONS - All API calls should use these functions
 // =============================================================================
 
-// Make sure apiPost is exported
-export { apiRequest, apiGet, apiPost, apiPut, apiDelete };
-
 // Authentication API functions
 export const authApi = {
   login: async (username: string, password: string) => {

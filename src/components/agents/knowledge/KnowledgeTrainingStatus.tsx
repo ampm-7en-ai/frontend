@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Import, Zap, LoaderCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKnowledgeBase, KnowledgeSource } from './types';
-import ImportSourcesDialog from './ImportSourcesDialog';
+import { ImportSourcesDialog } from './ImportSourcesDialog';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { 
   BASE_URL, getAuthHeaders, getAccessToken, getKnowledgeBaseEndpoint, 
@@ -176,7 +177,7 @@ const KnowledgeTrainingStatus = ({
     triggerRefresh();
   };
 
-  const importSelectedSources = async (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
+  const importSelectedSources = (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
     if (!availableKnowledgeBases && !cachedKnowledgeBases.current.length) {
       toast({
         title: "Cannot import sources",
@@ -423,12 +424,13 @@ const KnowledgeTrainingStatus = ({
         />
         
         <ImportSourcesDialog
-          open={isImportDialogOpen}
+          isOpen={isImportDialogOpen}
           onOpenChange={setIsImportDialogOpen}
           externalSources={availableKnowledgeBases || []}
           currentSources={formatExternalSources(agentKnowledgeBases || [])}
           onImport={importSelectedSources}
           agentId={agentId}
+          preventMultipleCalls={true}
           isLoading={isLoadingAvailableKnowledgeBases}
         />
       </CardContent>

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Info, Phone, Video, MoreHorizontal, CheckCircle, TicketPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiPost, getApiUrl } from '@/utils/api-config';
+import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
 
 interface ConversationHeaderProps {
@@ -72,7 +72,15 @@ const ConversationHeader = ({
 
     setIsResolving(true);
     try {
-      const response = await apiPost(getApiUrl(`chatsessions/${conversation.id}/resolve/`), {}, true);
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("No access token available");
+      }
+
+      const response = await fetch(getApiUrl(`chatsessions/${conversation.id}/resolve/`), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to resolve conversation: ${response.status}`);
