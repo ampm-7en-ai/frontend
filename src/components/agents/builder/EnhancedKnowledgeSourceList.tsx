@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { agentApi } from '@/utils/api-config';
 import { useQueryClient } from '@tanstack/react-query';
 import KnowledgeSourceBadge, { KnowledgeSourceBadgeProps } from '@/components/agents/KnowledgeSourceBadge';
 
@@ -154,16 +154,6 @@ const KnowledgeBaseCard = ({
       return;
     }
 
-    const token = getAccessToken();
-    if (!token) {
-      toast({
-        title: "Authentication Error",
-        description: "You need to be logged in to perform this action",
-        variant: "destructive"
-      });
-      return;
-    }
-
     if (isDeleting) {
       console.log("Delete operation already in progress, ignoring duplicate call");
       return;
@@ -184,13 +174,7 @@ const KnowledgeBaseCard = ({
         description: `Removing "${knowledgeBase.name}" from this agent`,
       });
 
-      const response = await fetch(`${BASE_URL}agents/${agentId}/remove-knowledge-sources/`, {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({
-          knowledgeSources: [knowledgeBase.id]
-        })
-      });
+      const response = await agentApi.removeKnowledgeSources(agentId, [knowledgeBase.id]);
 
       if (!response.ok) {
         queryClient.invalidateQueries({ 

@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -370,6 +369,13 @@ export const agentApi = {
     const response = await apiPost(getApiUrl(`agents/${agentId}/add-knowledge-sources/`), {
       knowledgeSources,
       selected_knowledge_sources: selectedKnowledgeSources
+    });
+    return response;
+  },
+
+  removeKnowledgeSources: async (agentId: string, knowledgeSources: number[]) => {
+    const response = await apiPost(getApiUrl(`agents/${agentId}/remove-knowledge-sources/`), {
+      knowledgeSources
     });
     return response;
   }

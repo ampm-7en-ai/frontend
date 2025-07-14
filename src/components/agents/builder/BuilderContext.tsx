@@ -1,9 +1,7 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { createAgent } from '@/utils/api-config';
-import { API_ENDPOINTS, getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { agentApi } from '@/utils/api-config';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 interface AgentFormData {
@@ -135,16 +133,6 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   };
 
-  // Helper function to convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
-
   // Fetch agent data when ID is present
   useEffect(() => {
     const loadAgentData = async () => {
@@ -157,14 +145,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setState(prev => ({ ...prev, isLoading: true }));
 
       try {
-        const token = getAccessToken();
-        if (!token) {
-          throw new Error('No authentication token available');
-        }
-
-        const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${id}/`), {
-          headers: getAuthHeaders(token)
-        });
+        const response = await agentApi.getById(id);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch agent: ${response.statusText}`);
@@ -269,11 +250,6 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       if (id) {
         // Update existing agent
-        const token = getAccessToken();
-        if (!token) {
-          throw new Error('No authentication token available');
-        }
-
         // Prepare avatar data
         let avatarData = {
           type: state.agentData.avatarType || 'default',
@@ -316,14 +292,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         console.log('Update payload:', updatePayload);
 
-        const updateResponse = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${id}/`), {
-          method: 'PUT',
-          headers: {
-            ...getAuthHeaders(token),
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(updatePayload)
-        });
+        const updateResponse = await agentApi.update(id, updatePayload);
 
         if (!updateResponse.ok) {
           throw new Error(`Failed to update agent: ${updateResponse.statusText}`);
@@ -333,8 +302,10 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.log('Update response:', response);
       } else {
         // Create new agent
-        response = await createAgent(state.agentData.name, state.agentData.description);
-        console.log('Create response:', response);
+        response = await agentApi.create(state.agentData.name, state.agentData.description);
+        const responseData = await response.json();
+        console.log('Create response:', responseData);
+        response = responseData;
       }
       
       toast({
@@ -368,15 +339,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('No authentication token available');
-      }
-
-      const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${id}/`), {
-        method: 'DELETE',
-        headers: getAuthHeaders(token)
-      });
+      const response = await agentApi.delete(id);
 
       if (!response.ok) {
         throw new Error(`Failed to delete agent: ${response.statusText}`);
