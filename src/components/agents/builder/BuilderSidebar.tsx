@@ -506,7 +506,7 @@ export const BuilderSidebar = () => {
         </div>
 
         <ImportSourcesDialog
-          isOpen={isImportDialogOpen}
+          open={isImportDialogOpen}
           onOpenChange={setIsImportDialogOpen}
           externalSources={externalSources}
           currentSources={agentData.knowledgeSources}

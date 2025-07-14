@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useSettings } from '@/hooks/use-settings';
+import { useSettings } from '@/hooks/useSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ const BusinessSettings = () => {
             <Label htmlFor="business_name">Business Name</Label>
             <Input
               id="business_name"
+              name="business_name"
               defaultValue={settings?.business_name || ""}
               placeholder="Enter your business name"
               required
@@ -58,6 +60,7 @@ const BusinessSettings = () => {
             <Label htmlFor="business_address">Business Address</Label>
             <Input
               id="business_address"
+              name="business_address"
               defaultValue={settings?.business_address || ""}
               placeholder="Enter your business address"
               required

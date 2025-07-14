@@ -423,7 +423,7 @@ const KnowledgeTrainingStatus = ({
         />
         
         <ImportSourcesDialog
-          isOpen={isImportDialogOpen}
+          open={isImportDialogOpen}
           onOpenChange={setIsImportDialogOpen}
           externalSources={availableKnowledgeBases || []}
           currentSources={formatExternalSources(agentKnowledgeBases || [])}

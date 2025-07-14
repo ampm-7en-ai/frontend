@@ -345,7 +345,7 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
       </div>
 
       <ImportSourcesDialog
-        isOpen={isImportDialogOpen}
+        open={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         externalSources={externalSources}
         currentSources={agentData.knowledgeSources}
