@@ -16,6 +16,7 @@ interface ImportSourcesDialogProps {
   externalSources?: any[];
   currentSources?: any[];
   onImport?: (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => Promise<void>;
+  isLoading?: boolean;
 }
 
 const ImportSourcesDialog = ({ 
@@ -25,7 +26,8 @@ const ImportSourcesDialog = ({
   onSourcesAdded,
   externalSources,
   currentSources,
-  onImport
+  onImport,
+  isLoading: externalIsLoading
 }: ImportSourcesDialogProps) => {
   const { toast } = useToast();
   const [availableSources, setAvailableSources] = useState([]);
@@ -118,6 +120,8 @@ const ImportSourcesDialog = ({
     }
   }, [open, externalSources]);
 
+  const isCurrentlyLoading = externalIsLoading || isLoading;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh]">
@@ -128,7 +132,7 @@ const ImportSourcesDialog = ({
           </DialogDescription>
         </DialogHeader>
         
-        {isLoading ? (
+        {isCurrentlyLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="ml-2">Loading sources...</span>
