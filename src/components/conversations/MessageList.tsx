@@ -220,7 +220,7 @@ const MessageList = ({
                       components={{
                         p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
                         ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
-                        ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ul>,
+                        ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
                         li: ({ children }) => <li className="mb-1">{children}</li>,
                         strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                         em: ({ children }) => <em className="italic">{children}</em>
