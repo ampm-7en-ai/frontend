@@ -75,9 +75,8 @@ export const InteractiveCanvas = () => {
                 >
                   <Button
                     onClick={() => setIsChatOpen(!isChatOpen)}
-                    className={`${hasButtonText ? 'rounded-full px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+                    className={`${hasButtonText ? 'rounded-full px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700`}
                     style={{ 
-                      background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                       boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
                       fontFamily: agentData.fontFamily
                     }}
@@ -110,12 +109,9 @@ export const InteractiveCanvas = () => {
                   <div 
                     className={`w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm transition-all duration-300 ease-out ${
                       isChatOpen 
-                        ? 'animate-bounce-in' 
+                        ? 'animate-[bounceIn_0.4s_cubic-bezier(0.68,-0.55,0.265,1.55)]' 
                         : ''
                     }`}
-                    style={{
-                      animation: isChatOpen ? 'bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)' : 'none'
-                    }}
                   >
                     <ChatboxPreview
                       agentId={currentAgentId}
@@ -137,7 +133,7 @@ export const InteractiveCanvas = () => {
           </div>
           
           {/* Custom keyframes for bounce animation */}
-          <style jsx>{`
+          <style>{`
             @keyframes bounceIn {
               0% {
                 transform: scale(0.8) translateY(20px);
