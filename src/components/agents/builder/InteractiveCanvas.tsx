@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
@@ -98,7 +97,8 @@ export const InteractiveCanvas = () => {
                 {/* Chat popup - with z-index higher than dot pattern */}
                 {isChatOpen && (
                   <div 
-                    className={`absolute z-[60] ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 h-[500px]`}
+                    className={`absolute z-[60] ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96`}
+                    style={{ height: '665px' }}
                   >
                     <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
                       <ChatboxPreview
