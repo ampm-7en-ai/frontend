@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
@@ -36,6 +35,7 @@ const MessageRevisionModal = ({
   const [isCheckingImproved, setIsCheckingImproved] = useState(false);
   const [improvedResponse, setImprovedResponse] = useState<string | null>(null);
   const [improvedResponseId, setImprovedResponseId] = useState<string | null>(null);
+  const [improvedResponseData, setImprovedResponseData] = useState<any>(null);
   const { showToast } = useFloatingToast();
 
   // Check if response is already improved when modal opens
@@ -51,6 +51,7 @@ const MessageRevisionModal = ({
       setRevisedAnswer(answer);
       setImprovedResponse(null);
       setImprovedResponseId(null);
+      setImprovedResponseData(null);
     }
   }, [open, answer]);
 
@@ -67,6 +68,7 @@ const MessageRevisionModal = ({
         const improvedData = data.data[0];
         setImprovedResponse(improvedData.improved_response);
         setImprovedResponseId(improvedData.id);
+        setImprovedResponseData(improvedData);
         setRevisedAnswer(improvedData.improved_response);
       }
     } catch (error) {
@@ -155,10 +157,10 @@ const MessageRevisionModal = ({
       return;
     }
 
-    if (!improvedResponseId) {
+    if (!improvedResponseId || !improvedResponseData) {
       showToast({
         title: "Error",
-        description: "Missing improved response ID",
+        description: "Missing improved response data",
         variant: "error"
       });
       return;
@@ -168,6 +170,11 @@ const MessageRevisionModal = ({
 
     try {
       const requestBody = {
+        agent: improvedResponseData.agent,
+        user_message_id: improvedResponseData.user_message_id,
+        agent_message_id: improvedResponseData.agent_message_id,
+        user_message: improvedResponseData.user_message,
+        agent_message: improvedResponseData.agent_message,
         improved_response: revisedAnswer
       };
 
@@ -256,20 +263,6 @@ const MessageRevisionModal = ({
             <label htmlFor="revised-answer" className="text-sm font-medium text-slate-700 dark:text-slate-300">
               AI Answer
             </label>
-            
-            {/* Show improved response if it exists */}
-            {isImproved && (
-              <div className="mb-3">
-                <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
-                  Current Improved Response:
-                </div>
-                <div className="p-3 rounded-lg bg-green-50/80 dark:bg-green-900/20 border border-green-200/60 dark:border-green-800/60">
-                  <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed whitespace-pre-wrap">
-                    {improvedResponse}
-                  </p>
-                </div>
-              </div>
-            )}
 
             <Textarea
               id="revised-answer"
