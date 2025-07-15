@@ -368,13 +368,17 @@ export const ChatboxPreview = ({
           containerClass: 'text-white border border-transparent shadow-md',
           textClass: 'text-white',
           style: { 
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`
           }
         };
       case 'system_message':
         return {
-          containerClass: 'bg-blue-50/80 border border-blue-200/60',
-          textClass: 'text-blue-800'
+          containerClass: `border shadow-sm`,
+          textClass: 'text-blue-800',
+          style: {
+            backgroundColor: `${primaryColor}10`,
+            borderColor: `${primaryColor}30`
+          }
         };
       default:
         return {
@@ -393,8 +397,8 @@ export const ChatboxPreview = ({
       style={{ 
         fontFamily: fontFamily,
         height: '100%',
-        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(59, 130, 246, 0.2), 0 8px 32px rgba(59, 130, 246, 0.15)`,
-        border: `1px solid rgba(59, 130, 246, 0.1)`,
+        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
+        border: `1px solid ${primaryColor}10`,
         animation: 'scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
       }}
     >
@@ -402,7 +406,7 @@ export const ChatboxPreview = ({
       <div 
         className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
         style={{ 
-          background: 'linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af)'
+          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)}, ${adjustColor(primaryColor, -50)})`
         }}
       >
         {/* Modern gradient overlay */}
@@ -437,26 +441,26 @@ export const ChatboxPreview = ({
         
         <div className="flex items-center gap-2 relative z-10">
           {/* Control buttons */}
-          <Button
+          <ModernButton
             onClick={handleRestart}
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
             title="Restart chat"
-          >
-            <RotateCcw size={16} />
-          </Button>
+            icon={RotateCcw}
+            iconOnly
+          />
           
           {onMinimize && (
-            <Button
+            <ModernButton
               onClick={onMinimize}
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
               title="Minimize chat"
-            >
-              <Minus size={16} />
-            </Button>
+              icon={Minus}
+              iconOnly
+            />
           )}
           
           {isInitializing ? (
@@ -493,7 +497,13 @@ export const ChatboxPreview = ({
             {/* Welcome Message - Compact Disclaimer Style */}
             {welcomeMessage && (
               <div className="animate-fade-in">
-                <div className="bg-gray-50/50 border border-gray-200/50 rounded-lg p-3 text-center">
+                <div 
+                  className="border rounded-lg p-3 text-center"
+                  style={{
+                    backgroundColor: `${primaryColor}05`,
+                    borderColor: `${primaryColor}20`
+                  }}
+                >
                   <div className="text-xs italic text-gray-600 leading-relaxed">
                     <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
                   </div>
@@ -607,8 +617,8 @@ export const ChatboxPreview = ({
                         variant="outline"
                         className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
                         style={{ 
-                          borderColor: '#3b82f6',
-                          color: '#3b82f6',
+                          borderColor: primaryColor,
+                          color: primaryColor,
                           backgroundColor: 'white'
                         }}
                       >
@@ -619,8 +629,8 @@ export const ChatboxPreview = ({
                         variant="outline"
                         className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
                         style={{ 
-                          borderColor: '#3b82f6',
-                          color: '#3b82f6',
+                          borderColor: primaryColor,
+                          color: primaryColor,
                           backgroundColor: 'white'
                         }}
                       >
@@ -642,7 +652,7 @@ export const ChatboxPreview = ({
                     onClick={() => handleSuggestionClick(suggestion)}
                     className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50 hover:shadow-md"
                     style={{ 
-                      border: `1px solid rgba(59, 130, 246, 0.2)`,
+                      border: `1px solid ${primaryColor}20`,
                       backgroundColor: 'white',
                       color: 'inherit',
                       animation: `suggestionSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards ${index * 0.1}s both`
@@ -656,10 +666,10 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
 
-        {/* Updated Typing Indicator - positioned 20px higher above input */}
+        {/* Updated Typing Indicator - positioned 5px higher (105px from bottom) */}
         {showTypingIndicator && (
           <div 
-            className="absolute bottom-[100px] left-4 flex items-center gap-2 z-20"
+            className="absolute bottom-[105px] left-4 flex items-center gap-2 z-20"
             style={{
               animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
             }}
@@ -670,7 +680,7 @@ export const ChatboxPreview = ({
                 <Avatar className="w-5 h-5 border border-white">
                   <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                   <AvatarFallback style={{ 
-                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
                     color: secondaryColor
                   }}>
                     <Bot size={10} />
@@ -680,7 +690,7 @@ export const ChatboxPreview = ({
                 <div 
                   className="w-5 h-5 rounded-full flex items-center justify-center border border-white"
                   style={{ 
-                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
                     color: secondaryColor
                   }}
                 >
@@ -695,16 +705,28 @@ export const ChatboxPreview = ({
             >
               <div className="flex space-x-1">
                 <div 
-                  className="w-1.5 h-1.5 rounded-full bg-gray-400"
-                  style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '0ms' }}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ 
+                    backgroundColor: `${primaryColor}60`,
+                    animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                    animationDelay: '0ms'
+                  }}
                 ></div>
                 <div 
-                  className="w-1.5 h-1.5 rounded-full bg-gray-400"
-                  style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '200ms' }}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ 
+                    backgroundColor: `${primaryColor}60`,
+                    animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                    animationDelay: '200ms'
+                  }}
                 ></div>
                 <div 
-                  className="w-1.5 h-1.5 rounded-full bg-gray-400"
-                  style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '400ms' }}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ 
+                    backgroundColor: `${primaryColor}60`,
+                    animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                    animationDelay: '400ms'
+                  }}
                 ></div>
               </div>
 
@@ -728,7 +750,7 @@ export const ChatboxPreview = ({
                 placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
                 className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden"
                 style={{ 
-                  borderColor: `rgba(59, 130, 246, 0.2)`,
+                  borderColor: `${primaryColor}20`,
                   minHeight: "44px",
                   maxHeight: "120px"
                 }}
@@ -748,7 +770,7 @@ export const ChatboxPreview = ({
               type="submit" 
               className="p-3 rounded-xl transition-all hover:scale-105 border border-white/50 flex-shrink-0"
               style={{ 
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
                 color: secondaryColor,
                 opacity: (isConnected && !shouldDisableInput) ? 1 : 0.5,
                 minHeight: "44px",
