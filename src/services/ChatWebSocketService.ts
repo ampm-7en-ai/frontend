@@ -32,8 +32,8 @@ export class ChatWebSocketService {
       `${WS_BASE_URL}chat-playground/${agentId}/` : 
       `${WS_BASE_URL}chat/${agentId}/`);
     
+    // Only listen to 'message' event to avoid duplication
     this.ws.on('message', this.handleMessage.bind(this));
-    this.ws.on('bot_response', this.handleMessage.bind(this));
     this.ws.on('typing_start', () => this.events.onTypingStart?.());
     this.ws.on('typing_end', () => this.events.onTypingEnd?.());
     this.ws.on('error', (error) => this.events.onError?.(error));
