@@ -212,33 +212,48 @@ export const ChatboxPreview = ({
   };
 
   const handleRestart = () => {
-    // Clear messages and reinitialize connection
+    // Completely reset the chat state
     setMessages([]);
+    setShowTypingIndicator(false);
     setConnectionError(null);
     setIsInitializing(true);
+    setIsConnected(false);
     
+    // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
       chatServiceRef.current.disconnect();
+      chatServiceRef.current = null;
     }
     
-    // Reinitialize the connection
+    // Create a completely new connection after a short delay
     setTimeout(() => {
       if (agentId) {
+        console.log("Restarting ChatWebSocketService with agent ID:", agentId);
+        
         chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
         
         chatServiceRef.current.on({
           onMessage: (message) => {
+            console.log("Restart - Received message:", message);
             setMessages(prev => [...prev, message]); 
             message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
           },
-          onTypingStart: () => setShowTypingIndicator(true),
-          onTypingEnd: () => setShowTypingIndicator(false),
+          onTypingStart: () => {
+            console.log("Restart - Typing indicator started");
+            setShowTypingIndicator(true);
+          },
+          onTypingEnd: () => {
+            console.log("Restart - Typing indicator ended");
+            setShowTypingIndicator(false);
+          },
           onError: (error) => {
+            console.error('Restart - Chat error:', error);
             setConnectionError(error);
             setIsConnected(false);
             setIsInitializing(false);
           },
           onConnectionChange: (status) => {
+            console.log("Restart - Connection status changed:", status);
             setIsConnected(status);
             setIsInitializing(false);
             if (status) {
@@ -249,7 +264,7 @@ export const ChatboxPreview = ({
         
         chatServiceRef.current.connect();
       }
-    }, 100);
+    }, 200);
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -417,33 +432,12 @@ export const ChatboxPreview = ({
                 <div key={index}>
                   {message.type !== 'ui' && (
                     <div 
-                      className={`flex gap-4 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                      className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                      style={{
+                        animation: message.type === 'bot_response' ? 'slideUpFade 0.4s ease-out' : 'fade-in 0.3s ease-out'
+                      }}
                     >
-                      {message.type === 'bot_response' && (
-                        <div className="flex-shrink-0 mt-1">
-                          {avatarSrc ? (
-                            <Avatar className="w-10 h-10 border-2 border-white">
-                              <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                              <AvatarFallback style={{ 
-                                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                                color: secondaryColor
-                              }}>
-                                <Bot size={18} />
-                              </AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <div 
-                              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white"
-                              style={{ 
-                                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                                color: secondaryColor
-                              }}
-                            >
-                              <Bot size={18} />
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {/* No avatar for bot_response messages */}
                       
                       <div
                         className={cn(
@@ -569,7 +563,7 @@ export const ChatboxPreview = ({
               );
             })}
             
-            {/* Typing Indicator */}
+            {/* Typing Indicator with Avatar */}
             {showTypingIndicator && (
               <div className="flex gap-4 items-start animate-fade-in">
                 <div className="flex-shrink-0 mt-1">
@@ -674,6 +668,22 @@ export const ChatboxPreview = ({
           </div>
         </div>
       </div>
+      
+      {/* Custom CSS for slide-up fade animation */}
+      <style>
+        {`
+          @keyframes slideUpFade {
+            0% {
+              transform: translateY(20px);
+              opacity: 0;
+            }
+            100% {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+        `}
+      </style>
     </Card>
   );
 };
