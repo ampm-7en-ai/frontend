@@ -31,6 +31,11 @@ const MessageRevisionModal = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImprove = async () => {
+    console.log('handleImprove called');
+    console.log('previousUserMessageId:', previousUserMessageId);
+    console.log('agentMessageId:', agentMessageId);
+    console.log('revisedAnswer:', revisedAnswer);
+
     if (!revisedAnswer.trim()) {
       toast.error("Answer cannot be empty");
       return;
@@ -38,6 +43,7 @@ const MessageRevisionModal = ({
 
     if (!previousUserMessageId || !agentMessageId) {
       toast.error("Missing message IDs for improvement");
+      console.log('Missing IDs - previousUserMessageId:', previousUserMessageId, 'agentMessageId:', agentMessageId);
       return;
     }
 
@@ -45,10 +51,21 @@ const MessageRevisionModal = ({
 
     try {
       const token = localStorage.getItem('access_token');
+      console.log('Token found:', !!token);
+      
       if (!token) {
         toast.error("Authentication required");
+        setIsLoading(false);
         return;
       }
+
+      const requestBody = {
+        previous_user_message_id: previousUserMessageId,
+        agent_message_id: agentMessageId,
+        improved_agent_message: revisedAnswer
+      };
+
+      console.log('Making API request with body:', requestBody);
 
       const response = await fetch(getApiUrl('improvedresponse/'), {
         method: 'POST',
@@ -56,14 +73,12 @@ const MessageRevisionModal = ({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          previous_user_message_id: previousUserMessageId,
-          agent_message_id: agentMessageId,
-          improved_agent_message: revisedAnswer
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('API response status:', response.status);
       const data = await response.json();
+      console.log('API response data:', data);
 
       if (response.ok && data.status === 'success') {
         onRevise(revisedAnswer);
