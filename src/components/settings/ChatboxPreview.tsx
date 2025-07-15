@@ -19,6 +19,7 @@ interface Message {
   content: string;
   timestamp: string;
   ui_type?: string;
+  id?: string;
 }
 
 interface ChatboxPreviewProps {
@@ -62,6 +63,8 @@ export const ChatboxPreview = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
+  const processedMessageIds = useRef<Set<string>>(new Set());
+  const restartingRef = useRef(false);
 
   // Check if input should be disabled (when there's a pending yes/no question)
   const shouldDisableInput = messages.some(msg => 
@@ -107,12 +110,32 @@ export const ChatboxPreview = ({
     chatServiceRef.current.on({
       onMessage: (message) => {
         console.log("Received message:", message);
-        setMessages(prev => [...prev, message]); 
+        
+        // Skip if we're in the middle of restarting
+        if (restartingRef.current) {
+          console.log("Skipping message during restart");
+          return;
+        }
+        
+        // Create unique message ID for deduplication
+        const messageId = message.id || `${message.type}-${message.content}-${Date.now()}`;
+        
+        // Check for duplicates
+        if (processedMessageIds.current.has(messageId)) {
+          console.log("Duplicate message detected, skipping:", messageId);
+          return;
+        }
+        
+        processedMessageIds.current.add(messageId);
+        
+        setMessages(prev => [...prev, { ...message, id: messageId }]); 
         message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
-        setShowTypingIndicator(true);
+        if (!restartingRef.current) {
+          setShowTypingIndicator(true);
+        }
       },
       onTypingEnd: () => {
         console.log("Typing indicator ended");
@@ -163,7 +186,8 @@ export const ChatboxPreview = ({
     const newMessage: Message = {
       type: 'user',
       content: messageContent,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      id: `user-${Date.now()}-${Math.random()}`
     };
     
     setMessages(prev => [...prev, newMessage]);
@@ -212,6 +236,9 @@ export const ChatboxPreview = ({
   };
 
   const handleRestart = () => {
+    // Set restarting flag
+    restartingRef.current = true;
+    
     // Completely reset the chat state
     setMessages([]);
     setShowTypingIndicator(false);
@@ -219,13 +246,16 @@ export const ChatboxPreview = ({
     setIsInitializing(true);
     setIsConnected(false);
     
+    // Clear processed message IDs to prevent duplicate detection issues
+    processedMessageIds.current.clear();
+    
     // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
       chatServiceRef.current.disconnect();
       chatServiceRef.current = null;
     }
     
-    // Create a completely new connection after a short delay
+    // Create a completely new connection after a longer delay to ensure cleanup
     setTimeout(() => {
       if (agentId) {
         console.log("Restarting ChatWebSocketService with agent ID:", agentId);
@@ -235,12 +265,29 @@ export const ChatboxPreview = ({
         chatServiceRef.current.on({
           onMessage: (message) => {
             console.log("Restart - Received message:", message);
-            setMessages(prev => [...prev, message]); 
+            
+            // Skip if we're still in restarting state
+            if (restartingRef.current) {
+              console.log("Still restarting, skipping message");
+              return;
+            }
+            
+            const messageId = message.id || `${message.type}-${message.content}-${Date.now()}`;
+            
+            if (processedMessageIds.current.has(messageId)) {
+              console.log("Duplicate message detected during restart, skipping:", messageId);
+              return;
+            }
+            
+            processedMessageIds.current.add(messageId);
+            setMessages(prev => [...prev, { ...message, id: messageId }]); 
             message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
           },
           onTypingStart: () => {
             console.log("Restart - Typing indicator started");
-            setShowTypingIndicator(true);
+            if (!restartingRef.current) {
+              setShowTypingIndicator(true);
+            }
           },
           onTypingEnd: () => {
             console.log("Restart - Typing indicator ended");
@@ -251,6 +298,7 @@ export const ChatboxPreview = ({
             setConnectionError(error);
             setIsConnected(false);
             setIsInitializing(false);
+            restartingRef.current = false;
           },
           onConnectionChange: (status) => {
             console.log("Restart - Connection status changed:", status);
@@ -258,37 +306,29 @@ export const ChatboxPreview = ({
             setIsInitializing(false);
             if (status) {
               setConnectionError(null);
+              // Clear restarting flag once connected
+              setTimeout(() => {
+                restartingRef.current = false;
+              }, 500);
             }
           }
         });
         
         chatServiceRef.current.connect();
       }
-    }, 200);
-  };
-
-  const formatTimestamp = (timestamp: string) => {
-    if (!timestamp) return '';
-    
-    try {
-      const date = new Date(timestamp);
-      if (isNaN(date.getTime())) return '';
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch (error) {
-      return '';
-    }
+    }, 500); // Increased delay for better cleanup
   };
 
   const getMessageStyling = (messageType: string) => {
     switch (messageType) {
       case 'bot_response':
         return {
-          containerClass: 'bg-white border border-gray-200/60',
+          containerClass: 'bg-white border border-gray-200/60 shadow-sm',
           textClass: 'text-gray-800'
         };
       case 'user':
         return {
-          containerClass: 'text-white border border-transparent',
+          containerClass: 'text-white border border-transparent shadow-md',
           textClass: 'text-white',
           style: { 
             background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
@@ -405,7 +445,7 @@ export const ChatboxPreview = ({
           ref={scrollAreaRef}
           className="flex-1 min-h-0"
         >
-          <div className="p-6 space-y-6 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
+          <div className="p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
             {connectionError && (
               <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm">
                 <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
@@ -427,21 +467,22 @@ export const ChatboxPreview = ({
             {/* Regular Messages */}
             {messages.map((message, index) => {
               const styling = getMessageStyling(message.type);
+              const isConsecutive = index > 0 && messages[index - 1]?.type === message.type;
               
               return (
-                <div key={index}>
+                <div key={message.id || index} className={isConsecutive ? 'mt-2' : 'mt-4'}>
                   {message.type !== 'ui' && (
                     <div 
                       className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
                       style={{
-                        animation: message.type === 'bot_response' ? 'slideUpFade 0.4s ease-out' : 'fade-in 0.3s ease-out'
+                        animation: message.type === 'bot_response' 
+                          ? 'messageSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' 
+                          : 'messageSlideUp 0.3s ease-out forwards'
                       }}
                     >
-                      {/* No avatar for bot_response messages */}
-                      
                       <div
                         className={cn(
-                          "rounded-2xl p-4 max-w-[80%] relative transition-all duration-200",
+                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-200 hover:scale-[1.02] hover:shadow-lg",
                           styling.containerClass,
                           styling.textClass
                         )}
@@ -515,17 +556,6 @@ export const ChatboxPreview = ({
                             {message.content} 
                           </ReactMarkdown>
                         </div>
-                        {
-                          message.type === "bot_response" || message.type === "user" ? (
-                            <p className="text-xs mt-2 opacity-60 font-medium">
-                              {formatTimestamp(message.timestamp)}
-                            </p>
-                          ):
-                          (
-                            <>
-                            </>
-                          )
-                        }
                       </div>
                     </div>
                   )}
@@ -563,9 +593,14 @@ export const ChatboxPreview = ({
               );
             })}
             
-            {/* Typing Indicator with Avatar */}
+            {/* Enhanced Typing Indicator with Avatar */}
             {showTypingIndicator && (
-              <div className="flex gap-4 items-start animate-fade-in">
+              <div 
+                className="flex gap-4 items-start"
+                style={{
+                  animation: 'typingEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                }}
+              >
                 <div className="flex-shrink-0 mt-1">
                   {avatarSrc ? (
                     <Avatar className="w-10 h-10 border-2 border-white">
@@ -589,11 +624,25 @@ export const ChatboxPreview = ({
                     </div>
                   )}
                 </div>
-                <div className="rounded-2xl p-4 max-w-[80%] border border-gray-200/60 bg-white">
+                <div 
+                  className="rounded-2xl p-4 max-w-[88%] border border-gray-200/60 bg-white shadow-sm"
+                  style={{
+                    animation: 'typingContainerPulse 2s ease-in-out infinite'
+                  }}
+                >
                   <div className="flex space-x-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full bg-gray-400"
+                      style={{ animation: 'typingDot 1.5s ease-in-out infinite', animationDelay: '0ms' }}
+                    ></div>
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full bg-gray-400"
+                      style={{ animation: 'typingDot 1.5s ease-in-out infinite', animationDelay: '300ms' }}
+                    ></div>
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full bg-gray-400"
+                      style={{ animation: 'typingDot 1.5s ease-in-out infinite', animationDelay: '600ms' }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -607,7 +656,7 @@ export const ChatboxPreview = ({
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50"
+                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50 hover:shadow-md"
                     style={{ 
                       border: `1px solid rgba(59, 130, 246, 0.2)`,
                       backgroundColor: 'white',
@@ -669,17 +718,48 @@ export const ChatboxPreview = ({
         </div>
       </div>
       
-      {/* Custom CSS for slide-up fade animation */}
+      {/* Enhanced CSS Animations */}
       <style>
         {`
-          @keyframes slideUpFade {
+          @keyframes messageSlideUp {
             0% {
-              transform: translateY(20px);
+              transform: translateY(20px) scale(0.95);
               opacity: 0;
             }
             100% {
-              transform: translateY(0);
+              transform: translateY(0) scale(1);
               opacity: 1;
+            }
+          }
+          
+          @keyframes typingEnter {
+            0% {
+              transform: translateY(10px) scale(0.95);
+              opacity: 0;
+            }
+            100% {
+              transform: translateY(0) scale(1);
+              opacity: 1;
+            }
+          }
+          
+          @keyframes typingDot {
+            0%, 60%, 100% {
+              transform: translateY(0);
+              opacity: 0.4;
+            }
+            30% {
+              transform: translateY(-10px);
+              opacity: 1;
+            }
+          }
+          
+          @keyframes typingContainerPulse {
+            0%, 100% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.02);
             }
           }
         `}
