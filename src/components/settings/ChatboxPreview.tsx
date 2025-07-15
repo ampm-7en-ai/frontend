@@ -33,6 +33,7 @@ interface ChatboxPreviewProps {
   className?: string;
   suggestions?: string[];
   avatarSrc?: string;
+  onMinimize?: () => void;
   onRestart?: () => void;
 }
 
@@ -48,9 +49,9 @@ export const ChatboxPreview = ({
   className,
   suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
   avatarSrc,
+  onMinimize,
   onRestart
 }: ChatboxPreviewProps) => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
@@ -105,9 +106,10 @@ export const ChatboxPreview = ({
   };
 
   useEffect(() => {
-    // Don't initialize if no agent ID or chat is not open
-    if (!agentId || !isChatOpen) {
-      console.log("Chat not open or no agent ID provided to ChatboxPreview");
+    // Don't initialize if no agent ID
+    if (!agentId) {
+      console.log("No agent ID provided to ChatboxPreview");
+      setConnectionError("No agent ID provided");
       setIsInitializing(false);
       return;
     }
@@ -194,7 +196,7 @@ export const ChatboxPreview = ({
         chatServiceRef.current = null;
       }
     };
-  }, [agentId, toast, isChatOpen]);  
+  }, [agentId, toast]);  
 
   const sendMessage = (messageContent: string) => {
     if (!chatServiceRef.current || !isConnected) {
@@ -354,14 +356,6 @@ export const ChatboxPreview = ({
     }, 1000);
   };
 
-  const handleMinimize = () => {
-    setIsChatOpen(false);
-  };
-
-  const handleOpenChat = () => {
-    setIsChatOpen(true);
-  };
-
   const getMessageStyling = (messageType: string) => {
     switch (messageType) {
       case 'bot_response':
@@ -394,28 +388,6 @@ export const ChatboxPreview = ({
     }
   };
 
-  // Show only the "Chat with us" button when chat is closed
-  if (!isChatOpen) {
-    return (
-      <div className={cn("fixed bottom-6 z-50", position === 'bottom-right' ? 'right-6' : 'left-6')}>
-        <ModernButton
-          onClick={handleOpenChat}
-          className="rounded-full px-6 py-4 font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-3 border"
-          style={{ 
-            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
-            color: secondaryColor,
-            borderColor: `${primaryColor}20`,
-            fontFamily: fontFamily
-          }}
-        >
-          <Bot size={28} />
-          {buttonText}
-        </ModernButton>
-      </div>
-    );
-  }
-
-  // Show the full chatbox when chat is open
   return (
     <Card 
       className={cn(
@@ -479,15 +451,17 @@ export const ChatboxPreview = ({
             iconOnly
           />
           
-          <ModernButton
-            onClick={handleMinimize}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
-            title="Minimize chat"
-            icon={Minus}
-            iconOnly
-          />
+          {onMinimize && (
+            <ModernButton
+              onClick={onMinimize}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+              title="Minimize chat"
+              icon={Minus}
+              iconOnly
+            />
+          )}
           
           {isInitializing ? (
             <LoadingSpinner size="sm" className="text-white/70" />
@@ -553,7 +527,7 @@ export const ChatboxPreview = ({
                     >
                       <div
                         className={cn(
-                          "rounded-2xl p-4 max-w-[95%] relative transition-all duration-300",
+                          "rounded-2xl p-4 max-w-[92%] relative transition-all duration-300",
                           styling.containerClass,
                           styling.textClass
                         )}
@@ -692,10 +666,10 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
 
-        {/* Updated Typing Indicator - positioned 120px from bottom (5px more) */}
+        {/* Updated Typing Indicator - positioned 115px from bottom (20+5px more) */}
         {showTypingIndicator && (
           <div 
-            className="absolute bottom-[120px] left-4 flex items-center gap-2 z-20"
+            className="absolute bottom-[115px] left-4 flex items-center gap-2 z-20"
             style={{
               animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
             }}
@@ -807,6 +781,22 @@ export const ChatboxPreview = ({
           </div>
         </div>
       </div>
+      
+      {/* Chat with us button - when minimized */}
+      {onMinimize && (
+        <ModernButton
+          onClick={() => {/* handle expand */}}
+          className="fixed bottom-6 right-6 rounded-full px-6 py-4 font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-3"
+          style={{ 
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+            color: secondaryColor,
+            border: `1px solid ${primaryColor}20`
+          }}
+        >
+          <Bot size={24} />
+          {buttonText}
+        </ModernButton>
+      )}
       
       {/* Enhanced CSS Animations */}
       <style>
