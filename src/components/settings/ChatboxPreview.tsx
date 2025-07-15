@@ -228,47 +228,62 @@ export const ChatboxPreview = ({
   return (
     <Card 
       className={cn(
-        "h-full flex flex-col overflow-hidden shadow-xl animate-fade-in relative",
+        "h-full flex flex-col overflow-hidden shadow-2xl animate-fade-in relative backdrop-blur-sm",
         className
       )}
       style={{ 
         fontFamily: fontFamily,
-        boxShadow: `0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px ${primaryColor}20, 0 8px 16px ${primaryColor}15`
+        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
+        border: `1px solid ${primaryColor}10`
       }}
     >
       <div 
-        className="p-4 rounded-t-lg flex items-center justify-between"
+        className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden"
         style={{ 
-          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`
+          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)}, ${adjustColor(primaryColor, -30)})`,
         }}
       >
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center overflow-hidden bg-white/30 backdrop-blur-sm rounded-full w-8 h-8">
-            {avatarSrc ? (
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                <AvatarFallback className="text-white bg-transparent">
-                  <Bot size={20} />
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <Bot size={20} className="text-white" />
+        {/* Modern gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
+        
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="relative">
+            <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 border border-white/30 shadow-lg">
+              {avatarSrc ? (
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                  <AvatarFallback className="text-white bg-transparent">
+                    <Bot size={22} />
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <Bot size={22} className="text-white drop-shadow-sm" />
+              )}
+            </div>
+            {/* Online indicator */}
+            {isConnected && (
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse" />
             )}
           </div>
-          <span className="font-medium text-white text-base">{chatbotName}</span>
+          <div className="flex flex-col">
+            <span className="font-semibold text-white text-base drop-shadow-sm">{chatbotName}</span>
+            <span className="text-white/80 text-xs">
+              {isConnected ? 'Online' : 'Connecting...'}
+            </span>
+          </div>
         </div>
         
         {isInitializing ? (
           <LoadingSpinner size="sm" className="text-white/70" />
         ) : connectionError ? (
-          <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
+          <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1.5 rounded-full border border-red-300/30 backdrop-blur-sm">
             <AlertCircle size={14} className="text-white/90" />
-            <span className="text-xs text-white/90">Error</span>
+            <span className="text-xs text-white/90 font-medium">Error</span>
           </div>
         ) : !isConnected ? (
-          <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
+          <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1.5 rounded-full border border-orange-300/30 backdrop-blur-sm">
             <WifiOff size={14} className="text-white/90" />
-            <span className="text-xs text-white/90">Disconnected</span>
+            <span className="text-xs text-white/90 font-medium">Disconnected</span>
           </div>
         ) : null}
       </div>
@@ -279,10 +294,10 @@ export const ChatboxPreview = ({
           className="flex-1 relative"
           style={{ height: 'calc(100% - 85px)' }}
         >
-          <div className="p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white min-h-full">
+          <div className="p-5 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
             {connectionError && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle size={16} className="text-red-600" />
+              <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm shadow-sm">
+                <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
                 <span className="text-sm text-red-800">Connection failed. Please check your agent configuration.</span>
               </div>
             )}
@@ -291,30 +306,30 @@ export const ChatboxPreview = ({
               <div key={index}>
                 {message.type !== 'ui' && (
                   <div 
-                    className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                    className={`flex gap-3 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
                   >
                     {message.type === 'bot_response' && (
                       <div className="flex-shrink-0 mt-1">
                         {avatarSrc ? (
-                          <Avatar className="w-8 h-8">
+                          <Avatar className="w-9 h-9 border-2 border-white shadow-md">
                             <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                             <AvatarFallback style={{ 
                               background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
                               color: secondaryColor
                             }}>
-                              <Bot size={16} />
+                              <Bot size={18} />
                             </AvatarFallback>
                           </Avatar>
                         ) : (
                           <div 
-                            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-md"
                             style={{ 
                               background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
                               color: secondaryColor,
-                              boxShadow: `0 2px 5px ${primaryColor}40`
+                              boxShadow: `0 4px 12px ${primaryColor}30`
                             }}
                           >
-                            <Bot size={16} />
+                            <Bot size={18} />
                           </div>
                         )}
                       </div>
@@ -322,13 +337,14 @@ export const ChatboxPreview = ({
                     
                     <div
                       className={cn(
-                        "rounded-lg p-3 max-w-[80%] relative",
+                        "rounded-2xl p-4 max-w-[80%] relative shadow-sm transition-all duration-200 hover:shadow-md",
                         message.type === 'bot_response' 
-                          ? 'bg-gray-100 text-gray-800 shadow-sm' 
-                          : message.type === 'system_message' ? ` ` : 'bg-gray-100 text-gray-800 '
+                          ? 'bg-white border border-gray-100 text-gray-800' 
+                          : message.type === 'system_message' ? ` ` : 'bg-white border border-gray-100 text-gray-800'
                       )}
                       style={{ 
-                        backgroundColor: message.type === 'bot_response' ? `${primaryColor}15` : '',
+                        backgroundColor: message.type === 'bot_response' ? 'white' : '',
+                        borderColor: message.type === 'bot_response' ? `${primaryColor}20` : '',
                       }}
                     >
                       <div className="text-sm prose prose-sm max-w-none markdown-content">
@@ -343,7 +359,7 @@ export const ChatboxPreview = ({
                               if (isInline) {
                                 return (
                                   <code
-                                    className="px-1.5 py-0.5 rounded-md bg-gray-100 font-mono text-sm"
+                                    className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
                                     style={{ color: primaryColor }}
                                     {...props}
                                   >
@@ -353,16 +369,16 @@ export const ChatboxPreview = ({
                               }
 
                               return (
-                                <div className="relative">
+                                <div className="relative my-3">
                                   {language && (
                                     <div 
-                                      className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono text-white"
+                                      className="absolute top-0 right-0 px-3 py-1 text-xs rounded-bl-lg font-mono text-white z-10"
                                       style={{ backgroundColor: primaryColor }}
                                     >
                                       {language}
                                     </div>
                                   )}
-                                  <pre className="!mt-0 !bg-gray-50 border border-gray-200 rounded-md overflow-x-auto">
+                                  <pre className="!mt-0 !bg-gray-50/80 border border-gray-200/60 rounded-xl overflow-x-auto backdrop-blur-sm">
                                     <code className="block p-4 text-sm font-mono" {...props}>
                                       {children}
                                     </code>
@@ -371,16 +387,16 @@ export const ChatboxPreview = ({
                               );
                             },
                             ul({ children }) {
-                              return <ul className="list-disc pl-4 space-y-1">{children}</ul>;
+                              return <ul className="list-disc pl-4 space-y-1 my-2">{children}</ul>;
                             },
                             ol({ children }) {
-                              return <ol className="list-decimal pl-4 space-y-1">{children}</ol>;
+                              return <ol className="list-decimal pl-4 space-y-1 my-2">{children}</ol>;
                             },
                             a({ children, href }) {
                               return (
                                 <a
                                   href={href}
-                                  className="underline"
+                                  className="underline transition-colors hover:opacity-80"
                                   style={{ color: primaryColor }}
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -391,8 +407,8 @@ export const ChatboxPreview = ({
                             },
                             p({children}){
                               return message.type === 'system_message' ? (
-                                <p style={{fontSize:"10px",color:`${primaryColor}`}}>{children}</p>
-                              ) : (<p>{children}</p>)
+                                <p style={{fontSize:"11px",color:`${primaryColor}`, fontWeight: "500"}}>{children}</p>
+                              ) : (<p className="leading-relaxed">{children}</p>)
                             }
                           }}
                         >
@@ -401,7 +417,7 @@ export const ChatboxPreview = ({
                       </div>
                       {
                         message.type === "bot_response" || message.type === "user" ? (
-                          <p className="text-xs mt-1 text-gray-400">
+                          <p className="text-xs mt-2 text-gray-400 font-medium">
                             {formatTimestamp(message.timestamp)}
                           </p>
                         ):
@@ -414,27 +430,28 @@ export const ChatboxPreview = ({
                     
                     {message.type === 'user' && (
                       <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0"
+                        className="w-9 h-9 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0 border-2 border-white shadow-md"
                         style={{
-                          background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                          background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
                         }}
                       >
-                        <User size={16} />
+                        <User size={18} className="text-gray-600" />
                       </div>
                     )}
                   </div>
                 )}
                 
                 {message.type === 'ui' && message.ui_type === 'yes_no' && (
-                  <div className="flex gap-2 justify-center animate-fade-in">
+                  <div className="flex gap-3 justify-center animate-fade-in">
                     <Button
                       onClick={() => handleYesNoClick('Yes')}
                       variant="outline"
-                      className="px-6 py-2 rounded-full font-medium transition-all hover:scale-105"
+                      className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 shadow-sm border-2"
                       style={{ 
                         borderColor: primaryColor,
-                        color: primaryColor
+                        color: primaryColor,
+                        backgroundColor: 'white'
                       }}
                     >
                       Yes
@@ -442,10 +459,11 @@ export const ChatboxPreview = ({
                     <Button
                       onClick={() => handleYesNoClick('No')}
                       variant="outline"
-                      className="px-6 py-2 rounded-full font-medium transition-all hover:scale-105"
+                      className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 shadow-sm border-2"
                       style={{ 
                         borderColor: primaryColor,
-                        color: primaryColor
+                        color: primaryColor,
+                        backgroundColor: 'white'
                       }}
                     >
                       No
@@ -456,59 +474,56 @@ export const ChatboxPreview = ({
             ))}
             
             {showTypingIndicator && (
-              <div className="flex gap-2 items-start animate-fade-in">
+              <div className="flex gap-3 items-start animate-fade-in">
                 <div className="flex-shrink-0 mt-1">
                   {avatarSrc ? (
-                    <Avatar className="w-8 h-8">
+                    <Avatar className="w-9 h-9 border-2 border-white shadow-md">
                       <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                       <AvatarFallback style={{ 
                         background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
                         color: secondaryColor
                       }}>
-                        <Bot size={16} />
+                        <Bot size={18} />
                       </AvatarFallback>
                     </Avatar>
                   ) : (
                     <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-md"
                       style={{ 
                         background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
                         color: secondaryColor,
-                        boxShadow: `0 2px 5px ${primaryColor}40`
+                        boxShadow: `0 4px 12px ${primaryColor}30`
                       }}
                     >
-                      <Bot size={16} />
+                      <Bot size={18} />
                     </div>
                   )}
                 </div>
                 <div
                   className={cn(
-                    "rounded-lg p-3 max-w-[80%] shadow-sm"
+                    "rounded-2xl p-4 max-w-[80%] shadow-sm border border-gray-100 bg-white"
                   )}
-                  style={{ 
-                    backgroundColor: `${primaryColor}15`,
-                  }}
                 >
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  <div className="flex space-x-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
                   </div>
                 </div>
               </div>
             )}
             
             {messages.length === 1 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
-              <div className="flex flex-col gap-2 mt-3 animate-fade-in">
-                <p className="text-xs text-gray-500 mb-1">Suggested questions:</p>
+              <div className="flex flex-col gap-3 mt-4 animate-fade-in">
+                <p className="text-xs text-gray-500 mb-1 font-medium">Suggested questions:</p>
                 {suggestions.filter(Boolean).map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="text-sm text-left px-4 py-2 rounded-full transition-all"
+                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] shadow-sm border bg-white hover:shadow-md"
                     style={{ 
-                      border: `1px solid ${primaryColor}30`,
-                      backgroundColor: `${primaryColor}08`,
+                      border: `1px solid ${primaryColor}20`,
+                      backgroundColor: 'white',
                       color: 'inherit'
                     }}
                   >
@@ -520,18 +535,18 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
         
-        <div className="border-t p-3 bg-white mt-auto">
+        <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm mt-auto">
           <form onSubmit={handleSubmit} className="relative">
             <Textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-              className="pr-12 text-sm border-2 pl-4 focus-visible:ring-offset-0 dark:bg-white"
+              className="pr-14 text-sm border-2 pl-4 focus-visible:ring-offset-0 dark:bg-white rounded-xl shadow-sm transition-all duration-200"
               style={{ 
-                borderColor: `${primaryColor}30`,
-                minHeight: "46px",
+                borderColor: `${primaryColor}20`,
+                minHeight: "52px",
                 maxHeight: "120px",
-                width: "calc(100% - 40px)"
+                width: "calc(100% - 44px)"
               }}
               disabled={!isConnected || shouldDisableInput}
               expandable={true}
@@ -545,19 +560,19 @@ export const ChatboxPreview = ({
             />
             <button 
               type="submit" 
-              className="absolute right-[0px] top-1/2 -translate-y-1/2 p-2 rounded-full transition-transform hover:scale-110"
+              className="absolute right-[2px] top-1/2 -translate-y-1/2 p-3 rounded-xl transition-all hover:scale-110 shadow-lg border border-white/50"
               style={{ 
-                backgroundColor: primaryColor,
+                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)})`,
                 color: secondaryColor,
-                boxShadow: `0 2px 5px ${primaryColor}40`,
+                boxShadow: `0 4px 12px ${primaryColor}40`,
                 opacity: (isConnected && !shouldDisableInput) ? 1 : 0.5,
               }}
               disabled={!isConnected || shouldDisableInput}
             >
-              <Send size={16} />
+              <Send size={18} />
             </button>
           </form>
-          <div className="text-center mt-2 text-xs text-gray-400">
+          <div className="text-center mt-3 text-xs text-gray-400 font-medium">
             powered by 7en.ai
           </div>
         </div>
