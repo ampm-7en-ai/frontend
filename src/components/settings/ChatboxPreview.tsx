@@ -251,12 +251,12 @@ export const ChatboxPreview = ({
   return (
     <Card 
       className={cn(
-        "flex flex-col overflow-hidden backdrop-blur-sm animate-fade-in relative",
+        "flex flex-col backdrop-blur-sm animate-fade-in relative",
         className
       )}
       style={{ 
         fontFamily: fontFamily,
-        height: 'calc(100vh - 100px)',
+        height: '100%',
         boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
         border: `1px solid ${primaryColor}10`
       }}
@@ -318,7 +318,7 @@ export const ChatboxPreview = ({
         {/* Messages Area */}
         <ScrollArea 
           ref={scrollAreaRef}
-          className="flex-1"
+          className="flex-1 min-h-0"
         >
           <div className="p-6 space-y-6 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
             {connectionError && (
