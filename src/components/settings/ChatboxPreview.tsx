@@ -782,22 +782,6 @@ export const ChatboxPreview = ({
         </div>
       </div>
       
-      {/* Chat with us button - when minimized */}
-      {onMinimize && (
-        <ModernButton
-          onClick={() => {/* handle expand */}}
-          className="fixed bottom-6 right-6 rounded-full px-6 py-4 font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-3"
-          style={{ 
-            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
-            color: secondaryColor,
-            border: `1px solid ${primaryColor}20`
-          }}
-        >
-          <Bot size={24} />
-          {buttonText}
-        </ModernButton>
-      )}
-      
       {/* Enhanced CSS Animations */}
       <style>
         {`
