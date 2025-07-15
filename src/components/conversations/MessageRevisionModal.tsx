@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { getApiUrl } from '@/utils/api-config';
-import { apiPost } from '@/utils/api-interceptor';
+import { apiPost, apiPut } from '@/utils/api-interceptor';
 
 interface MessageRevisionModalProps {
   open: boolean;
@@ -30,7 +30,48 @@ const MessageRevisionModal = ({
 }: MessageRevisionModalProps) => {
   const [revisedAnswer, setRevisedAnswer] = useState(answer);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingImproved, setIsCheckingImproved] = useState(false);
+  const [improvedResponse, setImprovedResponse] = useState<string | null>(null);
+  const [improvedResponseId, setImprovedResponseId] = useState<string | null>(null);
   const { showToast } = useFloatingToast();
+
+  // Check if response is already improved when modal opens
+  useEffect(() => {
+    if (open && agentMessageId) {
+      checkForImprovedResponse();
+    }
+  }, [open, agentMessageId]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setRevisedAnswer(answer);
+      setImprovedResponse(null);
+      setImprovedResponseId(null);
+    }
+  }, [open, answer]);
+
+  const checkForImprovedResponse = async () => {
+    if (!agentMessageId) return;
+
+    setIsCheckingImproved(true);
+    try {
+      // Check if there's an existing improved response for this message
+      const response = await fetch(getApiUrl(`improvedresponse/?agent_message_id=${agentMessageId}`));
+      const data = await response.json();
+
+      if (response.ok && data.results && data.results.length > 0) {
+        const improvedData = data.results[0];
+        setImprovedResponse(improvedData.improved_response);
+        setImprovedResponseId(improvedData.id);
+        setRevisedAnswer(improvedData.improved_response);
+      }
+    } catch (error) {
+      console.error('Error checking for improved response:', error);
+    } finally {
+      setIsCheckingImproved(false);
+    }
+  };
 
   const handleImprove = async () => {
     if (!revisedAnswer.trim()) {
@@ -101,10 +142,71 @@ const MessageRevisionModal = ({
     }
   };
 
+  const handleUpdate = async () => {
+    if (!revisedAnswer.trim()) {
+      showToast({
+        title: "Error",
+        description: "Answer cannot be empty",
+        variant: "error"
+      });
+      return;
+    }
+
+    if (!improvedResponseId) {
+      showToast({
+        title: "Error",
+        description: "Missing improved response ID",
+        variant: "error"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const requestBody = {
+        improved_response: revisedAnswer
+      };
+
+      const response = await apiPut(getApiUrl(`improvedresponse/${improvedResponseId}/`), requestBody);
+      const data = await response.json();
+
+      if (response.ok) {
+        onRevise(revisedAnswer);
+        onOpenChange(false);
+        showToast({
+          title: "Success",
+          description: "Response updated successfully",
+          variant: "success"
+        });
+      } else {
+        const errorMessage = data.message || data.error?.message || "Failed to update response";
+        showToast({
+          title: "Error",
+          description: errorMessage,
+          variant: "error"
+        });
+      }
+    } catch (error) {
+      console.error('Error updating response:', error);
+      showToast({
+        title: "Error",
+        description: "Failed to update response",
+        variant: "error"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCancel = () => {
     setRevisedAnswer(answer); // Reset to original answer
     onOpenChange(false);
   };
+
+  const isImproved = improvedResponse !== null;
+  const buttonText = isImproved ? "Update" : "Improve";
+  const buttonAction = isImproved ? handleUpdate : handleImprove;
 
   return (
     <ModernModal
@@ -120,10 +222,10 @@ const MessageRevisionModal = ({
           </ModernButton>
           <ModernButton 
             variant="primary" 
-            onClick={handleImprove}
-            disabled={isLoading}
+            onClick={buttonAction}
+            disabled={isLoading || isCheckingImproved}
           >
-            {isLoading ? "Improving..." : "Improve"}
+            {isLoading ? (isImproved ? "Updating..." : "Improving...") : buttonText}
           </ModernButton>
         </div>
       }
@@ -146,16 +248,34 @@ const MessageRevisionModal = ({
           <label htmlFor="revised-answer" className="text-sm font-medium text-slate-700 dark:text-slate-300">
             AI Answer
           </label>
+          
+          {/* Show improved response if it exists */}
+          {isImproved && (
+            <div className="mb-3">
+              <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
+                Improved Response:
+              </div>
+              <div className="p-3 rounded-lg bg-green-50/80 dark:bg-green-900/20 border border-green-200/60 dark:border-green-800/60">
+                <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
+                  {improvedResponse}
+                </p>
+              </div>
+            </div>
+          )}
+
           <Textarea
             id="revised-answer"
             value={revisedAnswer}
             onChange={(e) => setRevisedAnswer(e.target.value)}
             className="min-h-[200px] resize-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 rounded-xl focus:border-blue-500/50 dark:focus:border-blue-400/50 focus:ring-blue-500/40 dark:focus:ring-blue-400/40 transition-all duration-200"
             placeholder="Enter the revised answer..."
-            disabled={isLoading}
+            disabled={isLoading || isCheckingImproved}
           />
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Edit the AI response to make it more accurate or helpful for the customer.
+            {isImproved 
+              ? "Update the improved AI response to make it even better for the customer."
+              : "Edit the AI response to make it more accurate or helpful for the customer."
+            }
           </p>
         </div>
       </div>
