@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -518,13 +517,14 @@ export const ChatboxPreview = ({
                     >
                       <div
                         className={cn(
-                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-300 group",
+                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-300",
                           styling.containerClass,
                           styling.textClass
                         )}
                         style={{
                           ...styling.style,
-                          willChange: 'transform'
+                          transform: 'scale(1)',
+                          willChange: 'auto'
                         }}
                       >
                         <div className="text-sm prose prose-sm max-w-none markdown-content">
@@ -656,15 +656,15 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
 
-        {/* New Typing Indicator - positioned above input, smaller, with bounce animation */}
+        {/* Updated Typing Indicator - positioned 20px higher above input */}
         {showTypingIndicator && (
           <div 
-            className="absolute bottom-[80px] left-4 flex items-center gap-2 z-20"
+            className="absolute bottom-[100px] left-4 flex items-center gap-2 z-20"
             style={{
               animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
             }}
           >
-            {/* Smaller Avatar */}
+            {/* Smaller Avatar (2x smaller) */}
             <div className="flex-shrink-0">
               {avatarSrc ? (
                 <Avatar className="w-5 h-5 border border-white">
@@ -689,7 +689,7 @@ export const ChatboxPreview = ({
               )}
             </div>
 
-            {/* Smaller Typing Dots */}
+            {/* Smaller Typing Dots Container */}
             <div 
               className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
             >
@@ -785,11 +785,11 @@ export const ChatboxPreview = ({
           
           @keyframes typingBounceIn {
             0% {
-              transform: translateY(40px) scale(0.3);
+              transform: translateY(60px) scale(0.3);
               opacity: 0;
             }
             50% {
-              transform: translateY(-3px) scale(1.1);
+              transform: translateY(-8px) scale(1.1);
               opacity: 0.8;
             }
             100% {
@@ -804,11 +804,11 @@ export const ChatboxPreview = ({
               opacity: 1;
             }
             50% {
-              transform: translateY(-3px) scale(1.1);
+              transform: translateY(-8px) scale(1.1);
               opacity: 0.8;
             }
             100% {
-              transform: translateY(40px) scale(0.3);
+              transform: translateY(60px) scale(0.3);
               opacity: 0;
             }
           }
