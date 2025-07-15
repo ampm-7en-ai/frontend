@@ -77,14 +77,12 @@ export const ChatboxPreview = ({
     msg.type === 'ui' && msg.ui_type === 'yes_no'
   );
 
-  // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
     if (scrollViewportRef.current) {
       scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
     }
   }, [messages, showTypingIndicator]);
 
-  // Store a reference to the scroll viewport when the ScrollArea is mounted
   useEffect(() => {
     if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -94,19 +92,15 @@ export const ChatboxPreview = ({
     }
   }, []);
 
-  // Improved message ID generation for better deduplication
   const generateUniqueMessageId = (message: any): string => {
-    // Use existing messageId if available
     if (message.messageId) return message.messageId;
     
-    // Create a more robust ID based on content + type + sequence
     messageSequenceRef.current += 1;
     const contentHash = message.content.slice(0, 30).replace(/\s+/g, '-');
     return `${message.type}-${contentHash}-${messageSequenceRef.current}-${Date.now()}`;
   };
 
   useEffect(() => {
-    // Don't initialize if no agent ID
     if (!agentId) {
       console.log("No agent ID provided to ChatboxPreview");
       setConnectionError("No agent ID provided");
@@ -123,36 +117,29 @@ export const ChatboxPreview = ({
       onMessage: (message) => {
         console.log("Received message:", message);
         
-        // Skip if we're in the middle of restarting
         if (restartingRef.current) {
           console.log("Skipping message during restart");
           return;
         }
         
-        // Handle system messages for typing indicator
         if (message.type === 'system_message') {
           setSystemMessage(message.content);
           setShowTypingIndicator(true);
           return;
         }
         
-        // Generate unique message ID for better deduplication
         const messageId = generateUniqueMessageId(message);
         
-        // Enhanced deduplication check
         if (processedMessageIds.current.has(messageId)) {
           console.log("Duplicate message detected, skipping:", messageId);
           return;
         }
         
-        // Add to processed set
         processedMessageIds.current.add(messageId);
         
-        // Clear typing indicator and system message
         setShowTypingIndicator(false);
         setSystemMessage('');
         
-        // Add message to state
         setMessages(prev => [...prev, { ...message, messageId }]); 
       },
       onTypingStart: () => {
@@ -244,7 +231,6 @@ export const ChatboxPreview = ({
 
   const handleYesNoClick = (response: 'Yes' | 'No') => {
     sendMessage(response);
-    // Remove the yes/no message from the list to re-enable input
     setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'yes_no')));
   };
 
@@ -262,10 +248,8 @@ export const ChatboxPreview = ({
   };
 
   const handleRestart = () => {
-    // Set restarting flag
     restartingRef.current = true;
     
-    // Completely reset the chat state
     setMessages([]);
     setShowTypingIndicator(false);
     setSystemMessage('');
@@ -273,17 +257,14 @@ export const ChatboxPreview = ({
     setIsInitializing(true);
     setIsConnected(false);
     
-    // Clear processed message IDs and reset sequence
     processedMessageIds.current.clear();
     messageSequenceRef.current = 0;
     
-    // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
       chatServiceRef.current.disconnect();
       chatServiceRef.current = null;
     }
     
-    // Create a completely new connection after a longer delay to ensure cleanup
     setTimeout(() => {
       if (agentId) {
         console.log("Restarting ChatWebSocketService with agent ID:", agentId);
@@ -294,13 +275,11 @@ export const ChatboxPreview = ({
           onMessage: (message) => {
             console.log("Restart - Received message:", message);
             
-            // Skip if we're still in restarting state
             if (restartingRef.current) {
               console.log("Still restarting, skipping message");
               return;
             }
             
-            // Handle system messages for typing indicator
             if (message.type === 'system_message') {
               setSystemMessage(message.content);
               setShowTypingIndicator(true);
@@ -343,7 +322,6 @@ export const ChatboxPreview = ({
             setIsInitializing(false);
             if (status) {
               setConnectionError(null);
-              // Clear restarting flag once connected
               setTimeout(() => {
                 restartingRef.current = false;
               }, 1000);
@@ -360,13 +338,13 @@ export const ChatboxPreview = ({
     switch (messageType) {
       case 'bot_response':
         return {
-          containerClass: 'bg-white border border-gray-200/60 shadow-sm',
-          textClass: 'text-gray-800'
+          containerClass: 'bg-background border border-border shadow-sm',
+          textClass: 'text-foreground'
         };
       case 'user':
         return {
-          containerClass: 'text-white border border-transparent shadow-md',
-          textClass: 'text-white',
+          containerClass: 'text-primary-foreground border border-transparent shadow-md',
+          textClass: 'text-primary-foreground',
           style: { 
             background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`
           }
@@ -374,7 +352,7 @@ export const ChatboxPreview = ({
       case 'system_message':
         return {
           containerClass: `border shadow-sm`,
-          textClass: 'text-blue-800',
+          textClass: 'text-blue-800 dark:text-blue-200',
           style: {
             backgroundColor: `${primaryColor}10`,
             borderColor: `${primaryColor}30`
@@ -382,8 +360,8 @@ export const ChatboxPreview = ({
         };
       default:
         return {
-          containerClass: 'bg-gray-50 border border-gray-200',
-          textClass: 'text-gray-700'
+          containerClass: 'bg-muted border border-border',
+          textClass: 'text-muted-foreground'
         };
     }
   };
@@ -486,11 +464,11 @@ export const ChatboxPreview = ({
           ref={scrollAreaRef}
           className="flex-1 min-h-0"
         >
-          <div className="p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
+          <div className="p-6 space-y-4 bg-gradient-to-b from-muted/50 to-background min-h-full">
             {connectionError && (
-              <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm">
-                <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
-                <span className="text-sm text-red-800">Connection failed. Please check your agent configuration.</span>
+              <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl backdrop-blur-sm">
+                <AlertCircle size={18} className="text-destructive flex-shrink-0" />
+                <span className="text-sm text-destructive">Connection failed. Please check your agent configuration.</span>
               </div>
             )}
             
@@ -504,7 +482,7 @@ export const ChatboxPreview = ({
                     borderColor: `${primaryColor}20`
                   }}
                 >
-                  <div className="text-xs italic text-gray-600 leading-relaxed">
+                  <div className="text-xs italic text-muted-foreground leading-relaxed">
                     <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
                   </div>
                 </div>
@@ -549,7 +527,7 @@ export const ChatboxPreview = ({
                                 if (isInline) {
                                   return (
                                     <code
-                                      className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
+                                      className="px-2 py-1 rounded-lg bg-muted font-mono text-sm border"
                                       style={{ color: '#3b82f6' }}
                                       {...props}
                                     >
@@ -568,7 +546,7 @@ export const ChatboxPreview = ({
                                         {language}
                                       </div>
                                     )}
-                                    <pre className="!mt-0 !bg-gray-50/80 border border-gray-200/60 rounded-xl overflow-x-auto backdrop-blur-sm">
+                                    <pre className="!mt-0 !bg-muted border border-border rounded-xl overflow-x-auto backdrop-blur-sm">
                                       <code className="block p-4 text-sm font-mono" {...props}>
                                         {children}
                                       </code>
@@ -645,15 +623,15 @@ export const ChatboxPreview = ({
             {/* Suggestions - only show if we have few messages and no pending UI components */}
             {messages.length === 0 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
               <div className="flex flex-col gap-3 mt-6 animate-fade-in">
-                <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
+                <p className="text-xs text-muted-foreground mb-2 font-medium">Suggested questions:</p>
                 {suggestions.filter(Boolean).map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50 hover:shadow-md"
+                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-background hover:bg-muted/50 hover:shadow-md"
                     style={{ 
                       border: `1px solid ${primaryColor}20`,
-                      backgroundColor: 'white',
+                      backgroundColor: 'hsl(var(--background))',
                       color: 'inherit',
                       animation: `suggestionSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards ${index * 0.1}s both`
                     }}
@@ -701,7 +679,7 @@ export const ChatboxPreview = ({
 
             {/* Smaller Typing Dots Container */}
             <div 
-              className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
+              className="rounded-full px-2 py-1 border border-border bg-background shadow-sm flex items-center gap-1"
             >
               <div className="flex space-x-1">
                 <div 
@@ -732,7 +710,7 @@ export const ChatboxPreview = ({
 
               {/* System Message Display */}
               {systemMessage && (
-                <div className="ml-2 text-xs text-gray-600 font-medium animate-fade-in">
+                <div className="ml-2 text-xs text-muted-foreground font-medium animate-fade-in">
                   {systemMessage}
                 </div>
               )}
@@ -741,13 +719,13 @@ export const ChatboxPreview = ({
         )}
         
         {/* Message Input - With integrated send button */}
-        <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
+        <div className="border-t border-border p-4 bg-background/80 backdrop-blur-sm flex-shrink-0">
           <form onSubmit={handleSubmit} className="relative">
             <Textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-              className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
+              className="text-sm border-2 focus-visible:ring-offset-0 bg-background rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
               style={{ 
                 borderColor: `${primaryColor}20`,
                 minHeight: "44px",
@@ -776,27 +754,11 @@ export const ChatboxPreview = ({
               <Send size={20} />
             </button>
           </form>
-          <div className="text-center mt-3 text-xs text-gray-400 font-medium">
+          <div className="text-center mt-3 text-xs text-muted-foreground font-medium">
             powered by 7en.ai
           </div>
         </div>
       </div>
-      
-      {/* Chat with us button - when minimized */}
-      {onMinimize && (
-        <ModernButton
-          onClick={() => {/* handle expand */}}
-          className="fixed bottom-6 right-6 rounded-full px-6 py-4 font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-3"
-          style={{ 
-            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
-            color: secondaryColor,
-            border: `1px solid ${primaryColor}20`
-          }}
-        >
-          <Bot size={24} />
-          {buttonText}
-        </ModernButton>
-      )}
       
       {/* Enhanced CSS Animations */}
       <style>
