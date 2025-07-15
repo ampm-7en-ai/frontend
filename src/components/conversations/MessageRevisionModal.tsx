@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getApiUrl } from '@/utils/api-config';
 import { apiPost, apiPut, apiGet } from '@/utils/api-interceptor';
 
@@ -218,7 +219,7 @@ const MessageRevisionModal = ({
       size="2xl"
       footer={
         <div className="flex gap-3">
-          <ModernButton variant="outline" onClick={handleCancel} disabled={isLoading}>
+          <ModernButton variant="outline" onClick={handleCancel} disabled={isLoading || isCheckingImproved}>
             Cancel
           </ModernButton>
           <ModernButton 
@@ -231,55 +232,61 @@ const MessageRevisionModal = ({
         </div>
       }
     >
-      <div className="space-y-6">
-        {/* Question Section */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Customer Question
-          </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60">
-            <p className="text-slate-800 dark:text-slate-200 leading-relaxed">
-              {question}
+      {isCheckingImproved ? (
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner size="lg" text="Loading response data..." />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Question Section */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Customer Question
+            </label>
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60">
+              <p className="text-slate-800 dark:text-slate-200 leading-relaxed">
+                {question}
+              </p>
+            </div>
+          </div>
+
+          {/* Answer Section */}
+          <div className="space-y-3">
+            <label htmlFor="revised-answer" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              AI Answer
+            </label>
+            
+            {/* Show improved response if it exists */}
+            {isImproved && (
+              <div className="mb-3">
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
+                  Improved Response:
+                </div>
+                <div className="p-3 rounded-lg bg-green-50/80 dark:bg-green-900/20 border border-green-200/60 dark:border-green-800/60">
+                  <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
+                    {improvedResponse}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <Textarea
+              id="revised-answer"
+              value={revisedAnswer}
+              onChange={(e) => setRevisedAnswer(e.target.value)}
+              className="min-h-[200px] resize-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 rounded-xl focus:border-blue-500/50 dark:focus:border-blue-400/50 focus:ring-blue-500/40 dark:focus:ring-blue-400/40 transition-all duration-200"
+              placeholder="Enter the revised answer..."
+              disabled={isLoading}
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {isImproved 
+                ? "Update the improved AI response to make it even better for the customer."
+                : "Edit the AI response to make it more accurate or helpful for the customer."
+              }
             </p>
           </div>
         </div>
-
-        {/* Answer Section */}
-        <div className="space-y-3">
-          <label htmlFor="revised-answer" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            AI Answer
-          </label>
-          
-          {/* Show improved response if it exists */}
-          {isImproved && (
-            <div className="mb-3">
-              <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
-                Improved Response:
-              </div>
-              <div className="p-3 rounded-lg bg-green-50/80 dark:bg-green-900/20 border border-green-200/60 dark:border-green-800/60">
-                <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
-                  {improvedResponse}
-                </p>
-              </div>
-            </div>
-          )}
-
-          <Textarea
-            id="revised-answer"
-            value={revisedAnswer}
-            onChange={(e) => setRevisedAnswer(e.target.value)}
-            className="min-h-[200px] resize-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 rounded-xl focus:border-blue-500/50 dark:focus:border-blue-400/50 focus:ring-blue-500/40 dark:focus:ring-blue-400/40 transition-all duration-200"
-            placeholder="Enter the revised answer..."
-            disabled={isLoading || isCheckingImproved}
-          />
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            {isImproved 
-              ? "Update the improved AI response to make it even better for the customer."
-              : "Edit the AI response to make it more accurate or helpful for the customer."
-            }
-          </p>
-        </div>
-      </div>
+      )}
     </ModernModal>
   );
 };
