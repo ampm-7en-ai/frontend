@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { getApiUrl, getAccessToken } from '@/utils/api-config';
+import { getApiUrl } from '@/utils/api-config';
+import { apiPost } from '@/utils/api-interceptor';
 
 interface MessageRevisionModalProps {
   open: boolean;
@@ -31,11 +32,6 @@ const MessageRevisionModal = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImprove = async () => {
-    console.log('handleImprove called');
-    console.log('previousUserMessageId:', previousUserMessageId);
-    console.log('agentMessageId:', agentMessageId);
-    console.log('revisedAnswer:', revisedAnswer);
-
     if (!revisedAnswer.trim()) {
       toast.error("Answer cannot be empty");
       return;
@@ -43,42 +39,20 @@ const MessageRevisionModal = ({
 
     if (!previousUserMessageId || !agentMessageId) {
       toast.error("Missing message IDs for improvement");
-      console.log('Missing IDs - previousUserMessageId:', previousUserMessageId, 'agentMessageId:', agentMessageId);
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const token = getAccessToken();
-      console.log('Token found:', !!token);
-      
-      if (!token) {
-        toast.error("Authentication required");
-        setIsLoading(false);
-        return;
-      }
-
       const requestBody = {
         previous_user_message_id: previousUserMessageId,
         agent_message_id: agentMessageId,
         improved_agent_message: revisedAnswer
       };
 
-      console.log('Making API request with body:', requestBody);
-
-      const response = await fetch(getApiUrl('improvedresponse/'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      console.log('API response status:', response.status);
+      const response = await apiPost(getApiUrl('improvedresponse/'), requestBody);
       const data = await response.json();
-      console.log('API response data:', data);
 
       if (response.ok && data.status === 'success') {
         onRevise(revisedAnswer);
