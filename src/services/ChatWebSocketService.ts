@@ -70,12 +70,19 @@ export class ChatWebSocketService {
   }
   
   private handleMessage(data: any) {
-    console.log('Received WebSocket data:', data);
+    console.log('=== RAW WebSocket Message ===');
+    console.log('Full data:', JSON.stringify(data, null, 2));
+    console.log('Data type:', data.type);
+    console.log('Data timestamp field:', data.timestamp);
+    console.log('Data keys:', Object.keys(data));
     
     // Handle UI messages (like yes_no) that don't have content
     if (data.type === 'ui' && data.ui_type) {
-      const messageTimestamp = data.timestamp || new Date().toISOString();
+      const messageTimestamp = this.extractTimestamp(data);
       const messageId = `${data.type}-${data.ui_type}-${messageTimestamp}`;
+      
+      console.log('=== UI Message Processing ===');
+      console.log('UI message timestamp:', messageTimestamp);
       
       // Skip if we've already processed this message
       if (this.processedMessageIds.has(messageId)) {
@@ -103,7 +110,12 @@ export class ChatWebSocketService {
     // Extract message content based on the new response format
     const messageContent = data.content || '';
     const messageType = data.type || 'bot_response';
-    const messageTimestamp = data.timestamp || new Date().toISOString();
+    const messageTimestamp = this.extractTimestamp(data);
+    
+    console.log('=== Regular Message Processing ===');
+    console.log('Message type:', messageType);
+    console.log('Message content:', messageContent);
+    console.log('Extracted timestamp:', messageTimestamp);
     
     // Extract model information correctly from the response
     // Check different possible locations where the model might be in the response
@@ -114,6 +126,7 @@ export class ChatWebSocketService {
     
     // Skip if not a valid message (except for UI messages which we handled above)
     if (!messageContent && data.type !== 'ui') {
+      console.log('Skipping message without content');
       return;
     }
     
@@ -137,7 +150,8 @@ export class ChatWebSocketService {
       );
     }
     
-    // Log the model and temperature for debugging
+    console.log('=== Final Message Data ===');
+    console.log('Final timestamp being sent:', messageTimestamp);
     console.log('Message model:', messageModel);
     console.log('Message temperature:', messageTemperature);
     
@@ -150,5 +164,39 @@ export class ChatWebSocketService {
       temperature: messageTemperature,
       prompt: messagePrompt
     });
+  }
+  
+  private extractTimestamp(data: any): string {
+    // Check multiple possible locations for timestamp
+    const possibleTimestamps = [
+      data.timestamp,
+      data.created_at,
+      data.time,
+      data.datetime,
+      data.sent_at
+    ];
+    
+    console.log('=== Timestamp Extraction ===');
+    console.log('Checking timestamps:', possibleTimestamps);
+    
+    for (const ts of possibleTimestamps) {
+      if (ts) {
+        // Validate timestamp format
+        try {
+          const date = new Date(ts);
+          if (!isNaN(date.getTime())) {
+            console.log('Valid timestamp found:', ts);
+            return ts;
+          }
+        } catch (error) {
+          console.log('Invalid timestamp format:', ts);
+        }
+      }
+    }
+    
+    // Fallback to current time if no valid timestamp found
+    const fallbackTimestamp = new Date().toISOString();
+    console.log('Using fallback timestamp:', fallbackTimestamp);
+    return fallbackTimestamp;
   }
 }
