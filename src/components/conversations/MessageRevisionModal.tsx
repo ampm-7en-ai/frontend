@@ -59,11 +59,13 @@ const MessageRevisionModal = ({
         onOpenChange(false);
         toast.success("Response improved successfully");
       } else {
-        // Handle error cases
+        // Handle error cases - prioritize the "message" property from API response
+        const errorMessage = data.message || data.error?.message || "Failed to improve response";
+        
         if (data.error?.fields?.general?.[0]?.includes('duplicate key')) {
           toast.error("Already improved");
         } else {
-          toast.error(data.error?.message || "Failed to improve response");
+          toast.error(errorMessage);
         }
       }
     } catch (error) {
