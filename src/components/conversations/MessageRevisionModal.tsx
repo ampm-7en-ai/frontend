@@ -4,7 +4,7 @@ import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
+import { useFloatingToast } from '@/context/FloatingToastContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { getApiUrl } from '@/utils/api-config';
 import { apiPost } from '@/utils/api-interceptor';
@@ -30,15 +30,24 @@ const MessageRevisionModal = ({
 }: MessageRevisionModalProps) => {
   const [revisedAnswer, setRevisedAnswer] = useState(answer);
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useFloatingToast();
 
   const handleImprove = async () => {
     if (!revisedAnswer.trim()) {
-      toast.error("Answer cannot be empty");
+      showToast({
+        title: "Error",
+        description: "Answer cannot be empty",
+        variant: "error"
+      });
       return;
     }
 
     if (!previousUserMessageId || !agentMessageId) {
-      toast.error("Missing message IDs for improvement");
+      showToast({
+        title: "Error", 
+        description: "Missing message IDs for improvement",
+        variant: "error"
+      });
       return;
     }
 
@@ -57,20 +66,36 @@ const MessageRevisionModal = ({
       if (response.ok && data.status === 'success') {
         onRevise(revisedAnswer);
         onOpenChange(false);
-        toast.success("Response improved successfully");
+        showToast({
+          title: "Success",
+          description: "Response improved successfully",
+          variant: "success"
+        });
       } else {
         // Handle error cases - prioritize the "message" property from API response
         const errorMessage = data.message || data.error?.message || "Failed to improve response";
         
         if (data.error?.fields?.general?.[0]?.includes('duplicate key')) {
-          toast.error("Already improved");
+          showToast({
+            title: "Error",
+            description: "Already improved",
+            variant: "error"
+          });
         } else {
-          toast.error(errorMessage);
+          showToast({
+            title: "Error",
+            description: errorMessage,
+            variant: "error"
+          });
         }
       }
     } catch (error) {
       console.error('Error improving response:', error);
-      toast.error("Failed to improve response");
+      showToast({
+        title: "Error",
+        description: "Failed to improve response",
+        variant: "error"
+      });
     } finally {
       setIsLoading(false);
     }
