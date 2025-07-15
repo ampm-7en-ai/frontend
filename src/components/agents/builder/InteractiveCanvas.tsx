@@ -10,7 +10,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
   const { agentData, canvasMode, isPreviewActive } = state;
-  const [isChatOpen, setIsChatOpen] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
   const { theme } = useAppTheme();
 
@@ -77,8 +77,8 @@ export const InteractiveCanvas = () => {
                     onClick={() => setIsChatOpen(!isChatOpen)}
                     className={`${hasButtonText ? 'rounded-full px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
                     style={{ 
-                      backgroundColor: agentData.primaryColor,
-                      boxShadow: `0 10px 30px ${agentData.primaryColor}50, 0 5px 15px ${agentData.primaryColor}40`,
+                      background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                      boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
                       fontFamily: agentData.fontFamily
                     }}
                   >
@@ -94,32 +94,65 @@ export const InteractiveCanvas = () => {
                   </Button>
                 </div>
                 
-                {/* Chat popup - with z-index higher than dot pattern */}
-                {isChatOpen && (
+                {/* Chat popup - Always rendered but controlled by visibility and transforms */}
+                <div 
+                  className={`absolute z-[60] ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 transition-all duration-300 ease-out ${
+                    isChatOpen 
+                      ? 'opacity-100 visible transform scale-100 translate-y-0' 
+                      : 'opacity-0 invisible transform scale-90 translate-y-4'
+                  }`}
+                  style={{ 
+                    height: '665px',
+                    transformOrigin: 'bottom center',
+                    transitionDelay: isChatOpen ? '0ms' : '100ms'
+                  }}
+                >
                   <div 
-                    className={`absolute z-[60] ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96`}
-                    style={{ height: '665px' }}
+                    className={`w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm transition-all duration-300 ease-out ${
+                      isChatOpen 
+                        ? 'animate-bounce-in' 
+                        : ''
+                    }`}
+                    style={{
+                      animation: isChatOpen ? 'bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)' : 'none'
+                    }}
                   >
-                    <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
-                      <ChatboxPreview
-                        agentId={currentAgentId}
-                        primaryColor={agentData.primaryColor}
-                        secondaryColor={agentData.secondaryColor}
-                        fontFamily={agentData.fontFamily}
-                        chatbotName={agentData.chatbotName}
-                        welcomeMessage={agentData.welcomeMessage}
-                        buttonText={agentData.buttonText}
-                        position={agentData.position}
-                        suggestions={agentData.suggestions.filter(Boolean)}
-                        avatarSrc={agentData.avatar || agentData.avatarUrl}
-                        className="w-full h-full"
-                      />
-                    </div>
+                    <ChatboxPreview
+                      agentId={currentAgentId}
+                      primaryColor={agentData.primaryColor}
+                      secondaryColor={agentData.secondaryColor}
+                      fontFamily={agentData.fontFamily}
+                      chatbotName={agentData.chatbotName}
+                      welcomeMessage={agentData.welcomeMessage}
+                      buttonText={agentData.buttonText}
+                      position={agentData.position}
+                      suggestions={agentData.suggestions.filter(Boolean)}
+                      avatarSrc={agentData.avatar || agentData.avatarUrl}
+                      className="w-full h-full"
+                    />
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
+          
+          {/* Custom keyframes for bounce animation */}
+          <style jsx>{`
+            @keyframes bounceIn {
+              0% {
+                transform: scale(0.8) translateY(20px);
+                opacity: 0;
+              }
+              60% {
+                transform: scale(1.1) translateY(-5px);
+                opacity: 1;
+              }
+              100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+              }
+            }
+          `}</style>
         </div>
       );
     }
