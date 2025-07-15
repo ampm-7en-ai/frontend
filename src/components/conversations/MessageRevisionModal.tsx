@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { getApiUrl } from '@/utils/api-config';
 
 interface MessageRevisionModalProps {
   open: boolean;
@@ -13,6 +14,8 @@ interface MessageRevisionModalProps {
   question: string;
   answer: string;
   onRevise: (revisedAnswer: string) => void;
+  previousUserMessageId?: string;
+  agentMessageId?: string;
 }
 
 const MessageRevisionModal = ({
@@ -20,19 +23,66 @@ const MessageRevisionModal = ({
   onOpenChange,
   question,
   answer,
-  onRevise
+  onRevise,
+  previousUserMessageId,
+  agentMessageId
 }: MessageRevisionModalProps) => {
   const [revisedAnswer, setRevisedAnswer] = useState(answer);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRevise = () => {
+  const handleImprove = async () => {
     if (!revisedAnswer.trim()) {
       toast.error("Answer cannot be empty");
       return;
     }
-    
-    onRevise(revisedAnswer);
-    onOpenChange(false);
-    toast.success("Answer revised successfully");
+
+    if (!previousUserMessageId || !agentMessageId) {
+      toast.error("Missing message IDs for improvement");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      const response = await fetch(getApiUrl('improvedresponse/'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          previous_user_message_id: previousUserMessageId,
+          agent_message_id: agentMessageId,
+          improved_agent_message: revisedAnswer
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        onRevise(revisedAnswer);
+        onOpenChange(false);
+        toast.success("Response improved successfully");
+      } else {
+        // Handle error cases
+        if (data.error?.fields?.general?.[0]?.includes('duplicate key')) {
+          toast.error("Already improved");
+        } else {
+          toast.error(data.error?.message || "Failed to improve response");
+        }
+      }
+    } catch (error) {
+      console.error('Error improving response:', error);
+      toast.error("Failed to improve response");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -49,11 +99,15 @@ const MessageRevisionModal = ({
       size="2xl"
       footer={
         <div className="flex gap-3">
-          <ModernButton variant="outline" onClick={handleCancel}>
+          <ModernButton variant="outline" onClick={handleCancel} disabled={isLoading}>
             Cancel
           </ModernButton>
-          <ModernButton variant="primary" onClick={handleRevise}>
-            Save Revision
+          <ModernButton 
+            variant="primary" 
+            onClick={handleImprove}
+            disabled={isLoading}
+          >
+            {isLoading ? "Improving..." : "Improve"}
           </ModernButton>
         </div>
       }
@@ -82,6 +136,7 @@ const MessageRevisionModal = ({
             onChange={(e) => setRevisedAnswer(e.target.value)}
             className="min-h-[200px] resize-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 rounded-xl focus:border-blue-500/50 dark:focus:border-blue-400/50 focus:ring-blue-500/40 dark:focus:ring-blue-400/40 transition-all duration-200"
             placeholder="Enter the revised answer..."
+            disabled={isLoading}
           />
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Edit the AI response to make it more accurate or helpful for the customer.

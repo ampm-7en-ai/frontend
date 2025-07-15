@@ -50,10 +50,10 @@ const MessageList = ({
   };
 
   const handleRevisionSave = (revisedAnswer: string) => {
-    // Here you would typically send the revised answer to your backend
+    // Here you would typically update the message in your state/context
     console.log('Revised answer:', revisedAnswer);
     showToast({
-      title: "Answer revised successfully",
+      title: "Answer improved successfully",
       variant: "success"
     });
   };
@@ -81,6 +81,21 @@ const MessageList = ({
     }
     
     return "No previous question found";
+  };
+
+  const getPreviousUserMessageId = () => {
+    if (!allMessages) return undefined;
+    
+    const currentMessageIndex = allMessages.findIndex(msg => msg.id === message.id);
+    
+    // Look for the previous user message
+    for (let i = currentMessageIndex - 1; i >= 0; i--) {
+      if (allMessages[i].sender === 'user') {
+        return allMessages[i].id;
+      }
+    }
+    
+    return undefined;
   };
 
   // Handle system messages
@@ -205,7 +220,7 @@ const MessageList = ({
                       components={{
                         p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
                         ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
-                        ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
+                        ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ul>,
                         li: ({ children }) => <li className="mb-1">{children}</li>,
                         strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                         em: ({ children }) => <em className="italic">{children}</em>
@@ -326,6 +341,8 @@ const MessageList = ({
         question={getPreviousUserMessage()}
         answer={message.content}
         onRevise={handleRevisionSave}
+        previousUserMessageId={getPreviousUserMessageId()}
+        agentMessageId={message.id}
       />
     </>
   );
