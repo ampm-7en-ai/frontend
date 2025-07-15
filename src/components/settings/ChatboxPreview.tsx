@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -10,7 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernInput } from '@/components/ui/modern-input';
 
 interface Message {
   type: string;
@@ -225,14 +225,44 @@ export const ChatboxPreview = ({
     }
   };
 
+  // Helper function to get message styling based on type
+  const getMessageStyling = (messageType: string) => {
+    switch (messageType) {
+      case 'bot_response':
+        return {
+          containerClass: 'bg-white border border-gray-200/60',
+          textClass: 'text-gray-800'
+        };
+      case 'user':
+        return {
+          containerClass: 'text-white border border-transparent',
+          textClass: 'text-white',
+          style: { 
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)})` 
+          }
+        };
+      case 'system_message':
+        return {
+          containerClass: 'bg-blue-50/80 border border-blue-200/60',
+          textClass: 'text-blue-800'
+        };
+      default:
+        return {
+          containerClass: 'bg-gray-50 border border-gray-200',
+          textClass: 'text-gray-700'
+        };
+    }
+  };
+
   return (
     <Card 
       className={cn(
-        "h-full flex flex-col overflow-hidden shadow-2xl animate-fade-in relative backdrop-blur-sm",
+        "flex flex-col overflow-hidden backdrop-blur-sm animate-fade-in relative",
         className
       )}
       style={{ 
         fontFamily: fontFamily,
+        height: 'calc(100vh - 100px)', // Increased height by 100px (was calc(100vh - 200px))
         boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
         border: `1px solid ${primaryColor}10`
       }}
@@ -248,26 +278,26 @@ export const ChatboxPreview = ({
         
         <div className="flex items-center gap-3 relative z-10">
           <div className="relative">
-            <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 border border-white/30 shadow-lg">
+            <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-12 h-12 border border-white/30">
               {avatarSrc ? (
-                <Avatar className="w-10 h-10">
+                <Avatar className="w-12 h-12">
                   <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                   <AvatarFallback className="text-white bg-transparent">
-                    <Bot size={22} />
+                    <Bot size={24} />
                   </AvatarFallback>
                 </Avatar>
               ) : (
-                <Bot size={22} className="text-white drop-shadow-sm" />
+                <Bot size={24} className="text-white drop-shadow-sm" />
               )}
             </div>
             {/* Online indicator */}
             {isConnected && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse" />
             )}
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-white text-base drop-shadow-sm">{chatbotName}</span>
-            <span className="text-white/80 text-xs">
+            <span className="font-semibold text-white text-lg drop-shadow-sm">{chatbotName}</span>
+            <span className="text-white/80 text-sm">
               {isConnected ? 'Online' : 'Connecting...'}
             </span>
           </div>
@@ -294,190 +324,188 @@ export const ChatboxPreview = ({
           className="flex-1 relative"
           style={{ height: 'calc(100% - 85px)' }}
         >
-          <div className="p-5 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
+          <div className="p-6 space-y-6 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
             {connectionError && (
-              <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm shadow-sm">
+              <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm">
                 <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
                 <span className="text-sm text-red-800">Connection failed. Please check your agent configuration.</span>
               </div>
             )}
             
-            {messages.map((message, index) => (
-              <div key={index}>
-                {message.type !== 'ui' && (
-                  <div 
-                    className={`flex gap-3 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
-                  >
-                    {message.type === 'bot_response' && (
-                      <div className="flex-shrink-0 mt-1">
-                        {avatarSrc ? (
-                          <Avatar className="w-9 h-9 border-2 border-white shadow-md">
-                            <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                            <AvatarFallback style={{ 
-                              background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                              color: secondaryColor
-                            }}>
-                              <Bot size={18} />
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-md"
-                            style={{ 
-                              background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                              color: secondaryColor,
-                              boxShadow: `0 4px 12px ${primaryColor}30`
-                            }}
-                          >
-                            <Bot size={18} />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    <div
-                      className={cn(
-                        "rounded-2xl p-4 max-w-[80%] relative shadow-sm transition-all duration-200 hover:shadow-md",
-                        message.type === 'bot_response' 
-                          ? 'bg-white border border-gray-100 text-gray-800' 
-                          : message.type === 'system_message' ? ` ` : 'bg-white border border-gray-100 text-gray-800'
-                      )}
-                      style={{ 
-                        backgroundColor: message.type === 'bot_response' ? 'white' : '',
-                        borderColor: message.type === 'bot_response' ? `${primaryColor}20` : '',
-                      }}
+            {messages.map((message, index) => {
+              const styling = getMessageStyling(message.type);
+              
+              return (
+                <div key={index}>
+                  {message.type !== 'ui' && (
+                    <div 
+                      className={`flex gap-4 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
                     >
-                      <div className="text-sm prose prose-sm max-w-none markdown-content">
-                        <ReactMarkdown
-                          components={{
-                            code({ node, className, children, ...props }) {
-                              const match = /language-(\w+)/.exec(className || '');
-                              const language = match ? match[1] : '';
-                              
-                              const isInline = !match && children.toString().split('\n').length === 1;
-                              
-                              if (isInline) {
-                                return (
-                                  <code
-                                    className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
-                                    style={{ color: primaryColor }}
-                                    {...props}
-                                  >
-                                    {children}
-                                  </code>
-                                );
-                              }
-
-                              return (
-                                <div className="relative my-3">
-                                  {language && (
-                                    <div 
-                                      className="absolute top-0 right-0 px-3 py-1 text-xs rounded-bl-lg font-mono text-white z-10"
-                                      style={{ backgroundColor: primaryColor }}
+                      {message.type === 'bot_response' && (
+                        <div className="flex-shrink-0 mt-1">
+                          {avatarSrc ? (
+                            <Avatar className="w-10 h-10 border-2 border-white">
+                              <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                              <AvatarFallback style={{ 
+                                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                                color: secondaryColor
+                              }}>
+                                <Bot size={18} />
+                              </AvatarFallback>
+                            </Avatar>
+                          ) : (
+                            <div 
+                              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white"
+                              style={{ 
+                                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                                color: secondaryColor
+                              }}
+                            >
+                              <Bot size={18} />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div
+                        className={cn(
+                          "rounded-2xl p-4 max-w-[80%] relative transition-all duration-200",
+                          styling.containerClass,
+                          styling.textClass
+                        )}
+                        style={styling.style}
+                      >
+                        <div className="text-sm prose prose-sm max-w-none markdown-content">
+                          <ReactMarkdown
+                            components={{
+                              code({ node, className, children, ...props }) {
+                                const match = /language-(\w+)/.exec(className || '');
+                                const language = match ? match[1] : '';
+                                
+                                const isInline = !match && children.toString().split('\n').length === 1;
+                                
+                                if (isInline) {
+                                  return (
+                                    <code
+                                      className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
+                                      style={{ color: primaryColor }}
+                                      {...props}
                                     >
-                                      {language}
-                                    </div>
-                                  )}
-                                  <pre className="!mt-0 !bg-gray-50/80 border border-gray-200/60 rounded-xl overflow-x-auto backdrop-blur-sm">
-                                    <code className="block p-4 text-sm font-mono" {...props}>
                                       {children}
                                     </code>
-                                  </pre>
-                                </div>
-                              );
-                            },
-                            ul({ children }) {
-                              return <ul className="list-disc pl-4 space-y-1 my-2">{children}</ul>;
-                            },
-                            ol({ children }) {
-                              return <ol className="list-decimal pl-4 space-y-1 my-2">{children}</ol>;
-                            },
-                            a({ children, href }) {
-                              return (
-                                <a
-                                  href={href}
-                                  className="underline transition-colors hover:opacity-80"
-                                  style={{ color: primaryColor }}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  {children}
-                                </a>
-                              );
-                            },
-                            p({children}){
-                              return message.type === 'system_message' ? (
-                                <p style={{fontSize:"11px",color:`${primaryColor}`, fontWeight: "500"}}>{children}</p>
-                              ) : (<p className="leading-relaxed">{children}</p>)
-                            }
+                                  );
+                                }
+
+                                return (
+                                  <div className="relative my-3">
+                                    {language && (
+                                      <div 
+                                        className="absolute top-0 right-0 px-3 py-1 text-xs rounded-bl-lg font-mono text-white z-10"
+                                        style={{ backgroundColor: primaryColor }}
+                                      >
+                                        {language}
+                                      </div>
+                                    )}
+                                    <pre className="!mt-0 !bg-gray-50/80 border border-gray-200/60 rounded-xl overflow-x-auto backdrop-blur-sm">
+                                      <code className="block p-4 text-sm font-mono" {...props}>
+                                        {children}
+                                      </code>
+                                    </pre>
+                                  </div>
+                                );
+                              },
+                              ul({ children }) {
+                                return <ul className="list-disc pl-4 space-y-1 my-2">{children}</ul>;
+                              },
+                              ol({ children }) {
+                                return <ol className="list-decimal pl-4 space-y-1 my-2">{children}</ol>;
+                              },
+                              a({ children, href }) {
+                                return (
+                                  <a
+                                    href={href}
+                                    className="underline transition-colors hover:opacity-80"
+                                    style={{ color: message.type === 'user' ? 'inherit' : primaryColor }}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {children}
+                                  </a>
+                                );
+                              },
+                              p({children}){
+                                return message.type === 'system_message' ? (
+                                  <p style={{fontSize:"12px", fontWeight: "500"}}>{children}</p>
+                                ) : (<p className="leading-relaxed">{children}</p>)
+                              }
+                            }}
+                          >
+                            {message.content} 
+                          </ReactMarkdown>
+                        </div>
+                        {
+                          message.type === "bot_response" || message.type === "user" ? (
+                            <p className="text-xs mt-2 opacity-60 font-medium">
+                              {formatTimestamp(message.timestamp)}
+                            </p>
+                          ):
+                          (
+                            <>
+                            </>
+                          )
+                        }
+                      </div>
+                      
+                      {message.type === 'user' && (
+                        <div 
+                          className="w-10 h-10 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0 border-2 border-white"
+                          style={{
+                            background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)'
                           }}
                         >
-                          {message.content} 
-                        </ReactMarkdown>
-                      </div>
-                      {
-                        message.type === "bot_response" || message.type === "user" ? (
-                          <p className="text-xs mt-2 text-gray-400 font-medium">
-                            {formatTimestamp(message.timestamp)}
-                          </p>
-                        ):
-                        (
-                          <>
-                          </>
-                        )
-                      }
+                          <User size={18} className="text-gray-600" />
+                        </div>
+                      )}
                     </div>
-                    
-                    {message.type === 'user' && (
-                      <div 
-                        className="w-9 h-9 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0 border-2 border-white shadow-md"
-                        style={{
-                          background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                  )}
+                  
+                  {message.type === 'ui' && message.ui_type === 'yes_no' && (
+                    <div className="flex gap-3 justify-center animate-fade-in">
+                      <ModernButton
+                        onClick={() => handleYesNoClick('Yes')}
+                        variant="outline"
+                        className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
+                        style={{ 
+                          borderColor: primaryColor,
+                          color: primaryColor,
+                          backgroundColor: 'white'
                         }}
                       >
-                        <User size={18} className="text-gray-600" />
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {message.type === 'ui' && message.ui_type === 'yes_no' && (
-                  <div className="flex gap-3 justify-center animate-fade-in">
-                    <Button
-                      onClick={() => handleYesNoClick('Yes')}
-                      variant="outline"
-                      className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 shadow-sm border-2"
-                      style={{ 
-                        borderColor: primaryColor,
-                        color: primaryColor,
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      Yes
-                    </Button>
-                    <Button
-                      onClick={() => handleYesNoClick('No')}
-                      variant="outline"
-                      className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 shadow-sm border-2"
-                      style={{ 
-                        borderColor: primaryColor,
-                        color: primaryColor,
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      No
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
+                        Yes
+                      </ModernButton>
+                      <ModernButton
+                        onClick={() => handleYesNoClick('No')}
+                        variant="outline"
+                        className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
+                        style={{ 
+                          borderColor: primaryColor,
+                          color: primaryColor,
+                          backgroundColor: 'white'
+                        }}
+                      >
+                        No
+                      </ModernButton>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             
             {showTypingIndicator && (
-              <div className="flex gap-3 items-start animate-fade-in">
+              <div className="flex gap-4 items-start animate-fade-in">
                 <div className="flex-shrink-0 mt-1">
                   {avatarSrc ? (
-                    <Avatar className="w-9 h-9 border-2 border-white shadow-md">
+                    <Avatar className="w-10 h-10 border-2 border-white">
                       <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                       <AvatarFallback style={{ 
                         background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
@@ -488,22 +516,17 @@ export const ChatboxPreview = ({
                     </Avatar>
                   ) : (
                     <div 
-                      className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white shadow-md"
+                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white"
                       style={{ 
                         background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                        color: secondaryColor,
-                        boxShadow: `0 4px 12px ${primaryColor}30`
+                        color: secondaryColor
                       }}
                     >
                       <Bot size={18} />
                     </div>
                   )}
                 </div>
-                <div
-                  className={cn(
-                    "rounded-2xl p-4 max-w-[80%] shadow-sm border border-gray-100 bg-white"
-                  )}
-                >
+                <div className="rounded-2xl p-4 max-w-[80%] border border-gray-200/60 bg-white">
                   <div className="flex space-x-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -514,13 +537,13 @@ export const ChatboxPreview = ({
             )}
             
             {messages.length === 1 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
-              <div className="flex flex-col gap-3 mt-4 animate-fade-in">
-                <p className="text-xs text-gray-500 mb-1 font-medium">Suggested questions:</p>
+              <div className="flex flex-col gap-3 mt-6 animate-fade-in">
+                <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
                 {suggestions.filter(Boolean).map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] shadow-sm border bg-white hover:shadow-md"
+                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50"
                     style={{ 
                       border: `1px solid ${primaryColor}20`,
                       backgroundColor: 'white',
@@ -535,13 +558,13 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
         
-        <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm mt-auto">
+        <div className="border-t border-gray-100 p-5 bg-white/80 backdrop-blur-sm mt-auto">
           <form onSubmit={handleSubmit} className="relative">
             <Textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-              className="pr-14 text-sm border-2 pl-4 focus-visible:ring-offset-0 dark:bg-white rounded-xl shadow-sm transition-all duration-200"
+              className="pr-14 text-sm border-2 pl-4 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200"
               style={{ 
                 borderColor: `${primaryColor}20`,
                 minHeight: "52px",
@@ -558,19 +581,18 @@ export const ChatboxPreview = ({
                 }
               }}
             />
-            <button 
+            <ModernButton
               type="submit" 
-              className="absolute right-[2px] top-1/2 -translate-y-1/2 p-3 rounded-xl transition-all hover:scale-110 shadow-lg border border-white/50"
+              className="absolute right-[2px] top-1/2 -translate-y-1/2 p-3 rounded-xl transition-all hover:scale-110 border border-white/50"
               style={{ 
                 background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)})`,
                 color: secondaryColor,
-                boxShadow: `0 4px 12px ${primaryColor}40`,
                 opacity: (isConnected && !shouldDisableInput) ? 1 : 0.5,
               }}
               disabled={!isConnected || shouldDisableInput}
-            >
-              <Send size={18} />
-            </button>
+              iconOnly
+              icon={Send}
+            />
           </form>
           <div className="text-center mt-3 text-xs text-gray-400 font-medium">
             powered by 7en.ai
