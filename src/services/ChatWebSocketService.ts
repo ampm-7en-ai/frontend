@@ -76,6 +76,19 @@ export class ChatWebSocketService {
     console.log('Data timestamp field:', data.timestamp);
     console.log('Data keys:', Object.keys(data));
     
+    // Enhanced debugging for bot responses specifically
+    if (data.type === 'bot_response') {
+      console.log('=== BOT RESPONSE DEBUGGING ===');
+      console.log('Bot response timestamp fields:');
+      console.log('- data.timestamp:', data.timestamp);
+      console.log('- data.created_at:', data.created_at);
+      console.log('- data.time:', data.time);
+      console.log('- data.datetime:', data.datetime);
+      console.log('- data.sent_at:', data.sent_at);
+      console.log('- data.message?.timestamp:', data.message?.timestamp);
+      console.log('- data.response?.timestamp:', data.response?.timestamp);
+    }
+    
     // Handle UI messages (like yes_no) that don't have content
     if (data.type === 'ui' && data.ui_type) {
       const messageTimestamp = this.extractTimestamp(data);
@@ -122,7 +135,7 @@ export class ChatWebSocketService {
     const messageModel = data.model || data.config?.response_model || data.response_model || '';
     const messagePrompt = data.prompt || data.system_prompt || '';
     const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : 
-                              data.config?.temperature !== undefined ? Number(data.config.temperature) : undefined;
+                              data.config?.temperature !== undefined ? Number(data.config.temperature) : 0;
     
     // Skip if not a valid message (except for UI messages which we handled above)
     if (!messageContent && data.type !== 'ui') {
@@ -167,13 +180,17 @@ export class ChatWebSocketService {
   }
   
   private extractTimestamp(data: any): string {
-    // Check multiple possible locations for timestamp
+    // Check multiple possible locations for timestamp, including nested objects
     const possibleTimestamps = [
       data.timestamp,
       data.created_at,
       data.time,
       data.datetime,
-      data.sent_at
+      data.sent_at,
+      data.message?.timestamp,
+      data.response?.timestamp,
+      data.message?.created_at,
+      data.response?.created_at
     ];
     
     console.log('=== Timestamp Extraction ===');
