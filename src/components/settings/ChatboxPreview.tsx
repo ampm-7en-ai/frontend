@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,7 @@ interface Message {
   type: string;
   content: string;
   timestamp: string;
+  ui_type?: string;
 }
 
 interface ChatboxPreviewProps {
@@ -54,6 +56,16 @@ export const ChatboxPreview = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
+
+  // Check if input should be disabled (when there's a pending yes/no question)
+  const shouldDisableInput = messages.some(msg => 
+    msg.type === 'ui' && msg.ui_type === 'yes_no'
+  );
+
+  // Get the latest yes/no message for displaying buttons
+  const latestYesNoMessage = messages.slice().reverse().find(msg => 
+    msg.type === 'ui' && msg.ui_type === 'yes_no'
+  );
 
   // Add welcome message when component mounts
   useEffect(() => {
@@ -139,9 +151,7 @@ export const ChatboxPreview = ({
     };
   }, [agentId, toast]);  
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const sendMessage = (messageContent: string) => {
     if (!chatServiceRef.current || !isConnected) {
       toast({
         title: "Not connected",
@@ -150,58 +160,21 @@ export const ChatboxPreview = ({
       });
       return;
     }
-    
-    if (inputValue.trim()) {
-      const newMessage: Message = {
-        type: 'user',
-        content: inputValue,
-        timestamp: new Date().toISOString()
-      };
-      
-      setMessages(prev => [...prev, newMessage]);
-      setShowTypingIndicator(true);
-      
-      try {
-        chatServiceRef.current.sendMessage(inputValue);
-        console.log("Message sent:", inputValue);
-      } catch (error) {
-        console.error("Error sending message:", error);
-        toast({
-          title: "Send Error",
-          description: "Failed to send message. Please try again.",
-          variant: "destructive",
-        });
-        setShowTypingIndicator(false);
-      }
-      
-      setInputValue('');
-    }
-  };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    if (!chatServiceRef.current || !isConnected) {
-      toast({
-        title: "Not connected",
-        description: "Cannot send message while disconnected",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const newMessage: Message = { 
-      type: 'user', 
-      content: suggestion, 
-      timestamp: new Date().toISOString() 
+    const newMessage: Message = {
+      type: 'user',
+      content: messageContent,
+      timestamp: new Date().toISOString()
     };
     
     setMessages(prev => [...prev, newMessage]);
     setShowTypingIndicator(true);
     
     try {
-      chatServiceRef.current.sendMessage(suggestion);
-      console.log("Suggestion sent:", suggestion);
+      chatServiceRef.current.sendMessage(messageContent);
+      console.log("Message sent:", messageContent);
     } catch (error) {
-      console.error("Error sending suggestion:", error);
+      console.error("Error sending message:", error);
       toast({
         title: "Send Error",
         description: "Failed to send message. Please try again.",
@@ -209,6 +182,34 @@ export const ChatboxPreview = ({
       });
       setShowTypingIndicator(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (inputValue.trim() && !shouldDisableInput) {
+      sendMessage(inputValue);
+      setInputValue('');
+    }
+  };
+
+  const handleYesNoClick = (response: 'Yes' | 'No') => {
+    sendMessage(response);
+    // Remove the yes/no message from the list to re-enable input
+    setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'yes_no')));
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    if (!chatServiceRef.current || !isConnected || shouldDisableInput) {
+      toast({
+        title: "Not connected",
+        description: "Cannot send message while disconnected",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    sendMessage(suggestion);
   };
 
   return (
@@ -411,6 +412,33 @@ export const ChatboxPreview = ({
               </div>
             ))}
             
+            {/* Yes/No buttons for UI messages */}
+            {latestYesNoMessage && (
+              <div className="flex gap-2 justify-center animate-fade-in">
+                <Button
+                  onClick={() => handleYesNoClick('Yes')}
+                  className="px-6 py-2 rounded-full text-white font-medium transition-all hover:scale-105"
+                  style={{ 
+                    backgroundColor: primaryColor,
+                    boxShadow: `0 2px 5px ${primaryColor}40`
+                  }}
+                >
+                  Yes
+                </Button>
+                <Button
+                  onClick={() => handleYesNoClick('No')}
+                  variant="outline"
+                  className="px-6 py-2 rounded-full font-medium transition-all hover:scale-105"
+                  style={{ 
+                    borderColor: primaryColor,
+                    color: primaryColor
+                  }}
+                >
+                  No
+                </Button>
+              </div>
+            )}
+            
             {showTypingIndicator && (
               <div className="flex gap-2 items-start animate-fade-in">
                 <div className="flex-shrink-0 mt-1">
@@ -454,7 +482,7 @@ export const ChatboxPreview = ({
               </div>
             )}
             
-            {messages.length === 1 && suggestions && suggestions.length > 0 && (
+            {messages.length === 1 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
               <div className="flex flex-col gap-2 mt-3 animate-fade-in">
                 <p className="text-xs text-gray-500 mb-1">Suggested questions:</p>
                 {suggestions.filter(Boolean).map((suggestion, index) => (
@@ -481,7 +509,7 @@ export const ChatboxPreview = ({
             <Textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
               className="pr-12 text-sm border-2 pl-4 focus-visible:ring-offset-0 dark:bg-white"
               style={{ 
                 borderColor: `${primaryColor}30`,
@@ -489,11 +517,11 @@ export const ChatboxPreview = ({
                 maxHeight: "120px",
                 width: "calc(100% - 40px)"
               }}
-              disabled={!isConnected}
+              disabled={!isConnected || shouldDisableInput}
               expandable={true}
               maxExpandedHeight="120px"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
@@ -506,9 +534,9 @@ export const ChatboxPreview = ({
                 backgroundColor: primaryColor,
                 color: secondaryColor,
                 boxShadow: `0 2px 5px ${primaryColor}40`,
-                opacity: isConnected ? 1 : 0.5,
+                opacity: (isConnected && !shouldDisableInput) ? 1 : 0.5,
               }}
-              disabled={!isConnected}
+              disabled={!isConnected || shouldDisableInput}
             >
               <Send size={16} />
             </button>
