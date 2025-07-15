@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -66,9 +67,6 @@ export const ChatboxPreview = ({
   const latestYesNoMessage = messages.slice().reverse().find(msg => 
     msg.type === 'ui' && msg.ui_type === 'yes_no'
   );
-
-  // Don't add welcome message to messages array - we'll display it specially
-  // Remove the welcome message useEffect
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
@@ -232,7 +230,7 @@ export const ChatboxPreview = ({
           containerClass: 'text-white border border-transparent',
           textClass: 'text-white',
           style: { 
-            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)})` 
+            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
           }
         };
       case 'system_message':
@@ -251,21 +249,22 @@ export const ChatboxPreview = ({
   return (
     <Card 
       className={cn(
-        "flex flex-col backdrop-blur-sm animate-fade-in relative",
+        "flex flex-col backdrop-blur-sm animate-scale-in relative",
         className
       )}
       style={{ 
         fontFamily: fontFamily,
         height: '100%',
-        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
-        border: `1px solid ${primaryColor}10`
+        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(59, 130, 246, 0.2), 0 8px 32px rgba(59, 130, 246, 0.15)`,
+        border: `1px solid rgba(59, 130, 246, 0.1)`,
+        animation: 'scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
       }}
     >
       {/* Header */}
       <div 
         className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
         style={{ 
-          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)}, ${adjustColor(primaryColor, -30)})`,
+          background: 'linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af)'
         }}
       >
         {/* Modern gradient overlay */}
@@ -328,40 +327,11 @@ export const ChatboxPreview = ({
               </div>
             )}
             
-            {/* Welcome Message - Special Styling */}
+            {/* Welcome Message - Compact Disclaimer Style */}
             {welcomeMessage && (
               <div className="animate-fade-in">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-200/50">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <span className="text-xs font-medium text-blue-700">Welcome to {chatbotName}</span>
-                  </div>
-                </div>
-                <div className="bg-gradient-to-br from-white to-gray-50/50 border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
-                  <div className="flex justify-center mb-4">
-                    {avatarSrc ? (
-                      <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
-                        <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                        <AvatarFallback style={{ 
-                          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                          color: secondaryColor
-                        }}>
-                          <Bot size={24} />
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <div 
-                        className="w-16 h-16 rounded-full flex items-center justify-center border-4 border-white shadow-lg"
-                        style={{ 
-                          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                          color: secondaryColor
-                        }}
-                      >
-                        <Bot size={24} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="prose prose-sm max-w-none text-center">
+                <div className="bg-gray-50/50 border border-gray-200/50 rounded-lg p-3 text-center">
+                  <div className="text-xs italic text-gray-600 leading-relaxed">
                     <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
                   </div>
                 </div>
@@ -384,7 +354,7 @@ export const ChatboxPreview = ({
                             <Avatar className="w-10 h-10 border-2 border-white">
                               <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                               <AvatarFallback style={{ 
-                                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                                 color: secondaryColor
                               }}>
                                 <Bot size={18} />
@@ -394,7 +364,7 @@ export const ChatboxPreview = ({
                             <div 
                               className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white"
                               style={{ 
-                                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                                 color: secondaryColor
                               }}
                             >
@@ -425,7 +395,7 @@ export const ChatboxPreview = ({
                                   return (
                                     <code
                                       className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
-                                      style={{ color: primaryColor }}
+                                      style={{ color: '#3b82f6' }}
                                       {...props}
                                     >
                                       {children}
@@ -438,7 +408,7 @@ export const ChatboxPreview = ({
                                     {language && (
                                       <div 
                                         className="absolute top-0 right-0 px-3 py-1 text-xs rounded-bl-lg font-mono text-white z-10"
-                                        style={{ backgroundColor: primaryColor }}
+                                        style={{ backgroundColor: '#3b82f6' }}
                                       >
                                         {language}
                                       </div>
@@ -462,7 +432,7 @@ export const ChatboxPreview = ({
                                   <a
                                     href={href}
                                     className="underline transition-colors hover:opacity-80"
-                                    style={{ color: message.type === 'user' ? 'inherit' : primaryColor }}
+                                    style={{ color: message.type === 'user' ? 'inherit' : '#3b82f6' }}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
@@ -492,17 +462,6 @@ export const ChatboxPreview = ({
                           )
                         }
                       </div>
-                      
-                      {message.type === 'user' && (
-                        <div 
-                          className="w-10 h-10 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0 border-2 border-white"
-                          style={{
-                            background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)'
-                          }}
-                        >
-                          <User size={18} className="text-gray-600" />
-                        </div>
-                      )}
                     </div>
                   )}
                   
@@ -514,8 +473,8 @@ export const ChatboxPreview = ({
                         variant="outline"
                         className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
                         style={{ 
-                          borderColor: primaryColor,
-                          color: primaryColor,
+                          borderColor: '#3b82f6',
+                          color: '#3b82f6',
                           backgroundColor: 'white'
                         }}
                       >
@@ -526,8 +485,8 @@ export const ChatboxPreview = ({
                         variant="outline"
                         className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
                         style={{ 
-                          borderColor: primaryColor,
-                          color: primaryColor,
+                          borderColor: '#3b82f6',
+                          color: '#3b82f6',
                           backgroundColor: 'white'
                         }}
                       >
@@ -547,7 +506,7 @@ export const ChatboxPreview = ({
                     <Avatar className="w-10 h-10 border-2 border-white">
                       <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                       <AvatarFallback style={{ 
-                        background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                         color: secondaryColor
                       }}>
                         <Bot size={18} />
@@ -557,7 +516,7 @@ export const ChatboxPreview = ({
                     <div 
                       className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white"
                       style={{ 
-                        background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                         color: secondaryColor
                       }}
                     >
@@ -585,7 +544,7 @@ export const ChatboxPreview = ({
                     onClick={() => handleSuggestionClick(suggestion)}
                     className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50"
                     style={{ 
-                      border: `1px solid ${primaryColor}20`,
+                      border: `1px solid rgba(59, 130, 246, 0.2)`,
                       backgroundColor: 'white',
                       color: 'inherit'
                     }}
@@ -598,7 +557,7 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
         
-        {/* Message Input - Fixed Layout */}
+        {/* Message Input - Fixed Layout with Expandable Textarea */}
         <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
           <form onSubmit={handleSubmit} className="flex gap-3 items-end">
             <div className="flex-1">
@@ -606,14 +565,16 @@ export const ChatboxPreview = ({
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-                className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none"
+                className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden"
                 style={{ 
-                  borderColor: `${primaryColor}20`,
+                  borderColor: `rgba(59, 130, 246, 0.2)`,
                   minHeight: "44px",
-                  maxHeight: "100px"
+                  maxHeight: "120px"
                 }}
                 disabled={!isConnected || shouldDisableInput}
                 rows={1}
+                expandable={true}
+                maxExpandedHeight="120px"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
                     e.preventDefault();
@@ -626,7 +587,7 @@ export const ChatboxPreview = ({
               type="submit" 
               className="p-3 rounded-xl transition-all hover:scale-105 border border-white/50 flex-shrink-0"
               style={{ 
-                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)})`,
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 color: secondaryColor,
                 opacity: (isConnected && !shouldDisableInput) ? 1 : 0.5,
                 minHeight: "44px",

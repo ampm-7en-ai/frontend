@@ -70,8 +70,8 @@ const ChatPreview = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-50 p-4 md:p-8 flex items-center justify-center">
-      <div className="w-full max-w-3xl h-full max-h-[800px] flex flex-col">
+    <div className="h-screen bg-gray-50 p-2 md:p-4 flex items-center justify-center">
+      <div className="w-full max-w-3xl h-full max-h-[calc(100vh-2rem)] flex flex-col">
         <ChatboxPreview
           agentId={config.agentId}
           primaryColor={config.primaryColor}
