@@ -19,7 +19,7 @@ interface Message {
   content: string;
   timestamp: string;
   ui_type?: string;
-  messageId?: string; // Make this optional to handle both cases
+  messageId?: string;
 }
 
 interface ChatboxPreviewProps {
@@ -58,6 +58,7 @@ export const ChatboxPreview = ({
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
+  const [systemMessage, setSystemMessage] = useState<string>('');
   const [isInitializing, setIsInitializing] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -94,14 +95,15 @@ export const ChatboxPreview = ({
     }
   }, []);
 
-  // Generate unique message ID for deduplication
-  const generateMessageId = (message: any): string => {
-    const baseId = message.messageId || message.id;
-    if (baseId) return baseId;
+  // Improved message ID generation for better deduplication
+  const generateUniqueMessageId = (message: any): string => {
+    // Use existing messageId if available
+    if (message.messageId) return message.messageId;
     
-    // Fallback: create ID based on content + sequence
+    // Create a more robust ID based on content + type + sequence
     messageSequenceRef.current += 1;
-    return `${message.type}-${message.content.slice(0, 20)}-${messageSequenceRef.current}`;
+    const contentHash = message.content.slice(0, 30).replace(/\s+/g, '-');
+    return `${message.type}-${contentHash}-${messageSequenceRef.current}-${Date.now()}`;
   };
 
   useEffect(() => {
@@ -128,19 +130,31 @@ export const ChatboxPreview = ({
           return;
         }
         
-        // Generate unique message ID for deduplication
-        const messageId = generateMessageId(message);
+        // Handle system messages for typing indicator
+        if (message.type === 'system_message') {
+          setSystemMessage(message.content);
+          setShowTypingIndicator(true);
+          return;
+        }
         
-        // Check for duplicates using improved logic
+        // Generate unique message ID for better deduplication
+        const messageId = generateUniqueMessageId(message);
+        
+        // Enhanced deduplication check
         if (processedMessageIds.current.has(messageId)) {
           console.log("Duplicate message detected, skipping:", messageId);
           return;
         }
         
+        // Add to processed set
         processedMessageIds.current.add(messageId);
         
+        // Clear typing indicator and system message
+        setShowTypingIndicator(false);
+        setSystemMessage('');
+        
+        // Add message to state
         setMessages(prev => [...prev, { ...message, messageId }]); 
-        message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
@@ -151,6 +165,7 @@ export const ChatboxPreview = ({
       onTypingEnd: () => {
         console.log("Typing indicator ended");
         setShowTypingIndicator(false);
+        setSystemMessage('');
       },
       onError: (error) => {
         console.error('Chat error:', error);
@@ -254,6 +269,7 @@ export const ChatboxPreview = ({
     // Completely reset the chat state
     setMessages([]);
     setShowTypingIndicator(false);
+    setSystemMessage('');
     setConnectionError(null);
     setIsInitializing(true);
     setIsConnected(false);
@@ -285,7 +301,14 @@ export const ChatboxPreview = ({
               return;
             }
             
-            const messageId = generateMessageId(message);
+            // Handle system messages for typing indicator
+            if (message.type === 'system_message') {
+              setSystemMessage(message.content);
+              setShowTypingIndicator(true);
+              return;
+            }
+            
+            const messageId = generateUniqueMessageId(message);
             
             if (processedMessageIds.current.has(messageId)) {
               console.log("Duplicate message detected during restart, skipping:", messageId);
@@ -293,8 +316,9 @@ export const ChatboxPreview = ({
             }
             
             processedMessageIds.current.add(messageId);
+            setShowTypingIndicator(false);
+            setSystemMessage('');
             setMessages(prev => [...prev, { ...message, messageId }]); 
-            message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
           },
           onTypingStart: () => {
             console.log("Restart - Typing indicator started");
@@ -305,6 +329,7 @@ export const ChatboxPreview = ({
           onTypingEnd: () => {
             console.log("Restart - Typing indicator ended");
             setShowTypingIndicator(false);
+            setSystemMessage('');
           },
           onError: (error) => {
             console.error('Restart - Chat error:', error);
@@ -322,14 +347,14 @@ export const ChatboxPreview = ({
               // Clear restarting flag once connected
               setTimeout(() => {
                 restartingRef.current = false;
-              }, 1000); // Increased delay to ensure proper initialization
+              }, 1000);
             }
           }
         });
         
         chatServiceRef.current.connect();
       }
-    }, 800); // Increased delay for better cleanup
+    }, 1000);
   };
 
   const getMessageStyling = (messageType: string) => {
@@ -452,7 +477,7 @@ export const ChatboxPreview = ({
       </div>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 relative">
         {/* Messages Area */}
         <ScrollArea 
           ref={scrollAreaRef}
@@ -493,14 +518,13 @@ export const ChatboxPreview = ({
                     >
                       <div
                         className={cn(
-                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group",
+                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-300 group",
                           styling.containerClass,
                           styling.textClass
                         )}
                         style={{
                           ...styling.style,
-                          willChange: 'transform',
-                          transformOrigin: message.type === 'user' ? 'bottom right' : 'bottom left'
+                          willChange: 'transform'
                         }}
                       >
                         <div className="text-sm prose prose-sm max-w-none markdown-content">
@@ -608,61 +632,6 @@ export const ChatboxPreview = ({
               );
             })}
             
-            {/* Enhanced Typing Indicator with Avatar */}
-            {showTypingIndicator && (
-              <div 
-                className="flex gap-4 items-start"
-                style={{
-                  animation: 'typingSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
-                }}
-              >
-                <div className="flex-shrink-0 mt-1">
-                  {avatarSrc ? (
-                    <Avatar className="w-10 h-10 border-2 border-white">
-                      <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                      <AvatarFallback style={{ 
-                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                        color: secondaryColor
-                      }}>
-                        <Bot size={18} />
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div 
-                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-white"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                        color: secondaryColor
-                      }}
-                    >
-                      <Bot size={18} />
-                    </div>
-                  )}
-                </div>
-                <div 
-                  className="rounded-2xl p-4 max-w-[88%] border border-gray-200/60 bg-white shadow-sm"
-                  style={{
-                    animation: 'typingContainerBreath 3s ease-in-out infinite'
-                  }}
-                >
-                  <div className="flex space-x-2">
-                    <div 
-                      className="w-2.5 h-2.5 rounded-full bg-gray-400"
-                      style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '0ms' }}
-                    ></div>
-                    <div 
-                      className="w-2.5 h-2.5 rounded-full bg-gray-400"
-                      style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '200ms' }}
-                    ></div>
-                    <div 
-                      className="w-2.5 h-2.5 rounded-full bg-gray-400"
-                      style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '400ms' }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {/* Suggestions - only show if we have few messages and no pending UI components */}
             {messages.length === 0 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
               <div className="flex flex-col gap-3 mt-6 animate-fade-in">
@@ -686,6 +655,68 @@ export const ChatboxPreview = ({
             )}
           </div>
         </ScrollArea>
+
+        {/* New Typing Indicator - positioned above input, smaller, with bounce animation */}
+        {showTypingIndicator && (
+          <div 
+            className="absolute bottom-[80px] left-4 flex items-center gap-2 z-20"
+            style={{
+              animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
+            }}
+          >
+            {/* Smaller Avatar */}
+            <div className="flex-shrink-0">
+              {avatarSrc ? (
+                <Avatar className="w-5 h-5 border border-white">
+                  <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                  <AvatarFallback style={{ 
+                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    color: secondaryColor
+                  }}>
+                    <Bot size={10} />
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <div 
+                  className="w-5 h-5 rounded-full flex items-center justify-center border border-white"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    color: secondaryColor
+                  }}
+                >
+                  <Bot size={10} />
+                </div>
+              )}
+            </div>
+
+            {/* Smaller Typing Dots */}
+            <div 
+              className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
+            >
+              <div className="flex space-x-1">
+                <div 
+                  className="w-1.5 h-1.5 rounded-full bg-gray-400"
+                  style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '0ms' }}
+                ></div>
+                <div 
+                  className="w-1.5 h-1.5 rounded-full bg-gray-400"
+                  style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '200ms' }}
+                ></div>
+                <div 
+                  className="w-1.5 h-1.5 rounded-full bg-gray-400"
+                  style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '400ms' }}
+                ></div>
+              </div>
+
+              {/* System Message Display */}
+              {systemMessage && (
+                <div className="ml-2 text-xs text-gray-600 font-medium animate-fade-in">
+                  {systemMessage}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Message Input - Fixed Layout with Expandable Textarea */}
         <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
@@ -752,18 +783,33 @@ export const ChatboxPreview = ({
             }
           }
           
-          @keyframes typingSlideIn {
+          @keyframes typingBounceIn {
             0% {
-              transform: translateY(15px) scale(0.94);
+              transform: translateY(40px) scale(0.3);
               opacity: 0;
             }
             50% {
-              transform: translateY(-3px) scale(1.02);
-              opacity: 0.7;
+              transform: translateY(-3px) scale(1.1);
+              opacity: 0.8;
             }
             100% {
               transform: translateY(0) scale(1);
               opacity: 1;
+            }
+          }
+
+          @keyframes typingBounceOut {
+            0% {
+              transform: translateY(0) scale(1);
+              opacity: 1;
+            }
+            50% {
+              transform: translateY(-3px) scale(1.1);
+              opacity: 0.8;
+            }
+            100% {
+              transform: translateY(40px) scale(0.3);
+              opacity: 0;
             }
           }
           
@@ -773,19 +819,8 @@ export const ChatboxPreview = ({
               opacity: 0.4;
             }
             30% {
-              transform: translateY(-8px) scale(1.1);
+              transform: translateY(-4px) scale(1.2);
               opacity: 1;
-            }
-          }
-          
-          @keyframes typingContainerBreath {
-            0%, 100% {
-              transform: scale(1);
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            }
-            50% {
-              transform: scale(1.01);
-              box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
             }
           }
           
