@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { getApiUrl } from '@/utils/api-config';
-import { apiPost, apiPut } from '@/utils/api-interceptor';
+import { apiPost, apiPut, apiGet } from '@/utils/api-interceptor';
 
 interface MessageRevisionModalProps {
   open: boolean;
@@ -17,6 +16,7 @@ interface MessageRevisionModalProps {
   onRevise: (revisedAnswer: string) => void;
   previousUserMessageId?: string;
   agentMessageId?: string;
+  sessionId?: string;
 }
 
 const MessageRevisionModal = ({
@@ -26,7 +26,8 @@ const MessageRevisionModal = ({
   answer,
   onRevise,
   previousUserMessageId,
-  agentMessageId
+  agentMessageId,
+  sessionId
 }: MessageRevisionModalProps) => {
   const [revisedAnswer, setRevisedAnswer] = useState(answer);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,10 +38,10 @@ const MessageRevisionModal = ({
 
   // Check if response is already improved when modal opens
   useEffect(() => {
-    if (open && agentMessageId) {
+    if (open && sessionId) {
       checkForImprovedResponse();
     }
-  }, [open, agentMessageId]);
+  }, [open, sessionId]);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -52,12 +53,12 @@ const MessageRevisionModal = ({
   }, [open, answer]);
 
   const checkForImprovedResponse = async () => {
-    if (!agentMessageId) return;
+    if (!sessionId) return;
 
     setIsCheckingImproved(true);
     try {
-      // Check if there's an existing improved response for this message
-      const response = await fetch(getApiUrl(`improvedresponse/?agent_message_id=${agentMessageId}`));
+      // Check if there's an existing improved response for this session
+      const response = await apiGet(getApiUrl(`improvedresponse/?session_id=${sessionId}`));
       const data = await response.json();
 
       if (response.ok && data.results && data.results.length > 0) {
