@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, AlertCircle } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
+import { Button } from '@/components/ui/button';
 
 interface Message {
   type: string;
@@ -32,6 +33,8 @@ interface ChatboxPreviewProps {
   className?: string;
   suggestions?: string[];
   avatarSrc?: string;
+  onMinimize?: () => void;
+  onRestart?: () => void;
 }
 
 export const ChatboxPreview = ({
@@ -45,7 +48,9 @@ export const ChatboxPreview = ({
   position = 'bottom-right',
   className,
   suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
-  avatarSrc
+  avatarSrc,
+  onMinimize,
+  onRestart
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -206,6 +211,47 @@ export const ChatboxPreview = ({
     sendMessage(suggestion);
   };
 
+  const handleRestart = () => {
+    // Clear messages and reinitialize connection
+    setMessages([]);
+    setConnectionError(null);
+    setIsInitializing(true);
+    
+    if (chatServiceRef.current) {
+      chatServiceRef.current.disconnect();
+    }
+    
+    // Reinitialize the connection
+    setTimeout(() => {
+      if (agentId) {
+        chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
+        
+        chatServiceRef.current.on({
+          onMessage: (message) => {
+            setMessages(prev => [...prev, message]); 
+            message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
+          },
+          onTypingStart: () => setShowTypingIndicator(true),
+          onTypingEnd: () => setShowTypingIndicator(false),
+          onError: (error) => {
+            setConnectionError(error);
+            setIsConnected(false);
+            setIsInitializing(false);
+          },
+          onConnectionChange: (status) => {
+            setIsConnected(status);
+            setIsInitializing(false);
+            if (status) {
+              setConnectionError(null);
+            }
+          }
+        });
+        
+        chatServiceRef.current.connect();
+      }
+    }, 100);
+  };
+
   const formatTimestamp = (timestamp: string) => {
     if (!timestamp) return '';
     
@@ -297,19 +343,44 @@ export const ChatboxPreview = ({
           </div>
         </div>
         
-        {isInitializing ? (
-          <LoadingSpinner size="sm" className="text-white/70" />
-        ) : connectionError ? (
-          <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1.5 rounded-full border border-red-300/30 backdrop-blur-sm">
-            <AlertCircle size={14} className="text-white/90" />
-            <span className="text-xs text-white/90 font-medium">Error</span>
-          </div>
-        ) : !isConnected ? (
-          <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1.5 rounded-full border border-orange-300/30 backdrop-blur-sm">
-            <WifiOff size={14} className="text-white/90" />
-            <span className="text-xs text-white/90 font-medium">Disconnected</span>
-          </div>
-        ) : null}
+        <div className="flex items-center gap-2 relative z-10">
+          {/* Control buttons */}
+          <Button
+            onClick={handleRestart}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+            title="Restart chat"
+          >
+            <RotateCcw size={16} />
+          </Button>
+          
+          {onMinimize && (
+            <Button
+              onClick={onMinimize}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+              title="Minimize chat"
+            >
+              <Minus size={16} />
+            </Button>
+          )}
+          
+          {isInitializing ? (
+            <LoadingSpinner size="sm" className="text-white/70" />
+          ) : connectionError ? (
+            <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1.5 rounded-full border border-red-300/30 backdrop-blur-sm">
+              <AlertCircle size={14} className="text-white/90" />
+              <span className="text-xs text-white/90 font-medium">Error</span>
+            </div>
+          ) : !isConnected ? (
+            <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1.5 rounded-full border border-orange-300/30 backdrop-blur-sm">
+              <WifiOff size={14} className="text-white/90" />
+              <span className="text-xs text-white/90 font-medium">Disconnected</span>
+            </div>
+          ) : null}
+        </div>
       </div>
       
       {/* Main Content Area */}

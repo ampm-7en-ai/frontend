@@ -97,19 +97,18 @@ export const InteractiveCanvas = () => {
                 <div 
                   className={`absolute z-[60] ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 transition-all duration-300 ease-out ${
                     isChatOpen 
-                      ? 'opacity-100 visible transform scale-100 translate-y-0' 
-                      : 'opacity-0 invisible transform scale-90 translate-y-4'
+                      ? 'opacity-100 visible transform translate-y-0' 
+                      : 'opacity-0 invisible transform translate-y-4'
                   }`}
                   style={{ 
                     height: '665px',
-                    transformOrigin: 'bottom center',
-                    transitionDelay: isChatOpen ? '0ms' : '100ms'
+                    transformOrigin: 'bottom center'
                   }}
                 >
                   <div 
                     className={`w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm transition-all duration-300 ease-out ${
                       isChatOpen 
-                        ? 'animate-[bounceIn_0.4s_cubic-bezier(0.68,-0.55,0.265,1.55)]' 
+                        ? 'animate-[slideUpFade_0.3s_ease-out]' 
                         : ''
                     }`}
                   >
@@ -125,6 +124,8 @@ export const InteractiveCanvas = () => {
                       suggestions={agentData.suggestions.filter(Boolean)}
                       avatarSrc={agentData.avatar || agentData.avatarUrl}
                       className="w-full h-full"
+                      onMinimize={() => setIsChatOpen(false)}
+                      onRestart={() => window.location.reload()}
                     />
                   </div>
                 </div>
@@ -132,20 +133,18 @@ export const InteractiveCanvas = () => {
             </div>
           </div>
           
-          {/* Custom keyframes for bounce animation */}
+          {/* Custom keyframes for slide-up fade animation */}
           <style>{`
-            @keyframes bounceIn {
+            @keyframes slideUpFade {
               0% {
-                transform: scale(0.8) translateY(20px);
+                transform: translateY(20px);
                 opacity: 0;
-              }
-              60% {
-                transform: scale(1.1) translateY(-5px);
-                opacity: 1;
+                scale: 0.95;
               }
               100% {
-                transform: scale(1) translateY(0);
+                transform: translateY(0);
                 opacity: 1;
+                scale: 1;
               }
             }
           `}</style>
