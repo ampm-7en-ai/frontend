@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -361,8 +360,8 @@ export const ChatboxPreview = ({
     switch (messageType) {
       case 'bot_response':
         return {
-          containerClass: 'bg-background border border-border/60 shadow-sm',
-          textClass: 'text-foreground'
+          containerClass: 'bg-white border border-gray-200/60 shadow-sm',
+          textClass: 'text-gray-800'
         };
       case 'user':
         return {
@@ -375,7 +374,7 @@ export const ChatboxPreview = ({
       case 'system_message':
         return {
           containerClass: `border shadow-sm`,
-          textClass: 'text-primary',
+          textClass: 'text-blue-800',
           style: {
             backgroundColor: `${primaryColor}10`,
             borderColor: `${primaryColor}30`
@@ -383,8 +382,8 @@ export const ChatboxPreview = ({
         };
       default:
         return {
-          containerClass: 'bg-secondary border border-border',
-          textClass: 'text-secondary-foreground'
+          containerClass: 'bg-gray-50 border border-gray-200',
+          textClass: 'text-gray-700'
         };
     }
   };
@@ -487,11 +486,11 @@ export const ChatboxPreview = ({
           ref={scrollAreaRef}
           className="flex-1 min-h-0"
         >
-          <div className="p-6 space-y-4 bg-gradient-to-b from-secondary/20 to-background min-h-full">
+          <div className="p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
             {connectionError && (
-              <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl backdrop-blur-sm">
-                <AlertCircle size={18} className="text-destructive flex-shrink-0" />
-                <span className="text-sm text-destructive">Connection failed. Please check your agent configuration.</span>
+              <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm">
+                <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
+                <span className="text-sm text-red-800">Connection failed. Please check your agent configuration.</span>
               </div>
             )}
             
@@ -505,7 +504,7 @@ export const ChatboxPreview = ({
                     borderColor: `${primaryColor}20`
                   }}
                 >
-                  <div className="text-xs italic text-muted-foreground leading-relaxed">
+                  <div className="text-xs italic text-gray-600 leading-relaxed">
                     <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
                   </div>
                 </div>
@@ -550,7 +549,7 @@ export const ChatboxPreview = ({
                                 if (isInline) {
                                   return (
                                     <code
-                                      className="px-2 py-1 rounded-lg bg-secondary/80 font-mono text-sm border"
+                                      className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
                                       style={{ color: '#3b82f6' }}
                                       {...props}
                                     >
@@ -569,7 +568,7 @@ export const ChatboxPreview = ({
                                         {language}
                                       </div>
                                     )}
-                                    <pre className="!mt-0 !bg-secondary/80 border border-border/60 rounded-xl overflow-x-auto backdrop-blur-sm">
+                                    <pre className="!mt-0 !bg-gray-50/80 border border-gray-200/60 rounded-xl overflow-x-auto backdrop-blur-sm">
                                       <code className="block p-4 text-sm font-mono" {...props}>
                                         {children}
                                       </code>
@@ -646,15 +645,15 @@ export const ChatboxPreview = ({
             {/* Suggestions - only show if we have few messages and no pending UI components */}
             {messages.length === 0 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
               <div className="flex flex-col gap-3 mt-6 animate-fade-in">
-                <p className="text-xs text-muted-foreground mb-2 font-medium">Suggested questions:</p>
+                <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
                 {suggestions.filter(Boolean).map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-background hover:bg-secondary/50 hover:shadow-md"
+                    className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50 hover:shadow-md"
                     style={{ 
                       border: `1px solid ${primaryColor}20`,
-                      backgroundColor: 'hsl(var(--background))',
+                      backgroundColor: 'white',
                       color: 'inherit',
                       animation: `suggestionSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards ${index * 0.1}s both`
                     }}
@@ -702,7 +701,7 @@ export const ChatboxPreview = ({
 
             {/* Smaller Typing Dots Container */}
             <div 
-              className="rounded-full px-2 py-1 border border-border/60 bg-background shadow-sm flex items-center gap-1"
+              className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
             >
               <div className="flex space-x-1">
                 <div 
@@ -733,7 +732,7 @@ export const ChatboxPreview = ({
 
               {/* System Message Display */}
               {systemMessage && (
-                <div className="ml-2 text-xs text-muted-foreground font-medium animate-fade-in">
+                <div className="ml-2 text-xs text-gray-600 font-medium animate-fade-in">
                   {systemMessage}
                 </div>
               )}
@@ -742,13 +741,13 @@ export const ChatboxPreview = ({
         )}
         
         {/* Message Input - With integrated send button */}
-        <div className="border-t border-border/50 p-4 bg-background/80 backdrop-blur-sm flex-shrink-0">
+        <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
           <form onSubmit={handleSubmit} className="relative">
             <Textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-              className="text-sm border-2 focus-visible:ring-offset-0 bg-background rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
+              className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
               style={{ 
                 borderColor: `${primaryColor}20`,
                 minHeight: "44px",
@@ -777,11 +776,27 @@ export const ChatboxPreview = ({
               <Send size={20} />
             </button>
           </form>
-          <div className="text-center mt-3 text-xs text-muted-foreground font-medium">
+          <div className="text-center mt-3 text-xs text-gray-400 font-medium">
             powered by 7en.ai
           </div>
         </div>
       </div>
+      
+      {/* Chat with us button - when minimized */}
+      {onMinimize && (
+        <ModernButton
+          onClick={() => {/* handle expand */}}
+          className="fixed bottom-6 right-6 rounded-full px-6 py-4 font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-3"
+          style={{ 
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+            color: secondaryColor,
+            border: `1px solid ${primaryColor}20`
+          }}
+        >
+          <Bot size={24} />
+          {buttonText}
+        </ModernButton>
+      )}
       
       {/* Enhanced CSS Animations */}
       <style>
