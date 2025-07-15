@@ -1,3 +1,4 @@
+
 import { string } from 'zod';
 import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
@@ -9,6 +10,7 @@ interface ChatMessage {
   model: string;
   prompt: string;
   temperature: number;
+  ui_type?: string;
 }
 
 interface ChatWebSocketEvents {
@@ -70,6 +72,34 @@ export class ChatWebSocketService {
   private handleMessage(data: any) {
     console.log('Received WebSocket data:', data);
     
+    // Handle UI messages (like yes_no) that don't have content
+    if (data.type === 'ui' && data.ui_type) {
+      const messageTimestamp = data.timestamp || new Date().toISOString();
+      const messageId = `${data.type}-${data.ui_type}-${messageTimestamp}`;
+      
+      // Skip if we've already processed this message
+      if (this.processedMessageIds.has(messageId)) {
+        console.log('Skipping duplicate UI message:', messageId);
+        return;
+      }
+      
+      // Add to processed messages
+      this.processedMessageIds.add(messageId);
+      
+      // Emit the UI message event
+      this.events.onMessage?.({
+        type: data.type,
+        content: '', // UI messages don't need content
+        timestamp: messageTimestamp,
+        model: '',
+        temperature: 0,
+        prompt: '',
+        ui_type: data.ui_type
+      });
+      
+      return;
+    }
+    
     // Extract message content based on the new response format
     const messageContent = data.content || '';
     const messageType = data.type || 'bot_response';
@@ -82,8 +112,8 @@ export class ChatWebSocketService {
     const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : 
                               data.config?.temperature !== undefined ? Number(data.config.temperature) : undefined;
     
-    // Skip if not a valid message
-    if (!messageContent) {
+    // Skip if not a valid message (except for UI messages which we handled above)
+    if (!messageContent && data.type !== 'ui') {
       return;
     }
     

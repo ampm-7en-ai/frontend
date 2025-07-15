@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -275,169 +274,171 @@ export const ChatboxPreview = ({
             )}
             
             {messages.map((message, index) => (
-              <div 
-                key={index} 
-                className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
-              >
-                {message.type === 'bot_response' && (
-                  <div className="flex-shrink-0 mt-1">
-                    {avatarSrc ? (
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                        <AvatarFallback style={{ 
-                          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                          color: secondaryColor
-                        }}>
-                          <Bot size={16} />
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
+              <div key={index}>
+                {message.type !== 'ui' && (
+                  <div 
+                    className={`flex gap-2 items-start animate-fade-in ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                  >
+                    {message.type === 'bot_response' && (
+                      <div className="flex-shrink-0 mt-1">
+                        {avatarSrc ? (
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                            <AvatarFallback style={{ 
+                              background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                              color: secondaryColor
+                            }}>
+                              <Bot size={16} />
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <div 
+                            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{ 
+                              background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                              color: secondaryColor,
+                              boxShadow: `0 2px 5px ${primaryColor}40`
+                            }}
+                          >
+                            <Bot size={16} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div
+                      className={cn(
+                        "rounded-lg p-3 max-w-[80%] relative",
+                        message.type === 'bot_response' 
+                          ? 'bg-gray-100 text-gray-800 shadow-sm' 
+                          : message.type === 'system_message' ? ` ` : 'bg-gray-100 text-gray-800 '
+                      )}
+                      style={{ 
+                        backgroundColor: message.type === 'bot_response' ? `${primaryColor}15` : '',
+                      }}
+                    >
+                      <div className="text-sm prose prose-sm max-w-none markdown-content">
+                        <ReactMarkdown
+                          components={{
+                            code({ node, className, children, ...props }) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              const language = match ? match[1] : '';
+                              
+                              const isInline = !match && children.toString().split('\n').length === 1;
+                              
+                              if (isInline) {
+                                return (
+                                  <code
+                                    className="px-1.5 py-0.5 rounded-md bg-gray-100 font-mono text-sm"
+                                    style={{ color: primaryColor }}
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                );
+                              }
+
+                              return (
+                                <div className="relative">
+                                  {language && (
+                                    <div 
+                                      className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono text-white"
+                                      style={{ backgroundColor: primaryColor }}
+                                    >
+                                      {language}
+                                    </div>
+                                  )}
+                                  <pre className="!mt-0 !bg-gray-50 border border-gray-200 rounded-md overflow-x-auto">
+                                    <code className="block p-4 text-sm font-mono" {...props}>
+                                      {children}
+                                    </code>
+                                  </pre>
+                                </div>
+                              );
+                            },
+                            ul({ children }) {
+                              return <ul className="list-disc pl-4 space-y-1">{children}</ul>;
+                            },
+                            ol({ children }) {
+                              return <ol className="list-decimal pl-4 space-y-1">{children}</ol>;
+                            },
+                            a({ children, href }) {
+                              return (
+                                <a
+                                  href={href}
+                                  className="underline"
+                                  style={{ color: primaryColor }}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {children}
+                                </a>
+                              );
+                            },
+                            p({children}){
+                              return message.type === 'system_message' ? (
+                                <p style={{fontSize:"10px",color:`${primaryColor}`}}>{children}</p>
+                              ) : (<p>{children}</p>)
+                            }
+                          }}
+                        >
+                          {message.content} 
+                        </ReactMarkdown>
+                      </div>
+                      {
+                        message.type === "bot_response" || message.type === "user" ? (
+                          <p className="text-xs mt-1 text-gray-400">
+                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        ):
+                        (
+                          <>
+                          </>
+                        )
+                      }
+                    </div>
+                    
+                    {message.type === 'user' && (
                       <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ 
-                          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
-                          color: secondaryColor,
-                          boxShadow: `0 2px 5px ${primaryColor}40`
+                        className="w-8 h-8 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0"
+                        style={{
+                          background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                         }}
                       >
-                        <Bot size={16} />
+                        <User size={16} />
                       </div>
                     )}
                   </div>
                 )}
                 
-                <div
-                  className={cn(
-                    "rounded-lg p-3 max-w-[80%] relative",
-                    message.type === 'bot_response' 
-                      ? 'bg-gray-100 text-gray-800 shadow-sm' 
-                      : message.type === 'system_message' ? ` ` : 'bg-gray-100 text-gray-800 '
-                  )}
-                  style={{ 
-                    backgroundColor: message.type === 'bot_response' ? `${primaryColor}15` : '',
-                  }}
-                >
-                  <div className="text-sm prose prose-sm max-w-none markdown-content">
-                    <ReactMarkdown
-                      components={{
-                        code({ node, className, children, ...props }) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const language = match ? match[1] : '';
-                          
-                          const isInline = !match && children.toString().split('\n').length === 1;
-                          
-                          if (isInline) {
-                            return (
-                              <code
-                                className="px-1.5 py-0.5 rounded-md bg-gray-100 font-mono text-sm"
-                                style={{ color: primaryColor }}
-                                {...props}
-                              >
-                                {children}
-                              </code>
-                            );
-                          }
-
-                          return (
-                            <div className="relative">
-                              {language && (
-                                <div 
-                                  className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono text-white"
-                                  style={{ backgroundColor: primaryColor }}
-                                >
-                                  {language}
-                                </div>
-                              )}
-                              <pre className="!mt-0 !bg-gray-50 border border-gray-200 rounded-md overflow-x-auto">
-                                <code className="block p-4 text-sm font-mono" {...props}>
-                                  {children}
-                                </code>
-                              </pre>
-                            </div>
-                          );
-                        },
-                        ul({ children }) {
-                          return <ul className="list-disc pl-4 space-y-1">{children}</ul>;
-                        },
-                        ol({ children }) {
-                          return <ol className="list-decimal pl-4 space-y-1">{children}</ol>;
-                        },
-                        a({ children, href }) {
-                          return (
-                            <a
-                              href={href}
-                              className="underline"
-                              style={{ color: primaryColor }}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {children}
-                            </a>
-                          );
-                        },
-                        p({children}){
-                          return message.type === 'system_message' ? (
-                            <p style={{fontSize:"10px",color:`${primaryColor}`}}>{children}</p>
-                          ) : (<p>{children}</p>)
-                        }
+                {message.type === 'ui' && message.ui_type === 'yes_no' && (
+                  <div className="flex gap-2 justify-center animate-fade-in">
+                    <Button
+                      onClick={() => handleYesNoClick('Yes')}
+                      className="px-6 py-2 rounded-full text-white font-medium transition-all hover:scale-105"
+                      style={{ 
+                        backgroundColor: primaryColor,
+                        boxShadow: `0 2px 5px ${primaryColor}40`
                       }}
                     >
-                      {message.content} 
-                    </ReactMarkdown>
-                  </div>
-                  {
-                    message.type === "bot_response" || message.type === "user" ? (
-                      <p className="text-xs mt-1 text-gray-400">
-                      {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    ):
-                    (
-                      <>
-                      </>
-                    )
-                  }
-                </div>
-                
-                {message.type === 'user' && (
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center mt-1 text-xs font-medium flex-shrink-0"
-                    style={{
-                      background: 'linear-gradient(135deg, #e6e9f0, #eef1f5)',
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                    }}
-                  >
-                    <User size={16} />
+                      Yes
+                    </Button>
+                    <Button
+                      onClick={() => handleYesNoClick('No')}
+                      variant="outline"
+                      className="px-6 py-2 rounded-full font-medium transition-all hover:scale-105"
+                      style={{ 
+                        borderColor: primaryColor,
+                        color: primaryColor
+                      }}
+                    >
+                      No
+                    </Button>
                   </div>
                 )}
               </div>
             ))}
-            
-            {/* Yes/No buttons for UI messages */}
-            {latestYesNoMessage && (
-              <div className="flex gap-2 justify-center animate-fade-in">
-                <Button
-                  onClick={() => handleYesNoClick('Yes')}
-                  className="px-6 py-2 rounded-full text-white font-medium transition-all hover:scale-105"
-                  style={{ 
-                    backgroundColor: primaryColor,
-                    boxShadow: `0 2px 5px ${primaryColor}40`
-                  }}
-                >
-                  Yes
-                </Button>
-                <Button
-                  onClick={() => handleYesNoClick('No')}
-                  variant="outline"
-                  className="px-6 py-2 rounded-full font-medium transition-all hover:scale-105"
-                  style={{ 
-                    borderColor: primaryColor,
-                    color: primaryColor
-                  }}
-                >
-                  No
-                </Button>
-              </div>
-            )}
             
             {showTypingIndicator && (
               <div className="flex gap-2 items-start animate-fade-in">
