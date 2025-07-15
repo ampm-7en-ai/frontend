@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, RefreshCw, User, Info, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
@@ -20,6 +19,7 @@ interface MessageProps {
   messageContainerRef: React.RefObject<HTMLDivElement>;
   isTyping?: boolean;
   allMessages: any[];
+  sessionId?: string;
 }
 
 const MessageList = ({ 
@@ -27,7 +27,8 @@ const MessageList = ({
   selectedAgent,
   messageContainerRef,
   isTyping,
-  allMessages 
+  allMessages,
+  sessionId
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);
@@ -343,6 +344,7 @@ const MessageList = ({
         onRevise={handleRevisionSave}
         previousUserMessageId={getPreviousUserMessageId()}
         agentMessageId={message.id}
+        sessionId={sessionId}
       />
     </>
   );

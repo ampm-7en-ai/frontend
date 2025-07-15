@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import MessageList from './MessageList';
 import ConversationHeader from './ConversationHeader';
@@ -118,7 +117,6 @@ const MessageContainer = ({
           <div className="p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
               {isLoading || validMessages.length === 0 ? (
-                // Show loading skeletons while messages are loading
                 <div className="space-y-6">
                   {[1, 2, 3, 4].map((i) => (
                     i % 2 == 0 ? (
@@ -139,7 +137,6 @@ const MessageContainer = ({
                   ))}
                 </div>
               ) : (
-                // Render actual messages
                 <div className="space-y-6" ref={messageContainerRef}>
                 {  
                     validMessages.map((message: any) => (
@@ -150,6 +147,7 @@ const MessageContainer = ({
                         messageContainerRef={messageContainerRef}
                         isTyping={isTyping} 
                         allMessages={validMessages}
+                        sessionId={conversationId}
                       />
                     ))
                 }
