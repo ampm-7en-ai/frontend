@@ -19,7 +19,7 @@ interface Message {
   content: string;
   timestamp: string;
   ui_type?: string;
-  id?: string;
+  messageId?: string; // Make this optional to handle both cases
 }
 
 interface ChatboxPreviewProps {
@@ -65,6 +65,7 @@ export const ChatboxPreview = ({
   const { toast } = useToast();
   const processedMessageIds = useRef<Set<string>>(new Set());
   const restartingRef = useRef(false);
+  const messageSequenceRef = useRef<number>(0);
 
   // Check if input should be disabled (when there's a pending yes/no question)
   const shouldDisableInput = messages.some(msg => 
@@ -93,6 +94,16 @@ export const ChatboxPreview = ({
     }
   }, []);
 
+  // Generate unique message ID for deduplication
+  const generateMessageId = (message: any): string => {
+    const baseId = message.messageId || message.id;
+    if (baseId) return baseId;
+    
+    // Fallback: create ID based on content + sequence
+    messageSequenceRef.current += 1;
+    return `${message.type}-${message.content.slice(0, 20)}-${messageSequenceRef.current}`;
+  };
+
   useEffect(() => {
     // Don't initialize if no agent ID
     if (!agentId) {
@@ -117,10 +128,10 @@ export const ChatboxPreview = ({
           return;
         }
         
-        // Create unique message ID for deduplication
-        const messageId = message.id || `${message.type}-${message.content}-${Date.now()}`;
+        // Generate unique message ID for deduplication
+        const messageId = generateMessageId(message);
         
-        // Check for duplicates
+        // Check for duplicates using improved logic
         if (processedMessageIds.current.has(messageId)) {
           console.log("Duplicate message detected, skipping:", messageId);
           return;
@@ -128,7 +139,7 @@ export const ChatboxPreview = ({
         
         processedMessageIds.current.add(messageId);
         
-        setMessages(prev => [...prev, { ...message, id: messageId }]); 
+        setMessages(prev => [...prev, { ...message, messageId }]); 
         message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
       },
       onTypingStart: () => {
@@ -183,11 +194,12 @@ export const ChatboxPreview = ({
       return;
     }
 
+    messageSequenceRef.current += 1;
     const newMessage: Message = {
       type: 'user',
       content: messageContent,
       timestamp: new Date().toISOString(),
-      id: `user-${Date.now()}-${Math.random()}`
+      messageId: `user-${Date.now()}-${messageSequenceRef.current}`
     };
     
     setMessages(prev => [...prev, newMessage]);
@@ -246,8 +258,9 @@ export const ChatboxPreview = ({
     setIsInitializing(true);
     setIsConnected(false);
     
-    // Clear processed message IDs to prevent duplicate detection issues
+    // Clear processed message IDs and reset sequence
     processedMessageIds.current.clear();
+    messageSequenceRef.current = 0;
     
     // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
@@ -272,7 +285,7 @@ export const ChatboxPreview = ({
               return;
             }
             
-            const messageId = message.id || `${message.type}-${message.content}-${Date.now()}`;
+            const messageId = generateMessageId(message);
             
             if (processedMessageIds.current.has(messageId)) {
               console.log("Duplicate message detected during restart, skipping:", messageId);
@@ -280,7 +293,7 @@ export const ChatboxPreview = ({
             }
             
             processedMessageIds.current.add(messageId);
-            setMessages(prev => [...prev, { ...message, id: messageId }]); 
+            setMessages(prev => [...prev, { ...message, messageId }]); 
             message.type === "system_message" ? setShowTypingIndicator(true) : setShowTypingIndicator(false);
           },
           onTypingStart: () => {
@@ -309,14 +322,14 @@ export const ChatboxPreview = ({
               // Clear restarting flag once connected
               setTimeout(() => {
                 restartingRef.current = false;
-              }, 500);
+              }, 1000); // Increased delay to ensure proper initialization
             }
           }
         });
         
         chatServiceRef.current.connect();
       }
-    }, 500); // Increased delay for better cleanup
+    }, 800); // Increased delay for better cleanup
   };
 
   const getMessageStyling = (messageType: string) => {
@@ -470,23 +483,25 @@ export const ChatboxPreview = ({
               const isConsecutive = index > 0 && messages[index - 1]?.type === message.type;
               
               return (
-                <div key={message.id || index} className={isConsecutive ? 'mt-2' : 'mt-4'}>
+                <div key={message.messageId || index} className={isConsecutive ? 'mt-2' : 'mt-4'}>
                   {message.type !== 'ui' && (
                     <div 
                       className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
                       style={{
-                        animation: message.type === 'bot_response' 
-                          ? 'messageSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' 
-                          : 'messageSlideUp 0.3s ease-out forwards'
+                        animation: 'messageSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
                       }}
                     >
                       <div
                         className={cn(
-                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-200 hover:scale-[1.02] hover:shadow-lg",
+                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group",
                           styling.containerClass,
                           styling.textClass
                         )}
-                        style={styling.style}
+                        style={{
+                          ...styling.style,
+                          willChange: 'transform',
+                          transformOrigin: message.type === 'user' ? 'bottom right' : 'bottom left'
+                        }}
                       >
                         <div className="text-sm prose prose-sm max-w-none markdown-content">
                           <ReactMarkdown
@@ -598,7 +613,7 @@ export const ChatboxPreview = ({
               <div 
                 className="flex gap-4 items-start"
                 style={{
-                  animation: 'typingEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                  animation: 'typingSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
                 }}
               >
                 <div className="flex-shrink-0 mt-1">
@@ -627,21 +642,21 @@ export const ChatboxPreview = ({
                 <div 
                   className="rounded-2xl p-4 max-w-[88%] border border-gray-200/60 bg-white shadow-sm"
                   style={{
-                    animation: 'typingContainerPulse 2s ease-in-out infinite'
+                    animation: 'typingContainerBreath 3s ease-in-out infinite'
                   }}
                 >
                   <div className="flex space-x-2">
                     <div 
                       className="w-2.5 h-2.5 rounded-full bg-gray-400"
-                      style={{ animation: 'typingDot 1.5s ease-in-out infinite', animationDelay: '0ms' }}
+                      style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '0ms' }}
                     ></div>
                     <div 
                       className="w-2.5 h-2.5 rounded-full bg-gray-400"
-                      style={{ animation: 'typingDot 1.5s ease-in-out infinite', animationDelay: '300ms' }}
+                      style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '200ms' }}
                     ></div>
                     <div 
                       className="w-2.5 h-2.5 rounded-full bg-gray-400"
-                      style={{ animation: 'typingDot 1.5s ease-in-out infinite', animationDelay: '600ms' }}
+                      style={{ animation: 'typingDotBounce 1.4s ease-in-out infinite', animationDelay: '400ms' }}
                     ></div>
                   </div>
                 </div>
@@ -660,7 +675,8 @@ export const ChatboxPreview = ({
                     style={{ 
                       border: `1px solid rgba(59, 130, 246, 0.2)`,
                       backgroundColor: 'white',
-                      color: 'inherit'
+                      color: 'inherit',
+                      animation: `suggestionSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards ${index * 0.1}s both`
                     }}
                   >
                     {suggestion}
@@ -723,8 +739,12 @@ export const ChatboxPreview = ({
         {`
           @keyframes messageSlideUp {
             0% {
-              transform: translateY(20px) scale(0.95);
+              transform: translateY(20px) scale(0.96);
               opacity: 0;
+            }
+            60% {
+              transform: translateY(-2px) scale(1.01);
+              opacity: 0.8;
             }
             100% {
               transform: translateY(0) scale(1);
@@ -732,10 +752,14 @@ export const ChatboxPreview = ({
             }
           }
           
-          @keyframes typingEnter {
+          @keyframes typingSlideIn {
             0% {
-              transform: translateY(10px) scale(0.95);
+              transform: translateY(15px) scale(0.94);
               opacity: 0;
+            }
+            50% {
+              transform: translateY(-3px) scale(1.02);
+              opacity: 0.7;
             }
             100% {
               transform: translateY(0) scale(1);
@@ -743,23 +767,36 @@ export const ChatboxPreview = ({
             }
           }
           
-          @keyframes typingDot {
+          @keyframes typingDotBounce {
             0%, 60%, 100% {
-              transform: translateY(0);
+              transform: translateY(0) scale(1);
               opacity: 0.4;
             }
             30% {
-              transform: translateY(-10px);
+              transform: translateY(-8px) scale(1.1);
               opacity: 1;
             }
           }
           
-          @keyframes typingContainerPulse {
+          @keyframes typingContainerBreath {
             0%, 100% {
               transform: scale(1);
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
             50% {
-              transform: scale(1.02);
+              transform: scale(1.01);
+              box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+            }
+          }
+          
+          @keyframes suggestionSlideIn {
+            0% {
+              transform: translateX(-20px) scale(0.95);
+              opacity: 0;
+            }
+            100% {
+              transform: translateX(0) scale(1);
+              opacity: 1;
             }
           }
         `}
