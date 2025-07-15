@@ -256,14 +256,14 @@ export const ChatboxPreview = ({
       )}
       style={{ 
         fontFamily: fontFamily,
-        height: 'calc(100vh - 100px)', // Increased height by 100px (was calc(100vh - 200px))
+        height: 'calc(100vh - 100px)',
         boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
         border: `1px solid ${primaryColor}10`
       }}
     >
       {/* Header */}
       <div 
-        className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden"
+        className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
         style={{ 
           background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)}, ${adjustColor(primaryColor, -30)})`,
         }}
@@ -313,11 +313,12 @@ export const ChatboxPreview = ({
         ) : null}
       </div>
       
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Messages Area */}
         <ScrollArea 
           ref={scrollAreaRef}
-          className="flex-1 relative"
-          style={{ height: 'calc(100% - 85px)' }}
+          className="flex-1"
         >
           <div className="p-6 space-y-6 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
             {connectionError && (
@@ -597,37 +598,39 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
         
-        {/* Message Input */}
-        <div className="border-t border-gray-100 p-5 bg-white/80 backdrop-blur-sm mt-auto">
-          <form onSubmit={handleSubmit} className="relative">
-            <Textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-              className="pr-14 text-sm border-2 pl-4 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200"
-              style={{ 
-                borderColor: `${primaryColor}20`,
-                minHeight: "52px",
-                maxHeight: "120px",
-                width: "calc(100% - 44px)"
-              }}
-              disabled={!isConnected || shouldDisableInput}
-              expandable={true}
-              maxExpandedHeight="120px"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-            />
+        {/* Message Input - Fixed Layout */}
+        <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
+          <form onSubmit={handleSubmit} className="flex gap-3 items-end">
+            <div className="flex-1">
+              <Textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
+                className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none"
+                style={{ 
+                  borderColor: `${primaryColor}20`,
+                  minHeight: "44px",
+                  maxHeight: "100px"
+                }}
+                disabled={!isConnected || shouldDisableInput}
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+              />
+            </div>
             <ModernButton
               type="submit" 
-              className="absolute right-[2px] top-1/2 -translate-y-1/2 p-3 rounded-xl transition-all hover:scale-110 border border-white/50"
+              className="p-3 rounded-xl transition-all hover:scale-105 border border-white/50 flex-shrink-0"
               style={{ 
                 background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -15)})`,
                 color: secondaryColor,
                 opacity: (isConnected && !shouldDisableInput) ? 1 : 0.5,
+                minHeight: "44px",
+                minWidth: "44px"
               }}
               disabled={!isConnected || shouldDisableInput}
               iconOnly
