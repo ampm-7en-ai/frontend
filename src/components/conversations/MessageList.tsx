@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, RefreshCw, User, Info, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
@@ -19,8 +20,6 @@ interface MessageProps {
   messageContainerRef: React.RefObject<HTMLDivElement>;
   isTyping?: boolean;
   allMessages: any[];
-  isMessageImproved: (messageId: string) => boolean;
-  getImprovedResponse: (messageId: string) => any;
 }
 
 const MessageList = ({ 
@@ -28,18 +27,13 @@ const MessageList = ({
   selectedAgent,
   messageContainerRef,
   isTyping,
-  allMessages,
-  isMessageImproved,
-  getImprovedResponse
+  allMessages 
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<'helpful' | 'unhelpful' | null>(null);
   const { showToast } = useFloatingToast();
-
-  // Check if this message has been improved
-  const messageImproved = message.sender === 'bot' && isMessageImproved(message.id);
 
   const handleCopy = () => {
     if (typeof message.content === 'string') {
@@ -273,19 +267,12 @@ const MessageList = ({
                         onClick={handleRevise}
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm"
-                        disabled={messageImproved}
-                      >
-                        <RotateCcw className={cn(
-                          "h-4 w-4",
-                          messageImproved 
-                            ? "text-slate-300 dark:text-slate-600" 
-                            : "text-slate-500 dark:text-slate-400"
-                        )} />
+                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                        <RotateCcw className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{messageImproved ? "Already improved" : "Revise"}</p>
+                      <p>Revise</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -356,8 +343,6 @@ const MessageList = ({
         onRevise={handleRevisionSave}
         previousUserMessageId={getPreviousUserMessageId()}
         agentMessageId={message.id}
-        isAlreadyImproved={messageImproved}
-        improvedResponse={getImprovedResponse(message.id)}
       />
     </>
   );
