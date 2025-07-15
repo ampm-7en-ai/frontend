@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
@@ -62,8 +63,8 @@ const MessageRevisionModal = ({
       const response = await apiGet(getApiUrl(`improvedresponse/?session_id=${sessionId}`));
       const data = await response.json();
 
-      if (response.ok && data.results && data.results.length > 0) {
-        const improvedData = data.results[0];
+      if (response.ok && data.status === 'success' && data.data && data.data.length > 0) {
+        const improvedData = data.data[0];
         setImprovedResponse(improvedData.improved_response);
         setImprovedResponseId(improvedData.id);
         setRevisedAnswer(improvedData.improved_response);
@@ -260,10 +261,10 @@ const MessageRevisionModal = ({
             {isImproved && (
               <div className="mb-3">
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
-                  Improved Response:
+                  Current Improved Response:
                 </div>
                 <div className="p-3 rounded-lg bg-green-50/80 dark:bg-green-900/20 border border-green-200/60 dark:border-green-800/60">
-                  <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
+                  <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed whitespace-pre-wrap">
                     {improvedResponse}
                   </p>
                 </div>
