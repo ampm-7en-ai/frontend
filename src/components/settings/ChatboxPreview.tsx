@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -211,6 +212,19 @@ export const ChatboxPreview = ({
     sendMessage(suggestion);
   };
 
+  // Helper function to format timestamp safely
+  const formatTimestamp = (timestamp: string) => {
+    if (!timestamp) return '';
+    
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      return '';
+    }
+  };
+
   return (
     <Card 
       className={cn(
@@ -388,7 +402,7 @@ export const ChatboxPreview = ({
                       {
                         message.type === "bot_response" || message.type === "user" ? (
                           <p className="text-xs mt-1 text-gray-400">
-                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatTimestamp(message.timestamp)}
                           </p>
                         ):
                         (
@@ -416,10 +430,11 @@ export const ChatboxPreview = ({
                   <div className="flex gap-2 justify-center animate-fade-in">
                     <Button
                       onClick={() => handleYesNoClick('Yes')}
-                      className="px-6 py-2 rounded-full text-white font-medium transition-all hover:scale-105"
+                      variant="outline"
+                      className="px-6 py-2 rounded-full font-medium transition-all hover:scale-105"
                       style={{ 
-                        backgroundColor: primaryColor,
-                        boxShadow: `0 2px 5px ${primaryColor}40`
+                        borderColor: primaryColor,
+                        color: primaryColor
                       }}
                     >
                       Yes
