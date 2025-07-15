@@ -527,7 +527,7 @@ export const ChatboxPreview = ({
                     >
                       <div
                         className={cn(
-                          "rounded-2xl p-4 max-w-[88%] relative transition-all duration-300",
+                          "rounded-2xl p-4 max-w-[92%] relative transition-all duration-300",
                           styling.containerClass,
                           styling.textClass
                         )}
@@ -666,10 +666,10 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
 
-        {/* Updated Typing Indicator - positioned 5px higher (105px from bottom) */}
+        {/* Updated Typing Indicator - positioned 115px from bottom (20+5px more) */}
         {showTypingIndicator && (
           <div 
-            className="absolute bottom-[105px] left-4 flex items-center gap-2 z-20"
+            className="absolute bottom-[115px] left-4 flex items-center gap-2 z-20"
             style={{
               animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
             }}
@@ -740,52 +740,63 @@ export const ChatboxPreview = ({
           </div>
         )}
         
-        {/* Message Input - Fixed Layout with Expandable Textarea */}
+        {/* Message Input - With integrated send button */}
         <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
-          <form onSubmit={handleSubmit} className="flex gap-3 items-end">
-            <div className="flex-1">
-              <Textarea
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-                className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden"
-                style={{ 
-                  borderColor: `${primaryColor}20`,
-                  minHeight: "44px",
-                  maxHeight: "120px"
-                }}
-                disabled={!isConnected || shouldDisableInput}
-                rows={1}
-                expandable={true}
-                maxExpandedHeight="120px"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-              />
-            </div>
-            <ModernButton
-              type="submit" 
-              className="p-3 rounded-xl transition-all hover:scale-105 border border-white/50 flex-shrink-0"
+          <form onSubmit={handleSubmit} className="relative">
+            <Textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
+              className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
               style={{ 
-                background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
-                color: secondaryColor,
-                opacity: (isConnected && !shouldDisableInput) ? 1 : 0.5,
+                borderColor: `${primaryColor}20`,
                 minHeight: "44px",
-                minWidth: "44px"
+                maxHeight: "120px"
               }}
               disabled={!isConnected || shouldDisableInput}
-              iconOnly
-              icon={Send}
+              rows={1}
+              expandable={true}
+              maxExpandedHeight="120px"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
             />
+            <button
+              type="submit" 
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-all hover:scale-105"
+              style={{ 
+                color: primaryColor,
+                opacity: (isConnected && !shouldDisableInput && inputValue.trim()) ? 1 : 0.4
+              }}
+              disabled={!isConnected || shouldDisableInput || !inputValue.trim()}
+            >
+              <Send size={20} />
+            </button>
           </form>
           <div className="text-center mt-3 text-xs text-gray-400 font-medium">
             powered by 7en.ai
           </div>
         </div>
       </div>
+      
+      {/* Chat with us button - when minimized */}
+      {onMinimize && (
+        <ModernButton
+          onClick={() => {/* handle expand */}}
+          className="fixed bottom-6 right-6 rounded-full px-6 py-4 font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-3"
+          style={{ 
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+            color: secondaryColor,
+            border: `1px solid ${primaryColor}20`
+          }}
+        >
+          <Bot size={24} />
+          {buttonText}
+        </ModernButton>
+      )}
       
       {/* Enhanced CSS Animations */}
       <style>
