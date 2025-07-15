@@ -67,12 +67,8 @@ export const ChatboxPreview = ({
     msg.type === 'ui' && msg.ui_type === 'yes_no'
   );
 
-  // Add welcome message when component mounts
-  useEffect(() => {
-    if (welcomeMessage) {
-      setMessages([{ type: 'bot_response', content: welcomeMessage, timestamp: new Date().toISOString() }]);
-    }
-  }, [welcomeMessage]);
+  // Don't add welcome message to messages array - we'll display it specially
+  // Remove the welcome message useEffect
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
@@ -212,7 +208,6 @@ export const ChatboxPreview = ({
     sendMessage(suggestion);
   };
 
-  // Helper function to format timestamp safely
   const formatTimestamp = (timestamp: string) => {
     if (!timestamp) return '';
     
@@ -225,7 +220,6 @@ export const ChatboxPreview = ({
     }
   };
 
-  // Helper function to get message styling based on type
   const getMessageStyling = (messageType: string) => {
     switch (messageType) {
       case 'bot_response':
@@ -267,6 +261,7 @@ export const ChatboxPreview = ({
         border: `1px solid ${primaryColor}10`
       }}
     >
+      {/* Header */}
       <div 
         className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden"
         style={{ 
@@ -332,6 +327,47 @@ export const ChatboxPreview = ({
               </div>
             )}
             
+            {/* Welcome Message - Special Styling */}
+            {welcomeMessage && (
+              <div className="animate-fade-in">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-200/50">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-medium text-blue-700">Welcome to {chatbotName}</span>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-br from-white to-gray-50/50 border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
+                  <div className="flex justify-center mb-4">
+                    {avatarSrc ? (
+                      <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
+                        <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                        <AvatarFallback style={{ 
+                          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                          color: secondaryColor
+                        }}>
+                          <Bot size={24} />
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div 
+                        className="w-16 h-16 rounded-full flex items-center justify-center border-4 border-white shadow-lg"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -20)})`,
+                          color: secondaryColor
+                        }}
+                      >
+                        <Bot size={24} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="prose prose-sm max-w-none text-center">
+                    <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Regular Messages */}
             {messages.map((message, index) => {
               const styling = getMessageStyling(message.type);
               
@@ -469,6 +505,7 @@ export const ChatboxPreview = ({
                     </div>
                   )}
                   
+                  {/* Yes/No UI Component */}
                   {message.type === 'ui' && message.ui_type === 'yes_no' && (
                     <div className="flex gap-3 justify-center animate-fade-in">
                       <ModernButton
@@ -501,6 +538,7 @@ export const ChatboxPreview = ({
               );
             })}
             
+            {/* Typing Indicator */}
             {showTypingIndicator && (
               <div className="flex gap-4 items-start animate-fade-in">
                 <div className="flex-shrink-0 mt-1">
@@ -536,7 +574,8 @@ export const ChatboxPreview = ({
               </div>
             )}
             
-            {messages.length === 1 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
+            {/* Suggestions - only show if we have few messages and no pending UI components */}
+            {messages.length === 0 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
               <div className="flex flex-col gap-3 mt-6 animate-fade-in">
                 <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
                 {suggestions.filter(Boolean).map((suggestion, index) => (
@@ -558,6 +597,7 @@ export const ChatboxPreview = ({
           </div>
         </ScrollArea>
         
+        {/* Message Input */}
         <div className="border-t border-gray-100 p-5 bg-white/80 backdrop-blur-sm mt-auto">
           <form onSubmit={handleSubmit} className="relative">
             <Textarea
