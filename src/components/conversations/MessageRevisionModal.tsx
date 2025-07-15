@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { getApiUrl } from '@/utils/api-config';
 import { apiPost } from '@/utils/api-interceptor';
@@ -17,6 +19,8 @@ interface MessageRevisionModalProps {
   onRevise: (revisedAnswer: string) => void;
   previousUserMessageId?: string;
   agentMessageId?: string;
+  isAlreadyImproved?: boolean;
+  improvedResponse?: any;
 }
 
 const MessageRevisionModal = ({
@@ -26,10 +30,19 @@ const MessageRevisionModal = ({
   answer,
   onRevise,
   previousUserMessageId,
-  agentMessageId
+  agentMessageId,
+  isAlreadyImproved = false,
+  improvedResponse
 }: MessageRevisionModalProps) => {
   const [revisedAnswer, setRevisedAnswer] = useState(answer);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Reset revised answer when modal opens
+  React.useEffect(() => {
+    if (open) {
+      setRevisedAnswer(answer);
+    }
+  }, [open, answer]);
 
   const handleImprove = async () => {
     if (!revisedAnswer.trim()) {
@@ -94,7 +107,7 @@ const MessageRevisionModal = ({
           <ModernButton 
             variant="primary" 
             onClick={handleImprove}
-            disabled={isLoading}
+            disabled={isLoading || isAlreadyImproved}
           >
             {isLoading ? "Improving..." : "Improve"}
           </ModernButton>
@@ -102,6 +115,21 @@ const MessageRevisionModal = ({
       }
     >
       <div className="space-y-6">
+        {/* Already Improved Alert */}
+        {isAlreadyImproved && (
+          <Alert className="border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20">
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              This message has already been improved. 
+              {improvedResponse?.updated_at && (
+                <span className="ml-1">
+                  Last updated: {new Date(improvedResponse.updated_at).toLocaleString()}
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Question Section */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -125,10 +153,13 @@ const MessageRevisionModal = ({
             onChange={(e) => setRevisedAnswer(e.target.value)}
             className="min-h-[200px] resize-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 rounded-xl focus:border-blue-500/50 dark:focus:border-blue-400/50 focus:ring-blue-500/40 dark:focus:ring-blue-400/40 transition-all duration-200"
             placeholder="Enter the revised answer..."
-            disabled={isLoading}
+            disabled={isLoading || isAlreadyImproved}
           />
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Edit the AI response to make it more accurate or helpful for the customer.
+            {isAlreadyImproved 
+              ? "This response has already been improved and cannot be modified further."
+              : "Edit the AI response to make it more accurate or helpful for the customer."
+            }
           </p>
         </div>
       </div>
