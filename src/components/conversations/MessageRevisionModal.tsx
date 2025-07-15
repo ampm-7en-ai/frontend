@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { getApiUrl } from '@/utils/api-config';
+import { getApiUrl, getAccessToken } from '@/utils/api-config';
 
 interface MessageRevisionModalProps {
   open: boolean;
@@ -50,7 +50,7 @@ const MessageRevisionModal = ({
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getAccessToken();
       console.log('Token found:', !!token);
       
       if (!token) {
