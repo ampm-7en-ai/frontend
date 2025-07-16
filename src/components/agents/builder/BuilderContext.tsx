@@ -173,7 +173,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           fontFamily: agentData.appearance?.fontFamily || 'Inter',
           chatbotName: agentData.appearance?.chatbotName || 'AI Assistant',
           welcomeMessage: agentData.appearance?.welcomeMessage || 'Hello! How can I help you today?',
-          buttonText: agentData.appearance?.buttonText || 'Chat with us',
+          buttonText: agentData.appearance?.buttonText?.trim() || 'Chat with us',
           position: agentData.appearance?.position || 'bottom-right',
           suggestions: agentData.behavior?.suggestions || agentData.appearance?.suggestions || ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
           avatar: agentData.appearance?.avatar?.src,
