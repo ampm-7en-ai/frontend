@@ -409,16 +409,497 @@ export const ChatboxPreview = ({
     setIsMinimized(false);
   };
 
-  // Enhanced floating button positioning - now relative to chat panel
-  if (showFloatingButton && isMinimized) {
+  // Enhanced floating button positioning - both chat and button always visible
+  if (showFloatingButton) {
     const hasButtonText = buttonText && buttonText.trim() !== '';
     const iconSize = hasButtonText ? 24 : 36; // 1.5x larger when no text (24 * 1.5 = 36)
     
     return (
       <div className="relative w-full h-full">
-        {/* Floating button positioned at bottom-right of the chat panel */}
+        {/* Chat window - positioned above the button with gap */}
+        {!isMinimized && (
+          <div className="absolute bottom-20 right-4 w-80 h-96">
+            <Card 
+              className={cn(
+                "flex flex-col backdrop-blur-sm h-full animate-scale-in"
+              )}
+              style={{ 
+                fontFamily: fontFamily,
+                boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
+                border: `1px solid ${primaryColor}10`,
+              }}
+            >
+              {/* Header */}
+              <div 
+                className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
+                style={{ 
+                  background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)}, ${adjustColor(primaryColor, -50)})`
+                }}
+              >
+                {/* Modern gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
+                
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="relative">
+                    <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-12 h-12 border border-white/30">
+                      {avatarSrc ? (
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                          <AvatarFallback className="text-white bg-transparent">
+                            <Bot size={24} />
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <Bot size={24} className="text-white drop-shadow-sm" />
+                      )}
+                    </div>
+                    {/* Online indicator */}
+                    {isConnected && (
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse" />
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-white text-lg drop-shadow-sm">{chatbotName}</span>
+                    <span className="text-white/80 text-sm">
+                      {isConnected ? 'Online' : 'Connecting...'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 relative z-10">
+                  {/* Control buttons */}
+                  <ModernButton
+                    onClick={handleRestart}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                    title="Restart chat"
+                    icon={RotateCcw}
+                    iconOnly
+                  />
+                  
+                  <ModernButton
+                    onClick={handleMinimizeToggle}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                    title="Minimize chat"
+                    icon={Minus}
+                    iconOnly
+                  />
+                  
+                  {isInitializing ? (
+                    <LoadingSpinner size="sm" className="text-white/70" />
+                  ) : connectionError ? (
+                    <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1.5 rounded-full border border-red-300/30 backdrop-blur-sm">
+                      <AlertCircle size={14} className="text-white/90" />
+                      <span className="text-xs text-white/90 font-medium">Error</span>
+                    </div>
+                  ) : !isConnected ? (
+                    <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1.5 rounded-full border border-orange-300/30 backdrop-blur-sm">
+                      <WifiOff size={14} className="text-white/90" />
+                      <span className="text-xs text-white/90 font-medium">Disconnected</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              
+              {/* Main Content Area */}
+              <div className="flex-1 flex flex-col min-h-0 relative">
+                {/* Messages Area */}
+                <ScrollArea 
+                  ref={scrollAreaRef}
+                  className="flex-1 min-h-0"
+                >
+                  <div className="p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
+                    {connectionError && (
+                      <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm">
+                        <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
+                        <span className="text-sm text-red-800">Connection failed. Please check your agent configuration.</span>
+                      </div>
+                    )}
+                    
+                    {/* Welcome Message - Compact Disclaimer Style */}
+                    {welcomeMessage && (
+                      <div className="animate-fade-in">
+                        <div 
+                          className="border rounded-lg p-3 text-center"
+                          style={{
+                            backgroundColor: `${primaryColor}05`,
+                            borderColor: `${primaryColor}20`
+                          }}
+                        >
+                          <div className="text-xs italic text-gray-600 leading-relaxed">
+                            <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Regular Messages */}
+                    {messages.map((message, index) => {
+                      const styling = getMessageStyling(message.type);
+                      const isConsecutive = index > 0 && messages[index - 1]?.type === message.type;
+                      
+                      return (
+                        <div key={message.messageId || index} className={isConsecutive ? 'mt-2' : 'mt-4'}>
+                          {message.type !== 'ui' && (
+                            <div 
+                              className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                              style={{
+                                animation: 'messageSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                              }}
+                            >
+                              <div
+                                className={cn(
+                                  "rounded-2xl p-4 max-w-[92%] relative transition-all duration-300",
+                                  styling.containerClass,
+                                  styling.textClass
+                                )}
+                                style={{
+                                  ...styling.style,
+                                  transform: 'scale(1)',
+                                  willChange: 'auto'
+                                }}
+                              >
+                                <div className="text-sm prose prose-sm max-w-none markdown-content">
+                                  <ReactMarkdown
+                                    components={{
+                                      code({ node, className, children, ...props }) {
+                                        const match = /language-(\w+)/.exec(className || '');
+                                        const language = match ? match[1] : '';
+                                        
+                                        const isInline = !match && children.toString().split('\n').length === 1;
+                                        
+                                        if (isInline) {
+                                          return (
+                                            <code
+                                              className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
+                                              style={{ color: '#3b82f6' }}
+                                              {...props}
+                                            >
+                                              {children}
+                                            </code>
+                                          );
+                                        }
+
+                                        return (
+                                          <div className="relative my-3">
+                                            {language && (
+                                              <div 
+                                                className="absolute top-0 right-0 px-3 py-1 text-xs rounded-bl-lg font-mono text-white z-10"
+                                                style={{ backgroundColor: '#3b82f6' }}
+                                              >
+                                                {language}
+                                              </div>
+                                            )}
+                                            <pre className="!mt-0 !bg-gray-50/80 border border-gray-200/60 rounded-xl overflow-x-auto backdrop-blur-sm">
+                                              <code className="block p-4 text-sm font-mono" {...props}>
+                                                {children}
+                                              </code>
+                                            </pre>
+                                          </div>
+                                        );
+                                      },
+                                      ul({ children }) {
+                                        return <ul className="list-disc pl-4 space-y-1 my-2">{children}</ul>;
+                                      },
+                                      ol({ children }) {
+                                        return <ol className="list-decimal pl-4 space-y-1 my-2">{children}</ol>;
+                                      },
+                                      a({ children, href }) {
+                                        return (
+                                          <a
+                                            href={href}
+                                            className="underline transition-colors hover:opacity-80"
+                                            style={{ color: message.type === 'user' ? 'inherit' : '#3b82f6' }}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            {children}
+                                          </a>
+                                        );
+                                      },
+                                      p({children}){
+                                        return message.type === 'system_message' ? (
+                                          <p style={{fontSize:"12px", fontWeight: "500"}}>{children}</p>
+                                        ) : (<p className="leading-relaxed">{children}</p>)
+                                      }
+                                    }}
+                                  >
+                                    {message.content} 
+                                  </ReactMarkdown>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Yes/No UI Component */}
+                          {message.type === 'ui' && message.ui_type === 'yes_no' && (
+                            <div className="flex gap-3 justify-center animate-fade-in">
+                              <ModernButton
+                                onClick={() => handleYesNoClick('Yes')}
+                                variant="outline"
+                                className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
+                                style={{ 
+                                  borderColor: primaryColor,
+                                  color: primaryColor,
+                                  backgroundColor: 'white'
+                                }}
+                              >
+                                Yes
+                              </ModernButton>
+                              <ModernButton
+                                onClick={() => handleYesNoClick('No')}
+                                variant="outline"
+                                className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
+                                style={{ 
+                                  borderColor: primaryColor,
+                                  color: primaryColor,
+                                  backgroundColor: 'white'
+                                }}
+                              >
+                                No
+                              </ModernButton>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Suggestions - only show if we have few messages and no pending UI components */}
+                    {messages.length === 0 && suggestions && suggestions.length > 0 && !shouldDisableInput && (
+                      <div className="flex flex-col gap-3 mt-6 animate-fade-in">
+                        <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
+                        {suggestions.filter(Boolean).map((suggestion, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50 hover:shadow-md"
+                            style={{ 
+                              border: `1px solid ${primaryColor}20`,
+                              backgroundColor: 'white',
+                              color: 'inherit',
+                              animation: `suggestionSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards ${index * 0.1}s both`
+                            }}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+
+                {/* Updated Typing Indicator - positioned 115px from bottom (20+5px more) */}
+                {showTypingIndicator && (
+                  <div 
+                    className="absolute bottom-[115px] left-4 flex items-center gap-2 z-20"
+                    style={{
+                      animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
+                    }}
+                  >
+                    {/* Smaller Avatar (2x smaller) */}
+                    <div className="flex-shrink-0">
+                      {avatarSrc ? (
+                        <Avatar className="w-5 h-5 border border-white">
+                          <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                          <AvatarFallback style={{ 
+                            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+                            color: secondaryColor
+                          }}>
+                            <Bot size={10} />
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <div 
+                          className="w-5 h-5 rounded-full flex items-center justify-center border border-white"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+                            color: secondaryColor
+                          }}
+                        >
+                          <Bot size={10} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Smaller Typing Dots Container */}
+                    <div 
+                      className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
+                    >
+                      <div className="flex space-x-1">
+                        <div 
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ 
+                            backgroundColor: `${primaryColor}60`,
+                            animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                            animationDelay: '0ms'
+                          }}
+                        ></div>
+                        <div 
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ 
+                            backgroundColor: `${primaryColor}60`,
+                            animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                            animationDelay: '200ms'
+                          }}
+                        ></div>
+                        <div 
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ 
+                            backgroundColor: `${primaryColor}60`,
+                            animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                            animationDelay: '400ms'
+                          }}
+                        ></div>
+                      </div>
+
+                      {/* System Message Display */}
+                      {systemMessage && (
+                        <div className="ml-2 text-xs text-gray-600 font-medium animate-fade-in">
+                          {systemMessage}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Message Input - With integrated send button */}
+                <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
+                  <form onSubmit={handleSubmit} className="relative">
+                    <Textarea
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
+                      className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
+                      style={{ 
+                        borderColor: `${primaryColor}20`,
+                        minHeight: "44px",
+                        maxHeight: "120px"
+                      }}
+                      disabled={!isConnected || shouldDisableInput}
+                      rows={1}
+                      expandable={true}
+                      maxExpandedHeight="120px"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
+                          e.preventDefault();
+                          handleSubmit(e);
+                        }
+                      }}
+                    />
+                    <button
+                      type="submit" 
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-all hover:scale-105"
+                      style={{ 
+                        color: primaryColor,
+                        opacity: (isConnected && !shouldDisableInput && inputValue.trim()) ? 1 : 0.4
+                      }}
+                      disabled={!isConnected || shouldDisableInput || !inputValue.trim()}
+                    >
+                      <Send size={20} />
+                    </button>
+                  </form>
+                  <div className="text-center mt-3 text-xs text-gray-400 font-medium">
+                    powered by 7en.ai
+                  </div>
+                </div>
+              </div>
+              
+              {/* Enhanced CSS Animations */}
+              <style>
+                {`
+                  @keyframes messageSlideUp {
+                    0% {
+                      transform: translateY(20px) scale(0.96);
+                      opacity: 0;
+                    }
+                    60% {
+                      transform: translateY(-2px) scale(1.01);
+                      opacity: 0.8;
+                    }
+                    100% {
+                      transform: translateY(0) scale(1);
+                      opacity: 1;
+                    }
+                  }
+                  
+                  @keyframes chatboxExpand {
+                    0% {
+                      transform: scale(0.1);
+                      opacity: 0;
+                    }
+                    100% {
+                      transform: scale(1);
+                      opacity: 1;
+                    }
+                  }
+                  
+                  @keyframes typingBounceIn {
+                    0% {
+                      transform: translateY(60px) scale(0.3);
+                      opacity: 0;
+                    }
+                    50% {
+                      transform: translateY(-8px) scale(1.1);
+                      opacity: 0.8;
+                    }
+                    100% {
+                      transform: translateY(0) scale(1);
+                      opacity: 1;
+                    }
+                  }
+
+                  @keyframes typingBounceOut {
+                    0% {
+                      transform: translateY(0) scale(1);
+                      opacity: 1;
+                    }
+                    50% {
+                      transform: translateY(-8px) scale(1.1);
+                      opacity: 0.8;
+                    }
+                    100% {
+                      transform: translateY(60px) scale(0.3);
+                      opacity: 0;
+                    }
+                  }
+                  
+                  @keyframes typingDotBounce {
+                    0%, 60%, 100% {
+                      transform: translateY(0) scale(1);
+                      opacity: 0.4;
+                    }
+                    30% {
+                      transform: translateY(-4px) scale(1.2);
+                      opacity: 1;
+                    }
+                  }
+                  
+                  @keyframes suggestionSlideIn {
+                    0% {
+                      transform: translateX(-20px) scale(0.95);
+                      opacity: 0;
+                    }
+                    100% {
+                      transform: translateX(0) scale(1);
+                      opacity: 1;
+                    }
+                  }
+                  
+                  .animate-chatbox-expand {
+                    animation: chatboxExpand 0.3s ease-out forwards;
+                  }
+                `}
+              </style>
+            </Card>
+          </div>
+        )}
+
+        {/* Floating button - always visible at bottom-right */}
         <ModernButton
-          onClick={handleExpand}
+          onClick={isMinimized ? handleExpand : handleMinimizeToggle}
           className={`absolute bottom-4 right-4 z-50 ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
           style={{ 
             background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
