@@ -66,38 +66,11 @@ export const InteractiveCanvas = () => {
 
       return (
         <div className="h-full w-full relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
-          {/* Stacked chat and button container - positioned in corner */}
-          <div className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} flex flex-col items-stretch gap-4 z-50`}>
-            {/* Chat window - shows above button when expanded with professional animation */}
-            {!isChatMinimized && (
-              <div 
-                className="w-96 h-[600px] animate-chat-slide-up"
-                style={{
-                  transformOrigin: isLeftPosition ? 'bottom left' : 'bottom right'
-                }}
-              >
-                <ChatboxPreview
-                  agentId={currentAgentId}
-                  primaryColor={agentData.primaryColor}
-                  secondaryColor={agentData.secondaryColor}
-                  fontFamily={agentData.fontFamily}
-                  chatbotName={agentData.chatbotName}
-                  welcomeMessage={agentData.welcomeMessage}
-                  buttonText={agentData.buttonText}
-                  position={agentData.position}
-                  suggestions={agentData.suggestions.filter(Boolean)}
-                  avatarSrc={agentData.avatar || agentData.avatarUrl}
-                  className="w-full h-full shadow-2xl rounded-2xl"
-                  onMinimize={() => setIsChatMinimized(true)}
-                  showFloatingButton={false}
-                />
-              </div>
-            )}
-
-            {/* Toggle button - always stays in the same position with dynamic glow */}
+          {/* Fixed button container */}
+          <div className={`fixed bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50`}>
             <ModernButton
               onClick={() => setIsChatMinimized(!isChatMinimized)}
-              className={`${hasButtonText ? 'rounded-2xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden self-end`}
+              className={`${hasButtonText ? 'rounded-2xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
               style={{ 
                 background: `linear-gradient(135deg, ${agentData.primaryColor}, ${adjustColor(agentData.primaryColor, -30)})`,
                 boxShadow: `0 10px 30px ${primaryColorRgba}, 0 5px 15px ${primaryColorRgbaLight}`,
@@ -125,6 +98,37 @@ export const InteractiveCanvas = () => {
             </ModernButton>
           </div>
 
+          {/* Chat window - positioned relative to button but grows in correct direction */}
+          <div 
+            className={`fixed ${isLeftPosition ? 'left-6 bottom-24' : 'right-6 bottom-24'} z-40 transition-all duration-600 ${
+              isChatMinimized ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
+            }`}
+            style={{
+              transformOrigin: isLeftPosition ? 'bottom left' : 'bottom right',
+              width: '384px', // w-96 equivalent
+              height: '600px'
+            }}
+          >
+            {/* Keep ChatboxPreview mounted to prevent WebSocket reconnection */}
+            <div className={`w-full h-full ${isChatMinimized ? 'animate-chat-slide-down' : 'animate-chat-slide-up'}`}>
+              <ChatboxPreview
+                agentId={currentAgentId}
+                primaryColor={agentData.primaryColor}
+                secondaryColor={agentData.secondaryColor}
+                fontFamily={agentData.fontFamily}
+                chatbotName={agentData.chatbotName}
+                welcomeMessage={agentData.welcomeMessage}
+                buttonText={agentData.buttonText}
+                position={agentData.position}
+                suggestions={agentData.suggestions.filter(Boolean)}
+                avatarSrc={agentData.avatar || agentData.avatarUrl}
+                className="w-full h-full shadow-2xl rounded-2xl"
+                onMinimize={() => setIsChatMinimized(true)}
+                showFloatingButton={false}
+              />
+            </div>
+          </div>
+
           {/* Professional sliding animation styles */}
           <style>{`
             @keyframes chatSlideUp {
@@ -146,8 +150,23 @@ export const InteractiveCanvas = () => {
               }
             }
             
+            @keyframes chatSlideDown {
+              0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+              }
+              100% {
+                transform: translateY(100%) scale(0.8);
+                opacity: 0;
+              }
+            }
+            
             .animate-chat-slide-up {
               animation: chatSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+            
+            .animate-chat-slide-down {
+              animation: chatSlideDown 0.3s ease-in forwards;
             }
           `}</style>
         </div>
