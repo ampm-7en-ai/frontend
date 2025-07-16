@@ -42,8 +42,8 @@ export default {
 					foreground: '#FFFFFF',
 				},
 				muted: {
-					DEFAULT: '#F5F6F7',
-					foreground: '#71767C',
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))',
 				},
 				success: {
 					DEFAULT: '#34C759',
