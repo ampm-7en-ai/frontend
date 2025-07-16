@@ -37,6 +37,7 @@ interface ChatboxPreviewProps {
   onRestart?: () => void;
   showFloatingButton?: boolean;
   initiallyMinimized?: boolean;
+  canvasMode?: boolean; // New prop for canvas-specific behavior
 }
 
 export const ChatboxPreview = ({
@@ -54,7 +55,8 @@ export const ChatboxPreview = ({
   onMinimize,
   onRestart,
   showFloatingButton = false,
-  initiallyMinimized = false
+  initiallyMinimized = false,
+  canvasMode = false // Default to false for backward compatibility
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -407,16 +409,21 @@ export const ChatboxPreview = ({
     setIsMinimized(false);
   };
 
-  // Render floating button when showFloatingButton is true and component is minimized
+  // Enhanced floating button positioning for canvas mode
   if (showFloatingButton && isMinimized) {
     const hasButtonText = buttonText && buttonText.trim() !== '';
     const iconSize = hasButtonText ? 24 : 36; // 1.5x larger when no text (24 * 1.5 = 36)
+    
+    // Use absolute positioning when in canvas mode, fixed when not
+    const positioningClass = canvasMode 
+      ? `absolute bottom-4 ${position === 'bottom-left' ? 'left-4' : 'right-4'}` 
+      : `fixed bottom-8 ${position === 'bottom-left' ? 'left-8' : 'right-8'}`;
     
     return (
       <>
         <ModernButton
           onClick={handleExpand}
-          className={`fixed z-50 ${position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+          className={`${positioningClass} z-50 ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
           style={{ 
             background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
             boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
