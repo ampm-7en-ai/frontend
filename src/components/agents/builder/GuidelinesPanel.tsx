@@ -19,7 +19,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
-  const { agentData } = state;
+  const { agentData, lastSaveTimestamp } = state;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels();
@@ -37,7 +37,7 @@ export const GuidelinesPanel = () => {
   // Check if current model is using global default
   const isUsingGlobalDefault = agentData.model === globalDefaultModel || (!agentData.model && globalDefaultModel);
 
-  // Initialize user prompts storage on first load
+  // Initialize user prompts storage on first load and refresh on save
   useEffect(() => {
     if (agentData.agentType && agentData.systemPrompt && !userPromptsByType[agentData.agentType]) {
       setUserPromptsByType(prev => ({
@@ -45,7 +45,7 @@ export const GuidelinesPanel = () => {
         [agentData.agentType]: agentData.systemPrompt
       }));
     }
-  }, [agentData.agentType, agentData.systemPrompt]);
+  }, [agentData.agentType, agentData.systemPrompt, lastSaveTimestamp]);
 
   // Initialize model with global default if not set
   useEffect(() => {

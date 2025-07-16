@@ -51,6 +51,7 @@ interface BuilderState {
   isPreviewActive: boolean;
   isDirty: boolean;
   isLoading: boolean;
+  lastSaveTimestamp?: number;
 }
 
 interface BuilderContextType {
@@ -328,8 +329,44 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         variant: "default"
       });
 
-      // Reset dirty state
-      setState(prev => ({ ...prev, isDirty: false }));
+      // Update agent data with the response to refresh components
+      if (response.data) {
+        const updatedAgentData = {
+          ...response.data,
+          // Map API response to our internal format
+          name: response.data.name,
+          description: response.data.description,
+          primaryColor: response.data.appearance?.primaryColor || state.agentData.primaryColor,
+          secondaryColor: response.data.appearance?.secondaryColor || state.agentData.secondaryColor,
+          fontFamily: response.data.appearance?.fontFamily || state.agentData.fontFamily,
+          chatbotName: response.data.appearance?.chatbotName || state.agentData.chatbotName,
+          welcomeMessage: response.data.appearance?.welcomeMessage || state.agentData.welcomeMessage,
+          buttonText: response.data.appearance?.buttonText || state.agentData.buttonText,
+          position: response.data.appearance?.position || state.agentData.position,
+          avatarType: response.data.appearance?.avatar?.type || state.agentData.avatarType,
+          avatar: response.data.appearance?.avatar?.src || state.agentData.avatar,
+          suggestions: response.data.behavior?.suggestions || state.agentData.suggestions,
+          guidelines: response.data.behavior?.guidelines || state.agentData.guidelines,
+          behavior: response.data.behavior || state.agentData.behavior,
+          model: response.data.model?.selectedModel || state.agentData.model,
+          temperature: response.data.model?.temperature || state.agentData.temperature,
+          maxTokens: response.data.model?.maxResponseLength || state.agentData.maxTokens,
+          agentType: response.data.agentType || state.agentData.agentType,
+          systemPrompt: response.data.systemPrompt || state.agentData.systemPrompt,
+          knowledgeSources: formatKnowledgeSources(response.data.knowledge_bases || [])
+        };
+        
+        setState(prev => ({ 
+          ...prev, 
+          agentData: updatedAgentData,
+          isDirty: false,
+          // Add a timestamp to force re-mount of components
+          lastSaveTimestamp: Date.now()
+        }));
+      } else {
+        // Reset dirty state
+        setState(prev => ({ ...prev, isDirty: false }));
+      }
 
       if (response.data?.id && !id) {
         navigate(`/agents/builder/${response.data.id}`);
