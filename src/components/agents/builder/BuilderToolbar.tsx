@@ -58,9 +58,9 @@ export const BuilderToolbar = () => {
         {/* Center Section - Mode Controls */}
         <ModernTabNavigation
           tabs={[
-            { id: 'fullscreen', label: 'Fullscreen' },
             { id: 'embedded', label: 'Embedded' },
-            { id: 'popup', label: 'Popup' }
+            { id: 'popup', label: 'Popup' },
+            { id: 'inline', label: 'Inline' }
           ]}
           activeTab={canvasMode}
           onTabChange={setCanvasMode}
