@@ -416,7 +416,7 @@ export const ChatboxPreview = ({
       <>
         <ModernButton
           onClick={handleExpand}
-          className={`fixed z-50 ${position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+          className={`absolute z-50 ${position === 'bottom-left' ? 'bottom-4 left-4' : 'bottom-4 right-4'} ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
           style={{ 
             background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
             boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
@@ -864,10 +864,6 @@ export const ChatboxPreview = ({
               transform: scale(0.1);
               opacity: 0;
             }
-            60% {
-              transform: scale(1.05);
-              opacity: 0.8;
-            }
             100% {
               transform: scale(1);
               opacity: 1;
@@ -927,7 +923,7 @@ export const ChatboxPreview = ({
           }
           
           .animate-chatbox-expand {
-            animation: chatboxExpand 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: chatboxExpand 0.3s ease-out forwards;
           }
         `}
       </style>
