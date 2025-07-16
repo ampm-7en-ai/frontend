@@ -200,17 +200,25 @@ export const InteractiveCanvas = () => {
     return (
       <div className="h-full w-full relative overflow-hidden">
         <div className="absolute inset-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
-          <div className="h-full w-full rounded-2xl overflow-hidden">
-            <iframe
-              src={shareableLink}
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              allow="microphone"
-              className="w-full h-full"
-              title="Agent Preview"
-              key={`${currentAgentId}-${theme}`}
-            />
+          <div className="h-full w-full p-6 flex items-center justify-center">
+            <div className="w-full max-w-md h-full max-h-[600px]">
+              {!isLoading && (
+                <ChatboxPreview
+                  agentId={currentAgentId}
+                  primaryColor={agentData.primaryColor}
+                  secondaryColor={agentData.secondaryColor}
+                  fontFamily={agentData.fontFamily}
+                  chatbotName={agentData.chatbotName}
+                  welcomeMessage={agentData.welcomeMessage || ''}
+                  buttonText={agentData.buttonText}
+                  position={agentData.position}
+                  suggestions={agentData.suggestions.filter(Boolean)}
+                  avatarSrc={agentData.avatar || agentData.avatarUrl}
+                  className="w-full h-full shadow-2xl rounded-2xl"
+                  showFloatingButton={false}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

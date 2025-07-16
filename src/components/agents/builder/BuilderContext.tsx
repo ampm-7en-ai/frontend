@@ -46,7 +46,7 @@ interface AgentFormData {
 
 interface BuilderState {
   agentData: AgentFormData;
-  canvasMode: 'embedded' | 'popup' | 'fullscreen';
+  canvasMode: 'embedded' | 'popup' | 'inline';
   deviceMode: 'desktop' | 'tablet' | 'mobile';
   isPreviewActive: boolean;
   isDirty: boolean;
@@ -57,7 +57,7 @@ interface BuilderState {
 interface BuilderContextType {
   state: BuilderState;
   updateAgentData: (data: Partial<AgentFormData>) => void;
-  setCanvasMode: (mode: 'embedded' | 'popup' | 'fullscreen') => void;
+  setCanvasMode: (mode: 'embedded' | 'popup' | 'inline') => void;
   setDeviceMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
   togglePreview: () => void;
   saveAgent: () => Promise<void>;
@@ -230,7 +230,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   }, []);
 
-  const setCanvasMode = useCallback((mode: 'embedded' | 'popup' | 'fullscreen') => {
+  const setCanvasMode = useCallback((mode: 'embedded' | 'popup' | 'inline') => {
     setState(prev => ({ ...prev, canvasMode: mode }));
   }, []);
 

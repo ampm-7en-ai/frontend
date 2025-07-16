@@ -10,7 +10,7 @@ import {
   MessageSquare, 
   Eye, 
   EyeOff,
-  Expand
+  LayoutTemplate
 } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 
@@ -42,11 +42,11 @@ export const CanvasControls = () => {
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
             />
             <ModernButton
-              variant={canvasMode === 'fullscreen' ? 'primary' : 'ghost'}
+              variant={canvasMode === 'inline' ? 'primary' : 'ghost'}
               size="sm"
-              icon={Expand}
+              icon={LayoutTemplate}
               iconOnly
-              onClick={() => setCanvasMode('fullscreen')}
+              onClick={() => setCanvasMode('inline')}
               className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
             />
           </div>
