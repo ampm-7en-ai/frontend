@@ -472,7 +472,7 @@ export const BuilderSidebar = () => {
         <div className="flex-1">
           <div className="p-4 space-y-3">
             {[...Array(4)].map((_, index) => (
-              <div key={index} className="border border-border rounded-lg bg-card p-3">
+              <div key={index} className="border border-border rounded-lg bg-transparent dark:border-gray-600 p-3">
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-5 w-5 rounded" />
                   <Skeleton className="h-7 w-7 rounded-md" />

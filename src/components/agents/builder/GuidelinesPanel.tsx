@@ -214,7 +214,7 @@ export const GuidelinesPanel = () => {
   if (showSkeleton) {
     return (
       <div className="w-full h-full bg-white dark:bg-gray-900">
-        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-500">
           <div className="flex items-center gap-2">
             <Skeleton className="h-6 w-48" />
           </div>
@@ -223,7 +223,7 @@ export const GuidelinesPanel = () => {
         <ScrollArea className="flex-1 h-[calc(100%-80px)]">
           <div className="p-4 space-y-4">
             {/* Basic Settings Skeleton */}
-            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+            <div className="border rounded-lg bg-white dark:bg-gray-600 px-4 py-3">
               <div className="flex items-center gap-3 mb-4">
                 <Skeleton className="w-8 h-8 rounded-xl" />
                 <Skeleton className="h-4 w-24" />
@@ -245,7 +245,7 @@ export const GuidelinesPanel = () => {
             </div>
 
             {/* Model Settings Skeleton */}
-            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+            <div className="border rounded-lg bg-white dark:bg-gray-600 px-4 py-3">
               <div className="flex items-center gap-3 mb-4">
                 <Skeleton className="w-8 h-8 rounded-xl" />
                 <Skeleton className="h-4 w-28" />
@@ -267,7 +267,7 @@ export const GuidelinesPanel = () => {
             </div>
 
             {/* Appearance Skeleton */}
-            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+            <div className="border rounded-lg bg-white dark:bg-gray-600 px-4 py-3">
               <div className="flex items-center gap-3 mb-4">
                 <Skeleton className="w-8 h-8 rounded-xl" />
                 <Skeleton className="h-4 w-20" />
@@ -295,7 +295,7 @@ export const GuidelinesPanel = () => {
             </div>
 
             {/* Guidelines Skeleton */}
-            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+            <div className="border rounded-lg bg-white dark:bg-gray-600 px-4 py-3">
               <div className="flex items-center gap-3 mb-4">
                 <Skeleton className="w-8 h-8 rounded-xl" />
                 <Skeleton className="h-4 w-32" />
