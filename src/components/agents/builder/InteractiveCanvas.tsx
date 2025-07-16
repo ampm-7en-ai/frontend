@@ -81,7 +81,7 @@ export const InteractiveCanvas = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative z-10 flex items-center gap-2">
                 {agentData.avatar || agentData.avatarUrl ? (
-                  <Avatar className={hasButtonText ? "w-6 h-6" : "w-9 h-9"}>
+                  <Avatar className={hasButtonText ? "w-6 h-6" : "w-[56px] h-[56px]"}>
                     <AvatarImage src={agentData.avatar || agentData.avatarUrl} alt={agentData.chatbotName} className="object-cover" />
                     <AvatarFallback className="text-white bg-transparent">
                       <Bot size={hasButtonText ? 16 : 24} />

@@ -50,7 +50,7 @@ export const ChatboxPreview = ({
   buttonText = '',
   position = 'bottom-right',
   className,
-  suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
+  suggestions = [],
   avatarSrc,
   onMinimize,
   onRestart,
