@@ -37,6 +37,7 @@ interface ChatboxPreviewProps {
   onRestart?: () => void;
   showFloatingButton?: boolean;
   initiallyMinimized?: boolean;
+  canvasContainerId?: string;
 }
 
 export const ChatboxPreview = ({
@@ -54,7 +55,8 @@ export const ChatboxPreview = ({
   onMinimize,
   onRestart,
   showFloatingButton = false,
-  initiallyMinimized = false
+  initiallyMinimized = false,
+  canvasContainerId
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -412,38 +414,53 @@ export const ChatboxPreview = ({
     const hasButtonText = buttonText && buttonText.trim() !== '';
     const iconSize = hasButtonText ? 24 : 36; // 1.5x larger when no text (24 * 1.5 = 36)
     
-    return (
-      <>
-        <ModernButton
-          onClick={handleExpand}
-          className={`fixed z-50 ${position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
-          style={{ 
-            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
-            boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
-            fontFamily: fontFamily
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative z-10 flex items-center gap-2">
-            {avatarSrc ? (
-              <Avatar className={hasButtonText ? "w-6 h-6" : "w-9 h-9"}>
-                <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                <AvatarFallback className="text-white bg-transparent">
-                  <Bot size={hasButtonText ? 16 : 24} />
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <Bot className="text-white" size={iconSize} />
-            )}
-            {hasButtonText && (
-              <span className="text-white font-medium text-sm">
-                {buttonText}
-              </span>
-            )}
-          </div>
-        </ModernButton>
-      </>
+    // Use canvas-relative positioning if canvasContainerId is provided
+    const buttonPositioning = canvasContainerId 
+      ? `absolute z-50 ${position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'}`
+      : `fixed z-50 ${position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'}`;
+    
+    const ButtonComponent = (
+      <ModernButton
+        onClick={handleExpand}
+        className={`${buttonPositioning} ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+        style={{ 
+          background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+          boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
+          fontFamily: fontFamily
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative z-10 flex items-center gap-2">
+          {avatarSrc ? (
+            <Avatar className={hasButtonText ? "w-6 h-6" : "w-9 h-9"}>
+              <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+              <AvatarFallback className="text-white bg-transparent">
+                <Bot size={hasButtonText ? 16 : 24} />
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <Bot className="text-white" size={iconSize} />
+          )}
+          {hasButtonText && (
+            <span className="text-white font-medium text-sm">
+              {buttonText}
+            </span>
+          )}
+        </div>
+      </ModernButton>
     );
+
+    // If we have a canvas container, render button relative to it
+    if (canvasContainerId) {
+      return (
+        <>
+          {ButtonComponent}
+        </>
+      );
+    }
+
+    // Otherwise use portal/fixed positioning
+    return ButtonComponent;
   }
 
   return (
