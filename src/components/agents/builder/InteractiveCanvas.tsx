@@ -4,13 +4,16 @@ import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { AskAiModal } from './AskAiModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Bot } from 'lucide-react';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
   const { agentData, canvasMode, isPreviewActive } = state;
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
   const { theme } = useAppTheme();
 
   const currentAgentId = agentData.id ? agentData.id.toString() : null;
@@ -42,23 +45,62 @@ export const InteractiveCanvas = () => {
     }
 
     if (canvasMode === 'embedded') {
+      const hasButtonText = agentData.buttonText && agentData.buttonText.trim() !== '';
+      const iconSize = hasButtonText ? 24 : 36;
+      const isLeftPosition = agentData.position === 'bottom-left';
+
       return (
-        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
-          <div className="w-full max-w-md">
-            <ChatboxPreview
-              agentId={currentAgentId}
-              primaryColor={agentData.primaryColor}
-              secondaryColor={agentData.secondaryColor}
-              fontFamily={agentData.fontFamily}
-              chatbotName={agentData.chatbotName}
-              welcomeMessage={agentData.welcomeMessage}
-              buttonText={agentData.buttonText}
-              position={agentData.position}
-              suggestions={agentData.suggestions.filter(Boolean)}
-              avatarSrc={agentData.avatar || agentData.avatarUrl}
-              className="w-full h-[600px] shadow-2xl"
-            />
-          </div>
+        <div className="h-full w-full relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
+          {/* Chat window - centered when expanded */}
+          {!isChatMinimized && (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-full max-w-md">
+                <ChatboxPreview
+                  agentId={currentAgentId}
+                  primaryColor={agentData.primaryColor}
+                  secondaryColor={agentData.secondaryColor}
+                  fontFamily={agentData.fontFamily}
+                  chatbotName={agentData.chatbotName}
+                  welcomeMessage={agentData.welcomeMessage}
+                  buttonText={agentData.buttonText}
+                  position={agentData.position}
+                  suggestions={agentData.suggestions.filter(Boolean)}
+                  avatarSrc={agentData.avatar || agentData.avatarUrl}
+                  className="w-full h-[600px] shadow-2xl"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Floating toggle button - always visible in corner */}
+          <ModernButton
+            onClick={() => setIsChatMinimized(!isChatMinimized)}
+            className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50 ${hasButtonText ? 'rounded-3xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+            style={{ 
+              background: `linear-gradient(135deg, ${agentData.primaryColor}, ${adjustColor(agentData.primaryColor, -30)})`,
+              boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
+              fontFamily: agentData.fontFamily
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-center gap-2">
+              {agentData.avatar || agentData.avatarUrl ? (
+                <Avatar className={hasButtonText ? "w-6 h-6" : "w-9 h-9"}>
+                  <AvatarImage src={agentData.avatar || agentData.avatarUrl} alt={agentData.chatbotName} className="object-cover" />
+                  <AvatarFallback className="text-white bg-transparent">
+                    <Bot size={hasButtonText ? 16 : 24} />
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <Bot className="text-white" size={iconSize} />
+              )}
+              {hasButtonText && (
+                <span className="text-white font-medium text-sm">
+                  {agentData.buttonText}
+                </span>
+              )}
+            </div>
+          </ModernButton>
         </div>
       );
     }
@@ -162,3 +204,21 @@ export const InteractiveCanvas = () => {
     </>
   );
 };
+
+// Helper function to adjust color brightness
+function adjustColor(color: string, amount: number): string {
+  try {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    const newR = Math.max(0, Math.min(255, r + amount));
+    const newG = Math.max(0, Math.min(255, g + amount));
+    const newB = Math.max(0, Math.min(255, b + amount));
+    
+    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+  } catch (e) {
+    return color;
+  }
+}
