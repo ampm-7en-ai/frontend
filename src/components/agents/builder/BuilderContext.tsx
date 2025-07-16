@@ -172,16 +172,16 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           secondaryColor: agentData.appearance?.secondaryColor || '#ffffff',
           fontFamily: agentData.appearance?.fontFamily || 'Inter',
           chatbotName: agentData.appearance?.chatbotName || 'AI Assistant',
-          welcomeMessage: agentData.appearance?.welcomeMessage || 'Hello! How can I help you today?',
+          welcomeMessage: agentData.appearance?.welcomeMessage || '',
           buttonText: agentData.appearance?.buttonText || '',
           position: agentData.appearance?.position || 'bottom-right',
-          suggestions: agentData.behavior?.suggestions || agentData.appearance?.suggestions || ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
+          suggestions: agentData.behavior?.suggestions || agentData.appearance?.suggestions || [],
           avatar: agentData.appearance?.avatar?.src,
           avatarUrl: agentData.appearance?.avatar?.src,
           avatarType: agentData.appearance?.avatar?.type || 'default',
           guidelines: {
-            dos: agentData.behavior?.guidelines?.dos || ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
-            donts: agentData.behavior?.guidelines?.donts || ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
+            dos: agentData.behavior?.guidelines?.dos || [],
+            donts: agentData.behavior?.guidelines?.donts || []
           },
           behavior: {
             conversationMemory: agentData.behavior?.conversationMemory || false,

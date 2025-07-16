@@ -121,7 +121,7 @@ export const InteractiveCanvas = () => {
                   secondaryColor={agentData.secondaryColor}
                   fontFamily={agentData.fontFamily}
                   chatbotName={agentData.chatbotName}
-                  welcomeMessage={agentData.welcomeMessage || 'Hello! How can I help you today?'}
+                  welcomeMessage={agentData.welcomeMessage || ''}
                   buttonText={agentData.buttonText}
                   position={agentData.position}
                   suggestions={agentData.suggestions.filter(Boolean)}
