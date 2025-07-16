@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -176,19 +177,13 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
     }
   };
 
-  const handleSourceClick = (sourceId: string | number) => {
-    const numericId = typeof sourceId === 'number' ? sourceId : parseInt(sourceId.toString());
-    if (!isNaN(numericId)) {
-      setSelectedSourceId(numericId);
-      setIsModalOpen(true);
-    }
+  const handleSourceClick = (sourceId: number) => {
+    setSelectedSourceId(sourceId);
+    setIsModalOpen(true);
   };
 
-  const handleSourceDelete = async (sourceId: string | number) => {
+  const handleSourceDelete = async (sourceId: number) => {
     if (!agentData.id) return;
-
-    const numericId = typeof sourceId === 'number' ? sourceId : parseInt(sourceId.toString());
-    if (isNaN(numericId)) return;
 
     try {
       const token = getAccessToken();
@@ -198,7 +193,7 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify({
-          knowledgeSources: [numericId]
+          knowledgeSources: [sourceId]
         })
       });
 
@@ -207,14 +202,11 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
       }
 
       // Update local state
-      const updatedSources = agentData.knowledgeSources.filter(source => {
-        const sourceId = typeof source.id === 'number' ? source.id : parseInt(source.id.toString());
-        return sourceId !== numericId;
-      });
+      const updatedSources = agentData.knowledgeSources.filter(source => source.id !== sourceId);
       updateAgentData({ knowledgeSources: updatedSources });
       
       // Close modal if the deleted source was selected
-      if (selectedSourceId === numericId) {
+      if (selectedSourceId === sourceId) {
         setIsModalOpen(false);
         setSelectedSourceId(null);
       }
@@ -357,10 +349,7 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
         isOpen={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         externalSources={externalSources}
-        currentSources={agentData.knowledgeSources.map(ks => ({
-          ...ks,
-          id: typeof ks.id === 'number' ? ks.id : parseInt(ks.id.toString())
-        })).filter(ks => !isNaN(ks.id))}
+        currentSources={agentData.knowledgeSources}
         onImport={handleImport}
         agentId={agentData.id?.toString()}
       />
@@ -368,10 +357,7 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
       <KnowledgeSourceModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        sources={agentData.knowledgeSources.map(ks => ({
-          ...ks,
-          id: typeof ks.id === 'number' ? ks.id : parseInt(ks.id.toString())
-        })).filter(ks => !isNaN(ks.id))}
+        sources={agentData.knowledgeSources}
         initialSourceId={selectedSourceId}
         agentId={agentData.id?.toString()}
         onSourceDelete={handleSourceDelete}

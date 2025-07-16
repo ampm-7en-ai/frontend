@@ -282,15 +282,12 @@ export const BuilderSidebar = () => {
     });
 
     try {
-      // Extract knowledge source IDs from all selected sources with proper type conversion
+      // Extract knowledge source IDs from all selected sources
       const knowledgeSourceIds = agentData.knowledgeSources
         .flatMap(kb => kb.knowledge_sources || [])
         .filter(source => source.is_selected !== false)
-        .map(s => {
-          const id = typeof s.id === 'number' ? s.id : parseInt(s.id.toString());
-          return isNaN(id) ? null : id;
-        })
-        .filter((id): id is number => id !== null);
+        .map(s => typeof s.id === 'number' ? s.id : parseInt(s.id.toString()))
+        .filter(id => !isNaN(id));
 
       // Extract URLs from website sources - Fixed logic
       const websiteUrls: string[] = [];
@@ -376,20 +373,14 @@ export const BuilderSidebar = () => {
     }
   };
 
-  const handleSourceClick = (sourceId: string | number) => {
-    const numericId = typeof sourceId === 'number' ? sourceId : parseInt(sourceId.toString());
-    if (!isNaN(numericId)) {
-      setSelectedSourceId(numericId);
-      setIsModalOpen(true);
-    }
+  const handleSourceClick = (sourceId: number) => {
+    setSelectedSourceId(sourceId);
+    setIsModalOpen(true);
   };
 
-  const handleDeleteConfirm = (sourceId: string | number) => {
-    const numericId = typeof sourceId === 'number' ? sourceId : parseInt(sourceId.toString());
-    if (!isNaN(numericId)) {
-      setSourceToDelete(numericId);
-      setDeleteConfirmOpen(true);
-    }
+  const handleDeleteConfirm = (sourceId: number) => {
+    setSourceToDelete(sourceId);
+    setDeleteConfirmOpen(true);
   };
 
   const handleSourceDelete = async () => {
@@ -524,13 +515,8 @@ export const BuilderSidebar = () => {
                     <KnowledgeSourceTreeCard
                       key={knowledgeSource.id}
                       source={knowledgeSource}
-                      expanded={expandedSources.has(typeof knowledgeSource.id === 'number' ? knowledgeSource.id : parseInt(knowledgeSource.id.toString()))}
-                      onToggle={() => {
-                        const numericId = typeof knowledgeSource.id === 'number' ? knowledgeSource.id : parseInt(knowledgeSource.id.toString());
-                        if (!isNaN(numericId)) {
-                          toggleSourceExpansion(numericId);
-                        }
-                      }}
+                      expanded={expandedSources.has(knowledgeSource.id)}
+                      onToggle={() => toggleSourceExpansion(knowledgeSource.id)}
                       onDelete={() => handleDeleteConfirm(knowledgeSource.id)}
                     />
                   ))}
@@ -553,10 +539,7 @@ export const BuilderSidebar = () => {
           isOpen={isImportDialogOpen}
           onOpenChange={setIsImportDialogOpen}
           externalSources={externalSources}
-          currentSources={agentData.knowledgeSources.map(ks => ({
-            ...ks,
-            id: typeof ks.id === 'number' ? ks.id : parseInt(ks.id.toString())
-          })).filter(ks => !isNaN(ks.id))}
+          currentSources={agentData.knowledgeSources}
           onImport={handleImport}
           agentId={agentData.id?.toString()}
         />
@@ -564,10 +547,7 @@ export const BuilderSidebar = () => {
         <KnowledgeSourceModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          sources={agentData.knowledgeSources.map(ks => ({
-            ...ks,
-            id: typeof ks.id === 'number' ? ks.id : parseInt(ks.id.toString())
-          })).filter(ks => !isNaN(ks.id))}
+          sources={agentData.knowledgeSources}
           initialSourceId={selectedSourceId}
           agentId={agentData.id?.toString()}
           onSourceDelete={() => {}}
@@ -585,7 +565,7 @@ export const BuilderSidebar = () => {
                 size: 'N/A',
                 lastUpdated: 'N/A',
                 trainingStatus: source.status || 'idle',
-                hasError: source.status === 'deleted' || kb.trainingStatus === 'deleted',
+                hasError: source.status === 'deleted' || kb.training_status === 'deleted',
                 hasIssue: source.status === 'deleted'
               }))
             ).filter(source => source.hasError || source.hasIssue) || []

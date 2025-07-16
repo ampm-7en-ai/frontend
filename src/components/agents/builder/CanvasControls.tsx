@@ -1,65 +1,101 @@
+
 import React from 'react';
 import { useBuilder } from './BuilderContext';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Layout, Monitor, MessageSquare } from 'lucide-react';
-import { CanvasMode } from './BuilderContext';
+import { Card } from '@/components/ui/card';
+import { 
+  Monitor, 
+  Tablet, 
+  Smartphone, 
+  Maximize2, 
+  MessageSquare, 
+  Eye, 
+  EyeOff,
+  Expand
+} from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 export const CanvasControls = () => {
-  const { state, dispatch } = useBuilder();
-  const { canvasMode, isPreviewActive } = state;
-
-  const canvasModes: { value: CanvasMode; label: string; icon: React.ReactNode }[] = [
-    {
-      value: 'inline',
-      label: 'Inline',
-      icon: <Layout className="w-4 h-4" />
-    },
-    {
-      value: 'embedded', 
-      label: 'Embedded',
-      icon: <Monitor className="w-4 h-4" />
-    },
-    {
-      value: 'popup',
-      label: 'Popup', 
-      icon: <MessageSquare className="w-4 h-4" />
-    }
-  ];
-
-  const handleCanvasModeChange = (mode: CanvasMode) => {
-    dispatch({ type: 'SET_CANVAS_MODE', payload: mode });
-  };
-
-  const togglePreview = () => {
-    dispatch({ type: 'SET_IS_PREVIEW_ACTIVE', payload: !isPreviewActive });
-  };
+  const { state, setCanvasMode, setDeviceMode, togglePreview } = useBuilder();
+  const { canvasMode, deviceMode, isPreviewActive } = state;
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      <div className="flex items-center space-x-4">
-        <RadioGroup value={canvasMode} onValueChange={handleCanvasModeChange}>
-          <div className="flex items-center space-x-2">
-            {canvasModes.map((mode) => (
-              <div key={mode.value} className="flex items-center space-x-2">
-                <RadioGroupItem value={mode.value} id={mode.value} className="border-gray-300 dark:border-gray-600 focus:ring-0 focus:ring-transparent" />
-                <Label htmlFor={mode.value} className="cursor-pointer flex items-center space-x-1">
-                  {mode.icon}
-                  <span>{mode.label}</span>
-                </Label>
-              </div>
-            ))}
+    <Card className="absolute top-6 left-6 z-10 p-4 bg-white/80 backdrop-blur-md border-0 shadow-xl">
+      <div className="flex items-center gap-3">
+        {/* Canvas Mode Controls */}
+        <div className="flex items-center gap-2 pr-4 border-r border-gray-200/60">
+          <span className="text-xs font-medium text-gray-600 mb-1">Mode</span>
+          <div className="flex gap-1">
+            <ModernButton
+              variant={canvasMode === 'embedded' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={MessageSquare}
+              iconOnly
+              onClick={() => setCanvasMode('embedded')}
+              className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+            />
+            <ModernButton
+              variant={canvasMode === 'popup' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={Maximize2}
+              iconOnly
+              onClick={() => setCanvasMode('popup')}
+              className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+            />
+            <ModernButton
+              variant={canvasMode === 'fullscreen' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={Expand}
+              iconOnly
+              onClick={() => setCanvasMode('fullscreen')}
+              className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+            />
           </div>
-        </RadioGroup>
+        </div>
+
+        {/* Device Mode Controls */}
+        <div className="flex items-center gap-2 pr-4 border-r border-gray-200/60">
+          <span className="text-xs font-medium text-gray-600 mb-1">Device</span>
+          <div className="flex gap-1">
+            <ModernButton
+              variant={deviceMode === 'desktop' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={Monitor}
+              iconOnly
+              onClick={() => setDeviceMode('desktop')}
+              className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+            />
+            <ModernButton
+              variant={deviceMode === 'tablet' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={Tablet}
+              iconOnly
+              onClick={() => setDeviceMode('tablet')}
+              className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+            />
+            <ModernButton
+              variant={deviceMode === 'mobile' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={Smartphone}
+              iconOnly
+              onClick={() => setDeviceMode('mobile')}
+              className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+            />
+          </div>
+        </div>
+
+        {/* Preview Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-600">Preview</span>
+          <ModernButton
+            variant={isPreviewActive ? 'primary' : 'ghost'}
+            size="sm"
+            icon={isPreviewActive ? Eye : EyeOff}
+            iconOnly
+            onClick={togglePreview}
+            className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+          />
+        </div>
       </div>
-      <button
-        className={`px-4 py-2 rounded-md text-sm font-medium ${
-          isPreviewActive ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-        } transition-colors duration-200`}
-        onClick={togglePreview}
-      >
-        {isPreviewActive ? 'Disable Preview' : 'Enable Preview'}
-      </button>
-    </div>
+    </Card>
   );
 };
