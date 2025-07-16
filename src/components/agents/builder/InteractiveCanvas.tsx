@@ -61,13 +61,13 @@ export const InteractiveCanvas = () => {
       const hasButtonText = agentData.buttonText && agentData.buttonText.trim() !== '';
       const iconSize = hasButtonText ? 24 : 36;
       const isLeftPosition = agentData.position === 'bottom-left';
-      const primaryColorRgba = hexToRgba(agentData.primaryColor, 0.5);
-      const primaryColorRgbaLight = hexToRgba(agentData.primaryColor, 0.4);
+      const primaryColorRgba = hexToRgba(agentData.primaryColor, 0.3);
+      const primaryColorRgbaLight = hexToRgba(agentData.primaryColor, 0.15);
 
       return (
-        <div className="h-full w-full relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
-          {/* Fixed button container */}
-          <div className={`fixed bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50`}>
+        <div className="h-full w-full relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 overflow-hidden">
+          {/* Chat button - positioned relative to canvas */}
+          <div className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50`}>
             <ModernButton
               onClick={() => setIsChatMinimized(!isChatMinimized)}
               className={`${hasButtonText ? 'rounded-2xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
@@ -98,14 +98,14 @@ export const InteractiveCanvas = () => {
             </ModernButton>
           </div>
 
-          {/* Chat window - positioned relative to button but grows in correct direction */}
+          {/* Chat window - positioned relative to canvas, grows from correct corner */}
           <div 
-            className={`fixed ${isLeftPosition ? 'left-6 bottom-24' : 'right-6 bottom-24'} z-40 transition-all duration-600 ${
+            className={`absolute ${isLeftPosition ? 'left-6 bottom-24' : 'right-6 bottom-24'} z-40 transition-all duration-500 ${
               isChatMinimized ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
             }`}
             style={{
               transformOrigin: isLeftPosition ? 'bottom left' : 'bottom right',
-              width: '384px', // w-96 equivalent
+              width: '384px',
               height: '600px'
             }}
           >
@@ -129,20 +129,16 @@ export const InteractiveCanvas = () => {
             </div>
           </div>
 
-          {/* Professional sliding animation styles */}
+          {/* Subtle animation styles */}
           <style>{`
             @keyframes chatSlideUp {
               0% {
-                transform: translateY(100%) scale(0.8);
+                transform: translateY(100%) scale(0.9);
                 opacity: 0;
               }
-              60% {
-                transform: translateY(-10px) scale(1.02);
+              70% {
+                transform: translateY(-5px) scale(1.01);
                 opacity: 0.9;
-              }
-              80% {
-                transform: translateY(5px) scale(0.98);
-                opacity: 0.95;
               }
               100% {
                 transform: translateY(0) scale(1);
@@ -156,13 +152,13 @@ export const InteractiveCanvas = () => {
                 opacity: 1;
               }
               100% {
-                transform: translateY(100%) scale(0.8);
+                transform: translateY(100%) scale(0.9);
                 opacity: 0;
               }
             }
             
             .animate-chat-slide-up {
-              animation: chatSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+              animation: chatSlideUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             }
             
             .animate-chat-slide-down {

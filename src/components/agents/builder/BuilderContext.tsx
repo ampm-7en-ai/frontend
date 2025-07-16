@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -88,7 +87,7 @@ const defaultAgentData: AgentFormData = {
   avatarType: 'default',
   guidelines: {
     dos: ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
-    donts: ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
+    donts: ['Don\'t be rude', 'Don't provide false information', 'Don\'t ignore user questions']
   },
   settings: {
     temperature: 0.7,
@@ -221,6 +220,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [id, toast]);
 
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
+    console.log('Updating agent data:', data);
     setState(prev => ({
       ...prev,
       agentData: { ...prev.agentData, ...data },
@@ -276,7 +276,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             secondaryColor: state.agentData.secondaryColor,
             fontFamily: state.agentData.fontFamily,
             chatbotName: state.agentData.chatbotName,
-            welcomeMessage: state.agentData.welcomeMessage,
+            welcomeMessage: state.agentData.welcomeMessage, // Ensure welcome message is included
             buttonText: state.agentData.buttonText,
             position: state.agentData.position,
             avatar: avatarData
