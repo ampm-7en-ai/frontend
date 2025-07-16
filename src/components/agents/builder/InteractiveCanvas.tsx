@@ -66,7 +66,7 @@ export const InteractiveCanvas = () => {
 
       return (
         <div className="h-full w-full relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 overflow-hidden">
-          {/* Chat button - positioned relative to canvas */}
+          {/* Chat button - positioned within canvas */}
           <div className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50`}>
             <ModernButton
               onClick={() => setIsChatMinimized(!isChatMinimized)}
@@ -98,26 +98,28 @@ export const InteractiveCanvas = () => {
             </ModernButton>
           </div>
 
-          {/* Chat window - positioned relative to canvas, grows from correct corner */}
+          {/* Chat window - positioned within canvas */}
           <div 
-            className={`absolute ${isLeftPosition ? 'left-6 bottom-24' : 'right-6 bottom-24'} z-40 transition-all duration-500 ${
+            className={`absolute ${isLeftPosition ? 'left-6 bottom-24' : 'right-6 bottom-24'} z-40 transition-all duration-300 ${
               isChatMinimized ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
             }`}
             style={{
               transformOrigin: isLeftPosition ? 'bottom left' : 'bottom right',
               width: '384px',
-              height: '600px'
+              height: '600px',
+              marginBottom: '20px',
+              overflow: 'hidden'
             }}
           >
-            {/* Keep ChatboxPreview mounted to prevent WebSocket reconnection */}
-            <div className={`w-full h-full ${isChatMinimized ? 'animate-chat-slide-down' : 'animate-chat-slide-up'}`}>
+            {/* ChatboxPreview - always mounted to prevent WebSocket reconnection */}
+            <div className={`w-full h-full ${isChatMinimized ? 'hidden' : 'block'}`}>
               <ChatboxPreview
                 agentId={currentAgentId}
                 primaryColor={agentData.primaryColor}
                 secondaryColor={agentData.secondaryColor}
                 fontFamily={agentData.fontFamily}
                 chatbotName={agentData.chatbotName}
-                welcomeMessage={agentData.welcomeMessage}
+                welcomeMessage={agentData.welcomeMessage || 'Hello! How can I help you today?'}
                 buttonText={agentData.buttonText}
                 position={agentData.position}
                 suggestions={agentData.suggestions.filter(Boolean)}
@@ -128,43 +130,6 @@ export const InteractiveCanvas = () => {
               />
             </div>
           </div>
-
-          {/* Subtle animation styles */}
-          <style>{`
-            @keyframes chatSlideUp {
-              0% {
-                transform: translateY(100%) scale(0.9);
-                opacity: 0;
-              }
-              70% {
-                transform: translateY(-5px) scale(1.01);
-                opacity: 0.9;
-              }
-              100% {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-              }
-            }
-            
-            @keyframes chatSlideDown {
-              0% {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-              }
-              100% {
-                transform: translateY(100%) scale(0.9);
-                opacity: 0;
-              }
-            }
-            
-            .animate-chat-slide-up {
-              animation: chatSlideUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-            }
-            
-            .animate-chat-slide-down {
-              animation: chatSlideDown 0.3s ease-in forwards;
-            }
-          `}</style>
         </div>
       );
     }
