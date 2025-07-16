@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
-import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X } from 'lucide-react';
+import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ImportSourcesDialog } from '@/components/agents/knowledge/ImportSourcesDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -163,7 +164,7 @@ const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: {
 
 export const BuilderSidebar = () => {
   const { state, updateAgentData } = useBuilder();
-  const { agentData } = state;
+  const { agentData, isLoading } = state;
   const { toast } = useToast();
   const { addNotification } = useNotifications();
   const queryClient = useQueryClient();
@@ -456,6 +457,42 @@ export const BuilderSidebar = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="w-full h-full bg-background flex flex-col">
+        {/* Header Skeleton */}
+        <div className="p-4 border-b border-border flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        </div>
+        
+        {/* Knowledge Sources List Skeleton */}
+        <div className="flex-1">
+          <div className="p-4 space-y-3">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="border border-border rounded-lg bg-card p-3">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-5 rounded" />
+                  <Skeleton className="h-7 w-7 rounded-md" />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-6 w-6 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <TrainingAlertBadge 
@@ -463,7 +500,7 @@ export const BuilderSidebar = () => {
         message={`Training ${agentData.name}...`}
       />
       
-      <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col">
+      <div className="w-full h-full bg-background flex flex-col">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
