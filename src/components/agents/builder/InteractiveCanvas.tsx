@@ -51,10 +51,11 @@ export const InteractiveCanvas = () => {
 
       return (
         <div className="h-full w-full relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
-          {/* Chat window - centered when expanded */}
-          {!isChatMinimized && (
-            <div className="flex items-center justify-center h-full">
-              <div className="w-full max-w-md">
+          {/* Stacked chat and button container - positioned in corner */}
+          <div className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} flex flex-col items-stretch gap-4 z-50`}>
+            {/* Chat window - shows above button when expanded */}
+            {!isChatMinimized && (
+              <div className="w-96 h-[600px]">
                 <ChatboxPreview
                   agentId={currentAgentId}
                   primaryColor={agentData.primaryColor}
@@ -66,41 +67,41 @@ export const InteractiveCanvas = () => {
                   position={agentData.position}
                   suggestions={agentData.suggestions.filter(Boolean)}
                   avatarSrc={agentData.avatar || agentData.avatarUrl}
-                  className="w-full h-[600px] shadow-2xl"
+                  className="w-full h-full shadow-2xl rounded-2xl"
                 />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Floating toggle button - always visible in corner */}
-          <ModernButton
-            onClick={() => setIsChatMinimized(!isChatMinimized)}
-            className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50 ${hasButtonText ? 'rounded-3xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
-            style={{ 
-              background: `linear-gradient(135deg, ${agentData.primaryColor}, ${adjustColor(agentData.primaryColor, -30)})`,
-              boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
-              fontFamily: agentData.fontFamily
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10 flex items-center gap-2">
-              {agentData.avatar || agentData.avatarUrl ? (
-                <Avatar className={hasButtonText ? "w-6 h-6" : "w-9 h-9"}>
-                  <AvatarImage src={agentData.avatar || agentData.avatarUrl} alt={agentData.chatbotName} className="object-cover" />
-                  <AvatarFallback className="text-white bg-transparent">
-                    <Bot size={hasButtonText ? 16 : 24} />
-                  </AvatarFallback>
-                </Avatar>
-              ) : (
-                <Bot className="text-white" size={iconSize} />
-              )}
-              {hasButtonText && (
-                <span className="text-white font-medium text-sm">
-                  {agentData.buttonText}
-                </span>
-              )}
-            </div>
-          </ModernButton>
+            {/* Toggle button - always stays in the same position */}
+            <ModernButton
+              onClick={() => setIsChatMinimized(!isChatMinimized)}
+              className={`${hasButtonText ? 'rounded-3xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden self-end`}
+              style={{ 
+                background: `linear-gradient(135deg, ${agentData.primaryColor}, ${adjustColor(agentData.primaryColor, -30)})`,
+                boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
+                fontFamily: agentData.fontFamily
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative z-10 flex items-center gap-2">
+                {agentData.avatar || agentData.avatarUrl ? (
+                  <Avatar className={hasButtonText ? "w-6 h-6" : "w-9 h-9"}>
+                    <AvatarImage src={agentData.avatar || agentData.avatarUrl} alt={agentData.chatbotName} className="object-cover" />
+                    <AvatarFallback className="text-white bg-transparent">
+                      <Bot size={hasButtonText ? 16 : 24} />
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <Bot className="text-white" size={iconSize} />
+                )}
+                {hasButtonText && (
+                  <span className="text-white font-medium text-sm">
+                    {agentData.buttonText}
+                  </span>
+                )}
+              </div>
+            </ModernButton>
+          </div>
         </div>
       );
     }
@@ -165,7 +166,6 @@ export const InteractiveCanvas = () => {
       );
     }
 
-    // Fullscreen mode - iframe with canvas boundaries
     return (
       <div className="h-full w-full relative overflow-hidden">
         <div className="absolute inset-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
@@ -205,7 +205,6 @@ export const InteractiveCanvas = () => {
   );
 };
 
-// Helper function to adjust color brightness
 function adjustColor(color: string, amount: number): string {
   try {
     const hex = color.replace('#', '');
