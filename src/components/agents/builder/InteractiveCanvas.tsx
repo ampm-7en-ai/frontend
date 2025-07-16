@@ -11,7 +11,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
-  const { agentData, canvasMode, isPreviewActive } = state;
+  const { agentData, canvasMode, isPreviewActive, isLoading } = state;
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const { theme } = useAppTheme();
@@ -112,23 +112,25 @@ export const InteractiveCanvas = () => {
               overflow: 'hidden'
             }}
           >
-            {/* ChatboxPreview - always mounted to prevent WebSocket reconnection */}
+            {/* ChatboxPreview - unmount/mount based on loading state */}
             <div className={`w-full h-full overflow-hidden ${isChatMinimized ? 'hidden' : 'block'}`} style={{borderRadius:"0px 0px 20px 20px"}}>
-              <ChatboxPreview
-                agentId={currentAgentId}
-                primaryColor={agentData.primaryColor}
-                secondaryColor={agentData.secondaryColor}
-                fontFamily={agentData.fontFamily}
-                chatbotName={agentData.chatbotName}
-                welcomeMessage={agentData.welcomeMessage || 'Hello! How can I help you today?'}
-                buttonText={agentData.buttonText}
-                position={agentData.position}
-                suggestions={agentData.suggestions.filter(Boolean)}
-                avatarSrc={agentData.avatar || agentData.avatarUrl}
-                className="w-full h-full shadow-2xl rounded-2xl"
-                onMinimize={() => setIsChatMinimized(true)}
-                showFloatingButton={false}
-              />
+              {!isLoading && (
+                <ChatboxPreview
+                  agentId={currentAgentId}
+                  primaryColor={agentData.primaryColor}
+                  secondaryColor={agentData.secondaryColor}
+                  fontFamily={agentData.fontFamily}
+                  chatbotName={agentData.chatbotName}
+                  welcomeMessage={agentData.welcomeMessage || 'Hello! How can I help you today?'}
+                  buttonText={agentData.buttonText}
+                  position={agentData.position}
+                  suggestions={agentData.suggestions.filter(Boolean)}
+                  avatarSrc={agentData.avatar || agentData.avatarUrl}
+                  className="w-full h-full shadow-2xl rounded-2xl"
+                  onMinimize={() => setIsChatMinimized(true)}
+                  showFloatingButton={false}
+                />
+              )}
             </div>
           </div>
         </div>
