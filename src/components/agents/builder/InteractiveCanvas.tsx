@@ -67,9 +67,9 @@ export const InteractiveCanvas = () => {
                   </div>
                 </div>
                 
-                {/* ChatboxPreview with native floating button functionality */}
+                {/* ChatboxPreview positioned in the corner when expanded */}
                 <div 
-                  className={`absolute z-50 ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} w-96`}
+                  className={`absolute z-40 ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} w-96`}
                   style={{ 
                     height: '665px'
                   }}
