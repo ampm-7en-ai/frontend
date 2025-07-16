@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowUp, Moon, Sun, User } from 'lucide-react';
@@ -62,6 +62,8 @@ const thinkingMessages = [
 
 const SearchAssistant = () => {
   const { agentId } = useParams<{ agentId: string }>();
+  const [searchParams] = useSearchParams();
+  const isPopupMode = searchParams.get('type') === 'popup';
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
@@ -365,6 +367,251 @@ const SearchAssistant = () => {
     );
   }
 
+  // Popup layout for type=popup
+  if (isPopupMode) {
+    return (
+      <div 
+        className="h-screen flex flex-col overflow-hidden"
+        style={{ 
+          fontFamily: config.fontFamily || 'Inter',
+          backgroundColor: bgColor,
+          color: textColor
+        }}
+      >
+        {/* Chat content area - grows upward */}
+        <div className="flex-1 flex flex-col justify-end overflow-hidden">
+          {chatHistory.length > 0 && (
+            <ScrollArea className="flex-shrink max-h-[80vh]">
+              <div className="p-4 space-y-5">
+                {chatHistory.map((message, index) => {
+                  if (message.type === 'user') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1">
+                          <AvatarFallback className="bg-gray-200">
+                            <User className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="pl-[10px] pt-[8px]">
+                          <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
+                            {message.content}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  } else if (message.type === 'bot_response') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1" style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          {config.avatarUrl ? (
+                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                          ) : null}
+                          <AvatarFallback style={{
+                            backgroundColor: primaryColor
+                          }}>
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex-1 pl-[10px] pt-[5px]">
+                          <div className="prose prose-sm max-w-none break-words" style={{ 
+                            color: isDarkTheme ? '#bdbdbd' : '#333333',
+                          }}>
+                            <ReactMarkdown
+                              components={{
+                                code({ node, className, children, ...props }) {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  const language = match ? match[1] : '';
+                                  
+                                  const isInline = !match && children.toString().split('\n').length === 1;
+                                  
+                                  if (isInline) {
+                                    return (
+                                      <code
+                                        className="px-1 py-0.5 rounded font-mono text-xs"
+                                        style={{ 
+                                          backgroundColor: inlineCodeBg,
+                                          color: codeTextColor
+                                        }}
+                                        {...props}
+                                      >
+                                        {children}
+                                      </code>
+                                    );
+                                  }
+                                  
+                                  return (
+                                    <div className="my-2">
+                                      <pre
+                                        className="p-3 rounded overflow-x-auto text-xs"
+                                        style={{ 
+                                          backgroundColor: codeBackgroundColor,
+                                          color: codeTextColor
+                                        }}
+                                      >
+                                        <code className={className} {...props}>
+                                          {children}
+                                        </code>
+                                      </pre>
+                                    </div>
+                                  );
+                                },
+                                p({ children }) {
+                                  return <p className="mb-2 text-sm leading-relaxed">{children}</p>;
+                                },
+                                ul({ children }) {
+                                  return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
+                                },
+                                ol({ children }) {
+                                  return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
+                                },
+                                li({ children }) {
+                                  return <li className="text-sm">{children}</li>;
+                                },
+                                h1({ children }) {
+                                  return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;
+                                },
+                                h2({ children }) {
+                                  return <h2 className="text-base font-bold mb-2" style={{ color: primaryColor }}>{children}</h2>;
+                                },
+                                h3({ children }) {
+                                  return <h3 className="text-sm font-bold mb-1" style={{ color: primaryColor }}>{children}</h3>;
+                                },
+                                a({ href, children }) {
+                                  return (
+                                    <a 
+                                      href={href} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="underline hover:no-underline text-sm"
+                                      style={{ color: linkColor }}
+                                    >
+                                      {children}
+                                    </a>
+                                  );
+                                },
+                                strong({ children }) {
+                                  return <strong style={{ color: strongTagColor }}>{children}</strong>;
+                                },
+                                blockquote({ children }) {
+                                  return (
+                                    <blockquote 
+                                      className="border-l-4 pl-3 my-2 italic"
+                                      style={{ borderColor: primaryColor }}
+                                    >
+                                      {children}
+                                    </blockquote>
+                                  );
+                                }
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* Thinking/Loading indicator */}
+                {searchLoading && (
+                  <div className="flex items-start gap-2">
+                    <Avatar className="h-8 w-8 mt-1" style={{
+                      backgroundColor: primaryColor
+                    }}>
+                      {config.avatarUrl ? (
+                        <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback style={{
+                        backgroundColor: primaryColor
+                      }}>
+                        <Bot className="h-4 w-4 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="pl-[10px] pt-[5px]">
+                      <div className="flex items-center gap-2">
+                        <LoadingSpinner size="sm" />
+                        <span className="text-sm" style={{ color: isDarkTheme ? '#bdbdbd' : '#777777' }}>
+                          {thinkingMessage}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          )}
+
+          {/* Suggestions when no chat history */}
+          {chatHistory.length === 0 && (
+            <div className="p-4">
+              <div className="mb-4">
+                <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
+                <div className="space-y-2">
+                  {suggestions.map((question, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => handleSelectExample(question)}
+                      className="p-2 rounded hover:cursor-pointer flex items-center gap-2 text-sm transition-colors"
+                      style={{ 
+                        backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
+                        color: textColor
+                      }}
+                    >
+                      <span>{question}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Fixed input area at bottom */}
+        <div 
+          className="p-4 border-t flex-shrink-0"
+          style={{ borderColor: borderColor, backgroundColor: bgColor }}
+        >
+          <div className="flex gap-2 max-w-4xl mx-auto">
+            <div className="flex-1 relative">
+              <Input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={`Ask ${config.chatbotName || 'AI Assistant'}...`}
+                disabled={!isConnected}
+                className="h-12 pr-12 rounded-full text-base"
+                style={{
+                  backgroundColor: inputBgColor,
+                  borderColor: inputBorderColor,
+                  color: textColor
+                }}
+              />
+            </div>
+            <Button 
+              onClick={handleSearch}
+              disabled={!query.trim() || !isConnected}
+              className="h-12 w-12 rounded-full p-0 flex items-center justify-center hover:opacity-80 transition-opacity"
+              style={{
+                backgroundColor: primaryColor,
+                color: 'white'
+              }}
+            >
+              <ArrowUp size={18} />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal layout for regular mode
   return (
     <div 
       className="min-h-screen flex flex-col h-screen overflow-hidden"
