@@ -519,17 +519,17 @@ export const ChatboxPreview = ({
                       </div>
                     )}
                     
-                    {/* Welcome Message - Compact Disclaimer Style */}
-                    {welcomeMessage && (
+                    {/* Welcome Message - Only show if welcomeMessage has content */}
+                    {welcomeMessage && welcomeMessage.trim() && (
                       <div className="animate-fade-in">
                         <div 
-                          className="border rounded-lg p-3 text-center"
+                          className="border rounded-lg p-3 text-left"
                           style={{
                             backgroundColor: `${primaryColor}05`,
                             borderColor: `${primaryColor}20`
                           }}
                         >
-                          <div className="text-xs italic text-gray-600 leading-relaxed">
+                          <div className="text-xs italic text-gray-600 leading-relaxed text-left">
                             <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
                           </div>
                         </div>
@@ -1037,17 +1037,17 @@ export const ChatboxPreview = ({
               </div>
             )}
             
-            {/* Welcome Message - Compact Disclaimer Style */}
-            {welcomeMessage && (
+            {/* Welcome Message - Only show if welcomeMessage has content */}
+            {welcomeMessage && welcomeMessage.trim() && (
               <div className="animate-fade-in">
                 <div 
-                  className="border rounded-lg p-3 text-center"
+                  className="border rounded-lg p-3 text-left"
                   style={{
                     backgroundColor: `${primaryColor}05`,
                     borderColor: `${primaryColor}20`
                   }}
                 >
-                  <div className="text-xs italic text-gray-600 leading-relaxed">
+                  <div className="text-xs italic text-gray-600 leading-relaxed text-left">
                     <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
                   </div>
                 </div>
