@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, Moon, Sun, User } from 'lucide-react';
+import { ArrowUp, Moon, Sun, User, ArrowLeft } from 'lucide-react';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -81,6 +81,8 @@ const SearchAssistant = () => {
   const [showCentralLoader, setShowCentralLoader] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [hasInteracted, setHasInteracted] = useState<boolean>(false);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Use system theme preference as initial value
   useEffect(() => {
@@ -284,8 +286,7 @@ const SearchAssistant = () => {
   const handleSelectExample = (question: string) => {
     // Set that user has interacted
     setHasInteracted(true);
-
-   
+    setShowSuggestions(false);
     
     // Add user question to chat history
     const newUserMessage: ChatMessage = {
@@ -314,6 +315,40 @@ const SearchAssistant = () => {
       setShowCentralLoader(false);
     }
   };
+
+  const handleInputClick = () => {
+    if (!hasInteracted) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleBackToInitial = () => {
+    setHasInteracted(false);
+    setShowSuggestions(true);
+    setChatHistory([]);
+    setQuery('');
+  };
+
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isPopupMode && containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        if (hasInteracted) {
+          setHasInteracted(false);
+          setShowSuggestions(false);
+          setChatHistory([]);
+          setQuery('');
+        } else if (showSuggestions) {
+          setShowSuggestions(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPopupMode, hasInteracted, showSuggestions]);
 
   // Determine which suggestions to use (from config or fallback)
   const suggestions = config?.suggestions && config.suggestions.length > 0 
@@ -380,19 +415,35 @@ const SearchAssistant = () => {
       >
         {/* Main floating container */}
         <div 
+          ref={containerRef}
           className={`relative transition-all duration-500 ease-out ${
             hasInteracted 
               ? 'w-full max-w-4xl h-[50vh] rounded-2xl shadow-2xl border' 
+              : showSuggestions
+              ? 'w-full max-w-lg rounded-2xl shadow-2xl border'
               : 'w-full max-w-lg'
           }`}
           style={{
-            backgroundColor: hasInteracted ? cardBgColor : 'transparent',
-            borderColor: hasInteracted ? borderColor : 'transparent'
+            backgroundColor: (hasInteracted || showSuggestions) ? cardBgColor : 'transparent',
+            borderColor: (hasInteracted || showSuggestions) ? borderColor : 'transparent'
           }}
         >
+          {/* Back arrow - only visible when expanded */}
+          {hasInteracted && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-4 left-4 z-10"
+              onClick={handleBackToInitial}
+              style={{ color: textColor }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+
           {/* Chat content area - only visible after interaction */}
           {hasInteracted && (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full pt-12">
               {/* Chat history */}
               <div className="flex-1 overflow-hidden">
                 {chatHistory.length > 0 && (
