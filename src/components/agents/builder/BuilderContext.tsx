@@ -1,36 +1,8 @@
-
 import React, { createContext, useContext, useReducer } from 'react';
-import { KnowledgeSource } from '@/types/agent';
+import { KnowledgeSource, AgentData } from '@/types/agent';
 import { v4 as uuidv4 } from 'uuid';
 
 export type CanvasMode = 'embedded' | 'popup' | 'inline';
-
-export interface AgentData {
-  id: string | null;
-  name: string;
-  description?: string;
-  agentType?: string;
-  chatbotName: string;
-  welcomeMessage: string;
-  buttonText: string;
-  primaryColor: string;
-  secondaryColor: string;
-  fontFamily: string;
-  position: 'bottom-right' | 'bottom-left';
-  suggestions: string[];
-  avatar: string;
-  avatarUrl: string;
-  systemPrompt: string;
-  knowledgeSources: KnowledgeSource[];
-  model?: string;
-  temperature?: number;
-  maxTokens?: number;
-  guidelines?: {
-    dos: string[];
-    donts: string[];
-  };
-  settings?: any;
-}
 
 export interface BuilderState {
   agentData: AgentData;
@@ -70,6 +42,7 @@ const initialState: BuilderState = {
     suggestions: ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
     avatar: '',
     avatarUrl: '',
+    avatarType: 'default',
     systemPrompt: '',
     knowledgeSources: [],
     model: 'gpt-3.5-turbo',
@@ -78,6 +51,13 @@ const initialState: BuilderState = {
     guidelines: {
       dos: [],
       donts: []
+    },
+    behavior: {
+      conversationMemory: false,
+      continuousLearning: false,
+      expertHandoff: false,
+      aiToAiHandoff: false,
+      multilingualSupport: false
     }
   },
   canvasMode: 'inline',

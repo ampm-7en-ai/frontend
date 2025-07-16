@@ -20,3 +20,38 @@ export interface KnowledgeSource {
   is_selected?: boolean;
   status?: string;
 }
+
+export interface AgentData {
+  id: string | null;
+  name: string;
+  description?: string;
+  agentType?: string;
+  chatbotName: string;
+  welcomeMessage: string;
+  buttonText: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  position: 'bottom-right' | 'bottom-left';
+  suggestions: string[];
+  avatar: string;
+  avatarUrl: string;
+  avatarType?: string;
+  systemPrompt: string;
+  knowledgeSources: KnowledgeSource[];
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  guidelines?: {
+    dos: string[];
+    donts: string[];
+  };
+  behavior?: {
+    conversationMemory?: boolean;
+    continuousLearning?: boolean;
+    expertHandoff?: boolean;
+    aiToAiHandoff?: boolean;
+    multilingualSupport?: boolean;
+  };
+  settings?: any;
+}
