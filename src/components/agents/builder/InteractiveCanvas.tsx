@@ -197,6 +197,52 @@ export const InteractiveCanvas = () => {
       );
     }
 
+    if (canvasMode === 'inline') {
+      const assistantUrl = `${window.location.origin}/chat/assistant/${currentAgentId}`;
+      
+      return (
+        <div className="h-full w-full relative overflow-hidden">
+          <div className="absolute inset-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+            <div className="h-full w-full grid grid-cols-2 rounded-2xl overflow-hidden">
+              {/* Left Column - Content Area */}
+              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg p-6 border-r border-gray-200/50 dark:border-gray-700/50">
+                <div className="space-y-6 opacity-60">
+                  <div className="space-y-3">
+                    <div className="h-6 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-gray-600 dark:to-gray-500 rounded-lg w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-1/2 animate-pulse"></div>
+                  </div>
+                  <div className="h-40 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-xl relative overflow-hidden shadow-inner">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 to-purple-400/30"></div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Right Column - Assistant Chat */}
+              <div className="bg-gray-50 dark:bg-gray-900 relative">
+                {!isLoading && (
+                  <iframe
+                    src={assistantUrl}
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    allow="microphone"
+                    className="w-full h-full"
+                    title="Assistant Chat"
+                    key={`${currentAgentId}-${theme}-assistant`}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="h-full w-full relative overflow-hidden">
         <div className="absolute inset-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
