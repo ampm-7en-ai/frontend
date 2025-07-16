@@ -89,7 +89,7 @@ export const ModernModal = ({
         {footer && (
           <DialogFooter className={cn(
             'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-6 mt-6',
-            fixedFooter && 'border-t border-white/20 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-4 -mx-6 -mb-6 rounded-b-2xl pb-[29px] pr-[29px]'
+            fixedFooter && 'border-t border-border bg-background/80 backdrop-blur-sm px-6 py-4 -mx-6 -mb-6 rounded-b-2xl pb-[29px] pr-[29px]'
           )}>
             {footer}
           </DialogFooter>
