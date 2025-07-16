@@ -16,10 +16,11 @@ import { SystemPromptModal } from './SystemPromptModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
-  const { agentData, lastSaveTimestamp } = state;
+  const { agentData, lastSaveTimestamp, isLoading } = state;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels();
@@ -206,6 +207,121 @@ export const GuidelinesPanel = () => {
     newSuggestions[index] = value;
     updateAgentData({ suggestions: newSuggestions });
   };
+
+  // Show skeleton loading state during initial load
+  const showSkeleton = isLoading;
+
+  if (showSkeleton) {
+    return (
+      <div className="w-full h-full bg-white dark:bg-gray-900">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-6 w-48" />
+          </div>
+        </div>
+        
+        <ScrollArea className="flex-1 h-[calc(100%-80px)]">
+          <div className="p-4 space-y-4">
+            {/* Basic Settings Skeleton */}
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="w-8 h-8 rounded-xl" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-32 mb-2" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-20 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Model Settings Skeleton */}
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="w-8 h-8 rounded-xl" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-16 mb-2" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-6 w-full rounded-full" />
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Appearance Skeleton */}
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="w-8 h-8 rounded-xl" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <div className="flex gap-3">
+                    <Skeleton className="w-12 h-10 rounded-xl" />
+                    <Skeleton className="flex-1 h-10 rounded-xl" />
+                  </div>
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-28 mb-2" />
+                  <div className="flex gap-3">
+                    <Skeleton className="w-12 h-10 rounded-xl" />
+                    <Skeleton className="flex-1 h-10 rounded-xl" />
+                  </div>
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Guidelines Skeleton */}
+            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-3">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="w-8 h-8 rounded-xl" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-16 mb-2" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-full rounded-xl" />
+                    <Skeleton className="h-8 w-full rounded-xl" />
+                  </div>
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-full rounded-xl" />
+                    <Skeleton className="h-8 w-full rounded-xl" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900">

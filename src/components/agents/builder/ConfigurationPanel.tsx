@@ -13,6 +13,7 @@ import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrai
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
 import { useAIModels } from '@/hooks/useAIModels';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const agentTypes = [
   'Customer Support',
@@ -32,9 +33,12 @@ const fontFamilies = [
 
 export const ConfigurationPanel = () => {
   const { state, updateAgentData } = useBuilder();
-  const { agentData } = state;
+  const { agentData, isLoading } = state;
   const [isDeploymentOpen, setIsDeploymentOpen] = useState(false);
   const { allModelOptions, isLoading: isLoadingModels } = useAIModels();
+
+  // Show skeleton loading state during initial load
+  const showSkeleton = isLoading;
 
   const handleSuggestionChange = (index: number, value: string) => {
     const newSuggestions = [...agentData.suggestions];
@@ -52,6 +56,90 @@ export const ConfigurationPanel = () => {
     const newSuggestions = agentData.suggestions.filter((_, i) => i !== index);
     updateAgentData({ suggestions: newSuggestions });
   };
+
+  if (showSkeleton) {
+    return (
+      <div className="h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+        <div className="p-4 space-y-3">
+          <div className="flex items-center gap-2 mb-3">
+            <Skeleton className="w-7 h-7 rounded-lg" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+          
+          <div className="space-y-2">
+            {/* Agent Identity Skeleton */}
+            <div className="border rounded-lg bg-white shadow-sm p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <Skeleton className="h-3 w-3 rounded" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <Skeleton className="h-3 w-16 mb-1" />
+                  <Skeleton className="h-8 w-full rounded-xl" />
+                </div>
+                <div>
+                  <Skeleton className="h-3 w-20 mb-1" />
+                  <Skeleton className="h-16 w-full rounded-xl" />
+                </div>
+                <div>
+                  <Skeleton className="h-3 w-18 mb-1" />
+                  <Skeleton className="h-8 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Appearance Skeleton */}
+            <div className="border rounded-lg bg-white shadow-sm p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <Skeleton className="h-3 w-3 rounded" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Skeleton className="h-3 w-16 mb-1" />
+                    <div className="flex gap-1">
+                      <Skeleton className="w-8 h-7 rounded" />
+                      <Skeleton className="flex-1 h-7 rounded-xl" />
+                    </div>
+                  </div>
+                  <div>
+                    <Skeleton className="h-3 w-20 mb-1" />
+                    <div className="flex gap-1">
+                      <Skeleton className="w-8 h-7 rounded" />
+                      <Skeleton className="flex-1 h-7 rounded-xl" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Skeleton className="h-3 w-18 mb-1" />
+                  <Skeleton className="h-8 w-full rounded-xl" />
+                </div>
+                <div>
+                  <Skeleton className="h-3 w-24 mb-1" />
+                  <Skeleton className="h-8 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Suggestions Skeleton */}
+            <div className="border rounded-lg bg-white shadow-sm p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <Skeleton className="h-3 w-3 rounded" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-7 w-full rounded-xl" />
+                <Skeleton className="h-7 w-full rounded-xl" />
+                <Skeleton className="h-7 w-full rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
