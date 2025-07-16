@@ -410,6 +410,7 @@ export const ChatboxPreview = ({
   // Render floating button when showFloatingButton is true and component is minimized
   if (showFloatingButton && isMinimized) {
     const hasButtonText = buttonText && buttonText.trim() !== '';
+    const iconSize = hasButtonText ? 24 : 36; // 1.5x larger when no text (24 * 1.5 = 36)
     
     return (
       <>
@@ -425,14 +426,14 @@ export const ChatboxPreview = ({
           <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative z-10 flex items-center gap-2">
             {avatarSrc ? (
-              <Avatar className="w-6 h-6">
+              <Avatar className={hasButtonText ? "w-6 h-6" : "w-9 h-9"}>
                 <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                 <AvatarFallback className="text-white bg-transparent">
-                  <Bot size={16} />
+                  <Bot size={hasButtonText ? 16 : 24} />
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <Bot className="h-6 w-6 text-white" />
+              <Bot className="text-white" size={iconSize} />
             )}
             {hasButtonText && (
               <span className="text-white font-medium text-sm">
@@ -448,7 +449,8 @@ export const ChatboxPreview = ({
   return (
     <Card 
       className={cn(
-        "flex flex-col backdrop-blur-sm animate-scale-in relative",
+        "flex flex-col backdrop-blur-sm relative",
+        showFloatingButton && !isMinimized ? "animate-chatbox-expand" : "animate-scale-in",
         className
       )}
       style={{ 
@@ -456,7 +458,7 @@ export const ChatboxPreview = ({
         height: '100%',
         boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
         border: `1px solid ${primaryColor}10`,
-        animation: 'scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+        transformOrigin: showFloatingButton ? (position === 'bottom-left' ? 'bottom left' : 'bottom right') : 'center'
       }}
     >
       {/* Header */}
@@ -857,6 +859,21 @@ export const ChatboxPreview = ({
             }
           }
           
+          @keyframes chatboxExpand {
+            0% {
+              transform: scale(0.1);
+              opacity: 0;
+            }
+            60% {
+              transform: scale(1.05);
+              opacity: 0.8;
+            }
+            100% {
+              transform: scale(1);
+              opacity: 1;
+            }
+          }
+          
           @keyframes typingBounceIn {
             0% {
               transform: translateY(60px) scale(0.3);
@@ -907,6 +924,10 @@ export const ChatboxPreview = ({
               transform: translateX(0) scale(1);
               opacity: 1;
             }
+          }
+          
+          .animate-chatbox-expand {
+            animation: chatboxExpand 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
           }
         `}
       </style>
