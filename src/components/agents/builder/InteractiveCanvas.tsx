@@ -19,6 +19,19 @@ export const InteractiveCanvas = () => {
   const currentAgentId = agentData.id ? agentData.id.toString() : null;
   const shareableLink = currentAgentId ? `${window.location.origin}/chat/preview/${currentAgentId}?theme=${theme}` : '';
 
+  // Helper function to convert hex to rgba for glow effects
+  const hexToRgba = (hex: string, alpha: number = 1): string => {
+    try {
+      const cleanHex = hex.replace('#', '');
+      const r = parseInt(cleanHex.substring(0, 2), 16);
+      const g = parseInt(cleanHex.substring(2, 4), 16);
+      const b = parseInt(cleanHex.substring(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    } catch (e) {
+      return 'rgba(59, 130, 246, 0.5)'; // fallback to blue
+    }
+  };
+
   const getCanvasContent = () => {
     if (!isPreviewActive) {
       return (
@@ -48,14 +61,21 @@ export const InteractiveCanvas = () => {
       const hasButtonText = agentData.buttonText && agentData.buttonText.trim() !== '';
       const iconSize = hasButtonText ? 24 : 36;
       const isLeftPosition = agentData.position === 'bottom-left';
+      const primaryColorRgba = hexToRgba(agentData.primaryColor, 0.5);
+      const primaryColorRgbaLight = hexToRgba(agentData.primaryColor, 0.4);
 
       return (
         <div className="h-full w-full relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
           {/* Stacked chat and button container - positioned in corner */}
           <div className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} flex flex-col items-stretch gap-4 z-50`}>
-            {/* Chat window - shows above button when expanded */}
+            {/* Chat window - shows above button when expanded with professional animation */}
             {!isChatMinimized && (
-              <div className="w-96 h-[600px]">
+              <div 
+                className="w-96 h-[600px] animate-chat-slide-up"
+                style={{
+                  transformOrigin: isLeftPosition ? 'bottom left' : 'bottom right'
+                }}
+              >
                 <ChatboxPreview
                   agentId={currentAgentId}
                   primaryColor={agentData.primaryColor}
@@ -68,17 +88,19 @@ export const InteractiveCanvas = () => {
                   suggestions={agentData.suggestions.filter(Boolean)}
                   avatarSrc={agentData.avatar || agentData.avatarUrl}
                   className="w-full h-full shadow-2xl rounded-2xl"
+                  onMinimize={() => setIsChatMinimized(true)}
+                  showFloatingButton={false}
                 />
               </div>
             )}
 
-            {/* Toggle button - always stays in the same position */}
+            {/* Toggle button - always stays in the same position with dynamic glow */}
             <ModernButton
               onClick={() => setIsChatMinimized(!isChatMinimized)}
-              className={`${hasButtonText ? 'rounded-3xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden self-end`}
+              className={`${hasButtonText ? 'rounded-2xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden self-end`}
               style={{ 
                 background: `linear-gradient(135deg, ${agentData.primaryColor}, ${adjustColor(agentData.primaryColor, -30)})`,
-                boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
+                boxShadow: `0 10px 30px ${primaryColorRgba}, 0 5px 15px ${primaryColorRgbaLight}`,
                 fontFamily: agentData.fontFamily
               }}
             >
@@ -102,6 +124,32 @@ export const InteractiveCanvas = () => {
               </div>
             </ModernButton>
           </div>
+
+          {/* Professional sliding animation styles */}
+          <style jsx>{`
+            @keyframes chatSlideUp {
+              0% {
+                transform: translateY(100%) scale(0.8);
+                opacity: 0;
+              }
+              60% {
+                transform: translateY(-10px) scale(1.02);
+                opacity: 0.9;
+              }
+              80% {
+                transform: translateY(5px) scale(0.98);
+                opacity: 0.95;
+              }
+              100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+              }
+            }
+            
+            .animate-chat-slide-up {
+              animation: chatSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+          `}</style>
         </div>
       );
     }
