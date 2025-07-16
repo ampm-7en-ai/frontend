@@ -371,241 +371,265 @@ const SearchAssistant = () => {
   if (isPopupMode) {
     return (
       <div 
-        className="h-screen flex flex-col overflow-hidden"
+        className="h-screen flex items-center justify-center p-4"
         style={{ 
           fontFamily: config.fontFamily || 'Inter',
           backgroundColor: bgColor,
           color: textColor
         }}
       >
-        {/* Chat content area - grows upward */}
-        <div className="flex-1 flex flex-col justify-end overflow-hidden">
-          {chatHistory.length > 0 && (
-            <ScrollArea className="flex-shrink max-h-[80vh]">
-              <div className="p-4 space-y-5">
-                {chatHistory.map((message, index) => {
-                  if (message.type === 'user') {
-                    return (
-                      <div key={message.id} className="flex items-start gap-2">
-                        <Avatar className="h-8 w-8 mt-1">
-                          <AvatarFallback className="bg-gray-200">
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="pl-[10px] pt-[8px]">
-                          <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
-                            {message.content}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  } else if (message.type === 'bot_response') {
-                    return (
-                      <div key={message.id} className="flex items-start gap-2">
-                        <Avatar className="h-8 w-8 mt-1" style={{
-                          backgroundColor: primaryColor
-                        }}>
-                          {config.avatarUrl ? (
-                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
-                          ) : null}
-                          <AvatarFallback style={{
-                            backgroundColor: primaryColor
-                          }}>
-                            <Bot className="h-4 w-4 text-white" />
-                          </AvatarFallback>
-                        </Avatar>
+        {/* Main floating container */}
+        <div 
+          className={`relative transition-all duration-500 ease-out ${
+            hasInteracted 
+              ? 'w-full max-w-4xl h-[50vh] rounded-2xl shadow-2xl border' 
+              : 'w-full max-w-lg'
+          }`}
+          style={{
+            backgroundColor: hasInteracted ? cardBgColor : 'transparent',
+            borderColor: hasInteracted ? borderColor : 'transparent'
+          }}
+        >
+          {/* Chat content area - only visible after interaction */}
+          {hasInteracted && (
+            <div className="flex flex-col h-full">
+              {/* Chat history */}
+              <div className="flex-1 overflow-hidden">
+                {chatHistory.length > 0 && (
+                  <ScrollArea className="h-full">
+                    <div className="p-6 space-y-5">
+                      {chatHistory.map((message, index) => {
+                        if (message.type === 'user') {
+                          return (
+                            <div key={message.id} className="flex items-start gap-2">
+                              <Avatar className="h-8 w-8 mt-1">
+                                <AvatarFallback className="bg-gray-200">
+                                  <User className="h-4 w-4" />
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="pl-[10px] pt-[8px]">
+                                <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
+                                  {message.content}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        } else if (message.type === 'bot_response') {
+                          return (
+                            <div key={message.id} className="flex items-start gap-2">
+                              <Avatar className="h-8 w-8 mt-1" style={{
+                                backgroundColor: primaryColor
+                              }}>
+                                {config.avatarUrl ? (
+                                  <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                                ) : null}
+                                <AvatarFallback style={{
+                                  backgroundColor: primaryColor
+                                }}>
+                                  <Bot className="h-4 w-4 text-white" />
+                                </AvatarFallback>
+                              </Avatar>
 
-                        <div className="flex-1 pl-[10px] pt-[5px]">
-                          <div className="prose prose-sm max-w-none break-words" style={{ 
-                            color: isDarkTheme ? '#bdbdbd' : '#333333',
-                          }}>
-                            <ReactMarkdown
-                              components={{
-                                code({ node, className, children, ...props }) {
-                                  const match = /language-(\w+)/.exec(className || '');
-                                  const language = match ? match[1] : '';
-                                  
-                                  const isInline = !match && children.toString().split('\n').length === 1;
-                                  
-                                  if (isInline) {
-                                    return (
-                                      <code
-                                        className="px-1 py-0.5 rounded font-mono text-xs"
-                                        style={{ 
-                                          backgroundColor: inlineCodeBg,
-                                          color: codeTextColor
-                                        }}
-                                        {...props}
-                                      >
-                                        {children}
-                                      </code>
-                                    );
-                                  }
-                                  
-                                  return (
-                                    <div className="my-2">
-                                      <pre
-                                        className="p-3 rounded overflow-x-auto text-xs"
-                                        style={{ 
-                                          backgroundColor: codeBackgroundColor,
-                                          color: codeTextColor
-                                        }}
-                                      >
-                                        <code className={className} {...props}>
-                                          {children}
-                                        </code>
-                                      </pre>
-                                    </div>
-                                  );
-                                },
-                                p({ children }) {
-                                  return <p className="mb-2 text-sm leading-relaxed">{children}</p>;
-                                },
-                                ul({ children }) {
-                                  return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
-                                },
-                                ol({ children }) {
-                                  return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
-                                },
-                                li({ children }) {
-                                  return <li className="text-sm">{children}</li>;
-                                },
-                                h1({ children }) {
-                                  return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;
-                                },
-                                h2({ children }) {
-                                  return <h2 className="text-base font-bold mb-2" style={{ color: primaryColor }}>{children}</h2>;
-                                },
-                                h3({ children }) {
-                                  return <h3 className="text-sm font-bold mb-1" style={{ color: primaryColor }}>{children}</h3>;
-                                },
-                                a({ href, children }) {
-                                  return (
-                                    <a 
-                                      href={href} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="underline hover:no-underline text-sm"
-                                      style={{ color: linkColor }}
-                                    >
-                                      {children}
-                                    </a>
-                                  );
-                                },
-                                strong({ children }) {
-                                  return <strong style={{ color: strongTagColor }}>{children}</strong>;
-                                },
-                                blockquote({ children }) {
-                                  return (
-                                    <blockquote 
-                                      className="border-l-4 pl-3 my-2 italic"
-                                      style={{ borderColor: primaryColor }}
-                                    >
-                                      {children}
-                                    </blockquote>
-                                  );
-                                }
-                              }}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
+                              <div className="flex-1 pl-[10px] pt-[5px]">
+                                <div className="prose prose-sm max-w-none break-words" style={{ 
+                                  color: isDarkTheme ? '#bdbdbd' : '#333333',
+                                }}>
+                                  <ReactMarkdown
+                                    components={{
+                                      code({ node, className, children, ...props }) {
+                                        const match = /language-(\w+)/.exec(className || '');
+                                        const language = match ? match[1] : '';
+                                        
+                                        const isInline = !match && children.toString().split('\n').length === 1;
+                                        
+                                        if (isInline) {
+                                          return (
+                                            <code
+                                              className="px-1 py-0.5 rounded font-mono text-xs"
+                                              style={{ 
+                                                backgroundColor: inlineCodeBg,
+                                                color: codeTextColor
+                                              }}
+                                              {...props}
+                                            >
+                                              {children}
+                                            </code>
+                                          );
+                                        }
+                                        
+                                        return (
+                                          <div className="my-2">
+                                            <pre
+                                              className="p-3 rounded overflow-x-auto text-xs"
+                                              style={{ 
+                                                backgroundColor: codeBackgroundColor,
+                                                color: codeTextColor
+                                              }}
+                                            >
+                                              <code className={className} {...props}>
+                                                {children}
+                                              </code>
+                                            </pre>
+                                          </div>
+                                        );
+                                      },
+                                      p({ children }) {
+                                        return <p className="mb-2 text-sm leading-relaxed">{children}</p>;
+                                      },
+                                      ul({ children }) {
+                                        return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
+                                      },
+                                      ol({ children }) {
+                                        return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
+                                      },
+                                      li({ children }) {
+                                        return <li className="text-sm">{children}</li>;
+                                      },
+                                      h1({ children }) {
+                                        return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;
+                                      },
+                                      h2({ children }) {
+                                        return <h2 className="text-base font-bold mb-2" style={{ color: primaryColor }}>{children}</h2>;
+                                      },
+                                      h3({ children }) {
+                                        return <h3 className="text-sm font-bold mb-2" style={{ color: primaryColor }}>{children}</h3>;
+                                      },
+                                      a({ href, children }) {
+                                        return (
+                                          <a 
+                                            href={href} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="underline hover:no-underline transition-all duration-200"
+                                            style={{ color: linkColor }}
+                                          >
+                                            {children}
+                                          </a>
+                                        );
+                                      },
+                                      strong({ children }) {
+                                        return <strong style={{ color: strongTagColor }}>{children}</strong>;
+                                      }
+                                    }}
+                                  >
+                                    {message.content}
+                                  </ReactMarkdown>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </ScrollArea>
+                )}
 
                 {/* Thinking/Loading indicator */}
                 {searchLoading && (
-                  <div className="flex items-start gap-2">
-                    <Avatar className="h-8 w-8 mt-1" style={{
-                      backgroundColor: primaryColor
-                    }}>
-                      {config.avatarUrl ? (
-                        <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
-                      ) : null}
-                      <AvatarFallback style={{
-                        backgroundColor: primaryColor
-                      }}>
-                        <Bot className="h-4 w-4 text-white" />
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="pl-[10px] pt-[5px]">
-                      <div className="flex items-center gap-2">
-                        <LoadingSpinner size="sm" />
-                        <span className="text-sm" style={{ color: isDarkTheme ? '#bdbdbd' : '#777777' }}>
-                          {thinkingMessage}
-                        </span>
-                      </div>
+                  <div className="flex items-center justify-center p-4">
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <LoadingSpinner size="sm" />
+                      <span className="text-sm">{thinkingMessage}</span>
                     </div>
                   </div>
                 )}
               </div>
-            </ScrollArea>
-          )}
 
-          {/* Suggestions when no chat history */}
-          {chatHistory.length === 0 && (
-            <div className="p-4">
-              <div className="mb-4">
-                <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
-                <div className="space-y-2">
-                  {suggestions.map((question, index) => (
-                    <div 
-                      key={index}
-                      onClick={() => handleSelectExample(question)}
-                      className="p-2 rounded hover:cursor-pointer flex items-center gap-2 text-sm transition-colors"
-                      style={{ 
-                        backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
-                        color: textColor
+              {/* Input bar at bottom of container */}
+              <div className="border-t p-4"
+                style={{
+                  borderColor: borderColor
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 relative">
+                    <Input
+                      ref={inputRef}
+                      type="text"
+                      placeholder={`Ask ${config.chatbotName}...`}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      className="pr-12 py-3 text-base border-2 focus:ring-2 transition-all duration-200"
+                      style={{
+                        backgroundColor: inputBgColor,
+                        borderColor: inputBorderColor,
+                        color: textColor,
+                        borderRadius: '12px'
+                      }}
+                      disabled={searchLoading}
+                    />
+                    <Button
+                      onClick={handleSearch}
+                      disabled={!query.trim() || searchLoading}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0"
+                      style={{
+                        backgroundColor: primaryColor,
+                        borderColor: primaryColor
                       }}
                     >
-                      <span>{question}</span>
-                    </div>
-                  ))}
+                      <ArrowUp className="h-4 w-4 text-white" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
-        </div>
 
-        {/* Fixed input area at bottom */}
-        <div 
-          className="p-4 border-t flex-shrink-0"
-          style={{ borderColor: borderColor, backgroundColor: bgColor }}
-        >
-          <div className="flex gap-2 max-w-4xl mx-auto">
-            <div className="flex-1 relative">
-              <Input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={`Ask ${config.chatbotName || 'AI Assistant'}...`}
-                disabled={!isConnected}
-                className="h-12 pr-12 rounded-full text-base"
-                style={{
-                  backgroundColor: inputBgColor,
-                  borderColor: inputBorderColor,
-                  color: textColor
-                }}
-              />
+          {/* Initial input (centered) - only visible before interaction */}
+          {!hasInteracted && (
+            <div className="space-y-6">
+              {/* Search input */}
+              <div className="relative">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder={`Ask ${config.chatbotName}...`}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  className="pr-12 py-4 text-lg border-2 focus:ring-2 transition-all duration-200 shadow-lg"
+                  style={{
+                    backgroundColor: inputBgColor,
+                    borderColor: inputBorderColor,
+                    color: textColor,
+                    borderRadius: '16px'
+                  }}
+                  disabled={searchLoading}
+                />
+                <Button
+                  onClick={handleSearch}
+                  disabled={!query.trim() || searchLoading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 rounded-full p-0 shadow-md"
+                  style={{
+                    backgroundColor: primaryColor,
+                    borderColor: primaryColor
+                  }}
+                >
+                  <ArrowUp className="h-5 w-5 text-white" />
+                </Button>
+              </div>
+
+              {/* Suggestions */}
+              <div className="grid grid-cols-1 gap-3">
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSelectExample(suggestion)}
+                    className="p-4 text-left rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-[1.02] text-sm shadow-sm"
+                    style={{
+                      backgroundColor: cardBgColor,
+                      borderColor: borderColor,
+                      color: textColor
+                    }}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
-            <Button 
-              onClick={handleSearch}
-              disabled={!query.trim() || !isConnected}
-              className="h-12 w-12 rounded-full p-0 flex items-center justify-center hover:opacity-80 transition-opacity"
-              style={{
-                backgroundColor: primaryColor,
-                color: 'white'
-              }}
-            >
-              <ArrowUp size={18} />
-            </Button>
-          </div>
+          )}
         </div>
       </div>
     );
