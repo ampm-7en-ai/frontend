@@ -37,7 +37,7 @@ interface ChatboxPreviewProps {
   onRestart?: () => void;
   showFloatingButton?: boolean;
   initiallyMinimized?: boolean;
-  canvasMode?: boolean; // New prop for canvas-specific behavior
+  canvasMode?: boolean;
 }
 
 export const ChatboxPreview = ({
@@ -56,7 +56,7 @@ export const ChatboxPreview = ({
   onRestart,
   showFloatingButton = false,
   initiallyMinimized = false,
-  canvasMode = false // Default to false for backward compatibility
+  canvasMode = false
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -416,9 +416,9 @@ export const ChatboxPreview = ({
     
     return (
       <div className="relative w-full h-full">
-        {/* Chat window - positioned above the button with gap */}
+        {/* Chat window - positioned above the button with generous gap */}
         {!isMinimized && (
-          <div className="absolute bottom-20 right-4 w-80 h-96">
+          <div className="absolute bottom-28 right-4 w-80 h-80">
             <Card 
               className={cn(
                 "flex flex-col backdrop-blur-sm h-full animate-scale-in"
@@ -691,10 +691,10 @@ export const ChatboxPreview = ({
                   </div>
                 </ScrollArea>
 
-                {/* Updated Typing Indicator - positioned 115px from bottom (20+5px more) */}
+                {/* Updated Typing Indicator - positioned appropriately for smaller chat */}
                 {showTypingIndicator && (
                   <div 
-                    className="absolute bottom-[115px] left-4 flex items-center gap-2 z-20"
+                    className="absolute bottom-[100px] left-4 flex items-center gap-2 z-20"
                     style={{
                       animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
                     }}
@@ -897,10 +897,10 @@ export const ChatboxPreview = ({
           </div>
         )}
 
-        {/* Floating button - always visible at bottom-right */}
+        {/* Floating button - always visible at bottom-right with proper styling */}
         <ModernButton
           onClick={isMinimized ? handleExpand : handleMinimizeToggle}
-          className={`absolute bottom-4 right-4 z-50 ${hasButtonText ? 'rounded-3xl px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+          className={`absolute bottom-4 right-4 z-50 ${hasButtonText ? 'rounded-3xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
           style={{ 
             background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
             boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
