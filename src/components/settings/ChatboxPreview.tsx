@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -446,11 +446,11 @@ export const ChatboxPreview = ({
                         <Avatar className="w-12 h-12">
                           <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                           <AvatarFallback className="text-white bg-transparent">
-                            <Bot size={24} />
+                            <User2 size={24} />
                           </AvatarFallback>
                         </Avatar>
                       ) : (
-                        <Bot size={24} className="text-white drop-shadow-sm" />
+                        <MessageCircleReplyIcon size={24} className="text-white drop-shadow-sm" />
                       )}
                     </div>
                     {/* Online indicator */}
@@ -708,7 +708,7 @@ export const ChatboxPreview = ({
                             background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
                             color: secondaryColor
                           }}>
-                            <Bot size={10} />
+                            <User2 size={10} />
                           </AvatarFallback>
                         </Avatar>
                       ) : (
@@ -719,7 +719,7 @@ export const ChatboxPreview = ({
                             color: secondaryColor
                           }}
                         >
-                          <Bot size={10} />
+                          <User2 size={10} />
                         </div>
                       )}
                     </div>
@@ -963,11 +963,11 @@ export const ChatboxPreview = ({
                 <Avatar className="w-12 h-12">
                   <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                   <AvatarFallback className="text-white bg-transparent">
-                    <Bot size={24} />
+                    <User2 size={24} />
                   </AvatarFallback>
                 </Avatar>
               ) : (
-                <Bot size={24} className="text-white drop-shadow-sm" />
+                <User2 size={24} className="text-white drop-shadow-sm" />
               )}
             </div>
             {/* Online indicator */}
@@ -1227,7 +1227,7 @@ export const ChatboxPreview = ({
                     background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
                     color: secondaryColor
                   }}>
-                    <Bot size={10} />
+                    <User2 size={10} />
                   </AvatarFallback>
                 </Avatar>
               ) : (
@@ -1238,7 +1238,7 @@ export const ChatboxPreview = ({
                     color: secondaryColor
                   }}
                 >
-                  <Bot size={10} />
+                  <User2 size={10} />
                 </div>
               )}
             </div>

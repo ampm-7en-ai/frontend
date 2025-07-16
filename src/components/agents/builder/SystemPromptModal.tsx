@@ -75,11 +75,11 @@ export const SystemPromptModal = ({
               {isTemplate ? "Close" : "Cancel"}
             </ModernButton>
             {isTemplate ? (
-              <ModernButton variant="gradient" onClick={handleUseTemplate}>
+              <ModernButton variant="primary" onClick={handleUseTemplate}>
                 Use Template
               </ModernButton>
             ) : (
-              <ModernButton variant="gradient" onClick={handleSave}>
+              <ModernButton variant="primary" onClick={handleSave}>
                 Save Changes
               </ModernButton>
             )}

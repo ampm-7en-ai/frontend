@@ -4,7 +4,7 @@ import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { AskAiModal } from './AskAiModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Bot } from 'lucide-react';
+import { Search, Bot, MessageCircleReplyIcon, MessageCircle, MessageSquare } from 'lucide-react';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import ModernButton from '@/components/dashboard/ModernButton';
@@ -84,11 +84,11 @@ export const InteractiveCanvas = () => {
                   <Avatar className={hasButtonText ? "w-6 h-6" : "w-[56px] h-[56px]"}>
                     <AvatarImage src={agentData.avatar || agentData.avatarUrl} alt={agentData.chatbotName} className="object-cover" />
                     <AvatarFallback className="text-white bg-transparent">
-                      <Bot size={hasButtonText ? 16 : 24} />
+                      <MessageSquare size={hasButtonText ? 16 : 24} />
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <Bot className="text-white" size={iconSize} />
+                  <MessageSquare className="text-white" size={iconSize} />
                 )}
                 {hasButtonText && (
                   <span className="text-white font-medium text-sm">
