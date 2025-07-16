@@ -1,16 +1,16 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { AskAiModal } from './AskAiModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 export const InteractiveCanvas = () => {
   const { state } = useBuilder();
   const { agentData, canvasMode, isPreviewActive } = state;
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
   const { theme } = useAppTheme();
 
@@ -43,8 +43,6 @@ export const InteractiveCanvas = () => {
     }
 
     if (canvasMode === 'embedded') {
-      const hasButtonText = agentData.buttonText && agentData.buttonText.trim() !== '';
-      
       return (
         <div className="h-full w-full relative overflow-hidden">
           {/* Website mockup */}
@@ -69,85 +67,32 @@ export const InteractiveCanvas = () => {
                   </div>
                 </div>
                 
-                {/* Chat button */}
+                {/* ChatboxPreview with native floating button functionality */}
                 <div 
-                  className={`absolute z-50 ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'}`}
-                >
-                  <Button
-                    onClick={() => setIsChatOpen(!isChatOpen)}
-                    className={`${hasButtonText ? 'rounded-full px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700`}
-                    style={{ 
-                      boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
-                      fontFamily: agentData.fontFamily
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative z-10 flex items-center gap-2">
-                      <MessageSquare className="h-6 w-6 text-white" />
-                      {hasButtonText && (
-                        <span className="text-white font-medium text-sm">
-                          {agentData.buttonText}
-                        </span>
-                      )}
-                    </div>
-                  </Button>
-                </div>
-                
-                {/* Chat popup - Always rendered but controlled by visibility and transforms */}
-                <div 
-                  className={`absolute z-[60] ${agentData.position === 'bottom-left' ? 'bottom-24 left-8' : 'bottom-24 right-8'} w-96 transition-all duration-300 ease-out ${
-                    isChatOpen 
-                      ? 'opacity-100 visible transform translate-y-0' 
-                      : 'opacity-0 invisible transform translate-y-4'
-                  }`}
+                  className={`absolute z-50 ${agentData.position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} w-96`}
                   style={{ 
-                    height: '665px',
-                    transformOrigin: 'bottom center'
+                    height: '665px'
                   }}
                 >
-                  <div 
-                    className={`w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm transition-all duration-300 ease-out ${
-                      isChatOpen 
-                        ? 'animate-[slideUpFade_0.3s_ease-out]' 
-                        : ''
-                    }`}
-                  >
-                    <ChatboxPreview
-                      agentId={currentAgentId}
-                      primaryColor={agentData.primaryColor}
-                      secondaryColor={agentData.secondaryColor}
-                      fontFamily={agentData.fontFamily}
-                      chatbotName={agentData.chatbotName}
-                      welcomeMessage={agentData.welcomeMessage}
-                      buttonText={agentData.buttonText}
-                      position={agentData.position}
-                      suggestions={agentData.suggestions.filter(Boolean)}
-                      avatarSrc={agentData.avatar || agentData.avatarUrl}
-                      className="w-full h-full"
-                      onMinimize={() => setIsChatOpen(false)}
-                      onRestart={() => window.location.reload()}
-                    />
-                  </div>
+                  <ChatboxPreview
+                    agentId={currentAgentId}
+                    primaryColor={agentData.primaryColor}
+                    secondaryColor={agentData.secondaryColor}
+                    fontFamily={agentData.fontFamily}
+                    chatbotName={agentData.chatbotName}
+                    welcomeMessage={agentData.welcomeMessage}
+                    buttonText={agentData.buttonText}
+                    position={agentData.position}
+                    suggestions={agentData.suggestions.filter(Boolean)}
+                    avatarSrc={agentData.avatar || agentData.avatarUrl}
+                    className="w-full h-full"
+                    showFloatingButton={true}
+                    initiallyMinimized={true}
+                  />
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* Custom keyframes for slide-up fade animation */}
-          <style>{`
-            @keyframes slideUpFade {
-              0% {
-                transform: translateY(20px);
-                opacity: 0;
-                scale: 0.95;
-              }
-              100% {
-                transform: translateY(0);
-                opacity: 1;
-                scale: 1;
-              }
-            }
-          `}</style>
         </div>
       );
     }

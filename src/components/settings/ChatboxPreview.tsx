@@ -35,6 +35,8 @@ interface ChatboxPreviewProps {
   avatarSrc?: string;
   onMinimize?: () => void;
   onRestart?: () => void;
+  showFloatingButton?: boolean;
+  initiallyMinimized?: boolean;
 }
 
 export const ChatboxPreview = ({
@@ -50,7 +52,9 @@ export const ChatboxPreview = ({
   suggestions = ['How can I get started?', 'What features do you offer?', 'Tell me about your pricing'],
   avatarSrc,
   onMinimize,
-  onRestart
+  onRestart,
+  showFloatingButton = false,
+  initiallyMinimized = false
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -66,6 +70,9 @@ export const ChatboxPreview = ({
   const processedMessageIds = useRef<Set<string>>(new Set());
   const restartingRef = useRef(false);
   const messageSequenceRef = useRef<number>(0);
+
+  // Internal state for floating button mode
+  const [isMinimized, setIsMinimized] = useState(initiallyMinimized);
 
   // Check if input should be disabled (when there's a pending yes/no question)
   const shouldDisableInput = messages.some(msg => 
@@ -388,6 +395,56 @@ export const ChatboxPreview = ({
     }
   };
 
+  const handleMinimizeToggle = () => {
+    if (onMinimize) {
+      onMinimize();
+    } else {
+      setIsMinimized(!isMinimized);
+    }
+  };
+
+  const handleExpand = () => {
+    setIsMinimized(false);
+  };
+
+  // Render floating button when showFloatingButton is true and component is minimized
+  if (showFloatingButton && isMinimized) {
+    const hasButtonText = buttonText && buttonText.trim() !== '';
+    
+    return (
+      <>
+        <ModernButton
+          onClick={handleExpand}
+          className={`fixed z-50 ${position === 'bottom-left' ? 'bottom-8 left-8' : 'bottom-8 right-8'} ${hasButtonText ? 'rounded-full px-6 py-3 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+          style={{ 
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+            boxShadow: `0 10px 30px rgba(59, 130, 246, 0.5), 0 5px 15px rgba(59, 130, 246, 0.4)`,
+            fontFamily: fontFamily
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="relative z-10 flex items-center gap-2">
+            {avatarSrc ? (
+              <Avatar className="w-6 h-6">
+                <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                <AvatarFallback className="text-white bg-transparent">
+                  <Bot size={16} />
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <Bot className="h-6 w-6 text-white" />
+            )}
+            {hasButtonText && (
+              <span className="text-white font-medium text-sm">
+                {buttonText}
+              </span>
+            )}
+          </div>
+        </ModernButton>
+      </>
+    );
+  }
+
   return (
     <Card 
       className={cn(
@@ -451,9 +508,9 @@ export const ChatboxPreview = ({
             iconOnly
           />
           
-          {onMinimize && (
+          {(onMinimize || showFloatingButton) && (
             <ModernButton
-              onClick={onMinimize}
+              onClick={handleMinimizeToggle}
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
