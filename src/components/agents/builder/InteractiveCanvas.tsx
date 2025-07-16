@@ -70,11 +70,12 @@ export const InteractiveCanvas = () => {
           <div className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50`}>
             <ModernButton
               onClick={() => setIsChatMinimized(!isChatMinimized)}
-              className={`${hasButtonText ? 'rounded-2xl px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
+              className={`${hasButtonText ? 'rounded-full px-6 py-4 h-auto' : 'rounded-full w-16 h-16 p-0'} shadow-2xl hover:scale-110 transition-all duration-300 border-4 border-white/30 group relative overflow-hidden`}
               style={{ 
                 background: `linear-gradient(135deg, ${agentData.primaryColor}, ${adjustColor(agentData.primaryColor, -30)})`,
                 boxShadow: `0 10px 30px ${primaryColorRgba}, 0 5px 15px ${primaryColorRgbaLight}`,
-                fontFamily: agentData.fontFamily
+                fontFamily: agentData.fontFamily,
+                borderRadius: "40px"
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -112,7 +113,7 @@ export const InteractiveCanvas = () => {
             }}
           >
             {/* ChatboxPreview - always mounted to prevent WebSocket reconnection */}
-            <div className={`w-full h-full ${isChatMinimized ? 'hidden' : 'block'}`}>
+            <div className={`w-full h-full overflow-hidden ${isChatMinimized ? 'hidden' : 'block'}`} style={{borderRadius:"0px 0px 20px 20px"}}>
               <ChatboxPreview
                 agentId={currentAgentId}
                 primaryColor={agentData.primaryColor}
