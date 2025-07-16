@@ -126,7 +126,7 @@ export const InteractiveCanvas = () => {
           </div>
 
           {/* Professional sliding animation styles */}
-          <style jsx>{`
+          <style>{`
             @keyframes chatSlideUp {
               0% {
                 transform: translateY(100%) scale(0.8);
