@@ -758,23 +758,23 @@ const SearchAssistant = () => {
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyPress}
                     onClick={handleInputClick}
-                    className={`pr-16 py-6 text-xl focus:ring-2 transition-all duration-700 ease-out ${
+                    className={`pr-16 py-6 text-xl focus:ring-2 transition-all duration-700 ease-out rounded-full ${
                       mode === 'suggestions' 
-                        ? 'rounded-full border-0 bg-transparent' 
-                        : 'rounded-full shadow-xl hover-scale border-2'
+                        ? 'border-0 bg-transparent' 
+                        : 'shadow-xl hover-scale border-2'
                     }`}
                     style={{
                       backgroundColor: mode === 'suggestions' ? 'transparent' : inputBgColor,
                       borderColor: mode === 'suggestions' ? 'transparent' : inputBorderColor,
                       color: textColor,
-                      fontSize: mode === 'initial' ? '1.25rem' : '1rem'
+                      fontSize: '1.25rem'
                     }}
                     disabled={isProcessing}
                   />
                   <Button
                     onClick={handleSearch}
                     disabled={!query.trim() || isProcessing}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-11 w-11 rounded-full p-0 shadow-lg hover-scale transition-all duration-300 -mr-[10px]"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-11 w-11 rounded-full p-0 shadow-lg hover-scale transition-all duration-300"
                     style={{
                       backgroundColor: primaryColor,
                       borderColor: primaryColor
