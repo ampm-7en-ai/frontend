@@ -83,22 +83,25 @@ export const ModelComparisonCard = ({
   };
 
   return (
-    <Card className={`flex flex-col h-full overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-shadow ${className}`}>
+    <Card className={`flex flex-col h-[600px] overflow-hidden bg-background border border-border/50 transition-colors ${className}`}>
       <CardHeader 
-        className="p-3 flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/30"
-        style={{ 
-          background: `linear-gradient(to right, hsl(var(--muted)/0.3), hsl(var(--muted)/0.1))`,
-        }}
+        className="p-4 flex flex-row items-center justify-between space-y-0 pb-3 border-b border-border/30 bg-muted/30"
       >
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-foreground">
-            {getModelDisplay(model)}
-          </h3>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
+            <Bot className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">
+              {getModelDisplay(model)}
+            </h3>
+            <p className="text-xs text-muted-foreground">AI Assistant</p>
+          </div>
           
           {!isConnected && (
-            <div className="flex items-center gap-1 bg-destructive/20 px-2 py-1 rounded-full">
-              <WifiOff size={14} className="text-destructive" />
-              <span className="text-xs text-destructive">Disconnected</span>
+            <div className="flex items-center gap-1 bg-destructive/10 px-2 py-1 rounded-full border border-destructive/20">
+              <WifiOff size={12} className="text-destructive" />
+              <span className="text-xs text-destructive">Offline</span>
             </div>
           )}
         </div>
@@ -111,7 +114,7 @@ export const ModelComparisonCard = ({
                   variant="ghost"
                   size="icon"
                   onClick={onExpand}
-                  className="h-8 w-8"
+                  className="h-8 w-8 hover:bg-muted"
                 >
                   <Maximize2 className="h-4 w-4" />
                 </Button>
@@ -126,12 +129,9 @@ export const ModelComparisonCard = ({
                 
       <ScrollArea 
         ref={scrollAreaRef}
-        className="flex-1 p-4 space-y-0 bg-gradient-to-b from-muted/20 to-background"
-        style={{
-          '--scrollbar-color': primaryColor + '50',
-        } as React.CSSProperties}
+        className="flex-1 bg-background"
       >
-        <div className="space-y-4 pr-2" ref={messageContainerRef}>
+        <div className="p-6 space-y-6" ref={messageContainerRef}>
           {messages.map((message) => {
             if (message.sender === 'user') {
               return <UserMessage key={message.id} message={message} />;
@@ -154,10 +154,13 @@ export const ModelComparisonCard = ({
           })}
           
           {messages.length === 0 && (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center text-muted-foreground p-4">
-                <Bot className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-                <p className="text-sm">Send a message to see responses from this model</p>
+            <div className="h-full flex items-center justify-center py-16">
+              <div className="text-center text-muted-foreground">
+                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <Bot className="h-8 w-8 text-muted-foreground/50" />
+                </div>
+                <p className="text-sm font-medium mb-1">Ready to assist</p>
+                <p className="text-xs text-muted-foreground/60">Send a message to start the conversation</p>
               </div>
             </div>
           )}

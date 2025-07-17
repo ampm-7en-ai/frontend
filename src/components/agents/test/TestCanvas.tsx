@@ -80,7 +80,7 @@ export const TestCanvas = ({
       {/* Add the dotted background pattern styling */}
       <style dangerouslySetInnerHTML={{ __html: dottedBackgroundStyle }} />
       
-      <div className="h-full flex flex-col dotted-background">
+      <div className="h-full flex flex-col dotted-background relative">
         {/* Canvas Header */}
         <div className="h-14 px-4 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -166,7 +166,7 @@ export const TestCanvas = ({
         </div>
 
         {/* Model Cards Container - Constrained Width Grid */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden pb-24">
           <div className="h-full max-w-7xl mx-auto p-4 overflow-auto">
             <div className={`grid gap-4 h-fit ${getGridCols()}`}>
               {Array(numModels).fill(null).map((_, index) => {
@@ -193,9 +193,9 @@ export const TestCanvas = ({
                       primaryColor={primaryColor}
                       avatarSrc={agent?.avatarSrc}
                       isConnected={modelConnections[index]}
-                      className={`${isExpanded ? 'h-[720px]' : 'h-[780px]'} ${
+                      className={`${isExpanded ? 'h-[720px]' : ''} ${
                         isSelected ? 'ring-2 ring-primary ring-offset-2' : ''
-                      } bg-card/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30 hover:ring-offset-1`}
+                      }`}
                       showExpandButton={true}
                       onExpand={() => toggleCardExpansion(index)}
                       isExpanded={isExpanded}
@@ -207,9 +207,9 @@ export const TestCanvas = ({
           </div>
         </div>
 
-        {/* Chat Input */}
-        <div className="h-16 p-4 bg-background/80 backdrop-blur-sm border-t border-border">
-          <div className="max-w-7xl mx-auto">
+        {/* Floating Chat Input */}
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-4">
+          <div className="bg-background/95 backdrop-blur-sm border border-border rounded-2xl shadow-lg p-4">
             <ChatInput 
               onSendMessage={onSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}
