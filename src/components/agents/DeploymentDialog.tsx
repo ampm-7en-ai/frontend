@@ -20,7 +20,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('shareable');
-  const [selectedIframeMode, setSelectedIframeMode] = useState('fullscreen');
+  const [selectedInlineStyle, setSelectedInlineStyle] = useState('style1');
 
   // Build the links and code based on the agent ID using the new route format
   const shareableLink = `${window.location.origin}/chat/preview/${agent.id}`;
@@ -83,8 +83,9 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
 
   const tabs = [
     { id: 'shareable', label: 'Shareable Link' },
-    { id: 'iframe', label: 'Embed Iframe' },
-    { id: 'script', label: 'Embed Script' }
+    { id: 'widget', label: 'Widget' },
+    { id: 'popup', label: 'Popup' },
+    { id: 'inline', label: 'Inline' }
   ];
 
   const renderTabContent = () => {
@@ -137,80 +138,15 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
           </div>
         );
 
-      case 'iframe':
-        const iframeModes = [
-          { id: 'fullscreen', label: 'Fullscreen', code: iframeFullscreen, description: 'Full page chatbot interface' },
-          { id: 'inline', label: 'Inline', code: iframeInline, description: 'Embedded directly in your page content' },
-          { id: 'popup', label: 'Popup', code: iframePopup, description: 'Popup modal style interface' },
-          { id: 'embedded', label: 'Floating Widget', code: iframeEmbedded, description: 'Fixed floating chat widget' }
-        ];
-        
-        const currentMode = iframeModes.find(mode => mode.id === selectedIframeMode) || iframeModes[0];
-        
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Code className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Embed as Iframe</h3>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              Choose a view mode and copy the code to embed the chatbot on your website:
-            </p>
-            
-            {/* Mode Selection */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {iframeModes.map((mode) => (
-                <button
-                  key={mode.id}
-                  onClick={() => setSelectedIframeMode(mode.id)}
-                  className={`p-3 text-left rounded-lg border transition-all ${
-                    selectedIframeMode === mode.id
-                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600'
-                  }`}
-                >
-                  <div className="font-medium text-sm">{mode.label}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{mode.description}</div>
-                </button>
-              ))}
-            </div>
-            
-            <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-              <pre className="p-4 text-xs overflow-x-auto font-mono text-slate-700 dark:text-slate-300">
-                {currentMode.code}
-              </pre>
-              <ModernButton 
-                variant="ghost" 
-                size="sm"
-                className="absolute right-2 top-2 h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
-                onClick={() => handleCopy(currentMode.code, 'iframe', `${currentMode.label} iframe code copied to clipboard`)}
-                iconOnly
-              >
-                {copied === 'iframe' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
-              </ModernButton>
-            </Card>
-            
-            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
-              <h4 className="text-sm font-medium mb-2 text-green-900 dark:text-green-100">Instructions</h4>
-              <ol className="text-sm space-y-2 text-green-700 dark:text-green-300 list-decimal pl-4">
-                <li>Select your preferred view mode above.</li>
-                <li>Copy the generated code snippet.</li>
-                <li>Paste it into your website's HTML where you want the chatbot to appear.</li>
-                <li>Adjust dimensions and styling as needed for your layout.</li>
-              </ol>
-            </div>
-          </div>
-        );
-
-      case 'script':
+      case 'widget':
         return (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Code className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Embed Script</h3>
+              <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Embed Widget Script</h3>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              Add this script to your website to show a chat bubble:
+              Add this script to your website to show a chat bubble widget:
             </p>
             
             <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
@@ -221,7 +157,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
                 variant="ghost" 
                 size="sm"
                 className="absolute right-2 top-2 h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
-                onClick={() => handleCopy(embedScript, 'script', "Script code copied to clipboard")}
+                onClick={() => handleCopy(embedScript, 'script', "Widget script copied to clipboard")}
                 iconOnly
               >
                 {copied === 'script' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
@@ -233,7 +169,127 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               <ol className="text-sm space-y-2 text-purple-700 dark:text-purple-300 list-decimal pl-4">
                 <li>Copy the script snippet above.</li>
                 <li>Paste it before the closing &lt;/body&gt; tag in your website's HTML.</li>
-                <li>A chat bubble will appear in the bottom right corner of your website.</li>
+                <li>A chat widget will appear in the bottom corner of your website.</li>
+              </ol>
+            </div>
+          </div>
+        );
+
+      case 'popup':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Code className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Popup Iframe</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              Embed the chatbot as a popup modal on your website:
+            </p>
+            
+            <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+              <pre className="p-4 text-xs overflow-x-auto font-mono text-slate-700 dark:text-slate-300">
+                {iframePopup}
+              </pre>
+              <ModernButton 
+                variant="ghost" 
+                size="sm"
+                className="absolute right-2 top-2 h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
+                onClick={() => handleCopy(iframePopup, 'popup', "Popup iframe code copied to clipboard")}
+                iconOnly
+              >
+                {copied === 'popup' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
+              </ModernButton>
+            </Card>
+            
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
+              <h4 className="text-sm font-medium mb-2 text-green-900 dark:text-green-100">Instructions</h4>
+              <ol className="text-sm space-y-2 text-green-700 dark:text-green-300 list-decimal pl-4">
+                <li>Copy the iframe code above.</li>
+                <li>Paste it into your website's HTML where you want the popup to appear.</li>
+                <li>The chatbot will display as a popup modal interface.</li>
+              </ol>
+            </div>
+          </div>
+        );
+
+      case 'inline':
+        const inlineStyle1Code = `<iframe
+  src="${window.location.origin}/chat/assistant/${agent.id}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allow="microphone"
+></iframe>`;
+
+        const inlineStyle2Code = `<iframe
+  src="${window.location.origin}/chat/preview/${agent.id}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allow="microphone"
+></iframe>`;
+
+        const currentInlineCode = selectedInlineStyle === 'style1' ? inlineStyle1Code : inlineStyle2Code;
+        const currentStyleLabel = selectedInlineStyle === 'style1' ? 'Assistant Interface' : 'Preview Interface';
+        
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Code className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Inline Iframe</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              Embed the chatbot directly in your page content with different styles:
+            </p>
+            
+            {/* Style Selection */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button
+                onClick={() => setSelectedInlineStyle('style1')}
+                className={`p-3 text-left rounded-lg border transition-all ${
+                  selectedInlineStyle === 'style1'
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-900 dark:text-orange-100'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600'
+                }`}
+              >
+                <div className="font-medium text-sm">Style 1</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assistant Interface</div>
+              </button>
+              <button
+                onClick={() => setSelectedInlineStyle('style2')}
+                className={`p-3 text-left rounded-lg border transition-all ${
+                  selectedInlineStyle === 'style2'
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-900 dark:text-orange-100'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600'
+                }`}
+              >
+                <div className="font-medium text-sm">Style 2</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Preview Interface</div>
+              </button>
+            </div>
+            
+            <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+              <pre className="p-4 text-xs overflow-x-auto font-mono text-slate-700 dark:text-slate-300">
+                {currentInlineCode}
+              </pre>
+              <ModernButton 
+                variant="ghost" 
+                size="sm"
+                className="absolute right-2 top-2 h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
+                onClick={() => handleCopy(currentInlineCode, 'inline', `${currentStyleLabel} code copied to clipboard`)}
+                iconOnly
+              >
+                {copied === 'inline' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
+              </ModernButton>
+            </Card>
+            
+            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800">
+              <h4 className="text-sm font-medium mb-2 text-orange-900 dark:text-orange-100">Instructions</h4>
+              <ol className="text-sm space-y-2 text-orange-700 dark:text-orange-300 list-decimal pl-4">
+                <li>Select your preferred style above.</li>
+                <li>Copy the generated iframe code.</li>
+                <li>Paste it into your website's HTML where you want the chatbot to appear.</li>
+                <li>The chatbot will be embedded directly in your page content.</li>
               </ol>
             </div>
           </div>

@@ -14,6 +14,7 @@ export const InteractiveCanvas = () => {
   const { agentData, canvasMode, isPreviewActive, isLoading } = state;
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState('style1');
   const { theme } = useAppTheme();
 
   const currentAgentId = agentData.id ? agentData.id.toString() : null;
@@ -181,7 +182,9 @@ export const InteractiveCanvas = () => {
     }
 
     if (canvasMode === 'inline') {
-      const assistantUrl = `${window.location.origin}/chat/assistant/${currentAgentId}`;
+      const assistantUrl = selectedStyle === 'style1' 
+        ? `${window.location.origin}/chat/assistant/${currentAgentId}`
+        : `${window.location.origin}/chat/preview/${currentAgentId}`;
       
       return (
         <div className="h-full w-full relative overflow-hidden">
@@ -203,6 +206,24 @@ export const InteractiveCanvas = () => {
                     <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
                   </div>
                 </div>
+                
+                {/* Style Selection Buttons */}
+                <div className="mt-6 flex gap-2">
+                  <ModernButton
+                    size="sm"
+                    variant={selectedStyle === 'style1' ? 'primary' : 'outline'}
+                    onClick={() => setSelectedStyle('style1')}
+                  >
+                    Style 1
+                  </ModernButton>
+                  <ModernButton
+                    size="sm"
+                    variant={selectedStyle === 'style2' ? 'primary' : 'outline'}
+                    onClick={() => setSelectedStyle('style2')}
+                  >
+                    Style 2
+                  </ModernButton>
+                </div>
               </div>
               
               {/* Right Column - Assistant Chat */}
@@ -216,7 +237,7 @@ export const InteractiveCanvas = () => {
                     allow="microphone"
                     className="w-full h-full"
                     title="Assistant Chat"
-                    key={`${currentAgentId}-${theme}-assistant`}
+                    key={`${currentAgentId}-${theme}-${selectedStyle}`}
                   />
                 )}
               </div>
