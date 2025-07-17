@@ -88,6 +88,7 @@ const SearchAssistant = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useAppTheme();
   const { toast } = useToast();
   
@@ -174,16 +175,6 @@ const SearchAssistant = () => {
         };
         
         setChatHistory(prev => [...prev, newMessage]);
-        
-        // Auto-scroll to bottom in chat mode
-        setTimeout(() => {
-          if (chatScrollRef.current) {
-            chatScrollRef.current.scrollTo({
-              top: chatScrollRef.current.scrollHeight,
-              behavior: 'smooth'
-            });
-          }
-        }, 100);
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
@@ -224,6 +215,16 @@ const SearchAssistant = () => {
       }
     };
   }, [agentId, toast]);
+
+  // Auto-scroll to bottom when chat history changes
+  useEffect(() => {
+    if (mode === 'chat' && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  }, [chatHistory, isProcessing, mode]);
 
   const startThinkingAnimation = () => {
     // Clear any existing interval
@@ -681,6 +682,9 @@ const SearchAssistant = () => {
                         </div>
                       </div>
                     )}
+                    
+                    {/* Invisible div for auto-scroll anchor */}
+                    <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
               </div>
