@@ -334,10 +334,25 @@ const SearchAssistant = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isPopupMode && containerRef.current && !containerRef.current.contains(event.target as Node)) {
         if (hasInteracted) {
+          // Reset all state
           setHasInteracted(false);
           setShowSuggestions(false);
           setChatHistory([]);
           setQuery('');
+          setSearchLoading(false);
+          setShowCentralLoader(false);
+          clearThinkingInterval();
+          
+          // Disconnect WebSocket
+          if (chatServiceRef.current) {
+            chatServiceRef.current.disconnect();
+            // Reconnect for future use
+            setTimeout(() => {
+              if (chatServiceRef.current) {
+                chatServiceRef.current.connect();
+              }
+            }, 100);
+          }
         } else if (showSuggestions) {
           setShowSuggestions(false);
         }
@@ -633,8 +648,8 @@ const SearchAssistant = () => {
             <div className="relative">
               {/* Input and suggestions wrapper with drop shadow */}
               <div 
-                className={`relative transition-all duration-300 ${
-                  showSuggestions ? 'rounded-2xl shadow-2xl border' : ''
+                className={`relative transition-all duration-500 ease-out ${
+                  showSuggestions ? 'rounded-3xl shadow-2xl border' : ''
                 }`}
                 style={{
                   backgroundColor: showSuggestions ? cardBgColor : 'transparent',
@@ -651,8 +666,8 @@ const SearchAssistant = () => {
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyPress}
                     onClick={handleInputClick}
-                    className={`pr-12 py-4 text-lg border-2 focus:ring-2 transition-all duration-200 ${
-                      showSuggestions ? 'rounded-t-2xl border-b-0' : 'rounded-2xl shadow-lg'
+                    className={`pr-16 py-6 text-xl border-2 focus:ring-2 transition-all duration-500 ease-out ${
+                      showSuggestions ? 'rounded-t-3xl border-b-0' : 'rounded-3xl shadow-xl'
                     }`}
                     style={{
                       backgroundColor: inputBgColor,
@@ -664,7 +679,7 @@ const SearchAssistant = () => {
                   <Button
                     onClick={handleSearch}
                     disabled={!query.trim() || searchLoading}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 rounded-full p-0 shadow-md"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-12 w-12 rounded-full p-0 shadow-lg"
                     style={{
                       backgroundColor: primaryColor,
                       borderColor: primaryColor
@@ -673,7 +688,7 @@ const SearchAssistant = () => {
                     {searchLoading ? (
                       <LoadingSpinner size="sm" />
                     ) : (
-                      <ArrowUp className="h-5 w-5 text-white" />
+                      <ArrowUp className="h-6 w-6 text-white" />
                     )}
                   </Button>
                 </div>
@@ -681,7 +696,7 @@ const SearchAssistant = () => {
                 {/* Suggestions dropdown */}
                 {showSuggestions && (
                   <div 
-                    className="border-t-0 rounded-b-2xl overflow-hidden"
+                    className="border-t-0 rounded-b-3xl overflow-hidden"
                     style={{
                       backgroundColor: cardBgColor,
                       borderColor: borderColor
@@ -691,23 +706,23 @@ const SearchAssistant = () => {
                       <button
                         key={index}
                         onClick={() => handleSelectExample(suggestion)}
-                        className="w-full p-4 text-left border-b last:border-b-0 hover:bg-opacity-80 transition-all duration-200 text-sm"
+                        className="w-full px-6 py-3 text-left border-b last:border-b-0 hover:bg-opacity-80 transition-all duration-300 ease-out text-sm"
                         style={{
                           backgroundColor: 'transparent',
-                          borderColor: `${borderColor}50`,
+                          borderColor: `${borderColor}30`,
                           color: textColor
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = `${primaryColor}10`;
+                          e.currentTarget.style.backgroundColor = `${primaryColor}08`;
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent';
                         }}
                       >
                         <div className="flex items-center justify-between">
-                          <span>{suggestion}</span>
+                          <span className="leading-relaxed">{suggestion}</span>
                           <ArrowUp 
-                            className="h-4 w-4 transform rotate-45 opacity-40"
+                            className="h-3 w-3 transform rotate-45 opacity-30 transition-opacity duration-200"
                             style={{ color: primaryColor }}
                           />
                         </div>
@@ -719,8 +734,8 @@ const SearchAssistant = () => {
 
               {/* Loading overlay when processing suggestion */}
               {searchLoading && showCentralLoader && (
-                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-2xl flex items-center justify-center">
-                  <div className="bg-white rounded-lg p-4 shadow-lg flex items-center gap-3"
+                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-3xl flex items-center justify-center transition-all duration-300">
+                  <div className="bg-white rounded-xl p-4 shadow-xl flex items-center gap-3"
                     style={{
                       backgroundColor: cardBgColor,
                       color: textColor
