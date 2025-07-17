@@ -466,28 +466,24 @@ const SearchAssistant = () => {
             transform: mode === 'chat' ? 'scale(1.02)' : 'scale(1)',
           }}
         >
-          {/* Enhanced header with theme toggle - visible in suggestions and chat modes */}
-          {mode !== 'initial' && (
+          {/* Enhanced header with theme toggle - only visible in chat mode */}
+          {mode === 'chat' && (
             <div className="flex items-center justify-between p-4 border-b animate-fade-in"
               style={{ borderColor: borderColor }}
             >
-              {mode === 'chat' ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackToInitial}
-                  className="flex items-center gap-2 hover-scale transition-all duration-200"
-                  style={{ 
-                    color: textColor,
-                    backgroundColor: `${primaryColor}10`,
-                  }}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="text-sm">Back</span>
-                </Button>
-              ) : (
-                <div className="w-16" /> // Spacer for centering
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToInitial}
+                className="flex items-center gap-2 hover-scale transition-all duration-200"
+                style={{ 
+                  color: textColor,
+                  backgroundColor: `${primaryColor}10`,
+                }}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-sm">Back</span>
+              </Button>
               
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium text-center">{config.chatbotName}</span>
@@ -774,7 +770,7 @@ const SearchAssistant = () => {
                   <Button
                     onClick={handleSearch}
                     disabled={!query.trim() || isProcessing}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-11 w-11 rounded-full p-0 shadow-lg hover-scale transition-all duration-300"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-full p-0 shadow-lg hover-scale transition-all duration-300"
                     style={{
                       backgroundColor: primaryColor,
                       borderColor: primaryColor
