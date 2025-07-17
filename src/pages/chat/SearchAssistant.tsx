@@ -435,7 +435,7 @@ const SearchAssistant = () => {
             hasInteracted 
               ? 'w-full max-w-4xl h-[50vh] rounded-2xl shadow-2xl border' 
               : showSuggestions
-              ? 'w-full max-w-lg rounded-2xl shadow-2xl border'
+              ? 'w-full max-w-lg rounded-3xl shadow-2xl border'
               : 'w-full max-w-lg'
           }`}
           style={{
@@ -443,191 +443,209 @@ const SearchAssistant = () => {
             borderColor: (hasInteracted || showSuggestions) ? borderColor : 'transparent'
           }}
         >
-          {/* Back arrow - only visible when expanded */}
+          {/* Header with theme toggle and back arrow - only visible when expanded */}
           {hasInteracted && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-4 left-4 z-10"
-              onClick={handleBackToInitial}
-              style={{ color: textColor }}
+            <div className="flex items-center justify-between p-4 border-b"
+              style={{ borderColor: borderColor }}
             >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToInitial}
+                style={{ color: textColor }}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-sm">Back</span>
+              </Button>
+              
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium">{config.chatbotName}</span>
+                <button 
+                  onClick={toggleTheme} 
+                  className="p-2 rounded-full hover:bg-opacity-80 transition-colors"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  {currentTheme === 'dark' ? (
+                    <Sun size={16} style={{ color: textColor }} />
+                  ) : (
+                    <Moon size={16} style={{ color: textColor }} />
+                  )}
+                </button>
+              </div>
+            </div>
           )}
 
           {/* Chat content area - only visible after interaction */}
           {hasInteracted && (
-            <div className="flex flex-col h-full pt-12">
-              {/* Chat history */}
+            <div className="flex flex-col h-full">
+              {/* Chat history and loading section */}
               <div className="flex-1 overflow-hidden">
-                {chatHistory.length > 0 && (
-                  <ScrollArea className="h-full">
-                    <div className="p-6 space-y-5">
-                      {chatHistory.map((message, index) => {
-                        if (message.type === 'user') {
-                          return (
-                            <div key={message.id} className="flex items-start gap-2">
-                              <Avatar className="h-8 w-8 mt-1">
-                                <AvatarFallback className="bg-gray-200">
-                                  <User className="h-4 w-4" />
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="pl-[10px] pt-[8px]">
-                                <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
-                                  {message.content}
-                                </p>
-                              </div>
+                <ScrollArea className="h-full">
+                  <div className="p-6 space-y-5">
+                    {chatHistory.map((message, index) => {
+                      if (message.type === 'user') {
+                        return (
+                          <div key={message.id} className="flex items-start gap-2">
+                            <Avatar className="h-8 w-8 mt-1">
+                              <AvatarFallback className="bg-gray-200">
+                                <User className="h-4 w-4" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="pl-[10px] pt-[8px]">
+                              <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
+                                {message.content}
+                              </p>
                             </div>
-                          );
-                        } else if (message.type === 'bot_response') {
-                          return (
-                            <div key={message.id} className="flex items-start gap-2">
-                              <Avatar className="h-8 w-8 mt-1" style={{
+                          </div>
+                        );
+                      } else if (message.type === 'bot_response') {
+                        return (
+                          <div key={message.id} className="flex items-start gap-2">
+                            <Avatar className="h-8 w-8 mt-1" style={{
+                              backgroundColor: primaryColor
+                            }}>
+                              {config.avatarUrl ? (
+                                <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                              ) : null}
+                              <AvatarFallback style={{
                                 backgroundColor: primaryColor
                               }}>
-                                {config.avatarUrl ? (
-                                  <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
-                                ) : null}
-                                <AvatarFallback style={{
-                                  backgroundColor: primaryColor
-                                }}>
-                                  <Bot className="h-4 w-4 text-white" />
-                                </AvatarFallback>
-                              </Avatar>
+                                <Bot className="h-4 w-4 text-white" />
+                              </AvatarFallback>
+                            </Avatar>
 
-                              <div className="flex-1 pl-[10px] pt-[5px]">
-                                <div className="prose prose-sm max-w-none break-words" style={{ 
-                                  color: isDarkTheme ? '#bdbdbd' : '#333333',
-                                }}>
-                                  <ReactMarkdown
-                                    components={{
-                                      code({ node, className, children, ...props }) {
-                                        const match = /language-(\w+)/.exec(className || '');
-                                        const language = match ? match[1] : '';
-                                        
-                                        const isInline = !match && children.toString().split('\n').length === 1;
-                                        
-                                        if (isInline) {
-                                          return (
-                                            <code
-                                              className="px-1 py-0.5 rounded font-mono text-xs"
-                                              style={{ 
-                                                backgroundColor: inlineCodeBg,
-                                                color: codeTextColor
-                                              }}
-                                              {...props}
-                                            >
-                                              {children}
-                                            </code>
-                                          );
-                                        }
-                                        
+                            <div className="flex-1 pl-[10px] pt-[5px]">
+                              <div className="prose prose-sm max-w-none break-words" style={{ 
+                                color: isDarkTheme ? '#bdbdbd' : '#333333',
+                              }}>
+                                <ReactMarkdown
+                                  components={{
+                                    code({ node, className, children, ...props }) {
+                                      const match = /language-(\w+)/.exec(className || '');
+                                      const language = match ? match[1] : '';
+                                      
+                                      const isInline = !match && children.toString().split('\n').length === 1;
+                                      
+                                      if (isInline) {
                                         return (
-                                          <div className="my-2">
-                                            <pre
-                                              className="p-3 rounded overflow-x-auto text-xs"
-                                              style={{ 
-                                                backgroundColor: codeBackgroundColor,
-                                                color: codeTextColor
-                                              }}
-                                            >
-                                              <code className={className} {...props}>
-                                                {children}
-                                              </code>
-                                            </pre>
-                                          </div>
-                                        );
-                                      },
-                                      p({ children }) {
-                                        return <p className="mb-2 text-sm leading-relaxed">{children}</p>;
-                                      },
-                                      ul({ children }) {
-                                        return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
-                                      },
-                                      ol({ children }) {
-                                        return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
-                                      },
-                                      li({ children }) {
-                                        return <li className="text-sm">{children}</li>;
-                                      },
-                                      h1({ children }) {
-                                        return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;
-                                      },
-                                      h2({ children }) {
-                                        return <h2 className="text-base font-bold mb-2" style={{ color: primaryColor }}>{children}</h2>;
-                                      },
-                                      h3({ children }) {
-                                        return <h3 className="text-sm font-bold mb-2" style={{ color: primaryColor }}>{children}</h3>;
-                                      },
-                                      a({ href, children }) {
-                                        return (
-                                          <a 
-                                            href={href} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="underline hover:no-underline transition-all duration-200"
-                                            style={{ color: linkColor }}
+                                          <code
+                                            className="px-1 py-0.5 rounded font-mono text-xs"
+                                            style={{ 
+                                              backgroundColor: inlineCodeBg,
+                                              color: codeTextColor
+                                            }}
+                                            {...props}
                                           >
                                             {children}
-                                          </a>
+                                          </code>
                                         );
-                                      },
-                                      strong({ children }) {
-                                        return <strong style={{ color: strongTagColor }}>{children}</strong>;
                                       }
-                                    }}
-                                  >
-                                    {message.content}
-                                  </ReactMarkdown>
-                                </div>
+                                      
+                                      return (
+                                        <div className="my-2">
+                                          <pre
+                                            className="p-3 rounded overflow-x-auto text-xs"
+                                            style={{ 
+                                              backgroundColor: codeBackgroundColor,
+                                              color: codeTextColor
+                                            }}
+                                          >
+                                            <code className={className} {...props}>
+                                              {children}
+                                            </code>
+                                          </pre>
+                                        </div>
+                                      );
+                                    },
+                                    p({ children }) {
+                                      return <p className="mb-2 text-sm leading-relaxed">{children}</p>;
+                                    },
+                                    ul({ children }) {
+                                      return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
+                                    },
+                                    ol({ children }) {
+                                      return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
+                                    },
+                                    li({ children }) {
+                                      return <li className="text-sm">{children}</li>;
+                                    },
+                                    h1({ children }) {
+                                      return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;
+                                    },
+                                    h2({ children }) {
+                                      return <h2 className="text-base font-bold mb-2" style={{ color: primaryColor }}>{children}</h2>;
+                                    },
+                                    h3({ children }) {
+                                      return <h3 className="text-sm font-bold mb-2" style={{ color: primaryColor }}>{children}</h3>;
+                                    },
+                                    a({ href, children }) {
+                                      return (
+                                        <a 
+                                          href={href} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="underline hover:no-underline transition-all duration-200"
+                                          style={{ color: linkColor }}
+                                        >
+                                          {children}
+                                        </a>
+                                      );
+                                    },
+                                    strong({ children }) {
+                                      return <strong style={{ color: strongTagColor }}>{children}</strong>;
+                                    }
+                                  }}
+                                >
+                                  {message.content}
+                                </ReactMarkdown>
                               </div>
                             </div>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
-                  </ScrollArea>
-                )}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
 
-                {/* Thinking/Loading indicator */}
-                {searchLoading && (
-                  <div className="flex items-start gap-2 p-4" style={{ color: textColor }}>
-                    <Avatar className="h-8 w-8 mt-1" style={{
-                      backgroundColor: primaryColor
-                    }}>
-                      {config.avatarUrl ? (
-                        <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
-                      ) : null}
-                      <AvatarFallback style={{
-                        backgroundColor: primaryColor
-                      }}>
-                        <Bot className="h-4 w-4 text-white" />
-                      </AvatarFallback>
-                    </Avatar>
+                    {/* Thinking/Loading indicator */}
+                    {searchLoading && (
+                      <div className="flex items-start gap-2" style={{ color: textColor }}>
+                        <Avatar className="h-8 w-8 mt-1" style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          {config.avatarUrl ? (
+                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                          ) : null}
+                          <AvatarFallback style={{
+                            backgroundColor: primaryColor
+                          }}>
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </Avatar>
 
-                    <div className="flex flex-col gap-2 pl-[10px] pt-[5px]">
-                      <div className="flex items-center">
-                        <div className="mr-3 flex items-center">
-                          <div 
-                            className="w-2 h-2 rounded-full mr-1 animate-pulse"
-                            style={{ backgroundColor: primaryColor }}
-                          ></div>
-                          <div 
-                            className="w-2 h-2 rounded-full mr-1 animate-pulse delay-100"
-                            style={{ backgroundColor: primaryColor }}
-                          ></div>
-                          <div 
-                            className="w-2 h-2 rounded-full animate-pulse delay-200"
-                            style={{ backgroundColor: primaryColor }}
-                          ></div>
+                        <div className="flex flex-col gap-2 pl-[10px] pt-[5px]">
+                          <div className="flex items-center">
+                            <div className="mr-3 flex items-center">
+                              <div 
+                                className="w-2 h-2 rounded-full mr-1 animate-pulse"
+                                style={{ backgroundColor: primaryColor }}
+                              ></div>
+                              <div 
+                                className="w-2 h-2 rounded-full mr-1 animate-pulse delay-100"
+                                style={{ backgroundColor: primaryColor }}
+                              ></div>
+                              <div 
+                                className="w-2 h-2 rounded-full animate-pulse delay-200"
+                                style={{ backgroundColor: primaryColor }}
+                              ></div>
+                            </div>
+                          </div>
+                          <p className="text-xs opacity-70" style={{ color: textColor }}>{thinkingMessage}</p>
                         </div>
                       </div>
-                      <p className="text-xs opacity-70" style={{ color: textColor }}>{thinkingMessage}</p>
-                    </div>
+                    )}
                   </div>
-                )}
+                </ScrollArea>
               </div>
 
               {/* Input bar at bottom of container */}
