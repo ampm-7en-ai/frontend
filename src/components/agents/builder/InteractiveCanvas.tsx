@@ -138,58 +138,41 @@ export const InteractiveCanvas = () => {
     }
 
     if (canvasMode === 'popup') {
+      const popupUrl = currentAgentId 
+        ? `${window.location.origin}/chat/assistant/${currentAgentId}?type=popup`
+        : null;
+
       return (
         <div className="h-full w-full relative overflow-hidden">
           {/* Canvas boundary container */}
           <div className="absolute inset-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20 rounded-2xl shadow-2xl border border-blue-200/50 dark:border-gray-700/50">
             <div className="p-6 h-full relative">
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-xl shadow-xl h-full p-6 border border-white/40 dark:border-gray-700/40 relative">
-                {/* Ask AI search bar - centered within canvas */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4 z-10">
-                  <div 
-                    onClick={() => setIsAskAiOpen(true)}
-                    className="relative cursor-pointer group"
-                  >
-                    <Input
-                      placeholder={`Ask ${agentData.chatbotName || 'AI'} anything...`}
-                      className="w-full h-14 pr-14 text-base shadow-xl border-2 hover:border-primary/50 transition-all duration-300 group-hover:shadow-2xl rounded-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm"
-                      style={{
-                        borderColor: `${agentData.primaryColor}40`,
-                        fontFamily: agentData.fontFamily
-                      }}
-                      readOnly
-                    />
-                    <Button 
-                      size="sm" 
-                      className="absolute right-2 top-2 h-10 w-10 p-0 rounded-full shadow-lg"
-                      style={{ 
-                        backgroundColor: agentData.primaryColor,
-                        fontFamily: agentData.fontFamily
-                      }}
-                    >
-                      <Search className="h-5 w-5" />
-                    </Button>
+              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-xl shadow-xl h-full border border-white/40 dark:border-gray-700/40 relative overflow-hidden">
+                {/* Live popup preview via iframe */}
+                {!isLoading && popupUrl ? (
+                  <iframe
+                    src={popupUrl}
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    allow="microphone"
+                    className="w-full h-full rounded-xl"
+                    title="Popup Assistant Preview"
+                    key={`${currentAgentId}-${theme}-popup`}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 shadow-xl">
+                      <div className="text-6xl mb-4 animate-pulse">🚀</div>
+                      <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {isLoading ? 'Loading popup preview...' : 'Agent not available'}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {isLoading ? 'Setting up your agent popup interface' : 'Configure your agent to see the popup preview'}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-3 font-medium" style={{ fontFamily: agentData.fontFamily }}>
-                    Click to open {agentData.chatbotName || 'AI assistant'}
-                  </p>
-                </div>
-
-                {/* Background content */}
-                <div className="space-y-6 opacity-30">
-                  <div className="space-y-3">
-                    <div className="h-6 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-gray-600 dark:to-gray-500 rounded-lg w-3/4 animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-1/2 animate-pulse"></div>
-                  </div>
-                  <div className="h-40 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-xl relative overflow-hidden shadow-inner">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 to-purple-400/30"></div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

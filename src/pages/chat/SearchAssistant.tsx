@@ -457,7 +457,7 @@ const SearchAssistant = () => {
             mode === 'chat'
               ? 'w-full max-w-4xl h-[70vh] rounded-2xl shadow-2xl border animate-scale-in' 
               : mode === 'suggestions'
-              ? 'w-full max-w-lg rounded-3xl shadow-2xl border animate-fade-in'
+              ? 'w-full max-w-lg rounded-3xl shadow-2xl border animate-fade-in p-[5px]'
               : 'w-full max-w-lg animate-fade-in'
           }`}
           style={{
