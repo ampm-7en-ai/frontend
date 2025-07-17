@@ -3,6 +3,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Database, 
   History, 
@@ -14,14 +18,29 @@ import {
   FileText,
   Brain,
   Clock,
-  Bookmark
+  Bookmark,
+  Cpu,
+  Zap,
+  Copy,
+  RotateCcw,
+  Gauge,
+  MessageSquare
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAIModels } from '@/hooks/useAIModels';
 
 interface TestLeftPanelProps {
   agent?: any;
   onViewKnowledgeSources: () => void;
   knowledgeSourceCount: number;
+  selectedModelIndex: number;
+  numModels: number;
+  chatConfigs: any[];
+  onUpdateChatConfig: (index: number, field: string, value: any) => void;
+  onSelectModel: (index: number) => void;
+  onAddModel: () => void;
+  onRemoveModel: () => void;
+  onCloneConfig: (index: number) => void;
 }
 
 const getIconForType = (type: string) => {
@@ -53,9 +72,22 @@ const getBadgeForStatus = (status: string) => {
   }
 };
 
-export const TestLeftPanel = ({ agent, onViewKnowledgeSources, knowledgeSourceCount }: TestLeftPanelProps) => {
-  const [activeSection, setActiveSection] = useState('knowledge');
+export const TestLeftPanel = ({ 
+  agent, 
+  onViewKnowledgeSources, 
+  knowledgeSourceCount,
+  selectedModelIndex,
+  numModels,
+  chatConfigs,
+  onUpdateChatConfig,
+  onSelectModel,
+  onAddModel,
+  onRemoveModel,
+  onCloneConfig
+}: TestLeftPanelProps) => {
+  const [activeSection, setActiveSection] = useState('models');
   const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
+  const { modelOptionsForDropdown } = useAIModels();
 
   const toggleSourceExpansion = (sourceId: number) => {
     const newExpanded = new Set(expandedSources);
@@ -68,10 +100,73 @@ export const TestLeftPanel = ({ agent, onViewKnowledgeSources, knowledgeSourceCo
   };
 
   const sections = [
+    { id: 'models', label: 'Model Configuration', icon: Cpu },
     { id: 'knowledge', label: 'Knowledge Base', icon: Database },
     { id: 'history', label: 'Test History', icon: History },
-    { id: 'settings', label: 'Test Settings', icon: Settings },
   ];
+
+  const currentConfig = chatConfigs[selectedModelIndex] || {};
+
+  const configPresets = [
+    {
+      name: 'Creative Writing',
+      icon: MessageSquare,
+      config: {
+        temperature: 1.2,
+        maxLength: 500,
+        systemPrompt: 'You are a creative writing assistant that helps with storytelling, character development, and narrative structure. Be imaginative and inspiring.'
+      }
+    },
+    {
+      name: 'Technical Support',
+      icon: Settings,
+      config: {
+        temperature: 0.3,
+        maxLength: 300,
+        systemPrompt: 'You are a technical support specialist. Provide clear, step-by-step solutions and accurate technical information. Be precise and helpful.'
+      }
+    },
+    {
+      name: 'Analytical',
+      icon: Brain,
+      config: {
+        temperature: 0.5,
+        maxLength: 400,
+        systemPrompt: 'You are an analytical assistant that breaks down complex problems and provides structured, logical responses with clear reasoning.'
+      }
+    },
+    {
+      name: 'Conversational',
+      icon: MessageSquare,
+      config: {
+        temperature: 0.8,
+        maxLength: 250,
+        systemPrompt: 'You are a friendly conversational assistant. Be engaging, personable, and helpful while maintaining a natural dialogue tone.'
+      }
+    }
+  ];
+
+  const applyPreset = (preset: any) => {
+    Object.entries(preset.config).forEach(([field, value]) => {
+      onUpdateChatConfig(selectedModelIndex, field, value);
+    });
+  };
+
+  const applyToAllModels = () => {
+    for (let i = 0; i < numModels; i++) {
+      if (i !== selectedModelIndex) {
+        Object.entries(currentConfig).forEach(([field, value]) => {
+          onUpdateChatConfig(i, field, value);
+        });
+      }
+    }
+  };
+
+  const resetConfig = () => {
+    onUpdateChatConfig(selectedModelIndex, 'temperature', 0.7);
+    onUpdateChatConfig(selectedModelIndex, 'maxLength', 150);
+    onUpdateChatConfig(selectedModelIndex, 'systemPrompt', '');
+  };
 
   if (!agent) {
     return (
@@ -126,6 +221,229 @@ export const TestLeftPanel = ({ agent, onViewKnowledgeSources, knowledgeSourceCo
 
       {/* Content */}
       <ScrollArea className="flex-1">
+        {activeSection === 'models' && (
+          <div className="p-4 space-y-4">
+            {/* Model Selection */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Active Models</h3>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onAddModel}
+                    disabled={numModels >= 4}
+                    className="h-7 px-2"
+                  >
+                    <Zap className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onRemoveModel}
+                    disabled={numModels <= 1}
+                    className="h-7 px-2"
+                  >
+                    <Settings className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                {Array(numModels).fill(null).map((_, index) => (
+                  <Card 
+                    key={index}
+                    className={`cursor-pointer transition-all duration-200 ${
+                      selectedModelIndex === index 
+                        ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                    onClick={() => onSelectModel(index)}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            selectedModelIndex === index ? 'bg-purple-500' : 'bg-gray-400'
+                          }`} />
+                          <span className="text-sm font-medium">Model {index + 1}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCloneConfig(index);
+                          }}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
+                        {chatConfigs[index]?.model || 'No model selected'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Configuration for Selected Model */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Configure Model {selectedModelIndex + 1}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetConfig}
+                  className="h-7 px-2 text-xs"
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Reset
+                </Button>
+              </div>
+
+              {/* Model Selection */}
+              <div className="space-y-2">
+                <Label className="text-xs">AI Model</Label>
+                <Select
+                  value={currentConfig.model || ''}
+                  onValueChange={(value) => onUpdateChatConfig(selectedModelIndex, 'model', value)}
+                >
+                  <SelectTrigger className="text-xs">
+                    <SelectValue placeholder="Select model..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modelOptionsForDropdown.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-xs">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Temperature */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Temperature</Label>
+                  <Badge variant="outline" className="text-xs">
+                    {(currentConfig.temperature || 0.7).toFixed(2)}
+                  </Badge>
+                </div>
+                <Slider
+                  value={[currentConfig.temperature || 0.7]}
+                  onValueChange={(value) => onUpdateChatConfig(selectedModelIndex, 'temperature', value[0])}
+                  max={2}
+                  min={0}
+                  step={0.1}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Controls creativity and randomness
+                </p>
+              </div>
+
+              {/* Max Length */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Max Tokens</Label>
+                  <Badge variant="outline" className="text-xs">
+                    {currentConfig.maxLength || 150}
+                  </Badge>
+                </div>
+                <Slider
+                  value={[currentConfig.maxLength || 150]}
+                  onValueChange={(value) => onUpdateChatConfig(selectedModelIndex, 'maxLength', value[0])}
+                  max={4000}
+                  min={50}
+                  step={50}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Maximum response length
+                </p>
+              </div>
+
+              {/* System Prompt */}
+              <div className="space-y-2">
+                <Label className="text-xs">System Prompt</Label>
+                <Textarea
+                  value={currentConfig.systemPrompt || ''}
+                  onChange={(e) => onUpdateChatConfig(selectedModelIndex, 'systemPrompt', e.target.value)}
+                  placeholder="Enter system prompt..."
+                  className="min-h-20 text-xs resize-none"
+                />
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Instructions for AI behavior
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Configuration Presets */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Quick Presets</h3>
+              <div className="grid gap-2">
+                {configPresets.map((preset) => {
+                  const Icon = preset.icon;
+                  return (
+                    <Button
+                      key={preset.name}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyPreset(preset)}
+                      className="w-full justify-start text-xs h-auto py-2"
+                    >
+                      <Icon className="h-3 w-3 mr-2" />
+                      <div className="text-left">
+                        <div className="font-medium">{preset.name}</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          T: {preset.config.temperature}, L: {preset.config.maxLength}
+                        </div>
+                      </div>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Batch Operations */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Batch Operations</h3>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={applyToAllModels}
+                  className="w-full justify-start text-xs"
+                  disabled={numModels <= 1}
+                >
+                  <Copy className="h-3 w-3 mr-2" />
+                  Apply to All Models
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onCloneConfig(selectedModelIndex)}
+                  className="w-full justify-start text-xs"
+                >
+                  <Zap className="h-3 w-3 mr-2" />
+                  Clone Configuration
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeSection === 'knowledge' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
@@ -254,45 +572,6 @@ export const TestLeftPanel = ({ agent, onViewKnowledgeSources, knowledgeSourceCo
           </div>
         )}
 
-        {activeSection === 'settings' && (
-          <div className="p-4 space-y-4">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Test Configuration</h3>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Quick Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Auto-scroll</span>
-                  <Badge variant="outline" className="text-xs">Enabled</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Response time</span>
-                  <Badge variant="outline" className="text-xs">Show</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Token usage</span>
-                  <Badge variant="outline" className="text-xs">Track</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Test Templates</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {['General Q&A', 'Technical Support', 'Product Info'].map((template) => (
-                  <Button key={template} variant="outline" size="sm" className="w-full justify-start text-xs">
-                    <Bookmark className="h-3 w-3 mr-2" />
-                    {template}
-                  </Button>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </ScrollArea>
     </div>
   );

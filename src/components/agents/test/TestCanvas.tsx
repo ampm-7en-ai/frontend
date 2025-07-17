@@ -24,10 +24,14 @@ interface TestCanvasProps {
   isSaving: number | null;
   isProcessing: boolean;
   agent?: any;
+  selectedModelIndex: number;
   onUpdateChatConfig: (index: number, field: string, value: any) => void;
   onSystemPromptEdit: (index: number) => void;
   onSaveConfig: (index: number) => void;
   onSendMessage: (message: string) => void;
+  onAddModel: () => void;
+  onRemoveModel: () => void;
+  onSelectModel: (index: number) => void;
 }
 
 export const TestCanvas = ({
@@ -39,23 +43,18 @@ export const TestCanvas = ({
   isSaving,
   isProcessing,
   agent,
+  selectedModelIndex,
   onUpdateChatConfig,
   onSystemPromptEdit,
   onSaveConfig,
-  onSendMessage
+  onSendMessage,
+  onAddModel,
+  onRemoveModel,
+  onSelectModel
 }: TestCanvasProps) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
-  const handleAddModel = () => {
-    // TODO: Implement add model functionality
-    console.log('Add model clicked');
-  };
-
-  const handleRemoveModel = () => {
-    // TODO: Implement remove model functionality
-    console.log('Remove model clicked');
-  };
 
   const handleBatchTest = () => {
     // TODO: Implement batch test functionality
@@ -144,7 +143,7 @@ export const TestCanvas = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleAddModel}
+                  onClick={onAddModel}
                   className="h-8"
                   disabled={numModels >= 4}
                 >
@@ -161,7 +160,7 @@ export const TestCanvas = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleRemoveModel}
+                  onClick={onRemoveModel}
                   className="h-8"
                   disabled={numModels <= 1}
                 >
@@ -182,11 +181,13 @@ export const TestCanvas = ({
           {Array(numModels).fill(null).map((_, index) => {
             const primaryColor = primaryColors[index] || '#9b87f5';
             const isExpanded = expandedCard === index;
+            const isSelected = selectedModelIndex === index;
             
             return (
               <div 
                 key={`model-${index}`} 
                 className={`transition-all duration-300 ${isExpanded ? 'col-span-full' : ''}`}
+                onClick={() => onSelectModel(index)}
               >
                 <ModelComparisonCard
                   index={index}
@@ -203,7 +204,9 @@ export const TestCanvas = ({
                   avatarSrc={agent?.avatarSrc}
                   isConnected={modelConnections[index]}
                   isSaving={isSaving === index}
-                  className={isExpanded ? 'h-[600px]' : 'h-[400px]'}
+                  className={`${isExpanded ? 'h-[600px]' : 'h-[400px]'} ${
+                    isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''
+                  } cursor-pointer`}
                   showExpandButton={true}
                   onExpand={() => toggleCardExpansion(index)}
                   isExpanded={isExpanded}

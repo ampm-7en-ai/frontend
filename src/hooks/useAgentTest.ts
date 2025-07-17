@@ -112,6 +112,7 @@ export const useAgentTest = (initialAgentId: string) => {
   const [selectedAgentId, setSelectedAgentId] = useState<string>(initialAgentId || "1");
   const [agent, setAgent] = useState<Agent | null>(null);
   const [numModels, setNumModels] = useState(3);
+  const [selectedModelIndex, setSelectedModelIndex] = useState(0);
   const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>([
     { model: "gpt-4-turbo", temperature: 0.6, systemPrompt: "", maxLength: 512 },
     { model: "gpt-3.5-turbo", temperature: 0.7, systemPrompt: "", maxLength: 512 },
@@ -524,6 +525,73 @@ export const useAgentTest = (initialAgentId: string) => {
     setIsModalOpen(true);
   };
 
+  const handleAddModel = () => {
+    if (numModels >= 4) return;
+    
+    const newNumModels = numModels + 1;
+    setNumModels(newNumModels);
+    
+    // Add new config
+    setChatConfigs(prev => [...prev, {
+      model: "gpt-3.5-turbo",
+      temperature: 0.7,
+      systemPrompt: "",
+      maxLength: 512
+    }]);
+    
+    // Add new message array
+    setMessages(prev => [...prev, []]);
+    
+    // Add new connection status
+    setModelConnections(prev => [...prev, false]);
+    
+    // Add new primary color
+    setPrimaryColors(prev => [...prev, adjustColor(prev[0], Math.random() * 60 - 30)]);
+  };
+
+  const handleRemoveModel = () => {
+    if (numModels <= 1) return;
+    
+    const newNumModels = numModels - 1;
+    setNumModels(newNumModels);
+    
+    // Remove last config
+    setChatConfigs(prev => prev.slice(0, -1));
+    
+    // Remove last message array
+    setMessages(prev => prev.slice(0, -1));
+    
+    // Remove last connection status
+    setModelConnections(prev => prev.slice(0, -1));
+    
+    // Remove last primary color
+    setPrimaryColors(prev => prev.slice(0, -1));
+    
+    // Adjust selected model index if needed
+    if (selectedModelIndex >= newNumModels) {
+      setSelectedModelIndex(newNumModels - 1);
+    }
+  };
+
+  const handleCloneConfig = (index: number) => {
+    const configToClone = chatConfigs[index];
+    handleAddModel();
+    
+    // Update the new config with cloned values
+    setTimeout(() => {
+      setChatConfigs(prev => {
+        const newConfigs = [...prev];
+        newConfigs[newConfigs.length - 1] = { ...configToClone };
+        return newConfigs;
+      });
+    }, 100);
+    
+    toast({
+      title: "Configuration Cloned",
+      description: `Model ${index + 1} configuration has been cloned to a new model.`,
+    });
+  };
+
   const handleSaveConfig = async (index: number) => {
     if (!agent) return;
     
@@ -604,6 +672,7 @@ export const useAgentTest = (initialAgentId: string) => {
     isSystemPromptOpen,
     selectedSourceId,
     numModels,
+    selectedModelIndex,
     allAgents,
     primaryColors,
     modelConnections,
@@ -626,6 +695,10 @@ export const useAgentTest = (initialAgentId: string) => {
     setIsModalOpen,
     setIsSystemPromptOpen,
     handleSaveConfig,
+    handleAddModel,
+    handleRemoveModel,
+    handleCloneConfig,
+    setSelectedModelIndex,
     
     // Utilities
     refetchAgent

@@ -29,6 +29,7 @@ const AgentTest = () => {
     isSystemPromptOpen,
     selectedSourceId,
     numModels,
+    selectedModelIndex,
     allAgents,
     primaryColors,
     modelConnections,
@@ -46,7 +47,11 @@ const AgentTest = () => {
     handleViewSource,
     setIsModalOpen,
     setIsSystemPromptOpen,
-    handleSaveConfig
+    handleSaveConfig,
+    handleAddModel,
+    handleRemoveModel,
+    handleCloneConfig,
+    setSelectedModelIndex
   } = useAgentTest(agentId || "1");
 
   if (isLoadingAgent || isLoadingAgents) {
@@ -100,6 +105,14 @@ const AgentTest = () => {
                 agent={agent}
                 onViewKnowledgeSources={handleViewKnowledgeSources}
                 knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
+                selectedModelIndex={selectedModelIndex}
+                numModels={numModels}
+                chatConfigs={chatConfigs}
+                onUpdateChatConfig={handleUpdateChatConfig}
+                onSelectModel={setSelectedModelIndex}
+                onAddModel={handleAddModel}
+                onRemoveModel={handleRemoveModel}
+                onCloneConfig={handleCloneConfig}
               />
             )}
           </div>
@@ -115,10 +128,14 @@ const AgentTest = () => {
               isSaving={isSaving}
               isProcessing={isProcessing}
               agent={agent}
+              selectedModelIndex={selectedModelIndex}
               onUpdateChatConfig={handleUpdateChatConfig}
               onSystemPromptEdit={handleSystemPromptEdit}
               onSaveConfig={handleSaveConfig}
               onSendMessage={handleSendMessage}
+              onAddModel={handleAddModel}
+              onRemoveModel={handleRemoveModel}
+              onSelectModel={setSelectedModelIndex}
             />
           </div>
           
@@ -135,7 +152,7 @@ const AgentTest = () => {
             {!rightPanelCollapsed && (
               <TestRightPanel
                 chatConfigs={chatConfigs}
-                selectedModelIndex={0}
+                selectedModelIndex={selectedModelIndex}
                 onUpdateChatConfig={handleUpdateChatConfig}
                 onSaveConfig={handleSaveConfig}
                 isSaving={isSaving}
