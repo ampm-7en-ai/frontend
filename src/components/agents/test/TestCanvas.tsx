@@ -82,11 +82,11 @@ export const TestCanvas = ({
       
       <div className="h-full flex flex-col dotted-background">
         {/* Canvas Header */}
-        <div className="h-14 px-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-white/20 dark:border-gray-700/50 flex items-center justify-between">
+        <div className="h-14 px-4 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <Brain className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">
                 Model Comparison
               </h2>
             </div>
@@ -127,7 +127,7 @@ export const TestCanvas = ({
               </TooltipContent>
             </Tooltip>
 
-            <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
+            <div className="h-4 w-px bg-border" />
 
             <Tooltip>
               <TooltipTrigger asChild>
@@ -190,14 +190,12 @@ export const TestCanvas = ({
                       onModelChange={(value) => onUpdateChatConfig(index, 'model', value)}
                       onOpenSystemPrompt={() => {}}
                       onUpdateConfig={(field, value) => onUpdateChatConfig(index, field, value)}
-                      onSaveConfig={() => {}}
                       primaryColor={primaryColor}
                       avatarSrc={agent?.avatarSrc}
                       isConnected={modelConnections[index]}
-                      isSaving={false}
-                      className={`${isExpanded ? 'h-[600px]' : 'h-[500px]'} ${
-                        isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''
-                      } bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-purple-300 hover:ring-offset-1`}
+                      className={`${isExpanded ? 'h-[720px]' : 'h-[780px]'} ${
+                        isSelected ? 'ring-2 ring-primary ring-offset-2' : ''
+                      } bg-card/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30 hover:ring-offset-1`}
                       showExpandButton={true}
                       onExpand={() => toggleCardExpansion(index)}
                       isExpanded={isExpanded}
@@ -210,7 +208,7 @@ export const TestCanvas = ({
         </div>
 
         {/* Chat Input */}
-        <div className="h-16 p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-t border-white/20 dark:border-gray-700/50">
+        <div className="h-16 p-4 bg-background/80 backdrop-blur-sm border-t border-border">
           <div className="max-w-7xl mx-auto">
             <ChatInput 
               onSendMessage={onSendMessage}

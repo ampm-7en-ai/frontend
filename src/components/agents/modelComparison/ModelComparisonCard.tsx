@@ -1,17 +1,14 @@
+
 import React, { useRef, useEffect } from 'react';
-import { Bot, Sliders, Save, WifiOff, Maximize2 } from 'lucide-react';
+import { Bot, WifiOff, Maximize2 } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverTrigger } from '@/components/ui/popover';
-import { Message, ChatConfig } from './types';
+import { Message } from './types';
 import { UserMessage } from './UserMessage';
 import { ModelMessage } from './ModelMessage';
-import { ModelConfigPopover } from './ModelConfigPopover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useAIModels } from '@/hooks/useAIModels';
+import { getModelDisplay } from '@/constants/modelOptions';
 
 interface ModelComparisonCardProps {
   index: number;
@@ -22,13 +19,10 @@ interface ModelComparisonCardProps {
   messages: Message[];
   onModelChange: (value: string) => void;
   onOpenSystemPrompt: () => void;
-  onUpdateConfig: (field: keyof ChatConfig, value: any) => void;
-  onSaveConfig?: () => void;
-  modelOptions?: Record<string, { name: string; provider: string }>; // Make optional for backward compatibility
+  onUpdateConfig: (field: string, value: any) => void;
   primaryColor: string;
   avatarSrc?: string;
   isConnected?: boolean;
-  isSaving?: boolean;
   className?: string;
   showExpandButton?: boolean;
   onExpand?: () => void;
@@ -38,19 +32,10 @@ interface ModelComparisonCardProps {
 export const ModelComparisonCard = ({
   index,
   model,
-  temperature,
-  maxLength,
-  systemPrompt,
   messages,
-  onModelChange,
-  onOpenSystemPrompt,
-  onUpdateConfig,
-  onSaveConfig,
-  modelOptions, // Legacy prop for backward compatibility
   primaryColor,
   avatarSrc,
   isConnected = true,
-  isSaving = false,
   className = "",
   showExpandButton = false,
   onExpand,
@@ -59,8 +44,6 @@ export const ModelComparisonCard = ({
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
-  
-  const { allModelOptions, isLoading: isLoadingModels } = useAIModels();
   
   // Store a reference to the scroll viewport when the ScrollArea is mounted
   useEffect(() => {
@@ -83,17 +66,6 @@ export const ModelComparisonCard = ({
     }
   }, [messages]);
 
-  const getModelDisplay = (modelKey: string) => {
-    // Use dynamic model options first, fallback to legacy static options
-    const dynamicOption = allModelOptions.find(option => option.value === modelKey);
-    if (dynamicOption) {
-      return dynamicOption.label;
-    }
-    
-    // Fallback to legacy modelOptions prop
-    return modelOptions?.[modelKey]?.name || modelKey;
-  };
-
   const adjustColor = (color: string, amount: number): string => {
     // Convert hex color to RGB
     const hex = color.replace('#', '');
@@ -111,53 +83,22 @@ export const ModelComparisonCard = ({
   };
 
   return (
-    <Card className={`flex flex-col h-[650px] overflow-hidden ${className}`}>
+    <Card className={`flex flex-col h-full overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-shadow ${className}`}>
       <CardHeader 
-        className="p-3 flex flex-row items-center justify-between space-y-0 pb-2"
+        className="p-3 flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/30"
         style={{ 
-          background: `linear-gradient(to right, ${primaryColor}15, ${primaryColor}30)`,
+          background: `linear-gradient(to right, hsl(var(--muted)/0.3), hsl(var(--muted)/0.1))`,
         }}
       >
         <div className="flex items-center gap-2">
-          <Select value={model} onValueChange={onModelChange}>
-            <SelectTrigger className="w-[190px] h-8" variant="modern">
-              <SelectValue placeholder={getModelDisplay(model)} />
-            </SelectTrigger>
-            <SelectContent variant="modern">
-              {isLoadingModels ? (
-                <div className="flex items-center justify-center p-2">
-                  <LoadingSpinner size="sm" />
-                  <span className="ml-2 text-sm">Loading models...</span>
-                </div>
-              ) : (
-                allModelOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value} variant="modern">
-                    {option.label}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Sliders className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <ModelConfigPopover
-              temperature={temperature}
-              maxLength={maxLength}
-              systemPrompt={systemPrompt}
-              onUpdateConfig={onUpdateConfig}
-              onOpenSystemPrompt={onOpenSystemPrompt}
-            />
-          </Popover>
+          <h3 className="text-sm font-medium text-foreground">
+            {getModelDisplay(model)}
+          </h3>
           
           {!isConnected && (
-            <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
-              <WifiOff size={14} className="text-red-500" />
-              <span className="text-xs text-red-500">Disconnected</span>
+            <div className="flex items-center gap-1 bg-destructive/20 px-2 py-1 rounded-full">
+              <WifiOff size={14} className="text-destructive" />
+              <span className="text-xs text-destructive">Disconnected</span>
             </div>
           )}
         </div>
@@ -180,35 +121,12 @@ export const ModelComparisonCard = ({
               </TooltipContent>
             </Tooltip>
           )}
-          
-          {onSaveConfig && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="h-8 flex items-center gap-1" 
-                onClick={onSaveConfig}
-                disabled={isSaving || !isConnected}
-              >
-                {isSaving ? (
-                  <LoadingSpinner size="sm" className="mr-1" />
-                ) : (
-                  <Save className="h-4 w-4 mr-1" />
-                )}
-                Save Config
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Save this configuration to the agent</p>
-            </TooltipContent>
-          </Tooltip>
-          )}
         </div>
       </CardHeader>
                 
       <ScrollArea 
         ref={scrollAreaRef}
-        className="flex-1 p-4 space-y-0 bg-gradient-to-b from-gray-50 to-white"
+        className="flex-1 p-4 space-y-0 bg-gradient-to-b from-muted/20 to-background"
         style={{
           '--scrollbar-color': primaryColor + '50',
         } as React.CSSProperties}
@@ -229,7 +147,7 @@ export const ModelComparisonCard = ({
                   model={model}
                   primaryColor={primaryColor}
                   adjustColor={adjustColor}
-                  temperature={temperature}
+                  temperature={0.7}
                 />
               );
             }
@@ -237,8 +155,8 @@ export const ModelComparisonCard = ({
           
           {messages.length === 0 && (
             <div className="h-full flex items-center justify-center">
-              <div className="text-center text-gray-500 p-4">
-                <Bot className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+              <div className="text-center text-muted-foreground p-4">
+                <Bot className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
                 <p className="text-sm">Send a message to see responses from this model</p>
               </div>
             </div>
