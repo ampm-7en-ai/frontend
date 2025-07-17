@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, Moon, Sun, User, ArrowLeft, Bot } from 'lucide-react';
+import { ArrowUp, ArrowRight, Moon, Sun, User, ArrowLeft, Bot } from 'lucide-react';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -754,12 +754,14 @@ const SearchAssistant = () => {
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyPress}
                     onClick={handleInputClick}
-                    className={`pr-16 py-6 text-xl border-2 focus:ring-2 transition-all duration-700 ease-out ${
-                      mode === 'suggestions' ? 'rounded-t-3xl border-b-0' : 'rounded-3xl shadow-xl hover-scale'
+                    className={`pr-16 py-6 text-xl focus:ring-2 transition-all duration-700 ease-out ${
+                      mode === 'suggestions' 
+                        ? 'rounded-t-3xl border-0 bg-transparent' 
+                        : 'rounded-3xl shadow-xl hover-scale border-2'
                     }`}
                     style={{
-                      backgroundColor: inputBgColor,
-                      borderColor: inputBorderColor,
+                      backgroundColor: mode === 'suggestions' ? 'transparent' : inputBgColor,
+                      borderColor: mode === 'suggestions' ? 'transparent' : inputBorderColor,
                       color: textColor,
                       fontSize: mode === 'initial' ? '1.25rem' : '1rem'
                     }}
@@ -774,11 +776,13 @@ const SearchAssistant = () => {
                       borderColor: primaryColor
                     }}
                   >
-                    {isProcessing ? (
-                      <LoadingSpinner size="sm" />
-                    ) : (
-                      <ArrowUp className="h-5 w-5 text-white" />
-                    )}
+                     {isProcessing ? (
+                       <LoadingSpinner size="sm" />
+                     ) : mode === 'suggestions' ? (
+                       <ArrowRight className="h-5 w-5 text-white" />
+                     ) : (
+                       <ArrowUp className="h-5 w-5 text-white" />
+                     )}
                   </Button>
                 </div>
 
