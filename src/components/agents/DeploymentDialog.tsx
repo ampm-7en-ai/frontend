@@ -20,6 +20,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('shareable');
+  const [selectedIframeMode, setSelectedIframeMode] = useState('fullscreen');
 
   // Build the links and code based on the agent ID using the new route format
   const shareableLink = `${window.location.origin}/chat/preview/${agent.id}`;
@@ -36,7 +37,33 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
   })();
 </script>`; 
 
-  const iframeCode = `<iframe
+  const iframeEmbedded = `<iframe
+  src="${window.location.origin}/chat/assistant/${agent.id}?mode=embedded"
+  width="400"
+  height="600"
+  frameborder="0"
+  allow="microphone"
+  style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"
+></iframe>`;
+
+  const iframePopup = `<iframe
+  src="${window.location.origin}/chat/assistant/${agent.id}?type=popup"
+  width="400"
+  height="600"
+  frameborder="0"
+  allow="microphone"
+  style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"
+></iframe>`;
+
+  const iframeInline = `<iframe
+  src="${window.location.origin}/chat/assistant/${agent.id}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allow="microphone"
+></iframe>`;
+
+  const iframeFullscreen = `<iframe
   src="${shareableLink}"
   width="100%"
   height="600"
@@ -111,6 +138,15 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
         );
 
       case 'iframe':
+        const iframeModes = [
+          { id: 'fullscreen', label: 'Fullscreen', code: iframeFullscreen, description: 'Full page chatbot interface' },
+          { id: 'inline', label: 'Inline', code: iframeInline, description: 'Embedded directly in your page content' },
+          { id: 'popup', label: 'Popup', code: iframePopup, description: 'Popup modal style interface' },
+          { id: 'embedded', label: 'Floating Widget', code: iframeEmbedded, description: 'Fixed floating chat widget' }
+        ];
+        
+        const currentMode = iframeModes.find(mode => mode.id === selectedIframeMode) || iframeModes[0];
+        
         return (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
@@ -118,18 +154,36 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Embed as Iframe</h3>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              Copy this code to embed the chatbot as an iframe on your website:
+              Choose a view mode and copy the code to embed the chatbot on your website:
             </p>
+            
+            {/* Mode Selection */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {iframeModes.map((mode) => (
+                <button
+                  key={mode.id}
+                  onClick={() => setSelectedIframeMode(mode.id)}
+                  className={`p-3 text-left rounded-lg border transition-all ${
+                    selectedIframeMode === mode.id
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600'
+                  }`}
+                >
+                  <div className="font-medium text-sm">{mode.label}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{mode.description}</div>
+                </button>
+              ))}
+            </div>
             
             <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
               <pre className="p-4 text-xs overflow-x-auto font-mono text-slate-700 dark:text-slate-300">
-                {iframeCode}
+                {currentMode.code}
               </pre>
               <ModernButton 
                 variant="ghost" 
                 size="sm"
                 className="absolute right-2 top-2 h-8 w-8 p-2 hover:bg-slate-100 dark:hover:bg-gray-600"
-                onClick={() => handleCopy(iframeCode, 'iframe', "Iframe code copied to clipboard")}
+                onClick={() => handleCopy(currentMode.code, 'iframe', `${currentMode.label} iframe code copied to clipboard`)}
                 iconOnly
               >
                 {copied === 'iframe' ? <Check className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <CopyIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
@@ -139,9 +193,10 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
             <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
               <h4 className="text-sm font-medium mb-2 text-green-900 dark:text-green-100">Instructions</h4>
               <ol className="text-sm space-y-2 text-green-700 dark:text-green-300 list-decimal pl-4">
-                <li>Copy the code snippet above.</li>
-                <li>Paste it into the HTML of your website where you want the chatbot to appear.</li>
-                <li>You can adjust the width and height values to fit your layout.</li>
+                <li>Select your preferred view mode above.</li>
+                <li>Copy the generated code snippet.</li>
+                <li>Paste it into your website's HTML where you want the chatbot to appear.</li>
+                <li>Adjust dimensions and styling as needed for your layout.</li>
               </ol>
             </div>
           </div>
