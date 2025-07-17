@@ -507,9 +507,9 @@ const SearchAssistant = () => {
 
           {/* Enhanced chat content area with smooth transitions */}
           {mode === 'chat' && (
-            <div className="flex flex-col h-full animate-fade-in">
+            <div className="flex flex-col animate-fade-in" style={{ height: 'calc(100% - 4rem)' }}>
               {/* Chat history with enhanced scrolling */}
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden min-h-0">
                 <ScrollArea className="h-full" ref={chatScrollRef}>
                   <div className="p-6 space-y-5">
                     {chatHistory.map((message, index) => {
@@ -686,7 +686,7 @@ const SearchAssistant = () => {
               </div>
 
               {/* Enhanced input bar with better styling and animations */}
-              <div className="border-t p-4 animate-fade-in"
+              <div className="flex-shrink-0 border-t p-4 animate-fade-in"
                 style={{
                   borderColor: borderColor,
                   backgroundColor: `${primaryColor}05`
