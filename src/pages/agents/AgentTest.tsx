@@ -1,20 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAgentTest } from '@/hooks/useAgentTest';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { ModelComparisonCard } from '@/components/agents/modelComparison/ModelComparisonCard';
-import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
-import { TestPageHeader } from '@/components/agents/test/TestPageHeader';
+import { TestPageToolbar } from '@/components/agents/test/TestPageToolbar';
+import { TestLeftPanel } from '@/components/agents/test/TestLeftPanel';
+import { TestCanvas } from '@/components/agents/test/TestCanvas';
+import { TestRightPanel } from '@/components/agents/test/TestRightPanel';
 import { getModelDisplay } from '@/constants/modelOptions';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const AgentTest = () => {
   const { agentId } = useParams();
   const { toast } = useToast();
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   
   const {
     selectedAgentId,
@@ -67,8 +71,9 @@ const AgentTest = () => {
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
-        <TestPageHeader 
+      <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        {/* Top Toolbar */}
+        <TestPageToolbar
           selectedAgentId={selectedAgentId}
           onAgentChange={handleAgentChange}
           onClearChat={handleClearChat}
@@ -76,40 +81,70 @@ const AgentTest = () => {
           knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
           agents={allAgents}
           isLoading={isLoadingAgent}
+          agent={agent}
         />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Array(numModels).fill(null).map((_, index) => {
-            const primaryColor = primaryColors[index] || '#9b87f5';
-            
-            return (
-              <ModelComparisonCard
-                key={`model-${index}`}
-                index={index}
-                model={chatConfigs[index].model}
-                temperature={chatConfigs[index].temperature}
-                maxLength={chatConfigs[index].maxLength}
-                systemPrompt={chatConfigs[index].systemPrompt}
-                messages={messages[index]}
-                onModelChange={(value) => handleUpdateChatConfig(index, 'model', value)}
-                onOpenSystemPrompt={() => handleSystemPromptEdit(index)}
-                onUpdateConfig={(field, value) => handleUpdateChatConfig(index, field, value)}
-                onSaveConfig={() => handleSaveConfig(index)}
-                primaryColor={primaryColor}
-                avatarSrc={agent?.avatarSrc}
-                isConnected={modelConnections[index]}
-                isSaving={isSaving === index}
+        
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Panel - Knowledge & Settings */}
+          <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 -right-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
+              onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+            >
+              {leftPanelCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+            </Button>
+            {!leftPanelCollapsed && (
+              <TestLeftPanel
+                agent={agent}
+                onViewKnowledgeSources={handleViewKnowledgeSources}
+                knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
               />
-            );
-          })}
+            )}
+          </div>
+          
+          {/* Center Canvas - Model Comparison */}
+          <div className="flex-1 relative">
+            <TestCanvas
+              numModels={numModels}
+              chatConfigs={chatConfigs}
+              messages={messages}
+              primaryColors={primaryColors}
+              modelConnections={modelConnections}
+              isSaving={isSaving}
+              isProcessing={isProcessing}
+              agent={agent}
+              onUpdateChatConfig={handleUpdateChatConfig}
+              onSystemPromptEdit={handleSystemPromptEdit}
+              onSaveConfig={handleSaveConfig}
+              onSendMessage={handleSendMessage}
+            />
+          </div>
+          
+          {/* Right Panel - Configuration */}
+          <div className={`${rightPanelCollapsed ? 'w-12' : 'w-80'} border-l border-gray-200 dark:border-gray-700 transition-all duration-300 relative`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 -left-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
+              onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+            >
+              {rightPanelCollapsed ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            </Button>
+            {!rightPanelCollapsed && (
+              <TestRightPanel
+                chatConfigs={chatConfigs}
+                selectedModelIndex={0}
+                onUpdateChatConfig={handleUpdateChatConfig}
+                onSaveConfig={handleSaveConfig}
+                isSaving={isSaving}
+              />
+            )}
+          </div>
         </div>
 
-        <ChatInput 
-          onSendMessage={handleSendMessage}
-          primaryColor={primaryColors[0] || '#9b87f5'}
-          isDisabled={isProcessing || modelConnections.some(status => !status)}
-        />
-
+        {/* Modals */}
         <SystemPromptDialog 
           open={isSystemPromptOpen !== null}
           onOpenChange={() => setIsSystemPromptOpen(null)}

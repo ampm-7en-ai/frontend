@@ -9,9 +9,10 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   primaryColor: string;
   isDisabled?: boolean;
+  placeholder?: string;
 }
 
-export const ChatInput = ({ onSendMessage, primaryColor, isDisabled = false }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, primaryColor, isDisabled = false, placeholder = "Type your message..." }: ChatInputProps) => {
   const [inputValue, setInputValue] = useState('');
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -25,7 +26,7 @@ export const ChatInput = ({ onSendMessage, primaryColor, isDisabled = false }: C
   return (
     <form onSubmit={handleSubmit} className="relative">
       <Textarea
-        placeholder={isDisabled ? "Waiting for all models to connect..." : "Ask anything..."}
+        placeholder={isDisabled ? "Waiting for all models to connect..." : placeholder}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         className="min-h-20 resize-none pr-12 border rounded-lg"

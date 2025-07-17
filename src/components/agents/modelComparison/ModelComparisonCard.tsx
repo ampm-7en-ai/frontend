@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Bot, Sliders, Save, WifiOff } from 'lucide-react';
+import { Bot, Sliders, Save, WifiOff, Maximize2 } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,10 @@ interface ModelComparisonCardProps {
   avatarSrc?: string;
   isConnected?: boolean;
   isSaving?: boolean;
+  className?: string;
+  showExpandButton?: boolean;
+  onExpand?: () => void;
+  isExpanded?: boolean;
 }
 
 export const ModelComparisonCard = ({
@@ -46,7 +50,11 @@ export const ModelComparisonCard = ({
   primaryColor,
   avatarSrc,
   isConnected = true,
-  isSaving = false
+  isSaving = false,
+  className = "",
+  showExpandButton = false,
+  onExpand,
+  isExpanded = false
 }: ModelComparisonCardProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -103,7 +111,7 @@ export const ModelComparisonCard = ({
   };
 
   return (
-    <Card className="flex flex-col h-[650px] overflow-hidden">
+    <Card className={`flex flex-col h-[650px] overflow-hidden ${className}`}>
       <CardHeader 
         className="p-3 flex flex-row items-center justify-between space-y-0 pb-2"
         style={{ 
@@ -154,7 +162,26 @@ export const ModelComparisonCard = ({
           )}
         </div>
         
-        {onSaveConfig && (
+        <div className="flex items-center gap-2">
+          {showExpandButton && onExpand && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onExpand}
+                  className="h-8 w-8"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isExpanded ? 'Minimize' : 'Expand'} model view</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
+          {onSaveConfig && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
@@ -175,7 +202,8 @@ export const ModelComparisonCard = ({
               <p>Save this configuration to the agent</p>
             </TooltipContent>
           </Tooltip>
-        )}
+          )}
+        </div>
       </CardHeader>
                 
       <ScrollArea 
