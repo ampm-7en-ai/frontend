@@ -1,27 +1,24 @@
 
 import React from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Database,
-  Book,
-  FileText,
-  Plus,
-  Eye
+  Monitor
 } from 'lucide-react';
+import { getModelDisplay } from '@/constants/modelOptions';
 
 interface TestLeftPanelProps {
-  agent?: any;
-  onViewKnowledgeSources: () => void;
-  knowledgeSourceCount: number;
+  numModels: number;
+  selectedModelIndex: number;
+  chatConfigs: any[];
+  onSelectModel: (index: number) => void;
 }
 
 export const TestLeftPanel = ({ 
-  agent,
-  onViewKnowledgeSources,
-  knowledgeSourceCount
+  numModels,
+  selectedModelIndex,
+  chatConfigs,
+  onSelectModel
 }: TestLeftPanelProps) => {
   return (
     <div className="h-full bg-white dark:bg-gray-900 flex flex-col">
@@ -29,90 +26,43 @@ export const TestLeftPanel = ({
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Database className="h-5 w-5 text-white" />
+            <Monitor className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Knowledge Base</h2>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Agent knowledge sources</p>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Model Selector</h2>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Choose active model</p>
           </div>
         </div>
       </div>
 
-      {/* Knowledge Sources Section */}
-      <ScrollArea className="flex-1 p-4">
+      {/* Model Selector */}
+      <div className="p-4">
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Book className="h-4 w-4" />
-                Knowledge Sources
-              </CardTitle>
-              <Badge variant="outline" className="text-xs">
-                {knowledgeSourceCount}
-              </Badge>
-            </div>
+            <CardTitle className="text-sm">Active Model</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              This agent has access to {knowledgeSourceCount} knowledge sources to provide accurate and contextual responses.
-            </p>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onViewKnowledgeSources}
-              className="w-full justify-start text-xs"
+          <CardContent>
+            <Select 
+              value={selectedModelIndex.toString()} 
+              onValueChange={(value) => onSelectModel(parseInt(value))}
             >
-              <Eye className="h-3 w-3 mr-2" />
-              View All Sources
-            </Button>
-
-            {/* Knowledge Sources Preview */}
-            {agent?.knowledgeSources?.slice(0, 3).map((source: any, index: number) => (
-              <div key={source.id || index} className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <FileText className="h-4 w-4 text-gray-500" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {source.name}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {source.type} • {source.size}
-                  </p>
-                </div>
-              </div>
-            ))}
-
-            {knowledgeSourceCount > 3 && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                +{knowledgeSourceCount - 3} more sources
-              </p>
-            )}
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array(numModels).fill(null).map((_, index) => (
+                  <SelectItem key={index} value={index.toString()}>
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      Model {index + 1} - {getModelDisplay(chatConfigs[index]?.model || 'gpt-3.5-turbo')}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
-
-        {/* Agent Info */}
-        <Card className="mt-4">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Agent Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600 dark:text-gray-400">Agent:</span>
-              <span className="font-medium">{agent?.name || 'Unknown'}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600 dark:text-gray-400">Base Model:</span>
-              <span className="font-medium">{agent?.model || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600 dark:text-gray-400">Status:</span>
-              <Badge variant={agent?.isDeployed ? "default" : "secondary"} className="text-xs">
-                {agent?.isDeployed ? 'Live' : 'Draft'}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </ScrollArea>
+      </div>
     </div>
   );
 };

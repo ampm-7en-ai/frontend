@@ -16,8 +16,7 @@ import {
   Save,
   RotateCcw,
   Zap,
-  Copy,
-  Monitor
+  Copy
 } from 'lucide-react';
 import { getModelDisplay } from '@/constants/modelOptions';
 import { useAIModels } from '@/hooks/useAIModels';
@@ -89,32 +88,9 @@ export const TestRightPanel = ({
           </div>
           <div>
             <h2 className="font-semibold text-gray-900 dark:text-gray-100">Model Configuration</h2>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Configure selected model</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Configure active model</p>
           </div>
         </div>
-      </div>
-
-      {/* Model Selector */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <Label className="text-sm font-medium mb-2 block">Active Model</Label>
-        <Select 
-          value={selectedModelIndex.toString()} 
-          onValueChange={(value) => onSelectModel(parseInt(value))}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Array(numModels).fill(null).map((_, index) => (
-              <SelectItem key={index} value={index.toString()}>
-                <div className="flex items-center gap-2">
-                  <Monitor className="h-4 w-4" />
-                  Model {index + 1} - {getModelDisplay(chatConfigs[index]?.model || 'gpt-3.5-turbo')}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Configuration Tabs */}
@@ -132,7 +108,7 @@ export const TestRightPanel = ({
               {/* Model Selection */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Model Selection</CardTitle>
+                  <CardTitle className="text-sm">Active Model</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Select

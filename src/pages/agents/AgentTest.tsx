@@ -97,7 +97,7 @@ const AgentTest = () => {
           />
           
           <div className="flex-1 flex overflow-hidden">
-            {/* Left Panel - Knowledge Base Only */}
+            {/* Left Panel - Model Selector Only */}
             <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative bg-white dark:bg-gray-800`}>
               <Button
                 variant="ghost"
@@ -109,9 +109,10 @@ const AgentTest = () => {
               </Button>
               {!leftPanelCollapsed && (
                 <TestLeftPanel
-                  agent={agent}
-                  onViewKnowledgeSources={handleViewKnowledgeSources}
-                  knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
+                  numModels={numModels}
+                  selectedModelIndex={selectedModelIndex}
+                  chatConfigs={chatConfigs}
+                  onSelectModel={setSelectedModelIndex}
                 />
               )}
             </div>
