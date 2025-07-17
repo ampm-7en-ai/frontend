@@ -7,7 +7,6 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 import { TestPageToolbar } from '@/components/agents/test/TestPageToolbar';
-import { TestLeftPanel } from '@/components/agents/test/TestLeftPanel';
 import { TestCanvas } from '@/components/agents/test/TestCanvas';
 import { TestRightPanel } from '@/components/agents/test/TestRightPanel';
 import { getModelDisplay } from '@/constants/modelOptions';
@@ -19,7 +18,6 @@ import { MainLayout } from '@/components/layout/MainLayout';
 const AgentTest = () => {
   const { agentId } = useParams();
   const { toast } = useToast();
-  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   
   const {
@@ -97,27 +95,7 @@ const AgentTest = () => {
           />
           
           <div className="flex-1 flex overflow-hidden">
-            {/* Left Panel - Model Selector Only */}
-            <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative bg-white dark:bg-gray-800`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 -right-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
-                onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
-              >
-                {leftPanelCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-              </Button>
-              {!leftPanelCollapsed && (
-                <TestLeftPanel
-                  numModels={numModels}
-                  selectedModelIndex={selectedModelIndex}
-                  chatConfigs={chatConfigs}
-                  onSelectModel={setSelectedModelIndex}
-                />
-              )}
-            </div>
-            
-            {/* Center Canvas - Model Comparison - Full Height */}
+            {/* Center Canvas - Model Comparison - Full Width */}
             <div className="flex-1 relative">
               <TestCanvas
                 numModels={numModels}

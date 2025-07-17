@@ -61,7 +61,6 @@ export const TestCanvas = ({
 }: TestCanvasProps) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
-  const [panelWidth, setPanelWidth] = useState(400); // Default width for each panel
 
   const handleBatchTest = () => {
     // TODO: Implement batch test functionality
@@ -105,6 +104,11 @@ export const TestCanvas = ({
               >
                 {modelConnections.filter(Boolean).length}/{numModels} Connected
               </Badge>
+              {selectedModelIndex !== undefined && (
+                <Badge variant="secondary" className="text-xs">
+                  Active: Model {selectedModelIndex + 1}
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -116,6 +120,7 @@ export const TestCanvas = ({
                   size="sm"
                   onClick={handleBatchTest}
                   className="h-8"
+                  disabled={!modelConnections.every(Boolean)}
                 >
                   <Zap className="h-4 w-4" />
                 </Button>
@@ -187,45 +192,38 @@ export const TestCanvas = ({
         {/* Model Cards Container - Full Height */}
         <div className="flex-1 overflow-hidden">
           {viewMode === 'list' ? (
-            // List view - adjustable width panels
-            <div className="flex h-full">
+            // List view - equal width panels with better spacing
+            <div className="flex h-full gap-1">
               {Array(numModels).fill(null).map((_, index) => {
                 const primaryColor = primaryColors[index] || '#9b87f5';
                 const isSelected = selectedModelIndex === index;
                 
                 return (
-                  <div key={`model-${index}`} className="flex">
-                    <div 
-                      className={`h-full transition-all duration-300 ${
-                        isSelected ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900' : ''
-                      }`}
-                      style={{ width: `${panelWidth}px` }}
-                      onClick={() => onSelectModel(index)}
-                    >
-                      <ModelComparisonCard
-                        index={index}
-                        model={chatConfigs[index]?.model || ''}
-                        temperature={chatConfigs[index]?.temperature || 0.7}
-                        maxLength={chatConfigs[index]?.maxLength || 150}
-                        systemPrompt={chatConfigs[index]?.systemPrompt || ''}
-                        messages={messages[index] || []}
-                        onModelChange={(value) => onUpdateChatConfig(index, 'model', value)}
-                        onOpenSystemPrompt={() => {}}
-                        onUpdateConfig={(field, value) => onUpdateChatConfig(index, field, value)}
-                        onSaveConfig={() => {}}
-                        primaryColor={primaryColor}
-                        avatarSrc={agent?.avatarSrc}
-                        isConnected={modelConnections[index]}
-                        isSaving={false}
-                        className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
-                        showExpandButton={false}
-                      />
-                    </div>
-                    {index < numModels - 1 && (
-                      <div className="w-1 bg-gray-200 dark:bg-gray-700 cursor-col-resize flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-600">
-                        <GripVertical className="h-4 w-4 text-gray-400" />
-                      </div>
-                    )}
+                  <div 
+                    key={`model-${index}`} 
+                    className={`flex-1 h-full transition-all duration-200 cursor-pointer ${
+                      isSelected ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900' : ''
+                    }`}
+                    onClick={() => onSelectModel(index)}
+                  >
+                    <ModelComparisonCard
+                      index={index}
+                      model={chatConfigs[index]?.model || ''}
+                      temperature={chatConfigs[index]?.temperature || 0.7}
+                      maxLength={chatConfigs[index]?.maxLength || 150}
+                      systemPrompt={chatConfigs[index]?.systemPrompt || ''}
+                      messages={messages[index] || []}
+                      onModelChange={(value) => onUpdateChatConfig(index, 'model', value)}
+                      onOpenSystemPrompt={() => {}}
+                      onUpdateConfig={(field, value) => onUpdateChatConfig(index, field, value)}
+                      onSaveConfig={() => {}}
+                      primaryColor={primaryColor}
+                      avatarSrc={agent?.avatarSrc}
+                      isConnected={modelConnections[index]}
+                      isSaving={false}
+                      className="h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                      showExpandButton={false}
+                    />
                   </div>
                 );
               })}
@@ -242,7 +240,7 @@ export const TestCanvas = ({
                   return (
                     <div 
                       key={`model-${index}`} 
-                      className={`transition-all duration-300 ${isExpanded ? 'col-span-full' : ''}`}
+                      className={`transition-all duration-300 cursor-pointer ${isExpanded ? 'col-span-full' : ''}`}
                       onClick={() => onSelectModel(index)}
                     >
                       <ModelComparisonCard
@@ -262,7 +260,7 @@ export const TestCanvas = ({
                         isSaving={false}
                         className={`${isExpanded ? 'h-[600px]' : 'h-[400px]'} ${
                           isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''
-                        } cursor-pointer bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm`}
+                        } bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200`}
                         showExpandButton={true}
                         onExpand={() => toggleCardExpansion(index)}
                         isExpanded={isExpanded}

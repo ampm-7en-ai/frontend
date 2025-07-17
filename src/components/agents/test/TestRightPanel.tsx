@@ -87,8 +87,10 @@ export const TestRightPanel = ({
             <Settings className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Model Configuration</h2>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Configure active model</p>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Configuration</h2>
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              Model {selectedModelIndex + 1} - {getModelDisplay(currentConfig.model || 'gpt-3.5-turbo')}
+            </p>
           </div>
         </div>
       </div>
@@ -108,7 +110,7 @@ export const TestRightPanel = ({
               {/* Model Selection */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Active Model</CardTitle>
+                  <CardTitle className="text-sm">Model</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Select
