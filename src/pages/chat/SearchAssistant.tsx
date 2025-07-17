@@ -593,10 +593,29 @@ const SearchAssistant = () => {
 
                 {/* Thinking/Loading indicator */}
                 {searchLoading && (
-                  <div className="flex items-center justify-center p-4">
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <LoadingSpinner size="sm" />
-                      <span className="text-sm">{thinkingMessage}</span>
+                  <div className="flex items-start gap-2 p-4">
+                    <Avatar className="h-8 w-8 mt-1" style={{
+                      backgroundColor: primaryColor
+                    }}>
+                      {config.avatarUrl ? (
+                        <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback style={{
+                        backgroundColor: primaryColor
+                      }}>
+                        <Bot className="h-4 w-4 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex flex-col gap-2 pl-[10px] pt-[5px]">
+                      <div className="flex items-center">
+                        <div className="mr-3 flex items-center">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                        </div>
+                      </div>
+                      <p className="text-xs opacity-70">{thinkingMessage}</p>
                     </div>
                   </div>
                 )}
