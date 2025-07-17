@@ -630,55 +630,107 @@ const SearchAssistant = () => {
 
           {/* Initial input (centered) - only visible before interaction */}
           {!hasInteracted && (
-            <div className="space-y-6">
-              {/* Search input */}
-              <div className="relative">
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  placeholder={`Ask ${config.chatbotName}...`}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  className="pr-12 py-4 text-lg border-2 focus:ring-2 transition-all duration-200 shadow-lg"
-                  style={{
-                    backgroundColor: inputBgColor,
-                    borderColor: inputBorderColor,
-                    color: textColor,
-                    borderRadius: '16px'
-                  }}
-                  disabled={searchLoading}
-                />
-                <Button
-                  onClick={handleSearch}
-                  disabled={!query.trim() || searchLoading}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 rounded-full p-0 shadow-md"
-                  style={{
-                    backgroundColor: primaryColor,
-                    borderColor: primaryColor
-                  }}
-                >
-                  <ArrowUp className="h-5 w-5 text-white" />
-                </Button>
-              </div>
+            <div className="relative">
+              {/* Input and suggestions wrapper with drop shadow */}
+              <div 
+                className={`relative transition-all duration-300 ${
+                  showSuggestions ? 'rounded-2xl shadow-2xl border' : ''
+                }`}
+                style={{
+                  backgroundColor: showSuggestions ? cardBgColor : 'transparent',
+                  borderColor: showSuggestions ? borderColor : 'transparent'
+                }}
+              >
+                {/* Search input */}
+                <div className="relative">
+                  <Input
+                    ref={inputRef}
+                    type="text"
+                    placeholder={`Ask ${config.chatbotName}...`}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    onClick={handleInputClick}
+                    className={`pr-12 py-4 text-lg border-2 focus:ring-2 transition-all duration-200 ${
+                      showSuggestions ? 'rounded-t-2xl border-b-0' : 'rounded-2xl shadow-lg'
+                    }`}
+                    style={{
+                      backgroundColor: inputBgColor,
+                      borderColor: inputBorderColor,
+                      color: textColor
+                    }}
+                    disabled={searchLoading}
+                  />
+                  <Button
+                    onClick={handleSearch}
+                    disabled={!query.trim() || searchLoading}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 rounded-full p-0 shadow-md"
+                    style={{
+                      backgroundColor: primaryColor,
+                      borderColor: primaryColor
+                    }}
+                  >
+                    {searchLoading ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <ArrowUp className="h-5 w-5 text-white" />
+                    )}
+                  </Button>
+                </div>
 
-              {/* Suggestions */}
-              <div className="grid grid-cols-1 gap-3">
-                {suggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSelectExample(suggestion)}
-                    className="p-4 text-left rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-[1.02] text-sm shadow-sm"
+                {/* Suggestions dropdown */}
+                {showSuggestions && (
+                  <div 
+                    className="border-t-0 rounded-b-2xl overflow-hidden"
                     style={{
                       backgroundColor: cardBgColor,
-                      borderColor: borderColor,
+                      borderColor: borderColor
+                    }}
+                  >
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSelectExample(suggestion)}
+                        className="w-full p-4 text-left border-b last:border-b-0 hover:bg-opacity-80 transition-all duration-200 text-sm"
+                        style={{
+                          backgroundColor: 'transparent',
+                          borderColor: `${borderColor}50`,
+                          color: textColor
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = `${primaryColor}10`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{suggestion}</span>
+                          <ArrowUp 
+                            className="h-4 w-4 transform rotate-45 opacity-40"
+                            style={{ color: primaryColor }}
+                          />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Loading overlay when processing suggestion */}
+              {searchLoading && showCentralLoader && (
+                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-2xl flex items-center justify-center">
+                  <div className="bg-white rounded-lg p-4 shadow-lg flex items-center gap-3"
+                    style={{
+                      backgroundColor: cardBgColor,
                       color: textColor
                     }}
                   >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
+                    <LoadingSpinner size="sm" />
+                    <span className="text-sm">{thinkingMessage}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
