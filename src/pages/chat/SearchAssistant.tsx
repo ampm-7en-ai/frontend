@@ -737,7 +737,7 @@ const SearchAssistant = () => {
               {/* Input container with enhanced transitions */}
               <div 
                 className={`relative transition-all duration-700 ease-out ${
-                  mode === 'suggestions' ? 'rounded-3xl shadow-2xl border animate-scale-in' : 'animate-fade-in'
+                  mode === 'suggestions' ? 'rounded-3xl shadow-2xl border animate-scale-in border-none shadow-none' : 'animate-fade-in'
                 }`}
                 style={{
                   backgroundColor: mode === 'suggestions' ? cardBgColor : 'transparent',
