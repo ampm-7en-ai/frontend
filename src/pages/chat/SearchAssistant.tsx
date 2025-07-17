@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, Moon, Sun, User, ArrowLeft } from 'lucide-react';
+import { ArrowUp, Moon, Sun, User, ArrowLeft, Bot } from 'lucide-react';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -13,7 +13,6 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Bot } from 'lucide-react';
 import { BASE_URL } from '@/utils/api-config';
 
 interface ChatbotConfig {
@@ -60,29 +59,40 @@ const thinkingMessages = [
   "Finding relevant answers..."
 ];
 
+// Enhanced mode system for better state management
+type AssistantMode = 'initial' | 'suggestions' | 'chat';
+
 const SearchAssistant = () => {
   const { agentId } = useParams<{ agentId: string }>();
   const [searchParams] = useSearchParams();
   const isPopupMode = searchParams.get('type') === 'popup';
+  
+  // Core configuration and loading states
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Enhanced state management with single mode
+  const [mode, setMode] = useState<AssistantMode>('initial');
   const [query, setQuery] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [thinkingMessage, setThinkingMessage] = useState<string>("Thinking...");
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
-  const chatServiceRef = useRef<ChatWebSocketService | null>(null);
-  const { toast } = useToast();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const thinkingIntervalRef = useRef<number | null>(null);
-  const { theme, setTheme } = useAppTheme();
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [showCentralLoader, setShowCentralLoader] = useState<boolean>(false);
+  
+  // WebSocket and connectivity
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [hasInteracted, setHasInteracted] = useState<boolean>(false);
-  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const chatServiceRef = useRef<ChatWebSocketService | null>(null);
+  const thinkingIntervalRef = useRef<number | null>(null);
+  
+  // Refs and theme
+  const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useAppTheme();
+  const { toast } = useToast();
+  
+  // Theme state for component
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
 
   // Use system theme preference as initial value
   useEffect(() => {
@@ -153,8 +163,7 @@ const SearchAssistant = () => {
         
         // For regular messages, stop the thinking animation
         clearThinkingInterval();
-        setSearchLoading(false);
-        setShowCentralLoader(false);
+        setIsProcessing(false);
         
         // Add the bot response to chat history
         const newMessage: ChatMessage = {
@@ -165,6 +174,16 @@ const SearchAssistant = () => {
         };
         
         setChatHistory(prev => [...prev, newMessage]);
+        
+        // Auto-scroll to bottom in chat mode
+        setTimeout(() => {
+          if (chatScrollRef.current) {
+            chatScrollRef.current.scrollTo({
+              top: chatScrollRef.current.scrollHeight,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
@@ -180,8 +199,7 @@ const SearchAssistant = () => {
           description: "Failed to connect to assistant service. Please try again.",
           variant: "destructive",
         });
-        setSearchLoading(false);
-        setShowCentralLoader(false);
+        setIsProcessing(false);
         setIsConnected(false);
       },
       onConnectionChange: (status) => {
@@ -189,8 +207,7 @@ const SearchAssistant = () => {
         setIsConnected(status);
         if (!status) {
           clearThinkingInterval();
-          setSearchLoading(false);
-          setShowCentralLoader(false);
+          setIsProcessing(false);
         }
       }
     });
@@ -229,13 +246,14 @@ const SearchAssistant = () => {
     }
   };
 
-  const handleSearch = () => {
+  // Enhanced search handling with mode transitions
+  const handleSearch = useCallback(() => {
     if (!query.trim()) return;
 
-    // Set that user has interacted
-    setHasInteracted(true);
-
-    // Immediately add user message to chat history
+    // Transition to chat mode
+    setMode('chat');
+    
+    // Add user message immediately
     const userQueryCopy = query;
     const newUserMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -245,8 +263,8 @@ const SearchAssistant = () => {
     };
     
     setChatHistory(prev => [...prev, newUserMessage]);
-    setSearchLoading(true);
-    setQuery(''); // Clear input field immediately
+    setIsProcessing(true);
+    setQuery('');
     
     if (!chatServiceRef.current?.isConnected()) {
       toast({
@@ -254,7 +272,7 @@ const SearchAssistant = () => {
         description: "Cannot send query while disconnected",
         variant: "destructive",
       });
-      setSearchLoading(false);
+      setIsProcessing(false);
       return;
     }
 
@@ -271,10 +289,9 @@ const SearchAssistant = () => {
         description: "Failed to send query. Please try again.",
         variant: "destructive",
       });
-      setSearchLoading(false);
-      setShowCentralLoader(false);
+      setIsProcessing(false);
     }
-  };
+  }, [query, toast]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -283,12 +300,10 @@ const SearchAssistant = () => {
     }
   };
 
-  const handleSelectExample = (question: string) => {
-    // Set that user has interacted
-    setHasInteracted(true);
-    setShowSuggestions(false);
+  // Enhanced suggestion selection with smooth transitions
+  const handleSelectExample = useCallback((question: string) => {
+    setMode('chat');
     
-    // Add user question to chat history
     const newUserMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       content: question,
@@ -297,10 +312,7 @@ const SearchAssistant = () => {
     };
     
     setChatHistory(prev => [...prev, newUserMessage]);
-    setSearchLoading(true);
-    
-    // Show central loader
-    setShowCentralLoader(true);
+    setIsProcessing(true);
     
     if (chatServiceRef.current?.isConnected()) {
       startThinkingAnimation();
@@ -311,50 +323,59 @@ const SearchAssistant = () => {
         description: "Cannot send query while disconnected",
         variant: "destructive",
       });
-      setSearchLoading(false);
-      setShowCentralLoader(false);
+      setIsProcessing(false);
     }
-  };
+  }, [toast]);
 
-  const handleInputClick = () => {
-    if (!hasInteracted) {
-      setShowSuggestions(true);
+  // Enhanced input interaction with mode-based logic
+  const handleInputClick = useCallback(() => {
+    if (mode === 'initial') {
+      setMode('suggestions');
     }
-  };
+  }, [mode]);
 
-  const handleBackToInitial = () => {
-    setHasInteracted(false);
-    setShowSuggestions(true);
+  // Enhanced reset functionality with clean state transitions
+  const handleBackToInitial = useCallback(() => {
+    setMode('initial');
     setChatHistory([]);
     setQuery('');
-  };
+    setIsProcessing(false);
+    clearThinkingInterval();
+    
+    // Clean disconnect and reconnect WebSocket for fresh state
+    if (chatServiceRef.current) {
+      chatServiceRef.current.disconnect();
+      setTimeout(() => {
+        if (chatServiceRef.current) {
+          chatServiceRef.current.connect();
+        }
+      }, 100);
+    }
+  }, []);
 
-  // Handle click outside
+  // Enhanced click outside handling with mode-based logic
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isPopupMode && containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        if (hasInteracted) {
-          // Reset all state
-          setHasInteracted(false);
-          setShowSuggestions(false);
+        if (mode === 'chat') {
+          // Complete reset when leaving chat mode
+          setMode('initial');
           setChatHistory([]);
           setQuery('');
-          setSearchLoading(false);
-          setShowCentralLoader(false);
+          setIsProcessing(false);
           clearThinkingInterval();
           
-          // Disconnect WebSocket
+          // Clean WebSocket state
           if (chatServiceRef.current) {
             chatServiceRef.current.disconnect();
-            // Reconnect for future use
             setTimeout(() => {
               if (chatServiceRef.current) {
                 chatServiceRef.current.connect();
               }
             }, 100);
           }
-        } else if (showSuggestions) {
-          setShowSuggestions(false);
+        } else if (mode === 'suggestions') {
+          setMode('initial');
         }
       }
     };
@@ -363,7 +384,7 @@ const SearchAssistant = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isPopupMode, hasInteracted, showSuggestions]);
+  }, [isPopupMode, mode]);
 
   // Determine which suggestions to use (from config or fallback)
   const suggestions = config?.suggestions && config.suggestions.length > 0 
@@ -417,7 +438,7 @@ const SearchAssistant = () => {
     );
   }
 
-  // Popup layout for type=popup
+  // Enhanced popup layout with progressive disclosure
   if (isPopupMode) {
     return (
       <div 
@@ -428,42 +449,50 @@ const SearchAssistant = () => {
           color: textColor
         }}
       >
-        {/* Main floating container */}
+        {/* Main floating container with enhanced transitions */}
         <div 
           ref={containerRef}
-          className={`relative transition-all duration-500 ease-out ${
-            hasInteracted 
-              ? 'w-full max-w-4xl h-[50vh] rounded-2xl shadow-2xl border' 
-              : showSuggestions
-              ? 'w-full max-w-lg rounded-3xl shadow-2xl border'
-              : 'w-full max-w-lg'
+          className={`relative transition-all duration-700 ease-out ${
+            mode === 'chat'
+              ? 'w-full max-w-4xl h-[70vh] rounded-2xl shadow-2xl border animate-scale-in' 
+              : mode === 'suggestions'
+              ? 'w-full max-w-lg rounded-3xl shadow-2xl border animate-fade-in'
+              : 'w-full max-w-lg animate-fade-in'
           }`}
           style={{
-            backgroundColor: (hasInteracted || showSuggestions) ? cardBgColor : 'transparent',
-            borderColor: (hasInteracted || showSuggestions) ? borderColor : 'transparent'
+            backgroundColor: mode !== 'initial' ? cardBgColor : 'transparent',
+            borderColor: mode !== 'initial' ? borderColor : 'transparent',
+            transform: mode === 'chat' ? 'scale(1.02)' : 'scale(1)',
           }}
         >
-          {/* Header with theme toggle and back arrow - only visible when expanded */}
-          {hasInteracted && (
-            <div className="flex items-center justify-between p-4 border-b"
+          {/* Enhanced header with theme toggle - visible in suggestions and chat modes */}
+          {mode !== 'initial' && (
+            <div className="flex items-center justify-between p-4 border-b animate-fade-in"
               style={{ borderColor: borderColor }}
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBackToInitial}
-                style={{ color: textColor }}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="text-sm">Back</span>
-              </Button>
+              {mode === 'chat' ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToInitial}
+                  className="flex items-center gap-2 hover-scale transition-all duration-200"
+                  style={{ 
+                    color: textColor,
+                    backgroundColor: `${primaryColor}10`,
+                  }}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="text-sm">Back</span>
+                </Button>
+              ) : (
+                <div className="w-16" /> // Spacer for centering
+              )}
               
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium">{config.chatbotName}</span>
+                <span className="text-sm font-medium text-center">{config.chatbotName}</span>
                 <button 
                   onClick={toggleTheme} 
-                  className="p-2 rounded-full hover:bg-opacity-80 transition-colors"
+                  className="p-2 rounded-full hover-scale transition-all duration-200"
                   style={{ backgroundColor: `${primaryColor}20` }}
                 >
                   {currentTheme === 'dark' ? (
@@ -476,12 +505,12 @@ const SearchAssistant = () => {
             </div>
           )}
 
-          {/* Chat content area - only visible after interaction */}
-          {hasInteracted && (
-            <div className="flex flex-col h-full">
-              {/* Chat history and loading section */}
+          {/* Enhanced chat content area with smooth transitions */}
+          {mode === 'chat' && (
+            <div className="flex flex-col h-full animate-fade-in">
+              {/* Chat history with enhanced scrolling */}
               <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
+                <ScrollArea className="h-full" ref={chatScrollRef}>
                   <div className="p-6 space-y-5">
                     {chatHistory.map((message, index) => {
                       if (message.type === 'user') {
@@ -607,9 +636,9 @@ const SearchAssistant = () => {
                       return null;
                     })}
 
-                    {/* Thinking/Loading indicator */}
-                    {searchLoading && (
-                      <div className="flex items-start gap-2" style={{ color: textColor }}>
+                    {/* Enhanced thinking/loading indicator with better animations */}
+                    {isProcessing && (
+                      <div className="flex items-start gap-2 animate-fade-in" style={{ color: textColor }}>
                         <Avatar className="h-8 w-8 mt-1" style={{
                           backgroundColor: primaryColor
                         }}>
@@ -631,16 +660,24 @@ const SearchAssistant = () => {
                                 style={{ backgroundColor: primaryColor }}
                               ></div>
                               <div 
-                                className="w-2 h-2 rounded-full mr-1 animate-pulse delay-100"
-                                style={{ backgroundColor: primaryColor }}
+                                className="w-2 h-2 rounded-full mr-1 animate-pulse"
+                                style={{ 
+                                  backgroundColor: primaryColor,
+                                  animationDelay: '0.2s'
+                                }}
                               ></div>
                               <div 
-                                className="w-2 h-2 rounded-full animate-pulse delay-200"
-                                style={{ backgroundColor: primaryColor }}
+                                className="w-2 h-2 rounded-full animate-pulse"
+                                style={{ 
+                                  backgroundColor: primaryColor,
+                                  animationDelay: '0.4s'
+                                }}
                               ></div>
                             </div>
                           </div>
-                          <p className="text-xs opacity-70" style={{ color: textColor }}>{thinkingMessage}</p>
+                          <p className="text-xs opacity-70 animate-pulse" style={{ color: textColor }}>
+                            {thinkingMessage}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -648,13 +685,14 @@ const SearchAssistant = () => {
                 </ScrollArea>
               </div>
 
-              {/* Input bar at bottom of container */}
-              <div className="border-t p-4"
+              {/* Enhanced input bar with better styling and animations */}
+              <div className="border-t p-4 animate-fade-in"
                 style={{
-                  borderColor: borderColor
+                  borderColor: borderColor,
+                  backgroundColor: `${primaryColor}05`
                 }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <div className="flex-1 relative">
                     <Input
                       ref={inputRef}
@@ -663,25 +701,29 @@ const SearchAssistant = () => {
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      className="pr-12 py-3 text-base border-2 focus:ring-2 transition-all duration-200"
+                      className="pr-12 py-3 text-base border-2 focus:ring-2 transition-all duration-300 shadow-sm"
                       style={{
                         backgroundColor: inputBgColor,
                         borderColor: inputBorderColor,
                         color: textColor,
-                        borderRadius: '12px'
+                        borderRadius: '16px'
                       }}
-                      disabled={searchLoading}
+                      disabled={isProcessing}
                     />
                     <Button
                       onClick={handleSearch}
-                      disabled={!query.trim() || searchLoading}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0"
+                      disabled={!query.trim() || isProcessing}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0 hover-scale transition-all duration-200 shadow-md"
                       style={{
                         backgroundColor: primaryColor,
                         borderColor: primaryColor
                       }}
                     >
-                      <ArrowUp className="h-4 w-4 text-white" />
+                      {isProcessing ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <ArrowUp className="h-4 w-4 text-white" />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -689,20 +731,20 @@ const SearchAssistant = () => {
             </div>
           )}
 
-          {/* Initial input (centered) - only visible before interaction */}
-          {!hasInteracted && (
+          {/* Enhanced initial/suggestions interface with progressive disclosure */}
+          {mode !== 'chat' && (
             <div className="relative">
-              {/* Input and suggestions wrapper with drop shadow */}
+              {/* Input container with enhanced transitions */}
               <div 
-                className={`relative transition-all duration-500 ease-out ${
-                  showSuggestions ? 'rounded-3xl shadow-2xl border' : ''
+                className={`relative transition-all duration-700 ease-out ${
+                  mode === 'suggestions' ? 'rounded-3xl shadow-2xl border animate-scale-in' : 'animate-fade-in'
                 }`}
                 style={{
-                  backgroundColor: showSuggestions ? cardBgColor : 'transparent',
-                  borderColor: showSuggestions ? borderColor : 'transparent'
+                  backgroundColor: mode === 'suggestions' ? cardBgColor : 'transparent',
+                  borderColor: mode === 'suggestions' ? borderColor : 'transparent'
                 }}
               >
-                {/* Search input */}
+                {/* Enhanced search input with better responsive design */}
                 <div className="relative">
                   <Input
                     ref={inputRef}
@@ -712,37 +754,38 @@ const SearchAssistant = () => {
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyPress}
                     onClick={handleInputClick}
-                    className={`pr-16 py-6 text-xl border-2 focus:ring-2 transition-all duration-500 ease-out ${
-                      showSuggestions ? 'rounded-t-3xl border-b-0' : 'rounded-3xl shadow-xl'
+                    className={`pr-16 py-6 text-xl border-2 focus:ring-2 transition-all duration-700 ease-out ${
+                      mode === 'suggestions' ? 'rounded-t-3xl border-b-0' : 'rounded-3xl shadow-xl hover-scale'
                     }`}
                     style={{
                       backgroundColor: inputBgColor,
                       borderColor: inputBorderColor,
-                      color: textColor
+                      color: textColor,
+                      fontSize: mode === 'initial' ? '1.25rem' : '1rem'
                     }}
-                    disabled={searchLoading}
+                    disabled={isProcessing}
                   />
                   <Button
                     onClick={handleSearch}
-                    disabled={!query.trim() || searchLoading}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-12 w-12 rounded-full p-0 shadow-lg"
+                    disabled={!query.trim() || isProcessing}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-11 w-11 rounded-full p-0 shadow-lg hover-scale transition-all duration-300"
                     style={{
                       backgroundColor: primaryColor,
                       borderColor: primaryColor
                     }}
                   >
-                    {searchLoading ? (
+                    {isProcessing ? (
                       <LoadingSpinner size="sm" />
                     ) : (
-                      <ArrowUp className="h-6 w-6 text-white" />
+                      <ArrowUp className="h-5 w-5 text-white" />
                     )}
                   </Button>
                 </div>
 
-                {/* Suggestions dropdown */}
-                {showSuggestions && (
+                {/* Enhanced suggestions dropdown with staggered animations */}
+                {mode === 'suggestions' && (
                   <div 
-                    className="border-t-0 rounded-b-3xl overflow-hidden"
+                    className="border-t-0 rounded-b-3xl overflow-hidden animate-fade-in"
                     style={{
                       backgroundColor: cardBgColor,
                       borderColor: borderColor
@@ -752,23 +795,26 @@ const SearchAssistant = () => {
                       <button
                         key={index}
                         onClick={() => handleSelectExample(suggestion)}
-                        className="w-full px-6 py-3 text-left border-b last:border-b-0 hover:bg-opacity-80 transition-all duration-300 ease-out text-sm"
+                        className="w-full px-6 py-4 text-left border-b last:border-b-0 transition-all duration-300 ease-out text-sm hover-scale"
                         style={{
                           backgroundColor: 'transparent',
                           borderColor: `${borderColor}30`,
-                          color: textColor
+                          color: textColor,
+                          animationDelay: `${index * 100}ms`
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = `${primaryColor}08`;
+                          e.currentTarget.style.backgroundColor = `${primaryColor}12`;
+                          e.currentTarget.style.transform = 'translateX(4px)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.transform = 'translateX(0)';
                         }}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="leading-relaxed">{suggestion}</span>
+                          <span className="leading-relaxed font-medium">{suggestion}</span>
                           <ArrowUp 
-                            className="h-3 w-3 transform rotate-45 opacity-30 transition-opacity duration-200"
+                            className="h-4 w-4 transform rotate-45 opacity-40 transition-all duration-300"
                             style={{ color: primaryColor }}
                           />
                         </div>
@@ -778,17 +824,21 @@ const SearchAssistant = () => {
                 )}
               </div>
 
-              {/* Loading overlay when processing suggestion */}
-              {searchLoading && showCentralLoader && (
-                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-3xl flex items-center justify-center transition-all duration-300">
-                  <div className="bg-white rounded-xl p-4 shadow-xl flex items-center gap-3"
+              {/* Enhanced loading overlay with better visual feedback */}
+              {isProcessing && mode === 'suggestions' && (
+                <div className="absolute inset-0 bg-black bg-opacity-30 rounded-3xl flex items-center justify-center transition-all duration-500 animate-fade-in backdrop-blur-sm">
+                  <div className="rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 animate-scale-in"
                     style={{
                       backgroundColor: cardBgColor,
-                      color: textColor
+                      color: textColor,
+                      border: `1px solid ${borderColor}`
                     }}
                   >
-                    <LoadingSpinner size="sm" />
-                    <span className="text-sm">{thinkingMessage}</span>
+                    <LoadingSpinner size="md" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium animate-pulse">{thinkingMessage}</p>
+                      <p className="text-xs opacity-70 mt-1">Preparing your answer...</p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -853,7 +903,7 @@ const SearchAssistant = () => {
           className="flex-grow"
           style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
         >
-          <div className="p-4" ref={contentRef}>
+          <div className="p-4">
             {chatHistory.length === 0 ? (
               <div>
                 <div className="mb-4">
@@ -1041,7 +1091,7 @@ const SearchAssistant = () => {
                 })}
                 
                 {/* Show loading indicator after the last message when waiting for a response */}
-                {searchLoading && (
+                {isProcessing && (
                   <div className="flex items-start gap-2">
                     <Avatar className="h-8 w-8 mt-1" style={{
                       backgroundColor: primaryColor
@@ -1070,7 +1120,7 @@ const SearchAssistant = () => {
                 )}
 
                 {/* Always show suggestion chips after conversation if hasInteracted is true */}
-                {chatHistory.length > 0 && !searchLoading && (
+                {chatHistory.length > 0 && !isProcessing && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {suggestions.slice(0, 3).filter(Boolean).map((suggestion, index) => (
                       <button
@@ -1112,7 +1162,7 @@ const SearchAssistant = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyPress}
-            disabled={searchLoading}
+            disabled={isProcessing}
             style={{ 
               backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
               color: textColor,
@@ -1122,10 +1172,10 @@ const SearchAssistant = () => {
           <Button 
             className={`absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-full ${!query.trim() ? 'hidden' : ''}`}
             style={{ backgroundColor: primaryColor }}
-            disabled={searchLoading || !query.trim()}
+            disabled={isProcessing || !query.trim()}
             onClick={handleSearch}
           >
-            {searchLoading ? (
+            {isProcessing ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <ArrowUp size={16} />
