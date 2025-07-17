@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -6,34 +7,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Settings, 
   Gauge, 
   MessageSquare, 
-  FileText,
   Save,
   RotateCcw,
   Zap,
-  Clock,
-  TrendingUp,
-  Activity
+  Copy,
+  ChevronDown,
+  Monitor
 } from 'lucide-react';
+import { getModelDisplay, modelOptions } from '@/constants/modelOptions';
 
 interface TestRightPanelProps {
   chatConfigs: any[];
   selectedModelIndex?: number;
+  numModels: number;
   onUpdateChatConfig: (index: number, field: string, value: any) => void;
   onSaveConfig: (index: number) => void;
+  onSelectModel: (index: number) => void;
+  onCloneConfig: (index: number) => void;
   isSaving: number | null;
 }
 
 export const TestRightPanel = ({ 
   chatConfigs, 
   selectedModelIndex = 0,
+  numModels,
   onUpdateChatConfig,
   onSaveConfig,
+  onSelectModel,
+  onCloneConfig,
   isSaving
 }: TestRightPanelProps) => {
   const [activeTab, setActiveTab] = useState('config');
@@ -50,6 +57,27 @@ export const TestRightPanel = ({
     onUpdateChatConfig(selectedModelIndex, 'systemPrompt', '');
   };
 
+  const applyPreset = (preset: any) => {
+    Object.entries(preset).forEach(([key, value]) => {
+      onUpdateChatConfig(selectedModelIndex, key, value);
+    });
+  };
+
+  const presets = [
+    {
+      name: 'Creative Writing',
+      config: { temperature: 0.9, maxLength: 1000, systemPrompt: 'You are a creative writing assistant that helps with storytelling and narrative development.' }
+    },
+    {
+      name: 'Technical Support',
+      config: { temperature: 0.3, maxLength: 500, systemPrompt: 'You are a technical support specialist. Provide clear, accurate, and helpful solutions.' }
+    },
+    {
+      name: 'Conversational',
+      config: { temperature: 0.7, maxLength: 300, systemPrompt: 'You are a helpful and friendly assistant.' }
+    }
+  ];
+
   return (
     <div className="h-full bg-white dark:bg-gray-900 flex flex-col">
       {/* Header */}
@@ -59,31 +87,78 @@ export const TestRightPanel = ({
             <Settings className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Configuration</h2>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Model settings & analysis</p>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Model Configuration</h2>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Configure selected model</p>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Model Selector */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <Label className="text-sm font-medium mb-2 block">Active Model</Label>
+        <Select 
+          value={selectedModelIndex.toString()} 
+          onValueChange={(value) => onSelectModel(parseInt(value))}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Array(numModels).fill(null).map((_, index) => (
+              <SelectItem key={index} value={index.toString()}>
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  Model {index + 1} - {getModelDisplay(chatConfigs[index]?.model || 'gpt-3.5-turbo')}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Configuration Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
           <div className="px-4 pt-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="config" className="text-xs">Config</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="config" className="text-xs">Parameters</TabsTrigger>
               <TabsTrigger value="prompts" className="text-xs">Prompts</TabsTrigger>
-              <TabsTrigger value="analytics" className="text-xs">Analytics</TabsTrigger>
             </TabsList>
           </div>
 
           <ScrollArea className="flex-1">
             <TabsContent value="config" className="p-4 space-y-4 mt-0">
+              {/* Model Selection */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Model Selection</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Select
+                    value={currentConfig.model || 'gpt-3.5-turbo'}
+                    onValueChange={(value) => handleConfigUpdate('model', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              {/* Parameters */}
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <Gauge className="h-4 w-4" />
-                      Model Parameters
+                      Parameters
                     </CardTitle>
                     <Button
                       variant="ghost"
@@ -112,14 +187,11 @@ export const TestRightPanel = ({
                       step={0.1}
                       className="w-full"
                     />
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Controls randomness in responses
-                    </p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs">Max Length</Label>
+                      <Label className="text-xs">Max Tokens</Label>
                       <Badge variant="outline" className="text-xs">
                         {currentConfig.maxLength || 150}
                       </Badge>
@@ -132,34 +204,41 @@ export const TestRightPanel = ({
                       step={50}
                       className="w-full"
                     />
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Maximum response length in tokens
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs">Model</Label>
-                    <Input
-                      value={currentConfig.model || ''}
-                      onChange={(e) => handleConfigUpdate('model', e.target.value)}
-                      className="text-xs"
-                      placeholder="Select model..."
-                      readOnly
-                    />
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Quick Presets */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Zap className="h-4 w-4" />
-                    Quick Actions
+                    Quick Presets
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {presets.map((preset) => (
+                    <Button
+                      key={preset.name}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyPreset(preset.config)}
+                      className="w-full justify-start text-xs"
+                    >
+                      {preset.name}
+                    </Button>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Actions */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
                     onClick={() => onSaveConfig(selectedModelIndex)}
                     disabled={isSaving === selectedModelIndex}
@@ -172,10 +251,11 @@ export const TestRightPanel = ({
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => onCloneConfig(selectedModelIndex)}
                     className="w-full justify-start text-xs"
                   >
-                    <FileText className="h-3 w-3 mr-2" />
-                    Export Config
+                    <Copy className="h-3 w-3 mr-2" />
+                    Clone to New Model
                   </Button>
                 </CardContent>
               </Card>
@@ -199,110 +279,6 @@ export const TestRightPanel = ({
                   <p className="text-xs text-gray-600 dark:text-gray-400">
                     Instructions that guide the AI's behavior and personality
                   </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Prompt Templates</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {[
-                    { name: 'Helpful Assistant', prompt: 'You are a helpful assistant that provides accurate and concise answers.' },
-                    { name: 'Creative Writer', prompt: 'You are a creative writing assistant that helps with storytelling and narrative development.' },
-                    { name: 'Technical Expert', prompt: 'You are a technical expert that provides detailed explanations and solutions.' }
-                  ].map((template) => (
-                    <Button
-                      key={template.name}
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start text-xs"
-                      onClick={() => handleConfigUpdate('systemPrompt', template.prompt)}
-                    >
-                      {template.name}
-                    </Button>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="analytics" className="p-4 space-y-4 mt-0">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Activity className="h-4 w-4" />
-                    Performance Metrics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">1.2s</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Avg Response</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">245</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Avg Tokens</div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Success Rate</span>
-                      <Badge variant="default" className="text-xs bg-green-100 text-green-700">98.5%</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Total Tests</span>
-                      <Badge variant="outline" className="text-xs">127</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {[
-                    { time: '2 min ago', action: 'Temperature adjusted to 0.8' },
-                    { time: '5 min ago', action: 'System prompt updated' },
-                    { time: '12 min ago', action: 'Configuration saved' },
-                  ].map((activity, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      <div className="flex-1">
-                        <p className="text-xs text-gray-900 dark:text-gray-100">{activity.action}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Usage Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Tests Today</span>
-                    <Badge variant="outline" className="text-xs">23</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">This Week</span>
-                    <Badge variant="outline" className="text-xs">156</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Total Tokens</span>
-                    <Badge variant="outline" className="text-xs">31.2k</Badge>
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

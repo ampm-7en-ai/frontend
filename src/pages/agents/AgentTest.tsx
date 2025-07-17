@@ -97,7 +97,7 @@ const AgentTest = () => {
           />
           
           <div className="flex-1 flex overflow-hidden">
-            {/* Left Panel - Knowledge & Settings */}
+            {/* Left Panel - Knowledge Base Only */}
             <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative bg-white dark:bg-gray-800`}>
               <Button
                 variant="ghost"
@@ -112,19 +112,11 @@ const AgentTest = () => {
                   agent={agent}
                   onViewKnowledgeSources={handleViewKnowledgeSources}
                   knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
-                  selectedModelIndex={selectedModelIndex}
-                  numModels={numModels}
-                  chatConfigs={chatConfigs}
-                  onUpdateChatConfig={handleUpdateChatConfig}
-                  onSelectModel={setSelectedModelIndex}
-                  onAddModel={handleAddModel}
-                  onRemoveModel={handleRemoveModel}
-                  onCloneConfig={handleCloneConfig}
                 />
               )}
             </div>
             
-            {/* Center Canvas - Model Comparison */}
+            {/* Center Canvas - Model Comparison - Full Height */}
             <div className="flex-1 relative">
               <TestCanvas
                 numModels={numModels}
@@ -132,13 +124,10 @@ const AgentTest = () => {
                 messages={messages}
                 primaryColors={primaryColors}
                 modelConnections={modelConnections}
-                isSaving={isSaving}
                 isProcessing={isProcessing}
                 agent={agent}
                 selectedModelIndex={selectedModelIndex}
                 onUpdateChatConfig={handleUpdateChatConfig}
-                onSystemPromptEdit={handleSystemPromptEdit}
-                onSaveConfig={handleSaveConfig}
                 onSendMessage={handleSendMessage}
                 onAddModel={handleAddModel}
                 onRemoveModel={handleRemoveModel}
@@ -146,7 +135,7 @@ const AgentTest = () => {
               />
             </div>
             
-            {/* Right Panel - Configuration */}
+            {/* Right Panel - Model Configuration */}
             <div className={`${rightPanelCollapsed ? 'w-12' : 'w-80'} border-l border-gray-200 dark:border-gray-700 transition-all duration-300 relative bg-white dark:bg-gray-800`}>
               <Button
                 variant="ghost"
@@ -160,8 +149,11 @@ const AgentTest = () => {
                 <TestRightPanel
                   chatConfigs={chatConfigs}
                   selectedModelIndex={selectedModelIndex}
+                  numModels={numModels}
                   onUpdateChatConfig={handleUpdateChatConfig}
                   onSaveConfig={handleSaveConfig}
+                  onSelectModel={setSelectedModelIndex}
+                  onCloneConfig={handleCloneConfig}
                   isSaving={isSaving}
                 />
               )}
