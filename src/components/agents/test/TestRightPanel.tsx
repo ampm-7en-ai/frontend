@@ -17,10 +17,10 @@ import {
   RotateCcw,
   Zap,
   Copy,
-  ChevronDown,
   Monitor
 } from 'lucide-react';
-import { getModelDisplay, modelOptions } from '@/constants/modelOptions';
+import { getModelDisplay } from '@/constants/modelOptions';
+import { useAIModels } from '@/hooks/useAIModels';
 
 interface TestRightPanelProps {
   chatConfigs: any[];
@@ -44,6 +44,7 @@ export const TestRightPanel = ({
   isSaving
 }: TestRightPanelProps) => {
   const [activeTab, setActiveTab] = useState('config');
+  const { allModelOptions, isLoading: isLoadingModels } = useAIModels();
   
   const currentConfig = chatConfigs[selectedModelIndex] || {};
 
@@ -142,7 +143,7 @@ export const TestRightPanel = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {modelOptions.map((option) => (
+                      {allModelOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>

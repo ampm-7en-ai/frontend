@@ -59,7 +59,7 @@ export const TestCanvas = ({
   onRemoveModel,
   onSelectModel
 }: TestCanvasProps) => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [panelWidth, setPanelWidth] = useState(400); // Default width for each panel
 
@@ -219,7 +219,6 @@ export const TestCanvas = ({
                         isSaving={false}
                         className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
                         showExpandButton={false}
-                        hideHeader={true}
                       />
                     </div>
                     {index < numModels - 1 && (
@@ -267,7 +266,6 @@ export const TestCanvas = ({
                         showExpandButton={true}
                         onExpand={() => toggleCardExpansion(index)}
                         isExpanded={isExpanded}
-                        hideHeader={true}
                       />
                     </div>
                   );
