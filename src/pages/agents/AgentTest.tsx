@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { getModelDisplay } from '@/constants/modelOptions';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 const AgentTest = () => {
   const { agentId } = useParams();
@@ -56,130 +58,136 @@ const AgentTest = () => {
 
   if (isLoadingAgent || isLoadingAgents) {
     return (
-      <div className="space-y-4 p-8 text-center">
-        <LoadingSpinner text="Loading agent information..." />
-      </div>
+      <MainLayout>
+        <div className="space-y-4 p-8 text-center">
+          <LoadingSpinner text="Loading agent information..." />
+        </div>
+      </MainLayout>
     );
   }
 
   if (!agent && !isLoadingAgent) {
     return (
-      <div className="space-y-4 p-8 text-center">
-        <h3 className="text-lg font-medium">Agent not found</h3>
-        <p className="text-muted-foreground">The requested agent could not be found or you don't have access to it.</p>
-        <Button asChild>
-          <Link to="/agents">Back to Agents</Link>
-        </Button>
-      </div>
+      <MainLayout>
+        <div className="space-y-4 p-8 text-center">
+          <h3 className="text-lg font-medium">Agent not found</h3>
+          <p className="text-muted-foreground">The requested agent could not be found or you don't have access to it.</p>
+          <Button asChild>
+            <Link to="/agents">Back to Agents</Link>
+          </Button>
+        </div>
+      </MainLayout>
     );
   }
 
   return (
-    <TooltipProvider>
-      <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        {/* Top Toolbar */}
-        <TestPageToolbar
-          selectedAgentId={selectedAgentId}
-          onAgentChange={handleAgentChange}
-          onClearChat={handleClearChat}
-          onViewKnowledgeSources={handleViewKnowledgeSources}
-          knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
-          agents={allAgents}
-          isLoading={isLoadingAgent}
-          agent={agent}
-        />
-        
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Panel - Knowledge & Settings */}
-          <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative`}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 -right-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
-              onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
-            >
-              {leftPanelCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-            </Button>
-            {!leftPanelCollapsed && (
-              <TestLeftPanel
-                agent={agent}
-                onViewKnowledgeSources={handleViewKnowledgeSources}
-                knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
-                selectedModelIndex={selectedModelIndex}
+    <MainLayout>
+      <TooltipProvider>
+        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+          {/* Top Toolbar */}
+          <TestPageToolbar
+            selectedAgentId={selectedAgentId}
+            onAgentChange={handleAgentChange}
+            onClearChat={handleClearChat}
+            onViewKnowledgeSources={handleViewKnowledgeSources}
+            knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
+            agents={allAgents}
+            isLoading={isLoadingAgent}
+            agent={agent}
+          />
+          
+          <div className="flex-1 flex overflow-hidden">
+            {/* Left Panel - Knowledge & Settings */}
+            <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative bg-white dark:bg-gray-800`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 -right-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
+                onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+              >
+                {leftPanelCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+              </Button>
+              {!leftPanelCollapsed && (
+                <TestLeftPanel
+                  agent={agent}
+                  onViewKnowledgeSources={handleViewKnowledgeSources}
+                  knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
+                  selectedModelIndex={selectedModelIndex}
+                  numModels={numModels}
+                  chatConfigs={chatConfigs}
+                  onUpdateChatConfig={handleUpdateChatConfig}
+                  onSelectModel={setSelectedModelIndex}
+                  onAddModel={handleAddModel}
+                  onRemoveModel={handleRemoveModel}
+                  onCloneConfig={handleCloneConfig}
+                />
+              )}
+            </div>
+            
+            {/* Center Canvas - Model Comparison */}
+            <div className="flex-1 relative">
+              <TestCanvas
                 numModels={numModels}
                 chatConfigs={chatConfigs}
-                onUpdateChatConfig={handleUpdateChatConfig}
-                onSelectModel={setSelectedModelIndex}
-                onAddModel={handleAddModel}
-                onRemoveModel={handleRemoveModel}
-                onCloneConfig={handleCloneConfig}
-              />
-            )}
-          </div>
-          
-          {/* Center Canvas - Model Comparison */}
-          <div className="flex-1 relative">
-            <TestCanvas
-              numModels={numModels}
-              chatConfigs={chatConfigs}
-              messages={messages}
-              primaryColors={primaryColors}
-              modelConnections={modelConnections}
-              isSaving={isSaving}
-              isProcessing={isProcessing}
-              agent={agent}
-              selectedModelIndex={selectedModelIndex}
-              onUpdateChatConfig={handleUpdateChatConfig}
-              onSystemPromptEdit={handleSystemPromptEdit}
-              onSaveConfig={handleSaveConfig}
-              onSendMessage={handleSendMessage}
-              onAddModel={handleAddModel}
-              onRemoveModel={handleRemoveModel}
-              onSelectModel={setSelectedModelIndex}
-            />
-          </div>
-          
-          {/* Right Panel - Configuration */}
-          <div className={`${rightPanelCollapsed ? 'w-12' : 'w-80'} border-l border-gray-200 dark:border-gray-700 transition-all duration-300 relative`}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 -left-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
-              onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
-            >
-              {rightPanelCollapsed ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            </Button>
-            {!rightPanelCollapsed && (
-              <TestRightPanel
-                chatConfigs={chatConfigs}
+                messages={messages}
+                primaryColors={primaryColors}
+                modelConnections={modelConnections}
+                isSaving={isSaving}
+                isProcessing={isProcessing}
+                agent={agent}
                 selectedModelIndex={selectedModelIndex}
                 onUpdateChatConfig={handleUpdateChatConfig}
+                onSystemPromptEdit={handleSystemPromptEdit}
                 onSaveConfig={handleSaveConfig}
-                isSaving={isSaving}
+                onSendMessage={handleSendMessage}
+                onAddModel={handleAddModel}
+                onRemoveModel={handleRemoveModel}
+                onSelectModel={setSelectedModelIndex}
               />
-            )}
+            </div>
+            
+            {/* Right Panel - Configuration */}
+            <div className={`${rightPanelCollapsed ? 'w-12' : 'w-80'} border-l border-gray-200 dark:border-gray-700 transition-all duration-300 relative bg-white dark:bg-gray-800`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 -left-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
+                onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+              >
+                {rightPanelCollapsed ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              </Button>
+              {!rightPanelCollapsed && (
+                <TestRightPanel
+                  chatConfigs={chatConfigs}
+                  selectedModelIndex={selectedModelIndex}
+                  onUpdateChatConfig={handleUpdateChatConfig}
+                  onSaveConfig={handleSaveConfig}
+                  isSaving={isSaving}
+                />
+              )}
+            </div>
           </div>
+
+          {/* Modals */}
+          <SystemPromptDialog 
+            open={isSystemPromptOpen !== null}
+            onOpenChange={() => setIsSystemPromptOpen(null)}
+            modelIndex={isSystemPromptOpen}
+            modelName={isSystemPromptOpen !== null ? getModelDisplay(chatConfigs[isSystemPromptOpen].model) : ''}
+            systemPrompt={isSystemPromptOpen !== null ? chatConfigs[isSystemPromptOpen].systemPrompt : ''}
+            onUpdateSystemPrompt={handleUpdateSystemPrompt}
+          />
+
+          <KnowledgeSourceModal
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+            sources={agent?.knowledgeSources || []}
+            initialSourceId={selectedSourceId}
+            agentId={selectedAgentId}
+          />
         </div>
-
-        {/* Modals */}
-        <SystemPromptDialog 
-          open={isSystemPromptOpen !== null}
-          onOpenChange={() => setIsSystemPromptOpen(null)}
-          modelIndex={isSystemPromptOpen}
-          modelName={isSystemPromptOpen !== null ? getModelDisplay(chatConfigs[isSystemPromptOpen].model) : ''}
-          systemPrompt={isSystemPromptOpen !== null ? chatConfigs[isSystemPromptOpen].systemPrompt : ''}
-          onUpdateSystemPrompt={handleUpdateSystemPrompt}
-        />
-
-        <KnowledgeSourceModal
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
-          sources={agent?.knowledgeSources || []}
-          initialSourceId={selectedSourceId}
-          agentId={selectedAgentId}
-        />
-      </div>
-    </TooltipProvider>
+      </TooltipProvider>
+    </MainLayout>
   );
 };
 
