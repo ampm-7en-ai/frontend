@@ -7,11 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
   Minus, 
-  LayoutGrid,
-  List,
   Zap,
   Brain,
-  GripVertical
+  Maximize2
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -59,7 +57,6 @@ export const TestCanvas = ({
   onRemoveModel,
   onSelectModel
 }: TestCanvasProps) => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
   const handleBatchTest = () => {
@@ -132,27 +129,6 @@ export const TestCanvas = ({
 
             <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
 
-            <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <Button
-                variant={viewMode === 'grid' ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="h-8 px-2"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="h-8 px-2"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -189,21 +165,19 @@ export const TestCanvas = ({
           </div>
         </div>
 
-        {/* Model Cards Container - Full Height */}
+        {/* Model Cards Container - Constrained Width Grid */}
         <div className="flex-1 overflow-hidden">
-          {viewMode === 'list' ? (
-            // List view - equal width panels with better spacing
-            <div className="flex h-full gap-1">
+          <div className="h-full max-w-7xl mx-auto p-4 overflow-auto">
+            <div className={`grid gap-4 h-fit ${getGridCols()}`}>
               {Array(numModels).fill(null).map((_, index) => {
                 const primaryColor = primaryColors[index] || '#9b87f5';
+                const isExpanded = expandedCard === index;
                 const isSelected = selectedModelIndex === index;
                 
                 return (
                   <div 
                     key={`model-${index}`} 
-                    className={`flex-1 h-full transition-all duration-200 cursor-pointer ${
-                      isSelected ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900' : ''
-                    }`}
+                    className={`transition-all duration-300 cursor-pointer ${isExpanded ? 'col-span-full' : ''}`}
                     onClick={() => onSelectModel(index)}
                   >
                     <ModelComparisonCard
@@ -221,66 +195,30 @@ export const TestCanvas = ({
                       avatarSrc={agent?.avatarSrc}
                       isConnected={modelConnections[index]}
                       isSaving={false}
-                      className="h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
-                      showExpandButton={false}
+                      className={`${isExpanded ? 'h-[600px]' : 'h-[500px]'} ${
+                        isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''
+                      } bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-purple-300 hover:ring-offset-1`}
+                      showExpandButton={true}
+                      onExpand={() => toggleCardExpansion(index)}
+                      isExpanded={isExpanded}
                     />
                   </div>
                 );
               })}
             </div>
-          ) : (
-            // Grid view
-            <div className="p-4 h-full overflow-auto">
-              <div className={`grid gap-4 h-fit ${getGridCols()}`}>
-                {Array(numModels).fill(null).map((_, index) => {
-                  const primaryColor = primaryColors[index] || '#9b87f5';
-                  const isExpanded = expandedCard === index;
-                  const isSelected = selectedModelIndex === index;
-                  
-                  return (
-                    <div 
-                      key={`model-${index}`} 
-                      className={`transition-all duration-300 cursor-pointer ${isExpanded ? 'col-span-full' : ''}`}
-                      onClick={() => onSelectModel(index)}
-                    >
-                      <ModelComparisonCard
-                        index={index}
-                        model={chatConfigs[index]?.model || ''}
-                        temperature={chatConfigs[index]?.temperature || 0.7}
-                        maxLength={chatConfigs[index]?.maxLength || 150}
-                        systemPrompt={chatConfigs[index]?.systemPrompt || ''}
-                        messages={messages[index] || []}
-                        onModelChange={(value) => onUpdateChatConfig(index, 'model', value)}
-                        onOpenSystemPrompt={() => {}}
-                        onUpdateConfig={(field, value) => onUpdateChatConfig(index, field, value)}
-                        onSaveConfig={() => {}}
-                        primaryColor={primaryColor}
-                        avatarSrc={agent?.avatarSrc}
-                        isConnected={modelConnections[index]}
-                        isSaving={false}
-                        className={`${isExpanded ? 'h-[600px]' : 'h-[400px]'} ${
-                          isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''
-                        } bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200`}
-                        showExpandButton={true}
-                        onExpand={() => toggleCardExpansion(index)}
-                        isExpanded={isExpanded}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Chat Input */}
         <div className="h-16 p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-t border-white/20 dark:border-gray-700/50">
-          <ChatInput 
-            onSendMessage={onSendMessage}
-            primaryColor={primaryColors[0] || '#9b87f5'}
-            isDisabled={isProcessing || modelConnections.some(status => !status)}
-            placeholder="Type your message to test all models..."
-          />
+          <div className="max-w-7xl mx-auto">
+            <ChatInput 
+              onSendMessage={onSendMessage}
+              primaryColor={primaryColors[0] || '#9b87f5'}
+              isDisabled={isProcessing || modelConnections.some(status => !status)}
+              placeholder="Type your message to test all models..."
+            />
+          </div>
         </div>
       </div>
     </>
