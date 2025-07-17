@@ -9,17 +9,15 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Settings, 
-  Sliders, 
   Save,
-  RotateCcw
+  Maximize2
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAIModels } from '@/hooks/useAIModels';
-import { ModelConfigPopover } from '@/components/agents/modelComparison/ModelConfigPopover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ExponentialSlider } from '@/components/ui/ExponentialSlider';
 
 interface TestRightPanelProps {
   chatConfigs: any[];
@@ -106,63 +104,46 @@ export const TestRightPanel = ({
               </CardContent>
             </Card>
 
-            {/* Parameters */}
+            {/* Parameters - Using the popup content */}
             <Card>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Sliders className="h-4 w-4" />
-                    Parameters
-                  </CardTitle>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Sliders className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <ModelConfigPopover
-                      temperature={currentConfig.temperature || 0.7}
-                      maxLength={currentConfig.maxLength || 150}
-                      systemPrompt={currentConfig.systemPrompt || ''}
-                      onUpdateConfig={(field, value) => handleConfigUpdate(field, value)}
-                      onOpenSystemPrompt={handleOpenSystemPrompt}
-                    />
-                  </Popover>
-                </div>
+                <CardTitle className="text-sm">Parameters</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Temperature</Label>
-                    <Badge variant="outline" className="text-xs">
-                      {currentConfig.temperature?.toFixed(2) || '0.70'}
-                    </Badge>
+                    <Label>Temperature</Label>
+                    <span className="text-sm text-muted-foreground">{(currentConfig.temperature || 0.7).toFixed(1)}</span>
                   </div>
                   <Slider
-                    value={[currentConfig.temperature || 0.7]}
-                    onValueChange={(value) => handleConfigUpdate('temperature', value[0])}
-                    max={2}
                     min={0}
+                    max={1}
                     step={0.1}
-                    className="w-full"
+                    value={[currentConfig.temperature || 0.7]}
+                    onValueChange={([value]) => handleConfigUpdate('temperature', value)}
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Max Tokens</Label>
-                    <Badge variant="outline" className="text-xs">
-                      {currentConfig.maxLength || 150}
-                    </Badge>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Precise</span>
+                    <span>Creative</span>
                   </div>
-                  <Slider
-                    value={[currentConfig.maxLength || 150]}
-                    onValueChange={(value) => handleConfigUpdate('maxLength', value[0])}
-                    max={4000}
-                    min={50}
-                    step={50}
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label>Token length</Label>
+                    <span className="text-sm text-muted-foreground">{currentConfig.maxLength || 150}</span>
+                  </div>
+                  <ExponentialSlider
+                    minValue={4000}
+                    maxValue={32000}
+                    value={currentConfig.maxLength || 150}
+                    onChange={(value) => handleConfigUpdate('maxLength', value)}
                     className="w-full"
                   />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Short</span>
+                    <span>Long</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -170,14 +151,24 @@ export const TestRightPanel = ({
             {/* System Prompt */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">System Prompt</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">System Prompt</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 rounded-full"
+                    onClick={handleOpenSystemPrompt}
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Textarea
-                  value={currentConfig.systemPrompt || ''}
+                <Textarea 
+                  value={currentConfig.systemPrompt || ''} 
                   onChange={(e) => handleConfigUpdate('systemPrompt', e.target.value)}
-                  placeholder="Enter system prompt..."
-                  className="min-h-32 text-xs"
+                  className="min-h-[100px] max-h-[200px] resize-none text-sm"
+                  placeholder="Enter system instructions for the AI..."
                 />
                 <p className="text-xs text-muted-foreground">
                   Instructions that guide the AI's behavior and personality

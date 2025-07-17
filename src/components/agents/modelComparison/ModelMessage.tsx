@@ -46,26 +46,26 @@ export const ModelMessage = ({
 
   const getModelBadge = (modelName: string) => {
     // Make sure we're working with a valid string
-    if (!modelName) return <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">Unknown</span>;
+    if (!modelName) return <span className="px-1.5 py-0.5 bg-muted/50 rounded-full text-xs text-muted-foreground">Unknown</span>;
     
     // Convert to lowercase for case-insensitive comparison
     const modelNameLower = modelName.toLowerCase();
     
     switch(true){
       case modelNameLower.includes('gpt-4-turbo'):
-        return <span className="px-1.5 py-0.5 bg-yellow-100 rounded-full text-xs">{modelName}</span>
+        return <span className="px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 rounded-full text-xs text-yellow-800 dark:text-yellow-200">{modelName}</span>
       case modelNameLower.includes('gpt-4o'):
-        return <span className="px-1.5 py-0.5 bg-pink-100 rounded-full text-xs">{modelName}</span>
+        return <span className="px-1.5 py-0.5 bg-pink-100 dark:bg-pink-900/30 rounded-full text-xs text-pink-800 dark:text-pink-200">{modelName}</span>
       case modelNameLower.includes('gpt-3.5'):
-        return <span className="px-1.5 py-0.5 bg-orange-100 rounded-full text-xs">{modelName}</span>
+        return <span className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/30 rounded-full text-xs text-orange-800 dark:text-orange-200">{modelName}</span>
       case modelNameLower.includes('mistral-large'):
-        return <span className="px-1.5 py-0.5 bg-blue-100 rounded-full text-xs">{modelName}</span>
+        return <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded-full text-xs text-blue-800 dark:text-blue-200">{modelName}</span>
       case modelNameLower.includes('mistral-medium'):
-        return <span className="px-1.5 py-0.5 bg-purple-100 rounded-full text-xs">{modelName}</span>
+        return <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 rounded-full text-xs text-purple-800 dark:text-purple-200">{modelName}</span>
       case modelNameLower.includes('mistral-small'):
-        return <span className="px-1.5 py-0.5 bg-red-100 rounded-full text-xs">{modelName}</span>
+        return <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 rounded-full text-xs text-red-800 dark:text-red-200">{modelName}</span>
       default:
-        return <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">{modelName}</span>
+        return <span className="px-1.5 py-0.5 bg-muted/50 rounded-full text-xs text-muted-foreground">{modelName}</span>
     }
   }
 
@@ -88,58 +88,55 @@ export const ModelMessage = ({
         </Avatar>
       </div>
       <div
-        className="rounded-lg p-3 max-w-[80%] shadow-sm relative group"
-        style={{ 
-          backgroundColor: `${primaryColor}15`,
-        }}
+        className="rounded-lg p-3 max-w-[80%] shadow-sm relative group bg-card/50 border border-border/50 text-foreground"
       >
         <div className={`text-xs font-medium mb-1 flex items-center gap-2 flex-wrap`}>
           {getModelBadge(message.model || model)}
           {message.temperature !== undefined && (
-            <span className="px-1.5 py-0.5 bg-green-100 rounded-full text-xs">
+            <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 rounded-full text-xs text-green-800 dark:text-green-200">
               T: {message.temperature.toFixed(1)}
             </span>
           )}
         </div>
-        <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+        <div className="text-sm prose prose-sm dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground">
           <ReactMarkdown
             components={{
-              h1: ({ node, ...props }) => <h1 className="text-xl font-bold my-0" {...props} />,
-              h2: ({ node, ...props }) => <h2 className="text-lg font-bold my-0" {...props} />,
-              h3: ({ node, ...props }) => <h3 className="text-base font-bold my-0" {...props} />,
-              h4: ({ node, ...props }) => <h4 className="text-sm font-bold my-0" {...props} />,
-              p: ({ node, ...props }) => <p className="my-2" {...props} />,
+              h1: ({ node, ...props }) => <h1 className="text-xl font-bold my-0 text-foreground" {...props} />,
+              h2: ({ node, ...props }) => <h2 className="text-lg font-bold my-0 text-foreground" {...props} />,
+              h3: ({ node, ...props }) => <h3 className="text-base font-bold my-0 text-foreground" {...props} />,
+              h4: ({ node, ...props }) => <h4 className="text-sm font-bold my-0 text-foreground" {...props} />,
+              p: ({ node, ...props }) => <p className="my-2 text-foreground" {...props} />,
               a: ({ node, href, ...props }) => (
                 <a 
                   href={href}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: primaryColor }}
                   {...props}
                 />
               ),
-              ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-0 space-y-1" {...props} />,
-              ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-0 space-y-1" {...props} />,
-              li: ({ node, ...props }) => <li className="mb-0" {...props} />,
+              ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-0 space-y-1 text-foreground" {...props} />,
+              ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-0 space-y-1 text-foreground" {...props} />,
+              li: ({ node, ...props }) => <li className="mb-0 text-foreground" {...props} />,
               blockquote: ({ node, ...props }) => (
                 <blockquote 
-                  className="border-l-4 pl-4 italic my-2"
+                  className="border-l-4 pl-4 italic my-2 text-muted-foreground border-muted"
                   style={{ borderColor: primaryColor }}
                   {...props}
                 />
               ),
-              hr: () => <hr className="my-4 border-gray-200 dark:border-gray-700" />,
+              hr: () => <hr className="my-4 border-border" />,
               table: ({ node, ...props }) => (
                 <div className="overflow-x-auto my-2">
-                  <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-700" {...props} />
+                  <table className="min-w-full border-collapse border border-border" {...props} />
                 </div>
               ),
-              thead: ({ node, ...props }) => <thead className="bg-gray-100 dark:bg-gray-800" {...props} />,
+              thead: ({ node, ...props }) => <thead className="bg-muted/50" {...props} />,
               tbody: ({ node, ...props }) => <tbody {...props} />,
-              tr: ({ node, ...props }) => <tr className="border-b border-gray-300 dark:border-gray-700" {...props} />,
-              th: ({ node, ...props }) => <th className="border px-3 py-2 text-left font-semibold" {...props} />,
-              td: ({ node, ...props }) => <td className="border px-3 py-2" {...props} />,
+              tr: ({ node, ...props }) => <tr className="border-b border-border" {...props} />,
+              th: ({ node, ...props }) => <th className="border border-border px-3 py-2 text-left font-semibold text-foreground" {...props} />,
+              td: ({ node, ...props }) => <td className="border border-border px-3 py-2 text-foreground" {...props} />,
               img: ({ node, src, alt, ...props }) => (
                 <img 
                   src={src} 
@@ -151,7 +148,7 @@ export const ModelMessage = ({
               pre: ({ node, ...props }) => (
                 <div className="relative group/code my-4">
                   <pre
-                    className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 overflow-x-auto border border-gray-200 dark:border-gray-700 text-[10px]"
+                    className="bg-muted/50 rounded-md p-3 overflow-x-auto border border-border text-[10px] text-foreground"
                     {...props}
                   />
                 </div>
@@ -163,7 +160,7 @@ export const ModelMessage = ({
                 
                 return isInline ? (
                   <code
-                    className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs"
+                    className="bg-muted/50 px-1.5 py-0.5 rounded text-xs text-foreground"
                     style={{ color: adjustColor(primaryColor, -40) }}
                     {...props}
                   >
@@ -173,13 +170,13 @@ export const ModelMessage = ({
                   <div className="relative">
                     {language && (
                       <div 
-                        className="absolute right-2 top-1 text-xs text-gray-500 dark:text-gray-400 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded"
+                        className="absolute right-2 top-1 text-xs text-muted-foreground px-1.5 py-0.5 bg-muted/50 rounded"
                       >
                         {language}
                       </div>
                     )}
                     <code
-                      className="bg-transparent p-0 text-xs font-mono block"
+                      className="bg-transparent p-0 text-xs font-mono block text-foreground"
                       {...props}
                     >
                       {children}
@@ -192,20 +189,15 @@ export const ModelMessage = ({
             {message.content || ""}
           </ReactMarkdown>
         </div>
-        <div className="text-xs mt-1 text-gray-400">
+        <div className="text-xs mt-1 text-muted-foreground">
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
         
         <Button 
           size="sm"
           variant="secondary" 
-          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full py-0 text-xs flex items-center gap-1 shadow-sm"
+          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full py-0 text-xs flex items-center gap-1 shadow-sm bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-muted/50"
           onClick={copyMessageToClipboard}
-          style={{
-            backgroundColor: `${primaryColor}30`,
-            color: adjustColor(primaryColor, -60),
-            transform: 'translateY(100%)'
-          }}
         >
           <Copy size={10} />
           <span className="text-xs">Copy prompt</span>
