@@ -87,9 +87,7 @@ export const ModelMessage = ({
           </AvatarFallback>
         </Avatar>
       </div>
-      <div
-        className="rounded-lg p-3 max-w-[80%] shadow-sm relative group bg-card/50 border border-border/50 text-foreground"
-      >
+      <div className="rounded-lg p-3 max-w-[80%] relative group text-foreground">
         <div className={`text-xs font-medium mb-1 flex items-center gap-2 flex-wrap`}>
           {getModelBadge(message.model || model)}
           {message.temperature !== undefined && (
@@ -188,9 +186,6 @@ export const ModelMessage = ({
           >
             {message.content || ""}
           </ReactMarkdown>
-        </div>
-        <div className="text-xs mt-1 text-muted-foreground">
-          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
         
         <Button 
