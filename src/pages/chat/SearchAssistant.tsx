@@ -218,13 +218,13 @@ const SearchAssistant = () => {
 
   // Auto-scroll to bottom when chat history changes
   useEffect(() => {
-    if (mode === 'chat' && messagesEndRef.current) {
+    if (messagesEndRef.current && (mode === 'chat' || !isPopupMode)) {
       messagesEndRef.current.scrollIntoView({ 
         behavior: 'smooth',
         block: 'end'
       });
     }
-  }, [chatHistory, isProcessing, mode]);
+  }, [chatHistory, isProcessing, mode, isPopupMode]);
 
   const startThinkingAnimation = () => {
     // Clear any existing interval
@@ -1142,6 +1142,9 @@ const SearchAssistant = () => {
                     ))}
                   </div>
                 )}
+                
+                {/* Invisible div for auto-scroll anchor */}
+                <div ref={messagesEndRef} />
               </div>
             )}
           </div>
