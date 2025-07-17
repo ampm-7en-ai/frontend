@@ -770,7 +770,7 @@ const SearchAssistant = () => {
                   <Button
                     onClick={handleSearch}
                     disabled={!query.trim() || isProcessing}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-full p-0 shadow-lg hover-scale transition-all duration-300"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-full p-0 shadow-lg hover-scale transition-all duration-300 -mr-[8px]"
                     style={{
                       backgroundColor: primaryColor,
                       borderColor: primaryColor

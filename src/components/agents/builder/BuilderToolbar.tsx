@@ -58,7 +58,7 @@ export const BuilderToolbar = () => {
         {/* Center Section - Mode Controls */}
         <ModernTabNavigation
           tabs={[
-            { id: 'embedded', label: 'Embedded' },
+            { id: 'embedded', label: 'Widget' },
             { id: 'popup', label: 'Popup' },
             { id: 'inline', label: 'Inline' }
           ]}

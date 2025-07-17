@@ -28,7 +28,7 @@ const ModernTabNavigation: React.FC<ModernTabNavigationProps> = ({
           key={tab.id}
           type="button"
           onClick={() => onTabChange(tab.id)}
-          className={`${isXtraSmall ? 'px-3 py-1.5' : 'px-6 py-2'} rounded-xl ${isXtraSmall ? 'text-xs' : 'text-sm'} font-medium transition-all duration-200 ${
+          className={`${isXtraSmall ? 'px-3 py-1.5' : 'px-6 py-2'} rounded-xl ${isXtraSmall ? 'text-xs' : 'text-sm'} font-medium transition-all duration-200 capitalize ${
             activeTab === tab.id
               ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
