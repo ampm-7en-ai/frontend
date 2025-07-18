@@ -581,7 +581,7 @@ export const useAgentTest = (initialAgentId: string) => {
       if (socketIndex < numModels) {
         // Add user message
         const userMessage: Message = {
-          id: `user-${socketHistory.queries[0]?.id || Date.now()}`,
+          id: `user-${socketHistory.queries[0]?.id || Date.now().toString()}`,
           content: historyItem.query,
           sender: 'user',
           timestamp: new Date(socketHistory.queries[0]?.timestamp || Date.now()),
@@ -589,7 +589,7 @@ export const useAgentTest = (initialAgentId: string) => {
         
         // Add response message
         const responseMessage: Message = {
-          id: `response-${socketHistory.responses[0]?.id || Date.now()}`,
+          id: `response-${socketHistory.responses[0]?.id || Date.now().toString()}`,
           content: socketHistory.responses[0]?.content || '',
           sender: `agent${socketIndex + 1}` as 'agent1' | 'agent2' | 'agent3',
           timestamp: new Date(socketHistory.responses[0]?.timestamp || Date.now()),
