@@ -1,13 +1,13 @@
 
-import React from 'react';
-import { History, Clock, MessageSquare } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { HistoryItem } from '@/types/history';
+Import react from 'react';
+Import { History, Clock, MessageSquare } from 'lucide-react';
+Import { Card, CardHeader, CardContent } from '@/components/ui/card';
+Import { Button } from '@/components/ui/button';
+Import { ScrollArea } from '@/components/ui/scroll-area';
+Import { Badge } from '@/components/ui/badge';
+Import { HistoryItem } from '@/types/history';
 
-interface HistoryPanelProps {
+Interface HistoryPanelProps {
   isOpen: boolean;
   onClose: () => void;
   history: HistoryItem[];
@@ -22,17 +22,17 @@ export const HistoryPanel = ({
   onSelectHistory,
   selectedHistoryId
 }: HistoryPanelProps) => {
-  if (!isOpen) return null;
+  If (!isOpen) Return null;
 
-  const formatTime = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+  const formatTime = (date: date) => {
+    Return new Intl.DateTimeFormat('en-US', {
+      hour: '2-Digit',
+      minute: '2-Digit',
       hour12: true
-    }).format(date);
+    }).Format(date);
   };
 
-  return (
+  Return (
     <div className="w-80 h-full bg-background border-r border-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-border bg-muted/30">
@@ -69,7 +69,7 @@ export const HistoryPanel = ({
               </p>
             </div>
           ) : (
-            history.map((item) => (
+            history.Map((item) => (
               <Card
                 key={item.id}
                 className={`cursor-pointer transition-all dark:bg-slate-900 hover:bg-muted/50 dark:hover:bg-slate-900/50 ${
