@@ -1,22 +1,29 @@
-
 import React, { useState } from 'react';
 import { BuilderProvider } from '@/components/agents/builder/BuilderContext';
 import { BuilderToolbar } from '@/components/agents/builder/BuilderToolbar';
 import { BuilderSidebar } from '@/components/agents/builder/BuilderSidebar';
 import { GuidelinesPanel } from '@/components/agents/builder/GuidelinesPanel';
 import { InteractiveCanvas } from '@/components/agents/builder/InteractiveCanvas';
+import { TrainingAlertBadge } from '@/components/ui/training-alert-badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const AgentBuilder = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [isTraining, setIsTraining] = useState(false);
 
   return (
     <BuilderProvider>
       <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        {/* Training Alert Badge */}
+        <TrainingAlertBadge 
+          isVisible={isTraining}
+          message="Training knowledge sources..."
+        />
+        
         {/* Top Toolbar */}
-        <BuilderToolbar />
+        <BuilderToolbar onTrainingStateChange={setIsTraining} />
         
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar - Knowledge Base */}

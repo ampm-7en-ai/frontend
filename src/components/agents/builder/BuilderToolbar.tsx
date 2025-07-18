@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
@@ -21,7 +20,13 @@ import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import CleanupDialog from '@/components/agents/CleanupDialog';
 
-export const BuilderToolbar = () => {
+interface BuilderToolbarProps {
+  onTrainingStateChange?: (isTraining: boolean) => void;
+}
+
+export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
+  onTrainingStateChange
+}) => {
   const navigate = useNavigate();
   const { state, saveAgent, deleteAgent, setCanvasMode, updateAgentData } = useBuilder();
   const { agentData, canvasMode, isLoading } = state;
@@ -62,6 +67,7 @@ export const BuilderToolbar = () => {
     }
 
     setIsTraining(true);
+    onTrainingStateChange?.(true);
     
     addNotification({
       title: 'Training Started',
@@ -77,26 +83,22 @@ export const BuilderToolbar = () => {
     });
 
     try {
-      // Extract knowledge source IDs from all selected sources
       const knowledgeSourceIds = agentData.knowledgeSources
         .flatMap(kb => kb.knowledge_sources || [])
         .filter(source => source.is_selected !== false)
         .map(s => typeof s.id === 'number' ? s.id : parseInt(s.id.toString()))
         .filter(id => !isNaN(id));
 
-      // Extract URLs from website sources
       const websiteUrls: string[] = [];
       
       agentData.knowledgeSources.forEach(kb => {
         if (kb.type === "website" && kb.knowledge_sources) {
           kb.knowledge_sources.forEach(source => {
             if (source.is_selected !== false) {
-              // Add main URL if it exists
               if (source.url) {
                 websiteUrls.push(source.url);
               }
               
-              // Add sub URLs from metadata
               if (source.metadata?.sub_urls?.children) {
                 source.metadata.sub_urls.children.forEach(subUrl => {
                   if (subUrl.is_selected !== false && subUrl.url) {
@@ -105,7 +107,6 @@ export const BuilderToolbar = () => {
                 });
               }
               
-              // Also check for sub_urls directly in source
               if (source.sub_urls?.children) {
                 source.sub_urls.children.forEach(subUrl => {
                   if (subUrl.is_selected !== false && subUrl.url) {
@@ -137,7 +138,6 @@ export const BuilderToolbar = () => {
           agentName: agentData.name
         });
 
-        // Update training status for knowledge sources
         const updatedSources = agentData.knowledgeSources.map(source => ({
           ...source,
           trainingStatus: 'Active' as const
@@ -165,6 +165,7 @@ export const BuilderToolbar = () => {
       });
     } finally {
       setIsTraining(false);
+      onTrainingStateChange?.(false);
     }
   };
 
@@ -259,7 +260,6 @@ export const BuilderToolbar = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -280,7 +280,6 @@ export const BuilderToolbar = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Deploy Dialog */}
       <DeploymentDialog
         open={showDeployDialog}
         onOpenChange={setShowDeployDialog}
@@ -290,7 +289,6 @@ export const BuilderToolbar = () => {
         }}
       />
 
-      {/* Cleanup Dialog */}
       <CleanupDialog
         open={showCleanupDialog}
         onOpenChange={setShowCleanupDialog}
