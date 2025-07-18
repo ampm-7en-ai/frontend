@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { knowledgeApi } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
+import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,6 +22,7 @@ const FolderSources = () => {
   const { agentId } = useParams();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Fetch sources for the agent's folder
   const { 
@@ -229,12 +231,13 @@ const FolderSources = () => {
               <p className="text-muted-foreground">Knowledge sources for Agent {agentId}</p>
             </div>
           </div>
-          <Link to={`/agents/${agentId}/edit?tab=knowledge`}>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Sources
-            </Button>
-          </Link>
+          <Button 
+            className="gap-2"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add Sources
+          </Button>
         </div>
 
         {/* Search */}
@@ -285,12 +288,13 @@ const FolderSources = () => {
                 }
               </p>
               {sources.length === 0 && (
-                <Link to={`/agents/${agentId}/edit?tab=knowledge`}>
-                  <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Knowledge Sources
-                  </Button>
-                </Link>
+                <Button
+                  className="gap-2"
+                  onClick={() => setIsAddModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Knowledge Sources
+                </Button>
               )}
             </div>
           ) : (
@@ -358,6 +362,16 @@ const FolderSources = () => {
           )}
         </div>
       </div>
+
+      {/* Add Sources Modal */}
+      <AddSourcesModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        agentId={agentId || ''}
+        onSuccess={() => {
+          refetch(); // Refresh the sources list
+        }}
+      />
     </div>
   );
 };
