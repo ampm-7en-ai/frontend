@@ -627,8 +627,10 @@ export const useAgentTest = (initialAgentId: string) => {
     setIsModalOpen(true);
   };
 
-  const handleViewSource = (sourceId: number) => {
-    setSelectedSourceId(sourceId);
+  const handleViewSource = (sourceId: string | number) => {
+    // Convert string to number if needed
+    const numericSourceId = typeof sourceId === 'string' ? parseInt(sourceId, 10) : sourceId;
+    setSelectedSourceId(numericSourceId);
     setIsModalOpen(true);
   };
 

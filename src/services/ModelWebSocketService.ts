@@ -111,9 +111,6 @@ export class ModelWebSocketService extends ChatWebSocketService {
         timestamp: new Date().toISOString()
       });
     }
-    
-    // Pass through to parent handler
-    this.emit('message', message);
   }
 
   // Override the on method to intercept messages
