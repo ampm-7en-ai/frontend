@@ -55,7 +55,7 @@ export const ModernDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const filteredOptions = useMemo(() => {
-    if (!searchable || !searchQuery.trim()) {
+    if (!searchable || !searchQuery.trim() || !showSearch) {
       return options;
     }
 
@@ -65,7 +65,7 @@ export const ModernDropdown = ({
       option.value.toLowerCase().includes(query) ||
       option.description?.toLowerCase().includes(query)
     );
-  }, [options, searchQuery, searchable]);
+  }, [options, searchQuery, searchable, showSearch]);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -112,38 +112,41 @@ export const ModernDropdown = ({
       <DropdownMenuContent 
         className={cn(
           "w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999] pb-3",
-          searchable && "p-0"
+          (searchable && showSearch) && "p-0"
         )}
         sideOffset={4}
         align={align}
       >
-        {searchable && showSearch && (<></>
-          // <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-          //   <div className="relative">
-          //     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          //     <Input
-          //       placeholder={searchPlaceholder}
-          //       value={searchQuery}
-          //       onChange={(e) => setSearchQuery(e.target.value)}
-          //       className="pl-9 h-8 text-sm border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          //       autoFocus
-          //     />
-          //   </div>
-          // </div>
+        {searchable && showSearch && (
+          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-8 text-sm border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
+              />
+            </div>
+          </div>
         )}
         
         <div 
           className={cn(
-            searchable ? "p-1" : "",
-            "w-full overflow-y-auto",
-            // Custom scrollbar styles
-            "[&::-webkit-scrollbar]:w-2",
-            "[&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:dark:bg-gray-800",
-            "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:dark:bg-gray-600",
-            "[&::-webkit-scrollbar-thumb]:rounded-full",
-            "[&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-thumb:hover]:dark:bg-gray-500"
+            (searchable && showSearch) ? "p-1" : "",
+            "w-full",
+            // Only show scrollbar when showSearch is true
+            showSearch && "[&::-webkit-scrollbar]:w-2",
+            showSearch && "[&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:dark:bg-gray-800",
+            showSearch && "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:dark:bg-gray-600",
+            showSearch && "[&::-webkit-scrollbar-thumb]:rounded-full",
+            showSearch && "[&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-thumb:hover]:dark:bg-gray-500"
           )}
-          style={{ maxHeight }}
+          style={{ 
+            maxHeight: showSearch ? maxHeight : "auto",
+            overflowY: showSearch ? "auto" : "visible"
+          }}
         >
           <div className="space-y-0.5">
             {filteredOptions.length > 0 ? (
@@ -171,7 +174,7 @@ export const ModernDropdown = ({
                         )}
                         <div className="flex flex-col">
                           <span>{option.label}</span>
-                          {option.description && (
+                          {option.description && showSearch && (
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               {option.description}
                             </span>
@@ -186,7 +189,7 @@ export const ModernDropdown = ({
                 </DropdownMenuItem>
               ))
             ) : (
-              searchable && searchQuery && (
+              searchable && searchQuery && showSearch && (
                 <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
                   No results found
                 </div>

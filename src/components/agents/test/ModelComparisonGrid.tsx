@@ -1,23 +1,18 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAIModels } from '@/hooks/useAIModels';
 import { 
   Settings, 
   Maximize2, 
   Minimize2,
   Loader2
 } from 'lucide-react';
-// Mock model options - replace with real data
-const modelOptions = [
-  { value: 'gpt-4o', label: 'GPT-4o' },
-  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-  { value: 'mistral-large-latest', label: 'Mistral Large' },
-];
 
 interface ModelCell {
   id: string;
@@ -50,6 +45,8 @@ export const ModelComparisonGrid = ({
   expandedCellId,
   onToggleExpand
 }: ModelComparisonGridProps) => {
+  const { modelOptionsForDropdown } = useAIModels();
+
   const getGridClass = () => {
     const numCells = cells.length;
     
@@ -74,7 +71,7 @@ export const ModelComparisonGrid = ({
   };
 
   const getModelDisplay = (modelValue: string) => {
-    const option = modelOptions.find(opt => opt.value === modelValue);
+    const option = modelOptionsForDropdown.find(opt => opt.value === modelValue);
     return option ? option.label : modelValue;
   };
 
@@ -99,32 +96,26 @@ export const ModelComparisonGrid = ({
         <CardHeader className="pb-2 px-3 pt-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <Select
+              <ModernDropdown
                 value={cell.model}
                 onValueChange={(value) => onModelChange(cell.id, value)}
-              >
-                <SelectTrigger
-                  className="h-8 text-xs bg-muted/50 border-0 flex-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <SelectValue>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
+                options={modelOptionsForDropdown}
+                placeholder="Select Model"
+                className="h-8 text-xs bg-muted/50 border-0 flex-1"
+                showSearch={false}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="h-8 text-xs bg-muted/50 border-0 flex-1 justify-start px-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center gap-2 w-full">
+                      <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                       <span className="truncate">{getModelDisplay(cell.model)}</span>
                     </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {modelOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                        {option.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  </Button>
+                }
+              />
             </div>
 
             <div className="flex items-center gap-1">
