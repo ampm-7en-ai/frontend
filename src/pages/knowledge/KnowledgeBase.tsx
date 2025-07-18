@@ -27,7 +27,7 @@ const KnowledgeBase = () => {
   } = useQuery({
     queryKey: ['knowledgeFolders'],
     queryFn: async () => {
-      // Dummy data for testing UI
+      // Dummy data for testing UI - adding file counts
       return {
         message: "List of AgentKnowledgeFolders for your team owner",
         data: [
@@ -36,6 +36,7 @@ const KnowledgeBase = () => {
             name: "Marketing Agent Knowledge",
             agent: 1,
             owner: 1,
+            file_count: 12,
             created_at: "2025-07-17T11:14:41.680411Z",
             updated_at: "2025-07-17T11:14:41.680411Z"
           },
@@ -44,6 +45,7 @@ const KnowledgeBase = () => {
             name: "Customer Support Bot",
             agent: 2,
             owner: 1,
+            file_count: 8,
             created_at: "2025-07-16T09:30:15.123456Z",
             updated_at: "2025-07-18T14:22:33.987654Z"
           },
@@ -52,6 +54,7 @@ const KnowledgeBase = () => {
             name: "Sales Assistant AI",
             agent: 3,
             owner: 1,
+            file_count: 24,
             created_at: "2025-07-15T16:45:22.555777Z",
             updated_at: "2025-07-18T10:15:44.111222Z"
           },
@@ -60,6 +63,7 @@ const KnowledgeBase = () => {
             name: "Product Documentation Helper",
             agent: 4,
             owner: 1,
+            file_count: 6,
             created_at: "2025-07-14T08:20:11.333444Z",
             updated_at: "2025-07-17T13:55:28.666888Z"
           }
@@ -112,23 +116,19 @@ const KnowledgeBase = () => {
       </div>
 
       {/* Folders List */}
-      <div className="space-y-2">
+      <div className="space-y-4">
         {foldersLoading ? (
           // Modern Loading State
-          <div className="space-y-2">
+          <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 animate-pulse">
-                <div className="p-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-7 h-7 rounded-xl bg-muted/50"></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="h-4 bg-muted/50 rounded w-1/3 mb-1"></div>
-                        <div className="h-3 bg-muted/30 rounded w-1/4"></div>
-                      </div>
-                    </div>
-                    <div className="w-6 h-6 bg-muted/30 rounded"></div>
+              <div key={i} className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
+                <div className="flex items-center gap-6">
+                  <div className="w-12 h-12 bg-muted/50 rounded-xl"></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="h-5 bg-muted/50 rounded w-1/3 mb-2"></div>
+                    <div className="h-4 bg-muted/30 rounded w-1/2"></div>
                   </div>
+                  <div className="w-6 h-6 bg-muted/30 rounded"></div>
                 </div>
               </div>
             ))}
@@ -145,47 +145,38 @@ const KnowledgeBase = () => {
           </div>
         ) : (
           filteredFolders.map((folder, index) => (
-            <div 
+            <div
               key={folder.id}
-              className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200 animate-fade-in"
+              className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors duration-200 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => handleFolderClick(folder)}
             >
-              <div className="p-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="p-1.5 rounded-xl bg-gradient-to-br from-primary/80 to-primary">
-                      <FolderOpen className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate transition-colors duration-200">
-                          {folder.name}
-                        </h3>
-                      </div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                        Agent {folder.agent} • {formatDate(folder.created_at)}
-                      </div>
-                    </div>
+              <div className="flex items-center gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center border border-slate-200/50 dark:border-slate-600/50">
+                    <FolderOpen className="h-6 w-6 text-primary" />
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
-                        {formatDate(folder.updated_at)}
-                      </span>
-                    </div>
-                    <ModernButton
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Handle menu actions
-                      }}
-                    >
-                      <MoreHorizontal className="h-3 w-3 text-slate-500 dark:text-slate-400" />
-                    </ModernButton>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">{folder.name}</h3>
                   </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Agent {folder.agent} • {folder.file_count} {folder.file_count === 1 ? 'file' : 'files'}
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <ModernButton
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle menu actions
+                    }}
+                  >
+                    <MoreHorizontal className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                  </ModernButton>
                 </div>
               </div>
             </div>
