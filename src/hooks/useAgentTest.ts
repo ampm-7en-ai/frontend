@@ -1,33 +1,33 @@
-Import { useState, useEffect, useRef } from 'react';
-Import { useQuery } from '@tanstack/react-query';
-Import { useToast } from '@/hooks/use-toast';
-Import { useNavigate } from 'react-router-dom';
-Import { Agent, Message, ChatConfig } from '@/components/agents/modelComparison/types';
-Import { KnowledgeSource } from '@/components/agents/knowledge/types';
-Import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
-Import { ModelWebSocketService } from '@/services/ModelWebSocketService';
-Import { useAIModels } from './useAIModels';
-Import { useSocketHistory } from './useSocketHistory';
-Import { HistoryItem } from '@/types/history';
+import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { Agent, Message, ChatConfig } from '@/components/agents/modelComparison/types';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
+import { ModelWebSocketService } from '@/services/ModelWebSocketService';
+import { useAIModels } from './useAIModels';
+import { useSocketHistory } from './useSocketHistory';
+import { HistoryItem } from '@/types/history';
 
 // Mock data for fallback
 const mockAgents = [
   {
-    ID: "1",
+    id: "1",
     name: "Customer Support Agent",
-    Description: "Helps with product questions and customer service inquiries",
-    Conversations: 1234,
-    lastModified: new date().toISOString(),
+    description: "Helps with product questions and customer service inquiries",
+    conversations: 1234,
+    lastModified: new Date().toISOString(),
     averageRating: 4.8,
     knowledgeSources: [
       { 
-        ID: 1, 
+        id: 1, 
         name: "Product Docs", 
-        Type: "document", 
+        type: "document", 
         icon: "BookOpen", 
         size: "250KB",
         lastUpdated: "2023-09-15",
-        trainingStatus: "Success" as const,
+        trainingStatus: "success" as const,
         hasError: false, 
         content: "# Product Documentation\n\nOur product is a cloud-based solution that helps businesses automate customer support workflows. Key features include:\n\n- AI-powered response suggestions\n- Integration with popular CRM systems\n- Analytics dashboard\n- Multi-channel support (email, chat, social media)" 
       },
