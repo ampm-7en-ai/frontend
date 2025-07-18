@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -644,14 +644,14 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                 className="hidden"
                 id="file-upload"
               />
-              <Button
+              <ModernButton
                 type="button"
                 variant="outline"
                 onClick={() => document.getElementById('file-upload')?.click()}
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Choose Files
-              </Button>
+              </ModernButton>
             </div>
             
             {validationErrors.files && (
@@ -671,14 +671,15 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                           ({(file.size / 1024 / 1024).toFixed(2)} MB)
                         </span>
                       </div>
-                      <Button
+                      <ModernButton
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(index)}
+                        className="h-8 w-8 p-0"
                       >
                         <X className="h-4 w-4" />
-                      </Button>
+                      </ModernButton>
                     </div>
                   ))}
                 </div>
@@ -841,7 +842,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                                 size="sm"
                                 onClick={() => window.open(file.webViewLink, '_blank')}
                                 type="button"
-                                className="ml-2"
+                                className="ml-2 h-8 w-8 p-0"
                               >
                                 <ExternalLink className="h-4 w-4" />
                               </ModernButton>
@@ -862,10 +863,10 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                               variant="outline" 
                               size="sm"
                               onClick={() => handleRemoveSelectedFile(index)}
-                              className="h-10 w-10 p-0"
+                              className="h-8 w-8 p-0"
                               type="button"
                             >
-                              <X className="h-5 w-5" />
+                              <X className="h-4 w-4" />
                             </ModernButton>
                           </div>
                         ))}
