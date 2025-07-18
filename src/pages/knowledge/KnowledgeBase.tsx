@@ -9,13 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { knowledgeApi } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 const KnowledgeBase = () => {
@@ -90,7 +83,7 @@ const KnowledgeBase = () => {
   };
 
   const handleFolderClick = async (folder) => {
-    // Navigate to the dedicated folder sources page
+    // Navigate to the dedicated folder sources page using React Router
     navigate(`/knowledge/sources/${folder.agent}`);
   };
 

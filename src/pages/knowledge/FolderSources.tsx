@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File } from 'lucide-react';
@@ -10,17 +10,10 @@ import { useQuery } from '@tanstack/react-query';
 import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import KnowledgeStatsCard from '@/components/dashboard/KnowledgeStatsCard';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 
 const FolderSources = () => {
   const { agentId } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -239,6 +232,10 @@ const FolderSources = () => {
     });
   };
 
+  const handleBack = () => {
+    navigate('/knowledge');
+  };
+
   if (error) {
     return (
       <div className="container max-w-7xl mx-auto p-6">
@@ -255,22 +252,17 @@ const FolderSources = () => {
 
   return (
     <div className="container max-w-7xl mx-auto p-6">
-      {/* Breadcrumbs */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/knowledge">Knowledge Folders</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{folderName}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      {/* Back Button */}
+      <div className="mb-6">
+        <ModernButton
+          variant="ghost"
+          icon={ArrowLeft}
+          onClick={handleBack}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          Back to Knowledge Folders
+        </ModernButton>
+      </div>
 
       <div className="space-y-6">
         {/* Header */}
