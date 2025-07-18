@@ -194,19 +194,29 @@ export const ModelComparisonGrid = ({
                   </p>
                 </div>
               ) : (
-                // Show only the latest assistant response
-                cell.messages.slice(-1).map((message) => {
-                  if (message.sender === 'assistant' || message.type === 'assistant') {
+                // Show all messages - both user and assistant
+                <div className="space-y-3">
+                  {cell.messages.map((message, index) => {
+                    const isUser = message.sender === 'user';
+                    const isAssistant = message.sender?.startsWith('agent') || message.type === 'assistant' || message.sender === 'assistant';
+                    
                     return (
-                      <div key={message.id || message.timestamp} className="space-y-2">
-                        <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                      <div key={message.id || message.timestamp || index} className="space-y-2">
+                        {isUser && (
+                          <div className="text-xs text-muted-foreground mb-1">User:</div>
+                        )}
+                        {isAssistant && (
+                          <div className="text-xs text-muted-foreground mb-1">Assistant:</div>
+                        )}
+                        <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                          isUser ? 'text-muted-foreground bg-muted/30 p-2 rounded' : 'text-foreground'
+                        }`}>
                           {message.content}
                         </div>
                       </div>
                     );
-                  }
-                  return null;
-                }).filter(Boolean)
+                  })}
+                </div>
               )}
             </div>
           </ScrollArea>

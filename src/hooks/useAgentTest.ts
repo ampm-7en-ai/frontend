@@ -492,7 +492,16 @@ export const useAgentTest = (initialAgentId: string) => {
     };
     
     // Add user message to all model conversations
-    setMessages(prev => prev.map(msgArray => [...msgArray, userMessage]));
+    setMessages(prev => {
+      const newMessages = [...prev];
+      // Ensure we only update existing message arrays
+      for (let i = 0; i < Math.min(newMessages.length, numModels); i++) {
+        if (Array.isArray(newMessages[i])) {
+          newMessages[i] = [...newMessages[i], userMessage];
+        }
+      }
+      return newMessages;
+    });
     
     // Send message to all WebSocket connections
     webSocketRefs.current.forEach((ws, i) => {
@@ -570,6 +579,13 @@ export const useAgentTest = (initialAgentId: string) => {
     
     // Remove last primary color
     setPrimaryColors(prev => prev.slice(0, -1));
+    
+    // Disconnect and remove the last WebSocket connection
+    const lastWs = webSocketRefs.current[webSocketRefs.current.length - 1];
+    if (lastWs) {
+      lastWs.disconnect();
+    }
+    webSocketRefs.current = webSocketRefs.current.slice(0, -1);
     
     // Adjust selected model index if needed
     if (selectedModelIndex >= newNumModels) {
