@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Input } from '@/components/ui/input';
@@ -26,6 +25,7 @@ import {
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles } from '@/utils/api-config';
+import { knowledgeApi } from '@/utils/api-config';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
@@ -321,7 +321,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
       let response;
       
       if (sourceType === 'thirdParty') {
-        // For third-party integrations, use JSON payload structure
+        // For third-party integrations, use existing logic
         const payload = {
           name: documentName || `New ${selectedProvider || 'Integration'} Source`,
           type: "third_party",
@@ -331,7 +331,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                 .filter(file => selectedFiles.includes(file.name))
                 .map(file => file.id)
             : selectedFiles,
-          agent_id: agentId // Include agent ID for folder-specific source
+          agent_id: agentId
         };
 
         const apiResponse = await fetch(`${BASE_URL}knowledgebase/`, {
@@ -365,75 +365,48 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
 
         response = await apiResponse.json();
       } else {
-        // For other source types, use FormData as before
-        const formData = new FormData();
-
-        const name = documentName || `New ${sourceType.charAt(0).toUpperCase() + sourceType.slice(1)} Source`;
-        formData.append('name', name);
-        formData.append('agent_id', agentId); // Include agent ID for folder-specific source
-
-        let metadataObj = {};
+        // Use the new knowledgesource endpoint
+        const payload: any = {
+          agent_id: parseInt(agentId),
+          title: documentName
+        };
 
         switch (sourceType) {
           case 'url':
-            formData.append('type', 'website');
-            formData.append('store_links_only', 'true');
-            if (url) {
-              metadataObj = { website: url };
-              if (importAllPages) {
-                metadataObj = { ...metadataObj, crawl_more: "true" };
-              }
-            }
-            break;
-          case 'document':
-            formData.append('type', 'docs');
-            break;
-          case 'csv':
-            formData.append('type', 'csv');
+            payload.url = url;
             break;
           case 'plainText':
-            formData.append('type', 'plain_text');
-            if (plainText) {
-              metadataObj = { text_content: plainText };
+            payload.plain_text = plainText;
+            break;
+          case 'document':
+          case 'csv':
+            if (files.length > 0) {
+              // For files, we'll create sources one by one
+              const responses = [];
+              for (const file of files) {
+                const filePayload = {
+                  agent_id: parseInt(agentId),
+                  title: `${documentName} - ${file.name}`,
+                  file: file
+                };
+                const fileResponse = await knowledgeApi.createSource(filePayload);
+                responses.push(fileResponse);
+              }
+              response = responses[0]; // Use first response for success handling
             }
             break;
         }
 
-        formData.append('metadata', JSON.stringify(metadataObj));
-
-        if (sourceType === 'document' || sourceType === 'csv') {
-          files.forEach(file => {
-            formData.append('files', file);
-          });
-        }
-
-        try {
-          response = await createKnowledgeBase(formData);
-        } catch (apiError: any) {
-          let errorMessage = 'Failed to add knowledge source';
-          
-          // Check if the error has response data
-          if (apiError.response && apiError.response.data) {
-            const errorData = apiError.response.data;
-            if (errorData.message) {
-              errorMessage = errorData.message;
-            } else if (errorData.error) {
-              errorMessage = errorData.error;
-            } else if (errorData.detail) {
-              errorMessage = errorData.detail;
-            } else if (typeof errorData === 'string') {
-              errorMessage = errorData;
-            }
-          } else if (apiError.message) {
-            errorMessage = apiError.message;
-          }
-          
-          throw new Error(errorMessage);
+        if (sourceType !== 'document' && sourceType !== 'csv') {
+          response = await knowledgeApi.createSource(payload);
         }
       }
 
       if (response) {
-        storeNewKnowledgeBase(response.data);
+        const responseData = await response.json();
+        if (responseData.data) {
+          storeNewKnowledgeBase(responseData.data);
+        }
       }
 
       hideToast(loadingToastId);

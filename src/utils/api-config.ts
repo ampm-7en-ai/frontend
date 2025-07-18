@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -23,6 +22,7 @@ export const API_ENDPOINTS = {
   // Agent and knowledge base endpoints
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/",
+  KNOWLEDGESOURCE: "knowledgesource/",
   KNOWLEDGE_FOLDERS: "knowledge-folders/",
   
   // User management endpoints
@@ -426,6 +426,26 @@ export const knowledgeApi = {
       body: formData
     });
     return response;
+  },
+
+  createSource: async (payload: { agent_id: number; title: string; url?: string; plain_text?: string; file?: File }) => {
+    if (payload.file) {
+      // Use FormData for file uploads
+      const formData = new FormData();
+      formData.append('agent_id', payload.agent_id.toString());
+      formData.append('title', payload.title);
+      formData.append('file', payload.file);
+      
+      const response = await apiRequest(getApiUrl(API_ENDPOINTS.KNOWLEDGESOURCE), {
+        method: 'POST',
+        body: formData
+      });
+      return response;
+    } else {
+      // Use JSON for other source types
+      const response = await apiPost(getApiUrl(API_ENDPOINTS.KNOWLEDGESOURCE), payload);
+      return response;
+    }
   },
 
   delete: async (knowledgeBaseId: number) => {
