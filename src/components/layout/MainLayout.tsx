@@ -36,6 +36,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
 
   const isConversationsPage = location.pathname.includes('/conversations');
   const isAgentEditPage = location.pathname.includes('/agents') && location.pathname.includes('/edit');
+  const isAgentTestPage = location.pathname.includes('/agents') && location.pathname.includes('/test');
 
   return (
     <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full">
@@ -106,15 +107,15 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
           </DropdownMenu>
         </div> */}
 
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isConversationsPage || isAgentEditPage ? 'p-0' : ''}`}>
-          <div className={`${isConversationsPage || isAgentEditPage ? '' : ''}`}>
+        <main className={`flex-1 overflow-x-hidden ${isConversationsPage || isAgentEditPage || isAgentTestPage ? 'overflow-hidden p-0' : 'overflow-y-auto'}`}>
+          <div className={`${isConversationsPage || isAgentEditPage || isAgentTestPage ? 'h-full' : ''}`}>
             {children || <Outlet />}
           </div>
         </main>
       </div>
       
-      {/* Apply fullwidth style only to conversations page or agent edit page */}
-      {(isConversationsPage || isAgentEditPage) && (
+      {/* Apply fullwidth style only to conversations page, agent edit page, or agent test page */}
+      {(isConversationsPage || isAgentEditPage || isAgentTestPage) && (
         <style dangerouslySetInnerHTML={{ __html: `
           main {
             padding: 0 !important;

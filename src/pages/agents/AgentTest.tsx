@@ -95,9 +95,7 @@ export default function AgentTest() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Panel - Temporarily removed for build fix */}
-
+        <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Canvas */}
           <div className="flex-1 overflow-hidden">
             <TestCanvas
