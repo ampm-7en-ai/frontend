@@ -77,7 +77,7 @@ const mockAgents = [
     description: "Provides technical troubleshooting",
     conversations: 2105,
     lastModified: new Date().toISOString(),
-    averageRating: 4.9,
+    averageRatingRating: 4.9,
     knowledgeSources: [
       { 
         id: 4, 
