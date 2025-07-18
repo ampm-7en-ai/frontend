@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { ModelComparisonCard } from '@/components/agents/modelComparison/ModelComparisonCard';
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
+import { ModelComparisonGrid } from './ModelComparisonGrid';
+import { HistoryPanel } from './HistoryPanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -9,7 +10,7 @@ import {
   Minus, 
   Zap,
   Brain,
-  Maximize2
+  History
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -26,6 +27,26 @@ const dottedBackgroundStyle = `
   }
 `;
 
+interface ModelCell {
+  id: string;
+  model: string;
+  config: {
+    temperature: number;
+    maxLength: number;
+    systemPrompt: string;
+  };
+  messages: any[];
+  isLoading: boolean;
+}
+
+interface HistoryItem {
+  id: string;
+  query: string;
+  timestamp: Date;
+  responses: any[];
+  configs: any[];
+}
+
 interface TestCanvasProps {
   numModels: number;
   chatConfigs: any[];
@@ -40,6 +61,7 @@ interface TestCanvasProps {
   onAddModel: () => void;
   onRemoveModel: () => void;
   onSelectModel: (index: number) => void;
+  onSelectCellConfig: (cellId: string) => void;
 }
 
 export const TestCanvas = ({
@@ -55,24 +77,83 @@ export const TestCanvas = ({
   onSendMessage,
   onAddModel,
   onRemoveModel,
-  onSelectModel
+  onSelectModel,
+  onSelectCellConfig
 }: TestCanvasProps) => {
-  const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
+  const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const [currentQuery, setCurrentQuery] = useState('');
+  const [isHistoryMode, setIsHistoryMode] = useState(false);
+
+  // Create model cells from current configuration
+  const modelCells: ModelCell[] = Array(numModels).fill(null).map((_, index) => ({
+    id: `cell-${index}`,
+    model: chatConfigs[index]?.model || '',
+    config: {
+      temperature: chatConfigs[index]?.temperature || 0.7,
+      maxLength: chatConfigs[index]?.maxLength || 150,
+      systemPrompt: chatConfigs[index]?.systemPrompt || ''
+    },
+    messages: messages[index] || [],
+    isLoading: isProcessing
+  }));
 
   const handleBatchTest = () => {
     // TODO: Implement batch test functionality
     console.log('Batch test clicked');
   };
 
-  const toggleCardExpansion = (index: number) => {
-    setExpandedCard(expandedCard === index ? null : index);
+  const handleCellClick = (cellId: string) => {
+    setSelectedCellId(cellId);
+    const cellIndex = parseInt(cellId.split('-')[1]);
+    onSelectModel(cellIndex);
+    onSelectCellConfig(cellId);
   };
 
-  const getGridCols = () => {
-    if (expandedCard !== null) return 'grid-cols-1';
-    if (numModels === 1) return 'grid-cols-1';
-    if (numModels === 2) return 'grid-cols-1 lg:grid-cols-2';
-    return 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3';
+  const handleModelChange = (cellId: string, model: string) => {
+    const cellIndex = parseInt(cellId.split('-')[1]);
+    onUpdateChatConfig(cellIndex, 'model', model);
+  };
+
+  const handleConfigClick = (cellId: string) => {
+    setSelectedCellId(cellId);
+    const cellIndex = parseInt(cellId.split('-')[1]);
+    onSelectModel(cellIndex);
+    onSelectCellConfig(cellId);
+  };
+
+  const handleToggleExpand = (cellId: string) => {
+    setExpandedCellId(expandedCellId === cellId ? null : cellId);
+  };
+
+  const handleSendMessage = (message: string) => {
+    if (!isHistoryMode) {
+      // Add to history
+      const newHistoryItem: HistoryItem = {
+        id: `history-${Date.now()}`,
+        query: message,
+        timestamp: new Date(),
+        responses: [...messages],
+        configs: [...chatConfigs]
+      };
+      setHistory(prev => [newHistoryItem, ...prev]);
+      setCurrentQuery(message);
+    }
+    onSendMessage(message);
+  };
+
+  const handleSelectHistory = (item: HistoryItem) => {
+    setSelectedHistoryId(item.id);
+    setCurrentQuery(item.query);
+    setIsHistoryMode(true);
+    // TODO: Load historical responses and configs
+  };
+
+  const handleToggleHistory = () => {
+    setShowHistory(!showHistory);
   };
 
   return (
@@ -93,7 +174,7 @@ export const TestCanvas = ({
             
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
-                {numModels} {numModels === 1 ? 'Model' : 'Models'}
+                {numModels} {numModels === 1 ? 'Cell' : 'Cells'}
               </Badge>
               <Badge 
                 variant={modelConnections.every(Boolean) ? "default" : "destructive"} 
@@ -101,9 +182,9 @@ export const TestCanvas = ({
               >
                 {modelConnections.filter(Boolean).length}/{numModels} Connected
               </Badge>
-              {selectedModelIndex !== undefined && (
+              {selectedCellId && (
                 <Badge variant="secondary" className="text-xs">
-                  Active: Model {selectedModelIndex + 1}
+                  Active: {selectedCellId}
                 </Badge>
               )}
             </div>
@@ -115,15 +196,14 @@ export const TestCanvas = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleBatchTest}
-                  className="h-8"
-                  disabled={!modelConnections.every(Boolean)}
+                  onClick={handleToggleHistory}
+                  className={`h-8 ${showHistory ? 'bg-muted' : ''}`}
                 >
-                  <Zap className="h-4 w-4" />
+                  <History className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Send test to all models</p>
+                <p>Toggle query history</p>
               </TooltipContent>
             </Tooltip>
 
@@ -136,13 +216,13 @@ export const TestCanvas = ({
                   size="sm"
                   onClick={onAddModel}
                   className="h-8"
-                  disabled={numModels >= 4}
+                  disabled={numModels >= 6}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Add model comparison</p>
+                <p>Add model cell</p>
               </TooltipContent>
             </Tooltip>
 
@@ -159,62 +239,70 @@ export const TestCanvas = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Remove model comparison</p>
+                <p>Remove model cell</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <div className="h-4 w-px bg-border" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBatchTest}
+                  className="h-8"
+                  disabled={!modelConnections.every(Boolean)}
+                >
+                  <Zap className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Send test to all models</p>
               </TooltipContent>
             </Tooltip>
           </div>
         </div>
 
-        {/* Model Cards Container - Constrained Width Grid */}
-        <div className="flex-1 overflow-hidden pb-24">
-          <div className="h-full max-w-7xl mx-auto p-4 overflow-auto">
-            <div className={`grid gap-4 h-fit ${getGridCols()}`}>
-              {Array(numModels).fill(null).map((_, index) => {
-                const primaryColor = primaryColors[index] || '#9b87f5';
-                const isExpanded = expandedCard === index;
-                const isSelected = selectedModelIndex === index;
-                
-                return (
-                  <div 
-                    key={`model-${index}`} 
-                    className={`transition-all duration-300 cursor-pointer ${isExpanded ? 'col-span-full' : ''}`}
-                    onClick={() => onSelectModel(index)}
-                  >
-                    <ModelComparisonCard
-                      index={index}
-                      model={chatConfigs[index]?.model || ''}
-                      temperature={chatConfigs[index]?.temperature || 0.7}
-                      maxLength={chatConfigs[index]?.maxLength || 150}
-                      systemPrompt={chatConfigs[index]?.systemPrompt || ''}
-                      messages={messages[index] || []}
-                      onModelChange={(value) => onUpdateChatConfig(index, 'model', value)}
-                      onOpenSystemPrompt={() => {}}
-                      onUpdateConfig={(field, value) => onUpdateChatConfig(index, field, value)}
-                      primaryColor={primaryColor}
-                      avatarSrc={agent?.avatarSrc}
-                      isConnected={modelConnections[index]}
-                      className={`${isExpanded ? 'h-[720px]' : ''} ${
-                        isSelected ? 'ring-2 ring-primary ring-offset-2' : ''
-                      }`}
-                      showExpandButton={true}
-                      onExpand={() => toggleCardExpansion(index)}
-                      isExpanded={isExpanded}
-                    />
-                  </div>
-                );
-              })}
+        {/* Main Content Area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* History Panel */}
+          {showHistory && (
+            <HistoryPanel
+              isOpen={showHistory}
+              onClose={() => setShowHistory(false)}
+              history={history}
+              onSelectHistory={handleSelectHistory}
+              selectedHistoryId={selectedHistoryId}
+            />
+          )}
+
+          {/* Model Comparison Grid */}
+          <div className="flex-1 overflow-hidden pb-24">
+            <div className="h-full max-w-7xl mx-auto p-4 overflow-auto">
+              <ModelComparisonGrid
+                cells={modelCells}
+                onCellClick={handleCellClick}
+                onModelChange={handleModelChange}
+                onConfigClick={handleConfigClick}
+                selectedCellId={selectedCellId}
+                expandedCellId={expandedCellId}
+                onToggleExpand={handleToggleExpand}
+              />
             </div>
           </div>
         </div>
 
         {/* Floating Chat Input */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-4">
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-4xl px-4">
           <div className="bg-background/95 backdrop-blur-sm border border-border rounded-2xl shadow-lg p-4">
             <ChatInput 
-              onSendMessage={onSendMessage}
+              onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}
               isDisabled={isProcessing || modelConnections.some(status => !status)}
-              placeholder="Type your message to test all models..."
+              placeholder="Type your query to compare responses across all models..."
+              value={isHistoryMode ? currentQuery : undefined}
+              readonly={isHistoryMode}
             />
           </div>
         </div>

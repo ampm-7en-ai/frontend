@@ -10,31 +10,50 @@ interface ChatInputProps {
   primaryColor: string;
   isDisabled?: boolean;
   placeholder?: string;
+  value?: string;
+  readonly?: boolean;
 }
 
-export const ChatInput = ({ onSendMessage, primaryColor, isDisabled = false, placeholder = "Type your message..." }: ChatInputProps) => {
-  const [inputValue, setInputValue] = useState('');
+export const ChatInput = ({ 
+  onSendMessage, 
+  primaryColor, 
+  isDisabled = false, 
+  placeholder = "Type your message...",
+  value,
+  readonly = false
+}: ChatInputProps) => {
+  const [inputValue, setInputValue] = useState(value || '');
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() && !isDisabled) {
+    if (inputValue.trim() && !isDisabled && !readonly) {
       onSendMessage(inputValue.trim());
       setInputValue('');
     }
   };
+
+  // Update input when value prop changes
+  React.useEffect(() => {
+    if (value !== undefined) {
+      setInputValue(value);
+    }
+  }, [value]);
   
   return (
     <form onSubmit={handleSubmit} className="relative">
       <Textarea
         placeholder={isDisabled ? "Waiting for all models to connect..." : placeholder}
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        className="min-h-20 resize-none pr-12 border rounded-lg"
+        onChange={(e) => !readonly && setInputValue(e.target.value)}
+        className={`min-h-20 resize-none pr-12 border rounded-lg ${
+          readonly ? 'text-muted-foreground cursor-default' : ''
+        }`}
         expandable={true}
         maxExpandedHeight="120px"
         disabled={isDisabled}
+        readOnly={readonly}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey && !isDisabled) {
+          if (e.key === 'Enter' && !e.shiftKey && !isDisabled && !readonly) {
             e.preventDefault();
             handleSubmit(e);
           }
@@ -43,11 +62,11 @@ export const ChatInput = ({ onSendMessage, primaryColor, isDisabled = false, pla
       <Button 
         type="submit" 
         size="icon" 
-        disabled={!inputValue.trim() || isDisabled}
+        disabled={!inputValue.trim() || isDisabled || readonly}
         className="absolute right-2 bottom-2"
         style={{
           backgroundColor: primaryColor,
-          opacity: (inputValue.trim() && !isDisabled) ? 1 : 0.7
+          opacity: (inputValue.trim() && !isDisabled && !readonly) ? 1 : 0.7
         }}
       >
         {isDisabled ? <LoadingSpinner size="sm" className="!mb-0" /> : <Send className="h-4 w-4" />}

@@ -111,6 +111,10 @@ const AgentTest = () => {
                 onAddModel={handleAddModel}
                 onRemoveModel={handleRemoveModel}
                 onSelectModel={setSelectedModelIndex}
+                onSelectCellConfig={(cellId: string) => {
+                  const cellIndex = parseInt(cellId.split('-')[1]);
+                  setSelectedModelIndex(cellIndex);
+                }}
               />
             </div>
             
