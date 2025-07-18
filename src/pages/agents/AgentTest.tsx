@@ -4,7 +4,6 @@ import { useParams, Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 
 import { TestPageToolbar } from '@/components/agents/test/TestPageToolbar';
-import { TestLeftPanel } from '@/components/agents/test/TestLeftPanel';
 import { TestCanvas } from '@/components/agents/test/TestCanvas';
 import { TestRightPanel } from '@/components/agents/test/TestRightPanel';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -16,7 +15,6 @@ export default function AgentTest() {
   const [selectedModelIndex, setSelectedModelIndex] = useState(0);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
   const [showRightPanel, setShowRightPanel] = useState(false);
-  const [isHistoryMode, setIsHistoryMode] = useState(false);
 
   const {
     agent,
@@ -34,6 +32,10 @@ export default function AgentTest() {
     isModalOpen,
     isSystemPromptOpen,
     allAgents,
+    history,
+    isHistoryMode,
+    selectedHistoryId,
+    isPreparingNewMessage,
     handleAgentChange,
     handleUpdateChatConfig,
     handleSystemPromptEdit,
@@ -48,7 +50,10 @@ export default function AgentTest() {
     handleAddModel,
     handleRemoveModel,
     handleCloneConfig,
-    handleLoadHistoryData
+    handleLoadHistoryData,
+    selectHistory,
+    prepareNewMessage,
+    exitHistoryMode
   } = useAgentTest(agentId || "1");
 
   if (isLoadingAgent || isLoadingAgents) {
@@ -105,6 +110,10 @@ export default function AgentTest() {
               agent={agent}
               selectedModelIndex={selectedModelIndex}
               showRightPanel={showRightPanel}
+              history={history}
+              isHistoryMode={isHistoryMode}
+              selectedHistoryId={selectedHistoryId}
+              isPreparingNewMessage={isPreparingNewMessage}
               onUpdateChatConfig={handleUpdateChatConfig}
               onSendMessage={handleSendMessage}
               onAddModel={handleAddModel}
@@ -112,8 +121,9 @@ export default function AgentTest() {
               onSelectModel={setSelectedModelIndex}
               onSelectCellConfig={setSelectedCellId}
               onToggleRightPanel={setShowRightPanel}
+              onSelectHistory={selectHistory}
+              onPrepareNewMessage={prepareNewMessage}
               onLoadHistoryData={handleLoadHistoryData}
-              onHistoryModeChange={setIsHistoryMode}
             />
           </div>
 
@@ -131,6 +141,8 @@ export default function AgentTest() {
               selectedCellId={selectedCellId}
               onClose={() => setShowRightPanel(false)}
               isHistoryMode={isHistoryMode}
+              isPreparingNewMessage={isPreparingNewMessage}
+              onExitPrepareMode={exitHistoryMode}
             />
           )}
         </div>

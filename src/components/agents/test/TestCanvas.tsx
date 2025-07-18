@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { ModelComparisonGrid } from './ModelComparisonGrid';
@@ -8,11 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
   Minus, 
-  Zap,
-  Brain,
-  History
+  History,
+  Settings,
+  Send
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { HistoryItem } from '@/types/history';
 
 // Dotted background pattern for the model comparison area
 const dottedBackgroundStyle = `
@@ -39,14 +39,6 @@ interface ModelCell {
   isLoading: boolean;
 }
 
-interface HistoryItem {
-  id: string;
-  query: string;
-  timestamp: Date;
-  responses: any[][];
-  configs: any[];
-}
-
 interface TestCanvasProps {
   numModels: number;
   chatConfigs: any[];
@@ -58,6 +50,10 @@ interface TestCanvasProps {
   agent?: any;
   selectedModelIndex: number;
   showRightPanel: boolean;
+  history: HistoryItem[];
+  isHistoryMode: boolean;
+  selectedHistoryId: string | null;
+  isPreparingNewMessage: boolean;
   onUpdateChatConfig: (index: number, field: string, value: any) => void;
   onSendMessage: (message: string) => void;
   onAddModel: () => void;
@@ -65,8 +61,9 @@ interface TestCanvasProps {
   onSelectModel: (index: number) => void;
   onSelectCellConfig: (cellId: string) => void;
   onToggleRightPanel: (show: boolean) => void;
-  onLoadHistoryData?: (responses: any[][], configs: any[]) => void;
-  onHistoryModeChange?: (isHistoryMode: boolean) => void;
+  onSelectHistory: (item: HistoryItem) => void;
+  onPrepareNewMessage: () => void;
+  onLoadHistoryData: (item: HistoryItem) => void;
 }
 
 export const TestCanvas = ({
@@ -80,6 +77,10 @@ export const TestCanvas = ({
   agent,
   selectedModelIndex,
   showRightPanel,
+  history,
+  isHistoryMode,
+  selectedHistoryId,
+  isPreparingNewMessage,
   onUpdateChatConfig,
   onSendMessage,
   onAddModel,
@@ -87,18 +88,14 @@ export const TestCanvas = ({
   onSelectModel,
   onSelectCellConfig,
   onToggleRightPanel,
-  onLoadHistoryData,
-  onHistoryModeChange
+  onSelectHistory,
+  onPrepareNewMessage,
+  onLoadHistoryData
 }: TestCanvasProps) => {
   const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
-  const [currentQuery, setCurrentQuery] = useState('');
-  const [isHistoryMode, setIsHistoryMode] = useState(false);
 
-  // Create model cells from current configuration
   const modelCells: ModelCell[] = Array(numModels).fill(null).map((_, index) => ({
     id: `cell-${index}`,
     model: chatConfigs[index]?.model || '',
@@ -112,7 +109,6 @@ export const TestCanvas = ({
   }));
 
   const handleBatchTest = () => {
-    // TODO: Implement batch test functionality
     console.log('Batch test clicked');
   };
 
@@ -141,56 +137,12 @@ export const TestCanvas = ({
     setExpandedCellId(expandedCellId === cellId ? null : cellId);
   };
 
-  const handleSendMessage = (message: string) => {
-    // Always send the message first
-    onSendMessage(message);
-    
-    // Exit history mode if we were in it
-    if (isHistoryMode) {
-      setIsHistoryMode(false);
-      setSelectedHistoryId(null);
-      onHistoryModeChange?.(false);
-    }
-    
-    // Create history item with current state BEFORE sending (to capture pre-response state)
-    const newHistoryItem: HistoryItem = {
-      id: `history-${Date.now()}`,
-      query: message,
-      timestamp: new Date(),
-      responses: [...messages], // Current messages before new response
-      configs: [...chatConfigs] // Current configs
-    };
-    
-    // Add to history after a short delay to capture the complete responses
-    setTimeout(() => {
-      setHistory(prev => {
-        // Update the history item with complete responses
-        const updatedItem = {
-          ...newHistoryItem,
-          responses: [...messages] // This will have the new responses
-        };
-        return [updatedItem, ...prev];
-      });
-    }, 2000); // Give time for responses to complete
-    
-    setCurrentQuery(message);
-  };
-
   const handleSelectHistory = (item: HistoryItem) => {
     console.log('Loading history item:', item);
-    setSelectedHistoryId(item.id);
-    setCurrentQuery(item.query);
-    setIsHistoryMode(true);
-    
-    // Load historical responses and configs
-    if (onLoadHistoryData) {
-      onLoadHistoryData(item.responses, item.configs);
-    }
-    if (onHistoryModeChange) {
-      onHistoryModeChange(true);
-    }
-    onSelectModel(0); // Select first model for config display
-    onToggleRightPanel(true); // Show right panel with historical configs
+    onSelectHistory(item);
+    onLoadHistoryData(item);
+    onSelectModel(0);
+    onToggleRightPanel(true);
   };
 
   const handleToggleHistory = () => {
@@ -200,9 +152,26 @@ export const TestCanvas = ({
     }
   };
 
+  const handleSendMessage = (message: string) => {
+    onSendMessage(message);
+  };
+
+  const getInputPlaceholder = () => {
+    if (isHistoryMode) {
+      return "You can configure parameters and send a new query...";
+    }
+    if (isPreparingNewMessage) {
+      return "Configure parameters above, then send your message...";
+    }
+    return "Type your query to compare responses across all models...";
+  };
+
+  const isInputDisabled = () => {
+    return isProcessing || modelConnections.some(status => !status);
+  };
+
   return (
     <>
-      {/* Add the dotted background pattern styling */}
       <style dangerouslySetInnerHTML={{ __html: dottedBackgroundStyle }} />
       
       <div className="h-full flex flex-col dotted-background relative">
@@ -218,8 +187,12 @@ export const TestCanvas = ({
                   History Mode
                 </Badge>
               )}
+              {isPreparingNewMessage && (
+                <Badge variant="outline" className="text-xs">
+                  Configuring New Message
+                </Badge>
+              )}
             </div>
-            
           </div>
 
           <div className="flex items-center gap-2">
@@ -274,7 +247,6 @@ export const TestCanvas = ({
                 <p>Remove model cell</p>
               </TooltipContent>
             </Tooltip>
-
           </div>
         </div>
 
@@ -292,7 +264,7 @@ export const TestCanvas = ({
               />
             )}
 
-            {/* Top Canvas - Model Comparison Grid */}
+            {/* Model Comparison Grid */}
             <div className="flex-1 min-h-0">
               <ModelComparisonGrid
                 cells={modelCells}
@@ -307,12 +279,26 @@ export const TestCanvas = ({
           </div>
 
           {/* Bottom Canvas - Chat Input */}
-          <div className="h-24 border-t bg-background/95 backdrop-blur-sm px-4 py-4 flex-shrink-0">
+          <div className="border-t bg-background/95 backdrop-blur-sm px-4 py-4 flex-shrink-0">
+            {/* Configure New Message Button in History Mode */}
+            {isHistoryMode && !isPreparingNewMessage && (
+              <div className="mb-3 flex justify-center">
+                <Button
+                  onClick={onPrepareNewMessage}
+                  className="gap-2"
+                  variant="outline"
+                >
+                  <Settings className="h-4 w-4" />
+                  Configure New Message
+                </Button>
+              </div>
+            )}
+            
             <ChatInput 
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}
-              isDisabled={isProcessing || modelConnections.some(status => !status)}
-              placeholder={isHistoryMode ? "You can send a new query or view history..." : "Type your query to compare responses across all models..."}
+              isDisabled={isInputDisabled()}
+              placeholder={getInputPlaceholder()}
               value={undefined}
               readonly={false}
             />

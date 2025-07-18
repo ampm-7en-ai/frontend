@@ -1,9 +1,8 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Settings2, Thermometer, Hash, FileText, X, Copy, Check } from 'lucide-react';
+import { Settings2, Thermometer, Hash, FileText, X, Copy, Check, ArrowLeft } from 'lucide-react';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { ExponentialSlider } from '@/components/ui/ExponentialSlider';
 import { SystemPromptSection } from './SystemPromptSection';
@@ -27,6 +26,8 @@ interface TestRightPanelProps {
   selectedCellId?: string | null;
   onClose: () => void;
   isHistoryMode?: boolean;
+  isPreparingNewMessage?: boolean;
+  onExitPrepareMode?: () => void;
 }
 
 export const TestRightPanel = ({
@@ -40,7 +41,9 @@ export const TestRightPanel = ({
   isProcessing,
   selectedCellId,
   onClose,
-  isHistoryMode = false
+  isHistoryMode = false,
+  isPreparingNewMessage = false,
+  onExitPrepareMode
 }: TestRightPanelProps) => {
   const { modelOptionsForDropdown, isLoading: isLoadingModels } = useAIModels();
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
@@ -89,15 +92,42 @@ export const TestRightPanel = ({
     </div>
   );
 
+  const getPanelTitle = () => {
+    if (isPreparingNewMessage) return 'Configure New Message';
+    if (isHistoryMode) return 'Historical Configuration';
+    return 'Request Configuration';
+  };
+
+  const getPanelDescription = () => {
+    if (isPreparingNewMessage) return 'Set parameters for your new message';
+    if (isHistoryMode) return 'View saved configuration parameters';
+    return 'Configure model parameters';
+  };
+
+  const showBackButton = isPreparingNewMessage && onExitPrepareMode;
+  const isReadOnly = isHistoryMode && !isPreparingNewMessage;
+
   return (
     <div className={`w-80 border-l border-border bg-background transition-all duration-300 ${
       isOpen ? 'translate-x-0' : 'translate-x-full'
     } flex flex-col overflow-hidden`}>
       {/* Panel Header */}
       <div className="h-14 px-4 bg-background border-b border-border flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">
-          {isHistoryMode ? 'Historical Configuration' : 'Request Configuration'}
-        </h3>
+        <div className="flex items-center gap-2">
+          {showBackButton && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onExitPrepareMode}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          <h3 className="text-lg font-semibold text-foreground">
+            {getPanelTitle()}
+          </h3>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -113,6 +143,11 @@ export const TestRightPanel = ({
         <div className="p-4 space-y-6">
           {isLoadingConfig ? (
             <ConfigSkeleton />
+          ) : isReadOnly ? (
+            <ConfigurationReadOnlyView
+              config={currentConfig}
+              cellId={selectedCellId}
+            />
           ) : (
             <>
               {/* Header */}
@@ -122,10 +157,10 @@ export const TestRightPanel = ({
                 </div>
                 <div className="flex-1">
                   <h3 className="text-sm font-semibold text-foreground">
-                    {isHistoryMode ? 'Historical Configuration' : 'Request Configuration'}
+                    {getPanelTitle()}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    {isHistoryMode ? 'View saved configuration parameters' : 'Configure model parameters'}
+                    {getPanelDescription()}
                   </p>
                 </div>
                 {selectedCellId && (
@@ -143,29 +178,18 @@ export const TestRightPanel = ({
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Model</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {isHistoryMode ? 'AI model used for this query' : 'Select AI model'}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Select AI model</p>
                   </div>
                 </div>
 
                 <div className="px-3">
-                  {isHistoryMode ? (
-                    <Badge variant="default" className="text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                        {currentConfig?.model || 'No model selected'}
-                      </div>
-                    </Badge>
-                  ) : (
-                    <ModernDropdown
-                      value={currentConfig.model}
-                      onValueChange={(value) => handleConfigUpdate('model', value)}
-                      options={modelOptionsForDropdown}
-                      placeholder="Select Model"
-                      className="w-full"
-                    />
-                  )}
+                  <ModernDropdown
+                    value={currentConfig.model}
+                    onValueChange={(value) => handleConfigUpdate('model', value)}
+                    options={modelOptionsForDropdown}
+                    placeholder="Select Model"
+                    className="w-full"
+                  />
                 </div>
               </div>
 
@@ -177,9 +201,7 @@ export const TestRightPanel = ({
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Temperature</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {isHistoryMode ? 'Response creativity level' : 'Control response creativity'}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Control response creativity</p>
                   </div>
                   <span className="text-sm font-medium text-foreground">
                     {(currentConfig.temperature || 0.7).toFixed(1)}
@@ -187,22 +209,14 @@ export const TestRightPanel = ({
                 </div>
                 
                 <div className="px-3">
-                  {isHistoryMode ? (
-                    <div className="text-xs text-muted-foreground">
-                      {currentConfig?.temperature === 0 ? 'Deterministic' : 
-                       currentConfig?.temperature && currentConfig.temperature <= 0.3 ? 'Conservative' :
-                       currentConfig?.temperature && currentConfig.temperature <= 0.7 ? 'Balanced' : 'Creative'}
-                    </div>
-                  ) : (
-                    <Slider
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      value={[currentConfig.temperature || 0.7]}
-                      onValueChange={([value]) => handleConfigUpdate('temperature', value)}
-                      className="w-full"
-                    />
-                  )}
+                  <Slider
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    value={[currentConfig.temperature || 0.7]}
+                    onValueChange={([value]) => handleConfigUpdate('temperature', value)}
+                    className="w-full"
+                  />
                 </div>
               </div>
 
@@ -222,19 +236,13 @@ export const TestRightPanel = ({
                 </div>
                 
                 <div className="px-3">
-                  {isHistoryMode ? (
-                    <div className="text-xs text-muted-foreground">
-                      tokens maximum response length
-                    </div>
-                  ) : (
-                    <ExponentialSlider
-                      minValue={4000}
-                      maxValue={32000}
-                      value={currentConfig.maxLength || 8000}
-                      onChange={(value) => handleConfigUpdate('maxLength', value)}
-                      className="w-full"
-                    />
-                  )}
+                  <ExponentialSlider
+                    minValue={4000}
+                    maxValue={32000}
+                    value={currentConfig.maxLength || 8000}
+                    onChange={(value) => handleConfigUpdate('maxLength', value)}
+                    className="w-full"
+                  />
                 </div>
               </div>
 
@@ -246,39 +254,17 @@ export const TestRightPanel = ({
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-foreground">System Prompt</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {isHistoryMode ? 'Agent behavior instructions' : 'Define agent behavior'}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Define agent behavior</p>
                   </div>
-                  {isHistoryMode && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => handleCopy(currentConfig?.systemPrompt || '', 'System Prompt')}
-                    >
-                      {copiedField === 'System Prompt' ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
                 </div>
                 
                 <div className="px-3">
-                  {isHistoryMode ? (
-                    <div className="text-sm text-foreground bg-muted/30 rounded-md p-3 border max-h-32 overflow-y-auto">
-                      {currentConfig?.systemPrompt || 'No system prompt configured'}
-                    </div>
-                  ) : (
-                    <SystemPromptSection
-                      agentType={currentConfig.agentType || 'general-assistant'}
-                      systemPrompt={currentConfig.systemPrompt || ''}
-                      onAgentTypeChange={(agentType) => handleConfigUpdate('agentType', agentType)}
-                      onSystemPromptChange={(prompt) => handleConfigUpdate('systemPrompt', prompt)}
-                    />
-                  )}
+                  <SystemPromptSection
+                    agentType={currentConfig.agentType || 'general-assistant'}
+                    systemPrompt={currentConfig.systemPrompt || ''}
+                    onAgentTypeChange={(agentType) => handleConfigUpdate('agentType', agentType)}
+                    onSystemPromptChange={(prompt) => handleConfigUpdate('systemPrompt', prompt)}
+                  />
                 </div>
               </div>
             </>

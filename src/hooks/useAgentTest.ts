@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -8,6 +7,8 @@ import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { ModelWebSocketService } from '@/services/ModelWebSocketService';
 import { useAIModels } from './useAIModels';
+import { useSocketHistory } from './useSocketHistory';
+import { HistoryItem } from '@/types/history';
 
 // Mock data for fallback
 const mockAgents = [
@@ -141,14 +142,29 @@ export const useAgentTest = (initialAgentId: string) => {
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<number | null>(null);
   const [primaryColors, setPrimaryColors] = useState<string[]>(['#9b87f5', '#33C3F0', '#6E59A5']);
   const [modelConnections, setModelConnections] = useState<boolean[]>([false, false, false]);
-  const [isSaving, setIsSaving] = useState<number | null>(null); // Track which model config is being saved
+  const [isSaving, setIsSaving] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [cellLoadingStates, setCellLoadingStates] = useState<boolean[]>(Array(3).fill(false));
-  const [historyData, setHistoryData] = useState<{responses: any[][], configs: any[]} | null>(null);
 
   const webSocketRefs = useRef<ModelWebSocketService[]>([]);
   const webSocketsInitialized = useRef<boolean>(false);
-  const systemMessageProcessing = useRef<boolean>(false); // Track system message processing state
+  const systemMessageProcessing = useRef<boolean>(false);
+
+  // Initialize socket history hook
+  const {
+    history,
+    isHistoryMode,
+    selectedHistoryId,
+    isPreparingNewMessage,
+    handleQuerySent,
+    handleResponseReceived,
+    selectHistory,
+    prepareNewMessage,
+    exitHistoryMode,
+    getSelectedHistoryItem,
+    setIsHistoryMode,
+    setSelectedHistoryId
+  } = useSocketHistory(numModels);
 
   // Update chat configs when model options are available
   useEffect(() => {
@@ -282,7 +298,7 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   }, [agentData, selectedAgentId, numModels]);
 
-  // Initialize WebSocket connections only once when agent is loaded or when agent changes
+  // Initialize WebSocket connections with history tracking
   useEffect(() => {
     if (!agent || !selectedAgentId) return;
     
@@ -300,11 +316,16 @@ export const useAgentTest = (initialAgentId: string) => {
     for (let i = 0; i < numModels; i++) {
       const ws = new ModelWebSocketService(selectedAgentId, chatConfigs[i], i);
       
+      // Set up history tracking
+      ws.setHistoryCallbacks(
+        (queryData) => handleQuerySent(i, queryData),
+        (responseData) => handleResponseReceived(i, responseData)
+      );
+      
       ws.on({
         onMessage: (message) => {
           console.log(`Received message for model ${i}:`, message);
 
-          // Check if this is a system message and update processing state accordingly
           if (message.type === "system_message") {
             systemMessageProcessing.current = true;
             setIsProcessing(true);
@@ -313,7 +334,6 @@ export const useAgentTest = (initialAgentId: string) => {
           
           setMessages(prev => {
             const newMessages = [...prev];
-            // Ensure the array exists for this index
             if (!newMessages[i] || !Array.isArray(newMessages[i])) {
               newMessages[i] = [];
             }
@@ -328,15 +348,12 @@ export const useAgentTest = (initialAgentId: string) => {
             return newMessages;
           });
 
-          // Set individual cell loading to false when it receives a response
           setCellLoadingStates(prev => {
             const newStates = [...prev];
             newStates[i] = false;
             return newStates;
           });
           
-          // Only set processing to false if this is not a system message
-          // and this is the last model responding
           if (message.type !== "system_message" && i === numModels - 1) {
             systemMessageProcessing.current = false;
             setIsProcessing(false);
@@ -344,7 +361,6 @@ export const useAgentTest = (initialAgentId: string) => {
         },
         onTypingStart: () => {
           console.log(`Typing indicator started for model ${i}`);
-          // Set individual cell loading to true when typing starts
           setCellLoadingStates(prev => {
             const newStates = [...prev];
             newStates[i] = true;
@@ -354,15 +370,12 @@ export const useAgentTest = (initialAgentId: string) => {
         onTypingEnd: () => {
           console.log(`Typing indicator ended for model ${i}`);
           
-          // Set individual cell loading to false when typing ends
           setCellLoadingStates(prev => {
             const newStates = [...prev];
             newStates[i] = false;
             return newStates;
           });
           
-          // If we were processing a system message and typing has ended,
-          // we can set processing to false
           if (systemMessageProcessing.current) {
             systemMessageProcessing.current = false;
             setIsProcessing(false);
@@ -399,7 +412,6 @@ export const useAgentTest = (initialAgentId: string) => {
     webSocketsInitialized.current = true;
     setModelConnections(connectionStatus);
     
-    // Cleanup function
     return () => {
       console.log("Cleaning up WebSocket connections");
       webSocketRefs.current.forEach(ws => {
@@ -408,7 +420,7 @@ export const useAgentTest = (initialAgentId: string) => {
       webSocketRefs.current = [];
       webSocketsInitialized.current = false;
     };
-  }, [selectedAgentId, agent, numModels]);
+  }, [selectedAgentId, agent, numModels, handleQuerySent, handleResponseReceived]);
 
   // Update WebSocket configs when chat configs change,
   // but don't recreate the connections
@@ -512,7 +524,6 @@ export const useAgentTest = (initialAgentId: string) => {
   };
 
   const handleSendMessage = (messageText: string) => {
-    // Skip if any model is not connected
     if (modelConnections.some(status => !status)) {
       toast({
         title: "Not connected",
@@ -522,8 +533,8 @@ export const useAgentTest = (initialAgentId: string) => {
       return;
     }
     
-    // Clear any history data as we're sending new query
-    setHistoryData(null);
+    // Exit history mode when sending new message
+    exitHistoryMode();
     
     const userMessage: Message = {
       id: Date.now(),
@@ -532,13 +543,9 @@ export const useAgentTest = (initialAgentId: string) => {
       timestamp: new Date(),
     };
     
-    // Clear all previous messages and start fresh with new query
     setMessages(Array(numModels).fill(null).map(() => [userMessage]));
-
-    // Set all cells to loading state initially
     setCellLoadingStates(Array(numModels).fill(true));
     
-    // Send message to all WebSocket connections
     webSocketRefs.current.forEach((ws, i) => {
       if (ws) {
         try {
@@ -561,6 +568,53 @@ export const useAgentTest = (initialAgentId: string) => {
     });
   };
 
+  const handleLoadHistoryData = (historyItem: HistoryItem) => {
+    console.log('Loading historical data:', historyItem);
+    
+    // Create messages from socket histories
+    const historicalMessages: Message[][] = Array(numModels).fill(null).map(() => []);
+    const historicalConfigs: ChatConfig[] = [...chatConfigs];
+    
+    historyItem.socketHistories.forEach((socketHistory) => {
+      const socketIndex = socketHistory.socketIndex;
+      
+      if (socketIndex < numModels) {
+        // Add user message
+        const userMessage: Message = {
+          id: `user-${socketHistory.queries[0]?.id || Date.now()}`,
+          content: historyItem.query,
+          sender: 'user',
+          timestamp: new Date(socketHistory.queries[0]?.timestamp || Date.now()),
+        };
+        
+        // Add response message
+        const responseMessage: Message = {
+          id: `response-${socketHistory.responses[0]?.id || Date.now()}`,
+          content: socketHistory.responses[0]?.content || '',
+          sender: `agent${socketIndex + 1}` as 'agent1' | 'agent2' | 'agent3',
+          timestamp: new Date(socketHistory.responses[0]?.timestamp || Date.now()),
+          model: socketHistory.queries[0]?.config?.response_model || '',
+          avatarSrc: agent?.avatarSrc
+        };
+        
+        historicalMessages[socketIndex] = [userMessage, responseMessage];
+        
+        // Update config
+        if (socketHistory.queries[0]?.config) {
+          historicalConfigs[socketIndex] = {
+            ...historicalConfigs[socketIndex],
+            model: socketHistory.queries[0].config.response_model,
+            temperature: socketHistory.queries[0].config.temperature,
+            systemPrompt: socketHistory.queries[0].config.system_prompt
+          };
+        }
+      }
+    });
+    
+    setMessages(historicalMessages);
+    setChatConfigs(historicalConfigs);
+  };
+
   const handleClearChat = () => {
     setMessages(Array(numModels).fill(null).map(() => []));
     setHistoryData(null);
@@ -568,15 +622,6 @@ export const useAgentTest = (initialAgentId: string) => {
       title: "Chat cleared",
       description: "All messages have been cleared.",
     });
-  };
-
-  const handleLoadHistoryData = (historyResponses: any[][], historyConfigs: any[]) => {
-    console.log('Loading historical data:', { historyResponses, historyConfigs });
-    setHistoryData({ responses: historyResponses, configs: historyConfigs });
-    
-    // Set the historical messages and configs
-    setMessages(historyResponses);
-    setChatConfigs(historyConfigs);
   };
 
   const handleViewKnowledgeSources = () => {
@@ -756,6 +801,12 @@ export const useAgentTest = (initialAgentId: string) => {
     isProcessing,
     cellLoadingStates,
     
+    // History state
+    history,
+    isHistoryMode,
+    selectedHistoryId,
+    isPreparingNewMessage,
+    
     // Loading states
     isLoadingAgents,
     isLoadingAgent,
@@ -777,6 +828,12 @@ export const useAgentTest = (initialAgentId: string) => {
     handleCloneConfig,
     handleLoadHistoryData,
     setSelectedModelIndex,
+    
+    // History handlers
+    selectHistory,
+    prepareNewMessage,
+    exitHistoryMode,
+    getSelectedHistoryItem,
     
     // Utilities
     refetchAgent
