@@ -17,6 +17,7 @@ import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import CleanupDialog from '@/components/agents/CleanupDialog';
 import { TrainingAlertBadge } from '@/components/ui/training-alert-badge';
+import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -450,7 +451,7 @@ export const BuilderSidebar = () => {
             No Agent Context
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
-            Knowledge panel requires an agent context. Please navigate to an agent builder page.
+            Builder sidebar requires an agent context. Please navigate to an agent builder page.
           </p>
         </div>
       </div>
@@ -506,26 +507,11 @@ export const BuilderSidebar = () => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Knowledge Base
             </h2>
-            <ModernButton
-              variant="primary"
-              size="sm"
-              onClick={handleTrainKnowledge}
-              disabled={agentData.knowledgeSources.length === 0 || isTraining}
-              className="relative"
-            >
-              {isTraining ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                  Training...
-                </>
-              ) : (
-                'Train'
-              )}
-            </ModernButton>
+            <KnowledgeActionDropdown />
           </div>
         </div>
         
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="p-4 space-y-3">
               {agentData.knowledgeSources.length === 0 ? (
@@ -537,14 +523,7 @@ export const BuilderSidebar = () => {
                   <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto mb-4">
                     Import knowledge sources to improve your agent's responses and make it more knowledgeable.
                   </p>
-                  <ModernButton
-                    variant="primary"
-                    size="sm"
-                    icon={Plus}
-                    onClick={() => setIsImportDialogOpen(true)}
-                  >
-                    Add Knowledge Source
-                  </ModernButton>
+                  <KnowledgeActionDropdown />
                 </div>
               ) : (
                 <>
@@ -557,29 +536,11 @@ export const BuilderSidebar = () => {
                       onDelete={() => handleDeleteConfirm(knowledgeSource.id)}
                     />
                   ))}
-                  <ModernButton
-                    variant="ghost"
-                    size="sm"
-                    icon={Plus}
-                    onClick={() => setIsImportDialogOpen(true)}
-                    className="w-full h-10 rounded-lg text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600"
-                  >
-                    Add Source
-                  </ModernButton>
                 </>
               )}
             </div>
           </ScrollArea>
         </div>
-
-        <ImportSourcesDialog
-          isOpen={isImportDialogOpen}
-          onOpenChange={setIsImportDialogOpen}
-          externalSources={externalSources}
-          currentSources={agentData.knowledgeSources}
-          onImport={handleImport}
-          agentId={agentData.id?.toString()}
-        />
 
         <KnowledgeSourceModal
           open={isModalOpen}
