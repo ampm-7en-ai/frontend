@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -314,22 +313,18 @@ const FolderSources = () => {
         </div>
 
         {/* Sources List */}
-        <div className="space-y-2">
+        <div className="space-y-4">
           {isLoading ? (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 animate-pulse">
-                  <div className="p-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-7 h-7 rounded-xl bg-muted/50"></div>
-                        <div className="flex-1 min-w-0">
-                          <div className="h-4 bg-muted/50 rounded w-1/3 mb-1"></div>
-                          <div className="h-3 bg-muted/30 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                      <div className="w-16 h-6 bg-muted/30 rounded"></div>
+                <div key={i} className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
+                  <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 bg-muted/50 rounded-xl"></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="h-5 bg-muted/50 rounded w-1/3 mb-2"></div>
+                      <div className="h-4 bg-muted/30 rounded w-1/2"></div>
                     </div>
+                    <div className="w-6 h-6 bg-muted/30 rounded"></div>
                   </div>
                 </div>
               ))}
@@ -362,60 +357,51 @@ const FolderSources = () => {
             filteredSources.map((source, index) => (
               <div 
                 key={source.id}
-                className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200 animate-fade-in"
+                className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors duration-200 animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="p-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`p-1.5 rounded-xl ${getIconBackground(source)}`}>
-                        {renderSourceIcon(source)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate transition-colors duration-200">
-                            {source.title}
-                          </h3>
-                        </div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                          {getFileInfo(source) || (source.url ? 'Web URL' : 'Plain text')}
-                        </div>
-                      </div>
+                <div className="flex items-center gap-6">
+                  <div className="flex-shrink-0">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getIconBackground(source)}`}>
+                      {renderSourceIcon(source)}
                     </div>
-                    <div className="flex items-center px-4 min-w-0">
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                        {source.title}
+                      </h3>
                       {getStatusBadge(source.status)}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-right">
-                        <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
-                          {formatDate(source.metadata?.upload_date)}
-                        </span>
-                      </div>
-                      {source.file && (
-                        <ModernButton
-                          variant="ghost"
-                          size="sm"
-                          icon={Download}
-                          iconOnly={true}
-                          className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(source);
-                          }}
-                        />
-                      )}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {getFileInfo(source) || (source.url ? 'Web URL' : 'Plain text')} • {formatDate(source.metadata?.upload_date)}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 flex items-center gap-2">
+                    {source.file && (
                       <ModernButton
                         variant="ghost"
                         size="sm"
-                        icon={Trash2}
+                        icon={Download}
                         iconOnly={true}
-                        className="h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
+                        className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(source);
+                          handleDownload(source);
                         }}
                       />
-                    </div>
+                    )}
+                    <ModernButton
+                      variant="ghost"
+                      size="sm"
+                      icon={Trash2}
+                      iconOnly={true}
+                      className="h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(source);
+                      }}
+                    />
                   </div>
                 </div>
               </div>
