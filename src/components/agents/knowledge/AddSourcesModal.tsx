@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -899,71 +899,69 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-card border border-border/50 backdrop-blur-sm">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-foreground">
-            Add Knowledge Sources
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Source Name */}
-          <div className="space-y-2">
-            <Label htmlFor="document-name" className="text-sm font-medium text-foreground">Source Name</Label>
-            <Input 
-              id="document-name" 
-              placeholder="Enter a descriptive name for this knowledge source"
-              value={documentName}
-              onChange={(e) => {
-                setDocumentName(e.target.value);
-                if (validationErrors.documentName) {
-                  setValidationErrors(prev => ({ ...prev, documentName: undefined }));
-                }
-              }}
-              className={`h-12 ${validationErrors.documentName ? 'border-red-500' : ''}`}
-            />
-            {validationErrors.documentName && (
-              <p className="text-sm text-red-600">{validationErrors.documentName}</p>
-            )}
-          </div>
-          
-          {/* Source Type - Tab Navigation */}
-          <div className="space-y-4">
-            <ModernTabNavigation
-              tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
-              activeTab={sourceType}
-              onTabChange={(tabId) => setSourceType(tabId as SourceType)}
-              className="text-xs"
-            />
-          </div>
-          
-          {/* Source Content */}
-          <div className="p-6 bg-muted/30 rounded-xl border border-border/30">
-            {renderSourceTypeContent()}
-          </div>
-          
-          {/* Actions */}
-          <div className="flex justify-end gap-4 pt-4">
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              disabled={isUploading}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit"
-              disabled={isUploading}
-              className="px-6"
-            >
-              {isUploading ? 'Processing...' : 'Add to Knowledge Base'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <ModernModal
+      open={isOpen}
+      onOpenChange={onClose}
+      title="Add Knowledge Sources"
+      size="4xl"
+      fixedFooter={true}
+      footer={
+        <div className="flex justify-end gap-3">
+          <ModernButton 
+            variant="outline" 
+            onClick={onClose}
+            disabled={isUploading}
+            type="button"
+          >
+            Cancel
+          </ModernButton>
+          <ModernButton 
+            onClick={handleSubmit}
+            disabled={isUploading}
+            className="px-6"
+          >
+            {isUploading ? 'Processing...' : 'Add to Knowledge Base'}
+          </ModernButton>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Source Name */}
+        <div className="space-y-2">
+          <Label htmlFor="document-name" className="text-sm font-medium text-foreground">Source Name</Label>
+          <Input 
+            id="document-name" 
+            placeholder="Enter a descriptive name for this knowledge source"
+            value={documentName}
+            onChange={(e) => {
+              setDocumentName(e.target.value);
+              if (validationErrors.documentName) {
+                setValidationErrors(prev => ({ ...prev, documentName: undefined }));
+              }
+            }}
+            className={`h-12 ${validationErrors.documentName ? 'border-red-500' : ''}`}
+          />
+          {validationErrors.documentName && (
+            <p className="text-sm text-red-600">{validationErrors.documentName}</p>
+          )}
+        </div>
+        
+        {/* Source Type - Tab Navigation */}
+        <div className="space-y-4">
+          <ModernTabNavigation
+            tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
+            activeTab={sourceType}
+            onTabChange={(tabId) => setSourceType(tabId as SourceType)}
+            className="text-xs"
+          />
+        </div>
+        
+        {/* Source Content */}
+        <div className="p-6 bg-muted/30 rounded-xl border border-border/30">
+          {renderSourceTypeContent()}
+        </div>
+      </form>
+    </ModernModal>
   );
 };
 
