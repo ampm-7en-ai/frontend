@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ImportSourcesDialog } from '@/components/agents/knowledge/ImportSourcesDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,10 +12,6 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
 import { ModernModal } from '@/components/ui/modern-modal';
-import { AgentTrainingService } from '@/services/AgentTrainingService';
-import { useNotifications } from '@/context/NotificationContext';
-import CleanupDialog from '@/components/agents/CleanupDialog';
-import { TrainingAlertBadge } from '@/components/ui/training-alert-badge';
 import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 
 const getIconForType = (type: string) => {
@@ -167,213 +162,12 @@ export const BuilderSidebar = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData, isLoading } = state;
   const { toast } = useToast();
-  const { addNotification } = useNotifications();
   const queryClient = useQueryClient();
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
-  const [isTraining, setIsTraining] = useState(false);
-  const [showCleanupDialog, setShowCleanupDialog] = useState(false);
-
-  const { data: externalSources = [] } = useQuery({
-    queryKey: ['availableKnowledgeSources'],
-    queryFn: async () => {
-      const token = getAccessToken();
-      if (!token) throw new Error('No authentication token');
-
-      const response = await fetch(`${BASE_URL}knowledge-bases/`, {
-        headers: getAuthHeaders(token)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch knowledge sources');
-      }
-
-      const result = await response.json();
-      return result.data || [];
-    },
-    enabled: isImportDialogOpen
-  });
-
-  const handleImport = async (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
-    try {
-      // After successful import, refresh the agent data to get updated knowledge sources
-      if (agentData.id) {
-        const token = getAccessToken();
-        if (!token) throw new Error('No authentication token');
-
-        const response = await fetch(`${BASE_URL}agents/${agentData.id}/`, {
-          headers: getAuthHeaders(token)
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          const updatedKnowledgeSources = result.data.knowledge_bases || [];
-          
-          // Format and update the knowledge sources
-          const formattedSources = updatedKnowledgeSources.map((kb: any) => ({
-            id: kb.id,
-            name: kb.name,
-            type: kb.type,
-            size: kb.size || 'N/A',
-            lastUpdated: kb.last_updated ? new Date(kb.last_updated).toLocaleDateString('en-GB') : 'N/A',
-            trainingStatus: kb.training_status || kb.status || 'idle',
-            linkBroken: false,
-            knowledge_sources: kb.knowledge_sources || [],
-            metadata: kb.metadata || {}
-          }));
-
-          updateAgentData({ knowledgeSources: formattedSources });
-        }
-      }
-      
-      toast({
-        title: "Knowledge sources imported",
-        description: "The selected knowledge sources have been added to your agent.",
-      });
-    } catch (error) {
-      console.error('Error during import:', error);
-      toast({
-        title: "Import failed",
-        description: "There was an error importing the knowledge sources.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const hasProblematicSources = (knowledgeSources: any[]) => {
-    return knowledgeSources.some(kb => 
-      kb.training_status === 'deleted' || 
-      kb.knowledge_sources?.some((source: any) => source.status === 'deleted' && source.is_selected === true)
-    );
-  };
-
-  const handleTrainKnowledge = async () => {
-    if (!agentData.id) return;
-    
-    if (agentData.knowledgeSources.length === 0) {
-      toast({
-        title: "No sources selected",
-        description: "Please import at least one knowledge source to train.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (hasProblematicSources(agentData.knowledgeSources)) {
-      setShowCleanupDialog(true);
-      return;
-    }
-
-    setIsTraining(true);
-    
-    addNotification({
-      title: 'Training Started',
-      message: `Processing ${agentData.name} with ${agentData.knowledgeSources.length} knowledge sources`,
-      type: 'training_started',
-      agentId: agentData.id.toString(),
-      agentName: agentData.name
-    });
-    
-    toast({
-      title: "Training started",
-      description: `Processing ${agentData.knowledgeSources.length} knowledge sources. This may take a while.`
-    });
-
-    try {
-      // Extract knowledge source IDs from all selected sources
-      const knowledgeSourceIds = agentData.knowledgeSources
-        .flatMap(kb => kb.knowledge_sources || [])
-        .filter(source => source.is_selected !== false)
-        .map(s => typeof s.id === 'number' ? s.id : parseInt(s.id.toString()))
-        .filter(id => !isNaN(id));
-
-      // Extract URLs from website sources - Fixed logic
-      const websiteUrls: string[] = [];
-      
-      agentData.knowledgeSources.forEach(kb => {
-        if (kb.type === "website" && kb.knowledge_sources) {
-          kb.knowledge_sources.forEach(source => {
-            if (source.is_selected !== false) {
-              // Add main URL if it exists
-              if (source.url) {
-                websiteUrls.push(source.url);
-              }
-              
-              // Add sub URLs from metadata
-              if (source.metadata?.sub_urls?.children) {
-                source.metadata.sub_urls.children.forEach(subUrl => {
-                  if (subUrl.is_selected !== false && subUrl.url) {
-                    websiteUrls.push(subUrl.url);
-                  }
-                });
-              }
-              
-              // Also check for sub_urls directly in source (now properly typed)
-              if (source.sub_urls?.children) {
-                source.sub_urls.children.forEach(subUrl => {
-                  if (subUrl.is_selected !== false && subUrl.url) {
-                    websiteUrls.push(subUrl.url);
-                  }
-                });
-              }
-            }
-          });
-        }
-      });
-
-      console.log('Extracted knowledge source IDs:', knowledgeSourceIds);
-      console.log('Extracted website URLs:', websiteUrls);
-
-      const success = await AgentTrainingService.trainAgent(
-        agentData.id.toString(), 
-        knowledgeSourceIds, 
-        agentData.name, 
-        websiteUrls
-      );
-      
-      if (success) {
-        addNotification({
-          title: 'Training Complete',
-          message: `Agent "${agentData.name}" training has completed successfully.`,
-          type: 'training_completed',
-          agentId: agentData.id.toString(),
-          agentName: agentData.name
-        });
-
-        // Update training status for knowledge sources
-        const updatedSources = agentData.knowledgeSources.map(source => ({
-          ...source,
-          trainingStatus: 'Active' as const
-        }));
-        
-        updateAgentData({ knowledgeSources: updatedSources });
-      } else {
-        addNotification({
-          title: 'Training Failed',
-          message: `Agent "${agentData.name}" training has failed.`,
-          type: 'training_failed',
-          agentId: agentData.id.toString(),
-          agentName: agentData.name
-        });
-      }
-    } catch (error) {
-      console.error("Error training agent:", error);
-      
-      addNotification({
-        title: 'Training Failed',
-        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        type: 'training_failed',
-        agentId: agentData.id.toString(),
-        agentName: agentData.name
-      });
-    } finally {
-      setIsTraining(false);
-    }
-  };
 
   const handleSourceClick = (sourceId: number) => {
     setSelectedSourceId(sourceId);
@@ -496,11 +290,6 @@ export const BuilderSidebar = () => {
 
   return (
     <>
-      <TrainingAlertBadge 
-        isVisible={isTraining}
-        message={`Training ${agentData.name}...`}
-      />
-      
       <div className="w-full h-full bg-background flex flex-col">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -549,26 +338,6 @@ export const BuilderSidebar = () => {
           initialSourceId={selectedSourceId}
           agentId={agentData.id?.toString()}
           onSourceDelete={() => {}}
-        />
-
-        <CleanupDialog
-          open={showCleanupDialog}
-          onOpenChange={setShowCleanupDialog}
-          knowledgeSources={
-            agentData.knowledgeSources?.flatMap(kb => 
-              kb.knowledge_sources?.filter((s: any) => s.is_selected === true).map((source: any) => ({
-                id: source.id,
-                name: source.title,
-                type: kb.type,
-                size: 'N/A',
-                lastUpdated: 'N/A',
-                trainingStatus: source.status || 'idle',
-                hasError: source.status === 'deleted' || kb.training_status === 'deleted',
-                hasIssue: source.status === 'deleted'
-              }))
-            ).filter(source => source.hasError || source.hasIssue) || []
-          }
-          agentId={agentData.id?.toString()}
         />
 
         <ModernModal

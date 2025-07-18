@@ -17,7 +17,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
+import { AgentTrainingService } from '@/services/AgentTrainingService';
+import { useNotifications } from '@/context/NotificationContext';
+import CleanupDialog from '@/components/agents/CleanupDialog';
 
 export const BuilderToolbar = () => {
   const navigate = useNavigate();
@@ -25,48 +27,144 @@ export const BuilderToolbar = () => {
   const { agentData, canvasMode, isLoading } = state;
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeployDialog, setShowDeployDialog] = useState(false);
+  const [showCleanupDialog, setShowCleanupDialog] = useState(false);
+  const [isTraining, setIsTraining] = useState(false);
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
 
   const handleDeleteAgent = async () => {
     await deleteAgent();
     setShowDeleteDialog(false);
   };
 
+  const hasProblematicSources = (knowledgeSources: any[]) => {
+    return knowledgeSources.some(kb => 
+      kb.training_status === 'deleted' || 
+      kb.knowledge_sources?.some((source: any) => source.status === 'deleted' && source.is_selected === true)
+    );
+  };
+
   const handleTrainKnowledge = async () => {
     if (!agentData.id) return;
     
-    try {
-      const token = getAccessToken();
-      if (!token) throw new Error('No authentication token');
-
-      const response = await fetch(`${BASE_URL}agents/${agentData.id}/train/`, {
-        method: 'POST',
-        headers: getAuthHeaders(token)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to start training');
-      }
-
+    if (agentData.knowledgeSources.length === 0) {
       toast({
-        title: "Training started",
-        description: "Your agent's knowledge base is being trained.",
-      });
-
-      // Update training status for knowledge sources
-      const updatedSources = agentData.knowledgeSources.map(source => ({
-        ...source,
-        trainingStatus: 'Training' as const
-      }));
-      
-      updateAgentData({ knowledgeSources: updatedSources });
-    } catch (error) {
-      console.error('Error training knowledge:', error);
-      toast({
-        title: "Training failed",
-        description: "There was an error starting the training process.",
+        title: "No sources selected",
+        description: "Please import at least one knowledge source to train.",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (hasProblematicSources(agentData.knowledgeSources)) {
+      setShowCleanupDialog(true);
+      return;
+    }
+
+    setIsTraining(true);
+    
+    addNotification({
+      title: 'Training Started',
+      message: `Processing ${agentData.name} with ${agentData.knowledgeSources.length} knowledge sources`,
+      type: 'training_started',
+      agentId: agentData.id.toString(),
+      agentName: agentData.name
+    });
+    
+    toast({
+      title: "Training started",
+      description: `Processing ${agentData.knowledgeSources.length} knowledge sources. This may take a while.`
+    });
+
+    try {
+      // Extract knowledge source IDs from all selected sources
+      const knowledgeSourceIds = agentData.knowledgeSources
+        .flatMap(kb => kb.knowledge_sources || [])
+        .filter(source => source.is_selected !== false)
+        .map(s => typeof s.id === 'number' ? s.id : parseInt(s.id.toString()))
+        .filter(id => !isNaN(id));
+
+      // Extract URLs from website sources
+      const websiteUrls: string[] = [];
+      
+      agentData.knowledgeSources.forEach(kb => {
+        if (kb.type === "website" && kb.knowledge_sources) {
+          kb.knowledge_sources.forEach(source => {
+            if (source.is_selected !== false) {
+              // Add main URL if it exists
+              if (source.url) {
+                websiteUrls.push(source.url);
+              }
+              
+              // Add sub URLs from metadata
+              if (source.metadata?.sub_urls?.children) {
+                source.metadata.sub_urls.children.forEach(subUrl => {
+                  if (subUrl.is_selected !== false && subUrl.url) {
+                    websiteUrls.push(subUrl.url);
+                  }
+                });
+              }
+              
+              // Also check for sub_urls directly in source
+              if (source.sub_urls?.children) {
+                source.sub_urls.children.forEach(subUrl => {
+                  if (subUrl.is_selected !== false && subUrl.url) {
+                    websiteUrls.push(subUrl.url);
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+
+      console.log('Extracted knowledge source IDs:', knowledgeSourceIds);
+      console.log('Extracted website URLs:', websiteUrls);
+
+      const success = await AgentTrainingService.trainAgent(
+        agentData.id.toString(), 
+        knowledgeSourceIds, 
+        agentData.name, 
+        websiteUrls
+      );
+      
+      if (success) {
+        addNotification({
+          title: 'Training Complete',
+          message: `Agent "${agentData.name}" training has completed successfully.`,
+          type: 'training_completed',
+          agentId: agentData.id.toString(),
+          agentName: agentData.name
+        });
+
+        // Update training status for knowledge sources
+        const updatedSources = agentData.knowledgeSources.map(source => ({
+          ...source,
+          trainingStatus: 'Active' as const
+        }));
+        
+        updateAgentData({ knowledgeSources: updatedSources });
+      } else {
+        addNotification({
+          title: 'Training Failed',
+          message: `Agent "${agentData.name}" training has failed.`,
+          type: 'training_failed',
+          agentId: agentData.id.toString(),
+          agentName: agentData.name
+        });
+      }
+    } catch (error) {
+      console.error("Error training agent:", error);
+      
+      addNotification({
+        title: 'Training Failed',
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        type: 'training_failed',
+        agentId: agentData.id.toString(),
+        agentName: agentData.name
+      });
+    } finally {
+      setIsTraining(false);
     }
   };
 
@@ -115,10 +213,10 @@ export const BuilderToolbar = () => {
             size="sm"
             icon={Brain}
             onClick={handleTrainKnowledge}
-            disabled={agentData.knowledgeSources.length === 0}
+            disabled={agentData.knowledgeSources.length === 0 || isTraining}
             className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700"
           >
-            Train Knowledge
+            {isTraining ? 'Training...' : 'Train Knowledge'}
           </ModernButton>
           
           <ModernButton
@@ -190,6 +288,27 @@ export const BuilderToolbar = () => {
           id: String(agentData.id),
           name: agentData.name || 'Untitled Agent'
         }}
+      />
+
+      {/* Cleanup Dialog */}
+      <CleanupDialog
+        open={showCleanupDialog}
+        onOpenChange={setShowCleanupDialog}
+        knowledgeSources={
+          agentData.knowledgeSources?.flatMap(kb => 
+            kb.knowledge_sources?.filter((s: any) => s.is_selected === true).map((source: any) => ({
+              id: source.id,
+              name: source.title,
+              type: kb.type,
+              size: 'N/A',
+              lastUpdated: 'N/A',
+              trainingStatus: source.status || 'idle',
+              hasError: source.status === 'deleted' || kb.training_status === 'deleted',
+              hasIssue: source.status === 'deleted'
+            }))
+          ).filter(source => source.hasError || source.hasIssue) || []
+        }
+        agentId={agentData.id?.toString()}
       />
     </>
   );
