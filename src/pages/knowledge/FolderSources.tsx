@@ -220,12 +220,7 @@ const FolderSources = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link to="/knowledge">
-              <ModernButton variant="ghost" size="sm" icon={ArrowLeft}>
-                Back to Folders
-              </ModernButton>
-            </Link>
+          <div className="flex items-center gap-4">          
             <div>
               <h1 className="text-2xl font-bold text-foreground">{folderName}</h1>
               <p className="text-muted-foreground">Knowledge sources for Agent {agentId}</p>
@@ -243,7 +238,7 @@ const FolderSources = () => {
         {/* Search */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
             <ModernInput
               variant="modern"
               placeholder="Search sources..."

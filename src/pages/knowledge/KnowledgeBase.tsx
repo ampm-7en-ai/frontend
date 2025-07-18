@@ -107,7 +107,7 @@ const KnowledgeBase = () => {
       {/* Search */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
           <ModernInput
             variant="modern"
             placeholder="Search folders..."
@@ -203,19 +203,7 @@ const KnowledgeBase = () => {
   );
 
   return (
-    <div className="container max-w-7xl mx-auto p-6">
-      {/* Breadcrumbs */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Knowledge Folders</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <div className="container max-w-7xl mx-auto p-6 pt-16">
       {renderMainView()}
     </div>
   );
