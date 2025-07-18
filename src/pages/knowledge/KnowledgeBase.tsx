@@ -1,13 +1,11 @@
 
 import React, { useState } from 'react';
-import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
+import { ModernCard, ModernCardContent } from '@/components/ui/modern-card';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Book, ChevronRight, Search, Bot, FolderOpen, FileText } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ChevronRight, Search, FolderOpen, MoreHorizontal } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { knowledgeApi } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
@@ -81,7 +79,6 @@ const KnowledgeBase = () => {
     refetchOnWindowFocus: false,
   });
 
-
   const filteredFolders = folders?.data?.filter((folder: any) => 
     folder.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
@@ -122,23 +119,25 @@ const KnowledgeBase = () => {
       </div>
 
       {/* Folders List */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {foldersLoading ? (
           // Modern Loading State
-          <div className="space-y-3">
+          <div className="space-y-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <ModernCard key={i} variant="glass" className="animate-pulse">
-                <ModernCardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-muted/50"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted/50 rounded w-1/3"></div>
-                      <div className="h-3 bg-muted/30 rounded w-1/4"></div>
+              <div key={i} className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 animate-pulse">
+                <div className="p-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-7 h-7 rounded-xl bg-muted/50"></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="h-4 bg-muted/50 rounded w-1/3 mb-1"></div>
+                        <div className="h-3 bg-muted/30 rounded w-1/4"></div>
+                      </div>
                     </div>
                     <div className="w-6 h-6 bg-muted/30 rounded"></div>
                   </div>
-                </ModernCardContent>
-              </ModernCard>
+                </div>
+              </div>
             ))}
           </div>
         ) : filteredFolders.length === 0 ? (
@@ -153,34 +152,50 @@ const KnowledgeBase = () => {
           </div>
         ) : (
           filteredFolders.map((folder, index) => (
-            <ModernCard 
-              key={folder.id} 
-              variant="glass"
-              className="group cursor-pointer hover:bg-card/70 transition-all duration-200 animate-fade-in"
+            <div 
+              key={folder.id}
+              className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => handleFolderClick(folder)}
             >
-              <ModernCardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                    <FolderOpen className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200 truncate">
-                      {folder.name}
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-sm text-muted-foreground">Agent {folder.agent}</span>
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(folder.created_at)}
-                      </span>
+              <div className="p-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="p-1.5 rounded-xl bg-gradient-to-br from-primary/80 to-primary">
+                      <FolderOpen className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate transition-colors duration-200">
+                          {folder.name}
+                        </h3>
+                      </div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                        Agent {folder.agent} • {formatDate(folder.created_at)}
+                      </div>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
+                        {formatDate(folder.updated_at)}
+                      </span>
+                    </div>
+                    <ModernButton
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle menu actions
+                      }}
+                    >
+                      <MoreHorizontal className="h-3 w-3 text-slate-500 dark:text-slate-400" />
+                    </ModernButton>
+                  </div>
                 </div>
-              </ModernCardContent>
-            </ModernCard>
+              </div>
+            </div>
           ))
         )}
       </div>

@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { ChevronRight, Search, FileText, Globe, Plus, ArrowLeft } from 'lucide-react';
+import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { knowledgeApi } from '@/utils/api-config';
@@ -161,7 +160,7 @@ const FolderSources = () => {
   const getStatusBadge = (status) => {
     const statusConfig = {
       'active': { label: 'Active', variant: 'success' },
-      'training': { label: 'Training', variant: 'warning' },
+      'training': { label: 'Training', variant: 'waiting' },
       'failed': { label: 'Failed', variant: 'destructive' },
       'pending': { label: 'Pending', variant: 'secondary' },
     };
@@ -172,12 +171,13 @@ const FolderSources = () => {
 
   const getFileInfo = (source) => {
     if (source.metadata) {
-      const { format, file_size, no_of_pages } = source.metadata;
+      const { format, file_size, no_of_pages, no_of_chars } = source.metadata;
       const parts = [];
       
-      if (format) parts.push(format.toUpperCase());
-      if (file_size) parts.push(`${Math.round(parseInt(file_size) / 1024)} KB`);
       if (no_of_pages) parts.push(`${no_of_pages} pages`);
+      if (no_of_chars) parts.push(`${no_of_chars.toLocaleString()} characters`);
+      if (format && !no_of_pages && !no_of_chars) parts.push(format.toUpperCase());
+      if (file_size && !no_of_pages && !no_of_chars) parts.push(`${Math.round(parseInt(file_size) / 1024)} KB`);
       
       return parts.join(' • ');
     }
@@ -255,23 +255,24 @@ const FolderSources = () => {
         </div>
 
         {/* Sources List */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {isLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <ModernCard key={i} variant="glass" className="animate-pulse">
-                  <ModernCardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-muted/50"></div>
-                      <div className="flex-1 space-y-3">
-                        <div className="h-4 bg-muted/50 rounded w-1/3"></div>
-                        <div className="h-3 bg-muted/30 rounded w-1/2"></div>
-                        <div className="h-3 bg-muted/30 rounded w-1/4"></div>
+                <div key={i} className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 animate-pulse">
+                  <div className="p-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-7 h-7 rounded-xl bg-muted/50"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="h-4 bg-muted/50 rounded w-1/3 mb-1"></div>
+                          <div className="h-3 bg-muted/30 rounded w-1/2"></div>
+                        </div>
                       </div>
                       <div className="w-16 h-6 bg-muted/30 rounded"></div>
                     </div>
-                  </ModernCardContent>
-                </ModernCard>
+                  </div>
+                </div>
               ))}
             </div>
           ) : filteredSources.length === 0 ? (
@@ -300,66 +301,52 @@ const FolderSources = () => {
             </div>
           ) : (
             filteredSources.map((source, index) => (
-              <ModernCard 
-                key={source.id} 
-                variant="glass"
-                className="group hover:bg-card/70 transition-all duration-200 animate-fade-in"
+              <div 
+                key={source.id}
+                className="text-card-foreground bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200 animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <ModernCardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-lg ${getIconBackground(source)} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200`}>
-                      {renderSourceIcon(source)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+                <div className="p-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`p-1.5 rounded-xl ${getIconBackground(source)}`}>
+                        {renderSourceIcon(source)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate transition-colors duration-200">
                             {source.title}
                           </h3>
-                          {source.file && (
-                            <p className="text-sm text-muted-foreground mt-1 truncate">
-                              {source.file.split('/').pop()}
-                            </p>
-                          )}
-                          {source.url && (
-                            <p className="text-sm text-muted-foreground mt-1 truncate">
-                              {source.url}
-                            </p>
-                          )}
-                          {source.plain_text && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Plain text content
-                            </p>
-                          )}
-                          {getFileInfo(source) && (
-                            <p className="text-xs text-muted-foreground/80 mt-2">
-                              {getFileInfo(source)}
-                            </p>
-                          )}
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                          {getStatusBadge(source.status)}
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                          {getFileInfo(source) || (source.url ? 'Web URL' : 'Plain text')}
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/30">
-                        <div className="flex items-center gap-4">
-                          <span className="text-xs text-muted-foreground">
-                            Selected: {source.is_selected ? 'Yes' : 'No'}
-                          </span>
-                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
-                          <span className="text-xs text-muted-foreground">
-                            ID: {source.id}
-                          </span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {source.training_status}
-                        </span>
                       </div>
                     </div>
+                    <div className="flex items-center px-4 min-w-0">
+                      {getStatusBadge(source.status)}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
+                          ID: {source.id}
+                        </span>
+                      </div>
+                      <ModernButton
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle menu actions
+                        }}
+                      >
+                        <MoreHorizontal className="h-3 w-3 text-slate-500 dark:text-slate-400" />
+                      </ModernButton>
+                    </div>
                   </div>
-                </ModernCardContent>
-              </ModernCard>
+                </div>
+              </div>
             ))
           )}
         </div>
