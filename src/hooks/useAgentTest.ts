@@ -283,6 +283,10 @@ export const useAgentTest = (initialAgentId: string) => {
           
           setMessages(prev => {
             const newMessages = [...prev];
+            // Ensure the array exists for this index
+            if (!newMessages[i] || !Array.isArray(newMessages[i])) {
+              newMessages[i] = [];
+            }
             newMessages[i] = [...newMessages[i], {
               ...message,
               id: Date.now() + i + 1,
