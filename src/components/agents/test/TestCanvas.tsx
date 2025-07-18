@@ -308,7 +308,7 @@ export const TestCanvas = ({
           </div>
 
           {/* Bottom Canvas - Chat Input */}
-          <div className="h-20 border-t bg-background/95 backdrop-blur-sm px-4 py-3">
+          <div className="h-24 border-t bg-background/95 backdrop-blur-sm px-4 py-4 flex-shrink-0">
             <ChatInput 
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}

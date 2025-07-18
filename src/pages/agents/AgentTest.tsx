@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { TestPageHeader } from '@/components/agents/test/TestPageHeader';
+
 import { TestPageToolbar } from '@/components/agents/test/TestPageToolbar';
 import { TestLeftPanel } from '@/components/agents/test/TestLeftPanel';
 import { TestCanvas } from '@/components/agents/test/TestCanvas';
@@ -73,16 +73,6 @@ export default function AgentTest() {
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
-        {/* Header */}
-        <TestPageHeader 
-          agents={[agent]}
-          selectedAgentId={selectedAgentId}
-          onAgentChange={handleAgentChange}
-          onClearChat={handleClearChat}
-          onViewKnowledgeSources={handleViewKnowledgeSources}
-          isLoading={false}
-        />
-
         {/* Toolbar */}
         <TestPageToolbar 
           selectedAgentId={selectedAgentId}

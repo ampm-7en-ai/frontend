@@ -58,9 +58,13 @@ export const ModelComparisonGrid = ({
     }
     
     // Auto-adjust grid based on number of cells
-    if (numCells <= 2) {
+    if (numCells === 1) {
+      return 'grid-cols-1 grid-rows-1'; // 1 cell full width and height
+    } else if (numCells === 2) {
       return 'grid-cols-2 grid-rows-1'; // 2 cells side by side, full height
-    } else if (numCells <= 4) {
+    } else if (numCells === 3) {
+      return 'grid-cols-3 grid-rows-1'; // 3 cells in one row, full height
+    } else if (numCells === 4) {
       return 'grid-cols-2 grid-rows-2'; // 2x2 grid, each cell takes 1/2 height
     } else if (numCells <= 6) {
       return 'grid-cols-3 grid-rows-2'; // 3x2 grid, each cell takes 1/2 height
@@ -210,6 +214,16 @@ export const ModelComparisonGrid = ({
       </Card>
     );
   };
+
+  if (cells.length === 0) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <p>No model cells available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`grid h-full w-full ${getGridClass()}`}>
