@@ -188,14 +188,14 @@ const FolderSources = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'active': { label: 'Active', variant: 'success' },
-      'training': { label: 'Training', variant: 'waiting' },
-      'failed': { label: 'Failed', variant: 'destructive' },
-      'pending': { label: 'Pending', variant: 'secondary' },
+      'active': { label: 'Active', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' },
+      'training': { label: 'Training', className: 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800' },
+      'failed': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
+      'pending': { label: 'Pending', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' },
     };
 
-    const config = statusConfig[status?.toLowerCase()] || { label: 'Unknown', variant: 'secondary' };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = statusConfig[status?.toLowerCase()] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
+    return <Badge className={`${config.className} text-xs font-medium`}>{config.label}</Badge>;
   };
 
   const getFileInfo = (source) => {
@@ -313,18 +313,18 @@ const FolderSources = () => {
         </div>
 
         {/* Sources List */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {isLoading ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
-                  <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 bg-muted/50 rounded-xl"></div>
+                <div key={i} className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-muted/50 rounded-xl"></div>
                     <div className="flex-1 min-w-0">
-                      <div className="h-5 bg-muted/50 rounded w-1/3 mb-2"></div>
-                      <div className="h-4 bg-muted/30 rounded w-1/2"></div>
+                      <div className="h-4 bg-muted/50 rounded w-1/3 mb-1"></div>
+                      <div className="h-3 bg-muted/30 rounded w-1/2"></div>
                     </div>
-                    <div className="w-6 h-6 bg-muted/30 rounded"></div>
+                    <div className="w-5 h-5 bg-muted/30 rounded"></div>
                   </div>
                 </div>
               ))}
@@ -357,34 +357,34 @@ const FolderSources = () => {
             filteredSources.map((source, index) => (
               <div 
                 key={source.id}
-                className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors duration-200 animate-fade-in"
+                className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors duration-200 animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
                   <div className="flex-shrink-0">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getIconBackground(source)}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getIconBackground(source)}`}>
                       {renderSourceIcon(source)}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-sm text-slate-900 dark:text-slate-100">
                         {source.title}
                       </h3>
                       {getStatusBadge(source.status)}
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                       {getFileInfo(source) || (source.url ? 'Web URL' : 'Plain text')} • {formatDate(source.metadata?.upload_date)}
                     </p>
                   </div>
-                  <div className="flex-shrink-0 flex items-center gap-2">
+                  <div className="flex-shrink-0 flex items-center gap-1">
                     {source.file && (
                       <ModernButton
                         variant="ghost"
                         size="sm"
                         icon={Download}
                         iconOnly={true}
-                        className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg"
+                        className="h-7 w-7 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDownload(source);
@@ -396,7 +396,7 @@ const FolderSources = () => {
                       size="sm"
                       icon={Trash2}
                       iconOnly={true}
-                      className="h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
+                      className="h-7 w-7 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(source);
