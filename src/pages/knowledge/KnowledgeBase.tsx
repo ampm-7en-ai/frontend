@@ -111,7 +111,7 @@ const KnowledgeBase = () => {
             placeholder="Search folders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 focus-visible:ring-ring"
           />
         </div>
       </div>
